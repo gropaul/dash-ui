@@ -1,8 +1,8 @@
 'use client';
 
-import {FileDrop} from "./file-drop";
+import {FileDrop} from "./base/input/file-drop";
 import React, {useContext} from "react";
-import {DuckDBConnectionContext, DuckDBContext} from "./duck-db-provider";
+import {DuckDBConnectionContext, DuckDBContext} from "./utils/duck-db-provider";
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {DuckDBDataProtocol} from '@duckdb/duckdb-wasm';
 import {Relation} from "@/model/relation";
@@ -20,7 +20,7 @@ interface State {
 export const useDuckDBConnection = () => useContext(DuckDBConnectionContext);
 export const useDuckDB = () => useContext(DuckDBContext);
 
-export function transferDuckDBJson(json: any): Relation {
+export function transferDuckDBJson(name: string, json: any): Relation {
     const firstRow = json[0];
     const columns = Object.keys(firstRow);
 
@@ -30,7 +30,7 @@ export function transferDuckDBJson(json: any): Relation {
     });
 
     return {
-        name: 'Query Result',
+        name: name,
         columns: columns.map((column) => {
             return {
                 name: column,
@@ -46,12 +46,13 @@ export async function onDropFiles(connection: duckdb.AsyncDuckDBConnection, db: 
     // read the file
 
     const pickedFile: File = files[0];
-    await db.registerFileHandle('local.csv', pickedFile, DuckDBDataProtocol.BROWSER_FILEREADER, true);
-
-    const createTableQuery = `CREATE TABLE t1 AS FROM read_csv('local.csv', AUTO_DETECT=TRUE);`;
+    const fileName = pickedFile.name;
+    await db.registerFileHandle(fileName, pickedFile, DuckDBDataProtocol.BROWSER_FILEREADER, true);
+    const tableName = fileName.split('.')[0];
+    const createTableQuery = `CREATE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}', AUTO_DETECT=TRUE);`;
     await connection.query(createTableQuery);
 
-    const query = `SELECT * FROM t1 LIMIT 20`;
+    const query = `SELECT * FROM ${tableName} LIMIT 50;`;
 
     const start = Date.now();
     const arrowResult = await connection.query(query);
@@ -60,7 +61,7 @@ export async function onDropFiles(connection: duckdb.AsyncDuckDBConnection, db: 
 
     const duration = Date.now() - start;
 
-    const relation = transferDuckDBJson(result);
+    const relation = transferDuckDBJson(fileName, result);
 
     return {executionDuration: duration, relation};
 }
@@ -87,11 +88,6 @@ export function Tmp(props: Props) {
                 });
             }}
         />
-
-        <div>
-            <h1>Table</h1>
-            <p>Execution duration: {state.executionDuration}</p>
-        </div>
 
     </div>;
 }

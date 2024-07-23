@@ -1,5 +1,5 @@
 import {Relation} from "@/model/relation";
-import {RowView} from "@/components/row-view";
+import {RowView} from "@/components/relation/row-view";
 import React from "react";
 
 export interface RelationViewPops {

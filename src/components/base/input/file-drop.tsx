@@ -55,12 +55,11 @@ export function FileDrop({ onDrop }: Props) {
                 justifyContent: "center",
                 alignItems: "center",
                 height: "50px",
-                width: "300px",
-                border: "1px dotted",
+                width: "100%",
                 backgroundColor: isOver ? "lightgray" : "white",
             }}
         >
-            Drag and drop some files here
+            Drop some files here
         </div>
     );
 }
