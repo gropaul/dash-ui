@@ -56,7 +56,7 @@ export function FileDrop({ onDrop }: Props) {
                 alignItems: "center",
                 height: "50px",
                 width: "100%",
-                backgroundColor: isOver ? "lightgray" : "white",
+                backgroundColor: isOver ? "rgba(0,0,0,0.05)" : undefined,
             }}
         >
             Drop some files here

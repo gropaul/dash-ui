@@ -3,11 +3,10 @@ import React from 'react';
 import { Layout, Model, TabNode } from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {RelationView} from "@/components/relation/relation-view";
-import {getTestRelation} from "@/model/relation";
-import {FileDrop} from "@/components/base/input/file-drop";
 import {Tmp} from "@/components/tmp";
 import {useRelationsState} from "@/state/relations.state";
-import {RelationListView} from "@/components/relation-list-view";
+import {RelationsOverview} from "@/components/relations-overview";
+import { Database } from 'lucide-react';
 
 const TabbedLayout: React.FC = () => {
 
@@ -29,30 +28,36 @@ const TabbedLayout: React.FC = () => {
         global: {
             splitterSize: 1,
             splitterExtra: 8,
+            enableRotateBorderIcons: false,
             enableEdgeDock: false,
         },
-        borders: [],
+        borders: [
+            {
+                type: 'border',
+                location: 'left',
+                size: 256,
+                barSize: 48,
+                enableDrop: false,
+                selected: 0,
+                children: [
+                    {
+                        type: 'tab',
+                        enableClose: false,
+                        enableRename: false,
+                        enableDrag: false,
+                        name: '',
+
+                        component: 'RelationList',
+                    }
+                ]
+            }
+        ],
         layout: {
             type: 'row',
             children: [
                 {
                     type: 'tabset',
-                    weight: 30,
-                    selected: 0,
-                    children: [
-                        {
-                            type: 'tab',
-                            name: 'Relations',
-                            component: 'TextComponent',
-                            config: {
-                                text: 'List of Relations'
-                            }
-                        },
-                    ]
-                },
-                {
-                    type: 'tabset',
-                    weight: 70,
+                    tabStripHeight: 32,
                     children: relationChildren
                 }
             ]
@@ -64,8 +69,8 @@ const TabbedLayout: React.FC = () => {
     const factory = (node: TabNode) => {
         const component = node.getComponent();
         // Render based on the component identifier
-        if (component === 'TextComponent') {
-            return <div><Tmp/><RelationListView/></div>;
+        if (component === 'RelationList') {
+            return <RelationsOverview/>;
         }
         if (component === 'RelationComponent') {
             return <RelationView relation={node.getConfig().relation}/>;
@@ -73,9 +78,20 @@ const TabbedLayout: React.FC = () => {
         return null; // Return null for unrecognized components
     };
 
+    const iconFactory = (node: TabNode) => {
+        const component = node.getComponent();
+        if (component === 'RelationList') {
+            // rotate icon 90 degrees, make sure it is square
+            return <div style={{width: 24, height: 24}}>
+                <Database size={24} style={{transform: 'rotate(90deg)'}}/>
+            </div>;
+        }
+        return null
+    }
+
     // Use the Layout component from FlexLayout
     return (
-        <Layout model={layoutModel} factory={factory} />
+        <Layout model={layoutModel} factory={factory} iconFactory={iconFactory}/>
     );
 };
 

@@ -49,10 +49,10 @@ export async function onDropFiles(connection: duckdb.AsyncDuckDBConnection, db: 
     const fileName = pickedFile.name;
     await db.registerFileHandle(fileName, pickedFile, DuckDBDataProtocol.BROWSER_FILEREADER, true);
     const tableName = fileName.split('.')[0];
-    const createTableQuery = `CREATE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}', AUTO_DETECT=TRUE);`;
+    const createTableQuery = `CREATE TABLE "${tableName}" AS SELECT * FROM read_csv('${fileName}', AUTO_DETECT=TRUE);`;
     await connection.query(createTableQuery);
 
-    const query = `SELECT * FROM ${tableName} LIMIT 50;`;
+    const query = `SELECT * FROM "${tableName}" LIMIT 50;`;
 
     const start = Date.now();
     const arrowResult = await connection.query(query);

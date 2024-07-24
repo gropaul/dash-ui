@@ -1,5 +1,6 @@
 .flexlayout__layout {
     --color-text: black;
+    --color-text-unselected: #616161;
     --color-background: white;
     --color-base: white;
     --color-1: #f7f7f7;
@@ -15,9 +16,9 @@
     --font-size: medium;
     --font-family: Inter, sans-serif;
     --color-overflow: gray;
-    --color-icon: gray;
+    --color-icon: #6b7290;
     --color-tabset-background: var(--color-background);
-    --color-tabset-background-selected: var(--color-1);
+    --color-tabset-background-selected: var(--color-base);
     --color-tabset-background-maximized: var(--color-6);
     --color-tabset-divider-line: var(--color-4);
     --color-tabset-header-background: var(--color-background);
@@ -26,7 +27,7 @@
     --color-border-divider-line: var(--color-4);
     --color-tab-selected: var(--color-text);
     --color-tab-selected-background: var(--color-background);
-    --color-tab-unselected: gray;
+    --color-tab-unselected: var(--color-text-unselected);
     --color-tab-unselected-background: transparent;
     --color-tab-textbox: var(--color-text);
     --color-tab-textbox-background: var(--color-3);
@@ -236,6 +237,7 @@
 .flexlayout__tab_button--selected {
     background-color: var(--color-tab-selected-background);
     color: var(--color-tab-selected);
+border-bottom: 2px solid var(--color-icon);
 }
 @media (hover: hover) {
     .flexlayout__tab_button:hover {
@@ -405,9 +407,10 @@
     align-items: center;
     cursor: pointer;
     padding: 3px 0.5em;
-    margin: 2px 0px;
+    margin: 4px;
     box-sizing: border-box;
     white-space: nowrap;
+    border-radius: 4px;
 }
 .flexlayout__border_button--selected {
     background-color: var(--color-border-tab-selected-background);

@@ -75,7 +75,9 @@ export default function DuckDbProvider({children}: DuckDBProviderProps) {
     }, []);
 
     if (!db) {
-        return <div>Loading...</div>;
+        return <div className="text-center w-full h-64 flex justify-center items-center">
+            <div>Loading ...</div>
+        </div>;
     }
 
     return (

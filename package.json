@@ -16,6 +16,7 @@
     "@heroicons/react": "^2.1.5",
     "flexlayout-react": "^0.7.15",
     "immutable": "^4.3.0",
+    "lucide-react": "^0.414.0",
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
