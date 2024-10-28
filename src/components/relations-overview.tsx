@@ -1,7 +1,6 @@
 'use client';
 
 import {useRelationsState} from "@/state/relations.state";
-import {Tmp} from "@/components/tmp";
 import React from "react";
 
 export function RelationsOverview() {
@@ -11,10 +10,9 @@ export function RelationsOverview() {
     // show a list of the tables, have a light grey background
     return (
         <div className="bg-gray-50 h-full">
-            <div style={{height: 32}} className="flex items-center p-2 border-gray-200 ">
-                <b>Relations</b>
+            <div style={{height: 32}} className=" uppercase flex items-center p-2 border-gray-200 font-bold">
+                Relations
             </div>
-            <Tmp/>
             <div className="border-t border-gray-200 dark:border-gray-700">
                 <ul>
                     {relation_names.map((name, index) => {

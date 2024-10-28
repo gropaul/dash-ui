@@ -7,6 +7,7 @@ interface RelationState {
     selectedRelationsIndex?: number,
 
     addRelation: (relation: Relation) => void,
+    addRelations: (relations: Relation[]) => void,
     selectRelation: (index: number) => void,
     removeRelation: (index: number) => void,
 }
@@ -18,6 +19,10 @@ export const useRelationsState = create<RelationState>((set) => ({
     addRelation: (relation: Relation) =>
         set((state) => ({
             relations: [...state.relations, {...relation, id: uuidv4()}],
+        })),
+    addRelations: (relations: Relation[]) =>
+        set((state) => ({
+            relations: [...state.relations, ...relations.map((relation) => ({...relation, id: uuidv4()}))],
         })),
 
     selectRelation: (index: number) =>

@@ -9,6 +9,7 @@ export interface Relation {
     rows: Row[]
 }
 
+
 export function getTestRelation() : Relation {
     return {
         name: 'Test Relation',

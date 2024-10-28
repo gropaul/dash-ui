@@ -3,7 +3,6 @@ import React from 'react';
 import { Layout, Model, TabNode } from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {RelationView} from "@/components/relation/relation-view";
-import {Tmp} from "@/components/tmp";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationsOverview} from "@/components/relations-overview";
 import { Database } from 'lucide-react';
@@ -91,7 +90,12 @@ const TabbedLayout: React.FC = () => {
 
     // Use the Layout component from FlexLayout
     return (
-        <Layout model={layoutModel} factory={factory} iconFactory={iconFactory}/>
+        <Layout
+            fontFamily={'Urbanist'}
+            model={layoutModel}
+            factory={factory}
+            iconFactory={iconFactory}
+        />
     );
 };
 

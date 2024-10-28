@@ -5,26 +5,40 @@ import { DragEvent, useState } from "react";
 
 interface Props {
     onDrop: (files: File[]) => void;
+    onOverUpdate?: (isOver: boolean, files: File[]) => void;
+    children?: React.ReactNode;
 }
 
-export function FileDrop({ onDrop }: Props) {
+export function FileDrop({ onDrop, children, onOverUpdate}: Props) {
     const [isOver, setIsOver] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
 
     // Define the event handlers
     const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
-        setIsOver(true);
+        const files = Array.from(event.dataTransfer.files);
+
+        if (!isOver) {
+            setIsOver(true);
+            onOverUpdate && onOverUpdate(true, files);
+        }
+
     };
 
     const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
-        setIsOver(false);
+        const files = Array.from(event.dataTransfer.files);
+
+        if (isOver) {
+            setIsOver(false);
+            onOverUpdate && onOverUpdate(false, files);
+        }
     };
 
     const handleDrop = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsOver(false);
+        onOverUpdate && onOverUpdate(false, []);
 
         // Fetch the files
         const droppedFiles = Array.from(event.dataTransfer.files);
@@ -50,16 +64,8 @@ export function FileDrop({ onDrop }: Props) {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "50px",
-                width: "100%",
-                backgroundColor: isOver ? "rgba(0,0,0,0.05)" : undefined,
-            }}
         >
-            Drop some files here
+            {children}
         </div>
     );
 }
