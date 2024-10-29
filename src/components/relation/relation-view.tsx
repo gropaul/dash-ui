@@ -41,12 +41,12 @@ export function RelationView(props: RelationViewProps) {
     return (
         <div className="relative overflow-y-auto h-full"> {/* Set a height for scrollable area */}
             <table
-                className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+                className="text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 w-fit"
                 style={{
                     tableLayout: "fixed",
                     borderCollapse: "collapse",}}
             >
-                <thead className="border-0 text-xs text-gray-700 uppercase bg-white dark:bg-black dark:text-gray-400 sticky top-0 z-20">
+                <thead className="border-0 text-s text-gray-700 bg-white dark:bg-black dark:text-gray-400 sticky top-0 z-20">
                 <tr>
                     {/* Row index column header, should fit the cells with*/}
                     <th

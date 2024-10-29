@@ -52,8 +52,6 @@ async function staticDuckDBBundles(): Promise<{
     // console.log("Query duration", duration);
     // console.log("Query result", result);
 
-
-
     return {db, connection};
 
 
