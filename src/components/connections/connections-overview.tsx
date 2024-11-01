@@ -18,13 +18,11 @@ export function ConnectionsOverview() {
             const [database, relation] = id_path;
             const query = `SELECT *
                            FROM ${database}.${relation} LIMIT 100`;
-            console.log(connection);
             executeQuery(connection.id, query).then((result) => {
                 addRelation({
                     name: `${database}.${relation}`,
                     columns: result.columns,
                     rows: result.rows,
-
                 });
             });
         }
@@ -32,7 +30,7 @@ export function ConnectionsOverview() {
 
     // show a list of the tables, have a light grey background
     return (
-        <div className="bg-gray-50 h-full">
+        <div className="bg-gray-50 h-full w-full overflow-hidden">
             <div style={{height: 32}} className=" uppercase flex items-center p-2 border-gray-200 font-bold">
                 Connections
             </div>

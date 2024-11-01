@@ -16,13 +16,8 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
     useEffect(() => {
         const duckDBLocal: DataConnection = getDuckDBLocalConnection();
         const id = duckDBLocal.id;
-        console.log("Before addConnection", duckDBLocal);
         addConnection(duckDBLocal);
-
-        console.log("After addConnection", getConnection(id));
-        updateDataSources(duckDBLocal.id).then((dataSources: DataSource[]) => {
-            console.log("After updateDataSources", getConnection(id));
-        });
+        updateDataSources(duckDBLocal.id);
 
     }, [addConnection]);
 

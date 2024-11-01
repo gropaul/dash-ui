@@ -39,9 +39,9 @@ export function RelationView(props: RelationViewProps) {
     }, [props.displayState]);
 
     return (
-        <div className="relative overflow-y-auto h-full"> {/* Set a height for scrollable area */}
+        <div className="relative overflow-y-auto h-full flex flex-row"> {/* Set a height for scrollable area */}
             <table
-                className="text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 w-fit"
+                className="text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 w-fit mr-32"
                 style={{
                     tableLayout: "fixed",
                     borderCollapse: "collapse",}}

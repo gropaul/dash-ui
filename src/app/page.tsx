@@ -1,7 +1,7 @@
 'use client';
 
-import TabbedLayout from "@/components/layout/tabbed-layout";
 import {FileDropRelation} from "@/components/file-drop-relation";
+import {TabbedLayout} from "@/components/layout/tabbed-layout";
 
 
 export default function Home() {

@@ -45,6 +45,8 @@ export function ColumnHead(props: ColumnHeadProps) {
     }
 
     function onMouseDown(event: React.MouseEvent) {
+        event.preventDefault(); // Prevent text selection
+
         initialX.current = event.clientX;
         initialWidth.current = displayState.columnStates[columnIndex].width;
         document.addEventListener('mousemove', onMouseMove);

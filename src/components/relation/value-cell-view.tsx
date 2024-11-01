@@ -13,6 +13,18 @@ export function ValueCellView(props: RowElementViewProps) {
     const columnWidth = columnState.width + 'px';
     const element = props.element;
 
+    let stringElement: string;
+    try {
+        if (element === null || element === undefined) {
+            stringElement = 'null';
+        } else {
+            stringElement = element.toString();
+        }
+    } catch (e) {
+        stringElement = 'Error';
+        console.error('Error converting element to string', element, e);
+    }
+
     return (
         <td
             className="px-4 py-1"
@@ -22,9 +34,9 @@ export function ValueCellView(props: RowElementViewProps) {
                 whiteSpace: wrapContent ? 'normal' : 'nowrap',
                 textOverflow: 'ellipsis',
             }}
-            title={element.toString()}
+            title={stringElement}
         >
-            {element.toString()}
+            {stringElement}
         </td>
     );
 }
