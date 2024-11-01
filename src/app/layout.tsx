@@ -2,9 +2,10 @@
 
 import {Urbanist} from "next/font/google";
 import "./globals.css";
-import DuckDbProvider from "@/components/utils/duck-db-provider";
+import DuckDbProvider from "@/components/provider/duck-db-provider";
+import ConnectionsProvider from "@/components/provider/connections-provider";
 
-const urbanist = Urbanist({subsets: ["latin"] });
+const urbanist = Urbanist({subsets: ["latin"]});
 
 export default function RootLayout({
                                        children,
@@ -16,15 +17,14 @@ export default function RootLayout({
         <body className={urbanist.className}>
         <main>
             <div className="w-screen h-screen app">
-                <DuckDbProvider>
-                    <div className="flex flex-row h-screen w-screen">
-
-                        {children}
-
-                    </div>
-                </DuckDbProvider>
+                <ConnectionsProvider>
+                    <DuckDbProvider>
+                        <div className="flex flex-row h-screen w-screen">
+                            {children}
+                        </div>
+                    </DuckDbProvider>
+                </ConnectionsProvider>
             </div>
-
         </main>
 
         </body>

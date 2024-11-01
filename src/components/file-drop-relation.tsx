@@ -1,8 +1,8 @@
 'use client';
 
-import {FileDrop} from "./base/input/file-drop";
+import {FileDrop} from "@/components/basics/input/file-drop";
 import React, {useContext} from "react";
-import {DuckDBConnectionContext, DuckDBContext} from "./utils/duck-db-provider";
+import {DuckDBConnectionContext, DuckDBContext} from "@/components/provider/duck-db-provider";
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {DuckDBDataProtocol} from '@duckdb/duckdb-wasm';
 import {Relation} from "@/model/relation";

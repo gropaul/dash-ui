@@ -1,11 +1,16 @@
 // Import FlexLayout components correctly
 import React from 'react';
-import { Layout, Model, TabNode } from 'flexlayout-react';
+import {Layout, Model, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {RelationView} from "@/components/relation/relation-view";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationsOverview} from "@/components/relations-overview";
-import { Database } from 'lucide-react';
+import {Database} from 'lucide-react';
+import {ConnectionsOverview} from "@/components/connections/connections-overview";
+
+import {Urbanist} from "next/font/google";
+
+const urbanist = Urbanist({subsets: ["latin"]});
 
 const TabbedLayout: React.FC = () => {
 
@@ -45,8 +50,15 @@ const TabbedLayout: React.FC = () => {
                         enableRename: false,
                         enableDrag: false,
                         name: '',
-
                         component: 'RelationList',
+                    },
+                    {
+                        type: 'tab',
+                        enableClose: false,
+                        enableRename: false,
+                        enableDrag: false,
+                        name: '',
+                        component: 'ConnectionList',
                     }
                 ]
             }
@@ -71,6 +83,10 @@ const TabbedLayout: React.FC = () => {
         if (component === 'RelationList') {
             return <RelationsOverview/>;
         }
+        if (component === 'ConnectionList') {
+            return <ConnectionsOverview/>;
+        }
+
         if (component === 'RelationComponent') {
             return <RelationView relation={node.getConfig().relation}/>;
         }
@@ -85,13 +101,21 @@ const TabbedLayout: React.FC = () => {
                 <Database size={24} style={{transform: 'rotate(90deg)'}}/>
             </div>;
         }
+        if (component === 'ConnectionList') {
+            return <div style={{width: 24, height: 24}}>
+                <Database size={24} style={{transform: 'rotate(90deg)'}}/>
+            </div>;
+        }
         return null
     }
 
     // Use the Layout component from FlexLayout
     return (
         <Layout
-            fontFamily={'Urbanist'}
+            fontFamily={urbanist.className}
+            font={{
+                size: '14px'
+            }}
             model={layoutModel}
             factory={factory}
             iconFactory={iconFactory}

@@ -20,7 +20,7 @@ export interface RelationViewProps {
 export function getInitialDisplayState(relation: Relation): RelationDisplayState {
     return {
         columnStates: relation.columns.map(() => ({
-            width: 300,
+            width: 192,
             wrapContent: false,
         })),
     };
