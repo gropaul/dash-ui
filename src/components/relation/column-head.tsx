@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {Column} from "@/model/column";
-import {Hash, Text} from 'lucide-react';
+import {Hash, Text, Calendar, ToggleLeft, CircleHelp} from 'lucide-react';
 import {RelationDisplayState} from "@/components/relation/relation-view";
 
 interface ColumnHeadProps {
@@ -10,17 +10,25 @@ interface ColumnHeadProps {
     setDisplayState: (state: RelationDisplayState) => void;
 }
 
-
 export function ColumnHeadIcon(column: Column) {
+    const iconSize = 16;
     switch (column.type) {
         case 'Integer':
-            return <Hash size={16}/>;
+            return <Hash size={iconSize}/>;
         case 'Float':
-            return <Hash size={16}/>;
+            return <Hash size={iconSize}/>;
         case 'String':
-            return <Text size={16}/>;
+            return <Text size={iconSize}/>;
+        case 'Boolean':
+            return <ToggleLeft size={iconSize}/>;
+        case 'Timestamp':
+            return <Calendar size={iconSize}/>;
         default:
-            return <Text size={16}/>;
+            console.warn(`Unknown column type: ${column.type}`);
+            return <CircleHelp size={iconSize}/>;
+
+
+
     }
 }
 
@@ -60,7 +68,7 @@ export function ColumnHead(props: ColumnHeadProps) {
                 {ColumnHeadIcon(column)}
             </div>
             <span
-                className="ml-2"
+                className="ml-2 font-semibold"
                 style={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}
                 title={column.name}
             >

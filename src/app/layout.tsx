@@ -1,11 +1,9 @@
 'use client';
 
-import {Urbanist} from "next/font/google";
 import "./globals.css";
 import DuckDbProvider from "@/components/provider/duck-db-provider";
 import ConnectionsProvider from "@/components/provider/connections-provider";
 
-const urbanist = Urbanist({subsets: ["latin"]});
 
 export default function RootLayout({
                                        children,
@@ -14,7 +12,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-        <body className={urbanist.className}>
+        <body>
         <main>
             <div className="w-screen h-screen app">
                 <ConnectionsProvider>

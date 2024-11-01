@@ -9,6 +9,7 @@ import {Relation} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 
 interface Props {
+    className?: string;
     children?: React.ReactNode;
 }
 
@@ -50,10 +51,13 @@ export async function onDropFiles(connection: duckdb.AsyncDuckDBConnection, db: 
         const fileName = file.name;
         await db.registerFileHandle(fileName, file, DuckDBDataProtocol.BROWSER_FILEREADER, true);
         const tableName = fileName.split('.')[0];
-        const createTableQuery = `CREATE TABLE "${tableName}" AS SELECT * FROM read_csv('${fileName}', AUTO_DETECT=TRUE);`;
+        const createTableQuery = `CREATE TABLE "${tableName}" AS
+        SELECT *
+        FROM read_csv('${fileName}', AUTO_DETECT = TRUE);`;
         await connection.query(createTableQuery);
 
-        const query = `SELECT * FROM "${tableName}" LIMIT 50;`;
+        const query = `SELECT *
+                       FROM "${tableName}" LIMIT 50;`;
         const arrowResult = await connection.query(query);
 
         // Convert arrow table to json
@@ -76,27 +80,27 @@ export function FileDropRelation(props: Props) {
 
     const addRelations = useRelationsState((state) => state.addRelations);
 
-    return <div>
-        <FileDrop
-            onDrop={(files) => {
-                onDropFiles(connection!, db!, files).then((newState) => {
-                    addRelations(newState);
-                });
-            }}
-            onOverUpdate={(isOver, files) => {
-                setState({
-                    fileIsHovered: isOver, hoveredFiles: files
-                });
-            }}
-        >
+    return <FileDrop
+        className={props.className}
+        onDrop={(files) => {
+            onDropFiles(connection!, db!, files).then((newState) => {
+                addRelations(newState);
+            });
+        }}
+        onOverUpdate={(isOver, files) => {
+            setState({
+                fileIsHovered: isOver, hoveredFiles: files
+            });
+        }}
+    >
 
-            {props.children}
-            {state.fileIsHovered ? <div
-                className="pointer-events-none absolute top-0 left-0 w-full h-full bg-white bg-opacity-50 flex">
-                <div className="text-s text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 m-auto p-4 rounded-lg">
-                    <b>Drop files here</b>
-                </div>
-            </div> : null}
-        </FileDrop>
-    </div>;
+        {props.children}
+        {state.fileIsHovered ? <div
+            className="pointer-events-none absolute top-0 left-0 w-full h-full bg-white bg-opacity-50 flex">
+            <div
+                className="text-s text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 m-auto p-4 rounded-lg">
+                <b>Drop files here</b>
+            </div>
+        </div> : null}
+    </FileDrop>
 }

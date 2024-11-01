@@ -8,12 +8,21 @@ import {
 import {getRows, iterateColumns, Relation} from "@/model/relation";
 import Error from "next/error";
 import {json} from "node:stream/consumers";
+import {duckDBTypeToValueType} from "@/model/value-type";
 
 export interface DuckDBLocalConfig {
     url: string;
     name: string;
     id: string;
 }
+
+function parseListString(listString: string): string[] {
+    // remove [ and ] from string
+    const listStringWithoutBrackets = listString.slice(1, -1);
+    return listStringWithoutBrackets.split(", ");
+
+}
+
 
 class DuckDBOverHttp implements DataConnection {
 
@@ -55,7 +64,7 @@ class DuckDBOverHttp implements DataConnection {
             columns: meta.map((column: any) => {
                 return {
                     name: column.name,
-                    type: column.type,
+                    type: duckDBTypeToValueType(column.type),
                 }
             }),
             rows
@@ -80,12 +89,20 @@ class DuckDBOverHttp implements DataConnection {
 
         iterateColumns(databases, ['database_name'], async ([database]) => {
             const rowsOfDatabase = rows.filter(([rowDatabase]) => rowDatabase === database);
-            const tables: DataSourceElement[] = rowsOfDatabase.map(([_, name, column_names, column_types]) => {
+
+
+            const tables: DataSourceElement[] = rowsOfDatabase.map(([_, name, column_names_string, column_types_string]) => {
+                // parse column types from string
+
+                const column_names = parseListString(column_names_string);
+                const column_types = parseListString(column_types_string);
+                const mappedTypes = column_types.map(duckDBTypeToValueType);
+
                 return {
                     type: 'relation',
                     name,
                     columnNames: column_names,
-                    columnTypes: column_types
+                    columnTypes: mappedTypes
                 }
             });
 

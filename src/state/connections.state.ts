@@ -1,7 +1,8 @@
-import create from "zustand";
+import {create} from "zustand";
 import { Relation } from "@/model/relation";
 import {TreeNode} from "@/components/basics/tree-explorer/tree-explorer";
 import {ConnectionsService} from "@/state/connections/connections-service";
+import { ValueType } from "@/model/value-type";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';
 export type DataSourceType = 'file' | 'relation';
@@ -11,7 +12,7 @@ export interface DataSourceElement extends TreeNode {
     type: DataSourceType;
     name: string;
     columnNames?: string[];
-    columnTypes?: string[];
+    columnTypes?: ValueType[];
 }
 
 export interface DataSourceGroup extends TreeNode {

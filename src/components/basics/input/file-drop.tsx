@@ -4,12 +4,13 @@ import { DragEvent, useState } from "react";
 
 
 interface Props {
+    className?: string;
     onDrop: (files: File[]) => void;
     onOverUpdate?: (isOver: boolean, files: File[]) => void;
     children?: React.ReactNode;
 }
 
-export function FileDrop({ onDrop, children, onOverUpdate}: Props) {
+export function FileDrop({ className, onDrop, children, onOverUpdate}: Props) {
     const [isOver, setIsOver] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
 
@@ -60,7 +61,7 @@ export function FileDrop({ onDrop, children, onOverUpdate}: Props) {
     };
 
     return (
-        <div
+        <div className={className}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}

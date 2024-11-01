@@ -1,6 +1,6 @@
-import create from "zustand";
 import {v4 as uuidv4} from "uuid";
 import {Relation} from "@/model/relation";
+import {create} from "zustand";
 
 interface RelationState {
     relations: Relation[],

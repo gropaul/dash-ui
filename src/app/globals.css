@@ -16,6 +16,17 @@
   }
 }
 
+@font-face {
+    font-family: 'Urbanist';
+    src: url('/fonts/Urbanist-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+body {
+  font-family: 'Urbanist', sans-serif;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
