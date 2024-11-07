@@ -10,7 +10,7 @@ interface RelationState {
 
     relations: RelationViewState[],
 
-    showRelation: (connectionId: string, relationId: string) => Promise<void>,
+    showRelation: (connectionId: string, databaseName: string | undefined, relationName: string) => Promise<void>,
     getRelation: (relationId: string) => RelationViewState | undefined,
     updateRelationDisplayRange: (relationId: string, offset: number, limit: number) => Promise<void>,
     closeRelation: (relationId: string) => void,
@@ -26,9 +26,9 @@ export const useRelationsState = create<RelationState>((set, get) => ({
 
     getRelation: (relationId: string) => get().relations.find((rel) => rel.id === relationId),
 
-    showRelation: async (connectionId: string, relationName: string) => {
+    showRelation: async (connectionId, databaseName, relationName) => {
 
-        const relationId = getRelationId(relationName, connectionId);
+        const relationId = getRelationId(relationName, databaseName, connectionId);
 
         // check if relation already exists
         const existingRelation = get().relations.find((rel) => rel.id === relationId);
@@ -36,7 +36,7 @@ export const useRelationsState = create<RelationState>((set, get) => ({
             focusRelationInLayout(get().layoutModel, existingRelation.id);
         } else {
 
-            const view = await getViewFromRelationName(relationName, connectionId);
+            const view = await getViewFromRelationName(relationName, databaseName, connectionId);
 
             set((state) => ({
                 relations: [...state.relations, {...view}],
@@ -48,14 +48,13 @@ export const useRelationsState = create<RelationState>((set, get) => ({
     },
 
     updateRelationDisplayRange: async (relationId: string, offset: number, limit: number) => {
-        console.log('Updating relation display range', relationId, offset, limit);
         const relation = get().relations.find((rel) => rel.id === relationId);
         if (!relation) {
             console.error(`Relation with id ${relationId} not found`);
             return;
         }
 
-        const updatedRelation = await getViewFromRelationName(relation.name, relation.connectionId, offset, limit);
+        const updatedRelation = await getViewFromRelationName(relation.name, relation.database, relation.connectionId, offset, limit);
         set((state) => ({
             relations: state.relations.map((rel) => {
                 if (rel.id === relationId) {

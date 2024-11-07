@@ -2,7 +2,6 @@ import {Relation} from "@/model/relation";
 import React from "react";
 import {RelationViewTable} from "@/components/relation/relation-view-table";
 import {RelationViewFooter} from "@/components/relation/relation-view-footer";
-import {RelationViewState} from "@/model/relation-view-state";
 import {useRelationsState} from "@/state/relations.state";
 
 export interface ColumnDisplayState {

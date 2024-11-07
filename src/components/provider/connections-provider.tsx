@@ -1,8 +1,9 @@
 'use client';
 
 import {useEffect} from "react";
-import {DataConnection, DataSource, useConnectionsState} from "@/state/connections.state";
+import {DataConnection, useConnectionsState} from "@/state/connections.state";
 import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
+import {getDuckDBWasmConnection} from "@/state/connections/duckdb-wasm";
 
 
 interface ConnectionsProviderProps {
@@ -11,15 +12,11 @@ interface ConnectionsProviderProps {
 
 export default function ConnectionsProvider({children}: ConnectionsProviderProps) {
 
-    const { addConnection, updateDataSources, getConnection } = useConnectionsState();
+    const {initialiseDefaultConnections} = useConnectionsState();
 
     useEffect(() => {
-        const duckDBLocal: DataConnection = getDuckDBLocalConnection();
-        const id = duckDBLocal.id;
-        addConnection(duckDBLocal);
-        updateDataSources(duckDBLocal.id);
-
-    }, [addConnection]);
+        initialiseDefaultConnections();
+    }, []);
 
     return (
         <div>

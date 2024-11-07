@@ -27,8 +27,6 @@ export function ColumnHeadIcon(column: Column) {
             console.warn(`Unknown column type: ${column.type}`);
             return <CircleHelp size={iconSize}/>;
 
-
-
     }
 }
 

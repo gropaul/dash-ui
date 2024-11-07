@@ -18,6 +18,7 @@ export function RelationViewFooter(props: RelationViewFooterProps) {
     // format the number with , e.g. 1,000,000
     let countText = props.relation.totalCount;
     const startIndex = props.relation.offset + 1;
+
     const endIndex = Math.min(props.relation.offset + props.relation.limit, props.relation.totalCount);
     const text = `Showing ${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(countText)}`;
 

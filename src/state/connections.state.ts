@@ -1,8 +1,11 @@
 import {create} from "zustand";
-import { Relation } from "@/model/relation";
+import {Relation, RelationData} from "@/model/relation";
 import {TreeNode} from "@/components/basics/tree-explorer/tree-explorer";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import { ValueType } from "@/model/value-type";
+import {ValueType} from "@/model/value-type";
+import {AsyncDuckDB, AsyncDuckDBConnection} from "@duckdb/duckdb-wasm";
+import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
+import {Column} from "@/model/column";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';
 export type DataSourceType = 'file' | 'relation';
@@ -11,8 +14,7 @@ export type DataGroupType = 'folder' | 'database';
 export interface DataSourceElement extends TreeNode {
     type: DataSourceType;
     name: string;
-    columnNames?: string[];
-    columnTypes?: ValueType[];
+    children: Column[];
 }
 
 export interface DataSourceGroup extends TreeNode {
@@ -23,32 +25,45 @@ export interface DataSourceGroup extends TreeNode {
 
 export type DataSource = DataSourceElement | DataSourceGroup;
 
+export type DataConnectionState = 'connected' | 'disconnected' | 'connecting';
+
 export interface DataConnection {
     id: string;
     name: string;
     type: DBConnectionType;
-    executeQuery: (query: string) => Promise<Relation>;
-    getDataSources: () => Promise<DataSource[]>;
     dataSources: DataSource[]; // Add dataSources here
+
+    executeQuery: (query: string) => Promise<RelationData>;
+    loadDataSources: () => Promise<DataSource[]>;
+
+    initialise: () => Promise<DataConnectionState>;
+    getConnectionState: () => Promise<DataConnectionState>;
 }
 
-interface DataConnectionsState {
+export interface DataConnectionsState {
     connections: { [key: string]: DataConnection };
 
+    initialiseDefaultConnections: () => void;
     addConnection: (connection: DataConnection) => void;
     getConnection: (connectionId: string) => DataConnection | undefined;
     removeConnection: (connectionId: string) => void;
 
     updateDataSources: (connectionId: string) => Promise<DataSource[]>;
     executeQuery: (connectionId: string, query: string) => Promise<any>;
+
+    getDuckDBWasmConnection: () => DuckDBWasm;
 }
 
 export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
     connections: {},
 
+    initialiseDefaultConnections: async () => {
+        const state = get();
+        return ConnectionsService.getInstance().initialiseDefaultConnections(state);
+    },
     addConnection: (connection) => {
         set((state) => ({
-            connections: { ...state.connections, [connection.id]: connection },
+            connections: {...state.connections, [connection.id]: connection},
         }));
         ConnectionsService.getInstance().addConnection(connection);
     },
@@ -60,9 +75,9 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
 
     removeConnection: (connectionId) =>
         set((state) => {
-            const connections = { ...state.connections };
+            const connections = {...state.connections};
             delete connections[connectionId];
-            return { connections };
+            return {connections};
         }),
 
     executeQuery: async (connectionId, query) => {
@@ -70,13 +85,13 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
     },
 
     updateDataSources: async (connectionId) => {
-        const connection = get().connections[connectionId];
+        const connection = ConnectionsService.getInstance().getConnection(connectionId);
         if (!connection) {
             throw new Error(`Connection with id ${connectionId} not found`);
         }
 
         // Fetch the new data sources
-        const dataSources = await connection.getDataSources();
+        const dataSources = await connection.loadDataSources();
 
         // Update only the dataSources property within the specified connection
         set((state) => ({
@@ -90,5 +105,9 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
         }));
 
         return dataSources;
+    },
+
+    getDuckDBWasmConnection: () => {
+        return ConnectionsService.getInstance().getDuckDBWasmConnection();
     },
 }));

@@ -1,5 +1,5 @@
 import {getRelationId, Relation} from "@/model/relation";
-import {DataConnection, useConnectionsState} from "@/state/connections.state";
+import {useConnectionsState} from "@/state/connections.state";
 
 export interface RelationViewState extends Relation {
     connectionId: string;
@@ -12,27 +12,28 @@ export interface RelationViewState extends Relation {
     limit: number;
 }
 
-export async function getViewFromRelationName(relationName: string, connectionId: string, offset: number = 0, limit: number = 100): Promise<RelationViewState> {
+export async function getViewFromRelationName(relationName: string, databaseName: string | undefined, connectionId: string, offset: number = 0, limit: number = 100): Promise<RelationViewState> {
 
     const executeQuery = useConnectionsState.getState().executeQuery;
-
+    const databasePrefix = databaseName ? `${databaseName}.` : '';
     const queryGetData = `SELECT *
-                          FROM ${relationName} OFFSET ${offset} LIMIT ${limit}`;
+                          FROM ${databasePrefix}"${relationName}"
+                          OFFSET ${offset} LIMIT ${limit}`;
 
     const relationData = await executeQuery(connectionId, queryGetData);
     const columns = relationData.columns;
     const rows = relationData.rows;
 
     const queryGetCount = `SELECT COUNT(*)
-                           FROM ${relationName}`;
+                           FROM ${databasePrefix}"${relationName}"`;
 
     const countData = await executeQuery(connectionId, queryGetCount);
-    const count = countData.rows[0][0];
-
+    const count = Number(countData.rows[0][0]);
 
     return {
         connectionId,
-        id: getRelationId(relationName, connectionId),
+        database: databaseName,
+        id: getRelationId(relationName, databaseName, connectionId),
         name: relationName,
         columns,
         rows,

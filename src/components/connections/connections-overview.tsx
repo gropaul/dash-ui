@@ -5,8 +5,6 @@ import React from "react";
 import {DataConnection, useConnectionsState} from "@/state/connections.state";
 import {TreeExplorer} from "@/components/basics/tree-explorer/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factories";
-import {getRelationId} from "@/model/relation";
-import {getViewFromRelationName} from "@/model/relation-view-state";
 
 export function ConnectionsOverview() {
 
@@ -16,24 +14,23 @@ export function ConnectionsOverview() {
     async function onElementClick(connection: DataConnection, id_path: string[]) {
         // if path has two elements, it’s a data source
         if (id_path.length === 2) {
-            const [database, relation] = id_path;
-            const relationName = `${database}.${relation}`;
-            await showRelation(connection.id, relationName);
+            const [databaseName, relationName] = id_path;
+            await showRelation(connection.id, databaseName, relationName);
         }
     }
 
     // show a list of the tables, have a light grey background
     return (
-        <div className="bg-gray-50 h-full w-full overflow-hidden">
+        <div className="bg-gray-50 h-full w-full">
             <div style={{height: 32}} className=" uppercase flex items-center p-2 border-gray-200 font-bold">
                 Connections
             </div>
-            <div className="border-t border-gray-200 dark:border-gray-700 overflow-y-auto h-fit max-h-full">
+            <div className="border-t border-gray-200 dark:border-gray-700 overflow-y-auto h-fit">
                 <ul>
                     {Object.values(connections).map((connection, index) => {
                         return <li
                             key={index}
-                            className="p-2 text-s border-b border-gray-200 dark:border-gray-700"
+                            className="p-2 text-s border-b border-gray-200 dark:border-gray-700 h-fit"
                         >
                             {connection.name}
                             <TreeExplorer
@@ -44,6 +41,7 @@ export function ConnectionsOverview() {
                         </li>
                     })}
                 </ul>
+                <div className={'h-16'}/>
             </div>
         </div>
 

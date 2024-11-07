@@ -1,12 +1,11 @@
 'use client';
 
 import {FileDrop} from "@/components/basics/input/file-drop";
-import React, {useContext} from "react";
-import {DuckDBConnectionContext, DuckDBContext} from "@/components/provider/duck-db-provider";
-import * as duckdb from '@duckdb/duckdb-wasm';
-import {DuckDBDataProtocol} from '@duckdb/duckdb-wasm';
-import {getRelationId, Relation} from "@/model/relation";
+import React from "react";
 import {useRelationsState} from "@/state/relations.state";
+import {useConnectionsState} from "@/state/connections.state";
+import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
+import {DUCK_DB_IN_MEMORY_DB} from "@/state/connections/duckdb-helper";
 
 interface Props {
     className?: string;
@@ -18,76 +17,39 @@ interface State {
     hoveredFiles?: File[];
 }
 
-export const useDuckDBConnection = () => useContext(DuckDBConnectionContext);
-export const useDuckDB = () => useContext(DuckDBContext);
-
-export function transferDuckDBJson(name: string, json: any): Relation {
-    const firstRow = json[0];
-    const columns = Object.keys(firstRow);
-
-    const rows = json.map((jsonRow: any) => {
-        // the row is the list of values of the json map
-        return columns.map((column) => jsonRow[column]);
-    });
-
-    return {
-        id: getRelationId('local', name),
-            name: name,
-        columns: columns.map((column) => {
-            return {
-                name: column,
-                type: 'String'
-            }
-        }),
-        rows
-    };
-}
-
-export async function onDropFiles(connection: duckdb.AsyncDuckDBConnection, db: duckdb.AsyncDuckDB, files: File[]): Promise<Relation[]> {
+export async function onDropFiles(duckDBWasm: DuckDBWasm, files: File[]): Promise<string[]> {
     // get the first file
     // read the file
-
-    const relations = [];
+    const relation_names = [];
     for (const file of files) {
-        const fileName = file.name;
-        await db.registerFileHandle(fileName, file, DuckDBDataProtocol.BROWSER_FILEREADER, true);
-        const tableName = fileName.split('.')[0];
-        const createTableQuery = `CREATE TABLE "${tableName}" AS
-        SELECT *
-        FROM read_csv('${fileName}', AUTO_DETECT = TRUE);`;
-        await connection.query(createTableQuery);
-
-        const query = `SELECT *
-                       FROM "${tableName}" LIMIT 50;`;
-        const arrowResult = await connection.query(query);
-
-        // Convert arrow table to json
-        const result = arrowResult.toArray().map((row: any) => row.toJSON());
-        const relation = transferDuckDBJson(fileName, result);
-
-        relations.push(relation);
-
+        const relation_name = await duckDBWasm.createTableFromBrowserFileHandler(file);
+        relation_names.push(relation_name);
     }
-    return relations;
+    return relation_names;
 }
 
 export function FileDropRelation(props: Props) {
 
-    const connection = useDuckDBConnection();
+    const getDuckDBWasm = useConnectionsState((state) => state.getDuckDBWasmConnection);
+    const showRelation = useRelationsState((state) => state.showRelation);
+    const updateDataSources = useConnectionsState((state) => state.updateDataSources);
 
-    const db = useDuckDB();
     // state
     const [state, setState] = React.useState<State>({fileIsHovered: false});
-
-    const showRelation = useRelationsState((state) => state.showRelation);
 
     return <FileDrop
         className={props.className}
         onDrop={(files) => {
-            onDropFiles(connection!, db!, files).then((newState) => {
-                newState.forEach((relation) => {
-                    showRelation(relation);
-                });
+            const duckDBWasm = getDuckDBWasm();
+            if (!duckDBWasm) {
+                console.error('DuckDB WASM connection not found');
+                throw new Error('DuckDB WASM connection not found');
+            }
+            onDropFiles(duckDBWasm, files).then(async (relation_names) => {
+                for (const relation_name of relation_names) {
+                    await showRelation(duckDBWasm.id, DUCK_DB_IN_MEMORY_DB, relation_name);
+                }
+                updateDataSources(duckDBWasm.id);
             });
         }}
         onOverUpdate={(isOver, files) => {

@@ -20,7 +20,9 @@ function TreeExplorerNode({ tree, iconFactory, tree_id_path, onClickCallback }: 
     const [isExpanded, setIsExpanded] = useState(false);
     const hasChildren = tree.children && tree.children.length > 0;
 
-    const toggleExpand = () => {
+    const toggleExpand = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (hasChildren) {
             setIsExpanded(!isExpanded);
         }
@@ -57,7 +59,7 @@ function TreeExplorerNode({ tree, iconFactory, tree_id_path, onClickCallback }: 
                     {iconFactory(tree.type)}
                 </div>
                 {/* Node name with flex-grow to use remaining space */}
-                <div className="flex-grow">
+                <div className="flex-grow whitespace-nowrap break-words">
                     {tree.name}
                 </div>
             </div>
@@ -91,7 +93,7 @@ export function TreeExplorer({tree, iconFactory, onClick}: TreeExplorerProps) {
     const trees = Array.isArray(tree) ? tree : [tree];
 
     return (
-        <>
+        <div className="h-fit">
             {trees.map((treeNode, index) => (
                 <TreeExplorerNode
                     tree_id_path={[]}
@@ -101,6 +103,6 @@ export function TreeExplorer({tree, iconFactory, onClick}: TreeExplorerProps) {
                     onClickCallback={onClick}
                 />
             ))}
-        </>
+        </div>
     );
 }

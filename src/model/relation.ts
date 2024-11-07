@@ -3,32 +3,46 @@ import {v4 as uuidv4} from "uuid";
 
 export type Row = any[]
 
-export interface Relation {
-    name: string,
-    id: string,
+export interface RelationData {
     columns: Column[]
     rows: Row[]
 }
 
-export function getRelationId(connectionId: string, relationName: string): string {
-    return 'relation-' + connectionId + '-' + relationName;
+export interface Relation extends RelationData {
+    database?: string,
+    name: string,
+    id: string,
+}
+
+export function getRelationId(connectionId: string, databaseName: string | undefined, relationName: string): string {
+    if (databaseName) {
+        return 'relation-' + connectionId + '-' + databaseName + '.' + relationName;
+    } else {
+        return 'relation-' + connectionId + '-' + relationName;
+    }
 }
 
 export function getColumnNames(relation: Relation): string[] {
     return relation.columns.map((column) => column.name);
 }
 
-export function getColumnIndices(relation: Relation, columns: string[]): number[] {
+export function getColumnIndices(relation: RelationData, columns: string[]): number[] {
     return columns.map((column) => {
         const index = relation.columns.findIndex((col) => col.name === column);
         if (index === -1) {
-            throw new Error(`Column ${column} not found in relation ${relation.name}`);
+            throw new Error(`Column ${column} not found in relation`);
         }
         return index;
     });
 }
 
-export function getRows(relation: Relation, columns: string[]): Row[] {
+export function getRows(relation: RelationData, columns: string[]): Row[] {
+
+    // return empty array if no columns are provided
+    if (relation.rows.length === 0) {
+        return [];
+    }
+
     const column_indices = getColumnIndices(relation, columns);
 
     return relation.rows.map((row) => {
@@ -36,7 +50,7 @@ export function getRows(relation: Relation, columns: string[]): Row[] {
     });
 }
 
-export function iterateColumns(relation: Relation, columns: string[], callback: (values: any[]) => void) {
+export function iterateColumns(relation: RelationData, columns: string[], callback: (values: any[]) => void) {
     const column_indices = getColumnIndices(relation, columns);
 
     relation.rows.forEach((row) => {
@@ -45,9 +59,10 @@ export function iterateColumns(relation: Relation, columns: string[], callback: 
     });
 }
 
-export function getTestRelation() : Relation {
+export function getTestRelation(): Relation {
     return {
-        id: getRelationId('Test Connection', 'Test Relation'),
+        id: getRelationId('Test Connection', 'Test Database', 'Test Relation'),
+        database: 'Test Database',
         name: 'Test Relation',
         columns: [
             {

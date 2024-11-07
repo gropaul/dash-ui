@@ -1,14 +1,15 @@
 import {
-    DataConnection,
+    DataConnection, DataConnectionState,
     DataSource,
     DataSourceElement,
     DataSourceGroup,
     DBConnectionType
 } from "@/state/connections.state";
-import {getRelationId, getRows, iterateColumns, Relation} from "@/model/relation";
+import {getRelationId, getRows, iterateColumns, Relation, RelationData} from "@/model/relation";
 import Error from "next/error";
 import {json} from "node:stream/consumers";
 import {duckDBTypeToValueType} from "@/model/value-type";
+import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
 
 export interface DuckDBLocalConfig {
     url: string;
@@ -16,9 +17,11 @@ export interface DuckDBLocalConfig {
     id: string;
 }
 
-function parseListString(listString: string): string[] {
+export function parseListString(listString: string): string[] {
     // remove [ and ] from string
+    console.log(listString);
     const listStringWithoutBrackets = listString.slice(1, -1);
+    console.log(listStringWithoutBrackets);
     return listStringWithoutBrackets.split(", ");
 
 }
@@ -40,7 +43,16 @@ class DuckDBOverHttp implements DataConnection {
         this.dataSources = [];
     }
 
-    async sendQuery(query: string): Promise<Relation> {
+    async sendPing(): Promise<boolean> {
+        try {
+            await this.sendQuery("SELECT 1;");
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async sendQuery(query: string): Promise<RelationData> {
         const requestURL = this.url + '?add_http_cors_header=1&default_format=JSONCompact';
         const response = await fetch(requestURL, {
             method: 'POST',
@@ -60,8 +72,6 @@ class DuckDBOverHttp implements DataConnection {
         const meta = json.meta; // contains column information, list of {name: string, type: string}
 
         return {
-            id: getRelationId("result"),
-            name: "result",
             columns: meta.map((column: any) => {
                 return {
                     name: column.name,
@@ -72,51 +82,23 @@ class DuckDBOverHttp implements DataConnection {
         }
     }
 
-    executeQuery(query: string): Promise<Relation> {
+    executeQuery(query: string): Promise<RelationData> {
         return this.sendQuery(query);
     }
 
-    async getDataSources(): Promise<DataSource[]> {
-        // first get all tables
-        const queryGetDatabases = `SHOW DATABASES`;
-        const databases = await this.executeQuery(queryGetDatabases);
-
-        const queryGetTables = `SHOW ALL TABLES;`;
-        const tables = await this.executeQuery(queryGetTables);
-
-        const rows = getRows(tables, ['database', 'name', 'column_names', 'column_types']);
-
-        const dataGroups: DataSourceGroup[] = [];
-
-        iterateColumns(databases, ['database_name'], async ([database]) => {
-            const rowsOfDatabase = rows.filter(([rowDatabase]) => rowDatabase === database);
-
-
-            const tables: DataSourceElement[] = rowsOfDatabase.map(([_, name, column_names_string, column_types_string]) => {
-                // parse column types from string
-
-                const column_names = parseListString(column_names_string);
-                const column_types = parseListString(column_types_string);
-                const mappedTypes = column_types.map(duckDBTypeToValueType);
-
-                return {
-                    type: 'relation',
-                    name,
-                    columnNames: column_names,
-                    columnTypes: mappedTypes
-                }
-            });
-
-            dataGroups.push({
-                type: 'database',
-                name: database,
-                children: tables
-            });
-        });
-        return dataGroups;
+    async loadDataSources(): Promise<DataSource[]> {
+        return loadDuckDBDataSources((query) => this.executeQuery(query));
     }
 
+    async getConnectionState(): Promise<DataConnectionState> {
+        const ok = await this.sendPing();
+        return ok ? 'connected' : 'disconnected';
+    }
 
+    initialise(): Promise<DataConnectionState> {
+        // no initialisation needed
+        return this.getConnectionState();
+    }
 }
 
 export function getDuckDBLocalConnection() {
