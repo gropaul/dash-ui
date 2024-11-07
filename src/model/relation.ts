@@ -5,6 +5,7 @@ export type Row = any[]
 
 export interface Relation {
     name: string,
+    id: string,
     columns: Column[]
     rows: Row[]
 }

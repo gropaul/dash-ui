@@ -1,38 +1,53 @@
 import {v4 as uuidv4} from "uuid";
 import {Relation} from "@/model/relation";
 import {create} from "zustand";
+import {Model} from "flexlayout-react";
+import {addRelationToLayout, getInitialModel} from "@/state/relations/layout-updates";
+
+interface RelationViewState extends Relation {
+
+}
 
 interface RelationState {
-    relations: Relation[],
-    selectedRelationsIndex?: number,
+    relations: RelationViewState[],
 
     addRelation: (relation: Relation) => void,
     addRelations: (relations: Relation[]) => void,
-    selectRelation: (index: number) => void,
-    removeRelation: (index: number) => void,
+    removeRelation: (relation: RelationViewState) => void,
+
+    layoutModel: Model;
+    getModel: () => Model;
+    setModel: (model: Model) => void;
 }
 
-export const useRelationsState = create<RelationState>((set) => ({
+export const useRelationsState = create<RelationState>((set, get) => ({
     relations: [],
     selectedRelationsIndex: undefined,
-
-    addRelation: (relation: Relation) =>
+    addRelation: (relation: Relation) => {
         set((state) => ({
-            relations: [...state.relations, {...relation, id: uuidv4()}],
-        })),
-    addRelations: (relations: Relation[]) =>
-        set((state) => ({
-            relations: [...state.relations, ...relations.map((relation) => ({...relation, id: uuidv4()}))],
-        })),
+            relations: [...state.relations, {...relation, tabId: uuidv4()}],
+        }));
 
-    selectRelation: (index: number) =>
+        const model = get().layoutModel;
+        addRelationToLayout(model, relation);
+    },
+
+    addRelations: (relations: Relation[]) => {
+        relations.forEach((relation) => get().addRelation(relation));
+    },
+
+    removeRelation: (relationToRemove: RelationViewState) => {
+        set((state) => ({
+            relations: state.relations.filter((rel: RelationViewState) => rel.id !== relationToRemove.id),
+        }));
+    },
+
+    getModel: () => get().layoutModel,
+    setModel: (model: Model) =>
         set(() => ({
-            selectedRelationsIndex: index,
-        })),
+                layoutModel: model,
+            }),
+        ),
 
-    removeRelation: (index: number) =>
-        set((state) => ({
-            relations: state.relations.filter((_, i) => i !== index),
-            selectedRelationsIndex: state.selectedRelationsIndex === index ? undefined : state.selectedRelationsIndex,
-        })),
+    layoutModel: getInitialModel({relations: []}),
 }));

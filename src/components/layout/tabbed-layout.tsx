@@ -9,16 +9,11 @@ import {ConnectionsOverview} from "@/components/connections/connections-overview
 import {Relation} from "@/model/relation";
 import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
 
-interface CurrentLayoutState {
-    relations: Relation[];
-}
-
-const TAB_GROUP_ID_RELATIONS = 'tab-group-relations';
 
 export function TabbedLayout() {
 
-    const relationsState = useRelationsState();
-    const model = getModel({relations: relationsState.relations});
+    const layoutModel = useRelationsState(state => state.layoutModel);
+
 
     function onLayoutChange(action: Action): Action | undefined {
         console.log(action);
@@ -31,7 +26,7 @@ export function TabbedLayout() {
                 font={{
                     size: '14px'
                 }}
-                model={model}
+                model={layoutModel}
                 factory={factory}
                 iconFactory={iconFactory}
                 onAction={onLayoutChange}
@@ -53,49 +48,6 @@ function getTabForRelation(relation: Relation): IJsonTabNode {
     };
 }
 
-function getModel(state: CurrentLayoutState): Model {
-    const relationChildren = state.relations.map(relation => getTabForRelation(relation));
-
-    return Model.fromJson({
-        global: {
-            splitterSize: 1,
-            splitterExtra: 8,
-            enableRotateBorderIcons: false,
-            enableEdgeDock: false,
-        },
-        borders: [
-            {
-                type: 'border',
-                location: 'left',
-                size: 256,
-                barSize: 48,
-                enableDrop: false,
-                selected: 0,
-                children: [
-                    {
-                        type: 'tab',
-                        enableClose: false,
-                        enableRename: false,
-                        enableDrag: false,
-                        name: '',
-                        component: 'ConnectionList',
-                    }
-                ]
-            }
-        ],
-        layout: {
-            type: 'row',
-            children: [
-                {
-                    type: 'tabset',
-                    tabStripHeight: 32,
-                    id: TAB_GROUP_ID_RELATIONS,
-                    children: relationChildren
-                }
-            ],
-        }
-    });
-}
 
 // Factory function to render components based on the component type
 const factory = (node: TabNode) => {
