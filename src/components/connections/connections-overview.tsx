@@ -5,26 +5,20 @@ import React from "react";
 import {DataConnection, useConnectionsState} from "@/state/connections.state";
 import {TreeExplorer} from "@/components/basics/tree-explorer/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factories";
+import {getRelationId} from "@/model/relation";
+import {getViewFromRelationName} from "@/model/relation-view-state";
 
 export function ConnectionsOverview() {
 
     const connections = useConnectionsState((state) => state.connections);
-    const executeQuery = useConnectionsState((state) => state.executeQuery);
-    const addRelation = useRelationsState((state) => state.addRelation);
+    const showRelation = useRelationsState((state) => state.showRelation);
 
-    function onElementClick(connection: DataConnection, id_path: string[]) {
+    async function onElementClick(connection: DataConnection, id_path: string[]) {
         // if path has two elements, it’s a data source
         if (id_path.length === 2) {
             const [database, relation] = id_path;
-            const query = `SELECT *
-                           FROM ${database}.${relation} LIMIT 100`;
-            executeQuery(connection.id, query).then((result) => {
-                addRelation({
-                    name: `${database}.${relation}`,
-                    columns: result.columns,
-                    rows: result.rows,
-                });
-            });
+            const relationName = `${database}.${relation}`;
+            await showRelation(connection.id, relationName);
         }
     }
 

@@ -1,23 +1,25 @@
-import { Relation } from "@/model/relation";
-import { RowView } from "@/components/relation/row-view";
+import {Relation} from "@/model/relation";
 import React from "react";
-import {ColumnHead, ColumnHeadWrapper} from "@/components/relation/column-head";
+import {RelationViewTable} from "@/components/relation/relation-view-table";
+import {RelationViewFooter} from "@/components/relation/relation-view-footer";
+import {RelationViewState} from "@/model/relation-view-state";
+import {useRelationsState} from "@/state/relations.state";
 
 export interface ColumnDisplayState {
     width: number;
     wrapContent: boolean;
 }
 
-export interface RelationDisplayState {
+export interface RelationTableViewState {
     columnStates: ColumnDisplayState[];
 }
 
 export interface RelationViewProps {
-    relation: Relation;
-    displayState?: RelationDisplayState;
+    relationId: string;
+    displayState?: RelationTableViewState;
 }
 
-export function getInitialDisplayState(relation: Relation): RelationDisplayState {
+export function getInitialDisplayState(relation: Relation): RelationTableViewState {
     return {
         columnStates: relation.columns.map(() => ({
             width: 192,
@@ -27,8 +29,15 @@ export function getInitialDisplayState(relation: Relation): RelationDisplayState
 }
 
 export function RelationView(props: RelationViewProps) {
-    const [localState, setLocalState] = React.useState<RelationDisplayState>(
-        props.displayState || getInitialDisplayState(props.relation)
+
+    const relation = useRelationsState((state) => state.getRelation(props.relationId));
+
+    if (!relation) {
+        return <div>Relation not found: {props.relationId}</div>;
+    }
+
+    const [localState, setLocalState] = React.useState<RelationTableViewState>(
+        props.displayState || getInitialDisplayState(relation)
     );
 
     // Update local state when display state changes
@@ -39,45 +48,11 @@ export function RelationView(props: RelationViewProps) {
     }, [props.displayState]);
 
     return (
-        <div className="relative overflow-y-auto h-full flex flex-row"> {/* Set a height for scrollable area */}
-            <table
-                className="text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 w-fit mr-32"
-                style={{
-                    tableLayout: "fixed",
-                    borderCollapse: "collapse",}}
-            >
-                <thead className="border-0 text-s text-gray-700 bg-white dark:bg-black dark:text-gray-400 sticky top-0 z-20">
-                <tr>
-                    {/* Row index column header, should fit the cells with*/}
-                    <th
-                        scope="col"
-                        className="p-0 m-0 h-8 sticky left-0 z-10 bg-white dark:bg-black dark:text-gray-400"
-                        style={{width: '64px', overflow: 'hidden'}}
-                    >
-                        <div
-                            className="w-full h-full absolute right-0 top-0 z-50 border-r border-b border-gray-700 dark:border-gray-700"
-                        />
-
-
-                    </th>
-                    {/* Column headers */}
-                    {props.relation.columns.map((column, index) => (
-                        <ColumnHead
-                            key={index}
-                            column={column}
-                            columnIndex={index}
-                            displayState={localState}
-                            setDisplayState={setLocalState}
-                        />
-                    ))}
-                </tr>
-                </thead>
-                <tbody>
-                    {props.relation.rows.map((row, index) => (
-                        <RowView key={index} rowIndex={index} row={row} displayState={localState}/>
-                    ))}
-                </tbody>
-            </table>
+        <div className="flex flex-col w-full h-full">
+            <div className="relative overflow-y-auto flex-1 flex flex-row"> {/* Set a height for scrollable area */}
+                <RelationViewTable relation={relation} displayState={localState} setDisplayState={setLocalState}/>
+            </div>
+            <RelationViewFooter relation={relation}/>
         </div>
     );
 }

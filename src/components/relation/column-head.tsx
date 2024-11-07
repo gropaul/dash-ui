@@ -1,13 +1,13 @@
 import React, {useRef} from 'react';
 import {Column} from "@/model/column";
 import {Hash, Text, Calendar, ToggleLeft, CircleHelp} from 'lucide-react';
-import {RelationDisplayState} from "@/components/relation/relation-view";
+import {RelationTableViewState} from "@/components/relation/relation-view";
 
 interface ColumnHeadProps {
     column: Column;
     columnIndex: number;
-    displayState: RelationDisplayState;
-    setDisplayState: (state: RelationDisplayState) => void;
+    displayState: RelationTableViewState;
+    setDisplayState: (state: RelationTableViewState) => void;
 }
 
 export function ColumnHeadIcon(column: Column) {

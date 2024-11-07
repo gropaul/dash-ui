@@ -1,5 +1,5 @@
-import {Property} from "csstype";
 import {Column} from "@/model/column";
+import {v4 as uuidv4} from "uuid";
 
 export type Row = any[]
 
@@ -8,6 +8,10 @@ export interface Relation {
     id: string,
     columns: Column[]
     rows: Row[]
+}
+
+export function getRelationId(connectionId: string, relationName: string): string {
+    return 'relation-' + connectionId + '-' + relationName;
 }
 
 export function getColumnNames(relation: Relation): string[] {
@@ -41,10 +45,9 @@ export function iterateColumns(relation: Relation, columns: string[], callback: 
     });
 }
 
-
-
 export function getTestRelation() : Relation {
     return {
+        id: getRelationId('Test Connection', 'Test Relation'),
         name: 'Test Relation',
         columns: [
             {
@@ -64,3 +67,4 @@ export function getTestRelation() : Relation {
         ]
     }
 }
+

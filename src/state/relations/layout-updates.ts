@@ -1,17 +1,18 @@
-import {Model, Actions, DockLocation} from "flexlayout-react";
+import {Actions, DockLocation, Model, Action} from "flexlayout-react";
 import {Relation} from "@/model/relation";
 import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
-import {RelationViewState} from "@/state/relations.state";
+import {useRelationsState} from "@/state/relations.state";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 interface CurrentLayoutState {
     relations: Relation[];
 }
 
-export function getInitialModel(state: CurrentLayoutState): Model {
+export function getInitialLayoutModel(state: CurrentLayoutState): Model {
     const relationChildren = state.relations.map(relation => getTabForRelation(relation));
 
-    const model = Model.fromJson({
+    return Model.fromJson({
         global: {
             splitterSize: 1,
             splitterExtra: 8,
@@ -49,16 +50,30 @@ export function getInitialModel(state: CurrentLayoutState): Model {
             ],
         }
     });
-
-    model.close
-    return model;
 }
 
+
+export function onLayoutModelChange(action: Action): Action | undefined {
+
+    // get relations state
+    const state = useRelationsState.getState();
+
+    if (action.type === "FlexLayout_DeleteTab") {
+        const removedId = action.data.node;
+        state.closeRelation(removedId);
+    }
+
+    return action;
+}
+
+
+export function focusRelationInLayout(model: Model, relationId: string): void {
+    model.doAction(Actions.selectTab(relationId));
+}
 
 export function addRelationToLayout(
     model: Model,
     relation: RelationViewState,
-    removeRelation: (relation: RelationViewState) => void
 ): void {
 
     let id: string | undefined;
@@ -75,9 +90,6 @@ export function addRelationToLayout(
     }
 
     const relationTab = getTabForRelation(relation);
-    relationTab.setEventListener('close', () => {
-
-    });
     model.doAction(Actions.addNode(relationTab, id, DockLocation.CENTER, -1));
 }
 
@@ -86,10 +98,10 @@ function getTabForRelation(relation: Relation): IJsonTabNode {
     return {
         type: 'tab',
         name: relation.name,
-        id: `relation-${relation.name}`,
+        id: relation.id,
         component: 'RelationComponent',
         config: {
-            relation: relation
+            relationId: relation.id,
         }
     };
 }

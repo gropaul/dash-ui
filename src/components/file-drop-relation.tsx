@@ -5,7 +5,7 @@ import React, {useContext} from "react";
 import {DuckDBConnectionContext, DuckDBContext} from "@/components/provider/duck-db-provider";
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {DuckDBDataProtocol} from '@duckdb/duckdb-wasm';
-import {Relation} from "@/model/relation";
+import {getRelationId, Relation} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 
 interface Props {
@@ -31,7 +31,8 @@ export function transferDuckDBJson(name: string, json: any): Relation {
     });
 
     return {
-        name: name,
+        id: getRelationId('local', name),
+            name: name,
         columns: columns.map((column) => {
             return {
                 name: column,
@@ -78,13 +79,15 @@ export function FileDropRelation(props: Props) {
     // state
     const [state, setState] = React.useState<State>({fileIsHovered: false});
 
-    const addRelations = useRelationsState((state) => state.addRelations);
+    const showRelation = useRelationsState((state) => state.showRelation);
 
     return <FileDrop
         className={props.className}
         onDrop={(files) => {
             onDropFiles(connection!, db!, files).then((newState) => {
-                addRelations(newState);
+                newState.forEach((relation) => {
+                    showRelation(relation);
+                });
             });
         }}
         onOverUpdate={(isOver, files) => {

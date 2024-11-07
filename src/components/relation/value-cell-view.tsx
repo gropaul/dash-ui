@@ -1,10 +1,10 @@
-import {RelationDisplayState} from "@/components/relation/relation-view";
+import {RelationTableViewState} from "@/components/relation/relation-view";
 
 
 interface RowElementViewProps {
     element: any,
     index: number,
-    displayState: RelationDisplayState
+    displayState: RelationTableViewState
 }
 
 export function ValueCellView(props: RowElementViewProps) {

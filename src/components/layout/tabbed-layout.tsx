@@ -3,25 +3,19 @@ import {Action, Layout, Model, TabNode, Actions, DockLocation} from 'flexlayout-
 import '@/styles/tabs.css';
 import {RelationView} from "@/components/relation/relation-view";
 import {useRelationsState} from "@/state/relations.state";
-import {RelationsOverview} from "@/components/relations-overview";
 import {Database, X} from 'lucide-react';
 import {ConnectionsOverview} from "@/components/connections/connections-overview";
 import {Relation} from "@/model/relation";
 import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
+import {onLayoutModelChange} from "@/state/relations/layout-updates";
 
 
 export function TabbedLayout() {
 
     const layoutModel = useRelationsState(state => state.layoutModel);
 
-
-    function onLayoutChange(action: Action): Action | undefined {
-        console.log(action);
-        return action;
-    }
-
     return (
-        <div className="h-full w-full relative">
+        <div className="relative h-full w-full">
             <Layout
                 font={{
                     size: '14px'
@@ -29,7 +23,7 @@ export function TabbedLayout() {
                 model={layoutModel}
                 factory={factory}
                 iconFactory={iconFactory}
-                onAction={onLayoutChange}
+                onAction={onLayoutModelChange}
             />
         </div>
     );
@@ -52,14 +46,11 @@ function getTabForRelation(relation: Relation): IJsonTabNode {
 // Factory function to render components based on the component type
 const factory = (node: TabNode) => {
     const component = node.getComponent();
-    if (component === 'RelationList') {
-        return <RelationsOverview/>;
-    }
     if (component === 'ConnectionList') {
         return <ConnectionsOverview/>;
     }
     if (component === 'RelationComponent') {
-        return <RelationView relation={node.getConfig().relation}/>;
+        return <RelationView relationId={node.getConfig().relationId}/>;
     }
     return null;
 };

@@ -5,7 +5,7 @@ import {
     DataSourceGroup,
     DBConnectionType
 } from "@/state/connections.state";
-import {getRows, iterateColumns, Relation} from "@/model/relation";
+import {getRelationId, getRows, iterateColumns, Relation} from "@/model/relation";
 import Error from "next/error";
 import {json} from "node:stream/consumers";
 import {duckDBTypeToValueType} from "@/model/value-type";
@@ -60,7 +60,8 @@ class DuckDBOverHttp implements DataConnection {
         const meta = json.meta; // contains column information, list of {name: string, type: string}
 
         return {
-            name: "Result",
+            id: getRelationId("result"),
+            name: "result",
             columns: meta.map((column: any) => {
                 return {
                     name: column.name,

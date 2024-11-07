@@ -1,19 +1,19 @@
 import {v4 as uuidv4} from "uuid";
-import {Relation} from "@/model/relation";
+import {getRelationId, Relation} from "@/model/relation";
 import {create} from "zustand";
 import {Model} from "flexlayout-react";
-import {addRelationToLayout, getInitialModel} from "@/state/relations/layout-updates";
+import {addRelationToLayout, focusRelationInLayout, getInitialLayoutModel} from "@/state/relations/layout-updates";
+import {getViewFromRelationName, RelationViewState} from "@/model/relation-view-state";
 
-interface RelationViewState extends Relation {
-
-}
 
 interface RelationState {
+
     relations: RelationViewState[],
 
-    addRelation: (relation: Relation) => void,
-    addRelations: (relations: Relation[]) => void,
-    removeRelation: (relation: RelationViewState) => void,
+    showRelation: (connectionId: string, relationId: string) => Promise<void>,
+    getRelation: (relationId: string) => RelationViewState | undefined,
+    updateRelationDisplayRange: (relationId: string, offset: number, limit: number) => Promise<void>,
+    closeRelation: (relationId: string) => void,
 
     layoutModel: Model;
     getModel: () => Model;
@@ -23,23 +23,55 @@ interface RelationState {
 export const useRelationsState = create<RelationState>((set, get) => ({
     relations: [],
     selectedRelationsIndex: undefined,
-    addRelation: (relation: Relation) => {
-        set((state) => ({
-            relations: [...state.relations, {...relation, tabId: uuidv4()}],
-        }));
 
-        const model = get().layoutModel;
-        addRelationToLayout(model, relation);
+    getRelation: (relationId: string) => get().relations.find((rel) => rel.id === relationId),
+
+    showRelation: async (connectionId: string, relationName: string) => {
+
+        const relationId = getRelationId(relationName, connectionId);
+
+        // check if relation already exists
+        const existingRelation = get().relations.find((rel) => rel.id === relationId);
+        if (existingRelation) {
+            focusRelationInLayout(get().layoutModel, existingRelation.id);
+        } else {
+
+            const view = await getViewFromRelationName(relationName, connectionId);
+
+            set((state) => ({
+                relations: [...state.relations, {...view}],
+            }));
+
+            const model = get().layoutModel;
+            addRelationToLayout(model, view);
+        }
     },
 
-    addRelations: (relations: Relation[]) => {
-        relations.forEach((relation) => get().addRelation(relation));
+    updateRelationDisplayRange: async (relationId: string, offset: number, limit: number) => {
+        console.log('Updating relation display range', relationId, offset, limit);
+        const relation = get().relations.find((rel) => rel.id === relationId);
+        if (!relation) {
+            console.error(`Relation with id ${relationId} not found`);
+            return;
+        }
+
+        const updatedRelation = await getViewFromRelationName(relation.name, relation.connectionId, offset, limit);
+        set((state) => ({
+            relations: state.relations.map((rel) => {
+                if (rel.id === relationId) {
+                    return updatedRelation;
+                }
+                return rel;
+            }),
+        }));
     },
 
-    removeRelation: (relationToRemove: RelationViewState) => {
+    closeRelation: (relationId: string) => {
         set((state) => ({
-            relations: state.relations.filter((rel: RelationViewState) => rel.id !== relationToRemove.id),
+            relations: state.relations.filter((rel: RelationViewState) => rel.id !== relationId),
         }));
+
+        console.log('Open relations:', get().relations);
     },
 
     getModel: () => get().layoutModel,
@@ -49,5 +81,5 @@ export const useRelationsState = create<RelationState>((set, get) => ({
             }),
         ),
 
-    layoutModel: getInitialModel({relations: []}),
+    layoutModel: getInitialLayoutModel({relations: []}),
 }));

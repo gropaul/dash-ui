@@ -1,5 +1,5 @@
 import { Row } from "@/model/relation";
-import { RelationDisplayState } from "@/components/relation/relation-view";
+import { RelationTableViewState } from "@/components/relation/relation-view";
 import { ValueCellView } from "@/components/relation/value-cell-view";
 
 import { Sometype_Mono } from "next/font/google";
@@ -9,7 +9,7 @@ const fontMono = Sometype_Mono({ subsets: ["latin"], weight: "400" });
 export interface RowViewProps {
     rowIndex: number;
     row: Row;
-    displayState: RelationDisplayState;
+    displayState: RelationTableViewState;
 }
 
 export function RowView(props: RowViewProps) {
