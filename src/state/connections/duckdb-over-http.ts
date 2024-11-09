@@ -118,6 +118,7 @@ class DuckDBOverHttp implements DataConnection {
             const token = this.config.token!;
             headers['X-API-Key'] = token;
         } else if (this.config.authentication !== 'none') {
+            // @ts-ignore
             throw new Error(`Unsupported authentication type: ${this.config.authentication}`);
         }
 
@@ -128,6 +129,7 @@ class DuckDBOverHttp implements DataConnection {
         });
 
         if (!response.ok) {
+            // @ts-ignore
             throw new Error(`Failed to execute query: ${response.statusText}`);
         }
 

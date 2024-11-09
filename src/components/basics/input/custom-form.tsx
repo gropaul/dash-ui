@@ -1,4 +1,5 @@
 import { useState } from "react";
+import {Eye, EyeOff} from "lucide-react";
 
 export interface FormDefinition {
     fields: FormField[];
@@ -122,11 +123,9 @@ export function CustomForm({ formDefinition, onSubmit, onCancel, initialFormData
                             </select>
                         )}
                         {field.type === 'password' && (
-                            <input
-                                type="password"
+                            <PasswordField
                                 value={formData[field.key]}
-                                onChange={(e) => handleChange(field.key, e.target.value)}
-                                className="block w-full border-b border-gray-300 focus:border-indigo-500 focus:ring-0 sm:text-sm"
+                                onChange={(value) => handleChange(field.key, value)}
                             />
                         )}
                         {errors[field.key] && (
@@ -150,5 +149,37 @@ export function CustomForm({ formDefinition, onSubmit, onCancel, initialFormData
                 Save
             </button>
         </form>
+    );
+}
+
+
+interface PasswordFieldProps {
+    value: string;
+    onChange: (value: string) => void;
+}
+
+export function PasswordField({ value, onChange }: PasswordFieldProps) {
+    const [showPassword, setShowPassword] = useState(false);
+
+    const toggleShowPassword = () => {
+        setShowPassword((prev) => !prev);
+    };
+
+    return (
+        <div className="relative">
+            <input
+                type={showPassword ? "text" : "password"}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="block w-full border-b border-gray-300 focus:border-indigo-500 focus:ring-0 sm:text-sm"
+            />
+            <button
+                type="button"
+                onClick={toggleShowPassword}
+                className="absolute inset-y-0 right-0 pr-0.5 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+        </div>
     );
 }

@@ -94,6 +94,7 @@ export class DuckDBWasm implements DataConnection {
     async createTableFromBrowserFileHandler(file: File): Promise<string> {
 
         if (!this.db || !this.connection) {
+            // @ts-ignore
             throw new Error("DuckDB WASM not initialised");
         }
 
