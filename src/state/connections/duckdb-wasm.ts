@@ -8,35 +8,50 @@ import {
     DBConnectionType
 } from "@/state/connections.state";
 import {getRelationId, getRows, iterateColumns, Relation} from "@/model/relation";
-import {duckDBTypeToValueType} from "@/model/value-type";
-import {parseListString} from "@/state/connections/duckdb-over-http";
 import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
-import {id} from "postcss-selector-parser";
 import Error from "next/error";
+import {FormDefinition} from "@/components/basics/input/custom-form";
 
 export const DUCKDB_WASM_ID = 'duckdb-wasm';
 
 export function getDuckDBWasmConnection(): DataConnection {
-    return new DuckDBWasm(DUCKDB_WASM_ID, 'DuckDB WASM');
+    return new DuckDBWasm(DUCKDB_WASM_ID, {name: 'DuckDB WASM'});
+}
+
+export interface DuckDBWasmConfig {
+    name: string;
+
+    [key: string]: string | number | boolean | undefined; // index signature
 }
 
 export class DuckDBWasm implements DataConnection {
+
     id: string;
-    name: string;
     type: DBConnectionType;
-    configuration: DataConnectionConfig;
 
     dataSources: DataSource[];
 
     db?: duckdb.AsyncDuckDB;
     connection?: AsyncDuckDBConnection;
 
-    constructor(id: string, name: string) {
+    config: DuckDBWasmConfig;
+    configForm: FormDefinition = {
+        fields: [
+            {
+                type: 'text',
+                label: 'Name',
+                key: 'name',
+                required: true
+            }
+        ]
+    }
+
+    constructor(id: string, config: DuckDBWasmConfig) {
         this.id = id;
-        this.name = name;
+
         this.type = 'duckdb-wasm';
         this.dataSources = [];
-        this.configuration = {};
+        this.config = config;
     }
 
     async initialise(): Promise<DataConnectionState> {
@@ -86,7 +101,9 @@ export class DuckDBWasm implements DataConnection {
         const tableName = fileName
 
         // check if table already exists, if so return the table name
-        const findTableQuery = `SELECT * FROM information_schema.tables WHERE table_name = '${tableName}';`;
+        const findTableQuery = `SELECT *
+                                FROM information_schema.tables
+                                WHERE table_name = '${tableName}';`;
         const result = await this.executeQuery(findTableQuery);
         if (result.rows.length > 0) {
             return tableName;
@@ -103,7 +120,6 @@ export class DuckDBWasm implements DataConnection {
         await this.connection.query(createTableQuery);
         return tableName;
     }
-
 }
 
 

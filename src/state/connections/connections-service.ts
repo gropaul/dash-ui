@@ -40,6 +40,13 @@ export class ConnectionsService {
         return this.connections[DUCKDB_WASM_ID] as DuckDBWasm
     }
 
+    updateConfig(connectionId: string, config: any) {
+        const connection = this.connections[connectionId];
+        if (!connection) {
+            throw new Error(`Connection with id ${connectionId} not found`);
+        }
+        connection.config = config;
+    }
 
     async initialiseDefaultConnections(state: DataConnectionsState) {
 

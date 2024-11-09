@@ -5,6 +5,7 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {Column} from "@/model/column";
 import {ColumnSorting} from "@/model/relation-view-state";
+import {FormDefinition} from "@/components/basics/input/custom-form";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';
 export type DataSourceType = 'file' | 'relation';
@@ -30,8 +31,9 @@ export type DataConnectionConfig = { [key: string]: string | number | boolean | 
 
 export interface DataConnection {
     id: string;
-    name: string;
-    configuration: DataConnectionConfig
+
+    config: DataConnectionConfig
+    configForm: FormDefinition;
 
     type: DBConnectionType;
     dataSources: DataSource[]; // Add dataSources here
@@ -54,6 +56,7 @@ export interface DataConnectionsState {
 
     removeConnection: (connectionId: string) => void;
 
+    updateConfig: (connectionId: string, config: DataConnectionConfig) => void;
     updateDataSources: (connectionId: string) => Promise<DataSource[]>;
     executeQuery: (connectionId: string, query: string) => Promise<any>;
 
@@ -81,7 +84,7 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
 
     getConnectionName: (connectionId: string) => {
         const connection = get().connections[connectionId];
-        return connection ? connection.name : undefined;
+        return connection ? connection.config.name as string : undefined;
     },
 
     removeConnection: (connectionId) =>
@@ -95,6 +98,18 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
         return ConnectionsService.getInstance().executeQuery(connectionId, query);
     },
 
+    updateConfig: (connectionId, config) => {
+        ConnectionsService.getInstance().updateConfig(connectionId, config);
+        set((state) => ({
+            connections: {
+                ...state.connections,
+                [connectionId]: {
+                    ...state.connections[connectionId],
+                    config,
+                },
+            },
+        }));
+    },
     updateDataSources: async (connectionId) => {
         const connection = ConnectionsService.getInstance().getConnection(connectionId);
         if (!connection) {

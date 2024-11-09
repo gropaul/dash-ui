@@ -1,21 +1,10 @@
-import {
-    DataConnection, DataConnectionConfig, DataConnectionState,
-    DataSource,
-    DataSourceElement,
-    DataSourceGroup,
-    DBConnectionType
-} from "@/state/connections.state";
-import {getRelationId, getRows, iterateColumns, Relation, RelationData} from "@/model/relation";
+import {DataConnection, DataConnectionState, DataSource, DBConnectionType} from "@/state/connections.state";
+import {RelationData} from "@/model/relation";
 import Error from "next/error";
-import {json} from "node:stream/consumers";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
-
-export interface DuckDBLocalConfig {
-    url: string;
-    name: string;
-    id: string;
-}
+import {FormDefinition} from "@/components/basics/input/custom-form";
+import {validateUrl} from "@/platform/string-validation";
 
 export function parseListString(listString: string): string[] {
     // remove [ and ] from string
@@ -26,23 +15,84 @@ export function parseListString(listString: string): string[] {
 
 }
 
+export interface DuckDBOverHttpConfig {
+    name: string;
+    url: string;
+    authentication: 'none' | 'password' | 'token';
+
+    // if authentication is password, these fields are required
+    username?: string;
+    password?: string;
+
+    // if authentication is token, these fields are required
+    token?: string;
+
+    [key: string]: string | number | boolean | undefined; // index signature
+}
 
 class DuckDBOverHttp implements DataConnection {
 
     id: string;
-    name: string;
-    url: string;
     type: DBConnectionType;
     dataSources: DataSource[];
-    configuration: DataConnectionConfig;
 
-    constructor(config: DuckDBLocalConfig) {
-        this.name = config.name;
-        this.id = config.id;
-        this.url = config.url;
+    config: DuckDBOverHttpConfig;
+
+    configForm: FormDefinition = {
+        fields: [
+            {
+                type: 'text',
+                label: 'Name',
+                key: 'name',
+                required: true
+            },
+            {
+                type: 'text',
+                label: 'URL',
+                key: 'url',
+                required: true,
+                validation: validateUrl
+            },
+            {
+                type: 'select',
+                label: 'Authentication',
+                key: 'authentication',
+                required: true,
+                selectOptions: [
+                    {label: 'None', value: 'none'},
+                    {label: 'Password', value: 'password'},
+                    {label: 'Token', value: 'token'}
+                ]
+            },
+            {
+                type: 'text',
+                label: 'Username',
+                key: 'username',
+                required: true,
+                condition: (formData) => formData['authentication'] === 'password'
+            },
+            {
+                type: 'password',
+                label: 'Password',
+                key: 'password',
+                required: true,
+                condition: (formData) => formData['authentication'] === 'password'
+            },
+            {
+                type: 'password',
+                label: 'Token',
+                key: 'token',
+                required: true,
+                condition: (formData) => formData['authentication'] === 'token'
+            }
+        ]
+    }
+
+    constructor(config: DuckDBOverHttpConfig, id: string) {
+        this.id = id;
+        this.config = config;
         this.type = 'duckdb-over-http';
         this.dataSources = [];
-        this.configuration = {};
     }
 
     async sendPing(): Promise<boolean> {
@@ -55,34 +105,45 @@ class DuckDBOverHttp implements DataConnection {
     }
 
     async sendQuery(query: string): Promise<RelationData> {
-        const requestURL = this.url + '?add_http_cors_header=1&default_format=JSONCompact';
+        let requestURL = `${this.config.url}?add_http_cors_header=1&default_format=JSONCompact`;
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+
+        if (this.config.authentication === 'password') {
+            const username = this.config.username!;
+            const password = this.config.password!;
+            headers['Authorization'] = 'Basic ' + btoa(`${username}:${password}`);
+        } else if (this.config.authentication === 'token') {
+            const token = this.config.token!;
+            headers['X-API-Key'] = token;
+        } else if (this.config.authentication !== 'none') {
+            throw new Error(`Unsupported authentication type: ${this.config.authentication}`);
+        }
+
         const response = await fetch(requestURL, {
             method: 'POST',
             body: query,
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded' // You may need to set this depending on your server requirements
-            }
+            headers
         });
 
         if (!response.ok) {
-            // @ts-ignore
             throw new Error(`Failed to execute query: ${response.statusText}`);
         }
 
         const json = await response.json();
-        const rows = json.data; // contains list of rows, row = list of any
-        const meta = json.meta; // contains column information, list of {name: string, type: string}
+        const rows = json.data;
+        const meta = json.meta;
 
         return {
-            columns: meta.map((column: any) => {
-                return {
-                    name: column.name,
-                    type: duckDBTypeToValueType(column.type),
-                }
-            }),
+            columns: meta.map((column: any) => ({
+                name: column.name,
+                type: duckDBTypeToValueType(column.type),
+            })),
             rows
-        }
+        };
     }
+
 
     executeQuery(query: string): Promise<RelationData> {
         return this.sendQuery(query);
@@ -104,9 +165,13 @@ class DuckDBOverHttp implements DataConnection {
 }
 
 export function getDuckDBLocalConnection() {
-    return new DuckDBOverHttp({
-        url: "http://localhost:4200/",
-        name: "DuckDB Local",
-        id: "duckdb-local"
-    });
+
+    const config: DuckDBOverHttpConfig = {
+        name: 'Local DuckDB',
+        url: 'http://localhost:4200',
+        authentication: 'token',
+        token: 'supersecrettoken'
+    }
+
+    return new DuckDBOverHttp(config, 'duckdb-local');
 }
