@@ -1,7 +1,7 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDBConnection, DuckDBDataProtocol} from "@duckdb/duckdb-wasm";
 import {
-    DataConnection,
+    DataConnection, DataConnectionConfig,
     DataConnectionState,
     DataSource, DataSourceElement,
     DataSourceGroup,
@@ -11,6 +11,8 @@ import {getRelationId, getRows, iterateColumns, Relation} from "@/model/relation
 import {duckDBTypeToValueType} from "@/model/value-type";
 import {parseListString} from "@/state/connections/duckdb-over-http";
 import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
+import {id} from "postcss-selector-parser";
+import Error from "next/error";
 
 export const DUCKDB_WASM_ID = 'duckdb-wasm';
 
@@ -22,6 +24,8 @@ export class DuckDBWasm implements DataConnection {
     id: string;
     name: string;
     type: DBConnectionType;
+    configuration: DataConnectionConfig;
+
     dataSources: DataSource[];
 
     db?: duckdb.AsyncDuckDB;
@@ -32,6 +36,7 @@ export class DuckDBWasm implements DataConnection {
         this.name = name;
         this.type = 'duckdb-wasm';
         this.dataSources = [];
+        this.configuration = {};
     }
 
     async initialise(): Promise<DataConnectionState> {
@@ -74,7 +79,7 @@ export class DuckDBWasm implements DataConnection {
     async createTableFromBrowserFileHandler(file: File): Promise<string> {
 
         if (!this.db || !this.connection) {
-            throw new Error("DuckDB connection not initialised");
+            throw new Error("DuckDB WASM not initialised");
         }
 
         const fileName = file.name;
@@ -98,6 +103,7 @@ export class DuckDBWasm implements DataConnection {
         await this.connection.query(createTableQuery);
         return tableName;
     }
+
 }
 
 

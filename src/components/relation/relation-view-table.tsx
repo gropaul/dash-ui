@@ -1,7 +1,6 @@
 import {ColumnHead} from "@/components/relation/column-head";
 import {RowView} from "@/components/relation/row-view";
 import React from "react";
-import {Relation} from "@/model/relation";
 import {RelationTableViewState} from "@/components/relation/relation-view";
 import {RelationViewState} from "@/model/relation-view-state";
 
@@ -13,6 +12,7 @@ export interface RelationViewTableProps {
 }
 
 export function RelationViewTable(props: RelationViewTableProps) {
+
     return (
         <table
             className="text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 w-fit h-fit mr-32"
@@ -38,6 +38,7 @@ export function RelationViewTable(props: RelationViewTableProps) {
                 {/* Column headers */}
                 {props.relation.columns.map((column, index) => (
                     <ColumnHead
+                        relation={props.relation}
                         key={index}
                         column={column}
                         columnIndex={index}
@@ -53,7 +54,7 @@ export function RelationViewTable(props: RelationViewTableProps) {
                     key={index}
                     rowIndex={index}
                     row={row}
-                    offset={props.relation.offset}
+                    offset={props.relation.queryParameters.offset}
                     displayState={props.displayState}
                 />
             ))}

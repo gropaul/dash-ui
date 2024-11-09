@@ -1,5 +1,5 @@
 import {
-    DataConnection, DataConnectionState,
+    DataConnection, DataConnectionConfig, DataConnectionState,
     DataSource,
     DataSourceElement,
     DataSourceGroup,
@@ -34,6 +34,7 @@ class DuckDBOverHttp implements DataConnection {
     url: string;
     type: DBConnectionType;
     dataSources: DataSource[];
+    configuration: DataConnectionConfig;
 
     constructor(config: DuckDBLocalConfig) {
         this.name = config.name;
@@ -41,6 +42,7 @@ class DuckDBOverHttp implements DataConnection {
         this.url = config.url;
         this.type = 'duckdb-over-http';
         this.dataSources = [];
+        this.configuration = {};
     }
 
     async sendPing(): Promise<boolean> {

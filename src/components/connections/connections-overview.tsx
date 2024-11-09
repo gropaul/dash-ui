@@ -5,19 +5,12 @@ import React from "react";
 import {DataConnection, useConnectionsState} from "@/state/connections.state";
 import {TreeExplorer} from "@/components/basics/tree-explorer/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factories";
+import {ConnectionView} from "@/components/connections/connection-view";
 
 export function ConnectionsOverview() {
 
     const connections = useConnectionsState((state) => state.connections);
-    const showRelation = useRelationsState((state) => state.showRelation);
 
-    async function onElementClick(connection: DataConnection, id_path: string[]) {
-        // if path has two elements, it’s a data source
-        if (id_path.length === 2) {
-            const [databaseName, relationName] = id_path;
-            await showRelation(connection.id, databaseName, relationName);
-        }
-    }
 
     // show a list of the tables, have a light grey background
     return (
@@ -28,17 +21,7 @@ export function ConnectionsOverview() {
             <div className="border-t border-gray-200 dark:border-gray-700 overflow-y-auto h-fit">
                 <ul>
                     {Object.values(connections).map((connection, index) => {
-                        return <li
-                            key={index}
-                            className="p-2 text-s border-b border-gray-200 dark:border-gray-700 h-fit"
-                        >
-                            {connection.name}
-                            <TreeExplorer
-                                tree={connection.dataSources}
-                                iconFactory={defaultIconFactory}
-                                onClick={(id_path) => onElementClick(connection, id_path)}
-                            />
-                        </li>
+                        return <ConnectionView connection={connection} key={index}/>;
                     })}
                 </ul>
                 <div className={'h-16'}/>

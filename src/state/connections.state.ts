@@ -1,11 +1,10 @@
 import {create} from "zustand";
-import {Relation, RelationData} from "@/model/relation";
+import {RelationData} from "@/model/relation";
 import {TreeNode} from "@/components/basics/tree-explorer/tree-explorer";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {ValueType} from "@/model/value-type";
-import {AsyncDuckDB, AsyncDuckDBConnection} from "@duckdb/duckdb-wasm";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {Column} from "@/model/column";
+import {ColumnSorting} from "@/model/relation-view-state";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';
 export type DataSourceType = 'file' | 'relation';
@@ -27,9 +26,13 @@ export type DataSource = DataSourceElement | DataSourceGroup;
 
 export type DataConnectionState = 'connected' | 'disconnected' | 'connecting';
 
+export type DataConnectionConfig = { [key: string]: string | number | boolean | undefined };
+
 export interface DataConnection {
     id: string;
     name: string;
+    configuration: DataConnectionConfig
+
     type: DBConnectionType;
     dataSources: DataSource[]; // Add dataSources here
 
@@ -38,6 +41,7 @@ export interface DataConnection {
 
     initialise: () => Promise<DataConnectionState>;
     getConnectionState: () => Promise<DataConnectionState>;
+
 }
 
 export interface DataConnectionsState {
@@ -46,6 +50,8 @@ export interface DataConnectionsState {
     initialiseDefaultConnections: () => void;
     addConnection: (connection: DataConnection) => void;
     getConnection: (connectionId: string) => DataConnection | undefined;
+    getConnectionName: (connectionId: string) => string | undefined;
+
     removeConnection: (connectionId: string) => void;
 
     updateDataSources: (connectionId: string) => Promise<DataSource[]>;
@@ -71,6 +77,11 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
 
     getConnection: (connectionId) => {
         return get().connections[connectionId];
+    },
+
+    getConnectionName: (connectionId: string) => {
+        const connection = get().connections[connectionId];
+        return connection ? connection.name : undefined;
     },
 
     removeConnection: (connectionId) =>
