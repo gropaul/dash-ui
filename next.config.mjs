@@ -3,6 +3,13 @@
 const nextConfig = {
     transpilePackages: ['@duckdb/react-duckdb'],
     reactStrictMode: false,
+    output: 'export',
+
+    basePath: '/explorer',
+
+    images: {
+        unoptimized: true,
+    },
 
     webpack(config, { isServer, dev }) {
         config.output.webassemblyModuleFilename = isServer && !dev ? '..static/wasm/[name].[moduleHash].wasm' : 'static/wasm/[name].[moduleHash].wasm'
