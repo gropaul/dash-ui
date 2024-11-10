@@ -16,7 +16,7 @@ export interface RelationQueryParams {
     sorting: { [key: string]: ColumnSorting | undefined };
 }
 
-export interface RelationViewState extends Relation {
+export interface RelationState extends Relation {
     connectionId: string;
 
     queryData: string;
@@ -42,7 +42,7 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
 }
 
 
-export async function getViewFromRelationName(relationName: string, databaseName: string | undefined, connectionId: string, query: RelationQueryParams): Promise<RelationViewState> {
+export async function getViewFromRelationName(relationName: string, databaseName: string | undefined, connectionId: string, query: RelationQueryParams): Promise<RelationState> {
 
     const {offset, limit} = query;
 

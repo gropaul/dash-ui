@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {ColumnHeadIcon} from "@/components/relation/column-head";
+import {ColumnHeadIcon} from "@/components/relation/table/table-column-head";
 import {ChevronDown, ChevronRight} from "lucide-react";
 
 export interface TreeNode {

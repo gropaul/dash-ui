@@ -1,4 +1,4 @@
-import {RelationViewState} from "@/model/relation-view-state";
+import {RelationState} from "@/model/relation-state";
 import React from "react";
 import {ChevronFirst, ChevronLast, ChevronLeft, ChevronRight} from "lucide-react";
 import {useRelationsState} from "@/state/relations.state";
@@ -6,14 +6,14 @@ import {useConnectionsState} from "@/state/connections.state";
 
 
 export interface RelationViewFooterProps {
-    relation: RelationViewState
+    relation: RelationState
 }
 
 function formatNumber(num: number): string {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-export function RelationViewFooter(props: RelationViewFooterProps) {
+export function TableFooter(props: RelationViewFooterProps) {
 
     // format the number with , e.g. 1,000,000
     let countText = props.relation.totalCount;

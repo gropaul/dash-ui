@@ -1,17 +1,17 @@
-import {ColumnHead} from "@/components/relation/column-head";
-import {RowView} from "@/components/relation/row-view";
+import {TableColumnHead} from "@/components/relation/table/table-column-head";
+import {TableRow} from "@/components/relation/table/table-row";
 import React from "react";
-import {RelationTableViewState} from "@/components/relation/relation-view";
-import {RelationViewState} from "@/model/relation-view-state";
+import {TableViewState} from "@/components/relation/relation-view";
+import {RelationState} from "@/model/relation-state";
 
-export interface RelationViewTableProps {
-    relation: RelationViewState;
-    displayState: RelationTableViewState;
-    setDisplayState: (state: RelationTableViewState) => void;
+export interface RelationViewTableContentProps {
+    relation: RelationState;
+    displayState: TableViewState;
+    setDisplayState: (state: TableViewState) => void;
 
 }
 
-export function RelationViewTable(props: RelationViewTableProps) {
+export function TableContent(props: RelationViewTableContentProps) {
 
     return (
         <table
@@ -37,7 +37,7 @@ export function RelationViewTable(props: RelationViewTableProps) {
                 </th>
                 {/* Column headers */}
                 {props.relation.columns.map((column, index) => (
-                    <ColumnHead
+                    <TableColumnHead
                         relation={props.relation}
                         key={index}
                         column={column}
@@ -50,7 +50,7 @@ export function RelationViewTable(props: RelationViewTableProps) {
             </thead>
             <tbody>
             {props.relation.rows.map((row, index) => (
-                <RowView
+                <TableRow
                     key={index}
                     rowIndex={index}
                     row={row}

@@ -11,17 +11,17 @@ import {
     ChevronDown,
     ChevronsUpDown
 } from 'lucide-react';
-import {RelationTableViewState} from "@/components/relation/relation-view";
-import {ColumnSorting, getNextColumnSorting, RelationViewState} from "@/model/relation-view-state";
+import {TableViewState} from "@/components/relation/relation-view";
+import {ColumnSorting, getNextColumnSorting, RelationState} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
 
 
 interface ColumnHeadProps {
-    relation: RelationViewState;
+    relation: RelationState;
     column: Column;
     columnIndex: number;
-    displayState: RelationTableViewState;
-    setDisplayState: (state: RelationTableViewState) => void;
+    displayState: TableViewState;
+    setDisplayState: (state: TableViewState) => void;
 }
 
 export function ColumnHeadIcon(column: Column) {
@@ -45,7 +45,7 @@ export function ColumnHeadIcon(column: Column) {
 }
 
 
-export function ColumnHead(props: ColumnHeadProps) {
+export function TableColumnHead(props: ColumnHeadProps) {
     const {column, columnIndex, displayState, setDisplayState} = props;
     const initialX = useRef<number | null>(null);
     const initialWidth = useRef<number>(displayState.columnStates[columnIndex].width);

@@ -4,7 +4,7 @@ import {TreeNode} from "@/components/basics/tree-explorer/tree-explorer";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {Column} from "@/model/column";
-import {ColumnSorting} from "@/model/relation-view-state";
+import {ColumnSorting} from "@/model/relation-state";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';

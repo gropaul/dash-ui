@@ -6,17 +6,16 @@ import {addRelationToLayout, focusRelationInLayout, getInitialLayoutModel} from 
 import {
     getDefaultQueryParams,
     getViewFromRelationName,
-    RelationQueryParams,
-    RelationViewState
-} from "@/model/relation-view-state";
+    RelationQueryParams, RelationState,
+} from "@/model/relation-state";
 
 
-interface RelationState {
+interface RelationStates {
 
-    relations: RelationViewState[],
+    relations: RelationState[],
 
     showRelation: (connectionId: string, databaseName: string | undefined, relationName: string) => Promise<void>,
-    getRelation: (relationId: string) => RelationViewState | undefined,
+    getRelation: (relationId: string) => RelationState | undefined,
     updateRelationDisplay: (relationId: string, query: RelationQueryParams) => Promise<void>,
     closeRelation: (relationId: string) => void,
 
@@ -25,7 +24,7 @@ interface RelationState {
     setModel: (model: Model) => void;
 }
 
-export const useRelationsState = create<RelationState>((set, get) => ({
+export const useRelationsState = create<RelationStates>((set, get) => ({
     relations: [],
     selectedRelationsIndex: undefined,
 
@@ -73,7 +72,7 @@ export const useRelationsState = create<RelationState>((set, get) => ({
 
     closeRelation: (relationId: string) => {
         set((state) => ({
-            relations: state.relations.filter((rel: RelationViewState) => rel.id !== relationId),
+            relations: state.relations.filter((rel: RelationState) => rel.id !== relationId),
         }));
 
         console.log('Open relations:', get().relations);

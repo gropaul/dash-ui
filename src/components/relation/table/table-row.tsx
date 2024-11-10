@@ -1,6 +1,6 @@
 import {Row} from "@/model/relation";
-import {RelationTableViewState} from "@/components/relation/relation-view";
-import {ValueCellView} from "@/components/relation/value-cell-view";
+import {TableViewState} from "@/components/relation/relation-view";
+import {TableValueCell} from "@/components/relation/table/table-value-cell";
 
 import {Sometype_Mono} from "next/font/google";
 
@@ -9,11 +9,11 @@ const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 export interface RowViewProps {
     rowIndex: number;
     row: Row;
-    displayState: RelationTableViewState;
+    displayState: TableViewState;
     offset: number;
 }
 
-export function RowView(props: RowViewProps) {
+export function TableRow(props: RowViewProps) {
     const row = props.row;
     const startIndex = props.offset;
     return (
@@ -44,7 +44,7 @@ export function RowView(props: RowViewProps) {
 
             {/* Row elements */}
             {row.map((element: any, index) => (
-                <ValueCellView key={index} element={element} index={index} displayState={props.displayState}/>
+                <TableValueCell key={index} element={element} index={index} displayState={props.displayState}/>
             ))}
         </tr>
     );
