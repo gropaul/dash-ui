@@ -5,7 +5,7 @@ const nextConfig = {
     reactStrictMode: false,
     output: 'export',
 
-    basePath: '/explorer',
+    basePath: process.env.NEXT_PUBLIC_BASE_PATH,
 
     images: {
         unoptimized: true,

@@ -23,6 +23,9 @@ importers:
       '@heroicons/react':
         specifier: ^2.1.5
         version: 2.1.5(react@18.3.1)
+      '@next/env':
+        specifier: ^15.0.3
+        version: 15.0.3
       flexlayout-react:
         specifier: ^0.7.15
         version: 0.7.15(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -252,6 +255,9 @@ packages:
 
   '@next/env@14.2.3':
     resolution: {integrity: sha512-W7fd7IbkfmeeY2gXrzJYDx8D2lWKbVoTIj1o1ScPHNzvp30s1AuoEFSdr39bC5sjxJaxTtq3OTCZboNp0lNWHA==}
+
+  '@next/env@15.0.3':
+    resolution: {integrity: sha512-t9Xy32pjNOvVn2AS+Utt6VmyrshbpfUMhIjFO60gI58deSo/KgLOp31XZ4O+kY/Is8WAGYwA5gR7kOb1eORDBA==}
 
   '@next/eslint-plugin-next@14.2.3':
     resolution: {integrity: sha512-L3oDricIIjgj1AVnRdRor21gI7mShlSwU/1ZGHmqM3LzHhXXhdkrfeNY5zif25Bi5Dd7fiJHsbhoZCHfXYvlAw==}
@@ -3232,6 +3238,8 @@ snapshots:
       tinyqueue: 3.0.0
 
   '@next/env@14.2.3': {}
+
+  '@next/env@15.0.3': {}
 
   '@next/eslint-plugin-next@14.2.3':
     dependencies:

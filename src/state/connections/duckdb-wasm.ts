@@ -1,13 +1,7 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDBConnection, DuckDBDataProtocol} from "@duckdb/duckdb-wasm";
-import {
-    DataConnection, DataConnectionConfig,
-    DataConnectionState,
-    DataSource, DataSourceElement,
-    DataSourceGroup,
-    DBConnectionType
-} from "@/state/connections.state";
-import {getRelationId, getRows, iterateColumns, Relation} from "@/model/relation";
+import {DataConnection, DataConnectionState, DataSource, DBConnectionType} from "@/state/connections.state";
+import {getRelationId, Relation} from "@/model/relation";
 import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
 import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
@@ -150,21 +144,6 @@ async function staticDuckDBBundles(): Promise<{
     await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
 
     const connection = await db.connect();
-
-    // const path = "http://localhost:3333/web-edge.csv";
-    // test whether we can load the csv due to CORS
-    // const test = await fetch(path);
-    // console.log("CSV fetch result", test);
-
-    // // time the query execution
-    // const start = Date.now();
-    // // run test query
-    // const query = "SELECT COUNT(*) FROM read_csv('http://localhost:3333/web-edge.csv', AUTO_DETECT=TRUE);";
-    // const result = await connection.query(query);
-
-    // const duration = Date.now() - start;
-    // console.log("Query duration", duration);
-    // console.log("Query result", result);
 
     return {db, connection};
 }
