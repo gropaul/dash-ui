@@ -1,15 +1,20 @@
-import {RelationViewState, TableViewState} from "@/components/relation/relation-view";
+import {ColumnViewState, RelationViewState, TableViewState} from "@/components/relation/relation-view";
 import {RelationState} from "@/model/relation-state";
 import {TableContent} from "@/components/relation/table/table-content";
 import {TableFooter} from "@/components/relation/table/table-footer";
 
-
 export function getInitialTableDisplayState(relation: RelationState): TableViewState {
-    return {
-        columnStates: relation.columns.map(() => ({
+
+    let columnStates: { [key: string]: ColumnViewState } = {};
+    relation.columns.forEach(column => {
+        columnStates[column.name] = {
             width: 192,
             wrapContent: false,
-        })),
+        };
+    });
+
+    return {
+        columnStates: columnStates,
     };
 }
 

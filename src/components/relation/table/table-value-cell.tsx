@@ -1,17 +1,17 @@
-import {TableViewState} from "@/components/relation/relation-view";
+import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/components/relation/relation-view";
+import {Column} from "@/model/column";
 
 
 interface RowElementViewProps {
     element: any,
-    index: number,
+    column: Column,
     displayState: TableViewState
 }
 
-export function TableValueCell(props: RowElementViewProps) {
-    const columnState = props.displayState.columnStates[props.index];
-    const wrapContent = columnState.wrapContent;
-    const columnWidth = columnState.width + 'px';
-    const element = props.element;
+export function TableValueCell({column, displayState, element}: RowElementViewProps) {
+    const columnViewState = displayState.columnStates?.[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
+    const wrapContent = columnViewState.wrapContent;
+    const columnWidth = columnViewState.width + 'px';
 
     let stringElement: string;
     try {

@@ -41,7 +41,6 @@ export function TableContent(props: RelationViewTableContentProps) {
                         relation={props.relation}
                         key={index}
                         column={column}
-                        columnIndex={index}
                         displayState={props.displayState}
                         setDisplayState={props.setDisplayState}
                     />
@@ -54,6 +53,7 @@ export function TableContent(props: RelationViewTableContentProps) {
                     key={index}
                     rowIndex={index}
                     row={row}
+                    columns={props.relation.columns}
                     offset={props.relation.queryParameters.offset}
                     displayState={props.displayState}
                 />

@@ -5,7 +5,7 @@ import {useState} from "react";
 import {RelationViewContent} from "@/components/relation/relation-view-content";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 
-export interface ColumnDisplayState {
+export interface ColumnViewState {
     width: number;
     wrapContent: boolean;
 }
@@ -19,9 +19,14 @@ export interface RelationViewState {
 }
 
 export interface TableViewState {
-    columnStates: ColumnDisplayState[];
+    // key is column name, value is display state -> map
+    columnStates: { [key: string]: ColumnViewState };
 }
 
+export const INITIAL_COLUMN_VIEW_STATE: ColumnViewState = {
+    width: 192,
+    wrapContent: false,
+}
 
 export interface RelationViewProps {
     relationId: string;
@@ -34,7 +39,7 @@ export function getInitialRelationViewState(relation?: RelationState): RelationV
         return {
             selectedView: 'table',
             tableState: {
-                columnStates: [],
+                columnStates: {},
             },
         };
     }

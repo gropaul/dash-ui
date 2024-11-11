@@ -3,12 +3,14 @@ import {TableViewState} from "@/components/relation/relation-view";
 import {TableValueCell} from "@/components/relation/table/table-value-cell";
 
 import {Sometype_Mono} from "next/font/google";
+import {Column} from "@/model/column";
 
 const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 
 export interface RowViewProps {
     rowIndex: number;
     row: Row;
+    columns: Column[];
     displayState: TableViewState;
     offset: number;
 }
@@ -44,7 +46,12 @@ export function TableRow(props: RowViewProps) {
 
             {/* Row elements */}
             {row.map((element: any, index) => (
-                <TableValueCell key={index} element={element} index={index} displayState={props.displayState}/>
+                <TableValueCell
+                    key={index}
+                    element={element}
+                    column={props.columns[index]}
+                    displayState={props.displayState}
+                />
             ))}
         </tr>
     );

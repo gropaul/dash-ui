@@ -11,7 +11,7 @@ import {
     ChevronDown,
     ChevronsUpDown
 } from 'lucide-react';
-import {TableViewState} from "@/components/relation/relation-view";
+import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/components/relation/relation-view";
 import {ColumnSorting, getNextColumnSorting, RelationState} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
 
@@ -19,7 +19,6 @@ import {useRelationsState} from "@/state/relations.state";
 interface ColumnHeadProps {
     relation: RelationState;
     column: Column;
-    columnIndex: number;
     displayState: TableViewState;
     setDisplayState: (state: TableViewState) => void;
 }
@@ -46,15 +45,21 @@ export function ColumnHeadIcon(column: Column) {
 
 
 export function TableColumnHead(props: ColumnHeadProps) {
-    const {column, columnIndex, displayState, setDisplayState} = props;
+    const {column, displayState, setDisplayState} = props;
     const initialX = useRef<number | null>(null);
-    const initialWidth = useRef<number>(displayState.columnStates[columnIndex].width);
+    const columnViewState = displayState.columnStates[column.name];
+    const widthRef = useRef<number>(columnViewState.width);
 
     function onMouseMove(event: MouseEvent) {
         if (initialX.current !== null) {
             const deltaX = event.clientX - initialX.current;
             const newStates = {...displayState.columnStates};
-            newStates[columnIndex].width = Math.max(initialWidth.current + deltaX, 50); // Set a minimum width of 50px
+
+            if (!newStates[column.name]) {
+                newStates[column.name] = {...INITIAL_COLUMN_VIEW_STATE};
+            }
+
+            newStates[column.name].width = Math.max(widthRef.current + deltaX, 50); // Set a minimum width of 50px
             setDisplayState({...displayState, columnStates: newStates});
         }
     }
@@ -68,15 +73,15 @@ export function TableColumnHead(props: ColumnHeadProps) {
     function onMouseDown(event: React.MouseEvent) {
         event.preventDefault(); // Prevent text selection
         initialX.current = event.clientX;
-        initialWidth.current = displayState.columnStates[columnIndex].width;
+        widthRef.current = displayState.columnStates[column.name].width;
         document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", onMouseUp);
     }
 
-    const width = displayState.columnStates[columnIndex].width + "px";
+    const columnWidth = columnViewState.width + 'px';
 
     return (
-        <ColumnHeadWrapper columnWidth={width}>
+        <ColumnHeadWrapper columnWidth={columnWidth}>
             <div
                 className="w-full group flex items-center justify-between pr-6"> {/* Add padding-right to create space */}
                 <div className="flex items-center overflow-hidden">
