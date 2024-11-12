@@ -1,5 +1,4 @@
 import {Column} from "@/model/column";
-import {v4 as uuidv4} from "uuid";
 
 export type Row = any[]
 
@@ -9,17 +8,15 @@ export interface RelationData {
 }
 
 export interface Relation extends RelationData {
-    database?: string,
+    connectionId: string,
+    database: string,
+    schema: string,
     name: string,
     id: string,
 }
 
-export function getRelationId(connectionId: string, databaseName: string | undefined, relationName: string): string {
-    if (databaseName) {
-        return 'relation-' + connectionId + '-' + databaseName + '.' + relationName;
-    } else {
-        return 'relation-' + connectionId + '-' + relationName;
-    }
+export function getRelationId(connectionId: string, database: string , schema: string, relationName: string): string {
+    return `relation${connectionId}-${database}-${schema}-${relationName}`;
 }
 
 export function getColumnNames(relation: Relation): string[] {
@@ -61,9 +58,11 @@ export function iterateColumns(relation: RelationData, columns: string[], callba
 
 export function getTestRelation(): Relation {
     return {
-        id: getRelationId('Test Connection', 'Test Database', 'Test Relation'),
+        id: getRelationId('Test Connection', 'Test Database', 'Test Schema', 'Test Relation'),
+        connectionId: 'Test Connection',
         database: 'Test Database',
         name: 'Test Relation',
+        schema: 'Test Schema',
         columns: [
             {
                 name: 'Column 1',

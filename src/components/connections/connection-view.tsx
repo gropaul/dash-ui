@@ -12,16 +12,17 @@ export interface ConnectionViewProps {
 
 export function ConnectionView(props: ConnectionViewProps) {
 
-    const showRelation = useRelationsState((state) => state.showRelation);
+    const showRelation = useRelationsState((state) => state.showRelationByName);
     const updateDataSources = useConnectionsState((state) => state.updateDataSources);
     const updateConfig = useConnectionsState((state) => state.updateConfig);
     const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
 
     async function onElementClick(connection: DataConnection, id_path: string[]) {
         // if path has two elements, it’s a data source
-        if (id_path.length === 2) {
-            const [databaseName, relationName] = id_path;
-            await showRelation(connection.id, databaseName, relationName);
+        if (id_path.length === 3) {
+            const [databaseName, schemaName, relationName] = id_path;
+            console.log('Showing relation', databaseName, schemaName, relationName);
+            await showRelation(connection.id, databaseName, schemaName, relationName);
         }
     }
 

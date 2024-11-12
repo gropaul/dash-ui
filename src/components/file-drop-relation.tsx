@@ -4,7 +4,7 @@ import {FileDrop} from "@/components/basics/input/file-drop";
 import React from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {useConnectionsState} from "@/state/connections.state";
-import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
+import {DUCKDB_WASM_BASE_SCHEMA, DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {DUCK_DB_IN_MEMORY_DB} from "@/state/connections/duckdb-helper";
 
 interface Props {
@@ -31,11 +31,8 @@ export async function onDropFiles(duckDBWasm: DuckDBWasm, files: File[]): Promis
 export function FileDropRelation(props: Props) {
 
     const getDuckDBWasm = useConnectionsState((state) => state.getDuckDBWasmConnection);
-    const showRelation = useRelationsState((state) => state.showRelation);
+    const showRelation = useRelationsState((state) => state.showRelationByName);
     const updateDataSources = useConnectionsState((state) => state.updateDataSources);
-
-    // state
-    const [state, setState] = React.useState<State>({fileIsHovered: false});
 
     return <FileDrop
         className={props.className}
@@ -47,25 +44,15 @@ export function FileDropRelation(props: Props) {
             }
             onDropFiles(duckDBWasm, files).then(async (relation_names) => {
                 for (const relation_name of relation_names) {
-                    await showRelation(duckDBWasm.id, DUCK_DB_IN_MEMORY_DB, relation_name);
+                    await showRelation(duckDBWasm.id, DUCK_DB_IN_MEMORY_DB, DUCKDB_WASM_BASE_SCHEMA, relation_name);
                 }
                 updateDataSources(duckDBWasm.id);
             });
         }}
         onOverUpdate={(isOver, files) => {
-            setState({
-                fileIsHovered: isOver, hoveredFiles: files
-            });
         }}
     >
 
         {props.children}
-        {state.fileIsHovered ? <div
-            className="pointer-events-none absolute top-0 left-0 w-full h-full bg-white bg-opacity-50 flex">
-            <div
-                className="text-s text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 m-auto p-4 rounded-lg">
-                <b>Drop files here</b>
-            </div>
-        </div> : null}
     </FileDrop>
 }

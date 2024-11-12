@@ -17,8 +17,6 @@ export interface RelationQueryParams {
 }
 
 export interface RelationState extends Relation {
-    connectionId: string;
-
     queryData: string;
     queryCount: string;
     queryDuration: number; // in s
@@ -42,7 +40,11 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
 }
 
 
-export async function getViewFromRelationName(relationName: string, databaseName: string | undefined, connectionId: string, query: RelationQueryParams): Promise<RelationState> {
+export async function getViewFromRelation(relation: Relation, query: RelationQueryParams): Promise<RelationState> {
+    return getViewFromRelationName(relation.connectionId, relation.database, relation.schema, relation.name, query);
+}
+
+export async function getViewFromRelationName(connectionId: string, databaseName: string, schemaName: string, relationName: string, query: RelationQueryParams): Promise<RelationState> {
 
     const {offset, limit} = query;
 
@@ -50,7 +52,6 @@ export async function getViewFromRelationName(relationName: string, databaseName
     const start = performance.now();
 
     const executeQuery = useConnectionsState.getState().executeQuery;
-    const databasePrefix = databaseName ? `${databaseName}.` : '';
 
     const orderByColumns = Object.entries(query.sorting).map(([column, sorting]) => {
         if (!sorting) {
@@ -61,16 +62,18 @@ export async function getViewFromRelationName(relationName: string, databaseName
 
     const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
 
+    const relationFullName = `"${databaseName}"."${schemaName}"."${relationName}"`;
+
     const queryGetData = `SELECT *
-                          FROM ${databasePrefix}"${relationName}" ${oderByQuery}
-                          LIMIT ${limit} OFFSET ${offset}`;
+                          FROM ${relationFullName} ${oderByQuery} LIMIT ${limit}
+                          OFFSET ${offset}`;
 
     const relationData = await executeQuery(connectionId, queryGetData);
     const columns = relationData.columns;
     const rows = relationData.rows;
 
     const queryGetCount = `SELECT COUNT(*)
-                           FROM ${databasePrefix}"${relationName}"`;
+                           FROM ${relationFullName}`;
 
     const countData = await executeQuery(connectionId, queryGetCount);
     const count = Number(countData.rows[0][0]);
@@ -80,17 +83,18 @@ export async function getViewFromRelationName(relationName: string, databaseName
     const duration = (end - start) / 1000;
 
     return {
-        connectionId,
-        database: databaseName,
-        id: getRelationId(relationName, databaseName, connectionId),
+
+        id: getRelationId(relationName, schemaName, databaseName, connectionId),
         name: relationName,
+        schema: schemaName,
+        database: databaseName,
+        connectionId: connectionId,
+
         columns,
         rows,
-
         queryData: queryGetData,
         queryCount: queryGetCount,
         queryDuration: duration,
-
         totalCount: count,
         queryParameters: query,
     }

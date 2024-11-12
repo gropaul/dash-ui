@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {Column} from "@/model/column";
 import {
     Hash,
@@ -9,11 +9,13 @@ import {
     Filter,
     ChevronUp,
     ChevronDown,
-    ChevronsUpDown
+    ChevronsUpDown, Move
 } from 'lucide-react';
 import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/components/relation/relation-view";
 import {ColumnSorting, getNextColumnSorting, RelationState} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
+import {DndContext, DragOverlay, useDraggable} from "@dnd-kit/core";
+import type {DragStartEvent} from "@dnd-kit/core/dist/types";
 
 
 interface ColumnHeadProps {
@@ -50,6 +52,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
     const columnViewState = displayState.columnStates[column.name];
     const widthRef = useRef<number>(columnViewState.width);
 
+
     function onMouseMove(event: MouseEvent) {
         if (initialX.current !== null) {
             const deltaX = event.clientX - initialX.current;
@@ -78,26 +81,42 @@ export function TableColumnHead(props: ColumnHeadProps) {
         document.addEventListener("mouseup", onMouseUp);
     }
 
-    const columnWidth = columnViewState.width + 'px';
+    let columnWidth = columnViewState.width + 'px';
+    let draggableWidth = INITIAL_COLUMN_VIEW_STATE.width + 'px';
+
+    const {attributes, listeners, setNodeRef, transform} = useDraggable({
+        id: column.name,
+    });
+    const style = transform ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 50px)`,
+    } : undefined;
+
 
     return (
+
         <ColumnHeadWrapper columnWidth={columnWidth}>
-            <div
-                className="w-full group flex items-center justify-between pr-6"> {/* Add padding-right to create space */}
-                <div className="flex items-center overflow-hidden">
+
+            <div className="w-full group flex items-center justify-between pr-6">
+                {/* drag preview */}
+
+                {/* draggable heading */}
+                <div
+                    ref={setNodeRef}
+                    className="flex items-center overflow-hidden z-10"
+                    style={{width: columnWidth}}
+                    {...listeners}
+                    {...attributes}
+                >
                     <div style={{minWidth: "16px", display: "flex", alignItems: "center"}}>
                         {ColumnHeadIcon(column)}
                     </div>
-                    <span
-                        className="ml-2 font-semibold flex-grow truncate"
-                        style={{whiteSpace: "nowrap"}}
-                        title={column.name}
-                    >
-                {column.name}
-            </span>
+                    <span className="ml-2 font-semibold flex-grow truncate text-nowrap" title={column.name}>
+                    {column.name}
+                </span>
                 </div>
-                <ColumnIconButtons {...props}/>
+                <ColumnIconButtons {...props} />
             </div>
+
             <div
                 onMouseDown={onMouseDown}
                 className="absolute right-0 top-0 h-full cursor-col-resize w-2 flex justify-center items-center"
@@ -106,8 +125,6 @@ export function TableColumnHead(props: ColumnHeadProps) {
                 <div className="h-3 w-1 border-l border-gray-700 dark:border-gray-700"/>
             </div>
         </ColumnHeadWrapper>
-
-
     );
 }
 
@@ -132,7 +149,7 @@ export function ColumnIconButtons(props: ColumnHeadProps) {
 
         const nextSorting = getNextColumnSorting(columnSorting);
 
-        const { [props.column.name]: _, ...remainingSortings } = props.relation.queryParameters.sorting || {};
+        const {[props.column.name]: _, ...remainingSortings} = props.relation.queryParameters.sorting || {};
         const newQueryParams = {
             ...props.relation.queryParameters,
             sorting: {

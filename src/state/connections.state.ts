@@ -9,7 +9,7 @@ import {FormDefinition} from "@/components/basics/input/custom-form";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';
 export type DataSourceType = 'file' | 'relation';
-export type DataGroupType = 'folder' | 'database';
+export type DataGroupType = 'folder' | 'database' | 'schema';
 
 export interface DataSourceElement extends TreeNode {
     type: DataSourceType;

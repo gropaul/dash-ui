@@ -3,7 +3,6 @@
 import "./globals.css";
 import ConnectionsProvider from "@/components/provider/connections-provider";
 
-
 export default function RootLayout({
                                        children,
                                    }: Readonly<{
@@ -18,7 +17,6 @@ export default function RootLayout({
                     <div className="flex flex-row h-screen w-screen">
                         {children}
                     </div>
-
                 </ConnectionsProvider>
             </div>
         </main>

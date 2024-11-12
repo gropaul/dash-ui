@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@apache-arrow/ts": "^16.1.0",
+    "@dnd-kit/core": "^6.1.0",
     "@duckdb/duckdb-wasm": "^1.24.0",
     "@duckdb/duckdb-wasm-shell": "^1.24.0",
     "@headlessui/react": "^2.1.2",
@@ -21,7 +22,6 @@
     "next": "14.2.3",
     "plotly.js": "^2.35.2",
     "react": "^18",
-    "react-dnd": "^16.0.1",
     "react-dom": "^18",
     "react-plotly.js": "^2.6.0",
     "serve": "^14.2.3",

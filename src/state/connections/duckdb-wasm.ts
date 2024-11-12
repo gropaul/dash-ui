@@ -7,6 +7,8 @@ import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 
 export const DUCKDB_WASM_ID = 'duckdb-wasm';
+export const DUCKDB_WASM_BASE_DATABASE = 'memory';
+export const DUCKDB_WASM_BASE_SCHEMA = 'main';
 
 export function getDuckDBWasmConnection(): DataConnection {
     return new DuckDBWasm(DUCKDB_WASM_ID, {name: 'DuckDB WASM'});
@@ -159,7 +161,10 @@ export function relationFromDuckDBResult(relationName: string, connectionId: str
     // if the json is empty, return an empty relation
     if (json.length === 0) {
         return {
-            id: getRelationId(relationName, undefined, connectionId),
+            id: getRelationId(connectionId, DUCKDB_WASM_BASE_DATABASE, DUCKDB_WASM_BASE_SCHEMA, relationName),
+            connectionId: connectionId,
+            database: DUCKDB_WASM_BASE_DATABASE,
+            schema: DUCKDB_WASM_BASE_SCHEMA,
             name: relationName,
             columns: [],
             rows: []
@@ -174,7 +179,10 @@ export function relationFromDuckDBResult(relationName: string, connectionId: str
     });
 
     return {
-        id: getRelationId(relationName, undefined, connectionId),
+        id: getRelationId(connectionId, DUCKDB_WASM_BASE_DATABASE, DUCKDB_WASM_BASE_SCHEMA, relationName),
+        connectionId: connectionId,
+        database: DUCKDB_WASM_BASE_DATABASE,
+        schema: DUCKDB_WASM_BASE_SCHEMA,
         name: relationName,
         columns: columns.map((column) => {
             return {

@@ -4,7 +4,7 @@ import {create} from "zustand";
 import {Model} from "flexlayout-react";
 import {addRelationToLayout, focusRelationInLayout, getInitialLayoutModel} from "@/state/relations/layout-updates";
 import {
-    getDefaultQueryParams,
+    getDefaultQueryParams, getViewFromRelation,
     getViewFromRelationName,
     RelationQueryParams, RelationState,
 } from "@/model/relation-state";
@@ -14,7 +14,8 @@ interface RelationStates {
 
     relations: RelationState[],
 
-    showRelation: (connectionId: string, databaseName: string | undefined, relationName: string) => Promise<void>,
+    showRelation: (relation: Relation) => Promise<void>,
+    showRelationByName: (connectionId: string, databaseName: string, schemaName: string, relationName: string) => Promise<void>,
     getRelation: (relationId: string) => RelationState | undefined,
     updateRelationDisplay: (relationId: string, query: RelationQueryParams) => Promise<void>,
     closeRelation: (relationId: string) => void,
@@ -30,9 +31,12 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
 
     getRelation: (relationId: string) => get().relations.find((rel) => rel.id === relationId),
 
-    showRelation: async (connectionId, databaseName, relationName) => {
+    showRelation: async (relation: Relation) => {
+        return get().showRelationByName(relation.connectionId, relation.database, relation.schema, relation.name);
+    },
+    showRelationByName: async (connectionId: string, databaseName: string, schemaName: string, relationName: string) => {
 
-        const relationId = getRelationId(relationName, databaseName, connectionId);
+        const relationId = getRelationId(relationName, databaseName, schemaName, connectionId);
 
         // check if relation already exists
         const existingRelation = get().relations.find((rel) => rel.id === relationId);
@@ -41,7 +45,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         } else {
 
             const defaultQueryParams = getDefaultQueryParams();
-            const view = await getViewFromRelationName(relationName, databaseName, connectionId, defaultQueryParams);
+            const view = await getViewFromRelationName(connectionId, databaseName, schemaName, relationName, defaultQueryParams);
 
             set((state) => ({
                 relations: [...state.relations, {...view}],
@@ -59,7 +63,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
             return;
         }
 
-        const updatedRelation = await getViewFromRelationName(relation.name, relation.database, relation.connectionId, query);
+        const updatedRelation = await getViewFromRelation(relation, query);
         set((state) => ({
             relations: state.relations.map((rel) => {
                 if (rel.id === relationId) {
