@@ -36,7 +36,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
     },
     showRelationByName: async (connectionId: string, databaseName: string, schemaName: string, relationName: string) => {
 
-        const relationId = getRelationId(relationName, databaseName, schemaName, connectionId);
+        const relationId = getRelationId(connectionId, databaseName, schemaName, relationName);
 
         // check if relation already exists
         const existingRelation = get().relations.find((rel) => rel.id === relationId);
@@ -78,9 +78,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         set((state) => ({
             relations: state.relations.filter((rel: RelationState) => rel.id !== relationId),
         }));
-
-        console.log('Open relations:', get().relations);
-    },
+        },
 
     getModel: () => get().layoutModel,
     setModel: (model: Model) =>

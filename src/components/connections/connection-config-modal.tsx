@@ -4,11 +4,19 @@ import React, { FC } from 'react';
 import {DataConnection, DataConnectionConfig} from "@/state/connections.state";
 import {CustomForm} from "@/components/basics/input/custom-form";
 
+
+export interface ConnectionElementProps {
+    connection: DataConnection;
+    config: DataConnectionConfig;
+    hasError: boolean;
+}
+
 interface ConfigModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (config: DataConnectionConfig) => void;
-    connection: DataConnection
+    connection: DataConnection,
+    connectionElement?: FC<ConnectionElementProps>;
 }
 
 export function ConnectionConfigModel({isOpen, onClose, onSave, connection}: ConfigModalProps) {

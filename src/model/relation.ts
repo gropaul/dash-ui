@@ -16,7 +16,7 @@ export interface Relation extends RelationData {
 }
 
 export function getRelationId(connectionId: string, database: string , schema: string, relationName: string): string {
-    return `relation${connectionId}-${database}-${schema}-${relationName}`;
+    return `relation-${connectionId}-${database}-${schema}-${relationName}`;
 }
 
 export function getColumnNames(relation: Relation): string[] {

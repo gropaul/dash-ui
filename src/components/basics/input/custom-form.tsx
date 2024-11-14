@@ -1,14 +1,25 @@
-import { useState } from "react";
+import {ReactNode, useState} from "react";
 import {Eye, EyeOff} from "lucide-react";
 
 export interface FormDefinition {
     fields: FormField[];
 }
 
-export type FormFieldTypes = 'text' | 'number' | 'boolean' | 'select' | 'password';
+export type FormFieldTypes = 'text' | 'number' | 'boolean' | 'select' | 'password' | 'custom';
+
 export interface FormFieldSelectOption {
     value: string;
     label: string;
+}
+
+export interface FormFieldCustomProps {
+    formData: { [key: string]: any };
+    onChange?: (key: string, value: any) => void;
+    hasError: boolean;
+}
+
+export interface FormFieldCustom {
+    render: (props: FormFieldCustomProps) => ReactNode;
 }
 
 export interface FormField {
@@ -17,6 +28,7 @@ export interface FormField {
     required: boolean;
     type: FormFieldTypes;
     selectOptions?: FormFieldSelectOption[];
+    customField?: FormFieldCustom;
     validation?: (rawValue: string) => string | undefined;
     condition?: (formData: { [key: string]: any }) => boolean;
 }
@@ -24,11 +36,12 @@ export interface FormField {
 export interface CustomFormProps {
     initialFormData: { [key: string]: string | number | boolean | undefined };
     formDefinition: FormDefinition;
+    onUpdate?: (formData: any, valid: boolean) => void;
     onSubmit: (formData: any) => void;
     onCancel?: () => void;
 }
 
-export function CustomForm({ formDefinition, onSubmit, onCancel, initialFormData }: CustomFormProps) {
+export function CustomForm({formDefinition, onSubmit, onCancel, onUpdate, initialFormData}: CustomFormProps) {
     const [formData, setFormData] = useState<{ [key: string]: any }>(
         formDefinition.fields.reduce((acc, field) => {
             acc[field.key] = initialFormData[field.key] || '';
@@ -38,22 +51,7 @@ export function CustomForm({ formDefinition, onSubmit, onCancel, initialFormData
 
     const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
 
-    const handleChange = (key: string, value: any) => {
-        setFormData((prevData) => ({ ...prevData, [key]: value }));
-    };
-
-    const validateField = (field: FormField, value: any) => {
-        if (field.required && !value) {
-            return 'This field is required';
-        }
-        if (field.validation) {
-            return field.validation(value);
-        }
-        return undefined;
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const checkErrors = () => {
         const newErrors: { [key: string]: string | undefined } = {};
 
         formDefinition.fields.forEach((field) => {
@@ -68,8 +66,30 @@ export function CustomForm({ formDefinition, onSubmit, onCancel, initialFormData
         });
 
         setErrors(newErrors);
+        return Object.keys(newErrors).length > 0;
+    }
 
-        if (Object.values(newErrors).every((error) => !error)) {
+    const handleChange = (key: string, value: any) => {
+        setFormData((prevData) => ({...prevData, [key]: value}));
+        const has_errors = checkErrors();
+        onUpdate && onUpdate(formData, !has_errors);
+    };
+
+    const validateField = (field: FormField, value: any) => {
+        if (field.required && !value) {
+            return 'This field is required';
+        }
+        if (field.validation) {
+            return field.validation(value);
+        }
+        return undefined;
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const has_errors = checkErrors();
+
+        if (!has_errors) {
             onSubmit(formData);
         }
     };
@@ -128,6 +148,13 @@ export function CustomForm({ formDefinition, onSubmit, onCancel, initialFormData
                                 onChange={(value) => handleChange(field.key, value)}
                             />
                         )}
+                        {field.type === 'custom' && field.customField && (
+                            field.customField.render({
+                                formData,
+                                onChange: (value: any) => handleChange(field.key, value),
+                                hasError: !!errors[field.key],
+                            })
+                        )}
                         {errors[field.key] && (
                             <p className="mt-1 text-sm text-red-600">{errors[field.key]}</p>
                         )}
@@ -158,7 +185,7 @@ interface PasswordFieldProps {
     onChange: (value: string) => void;
 }
 
-export function PasswordField({ value, onChange }: PasswordFieldProps) {
+export function PasswordField({value, onChange}: PasswordFieldProps) {
     const [showPassword, setShowPassword] = useState(false);
 
     const toggleShowPassword = () => {
@@ -178,7 +205,7 @@ export function PasswordField({ value, onChange }: PasswordFieldProps) {
                 onClick={toggleShowPassword}
                 className="absolute inset-y-0 right-0 pr-0.5 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
             >
-                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showPassword ? <EyeOff size={14}/> : <Eye size={14}/>}
             </button>
         </div>
     );

@@ -64,7 +64,6 @@ export class DuckDBWasm implements DataConnection {
 
         // close connection
         await localConnection!.close();
-        console.log("Arrow result", arrowResult);
         return relationFromDuckDBResult('result', this.id, arrowResult);
     }
 
@@ -156,7 +155,6 @@ export function relationFromDuckDBResult(relationName: string, connectionId: str
 
     // Convert arrow table to json
     const json = arrowResult.toArray().map((row: any) => row.toJSON());
-    console.log("Arrow result JSON", json);
 
     // if the json is empty, return an empty relation
     if (json.length === 0) {

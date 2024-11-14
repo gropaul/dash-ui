@@ -21,14 +21,12 @@ export function ConnectionView(props: ConnectionViewProps) {
         // if path has two elements, it’s a data source
         if (id_path.length === 3) {
             const [databaseName, schemaName, relationName] = id_path;
-            console.log('Showing relation', databaseName, schemaName, relationName);
             await showRelation(connection.id, databaseName, schemaName, relationName);
         }
     }
 
     function handleRefresh() {
         updateDataSources(props.connection.id);
-        console.log('Refreshing data sources');
     }
 
     function onSettingsIconClicked() {

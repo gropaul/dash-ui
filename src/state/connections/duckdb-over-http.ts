@@ -5,20 +5,12 @@ import {duckDBTypeToValueType} from "@/model/value-type";
 import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {validateUrl} from "@/platform/string-validation";
-
-export function parseListString(listString: string): string[] {
-    // remove [ and ] from string
-    console.log(listString);
-    const listStringWithoutBrackets = listString.slice(1, -1);
-    console.log(listStringWithoutBrackets);
-    return listStringWithoutBrackets.split(", ");
-
-}
+import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
 
 export interface DuckDBOverHttpConfig {
     name: string;
     url: string;
-    authentication: 'none' | 'password' | 'token';
+    authentication: 'password' | 'token';
 
     // if authentication is password, these fields are required
     username?: string;
@@ -51,7 +43,7 @@ class DuckDBOverHttp implements DataConnection {
                 label: 'URL',
                 key: 'url',
                 required: true,
-                validation: validateUrl
+                validation: (rawValue: string) => validateUrl(rawValue, 'port_required')
             },
             {
                 type: 'select',
@@ -84,6 +76,17 @@ class DuckDBOverHttp implements DataConnection {
                 key: 'token',
                 required: true,
                 condition: (formData) => formData['authentication'] === 'token'
+            },
+            {
+                type: 'custom',
+                label: 'Connection String',
+                key: 'connectionString',
+                required: false,
+                validation: () => undefined,
+                condition: showConnectionStringIfLocalHost,
+                customField: {
+                    render: ConnectionStringField
+                }
             }
         ]
     }
@@ -115,8 +118,7 @@ class DuckDBOverHttp implements DataConnection {
             const password = this.config.password!;
             headers['Authorization'] = 'Basic ' + btoa(`${username}:${password}`);
         } else if (this.config.authentication === 'token') {
-            const token = this.config.token!;
-            headers['X-API-Key'] = token;
+            headers['X-API-Key'] = this.config.token!;
         } else if (this.config.authentication !== 'none') {
             // @ts-ignore
             throw new Error(`Unsupported authentication type: ${this.config.authentication}`);

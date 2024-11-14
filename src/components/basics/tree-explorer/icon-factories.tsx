@@ -1,5 +1,17 @@
 import React, {ReactNode} from "react";
-import {Calendar, Database, File, FileWarning, Folder, Hash, Layers3, Sheet, Text, ToggleLeft} from "lucide-react";
+import {
+    Calendar,
+    Database,
+    File,
+    FileWarning,
+    Folder,
+    Hash,
+    Layers3,
+    Network,
+    Sheet,
+    Text,
+    ToggleLeft
+} from "lucide-react";
 
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';
@@ -21,7 +33,7 @@ export const defaultIconFactory = (type: string): ReactNode => {
         case 'database':
             return <Database size={iconSize} />
         case 'schema':
-            return <Layers3 size={iconSize} />
+            return <Network size={iconSize} />
         case 'duckdb-wasm':
             return <Database size={iconSize} />
         case 'duckdb-over-http':

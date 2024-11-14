@@ -84,7 +84,7 @@ export async function getViewFromRelationName(connectionId: string, databaseName
 
     return {
 
-        id: getRelationId(relationName, schemaName, databaseName, connectionId),
+        id: getRelationId(connectionId,  databaseName, schemaName, relationName),
         name: relationName,
         schema: schemaName,
         database: databaseName,
