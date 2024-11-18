@@ -139,9 +139,9 @@ function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize?: numb
 
     const iconSize = props.iconSize || 16;
 
-    if (props.sorting === 'asc') {
+    if (props.sorting === 'ASC') {
         return <ChevronUp size={iconSize}/>;
-    } else if (props.sorting === 'desc') {
+    } else if (props.sorting === 'DESC') {
         return <ChevronDown size={iconSize}/>;
     } else {
         return <ChevronsUpDown size={iconSize}/>;

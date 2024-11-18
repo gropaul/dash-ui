@@ -38,15 +38,10 @@ function TreeExplorerNode({
     const current_tree_id_path = tree_id_path.concat(tree.name);
 
     function localOnClick(e: React.MouseEvent) {
-        e.preventDefault();
-        e.stopPropagation();
         onClickCallback(current_tree_id_path);
     }
 
     function localOnDoubleClick(e: React.MouseEvent) {
-        e.preventDefault();
-        e.stopPropagation();
-
         if (onDoubleClickCallback) {
             onDoubleClickCallback(current_tree_id_path);
         } else {
@@ -65,6 +60,7 @@ function TreeExplorerNode({
                 style={{paddingLeft: `${depth * 1.5}rem`}}
                 onClick={localOnClick}
                 onDoubleClick={localOnDoubleClick}
+                onMouseDown={(e) => e.preventDefault()}
             >
                 {/* Expand/collapse icon */}
                 <div

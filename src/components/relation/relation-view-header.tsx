@@ -45,19 +45,20 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
             </div>
             <div className="flex flex-row items-center">
                 <button
-                    className="px-2 py-1 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 ml-2"
+                    className="text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 h-8 w-8 flex items-center justify-center"
                     onClick={onShowCode}
+                    title="Show Query"
                 >
                     <Code size={16}/>
                 </button>
                 <button
-                    className="px-2 py-1 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100"
+                    className="px-2 py-1 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 h-8 ml-2"
                     onClick={onShowTable}
                 >
                     Table
                 </button>
                 <button
-                    className="px-2 py-1 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 ml-2"
+                    className="px-2 py-1 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 ml-2 h-8"
                     onClick={onShowChart}
                 >
                     Chart

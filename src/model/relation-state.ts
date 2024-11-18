@@ -33,16 +33,16 @@ export interface RelationState extends RelationWithQuery {
     viewState: RelationViewState;
 }
 
-export type ColumnSorting = 'asc' | 'desc';
+export type ColumnSorting = 'ASC' | 'DESC';
 
 export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | undefined {
     switch (current) {
-        case 'asc':
-            return 'desc';
-        case 'desc':
+        case 'ASC':
+            return 'DESC';
+        case 'DESC':
             return undefined;
         case undefined:
-            return 'asc';
+            return 'ASC';
     }
 }
 
@@ -72,15 +72,16 @@ export async function getViewFromRelationName(connectionId: string, databaseName
     const relationFullName = `"${databaseName}"."${schemaName}"."${relationName}"`;
 
     const queryGetData = `SELECT *
-                          FROM ${relationFullName} ${oderByQuery} LIMIT ${limit}
-                          OFFSET ${offset}`;
+FROM ${relationFullName} ${oderByQuery}
+LIMIT ${limit}
+OFFSET ${offset};`;
 
     const relationData = await executeQuery(connectionId, queryGetData);
     const columns = relationData.columns;
     const rows = relationData.rows;
 
     const queryGetCount = `SELECT COUNT(*)
-                           FROM ${relationFullName}`;
+FROM ${relationFullName}`;
 
     const countData = await executeQuery(connectionId, queryGetCount);
     const count = Number(countData.rows[0][0]);
