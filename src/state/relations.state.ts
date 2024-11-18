@@ -1,4 +1,3 @@
-import {v4 as uuidv4} from "uuid";
 import {getRelationId, Relation} from "@/model/relation";
 import {create} from "zustand";
 import {Model} from "flexlayout-react";
@@ -8,6 +7,7 @@ import {
     getViewFromRelationName,
     RelationQueryParams, RelationState,
 } from "@/model/relation-state";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 interface RelationStates {
@@ -17,7 +17,8 @@ interface RelationStates {
     showRelation: (relation: Relation) => Promise<void>,
     showRelationByName: (connectionId: string, databaseName: string, schemaName: string, relationName: string) => Promise<void>,
     getRelation: (relationId: string) => RelationState | undefined,
-    updateRelationDisplay: (relationId: string, query: RelationQueryParams) => Promise<void>,
+    updateRelationData: (relationId: string, query: RelationQueryParams) => Promise<void>,
+    setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
     closeRelation: (relationId: string) => void,
 
     layoutModel: Model;
@@ -56,7 +57,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         }
     },
 
-    updateRelationDisplay: async (relationId, query) => {
+    updateRelationData: async (relationId, query) => {
         const relation = get().relations.find((rel) => rel.id === relationId);
         if (!relation) {
             console.error(`Relation with id ${relationId} not found`);
@@ -73,7 +74,19 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
             }),
         }));
     },
-
+    setRelationViewState: (relationId: string, viewState: RelationViewState) => {
+        set((state) => ({
+            relations: state.relations.map((rel) => {
+                if (rel.id === relationId) {
+                    return {
+                        ...rel,
+                        viewState: viewState,
+                    };
+                }
+                return rel;
+            }),
+        }));
+    },
     closeRelation: (relationId: string) => {
         set((state) => ({
             relations: state.relations.filter((rel: RelationState) => rel.id !== relationId),

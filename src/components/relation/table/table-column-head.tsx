@@ -1,21 +1,20 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {Column} from "@/model/column";
 import {
-    Hash,
-    Text,
     Calendar,
-    ToggleLeft,
+    ChevronDown,
+    ChevronsUpDown,
+    ChevronUp,
     CircleHelp,
     Filter,
-    ChevronUp,
-    ChevronDown,
-    ChevronsUpDown, Move
+    Hash,
+    Text,
+    ToggleLeft
 } from 'lucide-react';
-import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/components/relation/relation-view";
 import {ColumnSorting, getNextColumnSorting, RelationState} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
-import {DndContext, DragOverlay, useDraggable} from "@dnd-kit/core";
-import type {DragStartEvent} from "@dnd-kit/core/dist/types";
+import {useDraggable} from "@dnd-kit/core";
+import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
 
 
 interface ColumnHeadProps {
@@ -82,15 +81,10 @@ export function TableColumnHead(props: ColumnHeadProps) {
     }
 
     let columnWidth = columnViewState.width + 'px';
-    let draggableWidth = INITIAL_COLUMN_VIEW_STATE.width + 'px';
 
-    const {attributes, listeners, setNodeRef, transform} = useDraggable({
+    const {attributes, listeners, setNodeRef} = useDraggable({
         id: column.name,
     });
-    const style = transform ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 50px)`,
-    } : undefined;
-
 
     return (
 
@@ -130,7 +124,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
 export function ColumnIconButtons(props: ColumnHeadProps) {
 
-    const columnSorting = props.relation.queryParameters.sorting[props.column.name];
+    const columnSorting = props.relation.query.parameters.sorting[props.column.name];
 
     // if there is no sorting only show on hover, else show all the time
     const onlyShowOnHover = !columnSorting;
@@ -143,15 +137,15 @@ export function ColumnIconButtons(props: ColumnHeadProps) {
         'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200' :
         'text-gray-800 dark:text-gray-200';
 
-    const updateRelation = useRelationsState((state) => state.updateRelationDisplay);
+    const updateRelation = useRelationsState((state) => state.updateRelationData);
 
     function onSortClick() {
 
         const nextSorting = getNextColumnSorting(columnSorting);
 
-        const {[props.column.name]: _, ...remainingSortings} = props.relation.queryParameters.sorting || {};
+        const {[props.column.name]: _, ...remainingSortings} = props.relation.query.parameters.sorting || {};
         const newQueryParams = {
-            ...props.relation.queryParameters,
+            ...props.relation.query.parameters,
             sorting: {
                 [props.column.name]: nextSorting,
                 ...remainingSortings,

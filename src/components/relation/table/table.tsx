@@ -1,4 +1,3 @@
-import {ColumnViewState, RelationViewState, TableViewState} from "@/components/relation/relation-view";
 import {RelationState} from "@/model/relation-state";
 import {TableContent} from "@/components/relation/table/table-content";
 import {TableFooter} from "@/components/relation/table/table-footer";
@@ -6,38 +5,23 @@ import {DndContext, DragOverlay} from "@dnd-kit/core";
 import type {DragStartEvent} from "@dnd-kit/core/dist/types";
 import {Move} from "lucide-react";
 import React, {useState} from "react";
-
-export function getInitialTableDisplayState(relation: RelationState): TableViewState {
-
-    let columnStates: { [key: string]: ColumnViewState } = {};
-    relation.columns.forEach(column => {
-        columnStates[column.name] = {
-            width: 192,
-            wrapContent: false,
-        };
-    });
-
-    return {
-        columnStates: columnStates,
-    };
-}
+import {TableViewState} from "@/model/relation-view-state/table";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 export interface RelationViewTableProps {
-    relation: RelationState;
-    viewState: RelationViewState;
-    setViewState: (state: RelationViewState) => void;
+    relationState: RelationState;
+    setRelationViewState: (state: RelationViewState) => void;
 
 }
 
 export function Table(props: RelationViewTableProps) {
 
-    const tableState = props.viewState.tableState;
-    const relation = props.relation;
+    const relationState = props.relationState;
 
     function setTableState(state: TableViewState) {
-        props.setViewState({
-            ...props.viewState,
+        props.setRelationViewState({
+            ...relationState.viewState,
             tableState: state,
         });
     }
@@ -58,12 +42,11 @@ export function Table(props: RelationViewTableProps) {
             <div className="flex flex-col w-full h-full">
                 <div className="relative overflow-y-auto flex-1 flex flex-row">
                     <TableContent
-                        relation={relation}
-                        displayState={tableState}
+                        relation={relationState}
                         setDisplayState={setTableState}
                     />
                 </div>
-                <TableFooter relation={relation}/>
+                <TableFooter relation={relationState}/>
             </div>
             <DragOverlay>
                 {activeId ? (

@@ -1,9 +1,9 @@
 import {Row} from "@/model/relation";
-import {TableViewState} from "@/components/relation/relation-view";
 import {TableValueCell} from "@/components/relation/table/table-value-cell";
 
 import {Sometype_Mono} from "next/font/google";
 import {Column} from "@/model/column";
+import {TableViewState} from "@/model/relation-view-state/table";
 
 const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 
@@ -11,7 +11,7 @@ export interface RowViewProps {
     rowIndex: number;
     row: Row;
     columns: Column[];
-    displayState: TableViewState;
+    tableViewState: TableViewState;
     offset: number;
 }
 
@@ -50,7 +50,7 @@ export function TableRow(props: RowViewProps) {
                     key={index}
                     element={element}
                     column={props.columns[index]}
-                    displayState={props.displayState}
+                    displayState={props.tableViewState}
                 />
             ))}
         </tr>

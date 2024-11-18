@@ -1,5 +1,6 @@
 import {getRelationId, Relation} from "@/model/relation";
 import {useConnectionsState} from "@/state/connections.state";
+import {getInitViewState, RelationViewState} from "@/model/relation-view-state";
 
 export function getDefaultQueryParams(): RelationQueryParams {
     return {
@@ -16,14 +17,18 @@ export interface RelationQueryParams {
     sorting: { [key: string]: ColumnSorting | undefined };
 }
 
-export interface RelationState extends Relation {
-    queryData: string;
-    queryCount: string;
-    queryDuration: number; // in s
-
+export interface QueryData {
+    dataQuery: string;
+    countQuery: string;
+    duration: number; // in s
     totalCount: number;
+    parameters: RelationQueryParams;
+}
 
-    queryParameters: RelationQueryParams;
+
+export interface RelationState extends Relation {
+    query: QueryData;
+    viewState: RelationViewState;
 }
 
 export type ColumnSorting = 'asc' | 'desc';
@@ -57,7 +62,7 @@ export async function getViewFromRelationName(connectionId: string, databaseName
         if (!sorting) {
             return '';
         }
-        return `${column} ${sorting}`;
+        return `"${column}" ${sorting}`;
     }).filter((s) => s.length > 0).join(', ');
 
     const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
@@ -82,20 +87,25 @@ export async function getViewFromRelationName(connectionId: string, databaseName
     const end = performance.now();
     const duration = (end - start) / 1000;
 
-    return {
-
-        id: getRelationId(connectionId,  databaseName, schemaName, relationName),
+    const relation: Relation = {
+        id: getRelationId(connectionId, databaseName, schemaName, relationName),
         name: relationName,
         schema: schemaName,
         database: databaseName,
         connectionId: connectionId,
-
         columns,
         rows,
-        queryData: queryGetData,
-        queryCount: queryGetCount,
-        queryDuration: duration,
-        totalCount: count,
-        queryParameters: query,
+    }
+
+    return {
+        ...relation,
+        query: {
+            dataQuery: queryGetData,
+            countQuery: queryGetCount,
+            duration: duration,
+            totalCount: count,
+            parameters: query,
+        },
+        viewState: getInitViewState(relation),
     }
 }

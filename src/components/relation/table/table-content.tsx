@@ -1,17 +1,18 @@
 import {TableColumnHead} from "@/components/relation/table/table-column-head";
 import {TableRow} from "@/components/relation/table/table-row";
 import React from "react";
-import {TableViewState} from "@/components/relation/relation-view";
 import {RelationState} from "@/model/relation-state";
+import {TableViewState} from "@/model/relation-view-state/table";
 
 export interface RelationViewTableContentProps {
     relation: RelationState;
-    displayState: TableViewState;
     setDisplayState: (state: TableViewState) => void;
 
 }
 
 export function TableContent(props: RelationViewTableContentProps) {
+
+    const tableViewState = props.relation.viewState.tableState;
 
     return (
         <table
@@ -41,7 +42,7 @@ export function TableContent(props: RelationViewTableContentProps) {
                         relation={props.relation}
                         key={index}
                         column={column}
-                        displayState={props.displayState}
+                        displayState={tableViewState}
                         setDisplayState={props.setDisplayState}
                     />
                 ))}
@@ -54,8 +55,8 @@ export function TableContent(props: RelationViewTableContentProps) {
                     rowIndex={index}
                     row={row}
                     columns={props.relation.columns}
-                    offset={props.relation.queryParameters.offset}
-                    displayState={props.displayState}
+                    offset={props.relation.query.parameters.offset}
+                    tableViewState={tableViewState}
                 />
             ))}
             </tbody>

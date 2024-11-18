@@ -1,5 +1,5 @@
-import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/components/relation/relation-view";
 import {Column} from "@/model/column";
+import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
 
 
 interface RowElementViewProps {
