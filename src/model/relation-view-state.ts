@@ -1,4 +1,8 @@
-import {getInitialTableDisplayState, TableViewState} from "@/model/relation-view-state/table";
+import {
+    getInitialTableDisplayState,
+    getInitialTableDisplayStateEmpty,
+    TableViewState
+} from "@/model/relation-view-state/table";
 import {Relation} from "@/model/relation";
 
 export interface RelationViewBaseState {
@@ -10,8 +14,7 @@ export interface RelationViewState extends RelationViewBaseState {
     tableState: TableViewState
 }
 
-
-type RelationViewType = 'table' | 'chart';
+export type RelationViewType = 'table' | 'chart';
 
 export function getInitViewState(relation?: Relation): RelationViewState {
 
@@ -24,9 +27,7 @@ export function getInitViewState(relation?: Relation): RelationViewState {
     if (!relation) {
         return {
             ...baseState,
-            tableState: {
-                columnStates: {},
-            },
+            tableState: getInitialTableDisplayStateEmpty(),
         };
     }
 

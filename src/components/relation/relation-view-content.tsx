@@ -1,20 +1,20 @@
 import {Table} from "@/components/relation/table/table";
-import {RelationState} from "@/model/relation-state";
-import {RelationViewState} from "@/model/relation-view-state";
+import {RelationViewType} from "@/model/relation-view-state";
+import {useRelationsState} from "@/state/relations.state";
+import {shallow} from "zustand/shallow";
 
 
 export interface RelationViewContentProps {
-    relation: RelationState;
-    setRelationViewState: (state: RelationViewState) => void;
+    relationId: string;
 }
 
-export function RelationViewContent({relation, setRelationViewState}: RelationViewContentProps) {
-    if (relation.viewState.selectedView === 'table') {
+export function RelationViewContent({relationId}: RelationViewContentProps) {
+
+    const selectedView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
+
+    if (selectedView === 'table') {
         return (
-            <Table
-                relationState={relation}
-                setRelationViewState={setRelationViewState}
-            />
+            <Table relationId={relationId}/>
         );
     }
 }

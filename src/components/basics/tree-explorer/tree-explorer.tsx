@@ -1,5 +1,4 @@
 import React, {useState} from "react";
-import {ColumnHeadIcon} from "@/components/relation/table/table-column-head";
 import {ChevronDown, ChevronRight} from "lucide-react";
 
 export interface TreeNode {
@@ -14,9 +13,16 @@ export interface TreeExplorerNodeProps {
 
     tree_id_path: string[]
     onClickCallback: (tree_id_path: string[]) => void;
+    onDoubleClickCallback?: (tree_id_path: string[]) => void;
 }
 
-function TreeExplorerNode({ tree, iconFactory, tree_id_path, onClickCallback }: TreeExplorerNodeProps) {
+function TreeExplorerNode({
+                              tree,
+                              iconFactory,
+                              tree_id_path,
+                              onClickCallback,
+                              onDoubleClickCallback
+                          }: TreeExplorerNodeProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const hasChildren = tree.children && tree.children.length > 0;
 
@@ -31,8 +37,24 @@ function TreeExplorerNode({ tree, iconFactory, tree_id_path, onClickCallback }: 
     const depth = tree_id_path.length;
     const current_tree_id_path = tree_id_path.concat(tree.name);
 
-    function localOnClick() {
+    function localOnClick(e: React.MouseEvent) {
+        e.preventDefault();
+        e.stopPropagation();
         onClickCallback(current_tree_id_path);
+    }
+
+    function localOnDoubleClick(e: React.MouseEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (onDoubleClickCallback) {
+            onDoubleClickCallback(current_tree_id_path);
+        } else {
+            if (hasChildren) {
+
+                setIsExpanded(!isExpanded);
+            }
+        }
     }
 
     return (
@@ -42,6 +64,7 @@ function TreeExplorerNode({ tree, iconFactory, tree_id_path, onClickCallback }: 
                 className="flex items-center p-0.5 hover:bg-gray-100 cursor-pointer active:bg-gray-200"
                 style={{paddingLeft: `${depth * 1.5}rem`}}
                 onClick={localOnClick}
+                onDoubleClick={localOnDoubleClick}
             >
                 {/* Expand/collapse icon */}
                 <div
@@ -86,9 +109,10 @@ export interface TreeExplorerProps {
     tree: TreeNode | TreeNode[];
     iconFactory: (type: string) => React.ReactNode;
     onClick: (tree_id_path: string[]) => void;
+    onDoubleClick?: (tree_id_path: string[]) => void;
 }
 
-export function TreeExplorer({tree, iconFactory, onClick}: TreeExplorerProps) {
+export function TreeExplorer({tree, iconFactory, onClick, onDoubleClick}: TreeExplorerProps) {
     // Convert tree to array if it’s a single TreeNode
     const trees = Array.isArray(tree) ? tree : [tree];
 
@@ -101,6 +125,7 @@ export function TreeExplorer({tree, iconFactory, onClick}: TreeExplorerProps) {
                     tree={treeNode}
                     iconFactory={iconFactory}
                     onClickCallback={onClick}
+                    onDoubleClickCallback={onDoubleClick}
                 />
             ))}
         </div>

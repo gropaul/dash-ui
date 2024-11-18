@@ -1,4 +1,5 @@
 import {Relation} from "@/model/relation";
+import {RelationState} from "@/model/relation-state";
 
 export interface ColumnViewState {
     width: number;
@@ -9,6 +10,11 @@ export interface ColumnViewState {
 export interface TableViewState {
     // key is column name, value is display state -> map
     columnStates: { [key: string]: ColumnViewState };
+    // order of the columns to be displayed. if a column is not in this list it will be displayed at the end
+    columnsOrder: string[];
+    // columns that are currently not displayed, if a column is not in this list it is displayed
+    columnsHidden: string[];
+
 }
 
 export const INITIAL_COLUMN_VIEW_STATE: ColumnViewState = {
@@ -16,15 +22,55 @@ export const INITIAL_COLUMN_VIEW_STATE: ColumnViewState = {
     wrapContent: false,
 }
 
+export function getInitialTableDisplayStateEmpty(): TableViewState {
+    return {
+        columnsOrder: [],
+        columnsHidden: [],
+        columnStates: {},
+    };
+}
+
+export function getTableColumnViewIndices(relation: RelationState): number[] {
+
+    const tableState = relation.viewState.tableState;
+    const relationColumnNames = relation.columns.map(column => column.name);
+
+    const orderedAndNotHidden = tableState.columnsOrder.filter(column => !tableState.columnsHidden.includes(column));
+
+    const indices: number[] = [];
+
+    for (const column of orderedAndNotHidden) {
+        const indexInRelation = relationColumnNames.indexOf(column);
+        if (indexInRelation !== -1) {
+            indices.push(indexInRelation);
+        }
+    }
+
+    // get all columns that are not hidden and not in the order list
+    const notOrderedAndHidden = relationColumnNames.filter(column =>
+        !tableState.columnsOrder.includes(column)
+        && !tableState.columnsHidden.includes(column));
+
+    // add them to the end
+    for (const column of notOrderedAndHidden) {
+        indices.push(relationColumnNames.indexOf(column));
+    }
+
+    return indices;
+}
 
 export function getInitialTableDisplayState(relation: Relation): TableViewState {
 
     let columnStates: { [key: string]: ColumnViewState } = {};
+    let columnOrder: string[] = [];
     relation.columns.forEach(column => {
+        columnOrder.push(column.name);
         columnStates[column.name] = {...INITIAL_COLUMN_VIEW_STATE};
     });
 
     return {
+        columnsOrder: columnOrder,
+        columnsHidden: [],
         columnStates: columnStates,
     };
 }

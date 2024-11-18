@@ -1,32 +1,38 @@
 import {RelationState} from "@/model/relation-state";
 import {Code} from "lucide-react";
 import {RelationViewState} from "@/model/relation-view-state";
+import {useRelationsState} from "@/state/relations.state";
+import {shallow} from "zustand/shallow";
 
 
 export interface RelationViewHeaderProps {
-    relationState: RelationState;
-    setRelationViewState: (state: RelationViewState) => void;
+    relationId: string;
 }
 
-export function RelationViewHeader({relationState, setRelationViewState}: RelationViewHeaderProps) {
+export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
+
+    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
+
+    const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
+    const databaseName = useRelationsState((state) => state.getRelation(relationId)?.database, shallow);
+
+    const showCode = useRelationsState((state) => state.getRelationViewState(relationId).showCode, shallow);
+    const selectedView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
 
     function onShowCode() {
-        setRelationViewState({
-            ...relationState.viewState,
-            showCode: !relationState.viewState.showCode,
+        updateRelationViewState(relationId, {
+            showCode: !showCode,
         });
     }
 
     function onShowTable() {
-        setRelationViewState({
-            ...relationState.viewState,
+        updateRelationViewState(relationId, {
             selectedView: 'table',
         });
     }
 
     function onShowChart() {
-        setRelationViewState({
-            ...relationState.viewState,
+        updateRelationViewState(relationId, {
             selectedView: 'chart',
         });
     }
@@ -34,8 +40,8 @@ export function RelationViewHeader({relationState, setRelationViewState}: Relati
     return (
         <div className="flex flex-row items-center justify-between w-full h-12 px-4 border-b border-gray-200">
             <div className="flex flex-row items-center">
-                <div className="font-bold text-lg">{relationState.name}</div>
-                <div className="ml-4 text-sm text-gray-500">{relationState.database}</div>
+                <div className="font-bold text-lg">{relationName}</div>
+                <div className="ml-4 text-sm text-gray-500">{databaseName}</div>
             </div>
             <div className="flex flex-row items-center">
                 <button

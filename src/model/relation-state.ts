@@ -25,9 +25,11 @@ export interface QueryData {
     parameters: RelationQueryParams;
 }
 
-
-export interface RelationState extends Relation {
+export interface RelationWithQuery extends Relation {
     query: QueryData;
+}
+
+export interface RelationState extends RelationWithQuery {
     viewState: RelationViewState;
 }
 
@@ -45,11 +47,11 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
 }
 
 
-export async function getViewFromRelation(relation: Relation, query: RelationQueryParams): Promise<RelationState> {
+export async function getViewFromRelation(relation: Relation, query: RelationQueryParams): Promise<RelationWithQuery> {
     return getViewFromRelationName(relation.connectionId, relation.database, relation.schema, relation.name, query);
 }
 
-export async function getViewFromRelationName(connectionId: string, databaseName: string, schemaName: string, relationName: string, query: RelationQueryParams): Promise<RelationState> {
+export async function getViewFromRelationName(connectionId: string, databaseName: string, schemaName: string, relationName: string, query: RelationQueryParams): Promise<RelationWithQuery> {
 
     const {offset, limit} = query;
 
@@ -105,7 +107,6 @@ export async function getViewFromRelationName(connectionId: string, databaseName
             duration: duration,
             totalCount: count,
             parameters: query,
-        },
-        viewState: getInitViewState(relation),
+        }
     }
 }

@@ -1,15 +1,17 @@
 import {Column} from "@/model/column";
 import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
+import {useRelationsState} from "@/state/relations.state";
+import {shallow} from "zustand/shallow";
 
 
 interface RowElementViewProps {
+    relationId: string,
     element: any,
     column: Column,
-    displayState: TableViewState
 }
 
-export function TableValueCell({column, displayState, element}: RowElementViewProps) {
-    const columnViewState = displayState.columnStates?.[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
+export function TableValueCell({relationId, column, element}: RowElementViewProps) {
+    const columnViewState = useRelationsState((state) => state.getRelationViewState(relationId).tableState.columnStates[column.name], shallow);
     const wrapContent = columnViewState.wrapContent;
     const columnWidth = columnViewState.width + 'px';
 

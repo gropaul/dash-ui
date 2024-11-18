@@ -1,18 +1,18 @@
 'use client';
 
-import { DragEvent, useState } from "react";
+import {DragEvent, ReactNode, useState} from "react";
 
 
 interface Props {
     className?: string;
     onDrop: (files: File[]) => void;
     onOverUpdate?: (isOver: boolean, files: File[]) => void;
-    children?: React.ReactNode;
+    children?: ReactNode;
 }
 
 export function FileDrop({ className, onDrop, children, onOverUpdate}: Props) {
     const [isOver, setIsOver] = useState(false);
-    const [files, setFiles] = useState<File[]>([]);
+    const [_files, setFiles] = useState<File[]>([]);
 
     // Define the event handlers
     const handleDragOver = (event: DragEvent<HTMLDivElement>) => {

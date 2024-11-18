@@ -7,19 +7,25 @@ import {
     getViewFromRelationName,
     RelationQueryParams, RelationState,
 } from "@/model/relation-state";
-import {RelationViewState} from "@/model/relation-view-state";
+import {getInitViewState, RelationViewState} from "@/model/relation-view-state";
 
 
 interface RelationStates {
 
-    relations: RelationState[],
+    relations: { [key: string]: RelationState };
+
+    doesRelationExist: (relationId: string) => boolean,
+    getRelation: (relationId: string) => RelationState,
+    closeRelation: (relationId: string) => void,
 
     showRelation: (relation: Relation) => Promise<void>,
     showRelationByName: (connectionId: string, databaseName: string, schemaName: string, relationName: string) => Promise<void>,
-    getRelation: (relationId: string) => RelationState | undefined,
+
     updateRelationData: (relationId: string, query: RelationQueryParams) => Promise<void>,
+
     setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
-    closeRelation: (relationId: string) => void,
+    getRelationViewState: (relationId: string) => RelationViewState,
+    updateRelationViewState: (relationId: string, viewState: Partial<RelationViewState>) => void,
 
     layoutModel: Model;
     getModel: () => Model;
@@ -27,11 +33,11 @@ interface RelationStates {
 }
 
 export const useRelationsState = create<RelationStates>((set, get) => ({
-    relations: [],
+    relations: {},
     selectedRelationsIndex: undefined,
 
-    getRelation: (relationId: string) => get().relations.find((rel) => rel.id === relationId),
-
+    doesRelationExist: (relationId: string) => get().relations[relationId] !== undefined,
+    getRelation: (relationId: string) => get().relations[relationId],
     showRelation: async (relation: Relation) => {
         return get().showRelationByName(relation.connectionId, relation.database, relation.schema, relation.name);
     },
@@ -40,58 +46,81 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         const relationId = getRelationId(connectionId, databaseName, schemaName, relationName);
 
         // check if relation already exists
-        const existingRelation = get().relations.find((rel) => rel.id === relationId);
+        const existingRelation = get().relations[relationId];
         if (existingRelation) {
             focusRelationInLayout(get().layoutModel, existingRelation.id);
         } else {
 
             const defaultQueryParams = getDefaultQueryParams();
-            const view = await getViewFromRelationName(connectionId, databaseName, schemaName, relationName, defaultQueryParams);
+            const relationWithQuery = await getViewFromRelationName(connectionId, databaseName, schemaName, relationName, defaultQueryParams);
+
+            const relation: RelationState = {
+                ...relationWithQuery,
+                viewState: getInitViewState(relationWithQuery),
+            }
 
             set((state) => ({
-                relations: [...state.relations, {...view}],
+                relations: {
+                    ...state.relations,
+                    [relationId]: relation,
+                },
             }));
 
             const model = get().layoutModel;
-            addRelationToLayout(model, view);
+            addRelationToLayout(model, relation);
         }
     },
 
     updateRelationData: async (relationId, query) => {
-        const relation = get().relations.find((rel) => rel.id === relationId);
-        if (!relation) {
-            console.error(`Relation with id ${relationId} not found`);
-            return;
-        }
+        const { relations } = get(); // Get the current state
+        const relation = relations[relationId]; // Retrieve the specific relation
+        const relationWithQuery = await getViewFromRelation(relation, query);
 
-        const updatedRelation = await getViewFromRelation(relation, query);
         set((state) => ({
-            relations: state.relations.map((rel) => {
-                if (rel.id === relationId) {
-                    return updatedRelation;
+            relations: {
+                ...state.relations,
+                [relationId]: {
+                    ...relationWithQuery,
+                    viewState: relation.viewState,
                 }
-                return rel;
-            }),
+            },
         }));
     },
+
     setRelationViewState: (relationId: string, viewState: RelationViewState) => {
         set((state) => ({
-            relations: state.relations.map((rel) => {
-                if (rel.id === relationId) {
-                    return {
-                        ...rel,
-                        viewState: viewState,
-                    };
-                }
-                return rel;
-            }),
+            relations: {
+                ...state.relations,
+                [relationId]: {
+                    ...state.relations[relationId],
+                    viewState,
+                },
+            }
+        }));
+    },
+
+    getRelationViewState: (relationId: string) => {
+        return get().relations[relationId].viewState;
+    },
+    updateRelationViewState: (relationId: string, viewState: Partial<RelationViewState>) => {
+        set((state) => ({
+            relations: {
+                ...state.relations,
+                [relationId]: {
+                    ...state.relations[relationId],
+                    viewState: {
+                        ...state.relations[relationId].viewState,
+                        ...viewState,
+                    },
+                },
+            },
         }));
     },
     closeRelation: (relationId: string) => {
-        set((state) => ({
-            relations: state.relations.filter((rel: RelationState) => rel.id !== relationId),
-        }));
-        },
+        const { relations } = get(); // Get the current state
+        delete relations[relationId]; // Remove the specified relation
+        set({ relations }); // Update the state
+    },
 
     getModel: () => get().layoutModel,
     setModel: (model: Model) =>

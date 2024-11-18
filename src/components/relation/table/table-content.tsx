@@ -2,18 +2,15 @@ import {TableColumnHead} from "@/components/relation/table/table-column-head";
 import {TableRow} from "@/components/relation/table/table-row";
 import React from "react";
 import {RelationState} from "@/model/relation-state";
-import {TableViewState} from "@/model/relation-view-state/table";
 
 export interface RelationViewTableContentProps {
     relation: RelationState;
-    setDisplayState: (state: TableViewState) => void;
-
+    columnViewIndices: number[];
 }
 
 export function TableContent(props: RelationViewTableContentProps) {
 
-    const tableViewState = props.relation.viewState.tableState;
-
+    const columnViewIndices = props.columnViewIndices;
     return (
         <table
             className="text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 w-fit h-fit mr-32"
@@ -28,22 +25,18 @@ export function TableContent(props: RelationViewTableContentProps) {
                 {/* Row index column header, should fit the cells with*/}
                 <th
                     scope="col"
-                    className="p-0 m-0 h-8 sticky left-0 z-10 bg-white dark:bg-black dark:text-gray-400 w-20"
+                    className="p-0 m-0 h-8 sticky left-0 z-20 bg-white dark:bg-black dark:text-gray-400 w-20"
                 >
                     <div
                         className="w-full h-full absolute right-0 top-0 z-50 border-r border-b border-gray-700 dark:border-gray-700"
                     />
-
-
                 </th>
                 {/* Column headers */}
-                {props.relation.columns.map((column, index) => (
+                {columnViewIndices.map((index) => (
                     <TableColumnHead
-                        relation={props.relation}
+                        relationId={props.relation.id}
                         key={index}
-                        column={column}
-                        displayState={tableViewState}
-                        setDisplayState={props.setDisplayState}
+                        column={props.relation.columns[index]}
                     />
                 ))}
             </tr>
@@ -52,11 +45,12 @@ export function TableContent(props: RelationViewTableContentProps) {
             {props.relation.rows.map((row, index) => (
                 <TableRow
                     key={index}
+                    relationId={props.relation.id}
                     rowIndex={index}
                     row={row}
                     columns={props.relation.columns}
                     offset={props.relation.query.parameters.offset}
-                    tableViewState={tableViewState}
+                    columnViewIndices={columnViewIndices}
                 />
             ))}
             </tbody>
