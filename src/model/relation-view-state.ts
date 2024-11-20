@@ -3,7 +3,8 @@ import {
     getInitialTableDisplayStateEmpty,
     TableViewState
 } from "@/model/relation-view-state/table";
-import {Relation} from "@/model/relation";
+import {Relation, RelationData} from "@/model/relation";
+import {deepEqual} from "@/platform/utils";
 
 export interface RelationViewBaseState {
     showCode: boolean;
@@ -16,8 +17,22 @@ export interface RelationViewState extends RelationViewBaseState {
 
 export type RelationViewType = 'table' | 'chart';
 
-export function getInitViewState(relation?: Relation): RelationViewState {
 
+export function updateRelationViewState(currentState: RelationViewState, newData: RelationData): RelationViewState {
+    // if the current state is the initial state, return a new state with the new data
+    const defaultState = getInitViewState(undefined);
+
+    console.log(currentState);
+    console.log(defaultState);
+    if (deepEqual(currentState, defaultState)) {
+        console.log('here');
+        return getInitViewState(newData);
+    } else {
+        return currentState;
+    }
+}
+
+export function getInitViewState(relation?: RelationData): RelationViewState {
 
     const baseState: RelationViewBaseState = {
         showCode: false,

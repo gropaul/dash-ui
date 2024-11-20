@@ -1,8 +1,8 @@
 import React from "react";
-import { Sometype_Mono } from "next/font/google";
-import {Check, Copy} from "lucide-react";
-
-const fontMono = Sometype_Mono({ subsets: ["latin"], weight: "400" });
+import {Sometype_Mono} from "next/font/google";
+import {CodeFenceOverlay} from "@/components/basics/code-fence/code-fence-overlay";
+import Editor, {} from "@monaco-editor/react";
+const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 
 export type SupportedLanguages = "sql" | "plaintext";
 
@@ -12,6 +12,8 @@ export interface CodeFenceProps {
     copyCode?: string;
     showLineNumbers?: boolean;
     showCopyButton?: boolean;
+    readOnly?: boolean;
+    onCodeChange?: (code: string) => void;
 }
 
 export function CodeFence({
@@ -20,53 +22,56 @@ export function CodeFence({
                               copyCode,
                               showLineNumbers = false,
                               showCopyButton = false,
+                              readOnly = false
                           }: CodeFenceProps) {
-
-
     copyCode = copyCode || displayCode;
 
-    const [copied, setCopied] = React.useState(false);
 
-
-    const handleCopy = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        await navigator.clipboard.writeText(copyCode);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 3000);
+    function onCodeChange(value: string | undefined) {
+        if (readOnly) {
+            return;
+        }
+    }
+    // define custom theme to set the background transparent
+    const customTheme = {
+        base: 'vs',
+        inherit: true,
+        rules: [],
+        colors: {
+            'editor.background': '#00000000',
+        },
     };
+
+    function onMount(editor: any, monaco: any) {
+        // add the custom theme
+        monaco.editor.defineTheme('customTheme', customTheme);
+        monaco.editor.setTheme('customTheme');
+    }
 
     return (
         <div
-            style={{ fontFamily: fontMono.style.fontFamily, fontSize: "14px" }}
+            style={{fontFamily: fontMono.style.fontFamily, fontSize: "14px"}}
         >
-            <pre className="relative rounded-lg bg-gray-100 dark:bg-gray-800 p-4 overflow-x-auto w-ful">
-                {showLineNumbers && (
-                    <div style={{ display: "inline-block", textAlign: "right", marginRight: "10px", color: "#888" }}>
-                        {displayCode.split("\n").map((_, i) => (
-                            <span key={i} style={{ display: "block" }}>
-                                {i + 1}
-                            </span>
-                        ))}
-                    </div>
-                )}
-                <div>
-                    {displayCode}
-                </div>
-                {showCopyButton && (
-                    <button
-                        onClick={handleCopy}
-                        className="absolute top-4 right-4"
-                    >
-                        {copied ?
-                            <Check size={16} />
-                            :
-                            <Copy size={16} />
-                        }
-                    </button>
-                )}
+            <pre className="relative rounded-lg py-4 bg-gray-100 dark:bg-gray-800">
+                <Editor
+                    height="192px"
+                    width="100%"
+                    language={language}
+                    value={displayCode}
+                    options={{
+                        readOnly: readOnly,
+                        minimap: {enabled: false},
+                        lineNumbers: showLineNumbers ? "on" : "off",
+                        theme: "customTheme",
+                        scrollBeyondLastLine: false,
+                    }}
+                    onChange={onCodeChange}
+                    onMount={onMount}
+                />
+                <CodeFenceOverlay showCopyButton={showCopyButton} copyCode={copyCode}/>
             </pre>
         </div>
     );
 }
+
+

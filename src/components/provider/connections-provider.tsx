@@ -1,9 +1,7 @@
 'use client';
 
 import {useEffect} from "react";
-import {DataConnection, useConnectionsState} from "@/state/connections.state";
-import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
-import {getDuckDBWasmConnection} from "@/state/connections/duckdb-wasm";
+import {useConnectionsState} from "@/state/connections.state";
 
 
 interface ConnectionsProviderProps {

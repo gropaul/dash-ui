@@ -7,25 +7,26 @@ export interface RelationData {
     rows: Row[]
 }
 
-export interface Relation extends RelationData {
+export interface Relation {
     connectionId: string,
     database: string,
     schema: string,
     name: string,
     id: string,
+    data?: RelationData, // can be undefined if query still running
 }
 
 export function getRelationId(connectionId: string, database: string , schema: string, relationName: string): string {
     return `relation-${connectionId}-${database}-${schema}-${relationName}`;
 }
 
-export function getColumnNames(relation: Relation): string[] {
-    return relation.columns.map((column) => column.name);
+export function getColumnNames(data: RelationData): string[] {
+    return data.columns.map((column) => column.name);
 }
 
-export function getColumnIndices(relation: RelationData, columns: string[]): number[] {
+export function getColumnIndices(data: RelationData, columns: string[]): number[] {
     return columns.map((column) => {
-        const index = relation.columns.findIndex((col) => col.name === column);
+        const index = data.columns.findIndex((col) => col.name === column);
         if (index === -1) {
             throw new Error(`Column ${column} not found in relation`);
         }
@@ -63,22 +64,24 @@ export function getTestRelation(): Relation {
         database: 'Test Database',
         name: 'Test Relation',
         schema: 'Test Schema',
-        columns: [
-            {
-                name: 'Column 1',
-                type: 'Integer',
-            },
-            {
-                name: 'Column 2',
-                type: 'String',
-            }
-        ],
-        rows: [
-            [1, "This"],
-            [2, "is"],
-            [3, "a"],
-            [4, "test"],
-        ]
+        data: {
+            columns: [
+                {
+                    name: 'Column 1',
+                    type: 'Integer',
+                },
+                {
+                    name: 'Column 2',
+                    type: 'String',
+                }
+            ],
+            rows: [
+                [1, "This"],
+                [2, "is"],
+                [3, "a"],
+                [4, "test"],
+            ]
+        }
     }
 }
 

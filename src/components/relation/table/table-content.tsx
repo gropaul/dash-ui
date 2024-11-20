@@ -10,6 +10,7 @@ export interface RelationViewTableContentProps {
 
 export function TableContent(props: RelationViewTableContentProps) {
 
+    const relationData = props.relation.data!;
     const columnViewIndices = props.columnViewIndices;
     return (
         <table
@@ -36,19 +37,19 @@ export function TableContent(props: RelationViewTableContentProps) {
                     <TableColumnHead
                         relationId={props.relation.id}
                         key={index}
-                        column={props.relation.columns[index]}
+                        column={relationData.columns[index]}
                     />
                 ))}
             </tr>
             </thead>
             <tbody>
-            {props.relation.rows.map((row, index) => (
+            {relationData.rows.map((row, index) => (
                 <TableRow
                     key={index}
                     relationId={props.relation.id}
                     rowIndex={index}
                     row={row}
-                    columns={props.relation.columns}
+                    columns={relationData.columns}
                     offset={props.relation.query.parameters.offset}
                     columnViewIndices={columnViewIndices}
                 />

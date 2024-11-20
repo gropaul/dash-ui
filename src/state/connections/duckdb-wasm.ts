@@ -1,7 +1,7 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDBConnection, DuckDBDataProtocol} from "@duckdb/duckdb-wasm";
 import {DataConnection, DataConnectionState, DataSource, DBConnectionType} from "@/state/connections.state";
-import {getRelationId, Relation} from "@/model/relation";
+import {RelationData} from "@/model/relation";
 import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
 import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
@@ -57,7 +57,7 @@ export class DuckDBWasm implements DataConnection {
         return 'connected';
     }
 
-    async executeQuery(query: string): Promise<Relation> {
+    async executeQuery(query: string): Promise<RelationData> {
         const localConnection = await this.db?.connect();
 
         const arrowResult = await localConnection!.query(query);
@@ -150,8 +150,7 @@ async function staticDuckDBBundles(): Promise<{
 }
 
 
-export function relationFromDuckDBResult(relationName: string, connectionId: string, arrowResult: any): Relation {
-
+export function relationFromDuckDBResult(relationName: string, connectionId: string, arrowResult: any): RelationData {
 
     // Convert arrow table to json
     const json = arrowResult.toArray().map((row: any) => row.toJSON());
@@ -159,11 +158,6 @@ export function relationFromDuckDBResult(relationName: string, connectionId: str
     // if the json is empty, return an empty relation
     if (json.length === 0) {
         return {
-            id: getRelationId(connectionId, DUCKDB_WASM_BASE_DATABASE, DUCKDB_WASM_BASE_SCHEMA, relationName),
-            connectionId: connectionId,
-            database: DUCKDB_WASM_BASE_DATABASE,
-            schema: DUCKDB_WASM_BASE_SCHEMA,
-            name: relationName,
             columns: [],
             rows: []
         };
@@ -177,14 +171,10 @@ export function relationFromDuckDBResult(relationName: string, connectionId: str
     });
 
     return {
-        id: getRelationId(connectionId, DUCKDB_WASM_BASE_DATABASE, DUCKDB_WASM_BASE_SCHEMA, relationName),
-        connectionId: connectionId,
-        database: DUCKDB_WASM_BASE_DATABASE,
-        schema: DUCKDB_WASM_BASE_SCHEMA,
-        name: relationName,
         columns: columns.map((column) => {
             return {
                 name: column,
+                // todo: infer type from data
                 type: 'String'
             }
         }),

@@ -3,9 +3,10 @@ import {create} from "zustand";
 import {Model} from "flexlayout-react";
 import {addRelationToLayout, focusRelationInLayout, getInitialLayoutModel} from "@/state/relations/layout-updates";
 import {
-    getDefaultQueryParams, getViewFromRelation,
+    executeQueryOfRelationState,
+    getDefaultQueryParams,
     getViewFromRelationName,
-    RelationQueryParams, RelationState,
+    RelationQueryParams, RelationState, updateRelationForNewParams,
 } from "@/model/relation-state";
 import {getInitViewState, RelationViewState} from "@/model/relation-view-state";
 
@@ -51,38 +52,46 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
             focusRelationInLayout(get().layoutModel, existingRelation.id);
         } else {
 
+            // update state with empty (loading) relation
             const defaultQueryParams = getDefaultQueryParams();
-            const relationWithQuery = await getViewFromRelationName(connectionId, databaseName, schemaName, relationName, defaultQueryParams);
-
-            const relation: RelationState = {
-                ...relationWithQuery,
-                viewState: getInitViewState(relationWithQuery),
-            }
-
+            const emptyRelationState = getViewFromRelationName(connectionId, databaseName, schemaName, relationName, defaultQueryParams, 'running');
             set((state) => ({
                 relations: {
                     ...state.relations,
-                    [relationId]: relation,
+                    [relationId]: emptyRelationState,
                 },
             }));
 
             const model = get().layoutModel;
-            addRelationToLayout(model, relation);
+            addRelationToLayout(model, emptyRelationState);
+
+            // execute query
+            const executedRelationState = await executeQueryOfRelationState(emptyRelationState);
+            set((state) => ({
+                relations: {
+                    ...state.relations,
+                    [relationId]: executedRelationState,
+                },
+            }));
         }
     },
 
     updateRelationData: async (relationId, query) => {
         const { relations } = get(); // Get the current state
-        const relation = relations[relationId]; // Retrieve the specific relation
-        const relationWithQuery = await getViewFromRelation(relation, query);
 
+        const relation = relations[relationId]; // Retrieve the specific relation
+        const updatedRelationState = updateRelationForNewParams(relation, query, 'running'); // Update the relation state
         set((state) => ({
             relations: {
                 ...state.relations,
-                [relationId]: {
-                    ...relationWithQuery,
-                    viewState: relation.viewState,
-                }
+                [relationId]: updatedRelationState,
+            },
+        }));
+        const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
+        set((state) => ({
+            relations: {
+                ...state.relations,
+                [relationId]: executedRelationState,
             },
         }));
     },

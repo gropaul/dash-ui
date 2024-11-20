@@ -15,15 +15,17 @@ function formatNumber(num: number): string {
 
 export function TableFooter(props: RelationViewFooterProps) {
 
+    const lastResultCount = props.relation.latExecutionMetaData?.lastResultCount || 0;
+    const lastExecutionDuration = props.relation.latExecutionMetaData?.lastExecutionDuration || 0;
+
     // format the number with , e.g. 1,000,000
-    let countText = props.relation.query.totalCount;
     const startIndex = props.relation.query.parameters.offset + 1;
 
-    const endIndex = Math.min(props.relation.query.parameters.offset + props.relation.query.parameters.limit, props.relation.query.totalCount);
-    const testShowingRange = `Showing ${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(countText)}`;
+    const endIndex = Math.min(props.relation.query.parameters.offset + props.relation.query.parameters.limit, lastResultCount);
+    const testShowingRange = `Showing ${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(lastResultCount)}`;
 
     const connectionName = useConnectionsState((state) => state.getConnectionName(props.relation.connectionId));
-    const textDurationAndConnection = `In ${formatDuration(props.relation.query.duration)} from ${connectionName}`;
+    const textDurationAndConnection = `In ${formatDuration(lastExecutionDuration)} from ${connectionName}`;
     return (
         <div className="flex flex-row items-center p-2 border-t border-gray-200 text-sm space-x-4">
             <div className="flex flex-row items-center space-x-2">
@@ -51,7 +53,15 @@ function formatDuration(duration: number): string {
 
 export function RelationViewPageController(props: RelationViewFooterProps) {
     const {relation} = props;
-    const maxPage = Math.ceil(relation.query.totalCount / relation.query.parameters.limit);
+
+    const totalCount = relation.latExecutionMetaData?.lastResultCount;
+
+    // this means there is no data and therefore no pagination
+    if (!totalCount) {
+        return null;
+    }
+
+    const maxPage = Math.ceil(totalCount / relation.query.parameters.limit);
     const currentPage = Math.floor(relation.query.parameters.offset / relation.query.parameters.limit) + 1;
     const text = `Page ${formatNumber(currentPage)} of ${formatNumber(maxPage)}`;
 
@@ -90,14 +100,14 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
             <div>{text}</div>
             <button
                 className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
-                onClick={() => handleUpdateRange(Math.min(relation.query.totalCount - relation.query.parameters.limit, relation.query.parameters.offset + relation.query.parameters.limit))}
+                onClick={() => handleUpdateRange(Math.min(totalCount - relation.query.parameters.limit, relation.query.parameters.offset + relation.query.parameters.limit))}
                 disabled={isLastPage}
             >
                 <ChevronRight size={iconSize}/>
             </button>
             <button
                 className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
-                onClick={() => handleUpdateRange(Math.max(0, relation.query.totalCount - relation.query.parameters.limit))}
+                onClick={() => handleUpdateRange(Math.max(0, totalCount - relation.query.parameters.limit))}
                 disabled={isLastPage}
             >
                 <ChevronLast size={iconSize}/>

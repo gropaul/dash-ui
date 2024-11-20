@@ -23,7 +23,6 @@ export function FileDrop({ className, onDrop, children, onOverUpdate}: Props) {
             setIsOver(true);
             onOverUpdate && onOverUpdate(true, files);
         }
-
     };
 
     const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {

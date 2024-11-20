@@ -1,14 +1,12 @@
-import {RelationState} from "@/model/relation-state";
 import {TableContent} from "@/components/relation/table/table-content";
 import {TableFooter} from "@/components/relation/table/table-footer";
-import {DndContext, DragMoveEvent, DragOverEvent, DragOverlay} from "@dnd-kit/core";
+import {DndContext, DragOverEvent} from "@dnd-kit/core";
 import type {DragEndEvent, DragStartEvent} from "@dnd-kit/core/dist/types";
-import {Move} from "lucide-react";
 import React, {useState} from "react";
 import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-state/table";
-import {RelationViewState} from "@/model/relation-view-state";
 import {TableColumnDragOverlay} from "@/components/relation/table/table-column-drag-overlay";
 import {useRelationsState} from "@/state/relations.state";
+import {shallow} from "zustand/shallow";
 
 
 export interface RelationViewTableProps {
@@ -17,12 +15,18 @@ export interface RelationViewTableProps {
 
 export function Table(props: RelationViewTableProps) {
 
-    const relationState = useRelationsState((state) => state.getRelation(props.relationId));
+    const relationState = useRelationsState((state) => state.getRelation(props.relationId), shallow);
     const setRelationViewState = useRelationsState((state) => state.updateRelationViewState);
-
+    const relationData = relationState.data;
     const columnsOrder = relationState.viewState.tableState.columnsOrder;
 
     const [dragStartOrder, setDragStartOrder] = useState<string[]>([]);
+    const [activeId, setActiveId] = useState<string | number | null>(null);
+
+    // if there is no data, return null
+    if (!relationData) {
+        return null;
+    }
 
     function setTableState(state: TableViewState) {
         setRelationViewState(
@@ -32,14 +36,12 @@ export function Table(props: RelationViewTableProps) {
             });
     }
 
-    const [activeId, setActiveId] = useState<string | number | null>(null);
-
     function handleDragStart(event: DragStartEvent) {
         setActiveId(event.active.id);
         setDragStartOrder(columnsOrder);
     }
 
-    function handleDragEnd(event: DragEndEvent) {
+    function handleDragEnd(_event: DragEndEvent) {
         setActiveId(null);
     }
 
@@ -79,7 +81,7 @@ export function Table(props: RelationViewTableProps) {
         }
     }
 
-    const columnViewIndices = getTableColumnViewIndices(relationState);
+    const columnViewIndices = getTableColumnViewIndices(relationState.viewState.tableState, relationData);
 
     return (
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>

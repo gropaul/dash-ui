@@ -1,5 +1,4 @@
-import {Relation} from "@/model/relation";
-import {RelationState} from "@/model/relation-state";
+import {RelationData} from "@/model/relation";
 
 export interface ColumnViewState {
     width: number;
@@ -30,10 +29,9 @@ export function getInitialTableDisplayStateEmpty(): TableViewState {
     };
 }
 
-export function getTableColumnViewIndices(relation: RelationState): number[] {
+export function getTableColumnViewIndices(tableState: TableViewState, relationData: RelationData): number[] {
 
-    const tableState = relation.viewState.tableState;
-    const relationColumnNames = relation.columns.map(column => column.name);
+    const relationColumnNames = relationData.columns.map(column => column.name);
 
     const orderedAndNotHidden = tableState.columnsOrder.filter(column => !tableState.columnsHidden.includes(column));
 
@@ -59,11 +57,11 @@ export function getTableColumnViewIndices(relation: RelationState): number[] {
     return indices;
 }
 
-export function getInitialTableDisplayState(relation: Relation): TableViewState {
+export function getInitialTableDisplayState(relationData: RelationData): TableViewState {
 
     let columnStates: { [key: string]: ColumnViewState } = {};
     let columnOrder: string[] = [];
-    relation.columns.forEach(column => {
+    relationData.columns.forEach(column => {
         columnOrder.push(column.name);
         columnStates[column.name] = {...INITIAL_COLUMN_VIEW_STATE};
     });

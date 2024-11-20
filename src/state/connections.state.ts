@@ -1,5 +1,5 @@
 import {create} from "zustand";
-import {RelationData} from "@/model/relation";
+import {Relation, RelationData} from "@/model/relation";
 import {TreeNode} from "@/components/basics/tree-explorer/tree-explorer";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
@@ -58,7 +58,7 @@ export interface DataConnectionsState {
 
     updateConfig: (connectionId: string, config: DataConnectionConfig) => void;
     updateDataSources: (connectionId: string) => Promise<DataSource[]>;
-    executeQuery: (connectionId: string, query: string) => Promise<any>;
+    executeQuery: (connectionId: string, query: string) => Promise<RelationData>;
 
     getDuckDBWasmConnection: () => DuckDBWasm;
 }
