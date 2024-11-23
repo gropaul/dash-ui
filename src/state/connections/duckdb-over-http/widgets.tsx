@@ -52,7 +52,9 @@ LOAD httpserver;`
 
     return (
         <CodeFence
+            height={"4rem"}
             language="sql"
+            readOnly={true}
             displayCode={getConnectionString(true)}
             copyCode={getConnectionString(false)}
             showCopyButton={!hasError}

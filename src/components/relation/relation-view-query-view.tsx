@@ -20,6 +20,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     return (
         <div className="px-4 py-2 border-b border-gray-200">
             <CodeFence
+                height={'8rem'}
                 language="sql"
                 displayCode={queryString}
                 showCopyButton={true}

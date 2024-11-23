@@ -5,7 +5,7 @@ import {getInitViewState, RelationViewState, updateRelationViewState} from "@/mo
 export function getDefaultQueryParams(): RelationQueryParams {
     return {
         offset: 0,
-        limit: 100,
+        limit: 50,
         sorting: {},
     };
 }
@@ -29,12 +29,13 @@ export type TaskExecutionState = 'not-started' | 'running' | 'success' | 'error'
 export interface QueryExecutionMetaData {
     lastExecutionDuration: number; // in s
     lastResultCount: number;
+    lastResultOffset: number;
 }
 
 export interface RelationWithQuery extends Relation {
     query: QueryData;
     executionState: TaskExecutionState;
-    latExecutionMetaData?: QueryExecutionMetaData;
+    lastExecutionMetaData?: QueryExecutionMetaData;
 }
 
 export interface RelationState extends RelationWithQuery {
@@ -72,7 +73,7 @@ export function getViewFromRelationName(connectionId: string, databaseName: stri
         ...relation,
         query: queryData,
         executionState: state,
-        latExecutionMetaData: undefined,
+        lastExecutionMetaData: undefined,
     }
 
     return {
@@ -97,9 +98,9 @@ export function getQueryFromParams(relation: Relation, query: RelationQueryParam
     const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
     const relationFullName = `"${database}"."${schema}"."${name}"`;
     const queryGetData = `SELECT *
-        FROM ${relationFullName} ${oderByQuery}
-        LIMIT ${limit}
-        OFFSET ${offset};`;
+FROM ${relationFullName} ${oderByQuery}
+LIMIT ${limit}
+OFFSET ${offset};`;
 
     // count query using subquery which is the query Get data without limit and offset
     const subqueryTotalResult = queryGetData.split('LIMIT')[0];
@@ -149,9 +150,10 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
         ...input,
         data: relationData,
         executionState: 'success',
-        latExecutionMetaData: {
+        lastExecutionMetaData: {
             lastExecutionDuration: duration,
             lastResultCount: count,
+            lastResultOffset: input.query.parameters.offset,
         },
         viewState: updateRelationViewState(input.viewState, relationData),
     }

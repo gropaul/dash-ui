@@ -3,6 +3,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
+import {formatDuration} from "@/platform/utils";
 
 
 export interface RelationViewHeaderProps {
@@ -15,9 +16,11 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
 
     const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
     const databaseName = useRelationsState((state) => state.getRelation(relationId)?.database, shallow);
+    const connectionName = useRelationsState((state) => state.getRelation(relationId)?.connectionId, shallow);
+    const lastExecutionDuration = useRelationsState((state) => state.getRelation(relationId).lastExecutionMetaData?.lastExecutionDuration, shallow);
     const showCode = useRelationsState((state) => state.getRelationViewState(relationId).showCode, shallow);
     const selectedView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
-
+    const executionState = useRelationsState((state) => state.getRelation(relationId).executionState, shallow);
     function onShowCode() {
         updateRelationViewState(relationId, {
             showCode: !showCode,
@@ -36,12 +39,18 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
         });
     }
 
+    let textDurationAndConnection = connectionName;
+    if (lastExecutionDuration) {
+        textDurationAndConnection += ` (${formatDuration(lastExecutionDuration)})`;
+    }
+
+
     return (
         <>
             <div className="flex flex-row items-center justify-between w-full h-[48px] px-4">
                 <div className="flex flex-row items-center">
                     <div className="font-bold text-lg">{relationName}</div>
-                    <div className="ml-4 text-sm text-gray-500">{databaseName}</div>
+                    <div className="ml-4 text-sm text-gray-500">{textDurationAndConnection}</div>
                 </div>
                 <div className="flex flex-row items-center">
                     <button

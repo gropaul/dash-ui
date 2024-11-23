@@ -16,3 +16,22 @@ export function deepEqual(obj1: any, obj2: any) {
 
     return true;
 }
+
+
+// formatDuration takes a duration in seconds and returns a string representation of the duration
+export function formatDuration(duration: number): string {
+    if (duration < 1) {
+        return `${Math.round(duration * 1000)}ms`;
+    } else if (duration < 60) {
+        // with two decimal places
+        return `${duration.toFixed(2)}s`;
+    } else if (duration < 3600) {
+        const minutes = Math.floor(duration / 60);
+        const seconds = Math.round(duration % 60);
+        return `${minutes}m ${seconds}s`;
+    } else {
+        const hours = Math.floor(duration / 3600);
+        const minutes = Math.floor((duration % 3600) / 60);
+        return `${hours}h ${minutes}m`;
+    }
+}

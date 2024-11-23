@@ -50,7 +50,7 @@ export function TableContent(props: RelationViewTableContentProps) {
                     rowIndex={index}
                     row={row}
                     columns={relationData.columns}
-                    offset={props.relation.query.parameters.offset}
+                    offset={props.relation.lastExecutionMetaData?.lastResultOffset || 0}
                     columnViewIndices={columnViewIndices}
                 />
             ))}

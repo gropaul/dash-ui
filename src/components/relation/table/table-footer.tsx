@@ -3,6 +3,7 @@ import React from "react";
 import {ChevronFirst, ChevronLast, ChevronLeft, ChevronRight} from "lucide-react";
 import {useRelationsState} from "@/state/relations.state";
 import {useConnectionsState} from "@/state/connections.state";
+import {formatDuration} from "@/platform/utils";
 
 
 export interface RelationViewFooterProps {
@@ -15,46 +16,34 @@ function formatNumber(num: number): string {
 
 export function TableFooter(props: RelationViewFooterProps) {
 
-    const lastResultCount = props.relation.latExecutionMetaData?.lastResultCount || 0;
-    const lastExecutionDuration = props.relation.latExecutionMetaData?.lastExecutionDuration || 0;
+    const lastResultCount = props.relation.lastExecutionMetaData?.lastResultCount || 0;
 
     // format the number with , e.g. 1,000,000
     const startIndex = props.relation.query.parameters.offset + 1;
 
     const endIndex = Math.min(props.relation.query.parameters.offset + props.relation.query.parameters.limit, lastResultCount);
-    const testShowingRange = `Showing ${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(lastResultCount)}`;
+    const testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(lastResultCount)}`;
 
     const connectionName = useConnectionsState((state) => state.getConnectionName(props.relation.connectionId));
-    const textDurationAndConnection = `In ${formatDuration(lastExecutionDuration)} from ${connectionName}`;
     return (
         <div className="flex flex-row items-center p-2 border-t border-gray-200 text-sm space-x-4">
-            <div className="flex flex-row items-center space-x-2">
+            <div className="flex flex-row items-center space-x-4">
                 <RelationViewPageController relation={props.relation}/>
-                <div className="mr-2">
-                    {testShowingRange}
-                </div>
             </div>
             <div className="flex-grow"/>
             <div className="pr-2">
-                {textDurationAndConnection}
+                {testShowingRange}
             </div>
         </div>
     );
 }
 
-function formatDuration(duration: number): string {
-    if (duration < 1) {
-        return `${Math.round(duration * 1000)}ms`;
-    } else {
-        // round to 2 decimal places, also if 2.00 show 2.00 not 2
-        return `${duration.toFixed(2)}s`;
-    }
-}
+
 
 export function RelationViewPageController(props: RelationViewFooterProps) {
     const {relation} = props;
 
-    const totalCount = relation.latExecutionMetaData?.lastResultCount;
+    const totalCount = relation.lastExecutionMetaData?.lastResultCount;
 
     // this means there is no data and therefore no pagination
     if (!totalCount) {
@@ -81,8 +70,38 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
         updateRelationDisplayRange(relation.id, updatedQueryParams);
     };
 
+    const pageSize = relation.query.parameters.limit;
+    function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
+        const newPageSize = parseInt(event.target.value);
+        const currentQueryParams = relation.query.parameters;
+        const updatedQueryParams = {
+            ...currentQueryParams,
+            limit: newPageSize,
+            offset: 0
+        }
+        updateRelationDisplayRange(relation.id, updatedQueryParams);
+    }
+
+    // default limit options
+    const limitOptions = [10, 20, 50, 100, 200];
+    // if the current limit is not in the options, add it
+    if (!limitOptions.includes(pageSize)) {
+        limitOptions.push(pageSize);
+    }
+
+    const options = limitOptions.map((limit) => (
+        <option key={limit} value={limit}>Show {limit}</option>
+    ));
+
     return (
-        <div className="flex flex-row items-center space-x-2">
+        <div className="flex flex-row items-center space-x-1">
+            <select
+                className="p-1 border rounded"
+                value={pageSize}
+                onChange={handlePageSizeChange}
+            >
+                {options}
+            </select>
             <button
                 className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
                 onClick={() => handleUpdateRange(0)}
