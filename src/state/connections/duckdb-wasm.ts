@@ -6,7 +6,6 @@ import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connection
 import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
-import {id} from "postcss-selector-parser";
 
 
 export function getDuckDBWasmConnection(): DataConnection {
