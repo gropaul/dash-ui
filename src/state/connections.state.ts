@@ -7,7 +7,7 @@ import {Column} from "@/model/column";
 import {ColumnSorting} from "@/model/relation-state";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 
-export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';
+export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem-over-duckdb';
 export type DataSourceType = 'file' | 'relation';
 export type DataGroupType = 'folder' | 'database' | 'schema';
 

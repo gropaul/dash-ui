@@ -24,6 +24,8 @@ function TreeExplorerNode({
                               onDoubleClickCallback
                           }: TreeExplorerNodeProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+
+    console.log(tree_id_path);
     const hasChildren = tree.children && tree.children.length > 0;
 
     const toggleExpand = (e: React.MouseEvent) => {

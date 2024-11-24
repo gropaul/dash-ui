@@ -1,6 +1,8 @@
-import {DataConnection, DataConnectionsState, useConnectionsState} from "@/state/connections.state";
-import {DUCKDB_WASM_ID, DuckDBWasm, getDuckDBWasmConnection} from "@/state/connections/duckdb-wasm";
+import {DataConnection, DataConnectionsState} from "@/state/connections.state";
+import { DuckDBWasm, getDuckDBWasmConnection} from "@/state/connections/duckdb-wasm";
 import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
+import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
+import {getFileSystemOverDuckdbConnection} from "@/state/connections/file-system-over-duckdb";
 
 
 export class ConnectionsService {
@@ -37,7 +39,7 @@ export class ConnectionsService {
     }
 
     getDuckDBWasmConnection() {
-        return this.connections[DUCKDB_WASM_ID] as DuckDBWasm
+        return this.connections[CONNECTION_ID_DUCKDB_WASM] as DuckDBWasm
     }
 
     updateConfig(connectionId: string, config: any) {
@@ -54,6 +56,13 @@ export class ConnectionsService {
         duckDBLocal.initialise().then(() => {
             state.addConnection(duckDBLocal);
             state.updateDataSources(duckDBLocal.id);
+
+            // is dependent on duckdb local
+            const fileSystemOverDuckdb = getFileSystemOverDuckdbConnection();
+            fileSystemOverDuckdb.initialise().then(() => {
+                state.addConnection(fileSystemOverDuckdb);
+                state.updateDataSources(fileSystemOverDuckdb.id);
+            });
         });
 
         const duckDBWasms = getDuckDBWasmConnection();
@@ -61,5 +70,8 @@ export class ConnectionsService {
             state.addConnection(duckDBWasms);
             state.updateDataSources(duckDBWasms.id);
         });
+
+
+
     }
 }

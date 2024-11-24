@@ -6,6 +6,19 @@ import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
+import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+
+export function getDuckDBLocalConnection() {
+
+    const config: DuckDBOverHttpConfig = {
+        name: 'Local DuckDB',
+        url: 'http://localhost:4200',
+        authentication: 'token',
+        token: 'supersecrettoken'
+    }
+
+    return new DuckDBOverHttp(config, CONNECTION_ID_DUCKDB_LOCAL);
+}
 
 export interface DuckDBOverHttpConfig {
     name: string;
@@ -168,14 +181,3 @@ class DuckDBOverHttp implements DataConnection {
     }
 }
 
-export function getDuckDBLocalConnection() {
-
-    const config: DuckDBOverHttpConfig = {
-        name: 'Local DuckDB',
-        url: 'http://localhost:4200',
-        authentication: 'token',
-        token: 'supersecrettoken'
-    }
-
-    return new DuckDBOverHttp(config, 'duckdb-local');
-}
