@@ -2,7 +2,7 @@ import {DataConnection, DataConnectionState, DataSource, DBConnectionType} from 
 import {RelationData} from "@/model/relation";
 import Error from "next/error";
 import {duckDBTypeToValueType} from "@/model/value-type";
-import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
+import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections/duckdb-helper";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
@@ -178,6 +178,10 @@ class DuckDBOverHttp implements DataConnection {
     initialise(): Promise<DataConnectionState> {
         // no initialisation needed
         return this.getConnectionState();
+    }
+
+    async onDataSourceClick(id_path: string[]) {
+        await onDuckDBDataSourceClick(this, id_path);
     }
 }
 

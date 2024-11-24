@@ -25,8 +25,7 @@ function TreeExplorerNode({
                           }: TreeExplorerNodeProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    console.log(tree_id_path);
-    const hasChildren = tree.children && tree.children.length > 0;
+    const hasChildren = tree.children !== undefined;
 
     const toggleExpand = (e: React.MouseEvent) => {
         e.preventDefault();

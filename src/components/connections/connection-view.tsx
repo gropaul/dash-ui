@@ -5,6 +5,7 @@ import {DataConnection, DataConnectionConfig, useConnectionsState} from "@/state
 import {useRelationsState} from "@/state/relations.state";
 import {RefreshCw, Settings} from "lucide-react";
 import ConnectionConfigModel from "@/components/connections/connection-config-modal";
+import {ConnectionsService} from "@/state/connections/connections-service";
 
 export interface ConnectionViewProps {
     connection: DataConnection;
@@ -17,12 +18,8 @@ export function ConnectionView(props: ConnectionViewProps) {
     const updateConfig = useConnectionsState((state) => state.updateConfig);
     const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
 
-    async function onElementClick(connection: DataConnection, id_path: string[]) {
-        // if path has two elements, it’s a data source
-        if (id_path.length === 3) {
-            const [databaseName, schemaName, relationName] = id_path;
-            await showRelation(connection.id, databaseName, schemaName, relationName);
-        }
+    async function onElementClick(connection_id: string, id_path: string[]) {
+        ConnectionsService.getInstance().getConnection(connection_id).onDataSourceClick(id_path);
     }
 
     function handleRefresh() {
@@ -60,7 +57,7 @@ export function ConnectionView(props: ConnectionViewProps) {
             <TreeExplorer
                 tree={props.connection.dataSources}
                 iconFactory={defaultIconFactory}
-                onClick={(id_path) => onElementClick(props.connection, id_path)}
+                onClick={(id_path) => onElementClick(props.connection.id, id_path)}
             />
 
             <ConnectionConfigModel

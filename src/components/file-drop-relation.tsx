@@ -4,8 +4,8 @@ import {FileDrop} from "@/components/basics/input/file-drop";
 import React from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {useConnectionsState} from "@/state/connections.state";
-import {DUCKDB_WASM_BASE_SCHEMA, DuckDBWasm} from "@/state/connections/duckdb-wasm";
-import {DUCK_DB_IN_MEMORY_DB} from "@/state/connections/duckdb-helper";
+import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
+import {DUCKDB_IN_MEMORY_DB, DUCKDB_BASE_SCHEMA} from "@/platform/global-data";
 
 interface Props {
     className?: string;
@@ -44,7 +44,7 @@ export function FileDropRelation(props: Props) {
             }
             onDropFiles(duckDBWasm, files).then(async (relation_names) => {
                 for (const relation_name of relation_names) {
-                    await showRelation(duckDBWasm.id, DUCK_DB_IN_MEMORY_DB, DUCKDB_WASM_BASE_SCHEMA, relation_name);
+                    await showRelation(duckDBWasm.id, DUCKDB_IN_MEMORY_DB, DUCKDB_BASE_SCHEMA, relation_name);
                 }
                 updateDataSources(duckDBWasm.id);
             });

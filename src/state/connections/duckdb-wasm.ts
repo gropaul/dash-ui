@@ -2,13 +2,12 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDBConnection, DuckDBDataProtocol} from "@duckdb/duckdb-wasm";
 import {DataConnection, DataConnectionState, DataSource, DBConnectionType} from "@/state/connections.state";
 import {RelationData} from "@/model/relation";
-import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
+import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections/duckdb-helper";
 import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
+import {id} from "postcss-selector-parser";
 
-export const DUCKDB_WASM_BASE_DATABASE = 'memory';
-export const DUCKDB_WASM_BASE_SCHEMA = 'main';
 
 export function getDuckDBWasmConnection(): DataConnection {
     return new DuckDBWasm(CONNECTION_ID_DUCKDB_WASM, {name: 'DuckDB WASM'});
@@ -115,6 +114,10 @@ export class DuckDBWasm implements DataConnection {
 
         await this.connection.query(createTableQuery);
         return tableName;
+    }
+
+    async onDataSourceClick(id_path: string[]) {
+        await onDuckDBDataSourceClick(this, id_path);
     }
 }
 

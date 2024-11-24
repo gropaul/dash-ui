@@ -1,8 +1,21 @@
-import {DataSource, DataSourceElement, DataSourceGroup} from "@/state/connections.state";
+import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/state/connections.state";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import { RelationData} from "@/model/relation";
+import {useRelationsState} from "@/state/relations.state";
 
-export const DUCK_DB_IN_MEMORY_DB = 'memory';
+
+
+
+export async function onDuckDBDataSourceClick(connection: DataConnection, id_path: string[]) {
+
+    const showRelation = useRelationsState.getState().showRelationByName;
+
+    // if path has two elements, it’s a data source
+    if (id_path.length === 3) {
+        const [databaseName, schemaName, relationName] = id_path;
+        await showRelation(connection.id, databaseName, schemaName, relationName);
+    }
+}
 
 export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<DataSource[]> {
 // get all columns and tables
@@ -57,7 +70,8 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
             database_schemas.push({
                 type: 'schema',
                 name: table_schema,
-                children: schema_tables
+                children: schema_tables,
+                childrenLoaded: true
             });
         }
 
@@ -65,7 +79,8 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
         localDataSources.push({
             type: 'database',
             name: database,
-            children: database_schemas
+            children: database_schemas,
+            childrenLoaded: true
         });
     }
     return localDataSources;

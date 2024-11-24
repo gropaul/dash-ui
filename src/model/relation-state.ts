@@ -134,7 +134,6 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
 
     // start a timer to measure the query duration
     const start = performance.now();
-
     const relationData = await executeQuery(connectionId, dataQuery);
 
 

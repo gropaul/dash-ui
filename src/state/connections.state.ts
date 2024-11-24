@@ -1,10 +1,9 @@
 import {create} from "zustand";
-import {Relation, RelationData} from "@/model/relation";
+import {RelationData} from "@/model/relation";
 import {TreeNode} from "@/components/basics/tree-explorer/tree-explorer";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {Column} from "@/model/column";
-import {ColumnSorting} from "@/model/relation-state";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem-over-duckdb';
@@ -14,12 +13,13 @@ export type DataGroupType = 'folder' | 'database' | 'schema';
 export interface DataSourceElement extends TreeNode {
     type: DataSourceType;
     name: string;
-    children: Column[];
+    children?: Column[];
 }
 
 export interface DataSourceGroup extends TreeNode {
     name: string;
     type: DataGroupType;
+    childrenLoaded: boolean;
     children: DataSource[];
 }
 
@@ -44,6 +44,7 @@ export interface DataConnection {
     initialise: () => Promise<DataConnectionState>;
     getConnectionState: () => Promise<DataConnectionState>;
 
+    onDataSourceClick: (id_path: string[]) => void;
 }
 
 export interface DataConnectionsState {
