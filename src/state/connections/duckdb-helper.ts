@@ -1,12 +1,7 @@
-import {
-    DataConnection,
-    DataSource,
-    DataSourceElement,
-    DataSourceGroup
-} from "@/state/connections.state";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import { RelationData} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
+import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/model/connection";
 
 
 

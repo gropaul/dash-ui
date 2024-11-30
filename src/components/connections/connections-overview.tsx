@@ -2,10 +2,11 @@
 
 import {useRelationsState} from "@/state/relations.state";
 import React from "react";
-import {DataConnection, useConnectionsState} from "@/state/connections.state";
+import {useConnectionsState} from "@/state/connections.state";
 import {TreeExplorer} from "@/components/basics/tree-explorer/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factories";
 import {ConnectionView} from "@/components/connections/connection-view";
+import {DataConnection} from "@/model/connection";
 
 export function ConnectionsOverview() {
 

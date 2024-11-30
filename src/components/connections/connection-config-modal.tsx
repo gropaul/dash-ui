@@ -1,8 +1,8 @@
 
 
 import React, { FC } from 'react';
-import {DataConnection, DataConnectionConfig} from "@/state/connections.state";
 import {CustomForm} from "@/components/basics/input/custom-form";
+import {DataConnection, DataConnectionConfig} from "@/model/connection";
 
 
 export interface ConnectionElementProps {

@@ -1,9 +1,3 @@
-import {
-    DataConnection,
-    ConnectionState,
-    DataSource,
-    DBConnectionType
-} from "@/state/connections.state";
 import {RelationData} from "@/model/relation";
 import Error from "next/error";
 import {duckDBTypeToValueType} from "@/model/value-type";
@@ -12,6 +6,7 @@ import {FormDefinition} from "@/components/basics/input/custom-form";
 import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+import {ConnectionState, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
 
 export function getDuckDBLocalConnection() {
 

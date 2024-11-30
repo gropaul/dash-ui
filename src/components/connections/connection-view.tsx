@@ -1,10 +1,11 @@
 import {TreeExplorer} from "@/components/basics/tree-explorer/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factories";
 import React from "react";
-import {DataConnection, DataConnectionConfig, useConnectionsState} from "@/state/connections.state";
+import {useConnectionsState} from "@/state/connections.state";
 import {RefreshCw, Settings} from "lucide-react";
 import ConnectionConfigModel from "@/components/connections/connection-config-modal";
 import {ConnectionsService} from "@/state/connections/connections-service";
+import {DataConnection, DataConnectionConfig} from "@/model/connection";
 
 export interface ConnectionViewProps {
     connection: DataConnection;
