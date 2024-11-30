@@ -1,6 +1,4 @@
-
-
-import React, { FC } from 'react';
+import React, {FC} from 'react';
 import {CustomForm} from "@/components/basics/input/custom-form";
 import {DataConnection, DataConnectionConfig} from "@/model/connection";
 

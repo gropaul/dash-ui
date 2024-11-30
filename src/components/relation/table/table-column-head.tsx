@@ -11,7 +11,7 @@ import {
     Text,
     ToggleLeft
 } from 'lucide-react';
-import {ColumnSorting, getNextColumnSorting, RelationState} from "@/model/relation-state";
+import {ColumnSorting, getNextColumnSorting} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";

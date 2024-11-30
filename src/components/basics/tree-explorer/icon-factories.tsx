@@ -6,7 +6,7 @@ import {
     FileWarning,
     Folder,
     Hash,
-    Layers3, LoaderCircle,
+    LoaderCircle,
     Network,
     Sheet,
     Text,

@@ -1,7 +1,7 @@
 import React from "react";
 import {Sometype_Mono} from "next/font/google";
 import {CodeFenceOverlay} from "@/components/basics/code-fence/code-fence-overlay";
-import Editor, {} from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 
 const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 

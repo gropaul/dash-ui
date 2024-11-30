@@ -1,5 +1,5 @@
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
+import {Menu, MenuButton, MenuItem, MenuItems} from '@headlessui/react'
+import {ChevronDownIcon} from '@heroicons/react/20/solid'
 
 export default function ButtonDropDown() {
     return (

@@ -1,5 +1,5 @@
 import {DataConnectionsState} from "@/state/connections.state";
-import { DuckDBWasm, getDuckDBWasmConnection} from "@/state/connections/duckdb-wasm";
+import {DuckDBWasm, getDuckDBWasmConnection} from "@/state/connections/duckdb-wasm";
 import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
 import {getFileSystemOverDuckdbConnection} from "@/state/connections/file-system-over-duckdb";

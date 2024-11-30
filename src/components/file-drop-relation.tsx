@@ -5,7 +5,7 @@ import React from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {useConnectionsState} from "@/state/connections.state";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
-import {DUCKDB_IN_MEMORY_DB, DUCKDB_BASE_SCHEMA} from "@/platform/global-data";
+import {DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
 import {RelationSource} from "@/model/relation";
 
 interface Props {

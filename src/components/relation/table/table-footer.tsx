@@ -3,7 +3,6 @@ import React from "react";
 import {ChevronFirst, ChevronLast, ChevronLeft, ChevronRight} from "lucide-react";
 import {useRelationsState} from "@/state/relations.state";
 import {useConnectionsState} from "@/state/connections.state";
-import {formatDuration} from "@/platform/utils";
 
 
 export interface RelationViewFooterProps {

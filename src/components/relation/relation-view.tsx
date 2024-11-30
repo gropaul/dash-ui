@@ -1,9 +1,9 @@
-import { useRelationsState } from "@/state/relations.state";
-import { RelationViewContent } from "@/components/relation/relation-view-content";
-import { RelationViewHeader } from "@/components/relation/relation-view-header";
-import { shallow } from "zustand/shallow";
-import { RelationViewQueryView } from "@/components/relation/relation-view-query-view";
-import { useEffect, useState } from "react";
+import {useRelationsState} from "@/state/relations.state";
+import {RelationViewContent} from "@/components/relation/relation-view-content";
+import {RelationViewHeader} from "@/components/relation/relation-view-header";
+import {shallow} from "zustand/shallow";
+import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
+import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 
 export interface RelationViewProps {

@@ -1,5 +1,4 @@
 import {Column} from "@/model/column";
-import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 

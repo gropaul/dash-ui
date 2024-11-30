@@ -6,9 +6,11 @@ import {
     executeQueryOfRelationState,
     getDefaultQueryParams,
     getViewFromSource,
-    RelationQueryParams, RelationState, updateRelationForNewParams,
+    RelationQueryParams,
+    RelationState,
+    updateRelationForNewParams,
 } from "@/model/relation-state";
-import {getInitViewState, RelationViewState} from "@/model/relation-view-state";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 interface RelationStates {

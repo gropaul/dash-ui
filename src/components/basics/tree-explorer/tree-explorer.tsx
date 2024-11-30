@@ -57,6 +57,9 @@ function TreeExplorerNode({
         }
     }
 
+    const chevronSize = 16;
+    const chevronColor = "#9a9a9a";
+
     return (
         <>
             {/* Node content */}
@@ -74,7 +77,9 @@ function TreeExplorerNode({
                     style={{width: '1.5rem'}}
                 >
                     {/* Expand/collapse icon */}
-                    {!hasNoChildren && (isExpanded ? <ChevronDown size={16}/> : <ChevronRight size={16}/>)}
+                    {!hasNoChildren && (isExpanded ?
+                        <ChevronDown size={chevronSize} color={chevronColor}/> :
+                        <ChevronRight size={chevronSize} color={chevronColor}/>)}
                 </div>
                 <div
                     className="flex-shrink-0 flex items-center"

@@ -1,4 +1,4 @@
-import { Select } from '@headlessui/react'
+import {Select} from '@headlessui/react'
 
 export function ButtonSelect() {
     return (

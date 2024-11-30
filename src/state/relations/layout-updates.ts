@@ -1,4 +1,4 @@
-import {Actions, DockLocation, Model, Action} from "flexlayout-react";
+import {Action, Actions, DockLocation, Model} from "flexlayout-react";
 import {Relation} from "@/model/relation";
 import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
 import {useRelationsState} from "@/state/relations.state";

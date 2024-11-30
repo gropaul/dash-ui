@@ -1,4 +1,4 @@
-import {Check, Copy, Play, Loader2, XCircle} from "lucide-react";
+import {Check, Copy, Loader2, Play, XCircle} from "lucide-react";
 import React from "react";
 import {TaskExecutionState} from "@/model/relation-state";
 

@@ -4,8 +4,6 @@ import {useRelationsState} from "@/state/relations.state";
 import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/model/connection";
 
 
-
-
 export async function onDuckDBDataSourceClick(connection: DataConnection, id_path: string[]) {
 
     const showRelation = useRelationsState.getState().showRelationByName;

@@ -3,7 +3,7 @@ import {
     getInitialTableDisplayStateEmpty,
     TableViewState
 } from "@/model/relation-view-state/table";
-import {Relation, RelationData} from "@/model/relation";
+import {RelationData} from "@/model/relation";
 import {deepEqual} from "@/platform/utils";
 
 export interface RelationViewBaseState {

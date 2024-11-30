@@ -1,24 +1,16 @@
-import {
-    useConnectionsState
-} from "@/state/connections.state";
+import {useConnectionsState} from "@/state/connections.state";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {RelationData, RelationSource} from "@/model/relation";
 import {
     CONNECTION_ID_DUCKDB_LOCAL,
-    CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, DUCKDB_IN_MEMORY_DB,
-    DUCKDB_BASE_SCHEMA
+    CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,
+    DUCKDB_BASE_SCHEMA,
+    DUCKDB_IN_MEMORY_DB
 } from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
-import {findNodeInTrees, findNodeParent, findNodeParentInTrees} from "@/components/basics/tree-explorer/tree-utils";
-import {
-    ConnectionState,
-    DataConnection,
-    DataSource,
-    DataSourceElement,
-    DataSourceGroup,
-    DBConnectionType
-} from "@/model/connection";
+import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";
+import {ConnectionState, DataConnection, DataSource, DataSourceGroup, DBConnectionType} from "@/model/connection";
 
 export function getFileSystemOverDuckdbConnection(): DataConnection {
     return new FileSystemOverDuckdb(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, {

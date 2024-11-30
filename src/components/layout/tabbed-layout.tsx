@@ -1,9 +1,9 @@
-import React, {useEffect, useState, useRef} from 'react';
-import {Action, Layout, Model, TabNode, Actions, DockLocation} from 'flexlayout-react';
+import React from 'react';
+import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {RelationView} from "@/components/relation/relation-view";
 import {useRelationsState} from "@/state/relations.state";
-import {Database, X} from 'lucide-react';
+import {Database} from 'lucide-react';
 import {ConnectionsOverview} from "@/components/connections/connections-overview";
 import {Relation} from "@/model/relation";
 import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
