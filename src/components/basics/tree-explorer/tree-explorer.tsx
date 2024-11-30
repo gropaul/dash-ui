@@ -7,7 +7,7 @@ export interface TreeExplorerNodeProps {
     tree: TreeNode;
     iconFactory: (type: string) => React.ReactNode;
 
-    tree_id_path: string[]
+    parent_id_path: string[]
     onClickCallback: (tree_id_path: string[]) => void;
     onDoubleClickCallback?: (tree_id_path: string[]) => void;
 
@@ -17,7 +17,7 @@ export interface TreeExplorerNodeProps {
 function TreeExplorerNode({
                               tree,
                               iconFactory,
-                              tree_id_path,
+                              parent_id_path,
                               onClickCallback,
                               onDoubleClickCallback,
                               loadChildren
@@ -27,20 +27,21 @@ function TreeExplorerNode({
     const childrenLoaded = tree.children !== undefined;
     const hasNoChildren = tree.children && tree.children.length === 0;
 
+    const depth = parent_id_path.length;
+    const current_tree_id_path = parent_id_path.concat(tree.id);
+
     const toggleExpand = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
         // if the children are not loaded, load them
         if (!childrenLoaded && loadChildren) {
-            loadChildren(tree_id_path);
+            loadChildren(current_tree_id_path);
         }
 
         setIsExpanded(!isExpanded);
     };
 
-    const depth = tree_id_path.length;
-    const current_tree_id_path = tree_id_path.concat(tree.name);
 
     function localOnClick(e: React.MouseEvent) {
         onClickCallback(current_tree_id_path);
@@ -95,7 +96,7 @@ function TreeExplorerNode({
                                 tree={child}
                                 loadChildren={loadChildren}
                                 iconFactory={iconFactory}
-                                tree_id_path={current_tree_id_path}
+                                parent_id_path={current_tree_id_path}
                                 onClickCallback={onClickCallback}
                             />
                         ))}
@@ -110,7 +111,7 @@ function TreeExplorerNode({
                                 children: []
                             }}
                             iconFactory={iconFactory}
-                            tree_id_path={current_tree_id_path}
+                            parent_id_path={current_tree_id_path}
                             onClickCallback={onClickCallback}
                         />
                     </div>
@@ -137,7 +138,7 @@ export function TreeExplorer({tree, iconFactory, onClick, onDoubleClick, loadChi
         <div className="h-fit">
             {trees.map((treeNode, index) => (
                     <TreeExplorerNode
-                        tree_id_path={[]}
+                        parent_id_path={[]}
                         key={index}
                         tree={treeNode}
                         iconFactory={iconFactory}

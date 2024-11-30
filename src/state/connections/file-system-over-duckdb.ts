@@ -1,5 +1,5 @@
 import {
-    DataConnection, DataConnectionState,
+    DataConnection, ConnectionState,
     DataSource,
     DataSourceElement,
     DataSourceGroup,
@@ -54,11 +54,11 @@ export class FileSystemOverDuckdb implements DataConnection {
         return ConnectionsService.getInstance().executeQuery(this.config.duckdbConnectionId, query);
     }
 
-    getConnectionState(): Promise<DataConnectionState> {
+    getConnectionState(): Promise<ConnectionState> {
         return ConnectionsService.getInstance().getConnection(this.config.duckdbConnectionId).getConnectionState();
     }
 
-    initialise(): Promise<DataConnectionState> {
+    initialise(): Promise<ConnectionState> {
         return ConnectionsService.getInstance().getConnection(this.config.duckdbConnectionId).getConnectionState();
     }
 
@@ -97,7 +97,8 @@ export class FileSystemOverDuckdb implements DataConnection {
                 parent!.children.push({
                     id: path,
                     name: basename,
-                    type: 'file'
+                    type: 'file',
+                    children: []
                 });
             } else {
                 // add to parents
@@ -159,16 +160,9 @@ export class FileSystemOverDuckdb implements DataConnection {
     }
 
     async loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
-        const tree = this.dataSources;
-        const node = findNodeInTrees(tree, id_path);
-
-        if (!node) {
-            console.error('Parent not found');
-            return [];
-        }
-
-        const groupLoaded = await this.getDirAsDataSource(node.id, node.name, 0);
-        return groupLoaded.children!;
+        const last_id = id_path[id_path.length - 1];
+        const path_root = await this.getDirAsDataSource(last_id, "tmp", 0);
+        return path_root.children!;
     }
 
     dataSources: DataSource[] = [];

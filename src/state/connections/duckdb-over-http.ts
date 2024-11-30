@@ -1,6 +1,6 @@
 import {
     DataConnection,
-    DataConnectionState,
+    ConnectionState,
     DataSource,
     DBConnectionType
 } from "@/state/connections.state";
@@ -173,12 +173,12 @@ class DuckDBOverHttp implements DataConnection {
         return loadDuckDBDataSources((query) => this.executeQuery(query));
     }
 
-    async getConnectionState(): Promise<DataConnectionState> {
+    async getConnectionState(): Promise<ConnectionState> {
         const ok = await this.sendPing();
         return ok ? 'connected' : 'disconnected';
     }
 
-    initialise(): Promise<DataConnectionState> {
+    initialise(): Promise<ConnectionState> {
         // no initialisation needed
         return this.getConnectionState();
     }

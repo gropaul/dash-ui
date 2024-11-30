@@ -1,4 +1,3 @@
-
 export interface TreeNode {
     id: string;
     name: string; // also serves as unique key
@@ -8,27 +7,26 @@ export interface TreeNode {
 
 export function findNodeInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {
 
-    console.log(trees);
-    console.log(id_path);
-    for (const tree of trees) {
-        const node = findNode(tree, id_path);
-        if (node) {
-            return node;
-        }
+    const artifical_root: TreeNode = {
+        id: '',
+        name: '',
+        type: '',
+        children: trees
     }
 
-    return undefined;
+    return findNode(artifical_root, id_path);
 }
 
 export function findNodeParentInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {
-    for (const tree of trees) {
-        const node = findNodeParent(tree, id_path);
-        if (node) {
-            return node;
-        }
+
+    const artifical_root: TreeNode = {
+        id: '',
+        name: '',
+        type: '',
+        children: trees
     }
 
-    return undefined;
+    return findNodeParent(artifical_root, id_path);
 }
 
 export function findNodeParent(tree: TreeNode, id_path: string[]): TreeNode | undefined {

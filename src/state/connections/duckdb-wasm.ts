@@ -1,7 +1,7 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDBConnection, DuckDBDataProtocol} from "@duckdb/duckdb-wasm";
 import {
-    DataConnection, DataConnectionState,
+    DataConnection, ConnectionState,
     DataSource,
     DBConnectionType
 } from "@/state/connections.state";
@@ -52,7 +52,7 @@ export class DuckDBWasm implements DataConnection {
         this.config = config;
     }
 
-    async initialise(): Promise<DataConnectionState> {
+    async initialise(): Promise<ConnectionState> {
         const {db, connection} = await staticDuckDBBundles();
         this.db = db;
         this.connection = connection;
@@ -73,7 +73,7 @@ export class DuckDBWasm implements DataConnection {
         return loadDuckDBDataSources((query: string) => this.executeQuery(query));
     }
 
-    async getConnectionState(): Promise<DataConnectionState> {
+    async getConnectionState(): Promise<ConnectionState> {
         if (this.db && this.connection) {
             // test connection by running a simple query
             try {

@@ -26,7 +26,7 @@ export interface DataSourceGroup extends TreeNode {
 
 export type DataSource = DataSourceElement | DataSourceGroup;
 
-export type DataConnectionState = 'connected' | 'disconnected' | 'connecting';
+export type ConnectionState = 'connected' | 'disconnected' | 'connecting';
 
 export type DataConnectionConfig = { [key: string]: string | number | boolean | undefined };
 
@@ -42,8 +42,8 @@ export interface DataConnection {
     executeQuery: (query: string) => Promise<RelationData>;
     loadDataSources: () => Promise<DataSource[]>;
 
-    initialise: () => Promise<DataConnectionState>;
-    getConnectionState: () => Promise<DataConnectionState>;
+    initialise: () => Promise<ConnectionState>;
+    getConnectionState: () => Promise<ConnectionState>;
 
     onDataSourceClick: (id_path: string[]) => void;
     loadChildrenForDataSource: (id_path: string[]) => Promise<DataSource[]>;
@@ -122,7 +122,7 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
 
         // Fetch the new data sources
         const dataSources = await connection.loadDataSources();
-
+        connection.dataSources = dataSources;
         // Update only the dataSources property within the specified connection
         set((state) => ({
             connections: {
@@ -151,6 +151,9 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
         if (!dataSourceToLoadChildrenFor) {
             throw new Error(`Data source with id path ${id_path} not found`);
         }
+
+        console.log('children', children);
+
         dataSourceToLoadChildrenFor.children = children;
         set((state) => ({
             connections: {
