@@ -2,7 +2,6 @@ import {TreeExplorer} from "@/components/basics/tree-explorer/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factories";
 import React from "react";
 import {DataConnection, DataConnectionConfig, useConnectionsState} from "@/state/connections.state";
-import {useRelationsState} from "@/state/relations.state";
 import {RefreshCw, Settings} from "lucide-react";
 import ConnectionConfigModel from "@/components/connections/connection-config-modal";
 import {ConnectionsService} from "@/state/connections/connections-service";
@@ -13,17 +12,21 @@ export interface ConnectionViewProps {
 
 export function ConnectionView(props: ConnectionViewProps) {
 
-    const showRelation = useRelationsState((state) => state.showRelationByName);
-    const updateDataSources = useConnectionsState((state) => state.updateDataSources);
+    const updateDataSources = useConnectionsState((state) => state.loadAllDataSources);
     const updateConfig = useConnectionsState((state) => state.updateConfig);
+    const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
     const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
         ConnectionsService.getInstance().getConnection(connection_id).onDataSourceClick(id_path);
     }
 
-    function handleRefresh() {
-        updateDataSources(props.connection.id);
+    async function onElementLoadRequest(connection_id: string, id_path: string[]) {
+        await loadChildrenForDataSource(connection_id, id_path);
+    }
+
+    async function handleRefresh() {
+        await updateDataSources(props.connection.id);
     }
 
     function onSettingsIconClicked() {
@@ -58,6 +61,7 @@ export function ConnectionView(props: ConnectionViewProps) {
                 tree={props.connection.dataSources}
                 iconFactory={defaultIconFactory}
                 onClick={(id_path) => onElementClick(props.connection.id, id_path)}
+                loadChildren={(id_path) => onElementLoadRequest(props.connection.id, id_path)}
             />
 
             <ConnectionConfigModel

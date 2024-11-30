@@ -1,4 +1,9 @@
-import {DataConnection, DataConnectionState, DataSource, DBConnectionType} from "@/state/connections.state";
+import {
+    DataConnection,
+    DataConnectionState,
+    DataSource,
+    DBConnectionType
+} from "@/state/connections.state";
 import {RelationData} from "@/model/relation";
 import Error from "next/error";
 import {duckDBTypeToValueType} from "@/model/value-type";
@@ -39,7 +44,6 @@ class DuckDBOverHttp implements DataConnection {
 
     id: string;
     type: DBConnectionType;
-    dataSources: DataSource[];
 
     config: DuckDBOverHttpConfig;
 
@@ -108,7 +112,6 @@ class DuckDBOverHttp implements DataConnection {
         this.id = id;
         this.config = config;
         this.type = 'duckdb-over-http';
-        this.dataSources = [];
     }
 
     async sendPing(): Promise<boolean> {
@@ -183,5 +186,12 @@ class DuckDBOverHttp implements DataConnection {
     async onDataSourceClick(id_path: string[]) {
         await onDuckDBDataSourceClick(this, id_path);
     }
+
+    loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
+        // not necessary as for dbs all the data is loaded at once!
+        throw new Error('Not implemented');
+    }
+
+    dataSources: DataSource[] = [];
 }
 

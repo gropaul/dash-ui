@@ -1,6 +1,10 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDBConnection, DuckDBDataProtocol} from "@duckdb/duckdb-wasm";
-import {DataConnection, DataConnectionState, DataSource, DBConnectionType} from "@/state/connections.state";
+import {
+    DataConnection, DataConnectionState,
+    DataSource,
+    DBConnectionType
+} from "@/state/connections.state";
 import {RelationData} from "@/model/relation";
 import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections/duckdb-helper";
 import Error from "next/error";
@@ -118,6 +122,10 @@ export class DuckDBWasm implements DataConnection {
     async onDataSourceClick(id_path: string[]) {
         await onDuckDBDataSourceClick(this, id_path);
     }
+
+    loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
+        throw new Error("Method not implemented.");
+    }
 }
 
 
@@ -175,6 +183,7 @@ export function relationFromDuckDBResult(relationName: string, connectionId: str
     return {
         columns: columns.map((column) => {
             return {
+                id: column,
                 name: column,
                 // todo: infer type from data
                 type: 'String'

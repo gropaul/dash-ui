@@ -1,11 +1,7 @@
 import React, {useState} from "react";
 import {ChevronDown, ChevronRight} from "lucide-react";
+import {TreeNode} from "@/components/basics/tree-explorer/tree-utils";
 
-export interface TreeNode {
-    name: string; // also serves as unique key
-    type: string;
-    children?: TreeNode[];
-}
 
 export interface TreeExplorerNodeProps {
     tree: TreeNode;
@@ -14,6 +10,8 @@ export interface TreeExplorerNodeProps {
     tree_id_path: string[]
     onClickCallback: (tree_id_path: string[]) => void;
     onDoubleClickCallback?: (tree_id_path: string[]) => void;
+
+    loadChildren?: (tree_id_path: string[]) => void;
 }
 
 function TreeExplorerNode({
@@ -21,18 +19,24 @@ function TreeExplorerNode({
                               iconFactory,
                               tree_id_path,
                               onClickCallback,
-                              onDoubleClickCallback
+                              onDoubleClickCallback,
+                              loadChildren
                           }: TreeExplorerNodeProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const hasChildren = tree.children !== undefined;
+    const childrenLoaded = tree.children !== undefined;
+    const hasNoChildren = tree.children && tree.children.length === 0;
 
     const toggleExpand = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (hasChildren) {
-            setIsExpanded(!isExpanded);
+
+        // if the children are not loaded, load them
+        if (!childrenLoaded && loadChildren) {
+            loadChildren(tree_id_path);
         }
+
+        setIsExpanded(!isExpanded);
     };
 
     const depth = tree_id_path.length;
@@ -46,8 +50,7 @@ function TreeExplorerNode({
         if (onDoubleClickCallback) {
             onDoubleClickCallback(current_tree_id_path);
         } else {
-            if (hasChildren) {
-
+            if (childrenLoaded) {
                 setIsExpanded(!isExpanded);
             }
         }
@@ -70,7 +73,7 @@ function TreeExplorerNode({
                     style={{width: '1.5rem'}}
                 >
                     {/* Expand/collapse icon */}
-                    {hasChildren && (isExpanded ? <ChevronDown size={16}/> : <ChevronRight size={16}/>)}
+                    {!hasNoChildren && (isExpanded ? <ChevronDown size={16}/> : <ChevronRight size={16}/>)}
                 </div>
                 <div
                     className="flex-shrink-0 flex items-center"
@@ -83,48 +86,68 @@ function TreeExplorerNode({
                     {tree.name}
                 </div>
             </div>
-
-            {/* Child nodes */}
-            {isExpanded && hasChildren && (
-                <>
-                    {tree.children?.map((child, index) => (
+            {isExpanded && (
+                childrenLoaded ?
+                    <>
+                        {tree.children?.map((child, index) => (
+                            <TreeExplorerNode
+                                key={index}
+                                tree={child}
+                                loadChildren={loadChildren}
+                                iconFactory={iconFactory}
+                                tree_id_path={current_tree_id_path}
+                                onClickCallback={onClickCallback}
+                            />
+                        ))}
+                    </>
+                    :
+                    <div className="pl-2">
                         <TreeExplorerNode
-                            key={index}
-                            tree={child}
+                            tree={{
+                                id: "",
+                                name: "Loading...",
+                                type: "loading",
+                                children: []
+                            }}
                             iconFactory={iconFactory}
                             tree_id_path={current_tree_id_path}
                             onClickCallback={onClickCallback}
                         />
-                    ))}
-                </>
-            )}
+                    </div>
+            )
+            }
         </>
     );
 }
+
 
 export interface TreeExplorerProps {
     tree: TreeNode | TreeNode[];
     iconFactory: (type: string) => React.ReactNode;
     onClick: (tree_id_path: string[]) => void;
     onDoubleClick?: (tree_id_path: string[]) => void;
+    loadChildren?: (tree_id_path: string[]) => void;
 }
 
-export function TreeExplorer({tree, iconFactory, onClick, onDoubleClick}: TreeExplorerProps) {
+export function TreeExplorer({tree, iconFactory, onClick, onDoubleClick, loadChildren}: TreeExplorerProps) {
     // Convert tree to array if it’s a single TreeNode
     const trees = Array.isArray(tree) ? tree : [tree];
 
     return (
         <div className="h-fit">
             {trees.map((treeNode, index) => (
-                <TreeExplorerNode
-                    tree_id_path={[]}
-                    key={index}
-                    tree={treeNode}
-                    iconFactory={iconFactory}
-                    onClickCallback={onClick}
-                    onDoubleClickCallback={onDoubleClick}
-                />
-            ))}
+                    <TreeExplorerNode
+                        tree_id_path={[]}
+                        key={index}
+                        tree={treeNode}
+                        iconFactory={iconFactory}
+                        loadChildren={loadChildren}
+                        onClickCallback={onClick}
+                        onDoubleClickCallback={onDoubleClick}
+                    />
+                )
+            )}
         </div>
-    );
+    )
+        ;
 }

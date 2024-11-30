@@ -1,6 +1,5 @@
 import {
-    DataConnection,
-    DataConnectionState,
+    DataConnection, DataConnectionState,
     DataSource,
     DataSourceElement,
     DataSourceGroup,
@@ -15,6 +14,7 @@ import {
 } from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
+import {findNodeInTrees, findNodeParent, findNodeParentInTrees} from "@/components/basics/tree-explorer/tree-utils";
 
 export function getFileSystemOverDuckdbConnection(): DataConnection {
     return new FileSystemOverDuckdb(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, {
@@ -32,7 +32,6 @@ interface FileSystemOverDuckdbConfig {
 
 export class FileSystemOverDuckdb implements DataConnection {
     config: FileSystemOverDuckdbConfig;
-    dataSources: DataSource[];
     id: string;
     type: DBConnectionType = 'local-filesystem-over-duckdb';
     configForm: FormDefinition = {
@@ -49,7 +48,6 @@ export class FileSystemOverDuckdb implements DataConnection {
     constructor(id: string, config: FileSystemOverDuckdbConfig) {
         this.id = id;
         this.config = config;
-        this.dataSources = [];
     }
 
     executeQuery(query: string): Promise<RelationData> {
@@ -64,23 +62,23 @@ export class FileSystemOverDuckdb implements DataConnection {
         return ConnectionsService.getInstance().getConnection(this.config.duckdbConnectionId).getConnectionState();
     }
 
-    async getDir(path: string, depth: number | undefined = 0): Promise<DataSourceGroup> {
+    async getDirAsDataSource(rootPath: string, rootName: string, depth: number | undefined): Promise<DataSourceGroup> {
         // get the children of the root directory
-        const lsrPart = depth? `lsr('${path}', ${depth})` : `lsr('${path}')`;
+        const lsrPart = depth !== undefined ? `lsr('${rootPath}', ${depth})` : `lsr('${rootPath}')`;
 
         const fileSystemQuery = `SELECT path, is_file(path) as file, file_name(path) as basename
                                  FROM ${lsrPart}
                                  ORDER BY file, path;`;
 
         const fileSystemResult = await this.executeQuery(fileSystemQuery);
-        const root: DataSourceGroup= {
-            name: path,
+        const root: DataSourceGroup = {
+            id: rootPath,
+            name: rootName,
             type: 'folder',
-            childrenLoaded: true,
             children: []
         }
         const parents: Map<string, DataSourceGroup> = new Map();
-        parents.set(path, root);
+        parents.set(rootPath, root);
 
         for (const row of fileSystemResult.rows) {
             const [path, isFileString, basename] = row;
@@ -89,22 +87,25 @@ export class FileSystemOverDuckdb implements DataConnection {
             const parentPath = path.substring(0, path.length - basename.length - 1);
             const parent = parents.get(parentPath);
 
+            // set parent children to empty array if not loaded
+            if (!parent!.children) {
+                parent!.children = [];
+            }
+
             if (isFile) {
                 // assume parent is loaded
                 parent!.children.push({
+                    id: path,
                     name: basename,
                     type: 'file'
                 });
-
-                // set children loaded to true
-                parent!.childrenLoaded = true;
             } else {
                 // add to parents
                 const folder: DataSourceGroup = {
+                    id: path,
                     name: basename,
                     type: 'folder',
-                    childrenLoaded: false,
-                    children: []
+                    children: undefined
                 }
                 parents.set(path, folder);
                 parent!.children.push(folder);
@@ -121,10 +122,10 @@ export class FileSystemOverDuckdb implements DataConnection {
         // get the root directory
         const rootDirectoryQuery = `SELECT file_name(pwd()),pwd();`;
         const rootDirectory = await this.executeQuery(rootDirectoryQuery);
+        const rootName = rootDirectory.rows[0][0];
         const rootPath = rootDirectory.rows[0][1];
 
-        const rootDataSource: DataSourceGroup = await this.getDir(rootPath, 1);
-
+        const rootDataSource: DataSourceGroup = await this.getDirAsDataSource(rootPath, rootName, 0);
         return [rootDataSource];
     }
 
@@ -139,25 +140,37 @@ export class FileSystemOverDuckdb implements DataConnection {
         // last element is the file name
         const base_path = id_path[id_path.length - 1];
 
-        const connectionId = this.config.duckdbConnectionId;
         const schema = DUCKDB_BASE_SCHEMA;
         const database = DUCKDB_IN_MEMORY_DB;
         const relationName = base_path;
 
         const loadCsvQuery = `CREATE TABLE IF NOT EXISTS "${relationName}" AS
-                              SELECT *
-                              FROM read_csv('${path}', AUTO_DETECT = TRUE);`;
+        SELECT *
+        FROM read_csv('${path}', AUTO_DETECT = TRUE);`;
 
         await this.executeQuery(loadCsvQuery);
 
 
-
         // update data sources
-        await useConnectionsState.getState().updateDataSources(this.config.duckdbConnectionId);
+        await useConnectionsState.getState().loadAllDataSources(this.config.duckdbConnectionId);
         // show the table
         await useRelationsState.getState().showRelationByName(this.id, database, schema, relationName);
 
     }
-}
 
+    async loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
+        const tree = this.dataSources;
+        const node = findNodeInTrees(tree, id_path);
+
+        if (!node) {
+            console.error('Parent not found');
+            return [];
+        }
+
+        const groupLoaded = await this.getDirAsDataSource(node.id, node.name, 0);
+        return groupLoaded.children!;
+    }
+
+    dataSources: DataSource[] = [];
+}
 

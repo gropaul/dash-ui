@@ -6,7 +6,7 @@ import {
     FileWarning,
     Folder,
     Hash,
-    Layers3,
+    Layers3, LoaderCircle,
     Network,
     Sheet,
     Text,
@@ -24,6 +24,8 @@ export const defaultIconFactory = (type: string): ReactNode => {
     const iconSize = 16;
 
     switch (type) {
+        case 'loading':
+            return <LoaderCircle size={iconSize} />
         case 'file':
             return <File size={iconSize} />
         case 'relation':

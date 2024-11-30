@@ -1,4 +1,9 @@
-import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/state/connections.state";
+import {
+    DataConnection,
+    DataSource,
+    DataSourceElement,
+    DataSourceGroup
+} from "@/state/connections.state";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import { RelationData} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
@@ -55,12 +60,14 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
 
                 // add relation to schema
                 schema_tables.push({
+                    id: table,
                     type: 'relation',
                     name: table,
                     children: columns.map(([column, type]: [string, string]) => {
                         return {
                             name: column,
-                            type: duckDBTypeToValueType(type)
+                            type: duckDBTypeToValueType(type),
+                            children: [],
                         };
                     })
                 });
@@ -68,19 +75,19 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
 
             // add schema to database
             database_schemas.push({
+                id: table_schema,
                 type: 'schema',
                 name: table_schema,
                 children: schema_tables,
-                childrenLoaded: true
             });
         }
 
         // add database to data sources
         localDataSources.push({
+            id: database,
             type: 'database',
             name: database,
             children: database_schemas,
-            childrenLoaded: true
         });
     }
     return localDataSources;

@@ -32,7 +32,7 @@ export function FileDropRelation(props: Props) {
 
     const getDuckDBWasm = useConnectionsState((state) => state.getDuckDBWasmConnection);
     const showRelation = useRelationsState((state) => state.showRelationByName);
-    const updateDataSources = useConnectionsState((state) => state.updateDataSources);
+    const updateDataSources = useConnectionsState((state) => state.loadAllDataSources);
 
     return <FileDrop
         className={props.className}

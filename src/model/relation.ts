@@ -67,10 +67,12 @@ export function getTestRelation(): Relation {
         data: {
             columns: [
                 {
+                    id: 'Column 1',
                     name: 'Column 1',
                     type: 'Integer',
                 },
                 {
+                    id: 'Column 2',
                     name: 'Column 2',
                     type: 'String',
                 }

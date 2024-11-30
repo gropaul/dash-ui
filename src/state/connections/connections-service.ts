@@ -55,20 +55,20 @@ export class ConnectionsService {
         const duckDBLocal: DataConnection = getDuckDBLocalConnection();
         duckDBLocal.initialise().then(() => {
             state.addConnection(duckDBLocal);
-            state.updateDataSources(duckDBLocal.id);
+            state.loadAllDataSources(duckDBLocal.id);
 
             // is dependent on duckdb local
             const fileSystemOverDuckdb = getFileSystemOverDuckdbConnection();
             fileSystemOverDuckdb.initialise().then(() => {
                 state.addConnection(fileSystemOverDuckdb);
-                state.updateDataSources(fileSystemOverDuckdb.id);
+                state.loadAllDataSources(fileSystemOverDuckdb.id);
             });
         });
 
         const duckDBWasms = getDuckDBWasmConnection();
         duckDBWasms.initialise().then(() => {
             state.addConnection(duckDBWasms);
-            state.updateDataSources(duckDBWasms.id);
+            state.loadAllDataSources(duckDBWasms.id);
         });
 
 
