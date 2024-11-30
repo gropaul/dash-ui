@@ -15,12 +15,9 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
 
     const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
-    const databaseName = useRelationsState((state) => state.getRelation(relationId)?.database, shallow);
     const connectionName = useRelationsState((state) => state.getRelation(relationId)?.connectionId, shallow);
     const lastExecutionDuration = useRelationsState((state) => state.getRelation(relationId).lastExecutionMetaData?.lastExecutionDuration, shallow);
     const showCode = useRelationsState((state) => state.getRelationViewState(relationId).showCode, shallow);
-    const selectedView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
-    const executionState = useRelationsState((state) => state.getRelation(relationId).executionState, shallow);
     function onShowCode() {
         updateRelationViewState(relationId, {
             showCode: !showCode,

@@ -2,7 +2,7 @@ import {
     useConnectionsState
 } from "@/state/connections.state";
 import {FormDefinition} from "@/components/basics/input/custom-form";
-import {RelationData} from "@/model/relation";
+import {RelationData, RelationSource} from "@/model/relation";
 import {
     CONNECTION_ID_DUCKDB_LOCAL,
     CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, DUCKDB_IN_MEMORY_DB,
@@ -135,7 +135,30 @@ export class FileSystemOverDuckdb implements DataConnection {
     }
 
     async onDataSourceClick(id_path: string[]) {
-        const path = id_path.join('/');
+
+        const lastId = id_path[id_path.length - 1];
+        const element = await findNodeInTrees(this.dataSources, id_path);
+
+        if (!element) {
+            console.error(`Element with id ${lastId} not found`);
+            return;
+        }
+
+        if (element.type !== 'file') {
+            return
+        }
+
+        const source : RelationSource = {
+            type: 'file',
+            path: lastId,
+            base_name: element.name
+        }
+
+        // show the table
+        await useRelationsState.getState().showRelationByName(this.id, source);
+    }
+
+    async importFileToDuckDB(path: string, id_path: string[]) {
         // if csv file, load the file
         const isCsv = path.endsWith('.csv');
         if (!isCsv) {
@@ -155,12 +178,8 @@ export class FileSystemOverDuckdb implements DataConnection {
 
         await this.executeQuery(loadCsvQuery);
 
-
         // update data sources
         await useConnectionsState.getState().loadAllDataSources(this.config.duckdbConnectionId);
-        // show the table
-        await useRelationsState.getState().showRelationByName(this.id, database, schema, relationName);
-
     }
 
     async loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {

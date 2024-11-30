@@ -1,5 +1,5 @@
 import {duckDBTypeToValueType} from "@/model/value-type";
-import { RelationData} from "@/model/relation";
+import {RelationData, RelationSource} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/model/connection";
 
@@ -13,7 +13,13 @@ export async function onDuckDBDataSourceClick(connection: DataConnection, id_pat
     // if path has two elements, it’s a data source
     if (id_path.length === 3) {
         const [databaseName, schemaName, relationName] = id_path;
-        await showRelation(connection.id, databaseName, schemaName, relationName);
+        const source: RelationSource = {
+            type: 'table',
+            database: databaseName,
+            schema: schemaName,
+            tableName: relationName,
+        };
+        await showRelation(connection.id, source);
     }
 }
 

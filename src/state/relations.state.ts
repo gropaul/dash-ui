@@ -1,11 +1,11 @@
-import {getRelationId, Relation} from "@/model/relation";
+import {getRelationIdFromSource, Relation, RelationSource} from "@/model/relation";
 import {create} from "zustand";
 import {Model} from "flexlayout-react";
 import {addRelationToLayout, focusRelationInLayout, getInitialLayoutModel} from "@/state/relations/layout-updates";
 import {
     executeQueryOfRelationState,
     getDefaultQueryParams,
-    getViewFromRelationName,
+    getViewFromSource,
     RelationQueryParams, RelationState, updateRelationForNewParams,
 } from "@/model/relation-state";
 import {getInitViewState, RelationViewState} from "@/model/relation-view-state";
@@ -20,7 +20,7 @@ interface RelationStates {
     closeRelation: (relationId: string) => void,
 
     showRelation: (relation: Relation) => Promise<void>,
-    showRelationByName: (connectionId: string, databaseName: string, schemaName: string, relationName: string) => Promise<void>,
+    showRelationByName: (connectionId: string, source: RelationSource) => Promise<void>,
 
     updateRelationData: (relationId: string, query: RelationQueryParams) => Promise<void>,
 
@@ -40,11 +40,11 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
     doesRelationExist: (relationId: string) => get().relations[relationId] !== undefined,
     getRelation: (relationId: string) => get().relations[relationId],
     showRelation: async (relation: Relation) => {
-        return get().showRelationByName(relation.connectionId, relation.database, relation.schema, relation.name);
+        return get().showRelationByName(relation.connectionId, relation.source);
     },
-    showRelationByName: async (connectionId: string, databaseName: string, schemaName: string, relationName: string) => {
+    showRelationByName: async (connectionId: string, source: RelationSource) => {
 
-        const relationId = getRelationId(connectionId, databaseName, schemaName, relationName);
+        const relationId = getRelationIdFromSource(connectionId, source);
 
         // check if relation already exists
         const existingRelation = get().relations[relationId];
@@ -54,7 +54,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
 
             // update state with empty (loading) relation
             const defaultQueryParams = getDefaultQueryParams();
-            const emptyRelationState = getViewFromRelationName(connectionId, databaseName, schemaName, relationName, defaultQueryParams, 'running');
+            const emptyRelationState = getViewFromSource(connectionId, source, defaultQueryParams, 'running');
             set((state) => ({
                 relations: {
                     ...state.relations,
@@ -77,7 +77,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
     },
 
     updateRelationData: async (relationId, query) => {
-        const { relations } = get(); // Get the current state
+        const {relations} = get(); // Get the current state
 
         const relation = relations[relationId]; // Retrieve the specific relation
         const updatedRelationState = updateRelationForNewParams(relation, query, 'running'); // Update the relation state
@@ -126,9 +126,9 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         }));
     },
     closeRelation: (relationId: string) => {
-        const { relations } = get(); // Get the current state
+        const {relations} = get(); // Get the current state
         delete relations[relationId]; // Remove the specified relation
-        set({ relations }); // Update the state
+        set({relations}); // Update the state
     },
 
     getModel: () => get().layoutModel,

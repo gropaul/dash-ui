@@ -7,17 +7,46 @@ export interface RelationData {
     rows: Row[]
 }
 
-export interface Relation {
-    connectionId: string,
+export type RelationSourceType = 'table' | 'file';
+
+export interface RelationSourceTable {
+    type: 'table',
     database: string,
     schema: string,
+    tableName: string,
+}
+
+export interface RelationSourceFile {
+    type: 'file',
+    path: string,
+    base_name: string,
+}
+
+export type RelationSource = RelationSourceTable | RelationSourceFile;
+
+export interface Relation {
     name: string,
+    connectionId: string,
+    source: RelationSource,
     id: string,
     data?: RelationData, // can be undefined if query still running
 }
 
-export function getRelationId(connectionId: string, database: string , schema: string, relationName: string): string {
-    return `relation-${connectionId}-${database}-${schema}-${relationName}`;
+
+export function getRelationIdFromSource(connectionId: string, source: RelationSource): string {
+    if (source.type === 'table') {
+        return `relation-table-${connectionId}-${source.database}-${source.schema}-${source.tableName}`;
+    } else {
+        return `relation-file-${connectionId}-${source.path}`;
+    }
+}
+
+export function getRelationNameFromSource(relation: RelationSource): string {
+    if (relation.type === 'table') {
+        return relation.database;
+    } else {
+        return relation.base_name;
+    }
 }
 
 export function getColumnNames(data: RelationData): string[] {
@@ -58,12 +87,19 @@ export function iterateColumns(relation: RelationData, columns: string[], callba
 }
 
 export function getTestRelation(): Relation {
-    return {
-        id: getRelationId('Test Connection', 'Test Database', 'Test Schema', 'Test Relation'),
-        connectionId: 'Test Connection',
+
+    const source: RelationSource = {
+        type: 'table',
         database: 'Test Database',
-        name: 'Test Relation',
         schema: 'Test Schema',
+        tableName: 'Test Relation',
+    }
+
+    return {
+        name: getRelationNameFromSource(source),
+        id: getRelationIdFromSource('Test Connection', source),
+        connectionId: 'Test Connection',
+        source: source,
         data: {
             columns: [
                 {

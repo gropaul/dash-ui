@@ -1,4 +1,4 @@
-import {getRelationId, Relation} from "@/model/relation";
+import {getRelationIdFromSource, getRelationNameFromSource, Relation, RelationSource} from "@/model/relation";
 import {useConnectionsState} from "@/state/connections.state";
 import {getInitViewState, RelationViewState, updateRelationViewState} from "@/model/relation-view-state";
 
@@ -55,14 +55,12 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export function getViewFromRelationName(connectionId: string, databaseName: string, schemaName: string, relationName: string, query: RelationQueryParams, state: TaskExecutionState): RelationState {
-
+export function getViewFromSource(connectionId: string, source: RelationSource, query: RelationQueryParams, state: TaskExecutionState): RelationState {
 
     const relation: Relation = {
-        id: getRelationId(connectionId, databaseName, schemaName, relationName),
-        name: relationName,
-        schema: schemaName,
-        database: databaseName,
+        name: getRelationNameFromSource(source),
+        id: getRelationIdFromSource(connectionId, source),
+        source: source,
         connectionId: connectionId,
         data: undefined,
     }
@@ -82,9 +80,17 @@ export function getViewFromRelationName(connectionId: string, databaseName: stri
     };
 }
 
+export function getFromStatementForSource(source: RelationSource): string {
+    if (source.type === 'table') {
+        return `"${source.database}"."${source.schema}"."${source.tableName}"`;
+    } else {
+        return `'${source.path}'`;
+    }
+}
+
 export function getQueryFromParams(relation: Relation, query: RelationQueryParams): QueryData {
 
-    const {database, schema, name} = relation;
+    const fromStatement = getFromStatementForSource(relation.source);
 
     const {offset, limit} = query;
 
@@ -96,9 +102,8 @@ export function getQueryFromParams(relation: Relation, query: RelationQueryParam
     }).filter((s) => s.length > 0).join(', ');
 
     const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
-    const relationFullName = `"${database}"."${schema}"."${name}"`;
     const queryGetData = `SELECT *
-FROM ${relationFullName} ${oderByQuery}
+FROM ${fromStatement} ${oderByQuery}
 LIMIT ${limit}
 OFFSET ${offset};`;
 
