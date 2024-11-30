@@ -8,11 +8,12 @@ export function ConnectionsOverview() {
 
     const connections = useConnectionsState((state) => state.connections);
 
-
     // show a list of the tables, have a light grey background
     return (
         <div className="bg-gray-50 h-full w-full">
-            <div style={{height: 32}} className="flex items-center p-2 border-gray-200 font-bold">
+            <div
+                className="flex items-center border-gray-200 font-bold dark:border-gray-700 dark:text-white px-2"
+                style={{height: '28px'}}>
                 Connections
             </div>
             <div className="border-t border-gray-200 dark:border-gray-700 overflow-y-auto h-fit">
