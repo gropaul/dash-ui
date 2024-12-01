@@ -2,7 +2,6 @@
 
 import {DragEvent, ReactNode, useState} from "react";
 
-
 interface Props {
     className?: string;
     onDrop: (files: File[]) => void;
@@ -10,60 +9,54 @@ interface Props {
     children?: ReactNode;
 }
 
-export function FileDrop({ className, onDrop, children, onOverUpdate}: Props) {
+export function FileDrop({ className, onDrop, onOverUpdate, children }: Props) {
     const [isOver, setIsOver] = useState(false);
-    const [_files, setFiles] = useState<File[]>([]);
 
-    // Define the event handlers
+    // Helper function to check if the drag event contains files
+    const containsFiles = (event: DragEvent<HTMLDivElement>) => {
+        return Array.from(event.dataTransfer.items).some(item => item.kind === 'file');
+    };
+
     const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
-        const files = Array.from(event.dataTransfer.files);
-
-        if (!isOver) {
+        if (containsFiles(event) && !isOver) {
             setIsOver(true);
-            onOverUpdate && onOverUpdate(true, files);
+            onOverUpdate && onOverUpdate(true, Array.from(event.dataTransfer.files));
         }
     };
 
     const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
-        const files = Array.from(event.dataTransfer.files);
-
-        if (isOver) {
-            setIsOver(false);
-            onOverUpdate && onOverUpdate(false, files);
+        // Trigger only when truly leaving the component, not internal child components
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+            if (isOver) {
+                setIsOver(false);
+                if (onOverUpdate) {
+                    const files = Array.from(event.dataTransfer.files);
+                    onOverUpdate(false, files);
+                }
+            }
         }
     };
 
     const handleDrop = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsOver(false);
-        onOverUpdate && onOverUpdate(false, []);
+        if (onOverUpdate) {
+            onOverUpdate(false, Array.from(event.dataTransfer.files));
+        }
 
-        // Fetch the files
         const droppedFiles = Array.from(event.dataTransfer.files);
-        setFiles(droppedFiles);
-
-        // Use FileReader to read file content
-        droppedFiles.forEach((file) => {
-
+        if (droppedFiles.length) {
             onDrop(droppedFiles);
-            const reader = new FileReader();
-
-            reader.onerror = () => {
-                console.error("There was an issue reading the file.");
-            };
-
-            reader.readAsDataURL(file);
-            return reader;
-        });
+        }
     };
 
     return (
         <div className={className}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
+             onDragOver={handleDragOver}
+             onDragLeave={handleDragLeave}
+             onDrop={handleDrop}
         >
             {children}
         </div>

@@ -43,7 +43,7 @@ export function getRelationIdFromSource(connectionId: string, source: RelationSo
 
 export function getRelationNameFromSource(relation: RelationSource): string {
     if (relation.type === 'table') {
-        return relation.database;
+        return relation.tableName;
     } else {
         return relation.base_name;
     }
