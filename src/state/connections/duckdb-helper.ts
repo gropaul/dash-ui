@@ -21,6 +21,8 @@ export async function onDuckDBDataSourceClick(connection: DataConnection, id_pat
     }
 }
 
+
+
 export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<DataSource[]> {
 // get all columns and tables
 
@@ -90,4 +92,18 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
         });
     }
     return localDataSources;
+}
+
+
+export async function getDuckDBCurrentPath(executeQuery: (query: string) => Promise<RelationData>): Promise<[string, string]> {
+    const installHostFs = `INSTALL hostfs FROM community;
+                               LOAD hostfs;`;
+    await executeQuery(installHostFs);
+    // get the root directory
+    const rootDirectoryQuery = `SELECT file_name(pwd()),pwd();`;
+    const rootDirectory = await executeQuery(rootDirectoryQuery);
+    const rootName = rootDirectory.rows[0][0];
+    const rootPath = rootDirectory.rows[0][1];
+
+    return [rootName, rootPath];
 }

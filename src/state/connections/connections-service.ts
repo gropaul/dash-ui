@@ -48,18 +48,19 @@ export class ConnectionsService {
         if (!connection) {
             throw new Error(`Connection with id ${connectionId} not found`);
         }
-        connection.config = config;
+        // update all the fields in the config
+        connection.updateConfig(config);
     }
 
     async initialiseDefaultConnections(state: DataConnectionsState) {
 
         const duckDBLocal: DataConnection = getDuckDBLocalConnection();
-        duckDBLocal.initialise().then(() => {
+        duckDBLocal.initialise().then( async () => {
             state.addConnection(duckDBLocal);
             state.loadAllDataSources(duckDBLocal.id);
 
             // is dependent on duckdb local
-            const fileSystemOverDuckdb = getFileSystemOverDuckdbConnection();
+            const fileSystemOverDuckdb = await getFileSystemOverDuckdbConnection();
             fileSystemOverDuckdb.initialise().then(() => {
                 state.addConnection(fileSystemOverDuckdb);
                 state.loadAllDataSources(fileSystemOverDuckdb.id);

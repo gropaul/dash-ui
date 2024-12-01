@@ -7,6 +7,7 @@ import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {ConnectionState, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
+import {DuckDBWasmConfig} from "@/state/connections/duckdb-wasm";
 
 export function getDuckDBLocalConnection() {
 
@@ -160,9 +161,9 @@ class DuckDBOverHttp implements DataConnection {
     }
 
 
-    executeQuery(query: string): Promise<RelationData> {
+    executeQuery = (query: string): Promise<RelationData> => {
         return this.sendQuery(query);
-    }
+    };
 
     async loadDataSources(): Promise<DataSource[]> {
         return loadDuckDBDataSources((query) => this.executeQuery(query));
@@ -184,9 +185,14 @@ class DuckDBOverHttp implements DataConnection {
 
     loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
         // not necessary as for dbs all the data is loaded at once!
-        throw new Error('Not implemented');
+        console.error('loadChildrenForDataSource not implemented for DuckDBOverHttp');
+        return Promise.resolve([]);
     }
 
     dataSources: DataSource[] = [];
+
+    updateConfig(config: Partial<DuckDBOverHttpConfig>): void {
+        this.config = {...this.config, ...config};
+    }
 }
 

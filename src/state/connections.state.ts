@@ -108,8 +108,6 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
             throw new Error(`Data source with id path ${id_path} not found`);
         }
 
-        console.log('children', children);
-
         dataSourceToLoadChildrenFor.children = children;
         set((state) => ({
             connections: {

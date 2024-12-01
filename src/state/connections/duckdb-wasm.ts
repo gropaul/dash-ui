@@ -5,7 +5,7 @@ import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connection
 import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
-import {ConnectionState, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
+import {ConnectionState, DataConnection, DataConnectionConfig, DataSource, DBConnectionType} from "@/model/connection";
 
 
 export function getDuckDBWasmConnection(): DataConnection {
@@ -120,7 +120,12 @@ export class DuckDBWasm implements DataConnection {
     }
 
     loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
-        throw new Error("Method not implemented.");
+        console.error('Not implemented');
+        return Promise.resolve([]);
+    }
+
+    updateConfig(config: Partial<DuckDBWasmConfig>): void {
+        this.config = {...this.config, ...config};
     }
 }
 

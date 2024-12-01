@@ -42,4 +42,6 @@ export interface DataConnection {
 
     onDataSourceClick: (id_path: string[]) => void;
     loadChildrenForDataSource: (id_path: string[]) => Promise<DataSource[]>;
+
+    updateConfig: (config: Partial<DataConnectionConfig>) => void;
 }

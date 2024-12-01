@@ -22,10 +22,7 @@ export function updateRelationViewState(currentState: RelationViewState, newData
     // if the current state is the initial state, return a new state with the new data
     const defaultState = getInitViewState(undefined);
 
-    console.log(currentState);
-    console.log(defaultState);
     if (deepEqual(currentState, defaultState)) {
-        console.log('here');
         return getInitViewState(newData);
     } else {
         return currentState;

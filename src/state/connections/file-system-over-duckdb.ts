@@ -11,23 +11,30 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
 import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";
 import {ConnectionState, DataConnection, DataSource, DataSourceGroup, DBConnectionType} from "@/model/connection";
+import {getDuckDBCurrentPath} from "@/state/connections/duckdb-helper";
+import * as path from 'path';
+import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 
-export function getFileSystemOverDuckdbConnection(): DataConnection {
+export async function getFileSystemOverDuckdbConnection(): Promise<DataConnection> {
+
+    const executeQuery = ConnectionsService.getInstance().getConnection(CONNECTION_ID_DUCKDB_LOCAL).executeQuery;
+    const [rootName, rootPath] = await getDuckDBCurrentPath(executeQuery);
     return new FileSystemOverDuckdb(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, {
+        rootPath: rootPath,
         name: 'Local Filesystem',
         duckdbConnectionId: CONNECTION_ID_DUCKDB_LOCAL
     });
 }
 
-interface FileSystemOverDuckdbConfig {
+interface FileSystemOverDuckDBConfig {
     name: string;
     duckdbConnectionId: string;
-
+    rootPath: string;
     [key: string]: string | number | boolean | undefined;
 }
 
 export class FileSystemOverDuckdb implements DataConnection {
-    config: FileSystemOverDuckdbConfig;
+    config: FileSystemOverDuckDBConfig;
     id: string;
     type: DBConnectionType = 'local-filesystem-over-duckdb';
     configForm: FormDefinition = {
@@ -37,11 +44,17 @@ export class FileSystemOverDuckdb implements DataConnection {
                 label: 'Name',
                 key: 'name',
                 required: true
+            },
+            {
+                type: 'text',
+                label: 'Root Path',
+                key: 'rootPath',
+                required: true
             }
         ],
     }
 
-    constructor(id: string, config: FileSystemOverDuckdbConfig) {
+    constructor(id: string, config: FileSystemOverDuckDBConfig) {
         this.id = id;
         this.config = config;
     }
@@ -58,7 +71,7 @@ export class FileSystemOverDuckdb implements DataConnection {
         return ConnectionsService.getInstance().getConnection(this.config.duckdbConnectionId).getConnectionState();
     }
 
-    async getDirAsDataSource(rootPath: string, rootName: string, depth: number | undefined): Promise<DataSourceGroup> {
+    async getDirAsDataSource(rootPath: string, depth: number | undefined): Promise<DataSourceGroup> {
         // get the children of the root directory
         const lsrPart = depth !== undefined ? `lsr('${rootPath}', ${depth})` : `lsr('${rootPath}')`;
 
@@ -67,6 +80,9 @@ export class FileSystemOverDuckdb implements DataConnection {
                                  ORDER BY file, path;`;
 
         const fileSystemResult = await this.executeQuery(fileSystemQuery);
+
+        // get rootName as basepath, could be Unix or Windows path
+        const rootName = path.basename(rootPath);
         const root: DataSourceGroup = {
             id: rootPath,
             name: rootName,
@@ -112,17 +128,8 @@ export class FileSystemOverDuckdb implements DataConnection {
     }
 
     async loadDataSources(): Promise<DataSource[]> {
-        // install hostfs on duckdb
-        const installHostFs = `INSTALL hostfs FROM community;
-                               LOAD hostfs;`;
-        await this.executeQuery(installHostFs);
-        // get the root directory
-        const rootDirectoryQuery = `SELECT file_name(pwd()),pwd();`;
-        const rootDirectory = await this.executeQuery(rootDirectoryQuery);
-        const rootName = rootDirectory.rows[0][0];
-        const rootPath = rootDirectory.rows[0][1];
-
-        const rootDataSource: DataSourceGroup = await this.getDirAsDataSource(rootPath, rootName, 0);
+        const rootPath = this.config.rootPath;
+        const rootDataSource: DataSourceGroup = await this.getDirAsDataSource(rootPath, 0);
         return [rootDataSource];
     }
 
@@ -140,7 +147,7 @@ export class FileSystemOverDuckdb implements DataConnection {
             return
         }
 
-        const source : RelationSource = {
+        const source: RelationSource = {
             type: 'file',
             path: lastId,
             base_name: element.name
@@ -176,8 +183,21 @@ export class FileSystemOverDuckdb implements DataConnection {
 
     async loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
         const last_id = id_path[id_path.length - 1];
-        const path_root = await this.getDirAsDataSource(last_id, "tmp", 0);
+        const path_root = await this.getDirAsDataSource(last_id, 0);
         return path_root.children!;
+    }
+
+    updateConfig(new_config: Partial<FileSystemOverDuckDBConfig>): void {
+
+
+        // if the base path changes, reload the data sources
+        if (new_config.rootPath && new_config.rootPath !== this.config.rootPath) {
+            this.config = {...this.config, ...new_config};
+            useConnectionsState.getState().loadAllDataSources(this.id);
+        } else {
+            this.config = {...this.config, ...new_config};
+        }
+
     }
 
     dataSources: DataSource[] = [];

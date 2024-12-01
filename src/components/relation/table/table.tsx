@@ -52,8 +52,6 @@ export function Table(props: RelationViewTableProps) {
             return;
         }
 
-        console.log(over);
-
         const target = over.id as string;
         const active = activeId as string;
 
