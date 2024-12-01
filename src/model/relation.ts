@@ -7,6 +7,8 @@ export interface RelationData {
     rows: Row[]
 }
 
+export type RelationType = 'table' | 'file'
+
 export interface RelationSourceTable {
     type: 'table',
     database: string,

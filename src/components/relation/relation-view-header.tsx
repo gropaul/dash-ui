@@ -45,11 +45,16 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     return (
         <>
             <div className="flex flex-row items-center justify-between w-full h-[48px] px-4">
-                <div className="flex flex-row items-center">
-                    <div className="font-bold text-lg">{relationName}</div>
+                <div className="flex flex-row items-center flex-1">
+                    <div
+                        className="font-bold flex-shrink text-lg whitespace-nowrap overflow-hidden text-overflow-ellipsis"
+                        title={relationName}
+                    >
+                        {relationName}
+                    </div>
                     <div className="ml-4 text-sm text-gray-500">{textDurationAndConnection}</div>
                 </div>
-                <div className="flex flex-row items-center">
+                <div className="flex flex-row items-center space-x-2 justify-end">
                     <button
                         className="text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 h-8 w-8 flex items-center justify-center"
                         onClick={onShowCode}
@@ -71,6 +76,7 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
                     </button>
                 </div>
             </div>
+
             <RelationViewHeaderBorder relationId={relationId}/>
         </>
     )
