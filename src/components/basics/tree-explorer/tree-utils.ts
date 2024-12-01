@@ -2,7 +2,7 @@ export interface TreeNode {
     id: string;
     name: string; // also serves as unique key
     type: string;
-    children?: TreeNode[];
+    children?: TreeNode[] | null; // is undefined if not loaded, null if no children, otherwise an array of children
 }
 
 export function findNodeInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {

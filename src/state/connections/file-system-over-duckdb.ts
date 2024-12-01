@@ -110,7 +110,7 @@ export class FileSystemOverDuckdb implements DataConnection {
                     id: path,
                     name: basename,
                     type: 'file',
-                    children: []
+                    children: null
                 });
             } else {
                 // add to parents

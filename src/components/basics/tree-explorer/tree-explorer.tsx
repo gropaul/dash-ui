@@ -25,7 +25,7 @@ function TreeExplorerNode({
     const [isExpanded, setIsExpanded] = useState(false);
 
     const childrenLoaded = tree.children !== undefined;
-    const hasNoChildren = tree.children && tree.children.length === 0;
+    const hasNoChildren = tree.children === null;
 
     const depth = parent_id_path.length;
     const current_tree_id_path = parent_id_path.concat(tree.id);

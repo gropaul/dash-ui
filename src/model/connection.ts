@@ -11,14 +11,14 @@ export interface DataSourceElement extends TreeNode {
     id: string;
     name: string;
     type: DataSourceType;
-    children?: Column[];
+    children?: Column[] | null;
 }
 
 export interface DataSourceGroup extends TreeNode {
     id: string;
     name: string;
     type: DataGroupType;
-    children?: DataSource[];
+    children?: DataSource[] | null;
 }
 
 export type DataSource = DataSourceElement | DataSourceGroup;

@@ -69,7 +69,7 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
                         return {
                             name: column,
                             type: duckDBTypeToValueType(type),
-                            children: [],
+                            children: null,
                         };
                     })
                 });
