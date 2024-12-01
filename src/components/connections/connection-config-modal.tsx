@@ -17,7 +17,7 @@ interface ConfigModalProps {
     connectionElement?: FC<ConnectionElementProps>;
 }
 
-export function ConnectionConfigModel({isOpen, onClose, onSave, connection}: ConfigModalProps) {
+export function ConnectionConfigModal({isOpen, onClose, onSave, connection}: ConfigModalProps) {
     if (!isOpen) return null;
 
     return (
@@ -41,4 +41,4 @@ export function ConnectionConfigModel({isOpen, onClose, onSave, connection}: Con
     );
 };
 
-export default ConnectionConfigModel;
+export default ConnectionConfigModal;

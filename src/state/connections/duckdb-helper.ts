@@ -1,12 +1,14 @@
 import {duckDBTypeToValueType} from "@/model/value-type";
-import {RelationData, RelationSource} from "@/model/relation";
+import {RelationData, RelationSource, RelationSourceTable} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/model/connection";
+import {useConnectionsState} from "@/state/connections.state";
+import {DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
 
 
 export async function onDuckDBDataSourceClick(connection: DataConnection, id_path: string[]) {
 
-    const showRelation = useRelationsState.getState().showRelationByName;
+    const showRelation = useRelationsState.getState().showRelationFromSource;
 
     // if path has two elements, it’s a data source
     if (id_path.length === 3) {
@@ -22,13 +24,12 @@ export async function onDuckDBDataSourceClick(connection: DataConnection, id_pat
 }
 
 
-
 export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<DataSource[]> {
 // get all columns and tables
 
     const query = `SELECT table_catalog, table_schema, table_name, column_name, data_type
-                       FROM information_schema.columns
-                       ORDER BY table_catalog, table_name, ordinal_position;`;
+                   FROM information_schema.columns
+                   ORDER BY table_catalog, table_name, ordinal_position;`;
 
     const rows = await executeQuery(query);
     // will have format [database_name: table_schema: table_name: {column_name, data_type}]
@@ -106,4 +107,27 @@ export async function getDuckDBCurrentPath(executeQuery: (query: string) => Prom
     const rootPath = rootDirectory.rows[0][1];
 
     return [rootName, rootPath];
+}
+
+export async function creatTableIfNotExistsFromFilePath(connection: DataConnection, filePath: string, tableName: string): Promise<string> {
+
+    const tableNameEscaped = `"${tableName}"`;
+    const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS ${tableNameEscaped} AS
+        SELECT *
+        FROM '${filePath}';`;
+    const _result = await connection.executeQuery(createTableQuery);
+
+    await useConnectionsState.getState().loadAllDataSources(connection.id);
+
+    const relationSource: RelationSourceTable = {
+        type: 'table',
+        database: DUCKDB_IN_MEMORY_DB,
+        schema: DUCKDB_BASE_SCHEMA,
+        tableName: tableName,
+    }
+
+    await useRelationsState.getState().showRelationFromSource(connection.id, relationSource);
+
+    return tableName;
 }

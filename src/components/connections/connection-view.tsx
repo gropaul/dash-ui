@@ -3,7 +3,7 @@ import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factori
 import React from "react";
 import {useConnectionsState} from "@/state/connections.state";
 import {RefreshCw, Settings} from "lucide-react";
-import ConnectionConfigModel from "@/components/connections/connection-config-modal";
+import ConnectionConfigModal from "@/components/connections/connection-config-modal";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DataConnection, DataConnectionConfig} from "@/model/connection";
 
@@ -65,7 +65,7 @@ export function ConnectionView(props: ConnectionViewProps) {
                 loadChildren={(id_path) => onElementLoadRequest(props.connection.id, id_path)}
             />
 
-            <ConnectionConfigModel
+            <ConnectionConfigModal
                 isOpen={settingsModalOpen}
                 onClose={closeModal}
                 onSave={saveSettings}

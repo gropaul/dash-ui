@@ -150,35 +150,11 @@ export class FileSystemOverDuckdb implements DataConnection {
         const source: RelationSource = {
             type: 'file',
             path: lastId,
-            base_name: element.name
+            baseName: element.name
         }
 
         // show the table
-        await useRelationsState.getState().showRelationByName(this.id, source);
-    }
-
-    async importFileToDuckDB(path: string, id_path: string[]) {
-        // if csv file, load the file
-        const isCsv = path.endsWith('.csv');
-        if (!isCsv) {
-            return;
-        }
-
-        // last element is the file name
-        const base_path = id_path[id_path.length - 1];
-
-        const schema = DUCKDB_BASE_SCHEMA;
-        const database = DUCKDB_IN_MEMORY_DB;
-        const relationName = base_path;
-
-        const loadCsvQuery = `CREATE TABLE IF NOT EXISTS "${relationName}" AS
-        SELECT *
-        FROM read_csv('${path}', AUTO_DETECT = TRUE);`;
-
-        await this.executeQuery(loadCsvQuery);
-
-        // update data sources
-        await useConnectionsState.getState().loadAllDataSources(this.config.duckdbConnectionId);
+        await useRelationsState.getState().showRelationFromSource(this.id, source);
     }
 
     async loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {

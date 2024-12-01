@@ -22,7 +22,7 @@ interface RelationStates {
     closeRelation: (relationId: string) => void,
 
     showRelation: (relation: Relation) => Promise<void>,
-    showRelationByName: (connectionId: string, source: RelationSource) => Promise<void>,
+    showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
 
     updateRelationData: (relationId: string, query: RelationQueryParams) => Promise<void>,
 
@@ -42,9 +42,9 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
     doesRelationExist: (relationId: string) => get().relations[relationId] !== undefined,
     getRelation: (relationId: string) => get().relations[relationId],
     showRelation: async (relation: Relation) => {
-        return get().showRelationByName(relation.connectionId, relation.source);
+        return get().showRelationFromSource(relation.connectionId, relation.source);
     },
-    showRelationByName: async (connectionId: string, source: RelationSource) => {
+    showRelationFromSource: async (connectionId: string, source: RelationSource) => {
 
         const relationId = getRelationIdFromSource(connectionId, source);
 

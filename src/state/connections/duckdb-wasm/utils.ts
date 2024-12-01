@@ -13,7 +13,7 @@ export async function importAndShowRelationsWithWASM(files: File[]) {
     }
     const tableNames = await importFilesToDuckDBWasm(duckDBWasm, files);
 
-    const showRelation = useRelationsState.getState().showRelationByName;
+    const showRelation = useRelationsState.getState().showRelationFromSource;
     const updateDataSources = useConnectionsState.getState().loadAllDataSources;
 
     for (const tableName of tableNames) {

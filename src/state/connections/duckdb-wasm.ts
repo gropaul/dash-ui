@@ -1,7 +1,11 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDBConnection, DuckDBDataProtocol} from "@duckdb/duckdb-wasm";
 import {RelationData} from "@/model/relation";
-import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections/duckdb-helper";
+import {
+    creatTableIfNotExistsFromFilePath,
+    loadDuckDBDataSources,
+    onDuckDBDataSourceClick
+} from "@/state/connections/duckdb-helper";
 import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
@@ -62,7 +66,7 @@ export class DuckDBWasm implements DataConnection {
 
         // close connection
         await localConnection!.close();
-        return relationFromDuckDBResult('result', this.id, arrowResult);
+        return relationFromDuckDBArrowResult('result', this.id, arrowResult);
     }
 
     async loadDataSources(): Promise<DataSource[]> {
@@ -94,24 +98,8 @@ export class DuckDBWasm implements DataConnection {
         const fileName = file.name;
         const tableName = fileName
 
-        // check if table already exists, if so return the table name
-        const findTableQuery = `SELECT *
-                                FROM information_schema.tables
-                                WHERE table_name = '${tableName}';`;
-        const result = await this.executeQuery(findTableQuery);
-        if (result.rows.length > 0) {
-            return tableName;
-        }
-
         await this.db.registerFileHandle(fileName, file, DuckDBDataProtocol.BROWSER_FILEREADER, true);
-        const tableNameEscaped = `"${tableName}"`;
-        const createTableQuery = `
-            CREATE TABLE ${tableNameEscaped} AS
-            SELECT *
-            FROM read_csv('${fileName}', AUTO_DETECT = TRUE);
-        `;
-
-        await this.connection.query(createTableQuery);
+        await creatTableIfNotExistsFromFilePath(this, fileName, tableName);
         return tableName;
     }
 
@@ -161,7 +149,7 @@ async function staticDuckDBBundles(): Promise<{
 }
 
 
-export function relationFromDuckDBResult(relationName: string, connectionId: string, arrowResult: any): RelationData {
+export function relationFromDuckDBArrowResult(relationName: string, connectionId: string, arrowResult: any): RelationData {
 
     // Convert arrow table to json
     const json = arrowResult.toArray().map((row: any) => row.toJSON());

@@ -19,7 +19,7 @@ export interface RelationSourceTable {
 export interface RelationSourceFile {
     type: 'file',
     path: string,
-    base_name: string,
+    baseName: string,
 }
 
 export type RelationSource = RelationSourceTable | RelationSourceFile;
@@ -45,7 +45,7 @@ export function getRelationNameFromSource(relation: RelationSource): string {
     if (relation.type === 'table') {
         return relation.tableName;
     } else {
-        return relation.base_name;
+        return relation.baseName;
     }
 }
 
