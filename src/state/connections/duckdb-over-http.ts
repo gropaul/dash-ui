@@ -104,6 +104,8 @@ class DuckDBOverHttp implements DataConnection {
         ]
     }
 
+    dataSources: DataSource[] = [];
+
     constructor(config: DuckDBOverHttpConfig, id: string) {
         this.id = id;
         this.config = config;
@@ -180,7 +182,7 @@ class DuckDBOverHttp implements DataConnection {
     }
 
     async onDataSourceClick(id_path: string[]) {
-        await onDuckDBDataSourceClick(this, id_path);
+        await onDuckDBDataSourceClick(this, id_path, this.dataSources);
     }
 
     loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
@@ -188,8 +190,6 @@ class DuckDBOverHttp implements DataConnection {
         console.error('loadChildrenForDataSource not implemented for DuckDBOverHttp');
         return Promise.resolve([]);
     }
-
-    dataSources: DataSource[] = [];
 
     updateConfig(config: Partial<DuckDBOverHttpConfig>): void {
         this.config = {...this.config, ...config};

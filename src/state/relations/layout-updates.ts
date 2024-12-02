@@ -3,6 +3,7 @@ import {Relation} from "@/model/relation";
 import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
+import {DataSourceGroup} from "@/model/connection";
 
 
 interface CurrentLayoutState {
@@ -16,8 +17,9 @@ export function getInitialLayoutModel(state: CurrentLayoutState): Model {
         global: {
             splitterSize: 1,
             splitterExtra: 8,
-            enableRotateBorderIcons: false,
+            enableRotateBorderIcons: true,
             enableEdgeDock: false,
+            tabIcon: 'relation',
         },
         borders: [
             {
@@ -67,8 +69,23 @@ export function onLayoutModelChange(action: Action): Action | undefined {
 }
 
 
-export function focusRelationInLayout(model: Model, relationId: string): void {
+export function focusTabById(model: Model, relationId: string): void {
     model.doAction(Actions.selectTab(relationId));
+}
+
+export function addSchemaToLayout(
+    model: Model,
+    schemaId: string,
+    schema: DataSourceGroup,
+): void {
+    const tabSetId = getDefaultTabSetId(model);
+    if (!tabSetId) {
+        throw new Error("No tabset found");
+    }
+
+    const schemaTab = getTabForSchema(schemaId, schema.name);
+    model.doAction(Actions.addNode(schemaTab, tabSetId, DockLocation.CENTER, -1));
+
 }
 
 export function addRelationToLayout(
@@ -76,6 +93,17 @@ export function addRelationToLayout(
     relation: RelationState,
 ): void {
 
+    const tabSetId = getDefaultTabSetId(model);
+    if (!tabSetId) {
+        throw new Error("No tabset found");
+    }
+
+    const relationTab = getTabForRelation(relation);
+    model.doAction(Actions.addNode(relationTab, tabSetId, DockLocation.CENTER, -1));
+}
+
+
+function getDefaultTabSetId(model: Model): string | undefined {
     let id: string | undefined;
     // get node id from the tabset
     model.visitNodes((node) => {
@@ -86,13 +114,24 @@ export function addRelationToLayout(
 
     if (!id) {
         console.error("No tabset found");
-        return;
+        return undefined
     }
 
-    const relationTab = getTabForRelation(relation);
-    model.doAction(Actions.addNode(relationTab, id, DockLocation.CENTER, -1));
+    return id;
 }
 
+function getTabForSchema(schemaId: string, schemaName: string): IJsonTabNode {
+    return {
+        type: 'tab',
+        name: schemaName,
+        id: schemaId,
+        component: 'SchemaComponent',
+        config: {
+            schemaId: schemaId,
+        },
+    };
+
+}
 
 function getTabForRelation(relation: Relation): IJsonTabNode {
     return {
@@ -102,7 +141,7 @@ function getTabForRelation(relation: Relation): IJsonTabNode {
         component: 'RelationComponent',
         config: {
             relationId: relation.id,
-        }
+        },
     };
 }
 

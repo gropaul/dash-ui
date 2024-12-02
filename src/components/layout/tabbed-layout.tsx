@@ -3,11 +3,10 @@ import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {RelationView} from "@/components/relation/relation-view";
 import {useRelationsState} from "@/state/relations.state";
-import {Database} from 'lucide-react';
+import {Database, Network, Sheet} from 'lucide-react';
 import {ConnectionsOverview} from "@/components/connections/connections-overview";
-import {Relation} from "@/model/relation";
-import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
+import {SchemaView} from "@/components/schema/schema-view";
 
 
 export function TabbedLayout() {
@@ -22,24 +21,12 @@ export function TabbedLayout() {
                 }}
                 model={layoutModel}
                 factory={factory}
+
                 iconFactory={iconFactory}
                 onAction={onLayoutModelChange}
             />
         </div>
     );
-}
-
-
-function getTabForRelation(relation: Relation): IJsonTabNode {
-    return {
-        type: 'tab',
-        name: relation.name,
-        id: `relation-${relation.name}`,
-        component: 'RelationComponent',
-        config: {
-            relation: relation
-        }
-    };
 }
 
 
@@ -52,6 +39,10 @@ const factory = (node: TabNode) => {
     if (component === 'RelationComponent') {
         return <RelationView relationId={node.getConfig().relationId}/>;
     }
+    if (component === 'SchemaComponent') {
+        return <SchemaView schemaId={node.getConfig().schemaId}/>;
+    }
+
     return null;
 };
 
@@ -67,5 +58,17 @@ const iconFactory = (node: TabNode) => {
             <Database size={24} style={{transform: 'rotate(90deg)'}}/>
         </div>;
     }
+    if (component === 'RelationComponent') {
+        return <div style={{width: 16, height: 16}}>
+            <Sheet size={16}/>
+        </div>;
+    }
+
+    if (component === 'SchemaComponent') {
+        return <div style={{width: 16, height: 16}}>
+            <Network size={16}/>
+        </div>;
+    }
+
     return null;
 };

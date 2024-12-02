@@ -104,7 +104,7 @@ export class DuckDBWasm implements DataConnection {
     }
 
     async onDataSourceClick(id_path: string[]) {
-        await onDuckDBDataSourceClick(this, id_path);
+        await onDuckDBDataSourceClick(this, id_path, this.dataSources);
     }
 
     loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {

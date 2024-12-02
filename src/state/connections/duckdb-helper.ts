@@ -4,14 +4,35 @@ import {useRelationsState} from "@/state/relations.state";
 import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/model/connection";
 import {useConnectionsState} from "@/state/connections.state";
 import {DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
+import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";
 
 
-export async function onDuckDBDataSourceClick(connection: DataConnection, id_path: string[]) {
+export async function onDuckDBDataSourceClick(
+    connection: DataConnection,
+    id_path: string[],
+    dataSources: DataSource[]
+) {
 
-    const showRelation = useRelationsState.getState().showRelationFromSource;
+    // if path has two elements, it’s a schema
+    if (id_path.length === 2) {
 
-    // if path has two elements, it’s a data source
+        const showSchema = useRelationsState.getState().showSchema;
+
+        const [databaseName, schemaName] = id_path;
+
+        const schema = findNodeInTrees(dataSources, id_path);
+        if (schema) {
+            const connectionId = connection.id;
+            await showSchema(connectionId, databaseName, schema as DataSourceGroup);
+        }
+    }
+
+
+    // if path has tree elements, it’s a table
     if (id_path.length === 3) {
+
+        const showRelation = useRelationsState.getState().showRelationFromSource;
+
         const [databaseName, schemaName, relationName] = id_path;
         const source: RelationSource = {
             type: 'table',

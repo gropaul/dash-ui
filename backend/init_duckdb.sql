@@ -9,6 +9,9 @@ LOAD hostfs;
 -- MOUNT database
 ATTACH '/Users/paul/workspace/duckpgq-experiments/data/SNB1-projected|/snb.duckdb' AS snb;
 
+-- Mount school database
+ATTACH '/Users/paul/WebstormProjects/explorer/data/school.db' AS school;
+
 -- MOUNT motherduck database
 ATTACH 'md:';
 

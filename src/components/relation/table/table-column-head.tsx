@@ -16,6 +16,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
 import {shallow} from "zustand/shallow";
+import {ValueType} from "@/model/value-type";
 
 
 interface ColumnHeadProps {
@@ -49,7 +50,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
                     {...listeners}
                 >
                     <div style={{minWidth: "16px", display: "flex", alignItems: "center"}}>
-                        {ColumnHeadIcon(column)}
+                        {<ColumnIcon type={column.type}/>}
                     </div>
                     <span className="ml-2 font-semibold flex-grow truncate text-nowrap" title={column.name}>
                     {column.name}
@@ -68,9 +69,9 @@ export function TableColumnHead(props: ColumnHeadProps) {
 }
 
 
-function ColumnHeadIcon(column: Column) {
+export function ColumnIcon({type}: { type: ValueType }) {
     const iconSize = 16;
-    switch (column.type) {
+    switch (type) {
         case 'Integer':
             return <Hash size={iconSize}/>;
         case 'Float':
@@ -82,7 +83,7 @@ function ColumnHeadIcon(column: Column) {
         case 'Timestamp':
             return <Calendar size={iconSize}/>;
         default:
-            console.warn(`Unknown column type: ${column.type}`);
+            console.warn(`Unknown column type: ${type}`);
             return <CircleHelp size={iconSize}/>;
 
     }

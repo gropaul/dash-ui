@@ -1,7 +1,12 @@
 import {getRelationIdFromSource, Relation, RelationSource} from "@/model/relation";
 import {create} from "zustand";
 import {Model} from "flexlayout-react";
-import {addRelationToLayout, focusRelationInLayout, getInitialLayoutModel} from "@/state/relations/layout-updates";
+import {
+    addRelationToLayout,
+    addSchemaToLayout,
+    focusTabById,
+    getInitialLayoutModel
+} from "@/state/relations/layout-updates";
 import {
     executeQueryOfRelationState,
     getDefaultQueryParams,
@@ -11,17 +16,19 @@ import {
     updateRelationForNewParams,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
+import {DataSourceGroup} from "@/model/connection";
+import {getSchemaId, SchemaState} from "@/model/schema-state";
 
 
 interface RelationStates {
 
     relations: { [key: string]: RelationState };
+    schemas: { [key: string]: SchemaState };
 
     doesRelationExist: (relationId: string) => boolean,
     getRelation: (relationId: string) => RelationState,
     closeRelation: (relationId: string) => void,
 
-    showRelation: (relation: Relation) => Promise<void>,
     showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
 
     updateRelationData: (relationId: string, query: RelationQueryParams) => Promise<void>,
@@ -30,6 +37,9 @@ interface RelationStates {
     getRelationViewState: (relationId: string) => RelationViewState,
     updateRelationViewState: (relationId: string, viewState: Partial<RelationViewState>) => void,
 
+    showSchema: (connectionId: string, databaseId: string, schema: DataSourceGroup) => Promise<void>,
+    getSchemaState: (schemaId: string) => SchemaState,
+
     layoutModel: Model;
     getModel: () => Model;
     setModel: (model: Model) => void;
@@ -37,13 +47,38 @@ interface RelationStates {
 
 export const useRelationsState = create<RelationStates>((set, get) => ({
     relations: {},
+    schemas: {},
     selectedRelationsIndex: undefined,
+
+    showSchema: async (connectionId: string, databaseId: string, schema: DataSourceGroup) => {
+        const {schemas} = get(); // Get the current state
+        const schemaId = getSchemaId(connectionId, databaseId, schema); // Generate the schema ID
+        const existingSchema = schemas[schemaId]; // Retrieve the schema
+        if (existingSchema) {
+            focusTabById(get().layoutModel, schemaId);
+        } else {
+            set((state) => ({
+                schemas: {
+                    ...state.schemas,
+                    [schemaId]: {
+                        ...schema,
+                        connectionId,
+                        databaseId,
+                    }
+                },
+            }));
+
+            const model = get().layoutModel;
+            addSchemaToLayout(model, schemaId, schema);
+        }
+    },
+
+    getSchemaState: (schemaId: string) => {
+        return get().schemas[schemaId];
+    },
 
     doesRelationExist: (relationId: string) => get().relations[relationId] !== undefined,
     getRelation: (relationId: string) => get().relations[relationId],
-    showRelation: async (relation: Relation) => {
-        return get().showRelationFromSource(relation.connectionId, relation.source);
-    },
     showRelationFromSource: async (connectionId: string, source: RelationSource) => {
 
         const relationId = getRelationIdFromSource(connectionId, source);
@@ -51,7 +86,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         // check if relation already exists
         const existingRelation = get().relations[relationId];
         if (existingRelation) {
-            focusRelationInLayout(get().layoutModel, existingRelation.id);
+            focusTabById(get().layoutModel, existingRelation.id);
         } else {
 
             // update state with empty (loading) relation
