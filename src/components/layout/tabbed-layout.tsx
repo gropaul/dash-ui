@@ -7,6 +7,7 @@ import {Database, Network, Sheet} from 'lucide-react';
 import {ConnectionsOverview} from "@/components/connections/connections-overview";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
 import {SchemaView} from "@/components/schema/schema-view";
+import {DatabaseView} from "@/components/database/database-view";
 
 
 export function TabbedLayout() {
@@ -42,6 +43,9 @@ const factory = (node: TabNode) => {
     if (component === 'SchemaComponent') {
         return <SchemaView schemaId={node.getConfig().schemaId}/>;
     }
+    if (component === 'DatabaseComponent') {
+        return <DatabaseView databaseId={node.getConfig().databaseId}/>;
+    }
 
     return null;
 };
@@ -67,6 +71,12 @@ const iconFactory = (node: TabNode) => {
     if (component === 'SchemaComponent') {
         return <div style={{width: 16, height: 16}}>
             <Network size={16}/>
+        </div>;
+    }
+
+    if (component === 'DatabaseComponent') {
+        return <div style={{width: 16, height: 16}}>
+            <Database size={16}/>
         </div>;
     }
 

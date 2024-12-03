@@ -13,12 +13,24 @@ export async function onDuckDBDataSourceClick(
     dataSources: DataSource[]
 ) {
 
+
+    // if path has one element, it’s a database
+    if (id_path.length === 1) {
+        const showDatabase = useRelationsState.getState().showDatabase;
+
+        const database = findNodeInTrees(dataSources, id_path);
+        if (database) {
+            const connectionId = connection.id;
+            await showDatabase(connectionId, database as DataSourceGroup);
+        }
+    }
+
     // if path has two elements, it’s a schema
-    if (id_path.length === 2) {
+    else if (id_path.length === 2) {
 
         const showSchema = useRelationsState.getState().showSchema;
 
-        const [databaseName, schemaName] = id_path;
+        const [databaseName, _schemaName] = id_path;
 
         const schema = findNodeInTrees(dataSources, id_path);
         if (schema) {
@@ -29,7 +41,7 @@ export async function onDuckDBDataSourceClick(
 
 
     // if path has tree elements, it’s a table
-    if (id_path.length === 3) {
+    else if (id_path.length === 3) {
 
         const showRelation = useRelationsState.getState().showRelationFromSource;
 

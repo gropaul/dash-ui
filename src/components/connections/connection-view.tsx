@@ -44,7 +44,7 @@ export function ConnectionView(props: ConnectionViewProps) {
     }
 
     return (
-        <li className="p-2 text-s border-b border-gray-200 dark:border-gray-700 h-fit relative group">
+        <li className="p-2 text-s border-b border-[#E5E7E8] dark:border-gray-700 h-fit relative group">
             <div className="flex items-center justify-between">
                 <span>{props.connection.config.name}</span>
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">

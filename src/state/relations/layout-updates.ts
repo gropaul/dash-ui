@@ -62,7 +62,7 @@ export function onLayoutModelChange(action: Action): Action | undefined {
 
     if (action.type === "FlexLayout_DeleteTab") {
         const removedId = action.data.node;
-        state.closeRelation(removedId);
+        state.closeTab(removedId);
     }
 
     return action;
@@ -71,6 +71,20 @@ export function onLayoutModelChange(action: Action): Action | undefined {
 
 export function focusTabById(model: Model, relationId: string): void {
     model.doAction(Actions.selectTab(relationId));
+}
+
+export function addDatabaseToLayout(
+    model: Model,
+    databaseId: string,
+    database: DataSourceGroup,
+): void {
+    const tabSetId = getDefaultTabSetId(model);
+    if (!tabSetId) {
+        throw new Error("No tabset found");
+    }
+
+    const databaseTab = getTabForDatabase(databaseId, database.name);
+    model.doAction(Actions.addNode(databaseTab, tabSetId, DockLocation.CENTER, -1));
 }
 
 export function addSchemaToLayout(
@@ -85,7 +99,6 @@ export function addSchemaToLayout(
 
     const schemaTab = getTabForSchema(schemaId, schema.name);
     model.doAction(Actions.addNode(schemaTab, tabSetId, DockLocation.CENTER, -1));
-
 }
 
 export function addRelationToLayout(
@@ -118,6 +131,18 @@ function getDefaultTabSetId(model: Model): string | undefined {
     }
 
     return id;
+}
+
+function getTabForDatabase(databaseId: string, databaseName: string): IJsonTabNode {
+    return {
+        type: 'tab',
+        name: databaseName,
+        id: databaseId,
+        component: 'DatabaseComponent',
+        config: {
+            databaseId: databaseId,
+        },
+    };
 }
 
 function getTabForSchema(schemaId: string, schemaName: string): IJsonTabNode {

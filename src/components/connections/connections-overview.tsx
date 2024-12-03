@@ -10,13 +10,13 @@ export function ConnectionsOverview() {
 
     // show a list of the tables, have a light grey background
     return (
-        <div className="bg-gray-50 h-full w-full">
+        <div className=" h-full w-full">
             <div
-                className="flex items-center border-gray-200 font-bold dark:border-gray-700 dark:text-white px-2"
+                className="flex items-center  font-bold dark:border-gray-700 dark:text-white px-2"
                 style={{height: '28px'}}>
                 Connections
             </div>
-            <div className="border-t border-gray-200 dark:border-gray-700 overflow-y-auto h-fit">
+            <div className="border-t  dark:border-gray-700 overflow-y-auto h-fit">
                 <ul>
                     {Object.values(connections).map((connection, index) => {
                         return <ConnectionView connection={connection} key={index}/>;
