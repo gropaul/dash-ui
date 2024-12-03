@@ -1,6 +1,7 @@
-import {Check, Copy, Loader2, Play, XCircle} from "lucide-react";
+import {Check, Loader2, Play, XCircle} from "lucide-react";
 import React from "react";
-import {TaskExecutionState} from "@/model/relation-state";
+import { TaskExecutionState } from "@/model/relation-state";
+import {CopyButton} from "@/components/basics/input/copy-button";
 
 interface CodeFenceOverlayProps {
     showCopyButton: boolean;
@@ -12,49 +13,25 @@ interface CodeFenceOverlayProps {
 }
 
 export function CodeFenceOverlay(props: CodeFenceOverlayProps) {
-    const [copied, setCopied] = React.useState(false);
-
-    const handleCopy = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        await navigator.clipboard.writeText(props.copyCode);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 3000);
-    };
-
     const getRunButtonContent = () => {
         switch (props.runState) {
-            case 'running':
-                return <Loader2 size={18} className="animate-spin"/>;
-            case 'success':
-                return <Check size={18} className="text-green-500"/>;
-            case 'error':
-                return <XCircle size={18} className="text-red-500"/>;
+            case "running":
+                return <Loader2 size={18} className="animate-spin" />;
+            case "success":
+                return <Check size={18} className="text-green-500" />;
+            case "error":
+                return <XCircle size={18} className="text-red-500" />;
             default:
-                return <Play size={18}/>;
+                return <Play size={18} />;
         }
     };
 
     return (
         <div>
             {props.showCopyButton && (
-                <button
-                    onClick={handleCopy}
-                    className="absolute top-4 right-4"
-                >
-                    {copied ?
-                        <Check
-                            className={"cursor-pointer hover:text-gray-800 text-gray-500"}
-                            size={18}
-                        />
-                        :
-                        <Copy
-                            className={"cursor-pointer hover:text-gray-800 text-gray-500"}
-                            size={18}
-                        />
-                    }
-                </button>
+                <div className="absolute top-4 right-4">
+                    <CopyButton textToCopy={props.copyCode}  size={18} />
+                </div>
             )}
             {props.showRunButton && (
                 <button
