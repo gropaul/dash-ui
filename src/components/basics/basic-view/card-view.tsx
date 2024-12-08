@@ -1,5 +1,3 @@
-import {ExternalLink} from "lucide-react";
-import {ColumnIcon} from "@/components/relation/table/table-column-head";
 import React from "react";
 
 

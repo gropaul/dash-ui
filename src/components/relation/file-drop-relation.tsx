@@ -2,7 +2,6 @@
 
 import {FileDrop} from "@/components/basics/input/file-drop";
 import React from "react";
-import {RelationSourceFile} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {creatTableIfNotExistsFromFilePath} from "@/state/connections/duckdb-helper";

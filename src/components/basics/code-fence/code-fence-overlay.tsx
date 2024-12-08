@@ -1,6 +1,6 @@
 import {Check, Loader2, Play, XCircle} from "lucide-react";
 import React from "react";
-import { TaskExecutionState } from "@/model/relation-state";
+import {TaskExecutionState} from "@/model/relation-state";
 import {CopyButton} from "@/components/basics/input/copy-button";
 
 interface CodeFenceOverlayProps {

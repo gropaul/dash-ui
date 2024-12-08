@@ -1,8 +1,7 @@
 import React from "react";
-import { Column } from "@/model/column";
-import { useRelationsState } from "@/state/relations.state";
-import { shallow } from "zustand/shallow";
-import { Copy } from "lucide-react";
+import {Column} from "@/model/column";
+import {useRelationsState} from "@/state/relations.state";
+import {shallow} from "zustand/shallow";
 import {CopyButton} from "@/components/basics/input/copy-button";
 
 interface RowElementViewProps {

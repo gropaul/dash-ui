@@ -10,7 +10,6 @@ import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
 import {ConnectionStatus, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
-import {useConnectionsState} from "@/state/connections.state";
 
 
 export function getDuckDBWasmConnection(): DataConnection {

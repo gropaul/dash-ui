@@ -2,8 +2,7 @@ import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
 import {DatabaseSchemaView} from "@/components/database/database-schema-view";
-import {DataSourceElement, DataSourceGroup} from "@/model/connection";
-import {SchemaRelationView} from "@/components/schema/schema-relation-view";
+import {DataSourceGroup} from "@/model/connection";
 
 interface DatabaseViewProps {
     databaseId: string;

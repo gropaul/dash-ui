@@ -2,7 +2,7 @@ import {DataSourceElement} from "@/model/connection";
 import {ColumnIcon} from "@/components/relation/table/table-column-head";
 import React from "react";
 import {SchemaState} from "@/model/schema-state";
-import {ExternalLink, Network, Sheet} from "lucide-react";
+import {ExternalLink, Sheet} from "lucide-react";
 import {RelationSourceTable} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {CardView} from "@/components/basics/basic-view/card-view";

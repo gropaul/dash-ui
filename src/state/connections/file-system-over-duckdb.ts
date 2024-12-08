@@ -1,10 +1,7 @@
 import {useConnectionsState} from "@/state/connections.state";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {RelationData, RelationSource} from "@/model/relation";
-import {
-    CONNECTION_ID_DUCKDB_LOCAL,
-    CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,
-} from "@/platform/global-data";
+import {CONNECTION_ID_DUCKDB_LOCAL, CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
 import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";

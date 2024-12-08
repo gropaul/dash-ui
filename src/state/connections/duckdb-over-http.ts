@@ -7,8 +7,6 @@ import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {ConnectionStatus, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
-import {ConnectionsService} from "@/state/connections/connections-service";
-import {useConnectionsState} from "@/state/connections.state";
 
 export function getDuckDBLocalConnection() {
 
