@@ -7,7 +7,7 @@ export interface ColumnViewState {
 
 
 export interface TableViewState {
-    // key is column name, value is display state -> map
+    // key is column name, value is display state -> map, can always be null!
     columnStates: { [key: string]: ColumnViewState };
     // order of the columns to be displayed. if a column is not in this list it will be displayed at the end
     columnsOrder: string[];

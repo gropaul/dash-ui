@@ -14,7 +14,6 @@ export interface RelationViewTableProps {
 }
 
 export function Table(props: RelationViewTableProps) {
-
     const relationState = useRelationsState((state) => state.getRelation(props.relationId), shallow);
     const setRelationViewState = useRelationsState((state) => state.updateRelationViewState);
     const relationData = relationState.data;

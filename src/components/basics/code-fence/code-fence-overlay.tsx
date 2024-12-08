@@ -9,22 +9,24 @@ interface CodeFenceOverlayProps {
 
     showRunButton?: boolean;
     onRun?: () => void;
-    runState?: TaskExecutionState;
+    executionState?: TaskExecutionState;
 }
 
 export function CodeFenceOverlay(props: CodeFenceOverlayProps) {
     const getRunButtonContent = () => {
-        switch (props.runState) {
+        switch (props.executionState) {
             case "running":
                 return <Loader2 size={18} className="animate-spin" />;
-            case "success":
-                return <Check size={18} className="text-green-500" />;
-            case "error":
-                return <XCircle size={18} className="text-red-500" />;
             default:
-                return <Play size={18} />;
+                return (
+                    <div className="flex flex-row gap-1 content-center justify-center">
+                        <Play size={18} />
+                        <div style={{ marginTop: "-0.125rem" }}>Run</div>
+                    </div>
+                );
         }
     };
+
 
     return (
         <div>
@@ -36,7 +38,8 @@ export function CodeFenceOverlay(props: CodeFenceOverlayProps) {
             {props.showRunButton && (
                 <button
                     onClick={props.onRun}
-                    className="absolute top-4 right-14 flex items-center gap-1 p-1 border border-gray-300 rounded-md hover:bg-gray-100"
+                    disabled={props.onRun == undefined}
+                    className="absolute top-4 right-14 hover:text-gray-800 text-gray-500"
                 >
                     {getRunButtonContent()}
                 </button>

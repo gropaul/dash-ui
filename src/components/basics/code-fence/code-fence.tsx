@@ -2,6 +2,7 @@ import React from "react";
 import {Sometype_Mono} from "next/font/google";
 import {CodeFenceOverlay} from "@/components/basics/code-fence/code-fence-overlay";
 import Editor from "@monaco-editor/react";
+import {TaskExecutionState} from "@/model/relation-state";
 
 const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 
@@ -14,6 +15,7 @@ export interface CodeFenceProps {
     showLineNumbers?: boolean;
     showCopyButton?: boolean;
 
+    executionState?: TaskExecutionState;
     showRunButton?: boolean;
     onRun?: () => void;
 
@@ -30,6 +32,7 @@ export function CodeFence(
         copyCode,
         onRun,
         onCodeChange,
+        executionState = 'success',
         showLineNumbers = false,
         showCopyButton = false,
         showRunButton = false,
@@ -97,6 +100,7 @@ export function CodeFence(
                 copyCode={copyCode}
                 showRunButton={showRunButton}
                 onRun={onRun}
+                executionState={executionState}
             />
 
         </div>

@@ -31,8 +31,8 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
     const {column} = props;
 
-    const columnWidthState = useRelationsState((state) => state.getRelationViewState(props.relationId).tableState.columnStates[column.name].width, shallow);
-    let columnWidth = columnWidthState + 'px';
+    const columnState = useRelationsState((state) => state.getRelationViewState(props.relationId).tableState.columnStates[column.name], shallow) ?? INITIAL_COLUMN_VIEW_STATE;
+    let columnWidth = columnState.width + 'px';
 
     const {listeners, setNodeRef: setDraggableNodeRef} = useDraggable({id: column.name,});
     const {setNodeRef: setDroppableNodeRef} = useDroppable({id: column.name});
@@ -173,7 +173,7 @@ interface ColumnHeadResizeHandleProps {
 function ColumnHeadResizeHandle({relationId, displayState, column}: ColumnHeadResizeHandleProps) {
 
     const initialX = useRef<number | null>(null);
-    const columnViewState = displayState.columnStates[column.name];
+    const columnViewState = displayState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
     const widthRef = useRef<number>(columnViewState.width);
 
     const updateViewState = useRelationsState((state) => state.updateRelationViewState);
@@ -207,7 +207,7 @@ function ColumnHeadResizeHandle({relationId, displayState, column}: ColumnHeadRe
     function onMouseDown(event: React.MouseEvent) {
         event.preventDefault(); // Prevent text selection
         initialX.current = event.clientX;
-        widthRef.current = displayState.columnStates[column.name].width;
+        widthRef.current = (displayState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE).width;
         document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", onMouseUp);
     }

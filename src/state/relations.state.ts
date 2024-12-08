@@ -31,7 +31,6 @@ interface RelationStates {
     doesRelationExist: (relationId: string) => boolean,
     getRelation: (relationId: string) => RelationState,
     showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
-    updateRelationData: (relationId: string) => Promise<void>,
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
     setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
@@ -140,14 +139,11 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         }
     },
 
-    updateRelationData: async (relationId: string) => {
-        const state = get();
-        const relation = state.relations[relationId];
-        const query = relation.query.viewParameters;
+    updateRelationDataWithParams: async (relationId, query) => {
+        const {relations} = get(); // Get the current state
 
+        const relation = relations[relationId]; // Retrieve the specific relation
         const updatedRelationState = updateRelationQueryForParams(relation, query, 'running'); // Update the relation state
-
-        console.log(updatedRelationState);
         set((state) => ({
             relations: {
                 ...state.relations,
@@ -164,22 +160,9 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
             },
         }));
     },
-    updateRelationDataWithParams: async (relationId, query) => {
-        const {relations, updateRelationData} = get(); // Get the current state
-
-        const relation = relations[relationId]; // Retrieve the specific relation
-        const updatedRelationState = updateRelationQueryForParams(relation, query, 'running'); // Update the relation state
-        set((state) => ({
-            relations: {
-                ...state.relations,
-                [relationId]: updatedRelationState,
-            },
-        }));
-        return updateRelationData(relationId);
-    },
 
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => {
-        console.log('updateRelationBaseQuery', relationId, baseQuery);
+
         set((state) => ({
             relations: {
                 ...state.relations,
