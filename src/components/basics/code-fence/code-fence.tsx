@@ -13,28 +13,40 @@ export interface CodeFenceProps {
     copyCode?: string;
     showLineNumbers?: boolean;
     showCopyButton?: boolean;
+
+    showRunButton?: boolean;
+    onRun?: () => void;
+
     readOnly?: boolean;
     onCodeChange?: (code: string) => void;
     height?: string;
     width?: string;
 }
 
-export function CodeFence({
-                              language,
-                              displayCode,
-                              copyCode,
-                              showLineNumbers = false,
-                              showCopyButton = false,
-                              readOnly = false,
-                              height = "auto",
-                              width = "auto",
-                          }: CodeFenceProps) {
+export function CodeFence(
+    {
+        language,
+        displayCode,
+        copyCode,
+        onRun,
+        onCodeChange,
+        showLineNumbers = false,
+        showCopyButton = false,
+        showRunButton = false,
+        readOnly = false,
+        height = "auto",
+        width = "auto",
+    }: CodeFenceProps) {
+
     copyCode = copyCode || displayCode;
 
-
-    function onCodeChange(value: string | undefined) {
+    function onLocalCodeChange(value: string | undefined) {
         if (readOnly) {
             return;
+        } else if (value) {
+            if (onCodeChange) {
+                onCodeChange(value);
+            }
         }
     }
 
@@ -75,12 +87,17 @@ export function CodeFence({
                         horizontalScrollbarSize: 4,
                         verticalScrollbarSize: 4
                     },
-                    renderLineHighlight: "gutter",
+                    renderLineHighlight: "none",
                 }}
-                onChange={onCodeChange}
+                onChange={onLocalCodeChange}
                 onMount={onMount}
             />
-            <CodeFenceOverlay showCopyButton={showCopyButton} copyCode={copyCode}/>
+            <CodeFenceOverlay
+                showCopyButton={showCopyButton}
+                copyCode={copyCode}
+                showRunButton={showRunButton}
+                onRun={onRun}
+            />
 
         </div>
     );

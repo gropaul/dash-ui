@@ -18,9 +18,9 @@ export function TableFooter(props: RelationViewFooterProps) {
     const lastResultCount = props.relation.lastExecutionMetaData?.lastResultCount || 0;
 
     // format the number with , e.g. 1,000,000
-    const startIndex = props.relation.query.parameters.offset + 1;
+    const startIndex = props.relation.query.viewParameters.offset + 1;
 
-    const endIndex = Math.min(props.relation.query.parameters.offset + props.relation.query.parameters.limit, lastResultCount);
+    const endIndex = Math.min(props.relation.query.viewParameters.offset + props.relation.query.viewParameters.limit, lastResultCount);
     const testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(lastResultCount)}`;
 
     const connectionName = useConnectionsState((state) => state.getConnectionName(props.relation.connectionId));
@@ -49,19 +49,19 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
         return null;
     }
 
-    const maxPage = Math.ceil(totalCount / relation.query.parameters.limit);
-    const currentPage = Math.floor(relation.query.parameters.offset / relation.query.parameters.limit) + 1;
+    const maxPage = Math.ceil(totalCount / relation.query.viewParameters.limit);
+    const currentPage = Math.floor(relation.query.viewParameters.offset / relation.query.viewParameters.limit) + 1;
     const text = `Page ${formatNumber(currentPage)} of ${formatNumber(maxPage)}`;
 
     const iconSize = 16;
-    const updateRelationDisplayRange = useRelationsState((state) => state.updateRelationData);
+    const updateRelationDisplayRange = useRelationsState((state) => state.updateRelationDataWithParams);
 
     const isFirstPage = currentPage === 1;
     const isLastPage = currentPage === maxPage;
 
     const handleUpdateRange = (offset: number) => {
 
-        const currentQueryParams = relation.query.parameters;
+        const currentQueryParams = relation.query.viewParameters;
         const updatedQueryParams = {
             ...currentQueryParams,
             offset: offset
@@ -69,10 +69,10 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
         updateRelationDisplayRange(relation.id, updatedQueryParams);
     };
 
-    const pageSize = relation.query.parameters.limit;
+    const pageSize = relation.query.viewParameters.limit;
     function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const newPageSize = parseInt(event.target.value);
-        const currentQueryParams = relation.query.parameters;
+        const currentQueryParams = relation.query.viewParameters;
         const updatedQueryParams = {
             ...currentQueryParams,
             limit: newPageSize,
@@ -110,7 +110,7 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
             </button>
             <button
                 className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
-                onClick={() => handleUpdateRange(Math.max(0, relation.query.parameters.offset - relation.query.parameters.limit))}
+                onClick={() => handleUpdateRange(Math.max(0, relation.query.viewParameters.offset - relation.query.viewParameters.limit))}
                 disabled={isFirstPage}
             >
                 <ChevronLeft size={iconSize}/>
@@ -118,14 +118,14 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
             <div>{text}</div>
             <button
                 className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
-                onClick={() => handleUpdateRange(Math.min(totalCount - relation.query.parameters.limit, relation.query.parameters.offset + relation.query.parameters.limit))}
+                onClick={() => handleUpdateRange(Math.min(totalCount - relation.query.viewParameters.limit, relation.query.viewParameters.offset + relation.query.viewParameters.limit))}
                 disabled={isLastPage}
             >
                 <ChevronRight size={iconSize}/>
             </button>
             <button
                 className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
-                onClick={() => handleUpdateRange(Math.max(0, totalCount - relation.query.parameters.limit))}
+                onClick={() => handleUpdateRange(Math.max(0, totalCount - relation.query.viewParameters.limit))}
                 disabled={isLastPage}
             >
                 <ChevronLast size={iconSize}/>

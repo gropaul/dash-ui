@@ -18,9 +18,10 @@ export interface RelationQueryParams {
 }
 
 export interface QueryData {
-    dataQuery: string;
-    countQuery: string;
-    parameters: RelationQueryParams;
+    baseQuery: string;  // the query that the user defined, e.g. FROM basetable
+    viewQuery: string;  // the query defined by the view adding sorting etc, e.g. SELECT * FROM (FROM basetable)
+    countQuery: string; // the query getting the count for the view Query
+    viewParameters: RelationQueryParams;
 }
 
 // idle: no query is running, running: query is running, success: query was successful, error: query failed
@@ -55,7 +56,7 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export function getViewFromSource(connectionId: string, source: RelationSource, query: RelationQueryParams, state: TaskExecutionState): RelationState {
+export function getViewFromSource(connectionId: string, source: RelationSource, viewParams: RelationQueryParams, state: TaskExecutionState): RelationState {
 
     const relation: Relation = {
         name: getRelationNameFromSource(source),
@@ -65,7 +66,9 @@ export function getViewFromSource(connectionId: string, source: RelationSource, 
         data: undefined,
     }
 
-    const queryData = getQueryFromParams(relation, query);
+    const relationBaseQuery = getBaseQueryFromSource(source);
+
+    const queryData = getQueryFromParams(relation, viewParams, relationBaseQuery);
 
     const relationWithQuery: RelationWithQuery = {
         ...relation,
@@ -80,17 +83,15 @@ export function getViewFromSource(connectionId: string, source: RelationSource, 
     };
 }
 
-export function getFromStatementForSource(source: RelationSource): string {
+export function getBaseQueryFromSource(source: RelationSource): string {
     if (source.type === 'table') {
-        return `"${source.database}"."${source.schema}"."${source.tableName}"`;
+        return `SELECT * FROM "${source.database}"."${source.schema}"."${source.tableName}"`;
     } else {
-        return `'${source.path}'`;
+        return `SELECT * FROM '${source.path}'`;
     }
 }
 
-export function getQueryFromParams(relation: Relation, query: RelationQueryParams): QueryData {
-
-    const fromStatement = getFromStatementForSource(relation.source);
+export function getQueryFromParams(relation: Relation, query: RelationQueryParams, baseQuery: string): QueryData {
 
     const {offset, limit} = query;
 
@@ -103,7 +104,7 @@ export function getQueryFromParams(relation: Relation, query: RelationQueryParam
 
     const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
     const queryGetData = `SELECT *
-FROM ${fromStatement} ${oderByQuery}
+FROM (${baseQuery}) ${oderByQuery}
 LIMIT ${limit}
 OFFSET ${offset};`;
 
@@ -112,14 +113,16 @@ OFFSET ${offset};`;
     const queryGetCount = `SELECT COUNT(*) FROM (${subqueryTotalResult}) as subquery`;
 
     return {
-        dataQuery: queryGetData,
+        baseQuery: baseQuery,
+        viewQuery: queryGetData,
         countQuery: queryGetCount,
-        parameters: query,
+        viewParameters: query,
     };
 }
 
-export function updateRelationForNewParams(relation: RelationState, newParams: RelationQueryParams, state: TaskExecutionState): RelationState {
-    const query = getQueryFromParams(relation, newParams);
+export function updateRelationQueryForParams(relation: RelationState, newParams: RelationQueryParams, state: TaskExecutionState): RelationState {
+    const baseQuery = relation.query.baseQuery;
+    const query = getQueryFromParams(relation, newParams, baseQuery);
 
     return {
         ...relation,
@@ -134,12 +137,12 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
 
     const executeQuery = useConnectionsState.getState().executeQuery;
     const connectionId = input.connectionId;
-    const dataQuery = input.query.dataQuery;
+    const viewQuery = input.query.viewQuery;
     const countQuery = input.query.countQuery;
 
     // start a timer to measure the query duration
     const start = performance.now();
-    const relationData = await executeQuery(connectionId, dataQuery);
+    const viewData = await executeQuery(connectionId, viewQuery);
 
 
     const countData = await executeQuery(connectionId, countQuery);
@@ -152,13 +155,13 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     // update the view state with the new data
     return {
         ...input,
-        data: relationData,
+        data: viewData,
         executionState: 'success',
         lastExecutionMetaData: {
             lastExecutionDuration: duration,
             lastResultCount: count,
-            lastResultOffset: input.query.parameters.offset,
+            lastResultOffset: input.query.viewParameters.offset,
         },
-        viewState: updateRelationViewState(input.viewState, relationData),
+        viewState: updateRelationViewState(input.viewState, viewData),
     }
 }

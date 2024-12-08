@@ -91,7 +91,7 @@ export function ColumnIcon({type}: { type: ValueType }) {
 
 function ColumnIconButtons(props: ColumnHeadProps) {
 
-    const queryParameters = useRelationsState((state) => state.getRelation(props.relationId)?.query.parameters, shallow);
+    const queryParameters = useRelationsState((state) => state.getRelation(props.relationId)?.query.viewParameters, shallow);
     const columnSorting = queryParameters.sorting[props.column.name];
 
     // if there is no sorting only show on hover, else show all the time
@@ -105,7 +105,7 @@ function ColumnIconButtons(props: ColumnHeadProps) {
         'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200' :
         'text-gray-800 dark:text-gray-200';
 
-    const updateRelation = useRelationsState((state) => state.updateRelationData);
+    const updateRelation = useRelationsState((state) => state.updateRelationDataWithParams);
 
     function onSortClick() {
 
