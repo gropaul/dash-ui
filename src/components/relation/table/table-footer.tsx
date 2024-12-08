@@ -3,6 +3,7 @@ import React from "react";
 import {ChevronFirst, ChevronLast, ChevronLeft, ChevronRight} from "lucide-react";
 import {useRelationsState} from "@/state/relations.state";
 import {useConnectionsState} from "@/state/connections.state";
+import {ButtonSelect} from "@/components/basics/input/button-select";
 
 
 export interface RelationViewFooterProps {
@@ -38,7 +39,6 @@ export function TableFooter(props: RelationViewFooterProps) {
 }
 
 
-
 export function RelationViewPageController(props: RelationViewFooterProps) {
     const {relation} = props;
 
@@ -70,8 +70,9 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
     };
 
     const pageSize = relation.query.viewParameters.limit;
-    function handlePageSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
-        const newPageSize = parseInt(event.target.value);
+
+    function handlePageSizeChange(value: string) {
+        const newPageSize = parseInt(value);
         const currentQueryParams = relation.query.viewParameters;
         const updatedQueryParams = {
             ...currentQueryParams,
@@ -89,18 +90,16 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
     }
 
     const options = limitOptions.map((limit) => (
-        <option key={limit} value={limit}>Show {limit}</option>
+        {value: limit.toString(), label: `Show ${limit}`}
     ));
 
     return (
         <div className="flex flex-row items-center space-x-1">
-            <select
-                className="p-1 border rounded"
-                value={pageSize}
+            <ButtonSelect
+                defaultValue={pageSize.toString()}
                 onChange={handlePageSizeChange}
-            >
-                {options}
-            </select>
+                options={options}
+            />
             <button
                 className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
                 onClick={() => handleUpdateRange(0)}

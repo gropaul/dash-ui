@@ -15,5 +15,9 @@ export function RelationViewContent({relationId}: RelationViewContentProps) {
         return (
             <Table relationId={relationId}/>
         );
+    } else {
+        return <>
+            Under Construction
+        </>
     }
 }

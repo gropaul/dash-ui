@@ -1,17 +1,18 @@
-import {Code} from "lucide-react";
-import {useRelationsState} from "@/state/relations.state";
-import {shallow} from "zustand/shallow";
-import {formatDuration} from "@/platform/utils";
-import {ViewHeader} from "@/components/basics/basic-view/view-header";
-
+import { Code } from "lucide-react";
+import { useRelationsState } from "@/state/relations.state";
+import { shallow } from "zustand/shallow";
+import { formatDuration } from "@/platform/utils";
+import { ViewHeader } from "@/components/basics/basic-view/view-header";
+import {RelationViewType} from "@/model/relation-view-state";
+import {Select} from "@headlessui/react";
+import {ButtonSelect} from "@/components/basics/input/button-select";
 
 export interface RelationViewHeaderProps {
     relationId: string;
     children?: React.ReactNode;
 }
 
-export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
-
+export function RelationViewHeader({ relationId }: RelationViewHeaderProps) {
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
 
     const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
@@ -30,15 +31,9 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
         });
     }
 
-    function onShowTable() {
+    function onViewChange(selected: string) {
         updateRelationViewState(relationId, {
-            selectedView: 'table',
-        });
-    }
-
-    function onShowChart() {
-        updateRelationViewState(relationId, {
-            selectedView: 'chart',
+            selectedView: selected as RelationViewType,
         });
     }
 
@@ -46,7 +41,6 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     if (lastExecutionDuration) {
         textDurationAndConnection += ` (${formatDuration(lastExecutionDuration)})`;
     }
-
 
     return (
         <>
@@ -61,23 +55,20 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
                             onClick={onShowCode}
                             title="Show Query"
                         >
-                            <Code size={16}/>
+                            <Code size={16} />
                         </button>
-                        <button
-                            className="px-2 py-1 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 h-8 ml-2"
-                            onClick={onShowTable}
-                        >
-                            Table
-                        </button>
-                        <button
-                            className="px-2 py-1 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 ml-2 h-8"
-                            onClick={onShowChart}
-                        >
-                            Chart
-                        </button>
+                        <ButtonSelect
+                            onChange={onViewChange}
+                            defaultValue="table"
+                            title="Select View"
+                            options={[
+                                {value: 'table', label: 'Table'},
+                                {value: 'chart', label: 'Chart'},
+                            ]}
+                        />
                     </>
                 }
             />
         </>
-    )
+    );
 }
