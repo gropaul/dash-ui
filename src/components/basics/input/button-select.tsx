@@ -5,16 +5,17 @@ interface CustomSelectProps {
     onChange: (value: string) => void;
     defaultValue?: string;
     title?: string;
+    className?: string;
 }
 
-export function ButtonSelect({ options, onChange, defaultValue, title }: CustomSelectProps) {
+export function ButtonSelect({ options, onChange, defaultValue, title, className }: CustomSelectProps) {
 
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         onChange(event.target.value);
     };
 
     return (
-        <div className="relative inline-block" title={title}>
+        <div className={`relative inline-block ${className}`} title={title}>
             {/* Hidden native select */}
             <select
                 className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"

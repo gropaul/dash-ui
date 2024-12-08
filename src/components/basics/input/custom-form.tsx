@@ -1,5 +1,6 @@
 import {ReactNode, useState} from "react";
 import {Eye, EyeOff} from "lucide-react";
+import {ButtonSelect} from "@/components/basics/input/button-select";
 
 export interface FormDefinition {
     fields: FormField[];
@@ -132,15 +133,12 @@ export function CustomForm({formDefinition, onSubmit, onCancel, onUpdate, initia
                             />
                         )}
                         {field.type === 'select' && (
-                            <select
-                                value={formData[field.key]}
-                                onChange={(e) => handleChange(field.key, e.target.value)}
-                                className="block w-full border-b border-gray-300 focus:border-indigo-500 focus:ring-0 sm:text-sm"
-                            >
-                                {field.selectOptions?.map((option) => (
-                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                ))}
-                            </select>
+                            <ButtonSelect
+                                defaultValue={formData[field.key].toString()}
+                                onChange={(value) => handleChange(field.key, value)}
+                                className="focus:border-indigo-500 focus:ring-0 sm:text-sm w-full"
+                                options={field.selectOptions || []}
+                            />
                         )}
                         {field.type === 'password' && (
                             <PasswordField
