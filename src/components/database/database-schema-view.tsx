@@ -1,6 +1,5 @@
 import {DataSourceGroup} from "@/model/connection";
 import {CardView} from "@/components/basics/basic-view/card-view";
-import {ColumnIcon} from "@/components/relation/table/table-column-head";
 import React from "react";
 import {RelationSourceTable} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
@@ -39,7 +38,7 @@ export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
             header={
                 <div className="flex items-center">
                     <Network size={16} className="mr-2"/>
-                    props.schema.name
+                    {props.schema.name}
                 </div>
             }
             headerButtons={

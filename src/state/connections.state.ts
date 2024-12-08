@@ -3,15 +3,20 @@ import {RelationData} from "@/model/relation";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";
-import {DataConnection, DataConnectionConfig, DataSource} from "@/model/connection";
+import {ConnectionStatus, DataConnection, DataConnectionConfig, DataSource} from "@/model/connection";
 
 export interface DataConnectionsState {
     connections: { [key: string]: DataConnection };
 
     initialiseDefaultConnections: () => void;
-    addConnection: (connection: DataConnection) => void;
+    // default autoInitialise is true
+    addConnection: (connection: DataConnection, initialise: boolean, loadDataSources: boolean) => Promise<ConnectionStatus | undefined>;
+    initialiseConnection: (connectionId: string) => Promise<ConnectionStatus>;
     getConnection: (connectionId: string) => DataConnection | undefined;
     getConnectionName: (connectionId: string) => string | undefined;
+
+    getConnectionState: (connectionId: string) => ConnectionStatus;
+    updateConnectionState: (connectionId: string) => Promise<ConnectionStatus>;
 
     removeConnection: (connectionId: string) => void;
 
@@ -19,6 +24,8 @@ export interface DataConnectionsState {
     loadAllDataSources: (connectionId: string) => Promise<DataSource[]>;
     loadChildrenForDataSource: (connectionId: string, id_path: string[]) => Promise<DataSource[]>;
     executeQuery: (connectionId: string, query: string) => Promise<RelationData>;
+
+    refreshConnection: (connectionId: string) => Promise<void>;
 
     getDuckDBWasmConnection: () => DuckDBWasm;
 }
@@ -30,11 +37,42 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
         const state = get();
         return ConnectionsService.getInstance().initialiseDefaultConnections(state);
     },
-    addConnection: (connection) => {
+    addConnection: async (connection, initialise , loadDataSources) => {
         set((state) => ({
             connections: {...state.connections, [connection.id]: connection},
         }));
         ConnectionsService.getInstance().addConnection(connection);
+
+        let state: ConnectionStatus | undefined = undefined;
+        if (initialise) {
+            state =  await get().initialiseConnection(connection.id);
+        }
+
+        if (loadDataSources) {
+            await get().loadAllDataSources(connection.id);
+        }
+
+        return state;
+    },
+
+    initialiseConnection: async (connectionId) => {
+        const connection = ConnectionsService.getInstance().getConnection(connectionId);
+        if (!connection) {
+            throw new Error(`Connection with id ${connectionId} not found`);
+        }
+        const newStatus =  await connection.initialise();
+
+        set((state) => ({
+            connections: {
+                ...state.connections,
+                [connectionId]: {
+                    ...state.connections[connectionId],
+                    connectionState: newStatus,
+                },
+            },
+        }));
+
+        return newStatus;
     },
 
 
@@ -58,6 +96,13 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
         return ConnectionsService.getInstance().executeQuery(connectionId, query);
     },
 
+    refreshConnection: async (connectionId) => {
+        // update connection state
+        await get().updateConnectionState(connectionId);
+        // load all data sources
+        await get().loadAllDataSources(connectionId);
+    },
+
     updateConfig: (connectionId, config) => {
         ConnectionsService.getInstance().updateConfig(connectionId, config);
         set((state) => ({
@@ -70,6 +115,25 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
             },
         }));
     },
+
+    getConnectionState: (connectionId) => {
+        const connection = get().connections[connectionId];
+        return connection.connectionStatus;
+    },
+    updateConnectionState: async (connectionId) => {
+        const newStatus = await ConnectionsService.getInstance().getConnection(connectionId).checkConnectionState();
+        set((state) => ({
+            connections: {
+                ...state.connections,
+                [connectionId]: {
+                    ...state.connections[connectionId],
+                    connectionState: newStatus,
+                },
+            },
+        }));
+        return newStatus;
+    },
+
     loadAllDataSources: async (connectionId) => {
         const connection = ConnectionsService.getInstance().getConnection(connectionId);
         if (!connection) {

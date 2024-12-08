@@ -22,7 +22,13 @@ export interface DataSourceGroup extends TreeNode {
 }
 
 export type DataSource = DataSourceElement | DataSourceGroup;
-export type ConnectionState = 'connected' | 'disconnected' | 'connecting';
+
+
+export interface ConnectionStatus {
+    state: 'connected' | 'disconnected' | 'connecting' | 'error';
+    message?: string;
+}
+
 export type DataConnectionConfig = { [key: string]: string | number | boolean | undefined };
 
 export interface DataConnection {
@@ -32,13 +38,14 @@ export interface DataConnection {
     configForm: FormDefinition;
 
     type: DBConnectionType;
-    dataSources: DataSource[]; // Add dataSources here
+    connectionStatus: ConnectionStatus;
+    dataSources: DataSource[];
 
     executeQuery: (query: string) => Promise<RelationData>;
     loadDataSources: () => Promise<DataSource[]>;
 
-    initialise: () => Promise<ConnectionState>;
-    getConnectionState: () => Promise<ConnectionState>;
+    initialise: () => Promise<ConnectionStatus>;
+    checkConnectionState: () => Promise<ConnectionStatus>;
 
     onDataSourceClick: (id_path: string[]) => void;
     loadChildrenForDataSource: (id_path: string[]) => Promise<DataSource[]>;

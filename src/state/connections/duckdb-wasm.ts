@@ -9,7 +9,7 @@ import {
 import Error from "next/error";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
-import {ConnectionState, DataConnection, DataConnectionConfig, DataSource, DBConnectionType} from "@/model/connection";
+import {ConnectionStatus, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
 
 
 export function getDuckDBWasmConnection(): DataConnection {
@@ -26,6 +26,7 @@ export class DuckDBWasm implements DataConnection {
 
     id: string;
     type: DBConnectionType;
+    connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
 
     dataSources: DataSource[];
 
@@ -52,11 +53,11 @@ export class DuckDBWasm implements DataConnection {
         this.config = config;
     }
 
-    async initialise(): Promise<ConnectionState> {
+    async initialise(): Promise<ConnectionStatus> {
         const {db, connection} = await staticDuckDBBundles();
         this.db = db;
         this.connection = connection;
-        return 'connected';
+        return this.checkConnectionState();
     }
 
     async executeQuery(query: string): Promise<RelationData> {
@@ -73,18 +74,19 @@ export class DuckDBWasm implements DataConnection {
         return loadDuckDBDataSources((query: string) => this.executeQuery(query));
     }
 
-    async getConnectionState(): Promise<ConnectionState> {
+    async checkConnectionState(): Promise<ConnectionStatus> {
         if (this.db && this.connection) {
             // test connection by running a simple query
             try {
                 await this.connection.query("SELECT 1;");
-                return 'connected';
-            } catch (e) {
-                return 'disconnected';
+                this.connectionStatus = { state: 'connected'};
+            } catch (e: any) {
+                this.connectionStatus = { state: 'error', message: e.message};
             }
         } else {
-            return 'disconnected';
+            this.connectionStatus = { state: 'disconnected', message: 'DuckDB WASM not initialised'};
         }
+        return this.connectionStatus;
     }
 
     // Create a table from a file that is loaded from the browser, returns the table name
@@ -107,7 +109,7 @@ export class DuckDBWasm implements DataConnection {
         await onDuckDBDataSourceClick(this, id_path, this.dataSources);
     }
 
-    loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
+    loadChildrenForDataSource(_id_path: string[]): Promise<DataSource[]> {
         console.error('Not implemented');
         return Promise.resolve([]);
     }
