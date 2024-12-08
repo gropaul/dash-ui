@@ -13,7 +13,7 @@ export interface ConnectionViewProps {
 
 export function ConnectionView(props: ConnectionViewProps) {
 
-    const updateDataSources = useConnectionsState((state) => state.loadAllDataSources);
+    const refreshConnection = useConnectionsState((state) => state.refreshConnection);
     const updateConfig = useConnectionsState((state) => state.updateConfig);
     const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
     const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
@@ -27,7 +27,7 @@ export function ConnectionView(props: ConnectionViewProps) {
     }
 
     async function handleRefresh() {
-        await updateDataSources(props.connection.id);
+        await refreshConnection(props.connection.id);
     }
 
     function onSettingsIconClicked() {
@@ -43,12 +43,16 @@ export function ConnectionView(props: ConnectionViewProps) {
         setSettingsModalOpen(false);
     }
 
+
     return (
         <li className="p-2 text-s border-b border-[#E5E7E8] dark:border-gray-700 h-fit relative group">
             <div className="flex items-center justify-between">
-                <span>{props.connection.config.name}</span>
+                <div className="flex items-center space-x-2">
+                    <span>{props.connection.config.name}</span>
+                    <ConnectionStateIcon connectionId={props.connection.id}/>
+                </div>
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={handleRefresh}
+                <button onClick={handleRefresh}
                             className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
                         <RefreshCw size={16}/>
                     </button>
@@ -73,4 +77,28 @@ export function ConnectionView(props: ConnectionViewProps) {
             />
         </li>
     );
+}
+
+interface ConnectionStateIconProps {
+    connectionId: string;
+}
+
+function ConnectionStateIcon(props: ConnectionStateIconProps) {
+    const connectionsState = useConnectionsState( state => state.getConnectionState(props.connectionId));
+    const message = connectionsState.message;
+    if (connectionsState.state === "connected"){
+        return <span className="text-green-500">●</span>
+    }
+
+    if (connectionsState.state === "disconnected"){
+        return <span className="text-gray-500">●</span>
+    }
+
+    if (connectionsState.state === "error"){
+        return <span className="text-red-500" title={message}>●</span>
+    }
+
+    if (connectionsState.state === "connecting"){
+        return <span className="text-blue-500">●</span>
+    }
 }

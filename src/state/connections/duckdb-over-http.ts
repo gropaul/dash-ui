@@ -6,8 +6,9 @@ import {FormDefinition} from "@/components/basics/input/custom-form";
 import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {ConnectionState, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
-import {DuckDBWasmConfig} from "@/state/connections/duckdb-wasm";
+import {ConnectionStatus, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {useConnectionsState} from "@/state/connections.state";
 
 export function getDuckDBLocalConnection() {
 
@@ -104,6 +105,7 @@ class DuckDBOverHttp implements DataConnection {
         ]
     }
 
+    connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
     dataSources: DataSource[] = [];
 
     constructor(config: DuckDBOverHttpConfig, id: string) {
@@ -171,27 +173,32 @@ class DuckDBOverHttp implements DataConnection {
         return loadDuckDBDataSources((query) => this.executeQuery(query));
     }
 
-    async getConnectionState(): Promise<ConnectionState> {
+    async checkConnectionState(): Promise<ConnectionStatus> {
         const ok = await this.sendPing();
-        return ok ? 'connected' : 'disconnected';
+        if (ok) {
+            this.connectionStatus = {state: 'connected'};
+        } else {
+            this.connectionStatus = {state: 'error', message: `Failed to ping ${this.config.url}`};
+        }
+        return this.connectionStatus;
     }
 
-    initialise(): Promise<ConnectionState> {
+    initialise(): Promise<ConnectionStatus> {
         // no initialisation needed
-        return this.getConnectionState();
+        return this.checkConnectionState();
     }
 
     async onDataSourceClick(id_path: string[]) {
         await onDuckDBDataSourceClick(this, id_path, this.dataSources);
     }
 
-    loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
+    loadChildrenForDataSource(_id_path: string[]): Promise<DataSource[]> {
         // not necessary as for dbs all the data is loaded at once!
         console.error('loadChildrenForDataSource not implemented for DuckDBOverHttp');
         return Promise.resolve([]);
     }
 
-    updateConfig(config: Partial<DuckDBOverHttpConfig>): void {
+    async updateConfig(config: Partial<DuckDBOverHttpConfig>): Promise<void> {
         this.config = {...this.config, ...config};
     }
 }

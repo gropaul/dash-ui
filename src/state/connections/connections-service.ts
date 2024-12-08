@@ -1,4 +1,4 @@
-import {DataConnectionsState} from "@/state/connections.state";
+import {DataConnectionsState, useConnectionsState} from "@/state/connections.state";
 import {DuckDBWasm, getDuckDBWasmConnection} from "@/state/connections/duckdb-wasm";
 import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
@@ -55,24 +55,23 @@ export class ConnectionsService {
     async initialiseDefaultConnections(state: DataConnectionsState) {
 
         const duckDBLocal: DataConnection = getDuckDBLocalConnection();
-        duckDBLocal.initialise().then( async () => {
-            state.addConnection(duckDBLocal);
-            state.loadAllDataSources(duckDBLocal.id);
+        state.addConnection(duckDBLocal, true, true).then(async () => {
+
+            console.log('DuckDB local connection initialised');
 
             // is dependent on duckdb local
             const fileSystemOverDuckdb = await getFileSystemOverDuckdbConnection();
-            fileSystemOverDuckdb.initialise().then(() => {
-                state.addConnection(fileSystemOverDuckdb);
-                state.loadAllDataSources(fileSystemOverDuckdb.id);
-            });
+            await state.addConnection(fileSystemOverDuckdb, true, true).then(() => {
+                console.log('File System over DuckDB connection initialised');
+            })
+
+
         });
 
-        const duckDBWasms = getDuckDBWasmConnection();
-        duckDBWasms.initialise().then(() => {
-            state.addConnection(duckDBWasms);
-            state.loadAllDataSources(duckDBWasms.id);
+        const duckDBWasm = getDuckDBWasmConnection();
+        state.addConnection(duckDBWasm, true, true).then(() => {
+            console.log('DuckDB WASM connection initialised');
         });
-
 
 
     }

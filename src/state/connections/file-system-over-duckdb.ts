@@ -4,21 +4,18 @@ import {RelationData, RelationSource} from "@/model/relation";
 import {
     CONNECTION_ID_DUCKDB_LOCAL,
     CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,
-    DUCKDB_BASE_SCHEMA,
-    DUCKDB_IN_MEMORY_DB
 } from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
 import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";
-import {ConnectionState, DataConnection, DataSource, DataSourceGroup, DBConnectionType} from "@/model/connection";
+import {ConnectionStatus, DataConnection, DataSource, DataSourceGroup, DBConnectionType} from "@/model/connection";
 import {getDuckDBCurrentPath} from "@/state/connections/duckdb-helper";
 import * as path from 'path';
-import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 
 export async function getFileSystemOverDuckdbConnection(): Promise<DataConnection> {
 
     const executeQuery = ConnectionsService.getInstance().getConnection(CONNECTION_ID_DUCKDB_LOCAL).executeQuery;
-    const [rootName, rootPath] = await getDuckDBCurrentPath(executeQuery);
+    const [_rootName, rootPath] = await getDuckDBCurrentPath(executeQuery);
     return new FileSystemOverDuckdb(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, {
         rootPath: rootPath,
         name: 'Local Filesystem',
@@ -37,6 +34,7 @@ export class FileSystemOverDuckdb implements DataConnection {
     config: FileSystemOverDuckDBConfig;
     id: string;
     type: DBConnectionType = 'local-filesystem-over-duckdb';
+    connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
     configForm: FormDefinition = {
         fields: [
             {
@@ -53,6 +51,7 @@ export class FileSystemOverDuckdb implements DataConnection {
             }
         ],
     }
+    dataSources: DataSource[] = [];
 
     constructor(id: string, config: FileSystemOverDuckDBConfig) {
         this.id = id;
@@ -63,12 +62,13 @@ export class FileSystemOverDuckdb implements DataConnection {
         return ConnectionsService.getInstance().executeQuery(this.config.duckdbConnectionId, query);
     }
 
-    getConnectionState(): Promise<ConnectionState> {
-        return ConnectionsService.getInstance().getConnection(this.config.duckdbConnectionId).getConnectionState();
+    async checkConnectionState(): Promise<ConnectionStatus> {
+        this.connectionStatus = await useConnectionsState.getState().updateConnectionState(this.config.duckdbConnectionId);
+        return this.connectionStatus;
     }
 
-    initialise(): Promise<ConnectionState> {
-        return ConnectionsService.getInstance().getConnection(this.config.duckdbConnectionId).getConnectionState();
+    initialise(): Promise<ConnectionStatus> {
+        return ConnectionsService.getInstance().getConnection(this.config.duckdbConnectionId).checkConnectionState();
     }
 
     async getDirAsDataSource(rootPath: string, depth: number | undefined): Promise<DataSourceGroup> {
@@ -136,7 +136,7 @@ export class FileSystemOverDuckdb implements DataConnection {
     async onDataSourceClick(id_path: string[]) {
 
         const lastId = id_path[id_path.length - 1];
-        const element = await findNodeInTrees(this.dataSources, id_path);
+        const element = findNodeInTrees(this.dataSources, id_path);
 
         if (!element) {
             console.error(`Element with id ${lastId} not found`);
@@ -163,19 +163,16 @@ export class FileSystemOverDuckdb implements DataConnection {
         return path_root.children!;
     }
 
-    updateConfig(new_config: Partial<FileSystemOverDuckDBConfig>): void {
-
+    async updateConfig(new_config: Partial<FileSystemOverDuckDBConfig>): Promise<void> {
 
         // if the base path changes, reload the data sources
         if (new_config.rootPath && new_config.rootPath !== this.config.rootPath) {
             this.config = {...this.config, ...new_config};
-            useConnectionsState.getState().loadAllDataSources(this.id);
         } else {
             this.config = {...this.config, ...new_config};
         }
 
     }
 
-    dataSources: DataSource[] = [];
 }
 
