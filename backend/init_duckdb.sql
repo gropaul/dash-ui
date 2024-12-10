@@ -6,10 +6,6 @@ LOAD httpserver;
 INSTALL hostfs FROM community;
 LOAD hostfs;
 
--- Install spatial
-INSTALL spatial;
-LOAD spatial;
-
 -- MOUNT database
 ATTACH '/Users/paul/workspace/duckpgq-experiments/data/SNB1-projected|/snb.duckdb' AS snb;
 

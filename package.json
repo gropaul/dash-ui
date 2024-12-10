@@ -21,7 +21,7 @@
     "formidable": "^3.5.2",
     "immutable": "^4.3.0",
     "lucide-react": "^0.414.0",
-    "next": "14.2.3",
+    "next": "14.2.10",
     "plotly.js": "^2.35.2",
     "react": "^18",
     "react-dom": "^18",

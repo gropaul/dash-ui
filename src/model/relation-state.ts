@@ -1,6 +1,7 @@
 import {getRelationIdFromSource, getRelationNameFromSource, Relation, RelationSource} from "@/model/relation";
 import {useConnectionsState} from "@/state/connections.state";
 import {getInitViewState, RelationViewState, updateRelationViewState} from "@/model/relation-view-state";
+import {cleanAndSplitSQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
 
 export function getDefaultQueryParams(): RelationQueryParams {
     return {
@@ -19,6 +20,7 @@ export interface RelationQueryParams {
 
 export interface QueryData {
     baseQuery: string;  // the query that the user defined, e.g. FROM basetable
+    initialQueries: string[]; // the queries that must be run before the actual view query/count query
     viewQuery: string;  // the query defined by the view adding sorting etc, e.g. SELECT * FROM (FROM basetable)
     countQuery: string; // the query getting the count for the view Query
     viewParameters: RelationQueryParams;
@@ -91,7 +93,7 @@ export function getBaseQueryFromSource(source: RelationSource): string {
     }
 }
 
-export function getQueryFromParams(relation: Relation, query: RelationQueryParams, baseQuery: string): QueryData {
+export function getQueryFromParams(relation: Relation, query: RelationQueryParams, baseSQL: string): QueryData {
 
     const {offset, limit} = query;
 
@@ -102,17 +104,35 @@ export function getQueryFromParams(relation: Relation, query: RelationQueryParam
         return `"${column}" ${sorting}`;
     }).filter((s) => s.length > 0).join(', ');
 
+    const baseQueries = cleanAndSplitSQL(baseSQL);
+
+    // Separate the base queries into initial queries and the final query
+    const initialQueries = baseQueries.slice(0, -1);
+    const finalQuery = baseQueries.at(-1);
+
+    if (!finalQuery) {
+        throw new Error('No final query found in base SQL');
+    }
+
+
+    const finalSubQuery = turnQueryIntoSubquery(finalQuery);
     const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
-    const viewQuery = `SELECT *
-FROM (${baseQuery}) ${oderByQuery}
-LIMIT ${limit}
-OFFSET ${offset};`;
+    const viewQuery = `
+        SELECT *
+        FROM ${finalSubQuery} ${oderByQuery} LIMIT ${limit}
+        OFFSET ${offset};
+    `;
 
     // count query using subquery which is the query Get data without limit and offset
-    const countQuery = `SELECT COUNT(*) FROM (${baseQuery}) as subquery`;
+    const countQuery = `SELECT COUNT(*) FROM ${finalSubQuery} as subquery`;
+
+    console.log("viewQuery: ", viewQuery);
+    console.log("countQuery: ", countQuery);
+    console.log("initialQueries: ", initialQueries);
 
     return {
-        baseQuery: baseQuery,
+        initialQueries: initialQueries,
+        baseQuery: baseSQL,
         viewQuery: viewQuery,
         countQuery: countQuery,
         viewParameters: query,
@@ -138,6 +158,11 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     const connectionId = input.connectionId;
     const viewQuery = input.query.viewQuery;
     const countQuery = input.query.countQuery;
+
+    // first execute the initial queries
+    for (const query of input.query.initialQueries) {
+        await executeQuery(connectionId, query);
+    }
 
     // start a timer to measure the query duration
     const start = performance.now();
