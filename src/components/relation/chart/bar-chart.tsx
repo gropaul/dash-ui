@@ -1,4 +1,5 @@
 import Plot from "react-plotly.js";
+import {lightenColor} from "@/platform/colors-utils";
 
 
 export interface BarChartProps {
@@ -7,7 +8,8 @@ export interface BarChartProps {
 
 export function BarChart(props: BarChartProps) {
 
-    const colors = ["5e2bff","36827f","db504a","e3b505","f2d7ee"]
+    const colors = ["5e2bff","3C908D","db504a","e3b505","f2d7ee"]
+    const lightColors = colors.map(color => lightenColor(color, 0.35))
 
     var data = [
         {
@@ -15,10 +17,22 @@ export function BarChart(props: BarChartProps) {
             y: [20, 14, 23],
             type: 'bar',
             marker: {
-                color: 'E0D6FF',
+                color: lightColors[0],
                 line: {
                     color: colors[0],
-                    width: 3
+                    width: 1
+                }
+            }
+        },
+        {
+            x: ['Giraffes', 'Orangutans', 'Monkeys', 'dwad'],
+            y: [12, 18, 29,12],
+            type: 'bar',
+            marker: {
+                color: lightColors[1],
+                line: {
+                    color: colors[1],
+                    width: 1
                 }
             }
         }
@@ -32,11 +46,15 @@ export function BarChart(props: BarChartProps) {
         },
         title: 'A Fancy Bar Chart',
         barcornerradius: 2,
+        margin: {t: 0, r: 0, b: 0, l: 0},
     };
     return (
-        <Plot
-            data={data as any}
-            layout={layout as any}
-        />
+        <div className="w-full h-full">
+            <Plot
+                data={data as any}
+                layout={layout as any}
+                useResizeHandler={true}
+            />
+        </div>
     )
 }
