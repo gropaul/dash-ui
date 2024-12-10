@@ -15,7 +15,7 @@ export interface RelationViewState extends RelationViewBaseState {
     tableState: TableViewState
 }
 
-export type RelationViewType = 'table' | 'chart';
+export type RelationViewType = 'table' | 'chart' | 'map';
 
 
 export function updateRelationViewState(currentState: RelationViewState, newData: RelationData): RelationViewState {

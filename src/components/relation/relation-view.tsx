@@ -55,18 +55,16 @@ export function RelationView(props: RelationViewProps) {
     }
 
     return (
-        <div className="flex flex-col w-full h-full relative">
+        <div className="flex flex-col w-full h-full relative p-0 m-0">
             <RelationViewHeader relationId={props.relationId} />
             <RelationViewQueryView relationId={props.relationId} />
             <div className="relative overflow-y-auto flex-1">
                 <RelationViewContent relationId={props.relationId} />
-                <div
-                    className={`absolute z-50 top-0 left-0 w-full h-full bg-white bg-opacity-70 z-10 flex items-center justify-center transition-opacity duration-200 ${
-                        isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
-                    }`}
-                >
-                </div>
-            </div>
+                {isLoading && <div className={`absolute top-0 left-0 w-full h-full bg-white bg-opacity-70 z-10 flex items-center justify-center transition-opacity duration-200 opacity-100`}/>}
+           </div>
         </div>
     );
 }
+
+//
+//

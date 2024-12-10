@@ -8,12 +8,13 @@ import {ConnectionsOverview} from "@/components/connections/connections-overview
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
 import {SchemaView} from "@/components/schema/schema-view";
 import {DatabaseView} from "@/components/database/database-view";
+import {Chart} from "@/components/relation/chart/chart";
 
 
 export function TabbedLayout() {
 
     const layoutModel = useRelationsState(state => state.layoutModel);
-
+    // return <Chart relationId="1"/>
     return (
         <div className="relative h-full w-full">
             <Layout

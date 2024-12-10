@@ -64,6 +64,7 @@ export function RelationViewHeader({ relationId }: RelationViewHeaderProps) {
                             options={[
                                 {value: 'table', label: 'Table'},
                                 {value: 'chart', label: 'Chart'},
+                                {value: 'map', label: 'Map'},
                             ]}
                         />
                     </>
