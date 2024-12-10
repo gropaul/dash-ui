@@ -103,19 +103,18 @@ export function getQueryFromParams(relation: Relation, query: RelationQueryParam
     }).filter((s) => s.length > 0).join(', ');
 
     const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
-    const queryGetData = `SELECT *
+    const viewQuery = `SELECT *
 FROM (${baseQuery}) ${oderByQuery}
 LIMIT ${limit}
 OFFSET ${offset};`;
 
     // count query using subquery which is the query Get data without limit and offset
-    const subqueryTotalResult = queryGetData.split('LIMIT')[0];
-    const queryGetCount = `SELECT COUNT(*) FROM (${subqueryTotalResult}) as subquery`;
+    const countQuery = `SELECT COUNT(*) FROM (${baseQuery}) as subquery`;
 
     return {
         baseQuery: baseQuery,
-        viewQuery: queryGetData,
-        countQuery: queryGetCount,
+        viewQuery: viewQuery,
+        countQuery: countQuery,
         viewParameters: query,
     };
 }
