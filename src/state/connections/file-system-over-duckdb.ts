@@ -16,6 +16,7 @@ export async function getFileSystemOverDuckdbConnection(): Promise<DataConnectio
     return new FileSystemOverDuckdb(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, {
         rootPath: rootPath,
         name: 'Local Filesystem',
+        showHiddenFiles: false,
         duckdbConnectionId: CONNECTION_ID_DUCKDB_LOCAL
     });
 }
@@ -24,6 +25,7 @@ interface FileSystemOverDuckDBConfig {
     name: string;
     duckdbConnectionId: string;
     rootPath: string;
+    showHiddenFiles: boolean;
     [key: string]: string | number | boolean | undefined;
 }
 
@@ -45,6 +47,12 @@ export class FileSystemOverDuckdb implements DataConnection {
                 label: 'Root Path',
                 key: 'rootPath',
                 required: true
+            },
+            {
+                type: 'boolean',
+                label: 'Show Hidden Files',
+                key: 'showHiddenFiles',
+                required: false
             }
         ],
     }
@@ -72,9 +80,15 @@ export class FileSystemOverDuckdb implements DataConnection {
         // get the children of the root directory
         const lsrPart = depth !== undefined ? `lsr('${rootPath}', ${depth})` : `lsr('${rootPath}')`;
 
+        const showHiddenFiles = this.config.showHiddenFiles;
+
+        const hiddenFilesCondition = showHiddenFiles ? '' : "WHERE file_name(path) NOT LIKE '.%'";
+
         const fileSystemQuery = `SELECT path, is_file(path) as file, file_name(path) as basename
-                                 FROM ${lsrPart}
-                                 ORDER BY file, path;`;
+                         FROM ${lsrPart}
+                         ${hiddenFilesCondition}
+                         ORDER BY file, path;`;
+
 
         const fileSystemResult = await this.executeQuery(fileSystemQuery);
 

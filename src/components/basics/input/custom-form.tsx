@@ -95,6 +95,9 @@ export function CustomForm({formDefinition, onSubmit, onCancel, onUpdate, initia
         }
     };
 
+    // whether to have the input and the label in the same line
+
+
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             {formDefinition.fields.map((field) => {
@@ -102,9 +105,10 @@ export function CustomForm({formDefinition, onSubmit, onCancel, onUpdate, initia
                 if (!isVisible) return null;
 
                 const requiredString = field.required ? '*' : '';
-
+                const inlineLabel = field.type === 'boolean';
+                const classWrapper = inlineLabel ? 'flex items-center space-x-2' : '';
                 return (
-                    <div key={field.key} className="space-y-1">
+                    <div key={field.key} className={`${classWrapper}`}>
                         <label className="block text-sm font-medium text-gray-700">
                             {field.label + requiredString}
                         </label>
