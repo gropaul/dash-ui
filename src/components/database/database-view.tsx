@@ -11,7 +11,6 @@ interface DatabaseViewProps {
 export function DatabaseView(props: DatabaseViewProps) {
 
     const database = useRelationsState((state) => state.getDatabaseState(props.databaseId), shallow);
-    console.log('databaseId:', props.databaseId)
 
     if (!database) {
         return <div>Database not found: {props.databaseId}</div>

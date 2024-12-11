@@ -57,12 +57,10 @@ export class ConnectionsService {
         const duckDBLocal: DataConnection = getDuckDBLocalConnection();
         state.addConnection(duckDBLocal, true, true).then(async () => {
 
-            console.log('DuckDB local connection initialised');
 
             // is dependent on duckdb local
             const fileSystemOverDuckdb = await getFileSystemOverDuckdbConnection();
             await state.addConnection(fileSystemOverDuckdb, true, true).then(() => {
-                console.log('File System over DuckDB connection initialised');
             })
 
 
@@ -70,7 +68,6 @@ export class ConnectionsService {
 
         const duckDBWasm = getDuckDBWasmConnection();
         state.addConnection(duckDBWasm, true, true).then(() => {
-            console.log('DuckDB WASM connection initialised');
         });
 
 

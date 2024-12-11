@@ -29,11 +29,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<UploadRespons
     }
 
     const file = f as File;
-    console.log(`File name: ${file.name}`);
-    console.log(`Content-Length: ${file.size}`);
 
     const destinationDirPath = path.join(process.cwd(), "public/upload");
-    console.log(destinationDirPath);
+
 
     const fileArrayBuffer = await file.arrayBuffer();
 

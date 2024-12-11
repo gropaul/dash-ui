@@ -73,7 +73,8 @@ export class FileSystemOverDuckdb implements DataConnection {
     }
 
     initialise(): Promise<ConnectionStatus> {
-        return ConnectionsService.getInstance().getConnection(this.config.duckdbConnectionId).checkConnectionState();
+        // no initialisation needed
+        return this.checkConnectionState();
     }
 
     async getDirAsDataSource(rootPath: string, depth: number | undefined): Promise<DataSourceGroup> {

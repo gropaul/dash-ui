@@ -107,7 +107,6 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
     },
 
     updateConfig: async (connectionId, config) => {
-        console.log('updateConfig', connectionId, config);
         ConnectionsService.getInstance().updateConfig(connectionId, config);
         set((state) => ({
             connections: {
@@ -118,8 +117,6 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
                 },
             },
         }));
-
-        console.log('updateConfig done');
         await get().refreshConnection(connectionId);
     },
 

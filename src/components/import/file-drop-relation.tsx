@@ -46,7 +46,6 @@ export function FileDropRelation(props: Props) {
         await creatTableIfNotExistsFromFilePath(localDuckDBConnection, downloadUrl, fileName);
         // delete the file after uploading
         const success = await deleteFile(fileName);
-        console.log('file deleted', success);
     }
 
     const onErrorConfirm = () => {
