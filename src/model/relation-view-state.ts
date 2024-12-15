@@ -47,7 +47,7 @@ export function getInitViewState(displayName: string, data?: RelationData, showC
         codeFenceState: {
             show: showCode,
             sizePercentage: 0.3,
-            layout: 'row',
+            layout: 'column',
         },
         selectedView: 'table',
     }
