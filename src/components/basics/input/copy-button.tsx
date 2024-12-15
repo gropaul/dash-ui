@@ -25,9 +25,9 @@ export function CopyButton({ textToCopy, className, size = 14 }: CopyButtonProps
             className={`cursor-pointer ${className}`}
         >
             {copied ? (
-                <Check className="hover:text-gray-800 text-gray-500" size={size} />
+                <Check className="hover:text-gray-800 text-gray-600" size={size} />
             ) : (
-                <Copy className="hover:text-gray-800 text-gray-500" size={size} />
+                <Copy className="hover:text-gray-800 text-gray-600" size={size} />
             )}
         </button>
     );

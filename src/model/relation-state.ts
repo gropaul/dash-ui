@@ -1,7 +1,8 @@
 import {getRelationIdFromSource, getRelationNameFromSource, Relation, RelationSource} from "@/model/relation";
 import {useConnectionsState} from "@/state/connections.state";
 import {getInitViewState, RelationViewState, updateRelationViewState} from "@/model/relation-view-state";
-import {cleanAndSplitSQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
+import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
+import {getErrorMessage} from "@/platform/error-handling";
 
 export function getDefaultQueryParams(): RelationQueryParams {
     return {
@@ -26,9 +27,12 @@ export interface QueryData {
     viewParameters: RelationQueryParams;
 }
 
-// idle: no query is running, running: query is running, success: query was successful, error: query failed
-export type TaskExecutionState = 'not-started' | 'running' | 'success' | 'error';
+export interface TaskExecutionState {
+    state: 'not-started' | 'running' | 'success' | 'error';
+    message?: string;
+}
 
+// idle: no query is running, running: query is running, success: query was successful, error: query failed
 export interface QueryExecutionMetaData {
     lastExecutionDuration: number; // in s
     lastResultCount: number;
@@ -87,9 +91,11 @@ export function getViewFromSource(connectionId: string, source: RelationSource, 
 
 export function getBaseQueryFromSource(source: RelationSource): string {
     if (source.type === 'table') {
-        return `SELECT * FROM "${source.database}"."${source.schema}"."${source.tableName}"`;
+        return minifySQL(`SELECT *
+                          FROM "${source.database}"."${source.schema}"."${source.tableName}";`);
     } else {
-        return `SELECT * FROM '${source.path}'`;
+        return minifySQL(`SELECT *
+                          FROM '${source.path}';`);
     }
 }
 
@@ -124,11 +130,8 @@ export function getQueryFromParams(relation: Relation, query: RelationQueryParam
     `;
 
     // count query using subquery which is the query Get data without limit and offset
-    const countQuery = `SELECT COUNT(*) FROM ${finalSubQuery} as subquery`;
-
-    console.log("viewQuery: ", viewQuery);
-    console.log("countQuery: ", countQuery);
-    console.log("initialQueries: ", initialQueries);
+    const countQuery = `SELECT COUNT(*)
+                        FROM ${finalSubQuery} as subquery`;
 
     return {
         initialQueries: initialQueries,
@@ -151,6 +154,18 @@ export function updateRelationQueryForParams(relation: RelationState, newParams:
 
 }
 
+function returnEmptyErrorState(relation: RelationState, error: unknown): RelationState {
+    return {
+        ...relation,
+        data: undefined,
+        executionState: {
+            state: 'error',
+            message: getErrorMessage(error),
+        },
+    }
+}
+
+
 // executes the query and updates the view state
 export async function executeQueryOfRelationState(input: RelationState): Promise<RelationState> {
 
@@ -159,17 +174,33 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     const viewQuery = input.query.viewQuery;
     const countQuery = input.query.countQuery;
 
-    // first execute the initial queries
-    for (const query of input.query.initialQueries) {
-        await executeQuery(connectionId, query);
-    }
-
     // start a timer to measure the query duration
     const start = performance.now();
-    const viewData = await executeQuery(connectionId, viewQuery);
 
+    // first execute the initial queries
+    for (const query of input.query.initialQueries) {
+        try {
+            await executeQuery(connectionId, query);
+        } catch (e) {
+            return returnEmptyErrorState(input, e);
+        }
+    }
 
-    const countData = await executeQuery(connectionId, countQuery);
+    let viewData;
+    let countData;
+
+    try {
+        viewData = await executeQuery(connectionId, viewQuery);
+    } catch (e) {
+        return returnEmptyErrorState(input, e);
+    }
+
+    try {
+        countData = await executeQuery(connectionId, countQuery);
+    } catch (e) {
+        return returnEmptyErrorState(input, e);
+    }
+
     const count = Number(countData.rows[0][0]);
 
     // stop the timer, get duration in s
@@ -180,7 +211,9 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     return {
         ...input,
         data: viewData,
-        executionState: 'success',
+        executionState: {
+            state: 'success',
+        },
         lastExecutionMetaData: {
             lastExecutionDuration: duration,
             lastResultCount: count,

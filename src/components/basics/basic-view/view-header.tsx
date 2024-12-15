@@ -10,7 +10,7 @@ export interface ViewHeaderProps {
     state?: TaskExecutionState;
 }
 
-export function ViewHeader({title, subtitle, actionButtons, state = 'not-started'}: ViewHeaderProps) {
+export function ViewHeader({title, subtitle, actionButtons, state = {state: 'not-started'}}: ViewHeaderProps) {
     return (
         <>
             <div className="flex flex-row items-center justify-between w-full h-[48px] px-4">

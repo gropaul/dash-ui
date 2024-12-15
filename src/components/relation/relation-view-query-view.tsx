@@ -2,6 +2,7 @@ import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
 import {CodeFence} from "@/components/basics/code-fence/code-fence";
 import {getDefaultQueryParams} from "@/model/relation-state";
+import {getSeparatedStatements} from "@/platform/sql-utils";
 
 
 interface RelationViewQueryProps {
@@ -16,7 +17,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     const updateRelationBaseQuery = useRelationsState((state) => state.updateRelationBaseQuery);
     const updateRelationData = useRelationsState((state) => state.updateRelationDataWithParams);
 
-    async function onRunQuery(){
+    async function onRunQuery() {
         // we need to reset the view params as the could be columns removed now that had filters before!
         await updateRelationData(props.relationId, getDefaultQueryParams());
     }
@@ -29,13 +30,17 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
         return null;
     }
 
-    const runQueryIfNotRunning = executionState == "running" ? undefined : onRunQuery
+    const runQueryIfNotRunning = executionState.state == "running" ? undefined : onRunQuery
+    const nQueries = getSeparatedStatements(queryString).length
+    const runText = executionState.state == "running" ? "Running..." : `Run (${nQueries} Query${nQueries > 1 ? "s" : ""})`
 
     return (
-        <div className="px-4 py-2 border-b border-gray-200">
+        <div className={"border-b border-gray-200"}>
             <CodeFence
+                buttonPosition={'panel'}
                 showLineNumbers={true}
                 height={'8rem'}
+                runText={runText}
                 language="sql"
                 displayCode={queryString}
                 showCopyButton={true}

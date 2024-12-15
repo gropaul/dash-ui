@@ -52,6 +52,7 @@ LOAD httpserver;`
 
     return (
         <CodeFence
+            rounded={true}
             height={"4rem"}
             language="sql"
             readOnly={true}

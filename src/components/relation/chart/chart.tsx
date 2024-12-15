@@ -1,4 +1,4 @@
-import {BarChart} from "@/components/relation/chart/bar-chart";
+import {Exportable} from "@/components/relation/chart/exportable";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 
@@ -12,6 +12,6 @@ export function Chart(props: ChartProps) {
     const relationState = useRelationsState((state) => state.getRelation(props.relationId), shallow);
 
     return (
-        <BarChart />
+        <Exportable />
     )
 }

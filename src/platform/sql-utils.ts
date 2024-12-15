@@ -24,7 +24,7 @@ function removeComments(sql: string) {
     return sql;
 }
 
-function minifySQL(sql: string) {
+export function minifySQL(sql: string) {
     // Remove all tabs and line breaks
     sql = sql.replace(/("(""|[^"])*")|('(''|[^'])*')|([\t\r\n])/gm, (match) => {
         if (

@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import Plot from "react-plotly.js";
+// import Plot from "react-plotly.js";
 
 interface RelationViewMapProps {
     relationId: string;
@@ -52,12 +52,15 @@ export function Map(props: RelationViewMapProps) {
     return (
         <div ref={containerRef} className="w-full h-full overflow-hidden">
             {containerSize.width > 0 && containerSize.height > 0 && (
+                /*
                 <Plot
                     data={props.data}
                     layout={layout as any}
                     config={config}
                     useResizeHandler={true}
                 />
+                 */
+                <div>Map</div>
             )}
         </div>
     );

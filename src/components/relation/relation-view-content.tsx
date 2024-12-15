@@ -4,6 +4,7 @@ import {shallow} from "zustand/shallow";
 import {useEffect, useState} from "react";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+import {Chart} from "@/components/relation/chart/chart";
 
 
 export interface RelationViewContentProps {
@@ -51,8 +52,6 @@ export function RelationViewContent({relationId}: RelationViewContentProps) {
                 },
             ];
 
-            console.log(data);
-
             setData(data);
         });
     }, []);
@@ -65,11 +64,12 @@ export function RelationViewContent({relationId}: RelationViewContentProps) {
         return (
             <Map relationId={relationId} data={data}/>
         );
+    */
     } else if (selectedView === 'chart') {
         return (
             <Chart relationId={relationId}/>
         );
-     */
+
     } else {
         return (
             <div>Unknown view</div>

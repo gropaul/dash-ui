@@ -1,5 +1,4 @@
 import {RelationData} from "@/model/relation";
-import Error from "next/error";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections/duckdb-helper";
 import {FormDefinition} from "@/components/basics/input/custom-form";
@@ -134,7 +133,6 @@ class DuckDBOverHttp implements DataConnection {
         } else if (this.config.authentication === 'token') {
             headers['X-API-Key'] = this.config.token!;
         } else if (this.config.authentication !== 'none') {
-            // @ts-ignore
             throw new Error(`Unsupported authentication type: ${this.config.authentication}`);
         }
 
@@ -145,7 +143,21 @@ class DuckDBOverHttp implements DataConnection {
         });
 
         if (!response.ok) {
-            // @ts-ignore
+
+            // check if internal server error
+            if (response.status === 500) {
+                const text = await response.text();
+                throw new Error(text);
+            }
+            // check if unauthorized
+            if (response.status === 401) {
+                throw new Error(`Unauthorized: ${response.statusText}`);
+            }
+            // check if not found
+            if (response.status === 404) {
+                throw new Error(`Not found: ${response.statusText}`);
+            }
+
             throw new Error(`Failed to execute query: ${response.statusText}`);
         }
 

@@ -53,7 +53,6 @@ export function FileDropRelation(props: Props) {
     }
 
     const showFileHover = fileUploadState === 'hovering' || fileUploadState === 'error';
-    console.log('fileUploadState', fileUploadState);
     return <FileDrop
         className={props.className}
         onDrop={onDrop}

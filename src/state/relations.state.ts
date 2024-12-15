@@ -117,7 +117,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
 
             // update state with empty (loading) relation
             const defaultQueryParams = getDefaultQueryParams();
-            const emptyRelationState = getViewFromSource(connectionId, source, defaultQueryParams, 'running');
+            const emptyRelationState = getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
             set((state) => ({
                 relations: {
                     ...state.relations,
@@ -143,7 +143,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         const {relations} = get(); // Get the current state
 
         const relation = relations[relationId]; // Retrieve the specific relation
-        const updatedRelationState = updateRelationQueryForParams(relation, query, 'running'); // Update the relation state
+        const updatedRelationState = updateRelationQueryForParams(relation, query, {state: 'running'}); // Update the relation state
         set((state) => ({
             relations: {
                 ...state.relations,

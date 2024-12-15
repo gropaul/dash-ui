@@ -20,7 +20,6 @@ export interface DeleteResponse {
 
 export async function POST(req: NextRequest): Promise<NextResponse<UploadResponse | {}>> {
     const formData = await req.formData();
-    console.log(formData);
 
     const f = formData.get("file");
 

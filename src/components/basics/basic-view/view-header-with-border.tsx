@@ -17,7 +17,7 @@ export function RelationViewHeaderBorder({state}: RelationViewHeaderBorderProps)
     useEffect(() => {
         let timer: NodeJS.Timeout | null = null;
 
-        if (state === 'running') {
+        if (state.state === 'running') {
             // Set a delay before showing the animation
             timer = setTimeout(() => {
                 setShowLoading(true);
@@ -39,7 +39,7 @@ export function RelationViewHeaderBorder({state}: RelationViewHeaderBorderProps)
 
     return (
         <div className="relative w-full h-[1px] bg-gray-200 overflow-hidden">
-            {state === 'running' && showLoading ? (
+            {state.state === 'running' && showLoading ? (
                 // Animated loading indicator
                 <div className="absolute top-0 left-0 w-full h-full bg-black animate-loading"/>
             ) : (
