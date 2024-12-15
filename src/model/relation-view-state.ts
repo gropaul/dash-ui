@@ -6,8 +6,18 @@ import {
 import {RelationData} from "@/model/relation";
 import {deepEqual} from "@/platform/utils";
 
+//
+
+type CodeFenceLayout = 'row' | 'column';
+
+export interface CodeFenceViewState {
+    show: boolean;
+    sizePercentage: number; // percentage, 0-1
+    layout: CodeFenceLayout;
+}
+
 export interface RelationViewBaseState {
-    showCode: boolean;
+    codeFenceState: CodeFenceViewState;
     displayName: string;
     selectedView: RelationViewType;
 }
@@ -34,7 +44,11 @@ export function getInitViewState(displayName: string, data?: RelationData, showC
 
     const baseState: RelationViewBaseState = {
         displayName: displayName,
-        showCode: showCode,
+        codeFenceState: {
+            show: showCode,
+            sizePercentage: 0.3,
+            layout: 'row',
+        },
         selectedView: 'table',
     }
 

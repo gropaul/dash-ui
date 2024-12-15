@@ -18,7 +18,7 @@ export function RelationViewHeader({ relationId }: RelationViewHeaderProps) {
     const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
     const connectionName = useRelationsState((state) => state.getRelation(relationId)?.connectionId, shallow);
     const lastExecutionDuration = useRelationsState((state) => state.getRelation(relationId).lastExecutionMetaData?.lastExecutionDuration, shallow);
-    const showCode = useRelationsState((state) => state.getRelationViewState(relationId).showCode, shallow);
+    const codeFenceState = useRelationsState((state) => state.getRelationViewState(relationId).codeFenceState!, shallow);
 
     const queryState = useRelationsState(
         (state) => state.getRelation(relationId).executionState,
@@ -27,7 +27,10 @@ export function RelationViewHeader({ relationId }: RelationViewHeaderProps) {
 
     function onShowCode() {
         updateRelationViewState(relationId, {
-            showCode: !showCode,
+            codeFenceState: {
+                ...codeFenceState,
+                show: !codeFenceState.show,
+            }
         });
     }
 

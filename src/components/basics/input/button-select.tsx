@@ -6,13 +6,16 @@ interface CustomSelectProps {
     defaultValue?: string;
     title?: string;
     className?: string;
+    border?: boolean;
 }
 
-export function ButtonSelect({ options, onChange, defaultValue, title, className }: CustomSelectProps) {
+export function ButtonSelect({ options, onChange, defaultValue, title, className, border = true }: CustomSelectProps) {
 
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         onChange(event.target.value);
     };
+
+    const borderClass = border ? 'border border-gray-300' : '';
 
     return (
         <div className={`relative inline-block ${className}`} title={title}>
@@ -32,7 +35,7 @@ export function ButtonSelect({ options, onChange, defaultValue, title, className
 
             {/* Custom dropdown styling */}
             <div
-                className="px-2 py-1 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 h-8 flex items-center justify-between">
+                className={`px-2 py-1 text-sm text-gray-500 rounded-md hover:bg-gray-100 h-8 flex gap-1 items-center justify-between ${borderClass}`}>
                 <span>{options.find((option) => option.value === defaultValue)?.label || "Select"}</span>
                 <ChevronDown className="w-4 h-4 text-gray-500" />
             </div>

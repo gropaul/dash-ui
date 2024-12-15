@@ -26,7 +26,7 @@ export function TableFooter(props: RelationViewFooterProps) {
 
     const connectionName = useConnectionsState((state) => state.getConnectionName(props.relation.connectionId));
     return (
-        <div className="flex flex-row items-center p-2 border-t border-gray-200 text-sm space-x-4">
+        <div className="flex h-8 flex-row items-center p-2 border-t border-gray-200 text-sm space-x-4">
             <div className="flex flex-row items-center space-x-4">
                 <RelationViewPageController relation={props.relation}/>
             </div>
@@ -96,6 +96,7 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
     return (
         <div className="flex flex-row items-center space-x-1">
             <ButtonSelect
+                border={false}
                 defaultValue={pageSize.toString()}
                 onChange={handlePageSizeChange}
                 options={options}

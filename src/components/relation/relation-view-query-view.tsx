@@ -11,7 +11,7 @@ interface RelationViewQueryProps {
 
 export function RelationViewQueryView(props: RelationViewQueryProps) {
 
-    const showCode = useRelationsState((state) => state.getRelationViewState(props.relationId).showCode, shallow);
+    const codeFenceState = useRelationsState((state) => state.getRelationViewState(props.relationId).codeFenceState, shallow);
     const queryString = useRelationsState((state) => state.getRelation(props.relationId).query.baseQuery, shallow);
     const executionState = useRelationsState((state) => state.getRelation(props.relationId).executionState, shallow);
     const updateRelationBaseQuery = useRelationsState((state) => state.updateRelationBaseQuery);
@@ -26,7 +26,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
         updateRelationBaseQuery(props.relationId, code);
     }
 
-    if (!showCode) {
+    if (!codeFenceState!.show) {
         return null;
     }
 
@@ -35,11 +35,11 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     const runText = executionState.state == "running" ? "Running..." : `Run (${nQueries} Query${nQueries > 1 ? "s" : ""})`
 
     return (
-        <div className={"border-b border-gray-200"}>
+        <div className={"border-b border-r border-gray-200 h-full"}>
             <CodeFence
                 buttonPosition={'panel'}
                 showLineNumbers={true}
-                height={'8rem'}
+                height={'100%'}
                 runText={runText}
                 language="sql"
                 displayCode={queryString}
