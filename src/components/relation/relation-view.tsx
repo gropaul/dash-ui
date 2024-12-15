@@ -77,7 +77,7 @@ export function RelationView(props: RelationViewProps) {
 
     const flexDirection = codeFenceState.layout === "row" ? "flex-col" : "flex-row";
     const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage * 100 : 0;
-
+    const showCode = codeFenceState.show;
     const codeFenceStyle = {
         flex: `${codePercentage} 1 0%`,
     };
@@ -156,28 +156,32 @@ export function RelationView(props: RelationViewProps) {
                     </div>
 
                     {/* Resize Handle */}
-                    <div
-                        className={`${isHorizontal ? 'w-px h-full' : 'h-px w-full'} relative`}
-                        style={{zIndex: 50, cursor: isHorizontal ? 'col-resize' : 'row-resize'}}
-                        onMouseDown={onMouseDown}
-                    >
-                        {/* The visible 1px line */}
-                        <div className={`${isHorizontal ? 'h-full' : 'w-full'} border-b border-r border-gray-200 dark:border-gray-700`}></div>
+                    {showCode && (
 
-                        {/* Invisible hit area (no visible whitespace or extra layout space) */}
                         <div
-                            className="absolute"
-                            style={{
-                                top: isHorizontal ? '0' : '-5px',
-                                left: isHorizontal ? '-5px' : '0',
-                                width: isHorizontal ? '11px' : '100%',
-                                height: isHorizontal ? '100%' : '11px',
-                                background: 'transparent',
-                                cursor: isHorizontal ? 'col-resize' : 'row-resize',
-                                pointerEvents: 'all',
-                            }}
-                        ></div>
-                    </div>
+                            className={`${isHorizontal ? 'w-px h-full' : 'h-px w-full'} relative`}
+                            style={{zIndex: 50, cursor: isHorizontal ? 'col-resize' : 'row-resize'}}
+                            onMouseDown={onMouseDown}
+                        >
+                            {/* The visible 1px line */}
+                            <div
+                                className={`${isHorizontal ? 'h-full' : 'w-full'} border-b border-r border-gray-200 dark:border-gray-700`}></div>
+
+                            {/* Invisible hit area (no visible whitespace or extra layout space) */}
+                            <div
+                                className="absolute"
+                                style={{
+                                    top: isHorizontal ? '0' : '-5px',
+                                    left: isHorizontal ? '-5px' : '0',
+                                    width: isHorizontal ? '11px' : '100%',
+                                    height: isHorizontal ? '100%' : '11px',
+                                    background: 'transparent',
+                                    cursor: isHorizontal ? 'col-resize' : 'row-resize',
+                                    pointerEvents: 'all',
+                                }}
+                            ></div>
+                        </div>
+                    )}
 
 
                     {/* Content Section */}
