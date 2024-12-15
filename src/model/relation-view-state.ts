@@ -8,6 +8,7 @@ import {deepEqual} from "@/platform/utils";
 
 export interface RelationViewBaseState {
     showCode: boolean;
+    displayName: string;
     selectedView: RelationViewType;
 }
 
@@ -20,23 +21,24 @@ export type RelationViewType = 'table' | 'chart' | 'map';
 
 export function updateRelationViewState(currentState: RelationViewState, newData: RelationData): RelationViewState {
     // if the current state is the initial state, return a new state with the new data
-    const defaultState = getInitViewState(undefined);
+    const defaultState = getInitViewState(currentState.displayName, undefined);
 
     if (deepEqual(currentState, defaultState)) {
-        return getInitViewState(newData);
+        return getInitViewState(currentState.displayName, newData);
     } else {
         return currentState;
     }
 }
 
-export function getInitViewState(relation?: RelationData): RelationViewState {
+export function getInitViewState(displayName: string, data?: RelationData, showCode = false): RelationViewState {
 
     const baseState: RelationViewBaseState = {
-        showCode: false,
+        displayName: displayName,
+        showCode: showCode,
         selectedView: 'table',
     }
 
-    if (!relation) {
+    if (!data) {
         return {
             ...baseState,
             tableState: getInitialTableDisplayStateEmpty(),
@@ -45,6 +47,6 @@ export function getInitViewState(relation?: RelationData): RelationViewState {
 
     return {
         ...baseState,
-        tableState: getInitialTableDisplayState(relation),
+        tableState: getInitialTableDisplayState(data),
     };
 }

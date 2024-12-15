@@ -11,7 +11,7 @@ export const getRunButtonContent = (props: CodeFenceButtonProps) => {
                     <div className={"w-[62px] flex flex-row items-center gap-2 justify-center"}>
                         <Loader2 size={18} className="animate-spin"/>
                     </div>
-                    <span>{props.runText}</span>
+                    <span className="text-sm">{props.runText}</span>
                 </div>
             );
         default:
@@ -20,7 +20,7 @@ export const getRunButtonContent = (props: CodeFenceButtonProps) => {
                     <div className={"w-[62px] flex flex-row items-center gap-2 justify-center"}>
                         <Play size={18}/>
                     </div>
-                    <span>{props.runText}</span>
+                    <span className="text-sm">{props.runText}</span>
                 </div>
             );
     }

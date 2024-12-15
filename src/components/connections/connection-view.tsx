@@ -2,10 +2,19 @@ import {TreeExplorer} from "@/components/basics/tree-explorer/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factories";
 import React from "react";
 import {useConnectionsState} from "@/state/connections.state";
-import {RefreshCw, Settings} from "lucide-react";
+import {EllipsisVertical, Plus, RefreshCw, Settings} from "lucide-react";
 import ConnectionConfigModal from "@/components/connections/connection-config-modal";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DataConnection, DataConnectionConfig} from "@/model/connection";
+import {
+    DropdownMenu,
+    DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {useRelationsState} from "@/state/relations.state";
+import {RelationSourceQuery} from "@/model/relation";
+import {getRandomId} from "@/platform/id-utils";
 
 export interface ConnectionViewProps {
     connection: DataConnection;
@@ -16,6 +25,7 @@ export function ConnectionView(props: ConnectionViewProps) {
     const refreshConnection = useConnectionsState((state) => state.refreshConnection);
     const updateConfig = useConnectionsState((state) => state.updateConfig);
     const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
+    const showRelationFromSource = useRelationsState((state) => state.showRelationFromSource);
     const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
@@ -32,6 +42,18 @@ export function ConnectionView(props: ConnectionViewProps) {
 
     function onSettingsIconClicked() {
         setSettingsModalOpen(!settingsModalOpen);
+    }
+
+    function onNewEmptyQuery() {
+        const randomId = getRandomId();
+        const baseQuery = "SELECT 'Hello, World!' AS message;";
+        const source: RelationSourceQuery = {
+            type: "query",
+            baseQuery: baseQuery,
+            id: randomId,
+            name: "New Query"
+        }
+        showRelationFromSource(props.connection.id, source);
     }
 
     function closeModal() {
@@ -51,15 +73,35 @@ export function ConnectionView(props: ConnectionViewProps) {
                     <span>{props.connection.config.name}</span>
                     <ConnectionStateIcon connectionId={props.connection.id}/>
                 </div>
+
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={handleRefresh}
-                            className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
-                        <RefreshCw size={16}/>
-                    </button>
-                    <button onClick={onSettingsIconClicked}
-                            className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
-                        <Settings size={16}/>
-                    </button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger>
+                            <EllipsisVertical
+                                size={16}
+                                className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
+                            />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuGroup>
+                                <DropdownMenuItem onClick={onSettingsIconClicked}>
+                                    <Settings />
+                                    <span>Settings</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleRefresh}>
+                                    <RefreshCw/>
+                                    <span>Reload</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuGroup>
+                                <DropdownMenuItem onClick={onNewEmptyQuery}>
+                                    <Plus />
+                                    <span>Empty Query</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
             <TreeExplorer
@@ -84,21 +126,21 @@ interface ConnectionStateIconProps {
 }
 
 function ConnectionStateIcon(props: ConnectionStateIconProps) {
-    const connectionsState = useConnectionsState( state => state.getConnectionState(props.connectionId));
+    const connectionsState = useConnectionsState(state => state.getConnectionState(props.connectionId));
     const message = connectionsState.message;
-    if (connectionsState.state === "connected"){
+    if (connectionsState.state === "connected") {
         return <span className="text-green-500">●</span>
     }
 
-    if (connectionsState.state === "disconnected"){
+    if (connectionsState.state === "disconnected") {
         return <span className="text-gray-500">●</span>
     }
 
-    if (connectionsState.state === "error"){
+    if (connectionsState.state === "error") {
         return <span className="text-red-500" title={message}>●</span>
     }
 
-    if (connectionsState.state === "connecting"){
+    if (connectionsState.state === "connecting") {
         return <span className="text-blue-500">●</span>
     }
 }

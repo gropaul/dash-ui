@@ -12,9 +12,12 @@ export function ConnectionsOverview() {
     return (
         <div className=" h-full w-full">
             <div
-                className="flex items-center  font-bold dark:border-gray-700 dark:text-white px-2"
+                className="flex items-center dark:border-gray-700 dark:text-white px-2"
                 style={{height: '28px'}}>
-                Connections
+                    <div className={'font-semibold'}>
+                        Connections
+                    </div>
+
             </div>
             <div className="border-t  dark:border-gray-700 overflow-y-auto h-fit">
                 <ul>

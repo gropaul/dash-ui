@@ -7,7 +7,7 @@ export interface RelationData {
     rows: Row[]
 }
 
-export type RelationType = 'table' | 'file'
+export type RelationType = 'table' | 'file' | 'query'
 
 export interface RelationSourceTable {
     type: 'table',
@@ -22,7 +22,14 @@ export interface RelationSourceFile {
     baseName: string,
 }
 
-export type RelationSource = RelationSourceTable | RelationSourceFile;
+export interface RelationSourceQuery {
+    type: 'query',
+    id: string,
+    name: string,
+    baseQuery: string,
+}
+
+export type RelationSource = RelationSourceTable | RelationSourceFile | RelationSourceQuery
 
 export interface Relation {
     name: string,
@@ -36,16 +43,24 @@ export interface Relation {
 export function getRelationIdFromSource(connectionId: string, source: RelationSource): string {
     if (source.type === 'table') {
         return `relation-table-${connectionId}-${source.database}-${source.schema}-${source.tableName}`;
-    } else {
+    } else if (source.type === 'file') {
         return `relation-file-${connectionId}-${source.path}`;
+    } else if (source.type === 'query') {
+        return `relation-query-${connectionId}-${source.id}`;
+    } else {
+        throw new Error(`Unknown relation type: ${source}`);
     }
 }
 
 export function getRelationNameFromSource(relation: RelationSource): string {
     if (relation.type === 'table') {
         return relation.tableName;
-    } else {
+    } else if (relation.type === 'file') {
         return relation.baseName;
+    } else if (relation.type === 'query') {
+        return relation.name;
+    } else {
+        throw new Error(`Unknown relation type: ${relation}`);
     }
 }
 

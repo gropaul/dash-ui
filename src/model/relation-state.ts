@@ -64,8 +64,9 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
 
 export function getViewFromSource(connectionId: string, source: RelationSource, viewParams: RelationQueryParams, state: TaskExecutionState): RelationState {
 
+    const name = getRelationNameFromSource(source);
     const relation: Relation = {
-        name: getRelationNameFromSource(source),
+        name: name,
         id: getRelationIdFromSource(connectionId, source),
         source: source,
         connectionId: connectionId,
@@ -83,9 +84,11 @@ export function getViewFromSource(connectionId: string, source: RelationSource, 
         lastExecutionMetaData: undefined,
     }
 
+    const showCode = source.type === 'query';
+
     return {
         ...relationWithQuery,
-        viewState: getInitViewState(relationWithQuery.data),
+        viewState: getInitViewState(name, relationWithQuery.data, showCode),
     };
 }
 
@@ -93,9 +96,13 @@ export function getBaseQueryFromSource(source: RelationSource): string {
     if (source.type === 'table') {
         return minifySQL(`SELECT *
                           FROM "${source.database}"."${source.schema}"."${source.tableName}";`);
-    } else {
+    } else if (source.type === 'file') {
         return minifySQL(`SELECT *
                           FROM '${source.path}';`);
+    } else if (source.type === 'query') {
+        return minifySQL(source.baseQuery);
+    } else {
+        throw new Error(`Unknown relation type: ${source}`);
     }
 }
 
@@ -119,7 +126,6 @@ export function getQueryFromParams(relation: Relation, query: RelationQueryParam
     if (!finalQuery) {
         throw new Error('No final query found in base SQL');
     }
-
 
     const finalSubQuery = turnQueryIntoSubquery(finalQuery);
     const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
