@@ -7,15 +7,19 @@ export const getRunButtonContent = (props: CodeFenceButtonProps) => {
     switch (props.executionState.state) {
         case "running":
             return (
-                <div  className="flex flex-row items-center gap-2 h-6">
-                    <Loader2 size={18} className="animate-spin"/>
+                <div className="flex flex-row items-center h-6">
+                    <div className={"w-[62px] flex flex-row items-center gap-2 justify-center"}>
+                        <Loader2 size={18} className="animate-spin"/>
+                    </div>
                     <span>{props.runText}</span>
                 </div>
             );
         default:
             return (
-                <div  className="flex flex-row items-center gap-2 h-6">
-                    <Play size={18}/>
+                <div className="flex flex-row items-center h-6">
+                    <div className={"w-[62px] flex flex-row items-center gap-2 justify-center"}>
+                        <Play size={18}/>
+                    </div>
                     <span>{props.runText}</span>
                 </div>
             );

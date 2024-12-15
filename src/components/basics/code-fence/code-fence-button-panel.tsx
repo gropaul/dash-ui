@@ -18,7 +18,7 @@ export function CodeFenceButtonPanel(props: CodeFenceButtonProps) {
 
     return (
         <>
-            <div className="bg-gray-50 flex flex-row w-full justify-between gap-2 items-center border-b border-gray-200 px-4 py-2">
+            <div className="bg-gray-50 flex flex-row w-full justify-between gap-2 items-center border-b border-gray-200 pr-4 py-2">
                 {props.showRunButton && (
                     <button
                         onClick={props.onRun}
