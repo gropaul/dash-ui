@@ -100,7 +100,7 @@ export function getBaseQueryFromSource(source: RelationSource): string {
         return minifySQL(`SELECT *
                           FROM '${source.path}';`);
     } else if (source.type === 'query') {
-        return minifySQL(source.baseQuery);
+        return source.baseQuery;
     } else {
         throw new Error(`Unknown relation type: ${source}`);
     }
