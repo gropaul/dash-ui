@@ -3,10 +3,14 @@
 import { saveAs } from 'file-saver';
 import { useRef } from "react";
 import domtoimage from "dom-to-image";
-import {MyChart} from "@/components/relation/chart/my-chart";
+import {Button} from "@/components/ui/button";
 
+export interface ExportableProps {
+    children?: React.ReactNode;
+    fileName?: string;
+}
 
-export function Exportable() {
+export function Exportable({children, fileName}: ExportableProps) {
     const chartRef = useRef(null);
 
     const exportChartAsPNG = () => {
@@ -14,9 +18,9 @@ export function Exportable() {
             console.error("No chart ref found");
             return;
         }
-        domtoimage.toPng(chartRef.current)
+        domtoimage.toPng(chartRef.current, { quality: 10.0 })
             .then((dataUrl: any) => {
-                saveAs(dataUrl, "chart.png");
+                saveAs(dataUrl, `${fileName ?? "chart"}.png`);
             })
             .catch((error: any) => {
                 console.error("Failed to convert to PNG", error);
@@ -30,7 +34,7 @@ export function Exportable() {
         }
         domtoimage.toSvg(chartRef.current)
             .then((dataUrl: any) => {
-                saveAs(dataUrl, "chart.svg");
+                saveAs(dataUrl, `${fileName ?? "chart"}.svg`);
             })
             .catch((error: any) => {
                 console.error("Failed to convert to SVG", error);
@@ -38,13 +42,15 @@ export function Exportable() {
     };
 
     return (
-        <div>
+        <>
             <div ref={chartRef}>
-                <MyChart />
+                {children}
             </div>
-            <button onClick={exportChartAsPNG}>Export as PNG</button>
-            <button onClick={exportChartAsSVG}>Export as SVG</button>
-        </div>
+            <div className={'flex gap-2'}>
+                <Button onClick={exportChartAsPNG} variant={'outline'}>Export as PNG</Button>
+                <Button onClick={exportChartAsSVG} variant={'outline'}>Export as SVG</Button>
+            </div>
+        </>
     );
 }
 
