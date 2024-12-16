@@ -176,7 +176,7 @@ export function RelationView(props: RelationViewProps) {
                                     width: isHorizontal ? '11px' : '100%',
                                     height: isHorizontal ? '100%' : '11px',
                                     background: 'transparent',
-                                    cursor: isHorizontal ? 'col-resize' : 'row-resize',
+                                    cursor: isHorizontal ? 'ew-resize' : 'ns-resize',
                                     pointerEvents: 'all',
                                 }}
                             ></div>
@@ -220,7 +220,7 @@ export function ContentWrapper(props: ContentWrapperProps) {
 
             {props.isLoading && (
                 <div
-                    className="absolute top-0 left-0 w-full h-full bg-white bg-opacity-70 z-10 flex items-center justify-center transition-opacity duration-200"
+                    className="absolute top-0 left-0 w-full h-full bg-white bg-opacity-70 z-50 flex items-center justify-center transition-opacity duration-200"
                 >
                     Loading...
                 </div>

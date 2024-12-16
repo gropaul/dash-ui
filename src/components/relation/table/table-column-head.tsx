@@ -98,7 +98,7 @@ function ColumnIconButtons(props: ColumnHeadProps) {
     const onlyShowOnHover = !columnSorting;
 
     const opacityClass = onlyShowOnHover ?
-        'opacity-0 group-hover:opacity-100 transition-opacity' : '';
+        'hidden group-hover:block opacity-0 group-hover:opacity-100 transition-opacity duration-200' : '';
 
     const activeSorting = !columnSorting;
     const sortingClass = activeSorting ?
@@ -124,13 +124,17 @@ function ColumnIconButtons(props: ColumnHeadProps) {
     }
 
     return (
-        <div className={`flex items-center space-x-2 flex-shrink-0 ${opacityClass}`}>
+        <div className={`flex items-center space-x-2 flex-shrink-0 ${opacityClass} h-4`}>
             <button className={sortingClass} onClick={onSortClick}>
                 <ColumnHeadSortingIcon sorting={columnSorting}/>
             </button>
+            {
+                /*
             <button className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
                 <Filter size={16}/>
             </button>
+                */
+            }
         </div>
     );
 
