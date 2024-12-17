@@ -42,12 +42,12 @@ export function Chart(props: ChartProps) {
                 onChange={updateConfigRatio}
                 child2Active={config.configView.showConfig}
             >
-                <div className={'p-2'}>
+                <div className={'p-2 w-full h-full overflow-auto'}>
                     <Exportable fileName={toSnakeCase(config.chart.plot.title ?? 'plot')}>
                         <ChartContent data={relationState.data} config={config.chart} />
                     </Exportable>
                 </div>
-                <div className={'p-2'}>
+                <div className={'p-2 w-full h-full overflow-auto'}>
                     <ChartConfigView
                         relationId={props.relationId}
                         config={config}

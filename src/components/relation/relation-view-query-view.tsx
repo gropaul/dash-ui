@@ -35,7 +35,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     const runText = executionState.state == "running" ? "Running..." : `Run (${nQueries} Query${nQueries > 1 ? "s" : ""})`
 
     return (
-        <div className={"border-b border-r border-gray-200 h-full"}>
+        <div className={"border-b border-r border-gray-200 w-full h-full overflow-hidden"}>
             <CodeFence
                 buttonPosition={'panel'}
                 showLineNumbers={true}

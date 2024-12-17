@@ -69,7 +69,7 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
     const noYAxes = !config.chart.plot.yAxes || config.chart.plot.yAxes.length === 0;
 
     return (
-        <div className="relative flex flex-col overflow-auto">
+        <div className="relative flex flex-col h-full w-full">
             <H5>
                 Chart Config
             </H5>
@@ -124,6 +124,8 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
                         <Small className={'text-gray-500'}>Add Y-Axis</Small>
                     </button>
                 )}
+                {/* fill remaining space */}
+                <div className={'flex-1'}/>
             </div>
         </div>
     )

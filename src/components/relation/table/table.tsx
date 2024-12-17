@@ -81,7 +81,7 @@ export function Table(props: RelationViewTableProps) {
 
     return (
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
-            <div className="flex flex-col w-full h-full">
+            <div className="flex flex-col w-full h-full overflow-hidden">
                 <div className="relative overflow-y-auto flex-1 flex flex-row">
                     <TableContent
                         columnViewIndices={columnViewIndices}

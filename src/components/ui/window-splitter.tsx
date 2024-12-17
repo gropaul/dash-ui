@@ -73,14 +73,17 @@ export function WindowSplitter(props: WindowSplitterProps) {
 
 
     const codePercentage = props.ratio * 100;
-
+    const oppositeAxis = isHorizontal ? 'width' : 'height';
     const child1Style = {
         flex: `${codePercentage} 1 0%`,
+        alignSelf: 'stretch',
     };
 
     const child2Style = {
         flex: `${100 - codePercentage} 1 0%`,
-    };
+        alignSelf: 'stretch',
+
+};
 
     // needs exactly 2 children
     if (props.children === undefined || (props.children as any[]).length !== 2) {
@@ -94,12 +97,12 @@ export function WindowSplitter(props: WindowSplitterProps) {
     const needHandle = (props.child1Active ?? true) && (props.child2Active ?? true);
 
     return (
-        <div ref={containerRef} className={`w-full h-full flex ${flexDirection}`}>
+        <div ref={containerRef} className={`w-full h-full flex ${flexDirection} items-stretch`}>
 
             {/* Child 1 */}
             {(props.child1Active ?? true) && (
                 <div
-                    className="relative overflow-hidden"
+                    className="overflow-auto"
                     style={child1Style}
                 >
                     {child1}
@@ -137,7 +140,7 @@ export function WindowSplitter(props: WindowSplitterProps) {
             {/* Child 2 */}
             {(props.child2Active ?? true) && (
                 <div
-                    className="relative overflow-hidden"
+                    className="overflow-auto"
                     style={child2Style}
                 >
                     {child2}
