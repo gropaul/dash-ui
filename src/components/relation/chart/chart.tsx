@@ -30,13 +30,13 @@ export function Chart(props: ChartProps) {
             yAxis: {
                 columnName: relationState.data.columns[1].name,
                 label: "Y Axis",
-                color: "#5BC0BE",
+                color: "#ffb703",
             }
         }
     }
 
     return (
-        <div className="p-4 w-full h-full">
+        <div className="relative overflow-y-auto p-4 w-full h-full">
             <Exportable fileName={toSnakeCase(config.plot.title)}>
                 <MyChart data={relationState.data} config={config} />
             </Exportable>

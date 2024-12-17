@@ -25,7 +25,7 @@ export function MyChart({data, config}: MyChartProps) {
     const chartData = getReChartDataFromConfig(data, config);
 
     return (
-        <div className=" bg-white">
+        <div>
             <CardTitle>{config.plot.title}</CardTitle>
             <ChartContainer config={chartConfig}>
                 <BarChart accessibilityLayer data={chartData}>

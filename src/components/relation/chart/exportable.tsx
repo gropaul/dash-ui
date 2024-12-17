@@ -85,9 +85,7 @@ export function Exportable({ children, fileName }: ExportableProps) {
 
     return (
         <>
-            <div ref={chartRef}>
-                {children}
-            </div>
+            {children}
             <div className={'flex gap-2'}>
                 <Button onClick={exportChartAsPNG} variant={'outline'}>Export as PNG</Button>
                 <Button onClick={exportChartAsSVG} variant={'outline'} disabled={isLoading}>
