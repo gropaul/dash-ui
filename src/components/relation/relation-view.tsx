@@ -7,6 +7,7 @@ import {useEffect, useRef, useState, useCallback} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 import {TriangleAlert} from "lucide-react";
 import {TaskExecutionState} from "@/model/relation-state";
+import {WindowSplitter} from "@/components/ui/window-splitter";
 
 export interface RelationViewProps {
     relationId: string;
@@ -75,133 +76,35 @@ export function RelationView(props: RelationViewProps) {
 
     const hasError = queryState.state === "error";
 
-    const flexDirection = codeFenceState.layout === "row" ? "flex-col" : "flex-row";
     const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage * 100 : 0;
     const showCode = codeFenceState.show;
-    const codeFenceStyle = {
-        flex: `${codePercentage} 1 0%`,
-    };
-
-    const contentStyle = {
-        flex: `${100 - codePercentage} 1 0%`,
-    };
-
-    // Resizing logic similar to column resizing
-    const isHorizontal = flexDirection === "flex-row";
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [isDragging, setIsDragging] = useState(false);
-
-    const initialMousePosRef = useRef<number | null>(null);
-    const initialRatioRef = useRef<number>(codeFenceState.sizePercentage);
-
-    const onMouseDown = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsDragging(true);
-
-        // Store initial mouse position and initial ratio
-        initialMousePosRef.current = isHorizontal ? e.clientX : e.clientY;
-        initialRatioRef.current = codeFenceState.sizePercentage;
-    };
-
-    const onMouseMove = useCallback((e: MouseEvent) => {
-        if (!isDragging || !containerRef.current || initialMousePosRef.current === null) return;
-
-        const rect = containerRef.current.getBoundingClientRect();
-        const currentMousePos = isHorizontal ? e.clientX : e.clientY;
-        const delta = currentMousePos - initialMousePosRef.current;
-
-        // Convert the delta to a ratio change based on container size
-        const dimension = isHorizontal ? rect.width : rect.height;
-        const ratioChange = delta / dimension;
-        const newRatio = Math.min(Math.max(initialRatioRef.current + ratioChange, 0.1), 0.9);
-
-        setCodeFenceState(props.relationId, newRatio);
-    }, [isDragging, isHorizontal, props.relationId, setCodeFenceState]);
-
-    const onMouseUp = useCallback(() => {
-        setIsDragging(false);
-        initialMousePosRef.current = null;
-    }, []);
-
-    useEffect(() => {
-        if (isDragging) {
-            document.addEventListener("mousemove", onMouseMove);
-            document.addEventListener("mouseup", onMouseUp);
-        } else {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-        }
-
-        return () => {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-        };
-    }, [isDragging, onMouseMove, onMouseUp]);
 
     return (
-        <div ref={containerRef} className="w-full h-full flex flex-col p-0 m-0">
+        <div className="w-full h-full flex flex-col p-0 m-0">
             {/* Header */}
             <RelationViewHeader relationId={relationId}/>
 
             {/* Content */}
             <div className={`flex-1 overflow-auto`}>
-                {/* Main content */}
-                <div className={`w-full h-full flex ${flexDirection}`}>
-                    {/* Query View Section */}
-                    <div
-                        className="overflow-hidden"
-                        style={codeFenceStyle}
-                    >
-                        <RelationViewQueryView relationId={relationId}/>
-                    </div>
-
-                    {/* Resize Handle */}
-                    {showCode && (
-
-                        <div
-                            className={`${isHorizontal ? 'w-px h-full' : 'h-px w-full'} relative`}
-                            style={{zIndex: 50, cursor: isHorizontal ? 'col-resize' : 'row-resize'}}
-                            onMouseDown={onMouseDown}
-                        >
-                            {/* The visible 1px line */}
-                            <div
-                                className={`${isHorizontal ? 'h-full' : 'w-full'} border-b border-r border-gray-200 dark:border-gray-700`}></div>
-
-                            {/* Invisible hit area (no visible whitespace or extra layout space) */}
-                            <div
-                                className="absolute"
-                                style={{
-                                    top: isHorizontal ? '0' : '-5px',
-                                    left: isHorizontal ? '-5px' : '0',
-                                    width: isHorizontal ? '11px' : '100%',
-                                    height: isHorizontal ? '100%' : '11px',
-                                    background: 'transparent',
-                                    cursor: isHorizontal ? 'ew-resize' : 'ns-resize',
-                                    pointerEvents: 'all',
-                                }}
-                            ></div>
-                        </div>
-                    )}
-
-
-                    {/* Content Section */}
-                    <div
-                        className="relative overflow-hidden"
-                        style={contentStyle}
-                    >
-                        <ContentWrapper
-                            hasError={hasError}
-                            isLoading={isLoading}
-                            relationId={relationId}
-                            queryState={queryState}
-                        />
-                    </div>
-                </div>
+                <WindowSplitter
+                    child_1_active={showCode}
+                    child_2_active={true}
+                    ratio={codePercentage / 100}
+                    onChange={(ratio) => setCodeFenceState(relationId, ratio)}
+                    layout={codeFenceState.layout}
+                >
+                    <RelationViewQueryView relationId={relationId}/>
+                    <ContentWrapper
+                        hasError={hasError}
+                        isLoading={isLoading}
+                        relationId={relationId}
+                        queryState={queryState}
+                    />
+                </WindowSplitter>
             </div>
         </div>
     );
 }
-
 export interface ContentWrapperProps {
     hasError: boolean;
     isLoading: boolean;

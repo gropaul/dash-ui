@@ -8,12 +8,12 @@ import {deepEqual} from "@/platform/utils";
 
 //
 
-type CodeFenceLayout = 'row' | 'column';
+export type Layout = 'row' | 'column';
 
 export interface CodeFenceViewState {
     show: boolean;
     sizePercentage: number; // percentage, 0-1
-    layout: CodeFenceLayout;
+    layout: Layout;
 }
 
 export interface RelationViewBaseState {
