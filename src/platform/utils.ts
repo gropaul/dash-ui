@@ -17,6 +17,21 @@ export function deepEqual(obj1: any, obj2: any) {
     return true;
 }
 
+export function deepClone<T>(obj: T): T {
+    if (typeof obj !== 'object' || obj === null) return obj;
+
+    if (Array.isArray(obj)) {
+        return obj.map(deepClone) as any;
+    }
+
+    const newObj = {} as T;
+    for (const key in obj) {
+        newObj[key] = deepClone(obj[key]);
+    }
+
+    return newObj;
+}
+
 
 // formatDuration takes a duration in seconds and returns a string representation of the duration
 export function formatDuration(duration: number): string {
@@ -34,4 +49,50 @@ export function formatDuration(duration: number): string {
         const minutes = Math.floor((duration % 3600) / 60);
         return `${hours}h ${minutes}m`;
     }
+}
+
+
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+export function safeDeepUpdate<T extends Record<string, any>>(base: T, updates: DeepPartial<T>): T {
+    for (const key in updates) {
+        const updateValue = updates[key];
+        const baseValue = base[key];
+
+        // If the key doesn't exist in base, we may need to create it
+        if (!(key in base)) {
+            // If updateValue is an object, initialize an object and recurse
+            if (
+                updateValue &&
+                typeof updateValue === 'object' &&
+                !Array.isArray(updateValue)
+            ) {
+                base[key] = {} as T[typeof key];
+                safeDeepUpdate(base[key], updateValue);
+            } else {
+                // If it's a primitive or array, just assign it directly
+                base[key] = updateValue as T[typeof key];
+            }
+            continue;
+        }
+
+        // If both baseValue and updateValue are objects, recurse
+        if (
+            baseValue &&
+            updateValue &&
+            typeof baseValue === 'object' &&
+            typeof updateValue === 'object' &&
+            !Array.isArray(baseValue) &&
+            !Array.isArray(updateValue)
+        ) {
+            safeDeepUpdate(baseValue, updateValue);
+        } else {
+            // Otherwise, overwrite the value directly
+            base[key] = updateValue as T[typeof key];
+        }
+    }
+
+    return base;
 }

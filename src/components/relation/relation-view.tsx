@@ -87,8 +87,8 @@ export function RelationView(props: RelationViewProps) {
             {/* Content */}
             <div className={`flex-1 overflow-auto`}>
                 <WindowSplitter
-                    child_1_active={showCode}
-                    child_2_active={true}
+                    child1Active={showCode}
+                    child2Active={true}
                     ratio={codePercentage / 100}
                     onChange={(ratio) => setCodeFenceState(relationId, ratio)}
                     layout={codeFenceState.layout}

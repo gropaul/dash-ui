@@ -8,8 +8,8 @@ export interface WindowSplitterProps {
 
     children: React.ReactNode,
 
-    child_1_active: boolean,
-    child_2_active: boolean,
+    child1Active?: boolean,
+    child2Active?: boolean,
 
     ratio: number,
     layout: Layout,
@@ -17,6 +17,7 @@ export interface WindowSplitterProps {
 }
 
 export function WindowSplitter(props: WindowSplitterProps) {
+
 
     const flexDirection = props.layout === "row" ? "flex-col" : "flex-row";
     const isHorizontal = flexDirection === "flex-row";
@@ -70,7 +71,6 @@ export function WindowSplitter(props: WindowSplitterProps) {
         };
     }, [isDragging, onMouseMove, onMouseUp]);
 
-    const needHandle = props.child_1_active && props.child_2_active;
 
     const codePercentage = props.ratio * 100;
 
@@ -91,11 +91,13 @@ export function WindowSplitter(props: WindowSplitterProps) {
     const child1 = children[0];
     const child2 = children[1];
 
+    const needHandle = (props.child1Active ?? true) && (props.child2Active ?? true);
+
     return (
         <div ref={containerRef} className={`w-full h-full flex ${flexDirection}`}>
 
             {/* Child 1 */}
-            {props.child_1_active && (
+            {(props.child1Active ?? true) && (
                 <div
                     className="relative overflow-hidden"
                     style={child1Style}
@@ -133,7 +135,7 @@ export function WindowSplitter(props: WindowSplitterProps) {
             )}
 
             {/* Child 2 */}
-            {props.child_2_active && (
+            {(props.child2Active ?? true) && (
                 <div
                     className="relative overflow-hidden"
                     style={child2Style}

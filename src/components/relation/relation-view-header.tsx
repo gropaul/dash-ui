@@ -28,7 +28,6 @@ export function RelationViewHeader({ relationId }: RelationViewHeaderProps) {
     function onShowCode() {
         updateRelationViewState(relationId, {
             codeFenceState: {
-                ...codeFenceState,
                 show: !codeFenceState.show,
             }
         });
@@ -37,7 +36,6 @@ export function RelationViewHeader({ relationId }: RelationViewHeaderProps) {
     function toggleCodeFenceLayout() {
         updateRelationViewState(relationId, {
             codeFenceState: {
-                ...codeFenceState,
                 layout: codeFenceState.layout === 'column' ? 'row' : 'column',
             }
         });

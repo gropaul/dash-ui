@@ -1,6 +1,6 @@
 "use client"
 
-import {Bar, BarChart, CartesianGrid, XAxis} from "recharts"
+import {Bar, BarChart, CartesianGrid, XAxis, YAxis} from "recharts"
 
 import {
     ChartConfig as RechartConfig,
@@ -9,9 +9,10 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 import {RelationData} from "@/model/relation";
-import {ChartConfig} from "@/components/relation/chart/rechart/config";
+import {ChartConfig} from "@/model/relation-view-state/chart";
 import {getReChartDataFromConfig} from "@/components/relation/chart/rechart/utils";
 import {CardTitle} from "@/components/ui/card";
+import {H1, H3, H4, H5} from "@/components/ui/typography";
 
 const chartConfig = {} satisfies RechartConfig
 
@@ -23,26 +24,35 @@ export interface MyChartProps {
 export function ChartContent({data, config}: MyChartProps) {
 
     const chartData = getReChartDataFromConfig(data, config);
-
     return (
         <div className="w-full h-full flex flex-col items-center">
-            <CardTitle>{config.plot.title}</CardTitle>
-            <div className="flex-grow  w-full">
+            {config.plot.title && (
+                <H5>{config.plot.title}</H5>
+            )}
+            <div className="flex-grow w-full min-h-4">
                 <ChartContainer config={chartConfig} className={"w-full h-full"}>
                     <BarChart accessibilityLayer data={chartData}>
                         <CartesianGrid vertical={false}/>
-                        <XAxis
-                            dataKey={config.plot.xAxis.columnName}
+                        {config.plot.xAxis && (<XAxis
+                            dataKey={config.plot.xAxis.columnId}
                             tickLine={false}
                             tickMargin={10}
-                            axisLine={false}
-                            tickFormatter={(value) => value.slice(0, 3)}
-                        />
+                            axisLine={true}
+                        />)}
+
                         <ChartTooltip
                             cursor={false}
-                            content={<ChartTooltipContent indicator="dashed"/>}
+                            content={<ChartTooltipContent/>}
                         />
-                        <Bar dataKey={config.plot.yAxis.columnName} radius={4} fill={config.plot.yAxis.color}/>
+                        {
+                            config.plot.yAxes?.map((axis, index) => (
+                                <>
+                                    <Bar key={index} dataKey={axis.columnId} radius={4} fill={axis.color}/>
+                                </>
+                            ))
+                        }
+                        <YAxis domain={[0, 'auto']} tickCount={5} />
+
                     </BarChart>
                 </ChartContainer>
             </div>

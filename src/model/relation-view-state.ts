@@ -5,6 +5,11 @@ import {
 } from "@/model/relation-view-state/table";
 import {RelationData} from "@/model/relation";
 import {deepEqual} from "@/platform/utils";
+import {
+    ChartViewState,
+    getInitialChartViewState,
+    getInitialChartViewStateEmpty
+} from "@/model/relation-view-state/chart";
 
 //
 
@@ -24,6 +29,7 @@ export interface RelationViewBaseState {
 
 export interface RelationViewState extends RelationViewBaseState {
     tableState: TableViewState
+    chartState: ChartViewState
 }
 
 export type RelationViewType = 'table' | 'chart' | 'map';
@@ -55,12 +61,14 @@ export function getInitViewState(displayName: string, data?: RelationData, showC
     if (!data) {
         return {
             ...baseState,
+            chartState: getInitialChartViewStateEmpty(),
             tableState: getInitialTableDisplayStateEmpty(),
         };
     }
 
     return {
         ...baseState,
+        chartState: getInitialChartViewState(data),
         tableState: getInitialTableDisplayState(data),
     };
 }

@@ -69,8 +69,8 @@ export function TableColumnHead(props: ColumnHeadProps) {
 }
 
 
-export function ColumnIcon({type}: { type: ValueType }) {
-    const iconSize = 16;
+export function ColumnIcon({type, size}: { type: ValueType, size?: number }) {
+    const iconSize = size || 16;
     switch (type) {
         case 'Integer':
             return <Hash size={iconSize}/>;

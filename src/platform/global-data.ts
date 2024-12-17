@@ -10,10 +10,6 @@ export const CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB = 'file-system-over-duckdb';
 export const DUCKDB_BASE_SCHEMA = 'main';
 export const DUCKDB_IN_MEMORY_DB = 'memory';
 
-export const FIGMA_COLORS = [
-    '#14AE5C',
-    '#0D99FF',
-    '#FFA629',
-    '#F24822',
-    '#FFCD29'
-]
+export const DEFAULT_COLORS = ["#ea5545", "#f46a9b", "#ef9b20", "#edbf33", "#ede15b", "#bdcf32", "#87bc45", "#27aeef", "#b33dc6"]
+
+

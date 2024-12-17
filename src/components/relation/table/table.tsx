@@ -30,7 +30,6 @@ export function Table(props: RelationViewTableProps) {
     function setTableState(state: TableViewState) {
         setRelationViewState(
             props.relationId, {
-                ...relationState.viewState,
                 tableState: state,
             });
     }

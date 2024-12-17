@@ -165,10 +165,16 @@ class DuckDBOverHttp implements DataConnection {
         const rows = json.data;
         const meta = json.meta;
 
+        for (const column of meta) {
+            const type = column.type;
+            const parsedType = duckDBTypeToValueType(type);
+            console.log(`${column.name}: ${type} -> ${parsedType}`);
+        }
         return {
             columns: meta.map((column: any) => ({
                 name: column.name,
                 type: duckDBTypeToValueType(column.type),
+                id: column.name,
             })),
             rows
         };

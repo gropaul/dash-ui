@@ -20,6 +20,7 @@ import {RelationViewState} from "@/model/relation-view-state";
 import {DataSourceGroup} from "@/model/connection";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
+import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/utils";
 
 
 interface RelationStates {
@@ -35,7 +36,7 @@ interface RelationStates {
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
     setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
     getRelationViewState: (relationId: string) => RelationViewState,
-    updateRelationViewState: (relationId: string, viewState: Partial<RelationViewState>) => void,
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 
     showSchema: (connectionId: string, databaseId: string, schema: DataSourceGroup) => Promise<void>,
     getSchemaState: (schemaId: string) => SchemaState,
@@ -192,19 +193,21 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
     getRelationViewState: (relationId: string) => {
         return get().relations[relationId].viewState;
     },
-    updateRelationViewState: (relationId: string, viewState: Partial<RelationViewState>) => {
+    updateRelationViewState: (relationId: string, partialUpdate: DeepPartial<RelationViewState>) => {
+
+        const currentViewState = deepClone(get().relations[relationId].viewState);
+        safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
+
         set((state) => ({
             relations: {
                 ...state.relations,
                 [relationId]: {
                     ...state.relations[relationId],
-                    viewState: {
-                        ...state.relations[relationId].viewState,
-                        ...viewState,
-                    },
+                    viewState: currentViewState,
                 },
             },
         }));
+
     },
     closeTab: (tabId: string) => {
         // can be either a relation, schema or database

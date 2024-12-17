@@ -1,9 +1,15 @@
 import {RelationData} from "@/model/relation";
-import {ChartConfig} from "@/components/relation/chart/rechart/config";
+import {ChartConfig} from "@/model/relation-view-state/chart";
 
 
 export function  getReChartDataFromConfig(data: RelationData, config: ChartConfig): any[] {
-    const neededColumns = [config.plot.xAxis.columnName, config.plot.yAxis.columnName];
+    const neededColumns = []
+    if (config.plot.xAxis) {
+        neededColumns.push(config.plot.xAxis.columnId);
+    }
+    for (const yAxis of config.plot.yAxes ?? []) {
+        neededColumns.push(yAxis.columnId);
+    }
     return getReChartDataFromRelation(data, neededColumns);
 }
 
