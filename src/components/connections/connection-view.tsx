@@ -8,7 +8,9 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {DataConnection, DataConnectionConfig} from "@/model/connection";
 import {
     DropdownMenu,
-    DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";

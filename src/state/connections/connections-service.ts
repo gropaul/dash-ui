@@ -1,4 +1,4 @@
-import {DataConnectionsState, useConnectionsState} from "@/state/connections.state";
+import {DataConnectionsState} from "@/state/connections.state";
 import {DuckDBWasm, getDuckDBWasmConnection} from "@/state/connections/duckdb-wasm";
 import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
 import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";

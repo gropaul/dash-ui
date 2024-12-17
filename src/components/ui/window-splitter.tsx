@@ -1,7 +1,5 @@
 import {Layout} from "@/model/relation-view-state";
 import {useCallback, useEffect, useRef, useState} from "react";
-import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
-import {ContentWrapper} from "@/components/relation/relation-view";
 
 
 export interface WindowSplitterProps {

@@ -1,12 +1,12 @@
 import {AxisConfig, ChartViewState} from "@/model/relation-view-state/chart";
-import {H5, Muted, Small} from "@/components/ui/typography";
+import {H5, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {Column} from "@/model/column";
 import {useRelationsState} from "@/state/relations.state";
 import {Separator} from "@/components/ui/separator";
 import {CirclePlus} from "lucide-react";
 import {DEFAULT_COLORS} from "@/platform/global-data";
-import { Input } from "@/components/ui/input";
+import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 
 

@@ -1,16 +1,6 @@
 import React, {useRef} from 'react';
 import {Column} from "@/model/column";
-import {
-    Calendar,
-    ChevronDown,
-    ChevronsUpDown,
-    ChevronUp,
-    CircleHelp,
-    Filter,
-    Hash,
-    Text,
-    ToggleLeft
-} from 'lucide-react';
+import {Calendar, ChevronDown, ChevronsUpDown, ChevronUp, CircleHelp, Hash, Text, ToggleLeft} from 'lucide-react';
 import {ColumnSorting, getNextColumnSorting} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";

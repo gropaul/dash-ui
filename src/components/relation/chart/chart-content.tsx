@@ -2,17 +2,11 @@
 
 import {Bar, BarChart, CartesianGrid, XAxis, YAxis} from "recharts"
 
-import {
-    ChartConfig as RechartConfig,
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-} from "@/components/ui/chart"
+import {ChartConfig as RechartConfig, ChartContainer, ChartTooltip, ChartTooltipContent,} from "@/components/ui/chart"
 import {RelationData} from "@/model/relation";
 import {ChartConfig} from "@/model/relation-view-state/chart";
 import {getReChartDataFromConfig} from "@/components/relation/chart/rechart/utils";
-import {CardTitle} from "@/components/ui/card";
-import {H1, H3, H4, H5} from "@/components/ui/typography";
+import {H5} from "@/components/ui/typography";
 
 const chartConfig = {} satisfies RechartConfig
 

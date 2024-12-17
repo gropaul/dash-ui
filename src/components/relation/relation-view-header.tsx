@@ -1,10 +1,9 @@
 import {Code, Columns2, Rows2} from "lucide-react";
-import { useRelationsState } from "@/state/relations.state";
-import { shallow } from "zustand/shallow";
-import { formatDuration } from "@/platform/utils";
-import { ViewHeader } from "@/components/basics/basic-view/view-header";
+import {useRelationsState} from "@/state/relations.state";
+import {shallow} from "zustand/shallow";
+import {formatDuration} from "@/platform/utils";
+import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {RelationViewType} from "@/model/relation-view-state";
-import {Select} from "@headlessui/react";
 import {ButtonSelect} from "@/components/basics/input/button-select";
 
 export interface RelationViewHeaderProps {

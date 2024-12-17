@@ -3,7 +3,7 @@ import {RelationViewContent} from "@/components/relation/relation-view-content";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {shallow} from "zustand/shallow";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
-import {useEffect, useRef, useState, useCallback} from "react";
+import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 import {TriangleAlert} from "lucide-react";
 import {TaskExecutionState} from "@/model/relation-state";

@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
+
 // import Plot from "react-plotly.js";
 
 interface RelationViewMapProps {

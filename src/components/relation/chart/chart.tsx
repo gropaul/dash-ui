@@ -2,7 +2,6 @@ import {Exportable} from "@/components/relation/chart/exportable";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 import {ChartContent} from "@/components/relation/chart/chart-content";
-import {ChartConfig, ChartViewState} from "@/model/relation-view-state/chart";
 import {toSnakeCase} from "@/platform/string-utils";
 import {WindowSplitter} from "@/components/ui/window-splitter";
 import {ChartConfigView} from "@/components/relation/chart/chart-config-view";

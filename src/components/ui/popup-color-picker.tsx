@@ -1,5 +1,5 @@
-import React, {useState, useRef, useEffect} from 'react'
-import {SketchPicker, ColorResult, RGBColor} from 'react-color'
+import React, {useEffect, useRef, useState} from 'react'
+import {ColorResult, SketchPicker} from 'react-color'
 import {DEFAULT_COLORS} from "@/platform/global-data";
 
 interface ButtonColorProps {

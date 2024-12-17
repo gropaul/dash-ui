@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react';
+import {ChevronDown} from 'lucide-react';
 
 interface CustomSelectProps {
     options: { value: string; label: string }[];

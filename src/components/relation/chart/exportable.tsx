@@ -1,7 +1,7 @@
 "use client"
 
-import { saveAs } from 'file-saver';
-import { useRef, useState } from "react";
+import {saveAs} from 'file-saver';
+import {useRef} from "react";
 import satori from "satori"; // Import Satori
 import domtoimage from "dom-to-image";
 
