@@ -2,7 +2,6 @@
 
 import { saveAs } from 'file-saver';
 import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import satori from "satori"; // Import Satori
 import domtoimage from "dom-to-image";
 
@@ -14,7 +13,6 @@ export interface ExportableProps {
 
 export function Exportable({ children, fileName }: ExportableProps) {
     const chartRef = useRef<HTMLDivElement>(null);
-    const [isLoading, setIsLoading] = useState(false);
 
     const exportChartAsPNG = () => {
         // If you still want PNG export, you can keep your dom-to-image code here.
@@ -37,8 +35,6 @@ export function Exportable({ children, fileName }: ExportableProps) {
             console.error("No chart ref found");
             return;
         }
-
-        setIsLoading(true);
 
         try {
             // Measure the DOM element to get width and height
@@ -78,20 +74,12 @@ export function Exportable({ children, fileName }: ExportableProps) {
             saveAs(blob, `${fileName ?? "chart"}.svg`);
         } catch (error: any) {
             console.error("Failed to convert to SVG with Satori", error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
     return (
-        <>
-            {children}
-            <div className={'flex gap-2'}>
-                <Button onClick={exportChartAsPNG} variant={'outline'}>Export as PNG</Button>
-                <Button onClick={exportChartAsSVG} variant={'outline'} disabled={isLoading}>
-                    {isLoading ? "Exporting..." : "Export as SVG"}
-                </Button>
-            </div>
-        </>
+        <div ref={chartRef} className={"w-full h-full"}>
+                {children}
+        </div>
     );
 }

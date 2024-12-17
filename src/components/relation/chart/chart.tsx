@@ -1,7 +1,7 @@
 import {Exportable} from "@/components/relation/chart/exportable";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
-import {MyChart} from "@/components/relation/chart/my-chart";
+import {ChartContent} from "@/components/relation/chart/chart-content";
 import {ChartConfig} from "@/components/relation/chart/rechart/config";
 import {toSnakeCase} from "@/platform/string-utils";
 
@@ -36,9 +36,9 @@ export function Chart(props: ChartProps) {
     }
 
     return (
-        <div className="relative overflow-y-auto p-4 w-full h-full">
+        <div className="p-4 w-full h-full overflow-auto">
             <Exportable fileName={toSnakeCase(config.plot.title)}>
-                <MyChart data={relationState.data} config={config} />
+                <ChartContent data={relationState.data} config={config} />
             </Exportable>
         </div>
     )
