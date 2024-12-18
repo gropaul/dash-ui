@@ -1,13 +1,18 @@
 export type ValueType = 'Integer' | 'Float' | 'String' | 'Boolean' | 'Timestamp' | 'Struct' | 'List' | 'Map' | 'Unknown';
 
 export function duckDBTypeToValueType(duckDBType: string): ValueType {
+
+    // if the type contains brackets, take everything before the brackets
+    // to combat types like "VARCHAR(255)", DECIMAL(10,2), etc.
+    duckDBType = duckDBType.split('(')[0];
+    duckDBType = duckDBType.trim();
+
     switch (duckDBType.toLowerCase()) {
         // Boolean Types
         case "boolean":
         case "bool":
         case "logical":
             return 'Boolean';
-
         // Integer Types
         case "tinyint":
         case "int1":
@@ -18,7 +23,6 @@ export function duckDBTypeToValueType(duckDBType: string): ValueType {
         case "int16":
         case "int32":
         case "int64":
-
         case "short":
         case "integer":
         case "int":
