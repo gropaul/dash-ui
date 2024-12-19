@@ -1,5 +1,5 @@
 import {RelationData} from "@/model/relation";
-import {ChartConfig} from "@/model/relation-view-state/chart";
+import {AxisConfig, ChartConfig, PlotType} from "@/model/relation-view-state/chart";
 
 
 export function  getReChartDataFromConfig(data: RelationData, config: ChartConfig): any[] {
@@ -12,6 +12,18 @@ export function  getReChartDataFromConfig(data: RelationData, config: ChartConfi
     }
     return getReChartDataFromRelation(data, neededColumns);
 }
+
+export function getDataForChartElement(axis: AxisConfig, data: RelationData, type: PlotType) {
+    switch (type) {
+        case 'pie':
+            const neededColumn = [axis.columnId];
+            return getReChartDataFromRelation(data, neededColumn);
+
+        default:
+            return undefined
+    }
+}
+
 
 export function getReChartDataFromRelation(data: RelationData, columns: string[]): any[] {
     const resultSize = data.rows.length;

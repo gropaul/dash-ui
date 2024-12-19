@@ -1,7 +1,8 @@
 import {Layout} from "@/model/relation-view-state";
 import {RelationData} from "@/model/relation";
 
-export type PlotType = 'bar'
+export type PlotType = 'bar' | 'area' | 'line' | 'scatter' | 'pie' | 'radar';
+export const AVAILABLE_PLOT_TYPES: PlotType[] = ["bar", "area", "line", "scatter", "pie", "radar"]
 
 export interface AxisConfig {
     label: string;
@@ -13,7 +14,7 @@ export interface PlotConfig {
     title?: string;
     xAxis?: AxisConfig;
     yAxes?: AxisConfig[]; // can have multiple y axes over the same x axis
-    type?: PlotType;
+    type: PlotType;
 }
 
 export interface ChartConfig {
@@ -34,11 +35,13 @@ export interface ChartViewState {
 export function getInitialChartViewStateEmpty(): ChartViewState {
     return {
         chart: {
-            plot: {}
+            plot: {
+                type: 'bar'
+            }
         },
         configView: {
             showConfig: true,
-            configPlotRatio: 0.7,
+            configPlotRatio: 0.5,
             layout: 'column',
         }
     }
@@ -48,12 +51,12 @@ export function getInitialChartViewState(data: RelationData): ChartViewState {
     return {
         chart: {
             plot: {
-
+                type: 'bar'
             }
         },
         configView: {
             showConfig: true,
-            configPlotRatio: 0.7,
+            configPlotRatio: 0.5,
             layout: 'column',
         }
     }

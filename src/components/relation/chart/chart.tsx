@@ -46,7 +46,7 @@ export function Chart(props: ChartProps) {
                         <ChartContent data={relationState.data} config={config.chart} />
                     </Exportable>
                 </div>
-                <div className={'p-2 w-full h-full overflow-auto'}>
+                <div className={'p-2 w-full h-full overflow-y-auto'}>
                     <ChartConfigView
                         relationId={props.relationId}
                         config={config}

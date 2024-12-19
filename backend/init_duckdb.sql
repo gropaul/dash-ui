@@ -1,3 +1,5 @@
+LOAD httpfs;
+
 -- INSTALL httpserver community extension
 INSTALL httpserver FROM community;
 LOAD httpserver;

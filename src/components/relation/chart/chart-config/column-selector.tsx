@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {Check, ChevronDown, MoveRight, MoveUp} from "lucide-react"
+import {Check, ChevronDown, MoveRight, MoveUp, Trash2} from "lucide-react"
 
 import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
@@ -12,18 +12,21 @@ import {ColumnIcon} from "@/components/relation/table/table-column-head";
 import {Muted} from "@/components/ui/typography";
 import PopupColorPicker from "@/components/ui/popup-color-picker";
 import {AxisConfig} from "@/model/relation-view-state/chart";
+import {CommandSeparator} from "cmdk";
+import {Separator} from "@/components/ui/separator";
 
 interface ColumnSelectorProps {
     columns: Column[]
     axis?: AxisConfig,
     axisType: "x" | "y"
     updateAxis: (update: Partial<AxisConfig>) => void
+    deleteAxis?: () => void
 }
 
 const PLACEHOLDER = "Select column..."
 
 // @ts-ignore
-export function ColumnSelector({columns, axis, axisType, updateAxis}: ColumnSelectorProps) {
+export function ColumnSelector({columns, axis, axisType, updateAxis, deleteAxis}: ColumnSelectorProps) {
 
     const [open, setOpen] = React.useState(false)
     const currentColumn = columns.find((column) => column.id === axis?.columnId)
@@ -37,11 +40,11 @@ export function ColumnSelector({columns, axis, axisType, updateAxis}: ColumnSele
     }
 
     return (
-        <div className='flex flex-row gap-2 items-center'>
+        <div className='flex flex-row gap-2 items-center w-full'>
             {/* Button that opens the color picker popup for y axis */}
             {axisType === "y" && (
                 <>
-                    <div />
+                    <div/>
                     <PopupColorPicker
                         color={axis?.color}
                         setColor={setAxisColor}
@@ -56,13 +59,16 @@ export function ColumnSelector({columns, axis, axisType, updateAxis}: ColumnSele
                         aria-expanded={open}
                         className="w-full justify-between"
                     >
-                        <div className="flex items-center gap-2">
+                        <div className="flex-1 flex items-center gap-2">
                             {currentColumn && (
                                 <ColumnIcon size={14} key={currentColumn.id} type={currentColumn.type}/>
                             )}
-                            {axis?.columnId
-                                ? columns.find((column) => column.id === axis.columnId)?.name
-                                : PLACEHOLDER}
+                            {/* Column name, needs to shrinkg if not enough space */}
+                            <div>
+                                {axis?.columnId
+                                    ? columns.find((column) => column.id === axis.columnId)?.name
+                                    : PLACEHOLDER}
+                            </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <AxisDetails axis={axisType}/>
@@ -74,7 +80,7 @@ export function ColumnSelector({columns, axis, axisType, updateAxis}: ColumnSele
                     <Command>
                         <CommandInput placeholder={PLACEHOLDER}/>
                         <CommandList>
-                            <CommandEmpty>No framework found.</CommandEmpty>
+                            <CommandEmpty>No Column found.</CommandEmpty>
                             <CommandGroup>
                                 {columns.map((column) => (
                                     <CommandItem
@@ -97,6 +103,23 @@ export function ColumnSelector({columns, axis, axisType, updateAxis}: ColumnSele
                                 ))}
                             </CommandGroup>
                         </CommandList>
+                        {deleteAxis && (
+                            <>
+                                <Separator/>
+                                <CommandGroup>
+                                    <CommandItem
+                                        onSelect={() => {
+                                            deleteAxis()
+                                            setOpen(false)
+                                        }}
+                                    >
+                                        <Trash2/>
+                                        <span>Delete </span>
+                                    </CommandItem>
+                                </CommandGroup>
+                            </>
+                        )}
+
                     </Command>
                 </PopoverContent>
             </Popover>

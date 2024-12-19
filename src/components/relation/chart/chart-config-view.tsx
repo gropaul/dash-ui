@@ -1,5 +1,5 @@
-import {AxisConfig, ChartViewState} from "@/model/relation-view-state/chart";
-import {H5, Small} from "@/components/ui/typography";
+import {AxisConfig, ChartViewState, PlotType} from "@/model/relation-view-state/chart";
+import {H5, Muted, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {Column} from "@/model/column";
 import {useRelationsState} from "@/state/relations.state";
@@ -8,6 +8,7 @@ import {CirclePlus} from "lucide-react";
 import {DEFAULT_COLORS} from "@/platform/global-data";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
+import {ChartTypeSelector} from "@/components/relation/chart/chart-config/chart-type-selector";
 
 
 interface ChartConfigProps {
@@ -15,6 +16,7 @@ interface ChartConfigProps {
     config: ChartViewState;
     columns: Column[];
 }
+
 export function ChartConfigView({relationId, config, columns}: ChartConfigProps) {
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
 
@@ -23,10 +25,37 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
             chartState: {
                 chart: {
                     plot: {
-                        title: title
-                    }
-                }
-            }
+                        title: title,
+                    },
+                },
+            },
+        });
+    }
+
+    function updatePlotType(type: PlotType) {
+        updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        type: type,
+                    },
+                },
+            },
+        });
+    }
+
+    function deleteYAxis(index: number) {
+        const yAxes = config.chart.plot.yAxes ?? ([] as Partial<AxisConfig>[]);
+        yAxes.splice(index, 1);
+        updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        // @ts-ignore
+                        yAxes: yAxes,
+                    },
+                },
+            },
         });
     }
 
@@ -44,14 +73,14 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
     }
 
     function updateYAxis(index: number, update: Partial<AxisConfig>) {
-        const yAxes = config.chart.plot.yAxes ?? [] as Partial<AxisConfig>[];
+        const yAxes = config.chart.plot.yAxes ?? ([] as Partial<AxisConfig>[]);
         if (yAxes.length <= index) {
             yAxes.push(update);
         } else {
             yAxes[index] = {
                 ...yAxes[index],
-                ...update
-            }
+                ...update,
+            };
         }
 
         updateRelationViewState(relationId, {
@@ -70,13 +99,11 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
 
     return (
         <div className="relative flex flex-col h-full w-full">
-            <H5>
-                Chart Config
-            </H5>
-            <div className={'flex-1 flex flex-col gap-2'}>
+            <H5>Chart Config</H5>
+            <div className="flex-1 flex flex-col gap-2 w-full">
                 <Separator/>
-                <div className="grid w-full max-w-sm items-center gap-1.5">
-                    <Label htmlFor="title">Title</Label>
+                <div className="grid w-full items-center gap-1.5 shrink-0">
+                    <Label htmlFor="title"><Muted>TITLE</Muted></Label>
                     <Input
                         type="text"
                         id="title"
@@ -85,7 +112,12 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
                         onChange={(e) => updateTitle(e.target.value)}
                     />
                 </div>
-                <Label>Data</Label>
+                <Label htmlFor="title"><Muted>TYPE</Muted></Label>
+                <ChartTypeSelector
+                    type={config.chart.plot.type}
+                    onPlotTypeChange={updatePlotType}
+                />
+                <Label><Muted>DATA</Muted></Label>
                 <ColumnSelector
                     axisType={"x"}
                     axis={config.chart.plot.xAxis}
@@ -97,6 +129,7 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
                         axisType={"y"}
                         key={index}
                         axis={yAxis}
+                        deleteAxis={() => deleteYAxis(index)}
                         columns={columns}
                         updateAxis={(update) => updateYAxis(index, update)}
                     />
@@ -105,28 +138,35 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
                     <ColumnSelector
                         axisType={"y"}
                         columns={columns}
-                        updateAxis={(update) => updateYAxis(0, {
-                            color: DEFAULT_COLORS[0],
-                            ...update,
-                        })}
+                        updateAxis={(update) =>
+                            updateYAxis(0, {
+                                color: DEFAULT_COLORS[0],
+                                ...update,
+                            })
+                        }
                     />
                 )}
-                {!noYAxes && (
-                    <button
-                        onClick={() => updateYAxis(config.chart.plot.yAxes!.length, {
-                            color: DEFAULT_COLORS[config.chart.plot.yAxes!.length % DEFAULT_COLORS.length]
-                        })}
-                        className={'flex items-center gap-2 p-2'}
-                    >
-                        <div className={'w-4 h-4 mr-1 flex items-center justify-center'}>
-                            <CirclePlus size={16} className={'text-gray-500'}/>
-                        </div>
-                        <Small className={'text-gray-500'}>Add Y-Axis</Small>
-                    </button>
-                )}
-                {/* fill remaining space */}
-                <div className={'flex-1'}/>
+
+                <button
+                    onClick={() =>
+                        updateYAxis(config.chart.plot.yAxes!.length, {
+                            color:
+                                DEFAULT_COLORS[
+                                config.chart.plot.yAxes!.length % DEFAULT_COLORS.length
+                                    ],
+                        })
+                    }
+                    className="flex items-center gap-2 p-2 shrink-0"
+                >
+                    <div className="w-4 h-4 mr-1 flex items-center justify-center">
+                        <CirclePlus size={16} className="text-gray-500"/>
+                    </div>
+                    <Small className="text-gray-500">Add Y-Axis</Small>
+                </button>
+
+                {/* Fill remaining space */}
+                <div className="flex-1 shrink"/>
             </div>
         </div>
-    )
+    );
 }
