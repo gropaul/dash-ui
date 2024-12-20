@@ -112,7 +112,7 @@ export function WindowSplitter(props: WindowSplitterProps) {
 
                 <div
                     className={`${isHorizontal ? 'w-px h-full' : 'h-px w-full'} relative`}
-                    style={{zIndex: 50, cursor: isHorizontal ? 'col-resize' : 'row-resize'}}
+                    style={{zIndex: 40, cursor: isHorizontal ? 'col-resize' : 'row-resize'}}
                     onMouseDown={onMouseDown}
                 >
                     {/* The visible 1px line */}

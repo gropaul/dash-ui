@@ -4,14 +4,24 @@ import {shallow} from "zustand/shallow";
 import {formatDuration} from "@/platform/utils";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {RelationViewType} from "@/model/relation-view-state";
-import {ButtonSelect} from "@/components/basics/input/button-select";
+import {Toggle} from "@/components/ui/toggle"
+
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select";
 
 export interface RelationViewHeaderProps {
     relationId: string;
     children?: React.ReactNode;
 }
 
-export function RelationViewHeader({ relationId }: RelationViewHeaderProps) {
+export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
 
     const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
@@ -59,30 +69,28 @@ export function RelationViewHeader({ relationId }: RelationViewHeaderProps) {
                 state={queryState}
                 actionButtons={
                     <>
-                        <button
-                            className="text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 h-8 w-8 flex items-center justify-center"
-                            onClick={toggleCodeFenceLayout}
-                            title="Toggle Layout"
-                        >
-                            {codeFenceState.layout === 'column' ? <Rows2 size={16} /> : <Columns2 size={16}/>}
-                        </button>
-                        <button
-                            className="text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 h-8 w-8 flex items-center justify-center"
+
+                        <Toggle
+                            className={'w-[32px] h-8 p-0 m-0'}
+                            variant={'outline'}
                             onClick={onShowCode}
-                            title="Show Query"
+                            pressed={codeFenceState.show}
+                            title={codeFenceState.show ? 'Hide code' : 'Show code'}
                         >
-                            <Code size={16} />
-                        </button>
-                        <ButtonSelect
-                            onChange={onViewChange}
-                            defaultValue="table"
-                            title="Select View"
-                            options={[
-                                {value: 'table', label: 'Table'},
-                                {value: 'chart', label: 'Chart'},
-                                {value: 'map', label: 'Map'},
-                            ]}
-                        />
+                            <Code size={16}/>
+                        </Toggle>
+                        <Select onValueChange={onViewChange} defaultValue={'table'}>
+                            <SelectTrigger className={'h-8'}>
+                                <SelectValue placeholder="Select a fruit"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Display as</SelectLabel>
+                                    <SelectItem value="table">Table</SelectItem>
+                                    <SelectItem value="chart">Chart</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
                     </>
                 }
             />

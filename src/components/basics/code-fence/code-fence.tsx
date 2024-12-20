@@ -4,6 +4,7 @@ import {CodeFenceButtonOverlay} from "@/components/basics/code-fence/code-fence-
 import Editor from "@monaco-editor/react";
 import {TaskExecutionState} from "@/model/relation-state";
 import {CodeFenceButtonPanel} from "@/components/basics/code-fence/code-fence-button-panel";
+import {Layout} from "@/model/relation-view-state";
 
 const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 
@@ -24,6 +25,10 @@ export interface CodeFenceProps {
     showRunButton?: boolean;
     runText?: string;
     onRun?: () => void;
+
+    showLayoutButton?: boolean;
+    currentLayout?: Layout;
+    onLayoutChange?: (layout: Layout) => void;
 
     readOnly?: boolean;
     onCodeChange?: (code: string) => void;
@@ -48,6 +53,10 @@ export function CodeFence(
         readOnly = false,
         height = "auto",
         width = "auto",
+
+        showLayoutButton = false,
+        currentLayout = 'column',
+        onLayoutChange,
     }: CodeFenceProps) {
 
     copyCode = copyCode || displayCode;
@@ -84,6 +93,9 @@ export function CodeFence(
         <div className="flex flex-col h-full w-full">
             {buttonPosition === "panel" && (
                 <CodeFenceButtonPanel
+                    showLayoutButton={showLayoutButton}
+                    currentLayout={currentLayout}
+                    onLayoutChange={onLayoutChange}
                     showCopyButton={showCopyButton}
                     copyCode={copyCode}
                     showRunButton={showRunButton}

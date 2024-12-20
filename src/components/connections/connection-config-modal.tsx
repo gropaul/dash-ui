@@ -39,6 +39,4 @@ export function ConnectionConfigModal({isOpen, onClose, onSave, connection}: Con
             </div>
         </div>
     );
-};
-
-export default ConnectionConfigModal;
+}

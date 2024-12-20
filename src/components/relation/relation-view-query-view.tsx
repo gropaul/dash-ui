@@ -49,6 +49,15 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
                 onCodeChange={onCodeChange}
                 onRun={runQueryIfNotRunning}
                 executionState={executionState}
+                showLayoutButton={true}
+                currentLayout={codeFenceState.layout}
+                onLayoutChange={(layout) => {
+                    useRelationsState.getState().updateRelationViewState(props.relationId, {
+                        codeFenceState: {
+                            layout: layout
+                        }
+                    });
+                }}
             />
         </div>
     );
