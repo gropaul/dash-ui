@@ -10,19 +10,21 @@ interface ChartWrapperProps {
 }
 
 export function ChartWrapper(props: ChartWrapperProps) {
+
+    const margin = {top: 16, right: 16, bottom: 16, left: 16}
     switch (props.plotType) {
         case 'bar':
-            return <BarChart  data={props.data}>{props.children}</BarChart>
+            return <BarChart margin={margin} data={props.data}>{props.children}</BarChart>
         case 'area':
-            return <AreaChart  data={props.data}>{props.children}</AreaChart>
+            return <AreaChart margin={margin} data={props.data}>{props.children}</AreaChart>
         case 'line':
-            return <LineChart  data={props.data}>{props.children}</LineChart>
+            return <LineChart margin={margin} data={props.data}>{props.children}</LineChart>
         case 'scatter':
-            return <ScatterChart  data={props.data}>{props.children}</ScatterChart>
+            return <ScatterChart margin={margin} data={props.data}>{props.children}</ScatterChart>
         case 'pie':
-            return <PieChart  data={props.data}>{props.children}</PieChart>
+            return <PieChart margin={margin} data={props.data}>{props.children}</PieChart>
         case 'radar':
-            return <RadarChart cx="50%" cy="50%" outerRadius="80%"  data={props.data}>{props.children}</RadarChart>
+            return <RadarChart cx="50%" cy="50%" outerRadius="80%" margin={margin} data={props.data}>{props.children}</RadarChart>
         default:
             throw new Error(`Unknown plot type ${props.plotType}`)
     }

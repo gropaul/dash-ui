@@ -10,12 +10,29 @@ export interface AxisConfig {
     color: string;
 }
 
+export interface PieAxisConfig {
+    label?: AxisConfig;
+    radius?: AxisConfig
+}
+
 export interface PlotConfig {
     title?: string;
+    type: PlotType;
+    cartesian: CartesianPlotConfig;
+    pie: PiePlotConfig;
+}
+
+// plot types: bar, line, area, scatter, radar
+export interface CartesianPlotConfig {
     xAxis?: AxisConfig;
     yAxes?: AxisConfig[]; // can have multiple y axes over the same x axis
-    type: PlotType;
 }
+
+// plot type: pie
+export interface PiePlotConfig {
+    axis: PieAxisConfig;
+}
+
 
 export interface ChartConfig {
     plot: PlotConfig;
@@ -36,7 +53,11 @@ export function getInitialChartViewStateEmpty(): ChartViewState {
     return {
         chart: {
             plot: {
-                type: 'bar'
+                type: 'bar',
+                cartesian: {},
+                pie: {
+                    axis: {}
+                }
             }
         },
         configView: {
@@ -51,7 +72,11 @@ export function getInitialChartViewState(data: RelationData): ChartViewState {
     return {
         chart: {
             plot: {
-                type: 'bar'
+                type: 'bar',
+                cartesian: {},
+                pie: {
+                    axis: {}
+                }
             }
         },
         configView: {

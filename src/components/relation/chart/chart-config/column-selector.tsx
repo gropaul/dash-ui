@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {Check, ChevronDown, MoveRight, MoveUp, Trash2} from "lucide-react"
+import {CaseSensitive, Check, ChevronDown, MoveRight, MoveUp, Radius, Trash2} from "lucide-react"
 
 import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
@@ -15,10 +15,13 @@ import {AxisConfig} from "@/model/relation-view-state/chart";
 import {CommandSeparator} from "cmdk";
 import {Separator} from "@/components/ui/separator";
 
+
+export type AxisType = "x" | "y" | 'pie-lable' | 'pie-radias'
+
 interface ColumnSelectorProps {
     columns: Column[]
     axis?: AxisConfig,
-    axisType: "x" | "y"
+    axisType: AxisType,
     updateAxis: (update: Partial<AxisConfig>) => void
     deleteAxis?: () => void
 }
@@ -128,20 +131,31 @@ export function ColumnSelector({columns, axis, axisType, updateAxis, deleteAxis}
 }
 
 
-function AxisDetails({axis}: { axis: "x" | "y" }) {
-    if (axis === "x") {
-        return (
-            <>
+function AxisDetails({axis}: { axis: AxisType }) {
+
+    switch (axis) {
+        case "x":
+            return <>
                 <MoveRight size={8} className="text-indigo-600"/>
                 <Muted>X-Axis</Muted>
             </>
-        )
-    } else {
-        return (
-            <>
+        case "y":
+            return <>
                 <MoveUp size={8} className="text-indigo-600"/>
                 <Muted>Y-Axis</Muted>
             </>
-        )
+        case "pie-lable":
+            return <>
+                <CaseSensitive size={9} className="text-indigo-600"/>
+                <Muted>Label</Muted>
+            </>
+        case "pie-radias":
+            return <>
+                <Radius size={7} className="text-indigo-600 pr-1"/>
+                <Muted>Data</Muted>
+            </>
+        default:
+            throw new Error(`Unsupported axis type: ${axis}`)
+
     }
 }

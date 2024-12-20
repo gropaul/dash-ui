@@ -71,7 +71,8 @@ export class ConnectionsService {
 SELECT
 station_name,
 count(*) AS num_services
-FROM 's3://duckdb-blobs/train_services.parquet'
+-- FROM 's3://duckdb-blobs/train_services.parquet'
+FROM train_services
 GROUP BY ALL
 ORDER BY num_services DESC
 LIMIT 10;`;

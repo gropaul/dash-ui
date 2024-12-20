@@ -1,11 +1,13 @@
-import {Area, Bar, Line, Pie, Radar, Scatter} from "recharts";
+import {Area, Bar, Cell, Line, Pie, Radar, Scatter} from "recharts";
 import {AxisConfig, PlotType} from "@/model/relation-view-state/chart";
+import {DEFAULT_COLORS} from "@/platform/global-data";
 
 
 
 interface ChartDataElementProps {
     type: PlotType;
     axis: AxisConfig;
+    nameKey?: string;
     elementData?: any;
 }
 
@@ -16,7 +18,7 @@ export function ChartDataElement(props: ChartDataElementProps) {
             return <Line
                 data={undefined}
                 dataKey={props.axis.columnId}
-                type="natural"
+                type="monotone"
                 stroke={props.axis.color}
                 strokeWidth={2}
                 dot={{
@@ -35,7 +37,7 @@ export function ChartDataElement(props: ChartDataElementProps) {
         case 'area':
             return <Area
                 dataKey={props.axis.columnId}
-                type="natural"
+                type="monotone"
                 fill={props.axis.color}
                 fillOpacity={0.4}
                 stroke={props.axis.color}
@@ -47,12 +49,20 @@ export function ChartDataElement(props: ChartDataElementProps) {
                 radius={4}
             />
         case "pie":
-
+            console.log('Pie element data', props.elementData)
             return <Pie
+                label={ (entry: any) => entry['name']}
                 data={props.elementData}
+                nameKey={props.nameKey}
                 dataKey={props.axis.columnId}
-                fill={props.axis.color}
-            />
+                innerRadius={'30%'}
+                outerRadius={'50%'}
+                paddingAngle={2}
+            >
+                {props.elementData.map((entry: any, index: any) => (
+                    <Cell key={`cell-${index}`} fill={DEFAULT_COLORS[index % DEFAULT_COLORS.length]} />
+                ))}
+            </Pie>
         case "radar":
             return <Radar
                 dataKey={props.axis.columnId}

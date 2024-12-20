@@ -1,27 +1,27 @@
 import {RelationData} from "@/model/relation";
-import {AxisConfig, ChartConfig, PlotType} from "@/model/relation-view-state/chart";
+import {AxisConfig, ChartConfig, PieAxisConfig, PlotType} from "@/model/relation-view-state/chart";
 
 
 export function  getReChartDataFromConfig(data: RelationData, config: ChartConfig): any[] {
     const neededColumns = []
-    if (config.plot.xAxis) {
-        neededColumns.push(config.plot.xAxis.columnId);
+    if (config.plot.cartesian.xAxis) {
+        neededColumns.push(config.plot.cartesian.xAxis.columnId);
     }
-    for (const yAxis of config.plot.yAxes ?? []) {
+    for (const yAxis of config.plot.cartesian.yAxes ?? []) {
         neededColumns.push(yAxis.columnId);
     }
     return getReChartDataFromRelation(data, neededColumns);
 }
 
-export function getDataForChartElement(axis: AxisConfig, data: RelationData, type: PlotType) {
-    switch (type) {
-        case 'pie':
-            const neededColumn = [axis.columnId];
-            return getReChartDataFromRelation(data, neededColumn);
-
-        default:
-            return undefined
+export function getDataForPieChartElement(axis: PieAxisConfig, data: RelationData) {
+    let columns = [];
+    if (axis.label) {
+        columns.push(axis.label.columnId);
     }
+    if (axis.radius) {
+        columns.push(axis.radius.columnId);
+    }
+    return getReChartDataFromRelation(data, columns);
 }
 
 
