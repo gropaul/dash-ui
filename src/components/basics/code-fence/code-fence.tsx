@@ -5,6 +5,7 @@ import Editor from "@monaco-editor/react";
 import {TaskExecutionState} from "@/model/relation-state";
 import {CodeFenceButtonPanel} from "@/components/basics/code-fence/code-fence-button-panel";
 import {Layout} from "@/model/relation-view-state";
+import {useTheme} from "next-themes";
 
 const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 
@@ -60,6 +61,9 @@ export function CodeFence(
     }: CodeFenceProps) {
 
     copyCode = copyCode || displayCode;
+    const { theme } = useTheme();
+
+    const editorTheme = theme === "dark" ? "customThemeDark" : "customTheme";
 
     function onLocalCodeChange(value: string | undefined) {
         if (readOnly) {
@@ -81,10 +85,20 @@ export function CodeFence(
         },
     };
 
+    const customThemeDark = {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [],
+        colors: {
+            'editor.background': '#00000000',
+        },
+    };
+
     function onMount(editor: any, monaco: any) {
         // add the custom theme
         monaco.editor.defineTheme('customTheme', customTheme);
-        monaco.editor.setTheme('customTheme');
+        monaco.editor.defineTheme('customThemeDark', customThemeDark);
+        monaco.editor.setTheme(editorTheme);
     }
 
     const roundedStyle = rounded ? "rounded-lg" : "";
@@ -118,7 +132,8 @@ export function CodeFence(
                         readOnly: readOnly,
                         minimap: {enabled: false},
                         lineNumbers: showLineNumbers ? "on" : "off",
-                        theme: "customTheme",
+                        // get theme from the system
+                        theme: editorTheme,
                         scrollBeyondLastLine: false,
                         tabSize: 2,
                         scrollbar: {

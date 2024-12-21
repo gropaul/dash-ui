@@ -21,7 +21,7 @@ export default function RootLayout({
             <div className="w-screen h-screen app">
                 <ThemeProvider
                     attribute="class"
-                    defaultTheme="light"
+                    defaultTheme="system"
                     enableSystem
                     disableTransitionOnChange
                 >
