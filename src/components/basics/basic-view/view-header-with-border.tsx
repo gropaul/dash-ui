@@ -38,13 +38,13 @@ export function RelationViewHeaderBorder({state}: RelationViewHeaderBorderProps)
     }, [state]);
 
     return (
-        <div className="relative w-full h-[1px] bg-gray-200 overflow-hidden">
+        <div className="relative w-full h-[1px] bg-border overflow-hidden">
             {state.state === 'running' && showLoading ? (
                 // Animated loading indicator
-                <div className="absolute top-0 left-0 w-full h-full bg-black animate-loading"/>
+                <div className="absolute top-0 left-0 w-full h-full bg-secondary animate-loading"/>
             ) : (
                 // Solid border for idle state
-                <div className="absolute top-0 left-0 w-full h-full bg-gray-200 dark:bg-gray-700"/>
+                <div className="absolute top-0 left-0 w-full h-full bg-border"/>
             )}
             <style jsx>{`
                 @keyframes loading {

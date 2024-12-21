@@ -84,7 +84,6 @@ function ColumnIconButtons(props: ColumnHeadProps) {
     const queryParameters = useRelationsState((state) => state.getRelation(props.relationId)?.query.viewParameters, shallow);
     const columnSorting = queryParameters.sorting[props.column.name];
 
-    // if there is no sorting only show on hover, else show all the time
     const onlyShowOnHover = !columnSorting;
 
     const opacityClass = onlyShowOnHover ?
@@ -92,8 +91,8 @@ function ColumnIconButtons(props: ColumnHeadProps) {
 
     const activeSorting = !columnSorting;
     const sortingClass = activeSorting ?
-        'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200' :
-        'text-gray-800 dark:text-gray-200';
+        'text-muted-foreground hover:text-primary' :
+        'text-primary';
 
     const updateRelation = useRelationsState((state) => state.updateRelationDataWithParams);
 
@@ -118,13 +117,6 @@ function ColumnIconButtons(props: ColumnHeadProps) {
             <button className={sortingClass} onClick={onSortClick}>
                 <ColumnHeadSortingIcon sorting={columnSorting}/>
             </button>
-            {
-                /*
-            <button className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
-                <Filter size={16}/>
-            </button>
-                */
-            }
         </div>
     );
 
@@ -150,7 +142,7 @@ function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.React
             style={{width: props.columnWidth, overflow: 'hidden'}}
             className={`p-0 m-0 h-full`}
         >
-            <div className="pl-4 border-b border-gray-700 dark:border-gray-700 flex items-center bg-white "
+            <div className="pl-4 border-b border-border flex items-center bg-background "
                  style={{width: '100%', height: '100%', position: 'relative'}}>
                 {props.children}
             </div>

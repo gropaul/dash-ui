@@ -69,7 +69,7 @@ export function ConnectionView(props: ConnectionViewProps) {
 
 
     return (
-        <li className="p-2 text-s border-b border-[#E5E7E8] dark:border-gray-700 h-fit relative group">
+        <li className="p-2 text-primary text-s h-fit relative group bg-background">
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                     <span>{props.connection.config.name}</span>
@@ -81,7 +81,7 @@ export function ConnectionView(props: ConnectionViewProps) {
                         <DropdownMenuTrigger>
                             <EllipsisVertical
                                 size={16}
-                                className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
+                                className="text-muted-foreground hover:text-primary cursor-pointer"
                             />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>

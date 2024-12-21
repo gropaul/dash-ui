@@ -64,7 +64,7 @@ function TreeExplorerNode({
         <>
             {/* Node content */}
             <div
-                className="flex items-center p-0.5 hover:bg-gray-100 cursor-pointer active:bg-gray-200"
+                className="flex items-center p-0.5 cursor-pointer bg-background hover:bg-accent"
                 style={{paddingLeft: `${depth * 1.5}rem`}}
                 onClick={localOnClick}
                 onDoubleClick={localOnDoubleClick}
@@ -140,7 +140,7 @@ export function TreeExplorer({tree, iconFactory, onClick, onDoubleClick, loadChi
     const trees = Array.isArray(tree) ? tree : [tree];
 
     return (
-        <div className="h-fit">
+        <div className="h-fit bg-background">
             {trees.map((treeNode, index) => (
                     <TreeExplorerNode
                         parent_id_path={[]}

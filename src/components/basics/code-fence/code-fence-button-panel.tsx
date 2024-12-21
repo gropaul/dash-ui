@@ -24,12 +24,12 @@ export function CodeFenceButtonPanel(props: CodeFenceButtonProps) {
 
     return (
         <>
-            <div className="bg-gray-50 flex h-8 flex-row w-full gap-3 items-center border-b border-gray-200 pr-4 py-2">
+            <div className="bg-primary-foreground flex h-8 flex-row w-full gap-3 items-center border-b border-border pr-4 py-2">
                 {props.showRunButton && (
                     <button
                         onClick={props.onRun}
                         disabled={props.onRun == undefined}
-                        className="hover:text-gray-800 text-gray-600"
+                        className="hover:text-primary text-muted-foreground"
                     >
                         {getRunButtonContent(props)}
                     </button>
@@ -37,12 +37,12 @@ export function CodeFenceButtonPanel(props: CodeFenceButtonProps) {
                 <div className="flex-1"/>
                 {props.showLayoutButton && (
                     props.currentLayout == 'row' ? (
-                        <button className="hover:text-gray-800 text-gray-600"
+                        <button className="hover:text-primary text-muted-foreground"
                                 onClick={() => props.onLayoutChange?.('column')}>
                             <Columns2 size={18}/>
                         </button>
                     ) : (
-                        <button className="hover:text-gray-800 text-gray-600"
+                        <button className="hover:text-primary text-muted-foreground"
                                 onClick={() => props.onLayoutChange?.('row')}>
                             <Rows2 size={18}/>
                         </button>
@@ -55,5 +55,3 @@ export function CodeFenceButtonPanel(props: CodeFenceButtonProps) {
         </>
     );
 }
-
-

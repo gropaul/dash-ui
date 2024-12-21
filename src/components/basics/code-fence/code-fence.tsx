@@ -107,7 +107,7 @@ export function CodeFence(
 
             <div
                 style={{fontFamily: fontMono.style.fontFamily, fontSize: "14px"}}
-                className={`relative py-4 bg-gray-100 dark:bg-gray-800 h-full w-full ${roundedStyle}`}
+                className={`relative py-4 bg-muted h-full w-full ${roundedStyle}`}
             >
                 <Editor
                     height={height}

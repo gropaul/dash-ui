@@ -77,10 +77,13 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
                             pressed={codeFenceState.show}
                             title={codeFenceState.show ? 'Hide code' : 'Show code'}
                         >
-                            <Code size={16}/>
+                            <Code
+                                className={'hover:text-primary cursor-pointer text-muted-foreground'}
+                                size={16}
+                            />
                         </Toggle>
                         <Select onValueChange={onViewChange} defaultValue={'table'}>
-                            <SelectTrigger className={'h-8'}>
+                            <SelectTrigger className={'h-8 text-primary'} >
                                 <SelectValue placeholder="Select a fruit"/>
                             </SelectTrigger>
                             <SelectContent>

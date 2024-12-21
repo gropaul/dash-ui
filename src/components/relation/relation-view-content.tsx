@@ -26,6 +26,7 @@ export function RelationViewContent({relationId}: RelationViewContentProps) {
     const selectedView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
     const [data, setData] = useState<any[]>([]);
 
+    /*
     useEffect(() => {
         ConnectionsService.getInstance().getConnection(CONNECTION_ID_DUCKDB_LOCAL).executeQuery(DATA_QUERY).then((result) => {
 
@@ -55,6 +56,7 @@ export function RelationViewContent({relationId}: RelationViewContentProps) {
             setData(data);
         });
     }, []);
+     */
 
     if (selectedView === 'table') {
         return (

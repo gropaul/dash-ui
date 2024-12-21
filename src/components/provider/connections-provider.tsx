@@ -17,8 +17,8 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
     }, []);
 
     return (
-        <div>
+        <>
             {children}
-        </div>
+        </>
     );
 }

@@ -7,7 +7,7 @@ interface CopyButtonProps {
     size?: number;
 }
 
-export function CopyButton({ textToCopy, className, size = 14 }: CopyButtonProps) {
+export function CopyButton({textToCopy, className, size = 14}: CopyButtonProps) {
     const [copied, setCopied] = React.useState(false);
 
     const handleCopy = async (e: React.MouseEvent) => {
@@ -25,9 +25,9 @@ export function CopyButton({ textToCopy, className, size = 14 }: CopyButtonProps
             className={`cursor-pointer ${className}`}
         >
             {copied ? (
-                <Check className="hover:text-gray-800 text-gray-600" size={size} />
+                <Check className="hover:text-primary text-muted-foreground" size={size}/>
             ) : (
-                <Copy className="hover:text-gray-800 text-gray-600" size={size} />
+                <Copy className="hover:text-primary text-muted-foreground" size={size}/>
             )}
         </button>
     );

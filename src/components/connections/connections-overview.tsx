@@ -3,6 +3,9 @@
 import React from "react";
 import {useConnectionsState} from "@/state/connections.state";
 import {ConnectionView} from "@/components/connections/connection-view";
+import {H5} from "@/components/ui/typography";
+import {Divide} from "lucide-react";
+import {Separator} from "@/components/ui/separator";
 
 export function ConnectionsOverview() {
 
@@ -10,22 +13,21 @@ export function ConnectionsOverview() {
 
     // show a list of the tables, have a light grey background
     return (
-        <div className=" h-full w-full">
+        <div className=" h-full w-full bg-background">
             <div
-                className="flex items-center dark:border-gray-700 dark:text-white px-2"
                 style={{height: '28px'}}>
-                    <div className={'font-semibold'}>
-                        Connections
-                    </div>
+                    <H5 className={'text-primary'}>Connections</H5>
 
             </div>
-            <div className="border-t  dark:border-gray-700 overflow-y-auto h-fit">
+            <div className="overflow-y-auto h-fit bg-background">
                 <ul>
                     {Object.values(connections).map((connection, index) => {
-                        return <ConnectionView connection={connection} key={index}/>;
+                        return <>
+                            <Separator/>
+                            <ConnectionView connection={connection} key={index}/>
+                        </>;
                     })}
                 </ul>
-                <div className={'h-16'}/>
             </div>
         </div>
 

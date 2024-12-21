@@ -4,7 +4,15 @@ import {ChevronFirst, ChevronLast, ChevronLeft, ChevronRight} from "lucide-react
 import {useRelationsState} from "@/state/relations.state";
 import {useConnectionsState} from "@/state/connections.state";
 import {ButtonSelect} from "@/components/basics/input/button-select";
-
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select";
 
 export interface RelationViewFooterProps {
     relation: RelationState
@@ -18,15 +26,13 @@ export function TableFooter(props: RelationViewFooterProps) {
 
     const lastResultCount = props.relation.lastExecutionMetaData?.lastResultCount || 0;
 
-    // format the number with , e.g. 1,000,000
     const startIndex = props.relation.query.viewParameters.offset + 1;
-
     const endIndex = Math.min(props.relation.query.viewParameters.offset + props.relation.query.viewParameters.limit, lastResultCount);
     const testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(lastResultCount)}`;
 
     const connectionName = useConnectionsState((state) => state.getConnectionName(props.relation.connectionId));
     return (
-        <div className="flex h-8 flex-row items-center p-2 border-t border-gray-200 text-sm space-x-4">
+        <div className="flex h-8 flex-row items-center p-2 border-t border-border text-sm text-primary space-x-4">
             <div className="flex flex-row items-center space-x-4">
                 <RelationViewPageController relation={props.relation}/>
             </div>
@@ -38,18 +44,16 @@ export function TableFooter(props: RelationViewFooterProps) {
     );
 }
 
-
 export function RelationViewPageController(props: RelationViewFooterProps) {
     const {relation} = props;
 
     const totalCount = relation.lastExecutionMetaData?.lastResultCount;
 
-    // this means there is no data and therefore no pagination
     if (!totalCount) {
         return null;
     }
 
-    const maxPage = Math.ceil(totalCount / relation.query.viewParameters.limit);
+    const maxPage = Math.floor(totalCount / relation.query.viewParameters.limit);
     const currentPage = Math.floor(relation.query.viewParameters.offset / relation.query.viewParameters.limit) + 1;
     const text = `Page ${formatNumber(currentPage)} of ${formatNumber(maxPage)}`;
 
@@ -60,7 +64,6 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
     const isLastPage = currentPage === maxPage;
 
     const handleUpdateRange = (offset: number) => {
-
         const currentQueryParams = relation.query.viewParameters;
         const updatedQueryParams = {
             ...currentQueryParams,
@@ -82,9 +85,7 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
         updateRelationDisplayRange(relation.id, updatedQueryParams);
     }
 
-    // default limit options
     const limitOptions = [10, 20, 50, 100, 200];
-    // if the current limit is not in the options, add it
     if (!limitOptions.includes(pageSize)) {
         limitOptions.push(pageSize);
     }
@@ -94,22 +95,30 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
     ));
 
     return (
-        <div className="flex flex-row items-center space-x-1">
-            <ButtonSelect
-                border={false}
-                defaultValue={pageSize.toString()}
-                onChange={handlePageSizeChange}
-                options={options}
-            />
+        <div className="flex flex-row items-center space-x-1 text-primary">
+            <Select onValueChange={handlePageSizeChange} defaultValue={pageSize.toString()}>
+                <SelectTrigger className={'text-primary border-0 focus:outline-none w-32'}>
+                    <SelectValue placeholder="Select a size"/>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {options.map((option) => (
+                            <SelectItem key={option.value} value={option.value} className={'h-8'}>
+                                <SelectLabel>{option.label}</SelectLabel>
+                            </SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
             <button
-                className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
+                className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-muted active:bg-muted-foreground'}`}
                 onClick={() => handleUpdateRange(0)}
                 disabled={isFirstPage}
             >
                 <ChevronFirst size={iconSize}/>
             </button>
             <button
-                className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
+                className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted active:bg-muted-foreground'}`}
                 onClick={() => handleUpdateRange(Math.max(0, relation.query.viewParameters.offset - relation.query.viewParameters.limit))}
                 disabled={isFirstPage}
             >
@@ -117,14 +126,14 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
             </button>
             <div>{text}</div>
             <button
-                className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
+                className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted active:bg-muted-foreground'}`}
                 onClick={() => handleUpdateRange(Math.min(totalCount - relation.query.viewParameters.limit, relation.query.viewParameters.offset + relation.query.viewParameters.limit))}
                 disabled={isLastPage}
             >
                 <ChevronRight size={iconSize}/>
             </button>
             <button
-                className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200 active:bg-gray-300'}`}
+                className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted active:bg-muted-foreground'}`}
                 onClick={() => handleUpdateRange(Math.max(0, totalCount - relation.query.viewParameters.limit))}
                 disabled={isLastPage}
             >

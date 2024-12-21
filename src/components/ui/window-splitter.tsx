@@ -1,21 +1,16 @@
 import {Layout} from "@/model/relation-view-state";
 import {useCallback, useEffect, useRef, useState} from "react";
 
-
 export interface WindowSplitterProps {
-
     children: React.ReactNode,
-
     child1Active?: boolean,
     child2Active?: boolean,
-
     ratio: number,
     layout: Layout,
     onChange: (ratio: number) => void,
 }
 
 export function WindowSplitter(props: WindowSplitterProps) {
-
 
     const flexDirection = props.layout === "row" ? "flex-col" : "flex-row";
     const isHorizontal = flexDirection === "flex-row";
@@ -28,8 +23,6 @@ export function WindowSplitter(props: WindowSplitterProps) {
     const onMouseDown = (e: React.MouseEvent) => {
         e.preventDefault();
         setIsDragging(true);
-
-        // Store initial mouse position and initial ratio
         initialMousePosRef.current = isHorizontal ? e.clientX : e.clientY;
         initialRatioRef.current = props.ratio;
     };
@@ -41,7 +34,6 @@ export function WindowSplitter(props: WindowSplitterProps) {
         const currentMousePos = isHorizontal ? e.clientX : e.clientY;
         const delta = currentMousePos - initialMousePosRef.current;
 
-        // Convert the delta to a ratio change based on container size
         const dimension = isHorizontal ? rect.width : rect.height;
         const ratioChange = delta / dimension;
         const newRatio = Math.min(Math.max(initialRatioRef.current + ratioChange, 0.1), 0.9);
@@ -69,65 +61,37 @@ export function WindowSplitter(props: WindowSplitterProps) {
         };
     }, [isDragging, onMouseMove, onMouseUp]);
 
-
     const codePercentage = props.ratio * 100;
-    const oppositeAxis = isHorizontal ? 'width' : 'height';
-    const child1Style = {
-        flex: `${codePercentage} 1 0%`,
-        alignSelf: 'stretch',
-    };
+    const child1Style = { flex: `${codePercentage} 1 0%`, alignSelf: 'stretch' };
+    const child2Style = { flex: `${100 - codePercentage} 1 0%`, alignSelf: 'stretch' };
 
-    const child2Style = {
-        flex: `${100 - codePercentage} 1 0%`,
-        alignSelf: 'stretch',
-
-};
-
-    // needs exactly 2 children
     if (props.children === undefined || (props.children as any[]).length !== 2) {
         throw new Error("WindowSplitter requires exactly 2 children");
     }
 
-    const children = props.children as any[];
-    const child1 = children[0];
-    const child2 = children[1];
-
+    const [child1, child2] = props.children as any[];
     const needHandle = (props.child1Active ?? true) && (props.child2Active ?? true);
 
     return (
         <div ref={containerRef} className={`w-full h-full flex ${flexDirection} items-stretch`}>
-
-            {/* Child 1 */}
             {(props.child1Active ?? true) && (
-                <div
-                    className="overflow-auto"
-                    style={child1Style}
-                >
-                    {child1}
-                </div>
+                <div className="overflow-auto" style={child1Style}>{child1}</div>
             )}
 
-            {/* Resize Handle */}
             {needHandle && (
-
                 <div
-                    className={`${isHorizontal ? 'w-px h-full' : 'h-px w-full'} relative`}
-                    style={{zIndex: 40, cursor: isHorizontal ? 'col-resize' : 'row-resize'}}
+                    className={`${isHorizontal ? 'w-px h-full' : 'h-px w-full'} relative bg-border`}
+                    style={{ zIndex: 40, cursor: isHorizontal ? 'col-resize' : 'row-resize' }}
                     onMouseDown={onMouseDown}
                 >
-                    {/* The visible 1px line */}
+                    <div className={`${isHorizontal ? 'h-full' : 'w-full'}`}></div>
                     <div
-                        className={`${isHorizontal ? 'h-full' : 'w-full'} border-b border-r border-gray-200 dark:border-gray-700`}></div>
-
-                    {/* Invisible hit area (no visible whitespace or extra layout space) */}
-                    <div
-                        className="absolute"
+                        className="absolute bg-transparent"
                         style={{
                             top: isHorizontal ? '0' : '-5px',
                             left: isHorizontal ? '-5px' : '0',
                             width: isHorizontal ? '11px' : '100%',
                             height: isHorizontal ? '100%' : '11px',
-                            background: 'transparent',
                             cursor: isHorizontal ? 'ew-resize' : 'ns-resize',
                             pointerEvents: 'all',
                         }}
@@ -135,16 +99,9 @@ export function WindowSplitter(props: WindowSplitterProps) {
                 </div>
             )}
 
-            {/* Child 2 */}
             {(props.child2Active ?? true) && (
-                <div
-                    className="overflow-auto"
-                    style={child2Style}
-                >
-                    {child2}
-                </div>
+                <div className="overflow-auto" style={child2Style}>{child2}</div>
             )}
-
         </div>
-    )
+    );
 }

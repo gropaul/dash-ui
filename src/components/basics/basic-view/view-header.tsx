@@ -16,8 +16,8 @@ export function ViewHeader({title, subtitle, actionButtons, state = {state: 'not
         <>
             <div className="flex flex-row items-center justify-between w-full h-[48px] px-4">
                 <div className="flex flex-row items-center flex-1">
-                    <H5 title={title}>{title}</H5>
-                    <div className="ml-4 text-sm text-gray-500">{subtitle}</div>
+                    <H5 className={'text-primary'} title={title}>{title}</H5>
+                    <div className="ml-4 text-sm text-muted-foreground">{subtitle}</div>
                 </div>
                 <div className="flex flex-row items-center space-x-2 justify-end">
                     {actionButtons}

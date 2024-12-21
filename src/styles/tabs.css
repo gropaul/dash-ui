@@ -1,8 +1,8 @@
 .flexlayout__layout {
-    --color-text: black;
-    --color-text-unselected: #616161;
-    --color-background: white;
-    --color-base: white;
+    --color-text: var(--tw-text-primary);
+    --color-text-unselected: var(--tw-text-muted);;
+    --color-background: var(--tw-bg-background);
+    --color-base: var(--tw-bg-background);
     --color-1: #f7f7f7;
     --color-2: #f0f0f0;
     --color-3: #e9e9e9;

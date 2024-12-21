@@ -80,7 +80,7 @@ export function RelationView(props: RelationViewProps) {
     const showCode = codeFenceState.show;
 
     return (
-        <div className="w-full h-full flex flex-col p-0 m-0">
+        <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
             {/* Header */}
             <RelationViewHeader relationId={relationId}/>
 
@@ -123,7 +123,7 @@ export function ContentWrapper(props: ContentWrapperProps) {
 
             {props.isLoading && (
                 <div
-                    className="absolute top-0 left-0 w-full h-full bg-white bg-opacity-70 z-50 flex items-center justify-center transition-opacity duration-200"
+                    className="absolute top-0 left-0 w-full h-full bg-background bg-opacity-70 z-50 flex items-center justify-center transition-opacity duration-200"
                 >
                     Loading...
                 </div>
@@ -135,7 +135,7 @@ export function ContentWrapper(props: ContentWrapperProps) {
 export function RelationViewError(props: { message?: string }) {
     return (
         <div className="flex flex-col items-start justify-center p-4">
-            <div className="text-red-500 flex items-center gap-2">
+            <div className="flex items-center gap-2 text-red-500">
                 <TriangleAlert size={18}/> {props.message || "An error occurred"}
             </div>
         </div>
