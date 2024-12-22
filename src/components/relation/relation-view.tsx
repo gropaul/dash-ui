@@ -85,7 +85,7 @@ export function RelationView(props: RelationViewProps) {
             <RelationViewHeader relationId={relationId}/>
 
             {/* Content */}
-            <div className={`flex-1 overflow-auto`}>
+            <div className={`flex-1 overflow-auto relative`}>
                 <WindowSplitter
                     child1Active={showCode}
                     child2Active={true}
@@ -101,6 +101,16 @@ export function RelationView(props: RelationViewProps) {
                         queryState={queryState}
                     />
                 </WindowSplitter>
+                {isLoading && (
+                    <div
+                        className="absolute top-0 left-0 w-full h-full bg-background z-50 flex items-center justify-center transition-opacity duration-200"
+                        style={{
+                            opacity: 0.7,
+                        }}
+                    >
+                        Loading...
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -119,14 +129,6 @@ export function ContentWrapper(props: ContentWrapperProps) {
                 <RelationViewError message={props.queryState.message}/>
             ) : (
                 <RelationViewContent relationId={props.relationId}/>
-            )}
-
-            {props.isLoading && (
-                <div
-                    className="absolute top-0 left-0 w-full h-full bg-background bg-opacity-70 z-50 flex items-center justify-center transition-opacity duration-200"
-                >
-                    Loading...
-                </div>
             )}
         </>
     );

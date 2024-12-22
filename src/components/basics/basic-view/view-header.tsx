@@ -14,12 +14,12 @@ export interface ViewHeaderProps {
 export function ViewHeader({title, subtitle, actionButtons, state = {state: 'not-started'}}: ViewHeaderProps) {
     return (
         <>
-            <div className="flex flex-row items-center justify-between w-full h-[48px] px-4">
+            <div className="flex flex-row items-center justify-between w-full h-[48px] pl-4 pr-2">
                 <div className="flex flex-row items-center flex-1">
                     <H5 className={'text-primary'} title={title}>{title}</H5>
                     <div className="ml-4 text-sm text-muted-foreground">{subtitle}</div>
                 </div>
-                <div className="flex flex-row items-center space-x-2 justify-end">
+                <div className="flex flex-row items-center space-x-2 justify-end h-full pt-2 pb-2">
                     {actionButtons}
                 </div>
             </div>
