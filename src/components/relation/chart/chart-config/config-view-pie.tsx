@@ -8,9 +8,6 @@ import {useRelationsState} from "@/state/relations.state";
 
 export function ConfigViewPie(props: ChartConfigProps) {
 
-    const {config, columns, relationId} = props;
-
-
     return (
         <>
             <Label><Muted>Data</Muted></Label>
@@ -45,13 +42,13 @@ export function ChartColumnSelector(props: ChartConfigProps) {
     return (
         <>
             <ColumnSelector
-                axisType={"pie-lable"}
+                axisType={"pie-label"}
                 axis={config.chart.plot.pie.axis.label}
                 columns={columns}
                 updateAxis={(update) => updatePieAxisConfig(update, 'label')}
             />
             <ColumnSelector
-                axisType={"pie-radias"}
+                axisType={"pie-radius"}
                 axis={config.chart.plot.pie.axis.radius}
                 columns={columns}
                 updateAxis={(update) => updatePieAxisConfig(update, 'radius')}

@@ -31,7 +31,7 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     const lastExecutionDuration = useRelationsState((state) => state.getRelation(relationId).lastExecutionMetaData?.lastExecutionDuration, shallow);
     const codeFenceState = useRelationsState((state) => state.getRelationViewState(relationId).codeFenceState!, shallow);
     const currentView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
-    const showChartSettings = useRelationsState((state) => state.getRelationViewState(relationId).chartState.configView.showConfig, shallow);
+    const showChartSettings = useRelationsState((state) => state.getRelationViewState(relationId).chartState.view.showConfig, shallow);
 
     const queryState = useRelationsState(
         (state) => state.getRelation(relationId).executionState,
@@ -41,7 +41,7 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     function onShowChartSettings() {
         updateRelationViewState(relationId, {
             chartState: {
-                configView: {
+                view: {
                     showConfig: !showChartSettings,
                 }
             }
@@ -113,42 +113,17 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant={'ghost'} size={'icon'}>
-                                    <Menu className="h-4 w-4"/>
+                                    <Download className="h-4 w-4"/>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56">
-
-                                <DropdownMenuSub>
-                                    <DropdownMenuSubTrigger> <Download size={16}/> Export Data</DropdownMenuSubTrigger>
-                                    <DropdownMenuPortal>
-                                        <DropdownMenuSubContent>
-                                            <DropdownMenuItem>CSV</DropdownMenuItem>
-                                            <DropdownMenuItem>JSON</DropdownMenuItem>
-                                            <DropdownMenuItem>Excel</DropdownMenuItem>
-                                            <DropdownMenuItem>Parquet</DropdownMenuItem>
-                                        </DropdownMenuSubContent>
-                                    </DropdownMenuPortal>
-                                </DropdownMenuSub>
+                            <DropdownMenuContent className="w-32">
+                                <DropdownMenuLabel>Export as ... </DropdownMenuLabel>
                                 <DropdownMenuSeparator/>
                                 <DropdownMenuGroup>
-                                    <DropdownMenuSub>
-                                        <DropdownMenuItem onClick={onShowChartSettings}>
-                                            {showChartSettings ?
-                                                <> <EyeOff size={16 }/> Hide Chart Settings </>
-                                                :
-                                                <> <Eye size={16} /> Show Chart Settings</>
-                                            }
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSubTrigger>
-                                            <ImageDown size={16}/> Export Chart
-                                        </DropdownMenuSubTrigger>
-                                        <DropdownMenuPortal>
-                                            <DropdownMenuSubContent>
-                                                <DropdownMenuItem>PNG</DropdownMenuItem>
-                                                <DropdownMenuItem>SVG</DropdownMenuItem>
-                                            </DropdownMenuSubContent>
-                                        </DropdownMenuPortal>
-                                    </DropdownMenuSub>
+                                    <DropdownMenuItem>CSV</DropdownMenuItem>
+                                    <DropdownMenuItem>JSON</DropdownMenuItem>
+                                    <DropdownMenuItem>Excel</DropdownMenuItem>
+                                    <DropdownMenuItem>Parquet</DropdownMenuItem>
                                 </DropdownMenuGroup>
                             </DropdownMenuContent>
                         </DropdownMenu>

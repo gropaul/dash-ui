@@ -46,7 +46,7 @@ export interface ConfigViewState {
 
 export interface ChartViewState {
     chart: ChartConfig;
-    configView: ConfigViewState;
+    view: ConfigViewState;
 }
 
 export function getInitialChartViewStateEmpty(): ChartViewState {
@@ -60,7 +60,7 @@ export function getInitialChartViewStateEmpty(): ChartViewState {
                 }
             }
         },
-        configView: {
+        view: {
             showConfig: true,
             configPlotRatio: 0.5,
             layout: 'column',
@@ -79,10 +79,101 @@ export function getInitialChartViewState(data: RelationData): ChartViewState {
                 }
             }
         },
-        configView: {
+        view: {
             showConfig: true,
             configPlotRatio: 0.5,
             layout: 'column',
         }
+    }
+}
+
+export function getTitleForType(type: PlotDisplayErrorType) {
+    switch (type) {
+        case 'config-not-complete':
+            return 'Configuration not complete';
+        case 'missing-data':
+            return 'Missing data';
+    }
+
+    throw new Error(`Unsupported error type: ${type}`);
+}
+
+
+export type PlotDisplayErrorType = 'config-not-complete' | 'missing-data'
+
+export interface PlotDisplayError {
+    type: PlotDisplayErrorType;
+    message: string;
+}
+
+export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationData): PlotDisplayError | undefined {
+    const plotConfig = chartConfig.plot;
+    switch (plotConfig.type) {
+        case 'bar':
+        case "radar":
+        case "line":
+        case "scatter":
+        case "area":
+            if ((plotConfig.cartesian.yAxes?.length ?? 0) == 0) {
+                return {
+                    type: 'config-not-complete',
+                    message: 'Please define at least one Y-axis.'
+                }
+            }
+            break;
+        case "pie":
+            if (plotConfig.pie.axis.label === undefined || plotConfig.pie.axis.radius === undefined) {
+                return {
+                    type: 'config-not-complete',
+                    message: 'Please define both the label and radius axis.'
+                }
+            }
+            break;
+        default:
+            throw new Error(`Unsupported plot type: ${plotConfig.type}`);
+    }
+
+    // check if needed columns are there
+    const neededColumns = getNeededColumnsForConfig(chartConfig);
+    const missingColumns = neededColumns.filter(columnId => !relationData.columns.find(column => column.id === columnId));
+
+    if (missingColumns.length > 0) {
+        return {
+            type: 'missing-data',
+            message: `Missing data columns: ${missingColumns.join(', ')}`
+        }
+    }
+
+    // otherwise return no error
+    return undefined;
+}
+
+
+export function getNeededColumnsForConfig(chartConfig: ChartConfig) {
+    const plotConfig = chartConfig.plot;
+    switch (plotConfig.type) {
+        case 'bar':
+        case "radar":
+        case "line":
+        case "scatter":
+        case "area": {
+            let columns = plotConfig.cartesian.yAxes?.map(axis => axis.columnId) ?? [];
+            if (plotConfig.cartesian.xAxis) {
+                columns.push(plotConfig.cartesian.xAxis.columnId);
+            }
+            return columns;
+        }
+        case "pie": {
+            let columns: string[] = [];
+            if (plotConfig.pie.axis.label) {
+                columns.push(plotConfig.pie.axis.label.columnId);
+            }
+            if (plotConfig.pie.axis.radius) {
+                columns.push(plotConfig.pie.axis.radius.columnId);
+            }
+            return columns;
+        }
+        default:
+            throw new Error(`Unsupported plot type: ${plotConfig.type}`);
     }
 }

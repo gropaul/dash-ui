@@ -1,85 +1,103 @@
-"use client"
+"use client";
 
-import {saveAs} from 'file-saver';
-import {useRef} from "react";
-import satori from "satori"; // Import Satori
+import { saveAs } from 'file-saver';
+import { forwardRef, useImperativeHandle, useRef } from "react";
+import satori from "satori";
 import domtoimage from "dom-to-image";
 
-
+// Define props and methods interface
 export interface ExportableProps {
     children?: React.ReactNode;
     fileName?: string;
 }
 
-export function Exportable({ children, fileName }: ExportableProps) {
-    const chartRef = useRef<HTMLDivElement>(null);
+export interface ExportableRef {
+    exportChartAsPNG: () => void;
+    exportChartAsSVG: () => void;
+}
 
-    const exportChartAsPNG = () => {
-        // If you still want PNG export, you can keep your dom-to-image code here.
-        // This is unchanged from your original snippet:
-        if (!chartRef.current) {
-            console.error("No chart ref found");
-            return;
-        }
-        domtoimage.toPng(chartRef.current, { quality: 10.0 })
-            .then((dataUrl: any) => {
-                saveAs(dataUrl, `${fileName ?? "chart"}.png`);
-            })
-            .catch((error: any) => {
-                console.error("Failed to convert to PNG", error);
-            });
-    };
+export const Exportable = forwardRef<ExportableRef, ExportableProps>(
+    ({ children, fileName }: ExportableProps, ref) => {
+        const chartRef = useRef<HTMLDivElement>(null);
 
-    const exportChartAsSVG = async () => {
-        if (!chartRef.current) {
-            console.error("No chart ref found");
-            return;
-        }
+        // Export as PNG
+        const exportChartAsPNG = () => {
+            if (!chartRef.current) {
+                console.error("No chart ref found");
+                return;
+            }
 
-        try {
-            // Measure the DOM element to get width and height
+            const scale = 3; // Scale factor for higher resolution (e.g., 2x, 3x)
+
+            // Get the bounding rectangle dimensions
             const rect = chartRef.current.getBoundingClientRect();
-            const width = Math.ceil(rect.width);
-            const height = Math.ceil(rect.height);
 
-            // Render children using Satori
-            // Note: Satori expects a subset of CSS and may require font data.
-            // Below is a minimal example. You may need to provide fonts if text doesn't render properly.
-            const svg = await satori(
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+            domtoimage.toPng(chartRef.current, {
+                quality: 1.0, // Set quality to 100%
+                width: rect.width * scale, // Increase width based on scale
+                height: rect.height * scale, // Increase height based on scale
+                style: {
+                    transform: `scale(${scale})`, // Scale up
+                    transformOrigin: "top left", // Maintain alignment
+                    width: `${rect.width}px`, // Original width
+                    height: `${rect.height}px`, // Original height
+                },
+            })
+                .then((dataUrl: string) => {
+                    saveAs(dataUrl, `${fileName ?? "chart"}.png`);
+                })
+                .catch((error: any) => {
+                    console.error("Failed to convert to PNG", error);
+                });
+        };
+
+        // Export as SVG
+        const exportChartAsSVG = async () => {
+            if (!chartRef.current) {
+                console.error("No chart ref found");
+                return;
+            }
+
+            try {
+                // Measure the size of the DOM element
+                const rect = chartRef.current.getBoundingClientRect();
+                const width = Math.ceil(rect.width);
+                const height = Math.ceil(rect.height);
+
+                // Load the Urbanist font
+                const fontData = await fetch("/fonts/Urbanist-VariableFont_wght.ttf")
+                    .then((res) => res.arrayBuffer());
+
+                // Generate SVG using Satori
+                const svg = await satori(
+                    children,
+                    {
                         width,
                         height,
-                        // Include any inline styles needed, but remember Satori doesn't support all CSS features.
-                    }}
-                >
+                        fonts: [
+                        ],
+                    }
+                );
+
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                saveAs(blob, `${fileName ?? "chart"}.svg`);
+            } catch (error: any) {
+                console.error("Failed to convert to SVG with Satori", error);
+            }
+        };
+
+        // Expose functions to parent
+        useImperativeHandle(ref, () => ({
+            exportChartAsPNG,
+            exportChartAsSVG,
+        }));
+
+        return (
+            <>
+                <div ref={chartRef} className={"w-full h-full"}>
                     {children}
-                </div>,
-                {
-                    width,
-                    height,
-                    fonts: [
-                        // You may need to provide font data here if text doesn't render properly.
-                        // For example, you can use Google Fonts API to fetch font data.
-                    ],
-                }
-            );
-
-            // svg is a string containing the SVG markup.
-            // Convert it to a Blob to use with file-saver
-            const blob = new Blob([svg], { type: 'image/svg+xml' });
-            saveAs(blob, `${fileName ?? "chart"}.svg`);
-        } catch (error: any) {
-            console.error("Failed to convert to SVG with Satori", error);
-        }
-    };
-
-    return (
-        <div ref={chartRef} className={"w-full h-full"}>
-                {children}
-        </div>
-    );
-}
+                </div>
+            </>
+        );
+    }
+);

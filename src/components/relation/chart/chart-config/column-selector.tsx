@@ -16,7 +16,7 @@ import {CommandSeparator} from "cmdk";
 import {Separator} from "@/components/ui/separator";
 
 
-export type AxisType = "x" | "y" | 'pie-lable' | 'pie-radias'
+export type AxisType = "x" | "y" | 'pie-label' | 'pie-radius'
 
 interface ColumnSelectorProps {
     columns: Column[]
@@ -90,8 +90,8 @@ export function ColumnSelector({columns, axis, axisType, updateAxis, deleteAxis}
                                         key={column.id}
                                         value={column.id}
                                         onSelect={(currentValue) => {
-                                            setAxisId(currentValue === axis?.columnId ? '' : currentValue)
-                                            setOpen(false)
+                                            setAxisId(currentValue);
+                                            setOpen(false);
                                         }}
                                     >
                                         <ColumnIcon key={column.id} type={column.type}/>
@@ -144,15 +144,15 @@ function AxisDetails({axis}: { axis: AxisType }) {
                 <MoveUp size={8} className="text-indigo-600"/>
                 <Muted>Y-Axis</Muted>
             </>
-        case "pie-lable":
+        case "pie-label":
             return <>
                 <CaseSensitive size={9} className="text-indigo-600"/>
                 <Muted>Label</Muted>
             </>
-        case "pie-radias":
+        case "pie-radius":
             return <>
                 <Radius size={7} className="text-indigo-600 pr-1"/>
-                <Muted>Data</Muted>
+                <Muted>Radius</Muted>
             </>
         default:
             throw new Error(`Unsupported axis type: ${axis}`)

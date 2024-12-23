@@ -23,9 +23,9 @@ export function ChartContent({data, config}: MyChartProps) {
     const chartData = getReChartDataFromConfig(data, config);
     return (
         <div className="w-full h-full flex flex-col items-center">
-            {config.plot.title && (
+            <div className={"w-full h-9 flex items-center justify-center"}>
                 <H5>{config.plot.title}</H5>
-            )}
+            </div>
             <div className="flex-grow w-full min-h-4">
                 <ChartContainer config={chartConfig} className={"w-full h-full"}>
                     {
