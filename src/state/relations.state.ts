@@ -79,7 +79,7 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
 
     showDatabase: async (connectionId: string, database: DataSourceGroup) => {
         const {databases} = get(); // Get the current state
-        const databaseId = getDatabaseId(connectionId, database); // Generate the database ID
+        const databaseId = getDatabaseId(connectionId, database.id); // Generate the database ID
         const existingDatabase = databases[databaseId]; // Retrieve the database
         if (existingDatabase) {
             focusTabById(get().layoutModel, databaseId);

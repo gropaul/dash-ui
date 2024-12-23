@@ -3,6 +3,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 import {SchemaRelationView} from "@/components/schema/schema-relation-view";
 import {DataSourceElement} from "@/model/connection";
+import {GetPathOfSchema} from "@/model/schema-state";
 
 interface SchemaViewProps {
     schemaId: string;
@@ -16,7 +17,7 @@ export function SchemaView(props: SchemaViewProps) {
 
     return (
         <div className="w-full h-full flex flex-col">
-            <ViewHeader title={schema.name} subtitle={schema.databaseId}/>
+            <ViewHeader title={schema.name} path={GetPathOfSchema(schema)}/>
             <div className="p-4 flex overflow-auto space-x-4 flex-row w-full h-full">
                 {schema.children!.map((table, index) => (
                     <SchemaRelationView

@@ -53,21 +53,24 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
         return null;
     }
 
-    const maxPage = Math.floor(totalCount / relation.query.viewParameters.limit);
-    const currentPage = Math.floor(relation.query.viewParameters.offset / relation.query.viewParameters.limit) + 1;
-    const text = `Page ${formatNumber(currentPage)} of ${formatNumber(maxPage)}`;
+    const currentPageIndex = Math.floor(relation.query.viewParameters.offset / relation.query.viewParameters.limit);
+    const maxPageIndex = Math.floor((totalCount - 1) / relation.query.viewParameters.limit);
+    const minPageIndex = 0;
+    const text = `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumber(maxPageIndex + 1)}`;
 
     const iconSize = 16;
     const updateRelationDisplayRange = useRelationsState((state) => state.updateRelationDataWithParams);
 
-    const isFirstPage = currentPage === 1;
-    const isLastPage = currentPage === maxPage;
+    const isFirstPage = currentPageIndex === 0;
+    const isLastPage = currentPageIndex === maxPageIndex;
 
-    const handleUpdateRange = (offset: number) => {
+    const handleUpdateRange = (pageIndex: number) => {
+
+        const offsetForPage = pageIndex * relation.query.viewParameters.limit;
         const currentQueryParams = relation.query.viewParameters;
         const updatedQueryParams = {
             ...currentQueryParams,
-            offset: offset
+            offset: offsetForPage
         }
         updateRelationDisplayRange(relation.id, updatedQueryParams);
     };
@@ -112,14 +115,14 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
             </Select>
             <button
                 className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-muted active:bg-muted-foreground'}`}
-                onClick={() => handleUpdateRange(0)}
+                onClick={() => handleUpdateRange(minPageIndex)}
                 disabled={isFirstPage}
             >
                 <ChevronFirst size={iconSize}/>
             </button>
             <button
                 className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted active:bg-muted-foreground'}`}
-                onClick={() => handleUpdateRange(Math.max(0, relation.query.viewParameters.offset - relation.query.viewParameters.limit))}
+                onClick={() => handleUpdateRange(Math.max(minPageIndex, currentPageIndex - 1))}
                 disabled={isFirstPage}
             >
                 <ChevronLeft size={iconSize}/>
@@ -127,14 +130,14 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
             <div>{text}</div>
             <button
                 className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted active:bg-muted-foreground'}`}
-                onClick={() => handleUpdateRange(Math.min(totalCount - relation.query.viewParameters.limit, relation.query.viewParameters.offset + relation.query.viewParameters.limit))}
+                onClick={() => handleUpdateRange(Math.min(maxPageIndex, currentPageIndex + 1))}
                 disabled={isLastPage}
             >
                 <ChevronRight size={iconSize}/>
             </button>
             <button
                 className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted active:bg-muted-foreground'}`}
-                onClick={() => handleUpdateRange(Math.max(0, totalCount - relation.query.viewParameters.limit))}
+                onClick={() => handleUpdateRange(maxPageIndex)}
                 disabled={isLastPage}
             >
                 <ChevronLast size={iconSize}/>

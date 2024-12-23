@@ -3,6 +3,7 @@ import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
 import {DatabaseSchemaView} from "@/components/database/database-schema-view";
 import {DataSourceGroup} from "@/model/connection";
+import {GetPathOfDatabase} from "@/model/database-state";
 
 interface DatabaseViewProps {
     databaseId: string;
@@ -18,7 +19,7 @@ export function DatabaseView(props: DatabaseViewProps) {
 
     return (
         <div className="w-full h-full flex flex-col">
-            <ViewHeader title={database.name} subtitle={database.connectionId}/>
+            <ViewHeader title={database.name} path={GetPathOfDatabase(database)}/>
             <div className="p-4 flex overflow-auto space-x-4 flex-row w-full h-full">
                 {database.children!.map((schema, index) => (
                     <DatabaseSchemaView

@@ -17,6 +17,7 @@ import {
     DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {getPathFromRelation} from "@/model/relation";
 
 export interface RelationViewHeaderProps {
     relationId: string;
@@ -27,16 +28,36 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
 
     const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
-    const connectionName = useRelationsState((state) => state.getRelation(relationId)?.connectionId, shallow);
+    const relation = useRelationsState((state) => state.getRelation(relationId), shallow);
     const lastExecutionDuration = useRelationsState((state) => state.getRelation(relationId).lastExecutionMetaData?.lastExecutionDuration, shallow);
     const codeFenceState = useRelationsState((state) => state.getRelationViewState(relationId).codeFenceState!, shallow);
     const currentView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
     const showChartSettings = useRelationsState((state) => state.getRelationViewState(relationId).chartState.view.showConfig, shallow);
 
+    const showSchema = useRelationsState((state) => state.showSchema);
+    const showDatabase = useRelationsState((state) => state.showDatabase);
+
     const queryState = useRelationsState(
         (state) => state.getRelation(relationId).executionState,
         shallow
     );
+
+    function onPathClick(element: string, index: number) {
+        if (relation.source.type === 'table') {
+            console.log('Table path click', element, index);
+            if ( index === 0) {
+                // connection, no action
+            } else if (index === 1) {
+                // showDatabase(relation.connectionId, relation.source.database);
+            } else if (index === 2) {
+                // showSchema(relation.connectionId, relation.source.database, relation.source.schema );
+            } else if (index === 3) {
+                // table, no action
+            } else {
+                console.error('Unknown path element', element, index);
+            }
+        }
+    }
 
     function onShowChartSettings() {
         updateRelationViewState(relationId, {
@@ -75,16 +96,20 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
         });
     }
 
-    let textDurationAndConnection = connectionName;
+    let durationString = '';
     if (lastExecutionDuration) {
-        textDurationAndConnection += ` (${formatDuration(lastExecutionDuration)})`;
+        durationString += `(Took ${formatDuration(lastExecutionDuration)})`;
     }
+
+    const path = getPathFromRelation(relation);
 
     return (
         <>
             <ViewHeader
                 title={relationName}
-                subtitle={textDurationAndConnection}
+                path={path}
+                onPathClick={onPathClick}
+                subtitle={durationString}
                 state={queryState}
                 actionButtons={
                     <>
