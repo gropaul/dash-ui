@@ -4,6 +4,7 @@ import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
 import {DataSourceGroup} from "@/model/connection";
+import {DirectoryNormalized, DirectoryNormalizedState} from "@/model/directory-normalized";
 
 
 interface CurrentLayoutState {
@@ -87,6 +88,20 @@ export function addDatabaseToLayout(
     model.doAction(Actions.addNode(databaseTab, tabSetId, DockLocation.CENTER, -1));
 }
 
+export function addDirectoryToLayout(
+    model: Model,
+    directoryId: string,
+    directory: DirectoryNormalizedState,
+): void {
+    const tabSetId = getDefaultTabSetId(model);
+    if (!tabSetId) {
+        throw new Error("No tabset found");
+    }
+
+    const directoryTab = getTabForDirectory(directoryId, directory.dir.name);
+    model.doAction(Actions.addNode(directoryTab, tabSetId, DockLocation.CENTER, -1));
+}
+
 export function addSchemaToLayout(
     model: Model,
     schemaId: string,
@@ -131,6 +146,18 @@ function getDefaultTabSetId(model: Model): string | undefined {
     }
 
     return id;
+}
+
+function getTabForDirectory(directoryId: string, directoryName: string): IJsonTabNode {
+    return {
+        type: 'tab',
+        name: directoryName,
+        id: directoryId,
+        component: 'DirectoryComponent',
+        config: {
+            directoryId: directoryId,
+        },
+    };
 }
 
 function getTabForDatabase(databaseId: string, databaseName: string): IJsonTabNode {

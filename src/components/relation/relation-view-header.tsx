@@ -44,7 +44,6 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
 
     function onPathClick(element: string, index: number) {
         if (relation.source.type === 'table') {
-            console.log('Table path click', element, index);
             if ( index === 0) {
                 // connection, no action
             } else if (index === 1) {

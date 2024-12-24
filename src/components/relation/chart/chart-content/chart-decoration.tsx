@@ -45,7 +45,6 @@ export function ChartDecoration(props: ChartDecorationProps) {
                     xAxisTextAnchor = maxTextLength > 80 ? 'end' : 'middle'
                     // Scale height based on the measured text width
                     xAxisHeight = Math.max(30, Math.min(200, maxTextLength)) + 8;
-                    console.log('xAxisHeight', xAxisHeight, 'maxTextLength', maxTextLength);
                 }
             }
         }

@@ -61,9 +61,9 @@ export function CodeFence(
     }: CodeFenceProps) {
 
     copyCode = copyCode || displayCode;
-    const { theme } = useTheme();
+    const { resolvedTheme } = useTheme();
 
-    const editorTheme = theme === "dark" ? "customThemeDark" : "customTheme";
+    const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
 
     function onLocalCodeChange(value: string | undefined) {
         if (readOnly) {

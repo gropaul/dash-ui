@@ -3,11 +3,12 @@ import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {RelationView} from "@/components/relation/relation-view";
 import {useRelationsState} from "@/state/relations.state";
-import {Database, Network, Sheet} from 'lucide-react';
+import {Database, Folder, Network, Sheet} from 'lucide-react';
 import {ConnectionsOverview} from "@/components/connections/connections-overview";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
 import {SchemaView} from "@/components/schema/schema-view";
 import {DatabaseView} from "@/components/database/database-view";
+import {DirectoryView} from "@/components/directory/directory-view";
 
 
 export function TabbedLayout() {
@@ -45,6 +46,9 @@ const factory = (node: TabNode) => {
     if (component === 'DatabaseComponent') {
         return <DatabaseView databaseId={node.getConfig().databaseId}/>;
     }
+    if (component === 'DirectoryComponent') {
+        return <DirectoryView directoryId={node.getConfig().directoryId} />;
+    }
 
     return null;
 };
@@ -76,6 +80,12 @@ const iconFactory = (node: TabNode) => {
     if (component === 'DatabaseComponent') {
         return <div style={{width: 16, height: 16}}>
             <Database size={16}/>
+        </div>;
+    }
+
+    if (component === 'DirectoryComponent') {
+        return <div style={{width: 16, height: 16}}>
+            <Folder size={16}/>
         </div>;
     }
 

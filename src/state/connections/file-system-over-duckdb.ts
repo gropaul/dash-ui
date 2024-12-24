@@ -106,7 +106,7 @@ export class FileSystemOverDuckdb implements DataConnection {
 
         for (const row of fileSystemResult.rows) {
             const [path, isFileString, basename] = row;
-            const isFile = isFileString === 'true';
+            const isFile = isFileString === true || isFileString === 'true';
             // remove basename from path
             const parentPath = path.substring(0, path.length - basename.length - 1);
             const parent = parents.get(parentPath);
@@ -156,17 +156,18 @@ export class FileSystemOverDuckdb implements DataConnection {
         }
 
         if (element.type !== 'file') {
-            return
-        }
+            const showDirectory = useRelationsState.getState().showDirectory;
+            await showDirectory(this.id, id_path, element as DataSourceGroup);
+        } else {
+            const source: RelationSource = {
+                type: 'file',
+                path: lastId,
+                baseName: element.name
+            }
 
-        const source: RelationSource = {
-            type: 'file',
-            path: lastId,
-            baseName: element.name
+            // show the table
+            await useRelationsState.getState().showRelationFromSource(this.id, source);
         }
-
-        // show the table
-        await useRelationsState.getState().showRelationFromSource(this.id, source);
     }
 
     async loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {

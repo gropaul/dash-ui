@@ -49,7 +49,6 @@ export function ChartDataElement(props: ChartDataElementProps) {
                 radius={4}
             />
         case "pie":
-            console.log('Pie element data', props.elementData)
             return <Pie
                 label={ (entry: any) => entry['name']}
                 data={props.elementData}
