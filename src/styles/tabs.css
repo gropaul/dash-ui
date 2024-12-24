@@ -1,13 +1,11 @@
 .flexlayout__layout {
-    --color-text: var(--tw-text-primary);
-    --color-text-unselected: var(--tw-text-muted);;
-    --color-background: var(--tw-bg-background);
-    --color-base: var(--tw-bg-background);
-    --color-1: #f7f7f7;
+    --color-text: hsl(var(--foreground));
+    --color-text-unselected: hsl(var(--muted-foreground));
+    --color-background: hsl(var(--background));
+    --color-base: hsl(var(--card));
     --color-2: #f0f0f0;
     --color-3: #e9e9e9;
-    --color-4: #e2e2e2;
-    --color-5: #dbdbdb;
+    --color-4: hsl(var(--border));
     --color-6: #d4d4d4;
     --color-drag1: rgb(95, 134, 196);
     --color-drag2: rgb(119, 166, 119);
@@ -17,7 +15,7 @@
     --font-family: Urbanist, sans-serif;
     --font-weight: normal;
     --color-overflow: gray;
-    --color-icon: #6b7290;
+    --color-icon: var(--tw-text-primary);
     --color-tabset-background: var(--color-background);
     --color-tabset-background-selected: var(--color-base);
     --color-tabset-background-maximized: var(--color-6);
@@ -260,7 +258,7 @@ border-bottom: 2px solid var(--color-icon);
     font-size: var(--font-size);
     color: var(--color-tab-textbox);
     background-color: var(--color-tab-textbox-background);
-    border: 1px inset var(--color-1);
+    border: 1px inset var(--color-2);
     border-radius: 3px;
     width: 10em;
 }
