@@ -3,6 +3,7 @@ import {useConnectionsState} from "@/state/connections.state";
 import {getInitViewState, RelationViewState, updateRelationViewState} from "@/model/relation-view-state";
 import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
+import {ConnectionsService} from "@/state/connections/connections-service";
 
 export function getDefaultQueryParams(): RelationQueryParams {
     return {
@@ -22,8 +23,11 @@ export interface RelationQueryParams {
 export interface QueryData {
     baseQuery: string;  // the query that the user defined, e.g. FROM basetable
     initialQueries: string[]; // the queries that must be run before the actual view query/count query
-    viewQuery: string;  // the query defined by the view adding sorting etc, e.g. SELECT * FROM (FROM basetable)
-    countQuery: string; // the query getting the count for the view Query
+    // the query defined by the view adding sorting etc, e.g. SELECT * FROM (FROM basetable), can be undefined if the
+    // base query is not viewable like CREATE TABLE
+    viewQuery: string;
+    // the query getting the count for the view Query
+    countQuery: string;
     viewParameters: RelationQueryParams;
 }
 
@@ -62,7 +66,7 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export function getViewFromSource(connectionId: string, source: RelationSource, viewParams: RelationQueryParams, state: TaskExecutionState): RelationState {
+export async function getViewFromSource(connectionId: string, source: RelationSource, viewParams: RelationQueryParams, state: TaskExecutionState): Promise<RelationState> {
 
     const name = getRelationNameFromSource(source);
     const relation: Relation = {
@@ -75,7 +79,7 @@ export function getViewFromSource(connectionId: string, source: RelationSource, 
 
     const relationBaseQuery = getBaseQueryFromSource(source);
 
-    const queryData = getQueryFromParams(relation, viewParams, relationBaseQuery);
+    const queryData = await getQueryFromParams(relation, viewParams, relationBaseQuery);
 
     const relationWithQuery: RelationWithQuery = {
         ...relation,
@@ -106,7 +110,7 @@ export function getBaseQueryFromSource(source: RelationSource): string {
     }
 }
 
-export function getQueryFromParams(relation: Relation, query: RelationQueryParams, baseSQL: string): QueryData {
+export async function getQueryFromParams(relation: Relation, query: RelationQueryParams, baseSQL: string): Promise<QueryData> {
 
     const {offset, limit} = query;
 
@@ -127,30 +131,35 @@ export function getQueryFromParams(relation: Relation, query: RelationQueryParam
         throw new Error('No final query found in base SQL');
     }
 
-    const finalSubQuery = turnQueryIntoSubquery(finalQuery);
-    const oderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
+    const finalQueryAsSubQuery = turnQueryIntoSubquery(finalQuery);
+    const orderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
     const viewQuery = `
         SELECT *
-        FROM ${finalSubQuery} ${oderByQuery} LIMIT ${limit}
+        FROM ${finalQueryAsSubQuery} ${orderByQuery} LIMIT ${limit}
         OFFSET ${offset};
     `;
 
+    // check if viewQuery is executable as e.g. if base query is something like CREATE TABLE, the view query will be invalid,
+    // and we should only execute the base query, same for the count query
+    const executable = await ConnectionsService.getInstance().checkIfQueryIsExecutable(relation.connectionId, viewQuery);
+
+
     // count query using subquery which is the query Get data without limit and offset
     const countQuery = `SELECT COUNT(*)
-                        FROM ${finalSubQuery} as subquery`;
+                        FROM ${finalQueryAsSubQuery} as subquery`;
 
     return {
+        countQuery: executable ? countQuery : `SELECT 0`,
+        viewQuery: executable ? viewQuery : finalQuery,
         initialQueries: initialQueries,
         baseQuery: baseSQL,
-        viewQuery: viewQuery,
-        countQuery: countQuery,
         viewParameters: query,
     };
 }
 
-export function updateRelationQueryForParams(relation: RelationState, newParams: RelationQueryParams, state: TaskExecutionState): RelationState {
+export async function updateRelationQueryForParams(relation: RelationState, newParams: RelationQueryParams, state: TaskExecutionState): Promise<RelationState> {
     const baseQuery = relation.query.baseQuery;
-    const query = getQueryFromParams(relation, newParams, baseQuery);
+    const query = await getQueryFromParams(relation, newParams, baseQuery);
 
     return {
         ...relation,
@@ -195,16 +204,30 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     let viewData;
     let countData;
 
-    try {
-        viewData = await executeQuery(connectionId, viewQuery);
-    } catch (e) {
-        return returnEmptyErrorState(input, e);
+    if (viewQuery) {
+        try {
+            viewData = await executeQuery(connectionId, viewQuery);
+        } catch (e) {
+            return returnEmptyErrorState(input, e);
+        }
+    } else {
+        viewData = {
+            columns: [],
+            rows: [],
+        };
     }
 
-    try {
-        countData = await executeQuery(connectionId, countQuery);
-    } catch (e) {
-        return returnEmptyErrorState(input, e);
+    if (countQuery) {
+        try {
+            countData = await executeQuery(connectionId, countQuery);
+        } catch (e) {
+            return returnEmptyErrorState(input, e);
+        }
+    } else {
+        countData = {
+            columns: [],
+            rows: [[0]],
+        };
     }
 
     const count = Number(countData.rows[0][0]);

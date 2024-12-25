@@ -52,7 +52,7 @@ export function ConnectionView(props: ConnectionViewProps) {
 
     function onNewEmptyQuery() {
         const randomId = getRandomId();
-        const baseQuery = "SELECT 'Hello, World!' AS message;";
+        const baseQuery = "SELECT 'Hello, World! 🦆' AS message;";
         const source: RelationSourceQuery = {
             type: "query",
             baseQuery: baseQuery,

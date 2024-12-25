@@ -72,6 +72,13 @@ export function cleanAndSplitSQL(sql: string): string[] {
     return getSeparatedStatements(sql).map(addSemicolonIfNeeded).map(minifySQL);
 }
 
+export function removeSemicolon(sql: string){
+    // remove the semicolon at the end of the statement
+    const minifiedSQL = minifySQL(sql);
+    return minifiedSQL.trim().replace(/;$/, "");
+
+}
+
 export function turnQueryIntoSubquery(sql: string, alias?: string): string {
     const statements = getSeparatedStatements(sql).map(minifySQL);
 
@@ -85,7 +92,7 @@ export function turnQueryIntoSubquery(sql: string, alias?: string): string {
     const singleStatement = statements[0];
 
     // remove the semicolon at the end of the statement
-    const cleanedStatement = singleStatement.trim().replace(/;$/, "");
+    const cleanedStatement =removeSemicolon(singleStatement);
 
     if (!alias) {
         return `(${cleanedStatement})`;

@@ -7,6 +7,7 @@ import {DataConnection} from "@/model/connection";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationSourceQuery} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
+import {removeSemicolon} from "@/platform/sql-utils";
 
 
 export class ConnectionsService {
@@ -53,6 +54,19 @@ export class ConnectionsService {
         }
         // update all the fields in the config
         connection.updateConfig(config);
+    }
+
+    async checkIfQueryIsExecutable(connectionId: string, sql: string) {
+
+        const preparedSQL = removeSemicolon(sql)
+        const explainQuery = `EXPLAIN ${preparedSQL}`
+
+        try {
+            const result = await this.executeQuery(connectionId, explainQuery);
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     async initialiseDefaultConnections(state: DataConnectionsState) {
