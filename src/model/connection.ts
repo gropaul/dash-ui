@@ -2,6 +2,8 @@ import {FormDefinition} from "@/components/basics/input/custom-form";
 import {RelationData} from "@/model/relation";
 import {TreeNode} from "@/components/basics/tree-explorer/tree-utils";
 import {Column} from "@/model/column";
+import React from "react";
+import {TreeContextMenuFactory} from "@/components/basics/tree-explorer/tree-explorer";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem-over-duckdb';
 export type DataSourceType = 'file' | 'relation';
@@ -48,6 +50,7 @@ export interface DataConnection {
     checkConnectionState: () => Promise<ConnectionStatus>;
 
     onDataSourceClick: (id_path: string[]) => void;
+    dataSourceContextMenuFactory?: TreeContextMenuFactory;
     loadChildrenForDataSource: (id_path: string[]) => Promise<DataSource[]>;
 
     updateConfig: (config: Partial<DataConnectionConfig>) => void;

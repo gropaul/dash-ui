@@ -4,10 +4,12 @@ import {RelationData, RelationSource} from "@/model/relation";
 import {CONNECTION_ID_DUCKDB_LOCAL, CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
-import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";
+import {findNodeInTrees, TreeNode} from "@/components/basics/tree-explorer/tree-utils";
 import {ConnectionStatus, DataConnection, DataSource, DataSourceGroup, DBConnectionType} from "@/model/connection";
 import {getDuckDBCurrentPath} from "@/state/connections/duckdb-helper";
 import * as path from 'path';
+import {ReactNode} from "react";
+import ContextMenuFactory from "@/state/connections/file-system-over-duckdb/context-menu-factory";
 
 export async function getFileSystemOverDuckdbConnection(): Promise<DataConnection> {
 
@@ -177,6 +179,10 @@ export class FileSystemOverDuckdb implements DataConnection {
     }
 
     async updateConfig(new_config: Partial<FileSystemOverDuckDBConfig>): Promise<void> {
+        // check if the root path is a valid path e.g. not end with a /
+        if (new_config.rootPath && new_config.rootPath.endsWith('/')) {
+            new_config.rootPath = new_config.rootPath.substring(0, new_config.rootPath.length - 1);
+        }
 
         // if the base path changes, reload the data sources
         if (new_config.rootPath && new_config.rootPath !== this.config.rootPath) {
@@ -185,6 +191,10 @@ export class FileSystemOverDuckdb implements DataConnection {
             this.config = {...this.config, ...new_config};
         }
 
+    }
+
+    dataSourceContextMenuFactory = (tree_id_path: string[], tree: TreeNode): ReactNode => {
+        return ContextMenuFactory({tree_id_path, tree, connection_id: this.id});
     }
 
 }

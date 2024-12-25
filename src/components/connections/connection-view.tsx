@@ -34,6 +34,10 @@ export function ConnectionView(props: ConnectionViewProps) {
         ConnectionsService.getInstance().getConnection(connection_id).onDataSourceClick(id_path);
     }
 
+    function getContextMenuFactory(connection_id: string) {
+        return ConnectionsService.getInstance().getConnection(connection_id).dataSourceContextMenuFactory;
+    }
+
     async function onElementLoadRequest(connection_id: string, id_path: string[]) {
         await loadChildrenForDataSource(connection_id, id_path);
     }
@@ -109,6 +113,7 @@ export function ConnectionView(props: ConnectionViewProps) {
             <TreeExplorer
                 tree={props.connection.dataSources}
                 iconFactory={defaultIconFactory}
+                contextMenuFactory={getContextMenuFactory(props.connection.id)}
                 onClick={(id_path) => onElementClick(props.connection.id, id_path)}
                 loadChildren={(id_path) => onElementLoadRequest(props.connection.id, id_path)}
             />
