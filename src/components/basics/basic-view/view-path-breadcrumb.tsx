@@ -8,8 +8,8 @@ interface ViewPathBreadcrumbProps {
 
 export function ViewPathBreadcrumb(props: ViewPathBreadcrumbProps) {
     return (
-        <Breadcrumb className={'text-muted'}>
-            <BreadcrumbList className={'gap-1.5 sm:gap-1.5'}>
+        <Breadcrumb className="text-muted max-w-full overflow-hidden">
+            <BreadcrumbList className={'gap-x-1.5 sm:gap-x-1.5 gap-y-0.5 sm:gap-y-0.5'}>
 
                 {props.path.map((path, index) => {
                     return <>

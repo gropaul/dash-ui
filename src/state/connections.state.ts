@@ -2,8 +2,8 @@ import {create} from "zustand";
 import {RelationData} from "@/model/relation";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
-import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";
-import {ConnectionStatus, DataConnection, DataConnectionConfig, DataSource} from "@/model/connection";
+import {findNodeInTrees} from "@/components/basics/files/tree-utils";
+import {ConnectionStatus, DataConnection, DataConnectionConfig, DataSource, DataSourceGroup} from "@/model/connection";
 
 export interface DataConnectionsState {
     connections: { [key: string]: DataConnection };
@@ -25,7 +25,7 @@ export interface DataConnectionsState {
 
     updateConfig: (connectionId: string, config: DataConnectionConfig) => Promise<void>;
     loadAllDataSources: (connectionId: string) => Promise<DataSource[]>;
-    loadChildrenForDataSource: (connectionId: string, id_path: string[]) => Promise<DataSource[]>;
+    loadChildrenForDataSource: (connectionId: string, id_path: string[]) => Promise<DataSourceGroup | undefined>;
     executeQuery: (connectionId: string, query: string) => Promise<RelationData>;
 
     refreshConnection: (connectionId: string) => Promise<void>;
@@ -198,6 +198,7 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
 
         if (!dataSourceToLoadChildrenFor) {
             get().setConnectionError(connectionId, new Error(`Data source with id path ${id_path} not found`));
+            return undefined;
         } else {
             dataSourceToLoadChildrenFor.children = children;
         }
@@ -211,7 +212,7 @@ export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
                 },
             },
         }));
-        return children;
+        return dataSourceToLoadChildrenFor as DataSourceGroup;
     },
     getDuckDBWasmConnection: () => {
         return ConnectionsService.getInstance().getDuckDBWasmConnection();

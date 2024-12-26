@@ -18,6 +18,8 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {getPathFromRelation} from "@/model/relation";
+import {FilepathDialog} from "@/components/export/filepath-dialog";
+import {CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB} from "@/platform/global-data";
 
 export interface RelationViewHeaderProps {
     relationId: string;
@@ -133,6 +135,11 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
                             </ToggleGroupItem>
                         </ToggleGroup>
                         <Separator orientation={'vertical'}/>
+                        <FilepathDialog connectionId={CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB}>
+                            <Button variant={'ghost'} size={'icon'}>
+                                <ImageDown className="h-4 w-4"/>
+                            </Button>
+                        </FilepathDialog>
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

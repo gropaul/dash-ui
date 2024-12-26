@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {ChevronDown, ChevronRight} from "lucide-react";
-import {TreeNode} from "@/components/basics/tree-explorer/tree-utils";
+import {TreeNode} from "@/components/basics/files/tree-utils";
 import {ContextMenu, ContextMenuContent, ContextMenuTrigger} from "@/components/ui/context-menu";
 
 

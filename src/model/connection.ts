@@ -1,9 +1,9 @@
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {RelationData} from "@/model/relation";
-import {TreeNode} from "@/components/basics/tree-explorer/tree-utils";
+import {TreeNode} from "@/components/basics/files/tree-utils";
 import {Column} from "@/model/column";
 import React from "react";
-import {TreeContextMenuFactory} from "@/components/basics/tree-explorer/tree-explorer";
+import {TreeContextMenuFactory} from "@/components/basics/files/tree-explorer";
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem-over-duckdb';
 export type DataSourceType = 'file' | 'relation';

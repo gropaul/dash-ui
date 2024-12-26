@@ -4,7 +4,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/model/connection";
 import {useConnectionsState} from "@/state/connections.state";
 import {DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
-import {findNodeInTrees} from "@/components/basics/tree-explorer/tree-utils";
+import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 
 
 export async function onDuckDBDataSourceClick(

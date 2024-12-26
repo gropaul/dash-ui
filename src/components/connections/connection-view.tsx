@@ -1,5 +1,5 @@
-import {TreeExplorer} from "@/components/basics/tree-explorer/tree-explorer";
-import {defaultIconFactory} from "@/components/basics/tree-explorer/icon-factories";
+import {TreeExplorer} from "@/components/basics/files/tree-explorer";
+import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import React from "react";
 import {useConnectionsState} from "@/state/connections.state";
 import {EllipsisVertical, Plus, RefreshCw, Settings} from "lucide-react";

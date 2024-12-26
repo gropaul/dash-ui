@@ -14,7 +14,7 @@ export function ConnectionsOverview() {
     // show a list of the tables, have a light grey background
     return (
         <div className=" h-full w-full bg-background">
-            <div
+            <div className={'pl-2'}
                 style={{height: '28px'}}>
                     <H5 className={'text-primary'}>Connections</H5>
 

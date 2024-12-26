@@ -4,7 +4,7 @@ import {RelationData, RelationSource} from "@/model/relation";
 import {CONNECTION_ID_DUCKDB_LOCAL, CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
-import {findNodeInTrees, TreeNode} from "@/components/basics/tree-explorer/tree-utils";
+import {findNodeInTrees, TreeNode} from "@/components/basics/files/tree-utils";
 import {ConnectionStatus, DataConnection, DataSource, DataSourceGroup, DBConnectionType} from "@/model/connection";
 import {getDuckDBCurrentPath} from "@/state/connections/duckdb-helper";
 import * as path from 'path';

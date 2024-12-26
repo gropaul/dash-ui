@@ -6,6 +6,7 @@ import {DirectoryDisplayMode} from "@/components/directory/directory-view";
 export interface DirectoryNormalizedChild {
     id: string;
     name: string;
+    path: string[];
     type: 'file' | 'folder';
 }
 
@@ -16,9 +17,13 @@ export interface DirectoryNormalized {
     children: DirectoryNormalizedChild[];
 }
 
-export interface DirectoryNormalizedState {
-    dir: DirectoryNormalized;
+export interface DirectoryDisplayState {
     displayMode: DirectoryDisplayMode;
+    onlyShowFolders: boolean;
+}
+
+export interface DirectoryNormalizedState extends DirectoryDisplayState {
+    dir: DirectoryNormalized;
 }
 
 export function getIdFromPath(connection: string, path: string[]): string {
@@ -26,7 +31,12 @@ export function getIdFromPath(connection: string, path: string[]): string {
 }
 
 /// DataSourceGroup needs to have the children property initialized
-export function normalizeDirectory(connectionId: string, path: string[], dataSource: DataSourceGroup): DirectoryNormalizedState {
+export function normalizeDirectory(
+    connectionId: string,
+    path: string[],
+    dataSource: DataSourceGroup,
+    displayState?: DirectoryDisplayState
+): DirectoryNormalizedState {
     const id = getIdFromPath(connectionId, path);
     const name = dataSource.name;
 
@@ -49,6 +59,11 @@ export function normalizeDirectory(connectionId: string, path: string[], dataSou
         }
     });
 
+    const displayStateLoaded = displayState || {
+        displayMode: 'grid',
+        onlyShowFolders: false,
+    }
+
     return {
         dir: {
             id,
@@ -56,6 +71,6 @@ export function normalizeDirectory(connectionId: string, path: string[], dataSou
             name,
             children: children!,
         },
-        displayMode: 'grid',
+        ...displayStateLoaded,
     };
 }
