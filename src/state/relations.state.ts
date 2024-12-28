@@ -22,15 +22,12 @@ import {DataSourceGroup} from "@/model/connection";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/utils";
-import {DirectoryNormalizedState, getIdFromPath, normalizeDirectory} from "@/model/directory-normalized";
-
 
 interface RelationStates {
 
     relations: { [key: string]: RelationState };
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
-    directories: { [key: string]: DirectoryNormalizedState };
 
     doesRelationExist: (relationId: string) => boolean,
     getRelation: (relationId: string) => RelationState,
@@ -47,8 +44,6 @@ interface RelationStates {
     showDatabase: (connectionId: string, database: DataSourceGroup) => Promise<void>,
     getDatabaseState: (databaseId: string) => DatabaseState,
 
-    showDirectory: (connectionId: string, path: string[], directory: DataSourceGroup) => Promise<void>,
-
     layoutModel: Model;
     getModel: () => Model;
     setModel: (model: Model) => void;
@@ -59,38 +54,6 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
     relations: {},
     schemas: {},
     databases: {},
-    directories: {},
-
-    showDirectory: async (connectionId: string, path: string[], directory: DataSourceGroup) => {
-
-        // currently disabled
-        return;
-        const {directories} = get(); // Get the current state
-        const directoryId = getIdFromPath(connectionId, path); // Generate the directory ID
-
-        const existingDirectory = directories[directoryId]; // Retrieve the directory
-
-        if (existingDirectory) {
-            focusTabById(get().layoutModel, directoryId);
-        } else {
-
-            const normalizedDirectory = normalizeDirectory(connectionId, path, directory);
-            set((state) => ({
-                directories: {
-                    ...state.directories,
-                    [directoryId]: {
-                        ...normalizedDirectory,
-                        connectionId,
-                        path,
-                    }
-                },
-            }));
-
-            const model = get().layoutModel;
-            addDirectoryToLayout(model, directoryId, normalizedDirectory);
-        }
-    },
-
     showSchema: async (connectionId: string, databaseId: string, schema: DataSourceGroup) => {
         const {schemas} = get(); // Get the current state
         const schemaId = getSchemaId(connectionId, databaseId, schema); // Generate the schema ID
@@ -257,9 +220,6 @@ export const useRelationsState = create<RelationStates>((set, get) => ({
         } else if (relations[tabId]) {
             delete relations[tabId];
             set({relations});
-        } else if (get().directories[tabId]) {
-            delete get().directories[tabId];
-            set({directories: get().directories});
         }
     },
 

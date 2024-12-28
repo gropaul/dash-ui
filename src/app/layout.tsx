@@ -4,6 +4,7 @@ import "./globals.css";
 import ConnectionsProvider from "@/components/provider/connections-provider";
 import {ThemeProvider} from "@/components/provider/theme-provider";
 import {cn} from "@/lib/utils";
+import {Toaster} from "sonner";
 
 export default function RootLayout({
                                        children,
@@ -31,6 +32,7 @@ export default function RootLayout({
                         </div>
                     </ConnectionsProvider>
                 </ThemeProvider>
+                <Toaster />
             </div>
         </main>
 

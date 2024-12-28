@@ -1,53 +1,99 @@
-import {DirectoryNormalizedState} from "@/model/directory-normalized";
 import {DirectoryDisplayChild} from "@/components/directory/directory-display-child";
 import {Button} from "@/components/ui/button";
-import {ArrowLeft} from "lucide-react";
+import {ArrowLeft, Search} from "lucide-react";
 import {H5} from "@/components/ui/typography";
 import {Separator} from "@/components/ui/separator";
+import {DirectoryItem} from "@/components/export/hostfs-functions";
+import {useState} from "react";
+import {InputWithIcon} from "@/components/ui/input-with-icon";
 
 
-export interface DirectoryDisplayProps {
-    className?: string;
-    directory: DirectoryNormalizedState;
-    onChildClick?: (path: string[]) => void;
+export type DirectoryDisplayMode = 'grid' | 'list';
+
+export interface DirectoryDisplaySettings {
+    displayMode: DirectoryDisplayMode;
+    onlyShowFolders: boolean;
 }
 
-export function DirectoryDisplay({directory, onChildClick, className}: DirectoryDisplayProps) {
+export interface DirectoryDisplayContent {
+    dirPath: string;
+    content: DirectoryItem[]
+}
 
-    const wrapperClass = directory.displayMode === 'grid' ?
-        'flex flex-row flex-wrap items-start w-full h-full align-start content-start'
+export interface DirectoryDisplayProps extends DirectoryDisplayContent {
+    displaySettings: DirectoryDisplaySettings;
+    onItemClick?: (path: DirectoryItem) => void;
+    backDisabled?: boolean;
+    onBackClick?: () => void;
+}
+
+
+function filterItems(items: DirectoryItem[], searchText: string): DirectoryItem[] {
+
+    // if the search text is empty, return all items
+    if (searchText === '') {
+        return items;
+    }
+
+    return items.filter((item) => item.name.toLowerCase().includes(searchText.toLowerCase()));
+}
+
+export function DirectoryDisplay({
+                                     dirPath,
+                                     content,
+                                     onItemClick,
+                                     onBackClick,
+                                     backDisabled,
+                                     displaySettings
+                                 }: DirectoryDisplayProps) {
+
+    const wrapperClass = displaySettings.displayMode === 'grid' ?
+        'flex flex-row flex-wrap items-stretch w-full'
         :
         'flex flex-col space-y-4';
 
+    const [searchText, setSearchText] = useState<string>('');
+
     return (
-        <div className={'flex-1 w-full h-full flex flex-col space-y-4 align-start content-start' + ' ' + className}>
-            <div className="flex flex-row items-center space-x-2">
+        <>
+            <div className="flex flex-row items-center space-x-2 ">
                 <Button
-                    disabled={directory.dir.path.length === 1}
+                    disabled={backDisabled}
                     size={'icon'}
                     variant={'ghost'}
-                    onClick={() => {
-                        // Go back to parent directory
-                        onChildClick?.(directory.dir.path.slice(0, -1))
-                    }}
+                    onClick={onBackClick}
                 >
                     <ArrowLeft size={10}/>
                 </Button>
-                <H5 className="text-primary">{directory.dir.name}</H5>
+                <H5 className="text-primary">{dirPath}</H5>
+                <div className="flex-1"/>
+                { /* Search bar goes here */}
+                <div className={'max-w-48'}>
+                    <InputWithIcon
+                        startIcon={Search}
+                        placeholder={'Search...'}
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                </div>
             </div>
             <Separator/>
-            <div className={`flex-1 flex overflow-auto w-full h-full ${wrapperClass}`}>
-                {directory.dir.children!.map((child, index) => (
-                    <>
-                        {!directory.onlyShowFolders || child.type === 'folder' && <DirectoryDisplayChild
-                            key={index}
-                            child={child}
-                            displayMode={'grid'}
-                            onClick={() => onChildClick?.(child.path)}
-                        />}
-                    </>
-                ))}
+            <div className={'overflow-auto'}>
+                <div className={`flex ${wrapperClass}`}>
+                    {filterItems(content, searchText).map((item, index) => (
+                        <>
+                            {(!displaySettings.onlyShowFolders || item.type === 'directory') &&
+                                <DirectoryDisplayChild
+                                    key={index}
+                                    item={item}
+                                    displayMode={'grid'}
+                                    onClick={() => onItemClick?.(item)}
+                                />
+                            }
+                        </>
+                    ))}
+                </div>
             </div>
-        </div>
+        </>
     )
 }

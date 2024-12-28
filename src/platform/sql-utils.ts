@@ -25,6 +25,10 @@ function removeComments(sql: string) {
 }
 
 export function minifySQL(sql: string) {
+
+    // first remove comments
+    sql = removeComments(sql);
+
     // Remove all tabs and line breaks
     sql = sql.replace(/("(""|[^"])*")|('(''|[^'])*')|([\t\r\n])/gm, (match) => {
         if (
@@ -72,11 +76,10 @@ export function cleanAndSplitSQL(sql: string): string[] {
     return getSeparatedStatements(sql).map(addSemicolonIfNeeded).map(minifySQL);
 }
 
+// remove the semicolon at the end of the statement if it exists
 export function removeSemicolon(sql: string){
-    // remove the semicolon at the end of the statement
     const minifiedSQL = minifySQL(sql);
     return minifiedSQL.trim().replace(/;$/, "");
-
 }
 
 export function turnQueryIntoSubquery(sql: string, alias?: string): string {

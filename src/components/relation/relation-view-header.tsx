@@ -1,4 +1,4 @@
-import {ChartSpline, Code, Download, ImageDown, Map, Sheet} from "lucide-react";
+import {ChartSpline, Code, Map, Sheet} from "lucide-react";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 import {formatDuration} from "@/platform/utils";
@@ -8,19 +8,8 @@ import {Toggle} from "@/components/ui/toggle"
 
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {Separator} from "@/components/ui/separator";
-import {Button} from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import {getPathFromRelation} from "@/model/relation";
-import {FilepathDialog} from "@/components/export/filepath-dialog";
-import {CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB} from "@/platform/global-data";
+import {HeaderDownloadButton} from "@/components/relation/header/header-download-button";
 
 export interface RelationViewHeaderProps {
     relationId: string;
@@ -31,14 +20,11 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
 
     const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
-    const relation = useRelationsState((state) => state.getRelation(relationId), shallow);
+    const source = useRelationsState((state) => state.getRelation(relationId).source, shallow);
+    const connectionId = useRelationsState((state) => state.getRelation(relationId).connectionId, shallow);
     const lastExecutionDuration = useRelationsState((state) => state.getRelation(relationId).lastExecutionMetaData?.lastExecutionDuration, shallow);
     const codeFenceState = useRelationsState((state) => state.getRelationViewState(relationId).codeFenceState!, shallow);
     const currentView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
-    const showChartSettings = useRelationsState((state) => state.getRelationViewState(relationId).chartState.view.showConfig, shallow);
-
-    const showSchema = useRelationsState((state) => state.showSchema);
-    const showDatabase = useRelationsState((state) => state.showDatabase);
 
     const queryState = useRelationsState(
         (state) => state.getRelation(relationId).executionState,
@@ -46,7 +32,7 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     );
 
     function onPathClick(element: string, index: number) {
-        if (relation.source.type === 'table') {
+        if (source.type === 'table') {
             if ( index === 0) {
                 // connection, no action
             } else if (index === 1) {
@@ -61,28 +47,10 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
         }
     }
 
-    function onShowChartSettings() {
-        updateRelationViewState(relationId, {
-            chartState: {
-                view: {
-                    showConfig: !showChartSettings,
-                }
-            }
-        });
-    }
-
     function onShowCode() {
         updateRelationViewState(relationId, {
             codeFenceState: {
                 show: !codeFenceState.show,
-            }
-        });
-    }
-
-    function toggleCodeFenceLayout() {
-        updateRelationViewState(relationId, {
-            codeFenceState: {
-                layout: codeFenceState.layout === 'column' ? 'row' : 'column',
             }
         });
     }
@@ -103,7 +71,7 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
         durationString += `(Took ${formatDuration(lastExecutionDuration)})`;
     }
 
-    const path = getPathFromRelation(relation);
+    const path = getPathFromRelation(source, connectionId);
 
     return (
         <>
@@ -136,29 +104,9 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
                             </ToggleGroupItem>
                         </ToggleGroup>
                         <Separator orientation={'vertical'}/>
-                        <FilepathDialog connectionId={CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB}>
-                            <Button variant={'ghost'} size={'icon'}>
-                                <ImageDown className="h-4 w-4"/>
-                            </Button>
-                        </FilepathDialog>
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant={'ghost'} size={'icon'}>
-                                    <Download className="h-4 w-4"/>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-32">
-                                <DropdownMenuLabel>Export as ... </DropdownMenuLabel>
-                                <DropdownMenuSeparator/>
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem>CSV</DropdownMenuItem>
-                                    <DropdownMenuItem>JSON</DropdownMenuItem>
-                                    <DropdownMenuItem>Excel</DropdownMenuItem>
-                                    <DropdownMenuItem>Parquet</DropdownMenuItem>
-                                </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <HeaderDownloadButton
+                            relationId={relationId}
+                        />
                     </>
                 }
             />

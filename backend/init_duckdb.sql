@@ -15,7 +15,7 @@ ATTACH '/Users/paul/workspace/duckpgq-experiments/data/SNB1-projected|/snb.duckd
 ATTACH '/Users/paul/WebstormProjects/explorer/data/school.db' AS school;
 
 -- MOUNT motherduck database
-ATTACH 'md:';
+-- ATTACH 'md:';
 
 CREATE TABLE stations AS FROM 's3://duckdb-blobs/stations.parquet';
 CREATE TABLE train_services As FROM 's3://duckdb-blobs/train_services.parquet';

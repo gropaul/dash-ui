@@ -62,8 +62,8 @@ export function ConnectionView(props: ConnectionViewProps) {
         showRelationFromSource(props.connection.id, source);
     }
 
-    function closeModal() {
-        setSettingsModalOpen(false);
+    function onSettingsModalOpenChanged(open: boolean) {
+        setSettingsModalOpen(open);
     }
 
     function saveSettings(newConfig: DataConnectionConfig) {
@@ -120,7 +120,7 @@ export function ConnectionView(props: ConnectionViewProps) {
 
             <ConnectionConfigModal
                 isOpen={settingsModalOpen}
-                onClose={closeModal}
+                onOpenChange={onSettingsModalOpenChanged}
                 onSave={saveSettings}
                 connection={props.connection}
             />

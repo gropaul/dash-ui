@@ -5,6 +5,8 @@ import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/
 import {useConnectionsState} from "@/state/connections.state";
 import {DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {removeSemicolon} from "@/platform/sql-utils";
 
 
 export async function onDuckDBDataSourceClick(
@@ -163,4 +165,39 @@ export async function creatTableIfNotExistsFromFilePath(connection: DataConnecti
     await useRelationsState.getState().showRelationFromSource(connection.id, relationSource);
 
     return tableName;
+}
+
+
+export type FileFormat = 'csv' | 'json' | 'parquet' | 'xlsx';
+
+
+async function getAndPrepareExportQuery(query: string, path: string, fileFormat: FileFormat, connectionId: string): Promise<string> {
+
+    // remove query terminator if present
+    const preparedSQL = removeSemicolon(query);
+
+    switch (fileFormat) {
+        case 'csv':
+            return `COPY (${preparedSQL}) TO '${path}' (FORMAT 'csv', HEADER, DELIMITER ',');`
+        case 'json':
+            return `COPY (${preparedSQL}) TO '${path}' (FORMAT 'json');`
+        case 'parquet':
+            return `COPY (${preparedSQL}) TO '${path}' (FORMAT 'parquet');`
+        case 'xlsx':
+
+            // install and load the spatial extension (https://duckdb.org/docs/guides/file_formats/excel_export.html)
+
+            const installQuery = "INSTALL spatial;";
+            await ConnectionsService.getInstance().executeQuery(connectionId, installQuery);
+            const loadQuery = "LOAD spatial;";
+            await ConnectionsService.getInstance().executeQuery(connectionId, loadQuery);
+
+            return `COPY (${preparedSQL}) TO '${path}' WITH (FORMAT GDAL, DRIVER 'xlsx');`
+    }
+
+}
+
+export async function exportQueryToFile(query: string, path: string, fileFormat: FileFormat, connectionId: string) {
+    const exportQuery = await getAndPrepareExportQuery(query, path, fileFormat, connectionId);
+    return await ConnectionsService.getInstance().executeQuery(connectionId, exportQuery);
 }

@@ -39,16 +39,16 @@ export interface Relation {
     data?: RelationData, // can be undefined if query still running
 }
 
-export function getPathFromRelation(relation: Relation): string[] {
+export function getPathFromRelation(source: RelationSource, connectionId: string): string[] {
 
-    if (relation.source.type == 'file'){
-        return [relation.connectionId, relation.source.baseName]
-    } else  if (relation.source.type == 'query') {
-        return [relation.connectionId]
-    } else if (relation.source.type == 'table') {
-        return [relation.connectionId, relation.source.database, relation.source.schema, relation.source.tableName]
+    if (source.type == 'file'){
+        return [connectionId, source.baseName]
+    } else  if (source.type == 'query') {
+        return [connectionId]
+    } else if (source.type == 'table') {
+        return [connectionId, source.database, source.schema, source.tableName]
     } else {
-        throw new Error(`Unknown relation type: ${relation.source}`);
+        throw new Error(`Unknown relation type: ${source}`);
     }
 }
 

@@ -1,15 +1,15 @@
-import {DirectoryNormalizedChild} from "@/model/directory-normalized";
 import {File, Folder} from "lucide-react";
-import {DirectoryDisplayMode} from "@/components/directory/directory-view";
+import {DirectoryItem} from "@/components/export/hostfs-functions";
+import {DirectoryDisplayMode} from "@/components/directory/directory-display";
 
 export interface DirectoryChildViewProps {
-    child: DirectoryNormalizedChild;
+    item: DirectoryItem;
     displayMode: DirectoryDisplayMode;
     onClick?: () => void;
 }
 
-export function DirectoryDisplayChild({child, displayMode, onClick}: DirectoryChildViewProps) {
-    const isFolder = child.type === 'folder';
+export function DirectoryDisplayChild({item, displayMode, onClick}: DirectoryChildViewProps) {
+    const isFolder = item.type === 'directory';
 
     const iconSize = displayMode === 'list' ? 16 : 32;
 
@@ -18,8 +18,9 @@ export function DirectoryDisplayChild({child, displayMode, onClick}: DirectoryCh
         <>
             {isFolder ? <Folder size={iconSize}/> : <File size={iconSize}/>}
             <div
+                title={item.name}
                 className="text-sm font-medium text-center text-muted-foreground w-24 break-words line-clamp-2 text-ellipsis">
-                {child.name}
+                {item.name}
             </div>
         </>
     );

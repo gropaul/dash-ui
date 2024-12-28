@@ -1,6 +1,7 @@
 import React, {FC} from 'react';
 import {CustomForm} from "@/components/basics/input/custom-form";
 import {DataConnection, DataConnectionConfig} from "@/model/connection";
+import {MyDialog} from "@/components/ui/my-dialog";
 
 
 export interface ConnectionElementProps {
@@ -11,33 +12,27 @@ export interface ConnectionElementProps {
 
 interface ConfigModalProps {
     isOpen: boolean;
-    onClose: () => void;
+    onOpenChange?: (open: boolean) => void;
     onSave: (config: DataConnectionConfig) => void;
     connection: DataConnection,
     connectionElement?: FC<ConnectionElementProps>;
 }
 
-export function ConnectionConfigModal({isOpen, onClose, onSave, connection}: ConfigModalProps) {
+export function ConnectionConfigModal({isOpen, onOpenChange, onSave, connection}: ConfigModalProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="z-50 fixed inset-0 flex items-center justify-center bg-black bg-opacity-75"
-             onClick={onClose}>
-            <div
-                className="bg-background p-6 rounded-lg shadow-lg max-w-lg w-full border-[1px] border-muted"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h2 className="text-2xl font-semibold mb-4">Connection Configuration</h2>
+        <MyDialog open={isOpen} onOpenChange={onOpenChange}>
+            <h2 className="text-2xl font-semibold mb-4">Connection Configuration</h2>
 
-                {/* Configuration form goes here */}
+            {/* Configuration form goes here */}
 
-                <CustomForm
-                    initialFormData={connection.config}
-                    formDefinition={connection.configForm}
-                    onSubmit={onSave}
-                    onCancel={onClose}
-                />
-            </div>
-        </div>
+            <CustomForm
+                initialFormData={connection.config}
+                formDefinition={connection.configForm}
+                onSubmit={onSave}
+                onCancel={() => onOpenChange?.(false)}
+            />
+        </MyDialog>
     );
 }
