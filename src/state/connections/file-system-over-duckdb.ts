@@ -158,8 +158,8 @@ export class FileSystemOverDuckdb implements DataConnection {
         }
 
         if (element.type !== 'file') {
-            const showDirectory = useRelationsState.getState().showDirectory;
-            await showDirectory(this.id, id_path, element as DataSourceGroup);
+            // const showDirectory = useRelationsState.getState().showDirectory;
+            // await showDirectory(this.id, id_path, element as DataSourceGroup);
         } else {
             const source: RelationSource = {
                 type: 'file',

@@ -1,17 +1,16 @@
-import {Dialog, DialogContent, DialogHeader, DialogTrigger,} from "@/components/ui/dialog"
 import React, {useEffect} from "react";
 import {DirectoryDisplay, DirectoryDisplayContent} from "@/components/directory/directory-display";
 import {
     concatPaths,
     DirectoryItem,
     getCurrentWorkingDirectory,
-    getDirectoryContent, getParentPath,
+    getDirectoryContent,
+    getParentPath,
     splitPath
 } from "@/components/export/hostfs-functions";
 import {Separator} from "@/components/ui/separator";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
-import {FileFormat} from "@/state/connections/duckdb-helper";
 import {FilepathDialogProps} from "@/components/export/filepath-dialog";
 
 

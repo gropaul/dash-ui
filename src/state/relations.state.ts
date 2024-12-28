@@ -3,7 +3,6 @@ import {create} from "zustand";
 import {Model} from "flexlayout-react";
 import {
     addDatabaseToLayout,
-    addDirectoryToLayout,
     addRelationToLayout,
     addSchemaToLayout,
     focusTabById,

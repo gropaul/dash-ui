@@ -1,8 +1,3 @@
-import {useRelationsState} from "@/state/relations.state";
-import {ViewHeader} from "@/components/basics/basic-view/view-header";
-
-
-
 interface DirectoryViewProps {
     directoryId: string;
 }
