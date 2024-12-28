@@ -2,7 +2,8 @@ import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {create} from "zustand";
 import {Model} from "flexlayout-react";
 import {
-    addDatabaseToLayout, addDirectoryToLayout,
+    addDatabaseToLayout,
+    addDirectoryToLayout,
     addRelationToLayout,
     addSchemaToLayout,
     focusTabById,
@@ -21,12 +22,7 @@ import {DataSourceGroup} from "@/model/connection";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/utils";
-import {
-
-    DirectoryNormalizedState,
-    getIdFromPath,
-    normalizeDirectory
-} from "@/model/directory-normalized";
+import {DirectoryNormalizedState, getIdFromPath, normalizeDirectory} from "@/model/directory-normalized";
 
 
 interface RelationStates {

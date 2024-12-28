@@ -1,5 +1,5 @@
 import {ReactNode} from "react";
-import {TooltipContent, TooltipProvider, TooltipTrigger, Tooltip} from "@/components/ui/tooltip";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
 
 interface TooltipWrapperProps {

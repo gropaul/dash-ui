@@ -1,5 +1,4 @@
 import {DataSourceGroup} from "@/model/connection";
-import {DatabaseState} from "@/model/database-state";
 
 
 export interface SchemaState extends DataSourceGroup {

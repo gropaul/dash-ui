@@ -4,7 +4,7 @@ import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
 import {DataSourceGroup} from "@/model/connection";
-import {DirectoryNormalized, DirectoryNormalizedState} from "@/model/directory-normalized";
+import {DirectoryNormalizedState} from "@/model/directory-normalized";
 
 
 interface CurrentLayoutState {

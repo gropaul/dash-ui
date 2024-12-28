@@ -12,7 +12,6 @@ import {ColumnIcon} from "@/components/relation/table/table-column-head";
 import {Muted} from "@/components/ui/typography";
 import PopupColorPicker from "@/components/ui/popup-color-picker";
 import {AxisConfig} from "@/model/relation-view-state/chart";
-import {CommandSeparator} from "cmdk";
 import {Separator} from "@/components/ui/separator";
 
 

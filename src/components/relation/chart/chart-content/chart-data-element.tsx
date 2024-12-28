@@ -3,7 +3,6 @@ import {AxisConfig, PlotType} from "@/model/relation-view-state/chart";
 import {DEFAULT_COLORS} from "@/platform/global-data";
 
 
-
 interface ChartDataElementProps {
     type: PlotType;
     axis: AxisConfig;

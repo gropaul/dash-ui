@@ -1,5 +1,5 @@
 import {CartesianGrid, PolarAngleAxis, PolarGrid, PolarRadiusAxis, XAxis, YAxis} from "recharts";
-import {ChartConfig, ChartViewState, PlotType} from "@/model/relation-view-state/chart";
+import {ChartConfig, PlotType} from "@/model/relation-view-state/chart";
 import {RelationData} from "@/model/relation";
 
 

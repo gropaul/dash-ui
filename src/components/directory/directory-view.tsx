@@ -1,6 +1,5 @@
 import {useRelationsState} from "@/state/relations.state";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
-import {DirectoryDisplayChild} from "@/components/directory/directory-display-child";
 
 
 export type DirectoryDisplayMode = 'grid' | 'list';

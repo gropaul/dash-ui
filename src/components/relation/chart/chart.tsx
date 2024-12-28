@@ -5,15 +5,6 @@ import {ChartContent} from "@/components/relation/chart/chart-content";
 import {toSnakeCase} from "@/platform/string-utils";
 import {WindowSplitter} from "@/components/ui/window-splitter";
 import {ChartConfigView} from "@/components/relation/chart/chart-config-view";
-import {
-    DropdownMenu,
-    DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import {Button} from "@/components/ui/button";
-import {Download} from "lucide-react";
 import {CanDisplayPlot} from "@/model/relation-view-state/chart";
 import {ChartContentOverlay} from "@/components/relation/chart/chart-content/chart-content-overlay";
 import {ChartContentError} from "@/components/relation/chart/chart-content/chart-content-error";

@@ -1,4 +1,4 @@
-import {ChartSpline, Code, Download, Eye, EyeOff, ImageDown, Map, Menu, Sheet} from "lucide-react";
+import {ChartSpline, Code, Download, ImageDown, Map, Sheet} from "lucide-react";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 import {formatDuration} from "@/platform/utils";
@@ -11,10 +11,11 @@ import {Separator} from "@/components/ui/separator";
 import {Button} from "@/components/ui/button";
 import {
     DropdownMenu,
-    DropdownMenuContent, DropdownMenuGroup,
+    DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
-    DropdownMenuLabel, DropdownMenuPortal,
-    DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {getPathFromRelation} from "@/model/relation";

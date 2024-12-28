@@ -1,5 +1,5 @@
 import {RelationData} from "@/model/relation";
-import {AxisConfig, ChartConfig, PieAxisConfig, PlotType} from "@/model/relation-view-state/chart";
+import {ChartConfig, PieAxisConfig} from "@/model/relation-view-state/chart";
 
 
 export function  getReChartDataFromConfig(data: RelationData, config: ChartConfig): any[] {

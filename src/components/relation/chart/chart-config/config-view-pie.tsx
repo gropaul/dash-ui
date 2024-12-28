@@ -2,7 +2,7 @@ import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 import {Label} from "@/components/ui/label";
 import {Muted} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
-import {AxisConfig, PieAxisConfig} from "@/model/relation-view-state/chart";
+import {AxisConfig} from "@/model/relation-view-state/chart";
 import {useRelationsState} from "@/state/relations.state";
 
 

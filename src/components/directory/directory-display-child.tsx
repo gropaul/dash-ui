@@ -1,5 +1,5 @@
 import {DirectoryNormalizedChild} from "@/model/directory-normalized";
-import {Folder, File} from "lucide-react";
+import {File, Folder} from "lucide-react";
 import {DirectoryDisplayMode} from "@/components/directory/directory-view";
 
 export interface DirectoryChildViewProps {

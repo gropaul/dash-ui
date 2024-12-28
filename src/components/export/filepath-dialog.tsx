@@ -1,20 +1,11 @@
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog"
-import {TreeExplorer} from "@/components/basics/files/tree-explorer";
-import {defaultIconFactory} from "@/components/basics/files/icon-factories";
+import {Dialog, DialogContent, DialogHeader, DialogTrigger,} from "@/components/ui/dialog"
 import React, {useEffect} from "react";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DataConnection, DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/connection";
 import {useConnectionsState} from "@/state/connections.state";
-import {shallow} from "zustand/shallow";
 import {DirectoryDisplay} from "@/components/directory/directory-display";
 import {CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB} from "@/platform/global-data";
-import {
-    DirectoryDisplayState,
-    DirectoryNormalizedChild,
-    DirectoryNormalizedState,
-    normalizeDirectory
-} from "@/model/directory-normalized";
-import {set} from "immutable";
+import {DirectoryNormalizedState, normalizeDirectory} from "@/model/directory-normalized";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 
 

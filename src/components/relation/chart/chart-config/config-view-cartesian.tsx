@@ -3,7 +3,7 @@ import {Muted, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {DEFAULT_COLORS} from "@/platform/global-data";
 import {CirclePlus} from "lucide-react";
-import {AxisConfig, ChartViewState} from "@/model/relation-view-state/chart";
+import {AxisConfig} from "@/model/relation-view-state/chart";
 import {useRelationsState} from "@/state/relations.state";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 

@@ -1,9 +1,9 @@
-import {DirectoryNormalizedChild, DirectoryNormalizedState} from "@/model/directory-normalized";
+import {DirectoryNormalizedState} from "@/model/directory-normalized";
 import {DirectoryDisplayChild} from "@/components/directory/directory-display-child";
-import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {ArrowLeft} from "lucide-react";
 import {H5} from "@/components/ui/typography";
+import {Separator} from "@/components/ui/separator";
 
 
 export interface DirectoryDisplayProps {
@@ -35,6 +35,7 @@ export function DirectoryDisplay({directory, onChildClick, className}: Directory
                 </Button>
                 <H5 className="text-primary">{directory.dir.name}</H5>
             </div>
+            <Separator/>
             <div className={`flex-1 flex overflow-auto w-full h-full ${wrapperClass}`}>
                 {directory.dir.children!.map((child, index) => (
                     <>

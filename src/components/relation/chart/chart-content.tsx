@@ -1,7 +1,5 @@
 "use client"
 
-import {Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis} from "recharts"
-
 import {ChartConfig as RechartConfig, ChartContainer, ChartTooltip, ChartTooltipContent,} from "@/components/ui/chart"
 import {RelationData} from "@/model/relation";
 import {ChartConfig} from "@/model/relation-view-state/chart";

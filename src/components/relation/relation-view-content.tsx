@@ -1,9 +1,7 @@
 import {Table} from "@/components/relation/table/table";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
-import {useEffect, useState} from "react";
-import {ConnectionsService} from "@/state/connections/connections-service";
-import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+import {useState} from "react";
 import {Chart} from "@/components/relation/chart/chart";
 
 

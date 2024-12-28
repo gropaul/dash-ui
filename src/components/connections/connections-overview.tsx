@@ -4,7 +4,6 @@ import React from "react";
 import {useConnectionsState} from "@/state/connections.state";
 import {ConnectionView} from "@/components/connections/connection-view";
 import {H5} from "@/components/ui/typography";
-import {Divide} from "lucide-react";
 import {Separator} from "@/components/ui/separator";
 
 export function ConnectionsOverview() {

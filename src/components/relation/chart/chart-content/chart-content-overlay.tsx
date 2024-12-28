@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
-import {Download, Eye, EyeOff, ImageDown, Menu} from "lucide-react";
+import {Eye, EyeOff, ImageDown, Menu} from "lucide-react";
 import {MyChartProps} from "@/components/relation/chart/chart-content";
 import {ConfigViewState} from "@/model/relation-view-state/chart";
 import {useRelationsState} from "@/state/relations.state";

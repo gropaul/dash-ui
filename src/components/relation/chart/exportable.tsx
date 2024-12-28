@@ -1,7 +1,7 @@
 "use client";
 
-import { saveAs } from 'file-saver';
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import {saveAs} from 'file-saver';
+import {forwardRef, useImperativeHandle, useRef} from "react";
 import satori from "satori";
 import domtoimage from "dom-to-image";
 
