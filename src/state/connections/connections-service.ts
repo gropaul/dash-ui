@@ -31,8 +31,18 @@ export class ConnectionsService {
         return this.connections[connectionId];
     }
 
-    addConnection(connection: DataConnection) {
-        this.connections[connection.id] = connection;
+    hasConnection(connectionId: string) {
+        if (this.connections[connectionId]) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    addConnectionIfNotExists(connection: DataConnection) {
+        if (!this.connections[connection.id]) {
+            this.connections[connection.id] = connection;
+        }
     }
 
     async executeQuery(connectionId: string, query: string) {
@@ -85,8 +95,8 @@ export class ConnectionsService {
 SELECT
 station_name,
 count(*) AS num_services
--- FROM 's3://duckdb-blobs/train_services.parquet'
-FROM train_services
+FROM 's3://duckdb-blobs/train_services.parquet'
+-- FROM train_services
 GROUP BY ALL
 ORDER BY num_services DESC
 LIMIT 10;`;

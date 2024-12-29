@@ -22,7 +22,7 @@ export function ConnectionsOverview() {
                 <ul>
                     {Object.values(connections).map((connection, index) => {
                         return <>
-                            <Separator/>
+                            <Separator key={`sep-${index}`}/>
                             <ConnectionView connection={connection} key={index}/>
                         </>;
                     })}
