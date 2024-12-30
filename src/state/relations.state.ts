@@ -34,7 +34,7 @@ export interface RelationZustand {
 }
 
 interface RelationZustandActions {
-    doesRelationExist: (relationId: string) => boolean,
+    relationExists: (relationId: string) => boolean,
     getRelation: (relationId: string) => RelationState,
     showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
@@ -112,7 +112,7 @@ export const useRelationsState = create(
                     return get().schemas[schemaId];
                 },
 
-                doesRelationExist: (relationId: string) => get().relations[relationId] !== undefined,
+                relationExists: (relationId: string) => get().relations[relationId] !== undefined,
                 getRelation: (relationId: string) => get().relations[relationId],
                 showRelationFromSource: async (connectionId: string, source: RelationSource) => {
 
