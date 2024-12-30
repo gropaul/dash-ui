@@ -44,7 +44,7 @@ export const useConnectionsState = createWithEqualityFn<DataConnectionsState>((s
         set((state) => ({
             connections: {...state.connections, [connection.id]: connection},
         }));
-        ConnectionsService.getInstance().addConnection(connection);
+        ConnectionsService.getInstance().addConnectionIfNotExists(connection);
 
         let state: ConnectionStatus | undefined = undefined;
         if (initialise) {

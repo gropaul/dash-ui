@@ -26,6 +26,7 @@ function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
 }
 
 export function getErrorMessage(error: unknown) {
+    // TODO improve error display, as we now have really nice error messages from the server
     if (error instanceof Error) {
         return error.message
     } else {
