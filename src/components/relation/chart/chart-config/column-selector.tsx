@@ -8,11 +8,11 @@ import {Button} from "@/components/ui/button"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command"
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {Column} from "@/model/column";
-import {ColumnIcon} from "@/components/relation/table/table-column-head";
 import {Muted} from "@/components/ui/typography";
 import PopupColorPicker from "@/components/ui/popup-color-picker";
 import {AxisConfig} from "@/model/relation-view-state/chart";
 import {Separator} from "@/components/ui/separator";
+import {ValueIcon} from "@/components/relation/common/value-icon";
 
 
 export type AxisType = "x" | "y" | 'pie-label' | 'pie-radius'
@@ -63,7 +63,7 @@ export function ColumnSelector({columns, axis, axisType, updateAxis, deleteAxis}
                     >
                         <div className="flex-1 flex items-center gap-2">
                             {currentColumn && (
-                                <ColumnIcon size={14} key={currentColumn.id} type={currentColumn.type}/>
+                                <ValueIcon size={14} key={currentColumn.id} type={currentColumn.type}/>
                             )}
                             {/* Column name, needs to shrinkg if not enough space */}
                             <div>
@@ -93,7 +93,7 @@ export function ColumnSelector({columns, axis, axisType, updateAxis, deleteAxis}
                                             setOpen(false);
                                         }}
                                     >
-                                        <ColumnIcon key={column.id} type={column.type}/>
+                                        <ValueIcon key={column.id} type={column.type}/>
                                         {column.name}
                                         <Check
                                             className={cn(

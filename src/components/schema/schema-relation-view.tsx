@@ -1,5 +1,5 @@
 import {DataSourceElement} from "@/model/connection";
-import {ColumnIcon} from "@/components/relation/table/table-column-head";
+import {ValueIcon} from "@/components/relation/table/table-column-head";
 import React from "react";
 import {SchemaState} from "@/model/schema-state";
 import {ExternalLink, Sheet} from "lucide-react";
@@ -48,7 +48,7 @@ export function SchemaRelationView(props: SchemaRelationViewProps) {
             {props.table.children!.map((column) => (
                 <div key={column.name} className="flex items-center justify-between px-4 py-0.5 border-gray-100">
                     <div className="flex-1 flex items-center space-x-2 overflow-hidden pr-1">
-                        <ColumnIcon type={column.type}/>
+                        <ValueIcon type={column.type}/>
                         <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap" title={column.name}>
                             {column.name}
                         </span>

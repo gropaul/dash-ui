@@ -157,14 +157,23 @@ export async function getQueryFromParams(relation: Relation, query: RelationQuer
     };
 }
 
-export async function updateRelationQueryForParams(relation: RelationState, newParams: RelationQueryParams, state: TaskExecutionState): Promise<RelationState> {
+export function setRelationLoading(relation: RelationState): RelationState {
+    return {
+        ...relation,
+        executionState: {
+            state: 'running',
+        },
+    };
+}
+
+export async function updateRelationQueryForParams(relation: RelationState, newParams: RelationQueryParams, state?: TaskExecutionState): Promise<RelationState> {
     const baseQuery = relation.query.baseQuery;
     const query = await getQueryFromParams(relation, newParams, baseQuery);
 
     return {
         ...relation,
         query: query,
-        executionState: state,
+        executionState: state ?? relation.executionState,
     };
 
 }

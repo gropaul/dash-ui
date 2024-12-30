@@ -13,7 +13,7 @@ import {
     getDefaultQueryParams,
     getViewFromSource,
     RelationQueryParams,
-    RelationState,
+    RelationState, setRelationLoading,
     updateRelationQueryForParams,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
@@ -152,14 +152,15 @@ export const useRelationsState = create(
                     const {relations} = get(); // Get the current state
 
                     const relation = relations[relationId]; // Retrieve the specific relation
-                    const updatedRelationState = await updateRelationQueryForParams(relation, query, {state: 'running'}); // Update the relation state
+                    const loadingRelationState = setRelationLoading(relation); // Set it loading
                     set((state) => ({
                         relations: {
                             ...state.relations,
-                            [relationId]: updatedRelationState,
+                            [relationId]: loadingRelationState,
                         },
                     }));
 
+                    const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
                     const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
                     // update state with new data and completed state
                     set((state) => ({

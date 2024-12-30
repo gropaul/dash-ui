@@ -1,6 +1,6 @@
 import {TableContent} from "@/components/relation/table/table-content";
 import {TableFooter} from "@/components/relation/table/table-footer";
-import {DndContext, DragOverEvent} from "@dnd-kit/core";
+import {DndContext, DragOverEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import type {DragEndEvent, DragStartEvent} from "@dnd-kit/core/dist/types";
 import React, {useState} from "react";
 import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-state/table";
@@ -21,6 +21,15 @@ export function Table(props: RelationViewTableProps) {
 
     const [dragStartOrder, setDragStartOrder] = useState<string[]>([]);
     const [activeId, setActiveId] = useState<string | number | null>(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5 // Minimum distance in pixels before dragging starts
+            }
+        })
+    );
+
 
     // if there is no data, return null
     if (!relationData) {
@@ -80,7 +89,7 @@ export function Table(props: RelationViewTableProps) {
     const columnViewIndices = getTableColumnViewIndices(relationState.viewState.tableState, relationData);
 
     return (
-        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
             <div className="flex flex-col w-full h-full overflow-hidden">
                 <div className="relative overflow-y-auto flex-1 flex flex-row">
                     <TableContent

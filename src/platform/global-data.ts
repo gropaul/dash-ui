@@ -1,5 +1,5 @@
 // the time in milliseconds to wait before showing the loading spinner
-export const LOADING_TIMER_OFFSET = 200;
+export const LOADING_TIMER_OFFSET = 150;
 
 // connection ids
 export const CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';

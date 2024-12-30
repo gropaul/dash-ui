@@ -5,12 +5,10 @@ import {useConnectionsState} from "@/state/connections.state";
 import {ConnectionView} from "@/components/connections/connection-view";
 import {H5} from "@/components/ui/typography";
 import {Separator} from "@/components/ui/separator";
-import {useRelationsState} from "@/state/relations.state";
 
 export function ConnectionsOverview() {
 
     const connections = useConnectionsState((state) => state.connections);
-    const relations = useRelationsState((state) => state.relations);
     // show a list of the tables, have a light grey background
     return (
         <div className=" h-full w-full bg-background">
