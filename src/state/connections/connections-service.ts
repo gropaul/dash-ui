@@ -89,9 +89,24 @@ export class ConnectionsService {
             await state.addConnection(fileSystemOverDuckdb, true, true).then(() => {
             })
 
-            // add example query
-            const randomId = getRandomId();
-            const baseQuery = `-- Directly query Parquet file in S3
+            // if there are no relations, create an example query
+            if (Object.keys(useRelationsState.getState().relations).length === 0) {
+                await this.createExampleQuery(duckDBLocal.id);
+            }
+
+
+
+        });
+
+        const duckDBWasm = getDuckDBWasmConnection();
+        state.addConnection(duckDBWasm, true, true).then(() => {
+        });
+    }
+
+    async createExampleQuery(connectionId: string) {
+        // add example query
+        const randomId = getRandomId();
+        const baseQuery = `-- Directly query Parquet file in S3
 SELECT
 station_name,
 count(*) AS num_services
@@ -100,22 +115,13 @@ FROM 's3://duckdb-blobs/train_services.parquet'
 GROUP BY ALL
 ORDER BY num_services DESC
 LIMIT 10;`;
-            const source: RelationSourceQuery = {
-                type: "query",
-                baseQuery: baseQuery,
-                id: randomId,
-                name: "Train Station Services"
-            }
-            const showRelationFromSource = useRelationsState.getState().showRelationFromSource;
-            showRelationFromSource(duckDBLocal.id, source);
-
-
-        });
-
-        const duckDBWasm = getDuckDBWasmConnection();
-        state.addConnection(duckDBWasm, true, true).then(() => {
-        });
-
-
+        const source: RelationSourceQuery = {
+            type: "query",
+            baseQuery: baseQuery,
+            id: randomId,
+            name: "Train Station Services"
+        }
+        const showRelationFromSource = useRelationsState.getState().showRelationFromSource;
+        showRelationFromSource(connectionId, source);
     }
 }

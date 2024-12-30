@@ -132,6 +132,8 @@ class DuckDBOverHttp implements DataConnection {
             headers['Authorization'] = 'Basic ' + btoa(`${username}:${password}`);
         } else if (this.config.authentication === 'token') {
             headers['X-API-Key'] = this.config.token!;
+            // set plain text content type
+            headers['Content-Type'] = 'text/plain';
         } else if (this.config.authentication !== 'none') {
             throw new Error(`Unsupported authentication type: ${this.config.authentication}`);
         }

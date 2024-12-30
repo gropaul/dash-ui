@@ -31,9 +31,6 @@ class DuckDBProvider {
             const data = await this.executeQuery(`CREATE TABLE IF NOT EXISTS "${tableName}" (id INT PRIMARY KEY, value JSON, time TIMESTAMP);`);
 
             this.createdTables.push(tableName);
-            console.log(`Table ${tableName} created`);
-        } else {
-            console.log(`Table ${tableName} already exists`);
         }
     }
 
@@ -57,8 +54,8 @@ export const duckdbStorage: StateStorage = {
     getItem: async (tableName: string): Promise<string | null> => {
         const provider = await DuckDBProvider.getInstance();
         await provider.createTableIfNotExists(tableName);
-        const data = await provider.executeQuery(`SELECT value
-                                                  FROM "${tableName}" LIMIT 1;`);
+        const query = `SELECT value FROM "${tableName}" LIMIT 1;`;
+        const data = await provider.executeQuery(query);
 
         if (data.rows.length === 0) {
             return null;
@@ -67,6 +64,10 @@ export const duckdbStorage: StateStorage = {
         return data.rows[0][0];
     },
     setItem: async (tableName: string, value: string): Promise<void> => {
+
+        // escape single quotes in value
+        value = value.replace(/'/g, "''");
+
         const provider = await DuckDBProvider.getInstance();
         await provider.createTableIfNotExists(tableName);
 
@@ -75,7 +76,6 @@ export const duckdbStorage: StateStorage = {
             VALUES (0, '${value}', NOW()) ON CONFLICT DO
             UPDATE SET value = EXCLUDED.value, time = NOW();
         `;
-        console.log(query);
         await provider.executeQuery(query);
     },
     removeItem: async (tableName: string): Promise<void> => {
