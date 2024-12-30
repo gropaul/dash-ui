@@ -1,5 +1,4 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
-import {create} from "zustand";
 import {Model} from "flexlayout-react";
 import {
     addDatabaseToLayout,
@@ -270,3 +269,22 @@ const unsub = useRelationsState.persist.onFinishHydration((state) => {
 
     unsub();
 })
+
+
+interface TestState {
+    bears: number;
+    increase: () => void;
+}
+
+export const useTestState = createWithEqualityFn(
+    persist<TestState>(
+        (set, get) => ({
+            bears: 0,
+            increase: () => set((state) => ({bears: state.bears + 1})),
+        }),
+        {
+            name: 'test-state',
+            // storage: createJSONStorage(() => duckdbStorage),
+        }
+    )
+);
