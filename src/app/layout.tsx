@@ -12,14 +12,14 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-        <body suppressHydrationWarning
+        <html lang="en" suppressHydrationWarning>
+        <body
           className={cn(
               "min-h-screen bg-background antialiased",
           )}
         >
         <main>
-            <div className="w-screen h-screen app">
+            <div className="w-screen h-screen">
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"

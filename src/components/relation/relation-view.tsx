@@ -15,7 +15,7 @@ export interface RelationViewProps {
 
 export function RelationView(props: RelationViewProps) {
     const relationExists = useRelationsState(
-        (state) => state.doesRelationExist(props.relationId),
+        (state) => state.relationExists(props.relationId),
         shallow
     );
 
@@ -44,24 +44,15 @@ export function RelationView(props: RelationViewProps) {
     }
 
     useEffect(() => {
-        let timer: NodeJS.Timeout | null = null;
+        let timer: number | undefined;
 
         if (queryState.state === "running") {
-            timer = setTimeout(() => {
-                setIsLoading(true);
-            }, LOADING_TIMER_OFFSET);
+            timer = setTimeout(() => setIsLoading(true), LOADING_TIMER_OFFSET) as unknown as number;
         } else {
             setIsLoading(false);
-            if (timer) {
-                clearTimeout(timer);
-            }
         }
 
-        return () => {
-            if (timer) {
-                clearTimeout(timer);
-            }
-        };
+        return () => clearTimeout(timer);
     }, [queryState]);
 
     if (!relationExists) {
@@ -73,8 +64,6 @@ export function RelationView(props: RelationViewProps) {
             </div>
         );
     }
-
-    const hasError = queryState.state === "error";
 
     const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage * 100 : 0;
     const showCode = codeFenceState.show;
@@ -95,7 +84,6 @@ export function RelationView(props: RelationViewProps) {
                 >
                     <RelationViewQueryView relationId={relationId}/>
                     <ContentWrapper
-                        hasError={hasError}
                         isLoading={isLoading}
                         relationId={relationId}
                         queryState={queryState}
@@ -115,8 +103,8 @@ export function RelationView(props: RelationViewProps) {
         </div>
     );
 }
+
 export interface ContentWrapperProps {
-    hasError: boolean;
     isLoading: boolean;
     relationId: string;
     queryState: TaskExecutionState;
@@ -124,13 +112,11 @@ export interface ContentWrapperProps {
 
 export function ContentWrapper(props: ContentWrapperProps) {
     return (
-        <>
-            {props.hasError ? (
-                <RelationViewError message={props.queryState.message}/>
-            ) : (
-                <RelationViewContent relationId={props.relationId}/>
-            )}
-        </>
+        props.queryState.state === "error" ? (
+            <RelationViewError message={props.queryState.message}/>
+        ) : (
+            <RelationViewContent relationId={props.relationId}/>
+        )
     );
 }
 

@@ -1,4 +1,5 @@
 import {Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList} from "@/components/ui/breadcrumb";
+import {Fragment} from "react";
 
 
 interface ViewPathBreadcrumbProps {
@@ -12,7 +13,7 @@ export function ViewPathBreadcrumb(props: ViewPathBreadcrumbProps) {
             <BreadcrumbList className={'gap-x-1.5 sm:gap-x-1.5 gap-y-0.5 sm:gap-y-0.5'}>
 
                 {props.path.map((path, index) => {
-                    return <>
+                    return <Fragment key={index}>
                         {index != 0 && <div>
                             /
                         </div>
@@ -23,7 +24,7 @@ export function ViewPathBreadcrumb(props: ViewPathBreadcrumbProps) {
                                 onClick={() => props?.onClick?.(path, index)}
                             >{path}</BreadcrumbLink>
                         </BreadcrumbItem>
-                    </>
+                    </Fragment>
                 })}
 
             </BreadcrumbList>

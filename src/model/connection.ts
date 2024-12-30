@@ -8,20 +8,8 @@ export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-files
 export type DataSourceType = 'file' | 'relation';
 export type DataGroupType = 'folder' | 'database' | 'schema';
 
-export interface DataSourceElement extends TreeNode {
-    id: string;
-    name: string;
-    type: DataSourceType;
-    children?: Column[] | null;
-}
-
-export interface DataSourceGroup extends TreeNode {
-    id: string;
-    name: string;
-    type: DataGroupType;
-    children?: DataSource[] | null;
-}
-
+export type DataSourceElement = TreeNode<Column, DataSourceType>
+export type DataSourceGroup = TreeNode<DataSource, DataGroupType>;
 export type DataSource = DataSourceElement | DataSourceGroup;
 
 

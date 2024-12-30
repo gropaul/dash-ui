@@ -132,9 +132,6 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
 
 
 export async function getDuckDBCurrentPath(executeQuery: (query: string) => Promise<RelationData>): Promise<[string, string]> {
-    const installHostFs = `INSTALL hostfs FROM community;
-                               LOAD hostfs;`;
-    await executeQuery(installHostFs);
     // get the root directory
     const rootDirectoryQuery = `SELECT file_name(pwd()),pwd();`;
     const rootDirectory = await executeQuery(rootDirectoryQuery);

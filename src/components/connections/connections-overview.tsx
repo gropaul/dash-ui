@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, {Fragment} from "react";
 import {useConnectionsState} from "@/state/connections.state";
 import {ConnectionView} from "@/components/connections/connection-view";
 import {H5} from "@/components/ui/typography";
@@ -21,10 +21,10 @@ export function ConnectionsOverview() {
             <div className="overflow-y-auto h-fit bg-background">
                 <ul>
                     {Object.values(connections).map((connection, index) => {
-                        return <>
-                            <Separator key={`sep-${index}`}/>
+                        return <Fragment key={index}>
+                            <Separator/>
                             <ConnectionView connection={connection} key={index}/>
-                        </>;
+                        </Fragment>;
                     })}
                 </ul>
             </div>

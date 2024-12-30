@@ -1,4 +1,4 @@
-import {create} from "zustand";
+import {createWithEqualityFn} from "zustand/traditional";
 import {RelationData} from "@/model/relation";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
@@ -33,7 +33,7 @@ export interface DataConnectionsState {
     getDuckDBWasmConnection: () => DuckDBWasm;
 }
 
-export const useConnectionsState = create<DataConnectionsState>((set, get) => ({
+export const useConnectionsState = createWithEqualityFn<DataConnectionsState>((set, get) => ({
     connections: {},
 
     initialiseDefaultConnections: async () => {

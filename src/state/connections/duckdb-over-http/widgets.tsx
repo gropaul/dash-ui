@@ -7,44 +7,36 @@ export function showConnectionStringIfLocalHost(formData: any) {
     return formData['url'].includes('localhost');
 }
 
-export function ConnectionStringField({formData, hasError}: FormFieldCustomProps) {
-
-    formData = formData as DuckDBOverHttpConfig;
+export function ConnectionStringField({formData, hasError}: FormFieldCustomProps<DuckDBOverHttpConfig>) {
 
     // display the connection string and have a copy button, but only if the form is valid otherwise grayed out
     const getConnectionString = (hide_secrets: boolean) => {
+        let install = `INSTALL duck_explorer FROM community;\n`
+        install += "LOAD duck_explorer;"
 
-        let install = `INSTALL httpserver FROM community;
-LOAD httpserver;`
-
-        let start_server;
-
-        let url = formData['url'];
-
-        let portMatches = url.match(/:(\d+)/);
-        // error if there is no port
-        if (!portMatches) {
-            return 'Invalid URL';
-        }
-        const port = portMatches[1];
-
-        // SELECT httpserve_start('localhost', 9999, 'user:pass');
-        if (formData['authentication'] === 'password') {
-            const username = formData['username'];
-            let password = formData['password'];
-
-            if (hide_secrets) {
-                password = '********';
+        let start_server: string;
+        let port: number
+        try {
+            let url = new URL(formData['url']);
+            if (!url.port) {
+                // Empty port -> default port for http(s)
+                port = url.protocol === "http:" ? 80 : 443;
+            } else {
+                port = +url.port;
             }
+        } catch (e) {
+            return "invalid url"
+        }
 
-            start_server = `SELECT httpserve_start('localhost', ${port}, '${username}:${password}');`;
-        } else {
 
-            let token = formData['token'];
+        if (formData.authentication === 'token') {
+            let token = formData.token
             if (hide_secrets) {
                 token = '********';
             }
-            start_server = `SELECT httpserve_start('localhost', ${port}, '${token}');`;
+            start_server = `CALL start_duck_explorer('127.0.0.1', ${port}, api_key='${token}');`;
+        } else {
+            start_server = `CALL start_duck_explorer('127.0.0.1', ${port});`;
         }
 
         return `${install}\n${start_server}`;

@@ -6,6 +6,7 @@ import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {ConnectionStatus, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
+import {QueryResponse} from "@/model/query-response";
 
 export function getDuckDBLocalConnection() {
 
@@ -22,11 +23,7 @@ export function getDuckDBLocalConnection() {
 export interface DuckDBOverHttpConfig {
     name: string;
     url: string;
-    authentication: 'password' | 'token';
-
-    // if authentication is password, these fields are required
-    username?: string;
-    password?: string;
+    authentication: 'none' | 'token';
 
     // if authentication is token, these fields are required
     token?: string;
@@ -63,30 +60,15 @@ class DuckDBOverHttp implements DataConnection {
                 required: true,
                 selectOptions: [
                     {label: 'None', value: 'none'},
-                    {label: 'Password', value: 'password'},
                     {label: 'Token', value: 'token'}
                 ]
-            },
-            {
-                type: 'text',
-                label: 'Username',
-                key: 'username',
-                required: true,
-                condition: (formData) => formData['authentication'] === 'password'
-            },
-            {
-                type: 'password',
-                label: 'Password',
-                key: 'password',
-                required: true,
-                condition: (formData) => formData['authentication'] === 'password'
             },
             {
                 type: 'password',
                 label: 'Token',
                 key: 'token',
                 required: true,
-                condition: (formData) => formData['authentication'] === 'token'
+                shouldValidate: (formData) => formData['authentication'] === 'token'
             },
             {
                 type: 'custom',
@@ -94,7 +76,7 @@ class DuckDBOverHttp implements DataConnection {
                 key: 'connectionString',
                 required: false,
                 validation: () => undefined,
-                condition: showConnectionStringIfLocalHost,
+                shouldValidate: showConnectionStringIfLocalHost,
                 customField: {
                     render: ConnectionStringField
                 }
@@ -121,28 +103,22 @@ class DuckDBOverHttp implements DataConnection {
     }
 
     async sendQuery(query: string): Promise<RelationData> {
-        let requestURL = `${this.config.url}?add_http_cors_header=1&default_format=JSONCompact`;
         const headers: Record<string, string> = {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/json'
         };
 
-        if (this.config.authentication === 'password') {
-            const username = this.config.username!;
-            const password = this.config.password!;
-            headers['Authorization'] = 'Basic ' + btoa(`${username}:${password}`);
-        } else if (this.config.authentication === 'token') {
+        if (this.config.authentication === 'token') {
             headers['X-API-Key'] = this.config.token!;
-            // set plain text content type
-            headers['Content-Type'] = 'text/plain';
-        } else if (this.config.authentication !== 'none') {
-            throw new Error(`Unsupported authentication type: ${this.config.authentication}`);
         }
 
-        const response = await fetch(requestURL, {
+        const response = await fetch(this.config.url + "/query", {
             method: 'POST',
-            body: query,
+            body: JSON.stringify({
+                query: query,
+                format: "compact_json"
+            }),
             headers
-        });
+        })
 
         if (!response.ok) {
 
@@ -163,21 +139,14 @@ class DuckDBOverHttp implements DataConnection {
             throw new Error(`Failed to execute query: ${response.statusText}`);
         }
 
-        const json = await response.json();
-        const rows = json.data;
-        const meta = json.meta;
-
-        for (const column of meta) {
-            const type = column.type;
-            const parsedType = duckDBTypeToValueType(type);
-        }
+        const json: QueryResponse = await response.json();
         return {
-            columns: meta.map((column: any) => ({
+            columns: json.meta.map((column: any) => ({
                 name: column.name,
                 type: duckDBTypeToValueType(column.type),
                 id: column.name,
             })),
-            rows
+            rows: json.data
         };
     }
 
