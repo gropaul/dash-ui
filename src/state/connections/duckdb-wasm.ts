@@ -79,12 +79,12 @@ export class DuckDBWasm implements DataConnection {
             // test connection by running a simple query
             try {
                 await this.connection.query("SELECT 1;");
-                this.connectionStatus = { state: 'connected'};
+                this.connectionStatus = {state: 'connected'};
             } catch (e: any) {
-                this.connectionStatus = { state: 'error', message: e.message};
+                this.connectionStatus = {state: 'error', message: e.message};
             }
         } else {
-            this.connectionStatus = { state: 'disconnected', message: 'DuckDB WASM not initialised'};
+            this.connectionStatus = {state: 'disconnected', message: 'DuckDB WASM not initialised'};
         }
         return this.connectionStatus;
     }

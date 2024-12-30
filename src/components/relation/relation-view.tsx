@@ -5,9 +5,9 @@ import {shallow} from "zustand/shallow";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
 import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
-import {TriangleAlert} from "lucide-react";
 import {TaskExecutionState} from "@/model/relation-state";
 import {WindowSplitter} from "@/components/ui/window-splitter";
+import {JsonViewer} from "@/components/ui/json-viewer";
 
 export interface RelationViewProps {
     relationId: string;
@@ -113,19 +113,15 @@ export interface ContentWrapperProps {
 export function ContentWrapper(props: ContentWrapperProps) {
     return (
         props.queryState.state === "error" ? (
-            <RelationViewError message={props.queryState.message}/>
+            <RelationViewError error={props.queryState.error}/>
         ) : (
             <RelationViewContent relationId={props.relationId}/>
         )
     );
 }
 
-export function RelationViewError(props: { message?: string }) {
+export function RelationViewError({error}: { error: Record<string, any> }) {
     return (
-        <div className="flex flex-col items-start justify-center p-4">
-            <div className="flex items-center gap-2 text-red-500">
-                <TriangleAlert size={18}/> {props.message || "An error occurred"}
-            </div>
-        </div>
+        <JsonViewer className="w-full text-red-500 m-2" json={error}/>
     );
 }

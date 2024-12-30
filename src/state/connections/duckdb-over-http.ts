@@ -121,22 +121,7 @@ class DuckDBOverHttp implements DataConnection {
         })
 
         if (!response.ok) {
-
-            // check if internal server error
-            if (response.status === 500) {
-                const text = await response.text();
-                throw new Error(text);
-            }
-            // check if unauthorized
-            if (response.status === 401) {
-                throw new Error(`Unauthorized: ${response.statusText}`);
-            }
-            // check if not found
-            if (response.status === 404) {
-                throw new Error(`Not found: ${response.statusText}`);
-            }
-
-            throw new Error(`Failed to execute query: ${response.statusText}`);
+            throw new Error(await response.text())
         }
 
         const json: QueryResponse = await response.json();
