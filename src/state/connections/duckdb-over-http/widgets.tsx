@@ -16,10 +16,8 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
 
         let start_server: string;
         let port: number
-        let origin: string;
         try {
             let url = new URL(formData['url']);
-            origin = url.host;
             if (!url.port) {
                 // Empty port -> default port for http(s)
                 port = url.protocol === "http:" ? 80 : 443;
@@ -36,9 +34,9 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
             if (hide_secrets) {
                 token = '********';
             }
-            start_server = `CALL start_duck_explorer(${origin}', ${port}, api_key='${token}');`;
+            start_server = `CALL start_duck_explorer('127.0.0.1', ${port}, api_key='${token}');`;
         } else {
-            start_server = `CALL start_duck_explorer('${origin}', ${port});`;
+            start_server = `CALL start_duck_explorer('127.0.0.1', ${port});`;
         }
 
         return `${install}\n${start_server}`;
