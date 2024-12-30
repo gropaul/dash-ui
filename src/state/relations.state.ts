@@ -12,7 +12,8 @@ import {
     getDefaultQueryParams,
     getViewFromSource,
     RelationQueryParams,
-    RelationState, setRelationLoading,
+    RelationState,
+    setRelationLoading,
     updateRelationQueryForParams,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";

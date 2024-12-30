@@ -1,5 +1,4 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DataConnection} from "@/model/connection";
 import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
 import {StateStorage} from "zustand/middleware";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";

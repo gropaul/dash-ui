@@ -1,12 +1,11 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import {Column} from "@/model/column";
-import {Calendar, ChevronDown, ChevronsUpDown, ChevronUp, CircleHelp, Hash, Text, ToggleLeft} from 'lucide-react';
+import {ChevronDown, ChevronsUpDown, ChevronUp} from 'lucide-react';
 import {ColumnSorting, getNextColumnSorting} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
-import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
+import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
 import {shallow} from "zustand/shallow";
-import {ValueType} from "@/model/value-type";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-column-head/resize-handler";
 import {ColumnHeadDropDownMenu} from "@/components/relation/table/table-column-head/dropdown-menu";

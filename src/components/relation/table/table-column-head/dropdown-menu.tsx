@@ -4,15 +4,17 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuGroup,
-    DropdownMenuItem, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent,
+    DropdownMenuItem,
+    DropdownMenuPortal,
+    DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
     DropdownMenuSubTrigger,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import {Check, Copy, Eye, EyeOff, Menu, Plus, RefreshCw, Settings, Trash2, UserPlus} from "lucide-react";
+import {Check, Copy, Eye, EyeOff, Menu} from "lucide-react";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
-import {ValueIcon} from "@/components/relation/common/value-icon";
 import {cn} from "@/lib/utils";
-import {Separator} from "@/components/ui/separator";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 
