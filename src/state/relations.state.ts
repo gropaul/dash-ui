@@ -28,7 +28,7 @@ interface RelationStates {
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
 
-    doesRelationExist: (relationId: string) => boolean,
+    relationExists: (relationId: string) => boolean,
     getRelation: (relationId: string) => RelationState,
     showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
@@ -102,7 +102,7 @@ export const useRelationsState = createWithEqualityFn<RelationStates>((set, get)
         return get().schemas[schemaId];
     },
 
-    doesRelationExist: (relationId: string) => get().relations[relationId] !== undefined,
+    relationExists: (relationId: string) => get().relations[relationId] !== undefined,
     getRelation: (relationId: string) => get().relations[relationId],
     showRelationFromSource: async (connectionId: string, source: RelationSource) => {
 
@@ -192,7 +192,6 @@ export const useRelationsState = createWithEqualityFn<RelationStates>((set, get)
         return get().relations[relationId].viewState;
     },
     updateRelationViewState: (relationId: string, partialUpdate: DeepPartial<RelationViewState>) => {
-
         const currentViewState = deepClone(get().relations[relationId].viewState);
         safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
 

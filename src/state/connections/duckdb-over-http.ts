@@ -118,7 +118,7 @@ class DuckDBOverHttp implements DataConnection {
                 format: "compact_json"
             }),
             headers
-        });
+        })
 
         if (!response.ok) {
 
