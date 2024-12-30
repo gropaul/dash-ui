@@ -31,9 +31,11 @@ export interface QueryData {
     viewParameters: RelationQueryParams;
 }
 
-export interface TaskExecutionState {
-    state: 'not-started' | 'running' | 'success' | 'error';
-    message?: string;
+export type TaskExecutionState = {
+    state: 'not-started' | 'running' | 'success'
+} | {
+    state: 'error'
+    error: Record<string, any>;
 }
 
 // idle: no query is running, running: query is running, success: query was successful, error: query failed
@@ -184,7 +186,7 @@ function returnEmptyErrorState(relation: RelationState, error: unknown): Relatio
         data: undefined,
         executionState: {
             state: 'error',
-            message: getErrorMessage(error),
+            error: getErrorMessage(error),
         },
     }
 }

@@ -16,25 +16,25 @@ export interface FormFieldSelectOption {
     label: string;
 }
 
-export interface FormFieldCustomProps {
-    formData: { [key: string]: any };
-    onChange?: (key: string, value: any) => void;
+export interface FormFieldCustomProps<T = any> {
+    formData: T;
+    onChange?: <K extends keyof T>(key: K, value: T[K]) => void;
     hasError: boolean;
 }
 
-export interface FormFieldCustom {
-    render: (props: FormFieldCustomProps) => ReactNode;
+export interface FormFieldCustom<T = any> {
+    render: (props: FormFieldCustomProps<T>) => ReactNode;
 }
 
-export interface FormField {
+export interface FormField<T = any> {
     key: string;
     label: string;
     required: boolean;
     type: FormFieldTypes;
     selectOptions?: FormFieldSelectOption[];
-    customField?: FormFieldCustom;
+    customField?: FormFieldCustom<T>;
     validation?: (rawValue: string) => string | undefined;
-    condition?: (formData: { [key: string]: any }) => boolean;
+    shouldValidate?: (formData: { [key: string]: any }) => boolean;
 }
 
 export interface CustomFormProps {
@@ -63,7 +63,7 @@ export function CustomForm({
     const checkErrors = () => {
         const newErrors: { [key: string]: string | undefined } = {};
         formDefinition.fields.forEach((field) => {
-            if (field.condition && !field.condition(formData)) {
+            if (field.shouldValidate && !field.shouldValidate(formData)) {
                 return;
             }
             const error = validateField(field, formData[field.key]);
@@ -76,7 +76,7 @@ export function CustomForm({
     };
 
     const handleChange = (key: string, value: any) => {
-        setFormData((prevData) => ({ ...prevData, [key]: value }));
+        setFormData((prevData) => ({...prevData, [key]: value}));
         const hasErrors = checkErrors();
         onUpdate && onUpdate(formData, !hasErrors);
     };
@@ -100,9 +100,10 @@ export function CustomForm({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        // We set autoComplete=off to stop the browser opening the "save password" dialog for the token password field
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             {formDefinition.fields.map((field) => {
-                const isVisible = field.condition ? field.condition(formData) : true;
+                const isVisible = field.shouldValidate ? field.shouldValidate(formData) : true;
                 if (!isVisible) return null;
                 const requiredString = field.required ? '*' : '';
                 const inlineLabel = field.type === 'boolean';
@@ -138,7 +139,7 @@ export function CustomForm({
                                 defaultValue={formData[field.key]}
                             >
                                 <SelectTrigger>
-                                    <SelectValue />
+                                    <SelectValue/>
                                 </SelectTrigger>
                                 <SelectContent>
                                     {field.selectOptions?.map((option) => (
@@ -185,7 +186,7 @@ interface PasswordFieldProps {
     onChange: (value: string) => void;
 }
 
-export function PasswordField({ value, onChange }: PasswordFieldProps) {
+export function PasswordField({value, onChange}: PasswordFieldProps) {
     const [showPassword, setShowPassword] = useState(false);
     const toggleShowPassword = () => {
         setShowPassword((prev) => !prev);

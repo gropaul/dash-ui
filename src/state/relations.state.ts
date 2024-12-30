@@ -1,5 +1,4 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
-import {create} from "zustand";
 import {Model} from "flexlayout-react";
 import {
     addDatabaseToLayout,
@@ -23,6 +22,7 @@ import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/utils";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {duckdbStorage} from "@/state/persistency/duckdb";
+import {createWithEqualityFn} from "zustand/traditional";
 
 export interface RelationZustand {
 
@@ -34,7 +34,7 @@ export interface RelationZustand {
 }
 
 interface RelationZustandActions {
-    doesRelationExist: (relationId: string) => boolean,
+    relationExists: (relationId: string) => boolean,
     getRelation: (relationId: string) => RelationState,
     showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
@@ -56,7 +56,7 @@ interface RelationZustandActions {
 
 type RelationZustandCombined = RelationZustand & RelationZustandActions;
 
-export const useRelationsState = create(
+export const useRelationsState = createWithEqualityFn(
     persist<RelationZustandCombined>(
         (set, get) =>
             ({
@@ -112,7 +112,7 @@ export const useRelationsState = create(
                     return get().schemas[schemaId];
                 },
 
-                doesRelationExist: (relationId: string) => get().relations[relationId] !== undefined,
+                relationExists: (relationId: string) => get().relations[relationId] !== undefined,
                 getRelation: (relationId: string) => get().relations[relationId],
                 showRelationFromSource: async (connectionId: string, source: RelationSource) => {
 
@@ -277,7 +277,7 @@ interface TestState {
     increase: () => void;
 }
 
-export const useTestState = create(
+export const useTestState = createWithEqualityFn(
     persist<TestState>(
         (set, get) => ({
             bears: 0,
