@@ -54,7 +54,13 @@ export function getTableColumnViewIndices(tableState: TableViewState, relationDa
         indices.push(relationColumnNames.indexOf(column));
     }
 
-    return indices;
+    // if there are no indices, but there would be relationColumnNames, return the first
+    if (indices.length == 0 && relationColumnNames.length != 0 ){
+        return [0];
+    } else {
+        return indices;
+    }
+
 }
 
 export function getInitialTableDisplayState(relationData: RelationData): TableViewState {

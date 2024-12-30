@@ -97,16 +97,16 @@ export function RelationViewPageController(props: RelationViewFooterProps) {
     ));
 
     return (
-        <div className="flex flex-row items-center space-x-1 text-primary">
+        <div className="flex flex-row items-center space-x-1 text-primary font-normal">
             <Select onValueChange={handlePageSizeChange} defaultValue={pageSize.toString()}>
-                <SelectTrigger className={'text-primary border-0 focus:outline-none w-32'}>
+                <SelectTrigger className={'text-primary border-0 focus:outline-none w-32 font-normal'}>
                     <SelectValue placeholder="Select a size"/>
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>
                         {options.map((option) => (
-                            <SelectItem key={option.value} value={option.value} className={'h-8'}>
-                                <SelectLabel>{option.label}</SelectLabel>
+                            <SelectItem key={option.value} value={option.value} className={'h-8 font-normal'}>
+                                <SelectLabel className={'font-normal'}>{option.label}</SelectLabel>
                             </SelectItem>
                         ))}
                     </SelectGroup>
