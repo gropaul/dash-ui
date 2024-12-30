@@ -16,23 +16,23 @@ export interface FormFieldSelectOption {
     label: string;
 }
 
-export interface FormFieldCustomProps {
-    formData: { [key: string]: any };
-    onChange?: (key: string, value: any) => void;
+export interface FormFieldCustomProps<T = any> {
+    formData: T;
+    onChange?: <K extends keyof T>(key: K, value: T[K]) => void;
     hasError: boolean;
 }
 
-export interface FormFieldCustom {
-    render: (props: FormFieldCustomProps) => ReactNode;
+export interface FormFieldCustom<T= any> {
+    render: (props: FormFieldCustomProps<T>) => ReactNode;
 }
 
-export interface FormField {
+export interface FormField<T = any> {
     key: string;
     label: string;
     required: boolean;
     type: FormFieldTypes;
     selectOptions?: FormFieldSelectOption[];
-    customField?: FormFieldCustom;
+    customField?: FormFieldCustom<T>;
     validation?: (rawValue: string) => string | undefined;
     condition?: (formData: { [key: string]: any }) => boolean;
 }

@@ -22,11 +22,7 @@ export function getDuckDBLocalConnection() {
 export interface DuckDBOverHttpConfig {
     name: string;
     url: string;
-    authentication: 'password' | 'token';
-
-    // if authentication is password, these fields are required
-    username?: string;
-    password?: string;
+    authentication: 'none' | 'token';
 
     // if authentication is token, these fields are required
     token?: string;
@@ -63,23 +59,8 @@ class DuckDBOverHttp implements DataConnection {
                 required: true,
                 selectOptions: [
                     {label: 'None', value: 'none'},
-                    {label: 'Password', value: 'password'},
                     {label: 'Token', value: 'token'}
                 ]
-            },
-            {
-                type: 'text',
-                label: 'Username',
-                key: 'username',
-                required: true,
-                condition: (formData) => formData['authentication'] === 'password'
-            },
-            {
-                type: 'password',
-                label: 'Password',
-                key: 'password',
-                required: true,
-                condition: (formData) => formData['authentication'] === 'password'
             },
             {
                 type: 'password',
@@ -121,24 +102,20 @@ class DuckDBOverHttp implements DataConnection {
     }
 
     async sendQuery(query: string): Promise<RelationData> {
-        let requestURL = `${this.config.url}?add_http_cors_header=1&default_format=JSONCompact`;
         const headers: Record<string, string> = {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/json'
         };
 
-        if (this.config.authentication === 'password') {
-            const username = this.config.username!;
-            const password = this.config.password!;
-            headers['Authorization'] = 'Basic ' + btoa(`${username}:${password}`);
-        } else if (this.config.authentication === 'token') {
+        if (this.config.authentication === 'token') {
             headers['X-API-Key'] = this.config.token!;
-        } else if (this.config.authentication !== 'none') {
-            throw new Error(`Unsupported authentication type: ${this.config.authentication}`);
         }
 
-        const response = await fetch(requestURL, {
+        const response = await fetch(this.config.url + "/query", {
             method: 'POST',
-            body: query,
+            body: JSON.stringify({
+                query: query,
+                format: "compact_json"
+            }),
             headers
         });
 
