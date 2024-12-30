@@ -23,6 +23,7 @@ import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/utils";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {duckdbStorage} from "@/state/persistency/duckdb";
+import {createWithEqualityFn} from "zustand/traditional";
 
 export interface RelationZustand {
 
@@ -56,7 +57,7 @@ interface RelationZustandActions {
 
 type RelationZustandCombined = RelationZustand & RelationZustandActions;
 
-export const useRelationsState = create(
+export const useRelationsState = createWithEqualityFn(
     persist<RelationZustandCombined>(
         (set, get) =>
             ({
@@ -269,22 +270,3 @@ const unsub = useRelationsState.persist.onFinishHydration((state) => {
 
     unsub();
 })
-
-
-interface TestState {
-    bears: number;
-    increase: () => void;
-}
-
-export const useTestState = create(
-    persist<TestState>(
-        (set, get) => ({
-            bears: 0,
-            increase: () => set((state) => ({bears: state.bears + 1})),
-        }),
-        {
-            name: 'test-state',
-            // storage: createJSONStorage(() => duckdbStorage),
-        }
-    )
-);
