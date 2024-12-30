@@ -6,6 +6,7 @@ import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {ConnectionStatus, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
+import {QueryResponse} from "@/model/query-response";
 
 export function getDuckDBLocalConnection() {
 
@@ -138,21 +139,14 @@ class DuckDBOverHttp implements DataConnection {
             throw new Error(`Failed to execute query: ${response.statusText}`);
         }
 
-        const json = await response.json();
-        const rows = json.data;
-        const meta = json.meta;
-
-        for (const column of meta) {
-            const type = column.type;
-            const parsedType = duckDBTypeToValueType(type);
-        }
+        const json: QueryResponse = await response.json();
         return {
-            columns: meta.map((column: any) => ({
+            columns: json.meta.map((column: any) => ({
                 name: column.name,
                 type: duckDBTypeToValueType(column.type),
                 id: column.name,
             })),
-            rows
+            rows: json.data
         };
     }
 

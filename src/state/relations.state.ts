@@ -1,5 +1,5 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
-import {create} from "zustand";
+import {createWithEqualityFn} from "zustand/traditional";
 import {Model} from "flexlayout-react";
 import {
     addDatabaseToLayout,
@@ -49,7 +49,7 @@ interface RelationStates {
     closeTab: (tabId: string) => void,
 }
 
-export const useRelationsState = create<RelationStates>((set, get) => ({
+export const useRelationsState = createWithEqualityFn<RelationStates>((set, get) => ({
     relations: {},
     schemas: {},
     databases: {},

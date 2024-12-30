@@ -1,4 +1,4 @@
-export interface TreeNode<C = TreeNode<any>, T = ""> {
+export interface TreeNode<C = TreeNode<any>, T = string> {
     id: string;
     // also serves as unique key
     name: string;
