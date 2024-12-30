@@ -1,19 +1,20 @@
 import React from 'react';
 import {Column} from "@/model/column";
-import {ChevronDown, ChevronsUpDown, ChevronUp} from 'lucide-react';
+import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {ColumnSorting, getNextColumnSorting} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
 import {shallow} from "zustand/shallow";
 import {ValueIcon} from "@/components/relation/common/value-icon";
-import {ColumnHeadResizeHandle} from "@/components/relation/table/table-column-head/resize-handler";
-import {ColumnHeadDropDownMenu} from "@/components/relation/table/table-column-head/dropdown-menu";
+import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
+import {DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 
 
 export interface ColumnHeadProps {
     column: Column;
     relationId: string;
+    onColumnMenuClick?: (column: Column, event: React.MouseEvent) => void;
 }
 
 
@@ -84,7 +85,11 @@ export function TableColumnHead(props: ColumnHeadProps) {
                         </button>
                     </div>
                 </div>
-                <ColumnHeadDropDownMenu {...props} />
+                <Menu
+                    size={16}
+                    onClick={(event) => props.onColumnMenuClick?.(column, event)}
+                    className="hidden group-hover:block text-muted-foreground hover:text-primary cursor-pointer"
+                />
             </div>
 
             <ColumnHeadResizeHandle
@@ -95,7 +100,6 @@ export function TableColumnHead(props: ColumnHeadProps) {
         </ColumnHeadWrapper>
     );
 }
-
 
 
 function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize?: number }) {

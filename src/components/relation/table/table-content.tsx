@@ -1,7 +1,8 @@
-import {TableColumnHead} from "@/components/relation/table/table-column-head";
+import {TableColumnHead} from "@/components/relation/table/table-head/table-column-head";
 import {TableRow} from "@/components/relation/table/table-row";
 import React from "react";
 import {RelationState} from "@/model/relation-state";
+import {TableHead} from "@/components/relation/table/table-head";
 
 export interface RelationViewTableContentProps {
     relation: RelationState;
@@ -20,28 +21,11 @@ export function TableContent(props: RelationViewTableContentProps) {
                 borderCollapse: "collapse",
             }}
         >
-            <thead
-                className="border-0 text-s text-primary bg-background sticky top-0 z-20">
-            <tr>
-                {/* Row index column header, should fit the cells with*/}
-                <th
-                    scope="col"
-                    className="p-0 m-0 h-8 sticky left-0 z-20 bg-background w-20"
-                >
-                    <div
-                        className="w-full h-full absolute right-0 top-0 z-50 border-r border-b border-border"
-                    />
-                </th>
-                {/* Column headers */}
-                {columnViewIndices.map((index) => (
-                    <TableColumnHead
-                        relationId={props.relation.id}
-                        key={index}
-                        column={relationData.columns[index]}
-                    />
-                ))}
-            </tr>
-            </thead>
+            <TableHead
+                relationId={props.relation.id}
+                relationData={relationData}
+                columnViewIndices={columnViewIndices}
+            />
             <tbody>
             {relationData.rows.map((row, index) => (
                 <TableRow
