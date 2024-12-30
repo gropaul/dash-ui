@@ -1,8 +1,10 @@
-export interface TreeNode {
+export interface TreeNode<C = TreeNode<any>, T = ""> {
     id: string;
-    name: string; // also serves as unique key
-    type: string;
-    children?: TreeNode[] | null; // is undefined if not loaded, null if no children, otherwise an array of children
+    // also serves as unique key
+    name: string;
+    type: T;
+    // is undefined if not loaded, null if no children, otherwise an array of children
+    children?: C[] | null;
 }
 
 export function findNodeInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {
