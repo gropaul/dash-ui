@@ -17,6 +17,7 @@ import {
 import {useRelationsState} from "@/state/relations.state";
 import {RelationSourceQuery} from "@/model/relation";
 import {getRandomId} from "@/platform/id-utils";
+import {DashboardState} from "@/model/dashboard-state";
 
 export interface ConnectionViewProps {
     connection: DataConnection;
@@ -28,6 +29,7 @@ export function ConnectionView(props: ConnectionViewProps) {
     const updateConfig = useConnectionsState((state) => state.updateConfig);
     const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
     const showRelationFromSource = useRelationsState((state) => state.showRelationFromSource);
+    const showDashboard = useRelationsState((state) => state.showDashboard);
     const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
@@ -59,7 +61,18 @@ export function ConnectionView(props: ConnectionViewProps) {
             id: randomId,
             name: "New Query"
         }
+
         showRelationFromSource(props.connection.id, source);
+    }
+
+    function onNewEmptyDashboard() {
+        const randomId = getRandomId();
+        const dashboard: DashboardState = {
+            id: randomId,
+            name: "New Dashboard",
+            elements: [],
+        }
+        showDashboard(dashboard);
     }
 
     function onSettingsModalOpenChanged(open: boolean) {
@@ -103,7 +116,13 @@ export function ConnectionView(props: ConnectionViewProps) {
                             <DropdownMenuGroup>
                                 <DropdownMenuItem onClick={onNewEmptyQuery}>
                                     <Plus />
-                                    <span>Empty Query</span>
+                                    <span>New Query</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                            <DropdownMenuGroup>
+                                <DropdownMenuItem onClick={onNewEmptyDashboard}>
+                                    <Plus />
+                                    <span>New Dashboard</span>
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
                         </DropdownMenuContent>

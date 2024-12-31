@@ -95,7 +95,7 @@ export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuConte
             <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                     <EyeOff className={"opacity-0"}/>
-                    <span>Hide other columns</span>
+                    <span>Hide other Columns</span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                     <DropdownMenuSubContent>

@@ -1,6 +1,7 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {Model} from "flexlayout-react";
 import {
+    addDashboardToLayout,
     addDatabaseToLayout,
     addRelationToLayout,
     addSchemaToLayout,
@@ -24,13 +25,14 @@ import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/utils";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {duckdbStorage} from "@/state/persistency/duckdb";
 import {createWithEqualityFn} from "zustand/traditional";
+import {DashboardState, getDashboardStateId} from "@/model/dashboard-state";
 
 export interface RelationZustand {
 
     relations: { [key: string]: RelationState };
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
-
+    dashboards: { [key: string]: DashboardState };
     layoutModel: Model;
 }
 
@@ -50,6 +52,10 @@ interface RelationZustandActions {
     showDatabase: (connectionId: string, database: DataSourceGroup) => Promise<void>,
     getDatabaseState: (databaseId: string) => DatabaseState,
 
+    showDashboard: (dashboard: DashboardState) => Promise<void>,
+    getDashboardState: (dashboardId: string) => DashboardState,
+    setDashboardState: (dashboardId: string, dashboard: DashboardState) => void,
+
     getModel: () => Model;
     setModel: (model: Model) => void;
     closeTab: (tabId: string) => void,
@@ -64,6 +70,33 @@ export const useRelationsState = createWithEqualityFn(
                 relations: {},
                 schemas: {},
                 databases: {},
+                dashboards: {},
+
+                showDashboard: async (dashboard: DashboardState) => {
+                    const {dashboards} = get(); // Get the current state
+                    const dashboardStateId = getDashboardStateId(dashboard); // Generate the database ID
+                    const existingDashboard = dashboards[dashboardStateId]; // Retrieve the database
+                    if (existingDashboard) {
+                        focusTabById(get().layoutModel, dashboardStateId);
+                    } else {
+                        set((state) => ({
+                            dashboards: {
+                                ...state.dashboards,
+                                [dashboardStateId]: dashboard,
+                            },
+                        }));
+                        const model = get().layoutModel;
+                        addDashboardToLayout(model, dashboardStateId, dashboard);
+                    }
+                },
+                setDashboardState: (dashboardId: string, dashboard: DashboardState) => {
+                    set((state) => ({
+                        dashboards: {
+                            ...state.dashboards,
+                            [dashboardId]: dashboard,
+                        },
+                    }));
+                },
                 showSchema: async (connectionId: string, databaseId: string, schema: DataSourceGroup) => {
                     const {schemas} = get(); // Get the current state
                     const schemaId = getSchemaId(connectionId, databaseId, schema); // Generate the schema ID
@@ -85,7 +118,6 @@ export const useRelationsState = createWithEqualityFn(
                         addSchemaToLayout(model, schemaId, schema);
                     }
                 },
-
                 showDatabase: async (connectionId: string, database: DataSourceGroup) => {
                     const {databases} = get(); // Get the current state
                     const databaseId = getDatabaseId(connectionId, database.id); // Generate the database ID
@@ -105,6 +137,9 @@ export const useRelationsState = createWithEqualityFn(
                         const model = get().layoutModel;
                         addDatabaseToLayout(model, databaseId, database);
                     }
+                },
+                getDashboardState: (dashboardId: string) => {
+                    return get().dashboards[dashboardId];
                 },
                 getDatabaseState: (databaseId: string) => {
                     return get().databases[databaseId];
@@ -221,7 +256,7 @@ export const useRelationsState = createWithEqualityFn(
                 },
                 closeTab: (tabId: string) => {
                     // can be either a relation, schema or database
-                    const {schemas, databases, relations} = get();
+                    const {schemas, databases, relations, dashboards} = get();
                     if (schemas[tabId]) {
                         delete schemas[tabId];
                         set({schemas});
@@ -231,6 +266,9 @@ export const useRelationsState = createWithEqualityFn(
                     } else if (relations[tabId]) {
                         delete relations[tabId];
                         set({relations});
+                    }else if (dashboards[tabId]) {
+                        delete dashboards[tabId];
+                        set({dashboards});
                     }
                 },
 
@@ -241,7 +279,7 @@ export const useRelationsState = createWithEqualityFn(
                         }),
                     ),
 
-                layoutModel: getInitialLayoutModel({relations: []}),
+                layoutModel: getInitialLayoutModel(),
             }),
         {
             name: 'relationState',
@@ -267,6 +305,9 @@ const unsub = useRelationsState.persist.onFinishHydration((state) => {
     }
     for (const relationId in state.relations) {
         addRelationToLayout(model, state.relations[relationId]);
+    }
+    for (const dashboardId in state.dashboards) {
+        addDashboardToLayout(model, dashboardId, state.dashboards[dashboardId]);
     }
 
     unsub();

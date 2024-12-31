@@ -91,7 +91,7 @@ export class ConnectionsService {
 
             // if there are no relations, create an example query
             if (Object.keys(useRelationsState.getState().relations).length === 0) {
-                await this.createExampleQuery(duckDBLocal.id);
+                await this.showExampleQuery(duckDBLocal.id);
             }
 
 
@@ -102,7 +102,7 @@ export class ConnectionsService {
         await state.addConnection(duckDBWasm, true, true);
     }
 
-    async createExampleQuery(connectionId: string) {
+    async showExampleQuery(connectionId: string) {
         // add example query
         const randomId = getRandomId();
         const baseQuery = `-- Directly query Parquet file in S3

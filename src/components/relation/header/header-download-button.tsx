@@ -33,24 +33,20 @@ export function HeaderDownloadButton(props: HeaderDownloadButtonProps) {
         const relation = useRelationsState.getState().getRelation(props.relationId);
         const query = relation.query.baseQuery;
 
+        // Close the dialog
+        setDialogState({ ...dialogState, open: false });
+
+        // Show exporting toast with loading indicator
+        const toastId = toast.loading('Exporting file to ' + path, { duration: 0 });
+
         try {
             await exportQueryToFile(query, path, dialogState.fileFormat, relation.connectionId);
-            toast(`Exported result to ${path}`, {
-                duration: 2000,
-            } );
+            // Update the same toast to success
+            toast.success(`Exported result to ${path}`, { id: toastId, duration: 2000 });
         } catch (e: any) {
-            toast.error('Failed to export query to file: ' + e.message);
+            // Update the same toast to error
+            toast.error('Failed to export query to file: ' + e.message, { id: toastId });
         }
-
-        setDialogState(
-            {
-                ...dialogState,
-                open: false
-            }
-        )
-
-
-
     }
 
     function onDialogOpenChange(open: boolean) {

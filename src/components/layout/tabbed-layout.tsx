@@ -9,6 +9,7 @@ import {onLayoutModelChange} from "@/state/relations/layout-updates";
 import {SchemaView} from "@/components/schema/schema-view";
 import {DatabaseView} from "@/components/database/database-view";
 import {DirectoryView} from "@/components/directory/directory-view";
+import {DashboardView} from "@/components/dashboard/dashboard-view";
 
 
 export function TabbedLayout() {
@@ -48,6 +49,9 @@ const factory = (node: TabNode) => {
     }
     if (component === 'DirectoryComponent') {
         return <DirectoryView directoryId={node.getConfig().directoryId} />;
+    }
+    if (component === 'DashboardComponent') {
+        return <DashboardView dashboardId={node.getConfig().dashboardId} />;
     }
 
     return null;
