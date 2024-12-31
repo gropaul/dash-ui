@@ -1,4 +1,5 @@
 import {DashboardElementData, DashboardElementText} from "@/model/dashboard-state";
+import MdEditor from "@/components/basics/input/md-editor";
 
 
 interface TextViewProps {
@@ -6,5 +7,7 @@ interface TextViewProps {
 }
 
 export function DashboardTextView(props: TextViewProps){
-    return <div>TextView: {props.element.text}</div>
+    return <MdEditor
+        initialValue={props.element.text}
+    />
 }

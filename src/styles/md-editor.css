@@ -1,0 +1,8 @@
+.markdown-editor-container {
+    font-family: 'Urbanist', sans-serif;
+}
+
+/* Ensure the editor and preview also use the font */
+.w-md-editor-preview {
+    font-family: 'Urbanist', sans-serif !important;
+}
