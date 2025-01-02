@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:extension": "env-cmd -f .env.extension next build"
   },
   "dependencies": {
     "@apache-arrow/ts": "^16.1.0",
@@ -63,6 +64,7 @@
     "@types/react-dom": "^18",
     "@types/recharts": "^1.8.29",
     "@types/uuid": "^10.0.0",
+    "env-cmd": "^10.1.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "next-transpile-modules": "^10.0.0",
