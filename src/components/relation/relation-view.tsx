@@ -2,13 +2,10 @@ import {useRelationsState} from "@/state/relations.state";
 import {RelationViewContent} from "@/components/relation/relation-view-content";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {shallow} from "zustand/shallow";
-import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
-import {useEffect, useState} from "react";
-import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 import {TaskExecutionState} from "@/model/relation-state";
-import {WindowSplitter} from "@/components/ui/window-splitter";
 import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
+import {TriangleAlert} from "lucide-react";
 
 export interface RelationViewProps {
     relationId: string;
@@ -51,6 +48,12 @@ export function ContentWrapper(props: ContentWrapperProps) {
 
 export function RelationViewError({error}: { error: Record<string, any> }) {
     return (
-        <JsonViewer className="w-full text-red-500 m-2" json={error}/>
+        <div className="p-4 w-full h-full flex flex-col items-start justify-start">
+            <div className={'flex flex-row text-red-500 items-center space-x-2 h-6'}>
+                <TriangleAlert size={16}/>
+                <span>Error executing query</span>
+            </div>
+            <JsonViewer className="w-full text-red-500" json={error}/>
+        </div>
     );
 }
