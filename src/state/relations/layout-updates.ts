@@ -16,33 +16,14 @@ export function getInitialLayoutModel(): Model {
             enableRotateBorderIcons: true,
             enableEdgeDock: false,
             tabIcon: 'relation',
+            tabSetTabStripHeight: 41,
         },
-        borders: [
-            {
-                type: 'border',
-                location: 'left',
-                size: 256,
-                barSize: 48,
-                enableDrop: false,
-                selected: 0,
-                children: [
-                    {
-                        type: 'tab',
-                        enableClose: false,
-                        enableRename: false,
-                        enableDrag: false,
-                        name: '',
-                        component: 'ConnectionList',
-                    }
-                ]
-            }
-        ],
         layout: {
             type: 'row',
             children: [
                 {
                     type: 'tabset',
-                    tabStripHeight: 32,
+                    headerHeight: 100,
                     children: [],
                 }
             ],
@@ -109,5 +90,5 @@ function getDefaultTabSetId(model: Model): string | undefined {
 }
 
 function createTabNode(id: string, name: string, component: string, config: Record<string, any>): IJsonTabNode {
-    return { type: 'tab', name, id, component, config };
+    return { type: 'tab', enableRename: false, name, id, component, config };
 }

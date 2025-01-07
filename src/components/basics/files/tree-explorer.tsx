@@ -63,7 +63,7 @@ function TreeExplorerNode(props: TreeExplorerNodeProps) {
                 <ContextMenuTrigger disabled={!props.contextMenuFactory}>
                     {/* Node content */}
                     <div
-                        className="flex items-center p-0.5 cursor-pointer bg-background hover:bg-accent"
+                        className="flex items-center p-0.5 cursor-pointer hover:bg-accent"
                         style={{paddingLeft: `${depth * 1.5}rem`}}
                         onClick={localOnClick}
                         onDoubleClick={localOnDoubleClick}
@@ -153,7 +153,7 @@ export function TreeExplorer({
     const trees = Array.isArray(tree) ? tree : [tree];
 
     return (
-        <div className="h-fit bg-background">
+        <div className="h-fit">
             {trees.map((treeNode, index) => (
                     <TreeExplorerNode
                         parent_id_path={[]}

@@ -10,23 +10,54 @@ import {SchemaView} from "@/components/schema/schema-view";
 import {DatabaseView} from "@/components/database/database-view";
 import {DirectoryView} from "@/components/directory/directory-view";
 import {DashboardView} from "@/components/dashboard/dashboard-view";
+import {RelationsOverview} from "@/components/relation/relation-overview";
+import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
+import {AvailableTabs, NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
+import {cn} from "@/lib/utils";
 
 
 export function TabbedLayout() {
-
+    const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(['connections', 'relations']);
     const layoutModel = useRelationsState(state => state.layoutModel);
+
+    const hasTabs = selectedTabs.length > 0;
+
     return (
         <div className="relative h-full w-full">
-            <Layout
-                font={{
-                    size: '14px'
-                }}
-                model={layoutModel}
-                factory={factory}
-
-                iconFactory={iconFactory}
-                onAction={onLayoutModelChange}
-            />
+            <div className="flex flex-row h-full">
+                <NavigationBar
+                    initialSelectedTabs={selectedTabs}
+                    onSelectedTabsChanged={setSelectedTabs}
+                />
+                <ResizablePanelGroup
+                    className={'flex-1 h-full'}
+                    direction={'horizontal'}
+                >
+                    <ResizablePanel
+                        defaultSize={24}
+                        minSize={10}
+                        className={cn(hasTabs ? '' : 'hidden', '')}
+                    >
+                        {hasTabs && <NavigationBarContent selectedTabs={selectedTabs}/>}
+                    </ResizablePanel>
+                    <ResizableHandle className={hasTabs ? '' : 'hidden'}/>
+                    <ResizablePanel
+                        defaultSize={hasTabs ? 76 : 100}
+                        minSize={40}
+                        className={'relative'}
+                    >
+                        <Layout
+                            font={{
+                                size: '14px'
+                            }}
+                            model={layoutModel}
+                            factory={factory}
+                            iconFactory={iconFactory}
+                            onAction={onLayoutModelChange}
+                        />
+                    </ResizablePanel>
+                </ResizablePanelGroup>
+            </div>
         </div>
     );
 }
@@ -38,6 +69,9 @@ const factory = (node: TabNode) => {
     if (component === 'ConnectionList') {
         return <ConnectionsOverview/>;
     }
+    if (component === 'RelationList') {
+        return <RelationsOverview/>;
+    }
     if (component === 'RelationComponent') {
         return <RelationView relationId={node.getConfig().relationId}/>;
     }
@@ -48,10 +82,10 @@ const factory = (node: TabNode) => {
         return <DatabaseView databaseId={node.getConfig().databaseId}/>;
     }
     if (component === 'DirectoryComponent') {
-        return <DirectoryView directoryId={node.getConfig().directoryId} />;
+        return <DirectoryView directoryId={node.getConfig().directoryId}/>;
     }
     if (component === 'DashboardComponent') {
-        return <DashboardView dashboardId={node.getConfig().dashboardId} />;
+        return <DashboardView dashboardId={node.getConfig().dashboardId}/>;
     }
 
     return null;
@@ -61,7 +95,7 @@ const iconFactory = (node: TabNode) => {
     const component = node.getComponent();
     if (component === 'RelationList') {
         return <div style={{width: 24, height: 24}}>
-            <Database size={24} style={{transform: 'rotate(90deg)'}}/>
+            <Sheet size={24} style={{transform: 'rotate(90deg)'}}/>
         </div>;
     }
     if (component === 'ConnectionList') {

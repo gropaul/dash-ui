@@ -15,9 +15,9 @@
     --font-family: Urbanist, sans-serif;
     --font-weight: normal;
     --color-overflow: gray;
-    --color-icon: var(--tw-text-primary);
+    --color-icon: hsl(var(--foreground));
     --color-tabset-background: var(--color-background);
-    --color-tabset-background-selected: var(--color-base);
+    --color-tabset-background-selected: hsl(var(--background));
     --color-tabset-background-maximized: var(--color-6);
     --color-tabset-divider-line: var(--color-4);
     --color-tabset-header-background: var(--color-background);
@@ -25,7 +25,7 @@
     --color-border-background: var(--color-background);
     --color-border-divider-line: var(--color-4);
     --color-tab-selected: var(--color-text);
-    --color-tab-selected-background: var(--color-background);
+    --color-tab-selected-background: var(--color-background); /* This is the color of the tab */
     --color-tab-unselected: var(--color-text-unselected);
     --color-tab-unselected-background: transparent;
     --color-tab-textbox: var(--color-text);
@@ -168,6 +168,8 @@
     display: flex;
     flex-grow: 1;
     overflow: hidden;
+    background-color: transparent;
+
 }
 .flexlayout__tabset_tabbar_inner_tab_container {
     display: flex;
