@@ -13,10 +13,14 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
+        <head>
+            <title>Dash</title>
+            <meta name="apple-mobile-web-app-title" content="Dash"/>
+        </head>
         <body
-          className={cn(
-              "min-h-screen bg-background antialiased",
-          )}
+            className={cn(
+                "min-h-screen bg-background antialiased",
+            )}
         >
         <main>
             <div className="w-screen h-screen">
@@ -32,7 +36,7 @@ export default function RootLayout({
                         </div>
                     </ConnectionsProvider>
                 </ThemeProvider>
-                <Toaster />
+                <Toaster/>
             </div>
         </main>
 
