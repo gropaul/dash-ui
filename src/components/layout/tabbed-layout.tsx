@@ -10,7 +10,7 @@ import {SchemaView} from "@/components/schema/schema-view";
 import {DatabaseView} from "@/components/database/database-view";
 import {DirectoryView} from "@/components/directory/directory-view";
 import {DashboardView} from "@/components/dashboard/dashboard-view";
-import {RelationsOverview} from "@/components/relation/relation-overview";
+import {EditorOverview} from "@/components/editor/editor-overview";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {AvailableTabs, NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
 import {cn} from "@/lib/utils";
@@ -70,7 +70,7 @@ const factory = (node: TabNode) => {
         return <ConnectionsOverview/>;
     }
     if (component === 'RelationList') {
-        return <RelationsOverview/>;
+        return <EditorOverview/>;
     }
     if (component === 'RelationComponent') {
         return <RelationView relationId={node.getConfig().relationId}/>;

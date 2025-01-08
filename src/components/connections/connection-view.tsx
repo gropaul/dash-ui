@@ -86,7 +86,7 @@ export function ConnectionView(props: ConnectionViewProps) {
 
 
     return (
-        <li className="p-2 text-primary text-s h-fit relative group">
+        <li className="p-2 pt-0 text-primary text-s h-fit relative group">
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2 text-nowrap">
                     <span>{props.connection.config.name}</span>

@@ -1,9 +1,10 @@
 import React from "react";
 import {ConnectionsOverview} from "@/components/connections/connections-overview";
-import {RelationsOverview} from "@/components/relation/relation-overview";
+import {EditorOverview} from "@/components/editor/editor-overview";
 import {Database, Sheet} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -24,7 +25,13 @@ export function NavigationBar(props: NavigationBarProps) {
     };
 
     return (
-        <div className={'w-fit h-full bg-background border-r border-separate'}>
+        <div className={'w-fit h-full bg-background border-r border-separate flex flex-col items-center'}>
+
+            <Avatar className={'mt-2'}>
+                <AvatarImage src="logo/logo.png" alt="Logo"/>
+                <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+
             <ToggleGroup
                 type="multiple"
                 className={'flex flex-col p-2'}
@@ -60,7 +67,7 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
             case 'connections':
                 return <ConnectionsOverview/>;
             case 'relations':
-                return <RelationsOverview/>;
+                return <EditorOverview/>;
         }
     }
 

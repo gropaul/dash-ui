@@ -4,22 +4,23 @@ import React, {Fragment} from "react";
 import {H5} from "@/components/ui/typography";
 import {Separator} from "@/components/ui/separator";
 import {useRelationsState} from "@/state/relations.state";
-import {RelationView} from "@/components/relation/relation-overview/relation-view";
+import {RelationView} from "@/components/editor/editor-overview/relation-view";
+import {Button} from "@/components/ui/button";
+import {Plus} from "lucide-react";
 
-export function RelationsOverview() {
+export function EditorOverview() {
 
     const relations = useRelationsState((state) => state.relations);
     // show a list of the tables, have a light grey background
     return (
         <div className="h-full w-full flex flex-col">
-            <div
-                className={'pl-2 flex items-center'}
-                style={{height: '40px'}}
-            >
-                <H5 className={'text-primary text-nowrap'}>Relations</H5>
-
+            {/* Header Section */}
+            <div className="p-2 pb-1 flex flex-row items-center justify-between">
+                <H5 className="text-primary text-nowrap">Editor</H5>
+                <Button disabled variant={'ghost'} size={'icon'} className={'h-8'}>
+                    <Plus size={20}/>
+                </Button>
             </div>
-            <Separator/>
             <div className="overflow-y-auto h-fit">
                 <ul>
                     {Object.values(relations).map((relation, index) => {

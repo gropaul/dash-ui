@@ -63,7 +63,7 @@ function TreeExplorerNode(props: TreeExplorerNodeProps) {
                 <ContextMenuTrigger disabled={!props.contextMenuFactory}>
                     {/* Node content */}
                     <div
-                        className="flex items-center p-0.5 cursor-pointer hover:bg-accent"
+                        className="flex items-center p-0.5 cursor-pointer hover:bg-accent rounded"
                         style={{paddingLeft: `${depth * 1.5}rem`}}
                         onClick={localOnClick}
                         onDoubleClick={localOnDoubleClick}
