@@ -24,7 +24,9 @@ export interface CodeFenceViewState {
 export interface RelationViewBaseState {
     codeFenceState: CodeFenceViewState;
     displayName: string;
+    isTabOpen: boolean;
     selectedView: RelationViewType;
+
 }
 
 export interface RelationViewState extends RelationViewBaseState {
@@ -55,6 +57,7 @@ export function getInitViewState(displayName: string, data?: RelationData, showC
             sizePercentage: 0.3,
             layout: 'row',
         },
+        isTabOpen: true,
         selectedView: 'table',
     }
 

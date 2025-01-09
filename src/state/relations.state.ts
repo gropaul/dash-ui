@@ -39,6 +39,8 @@ export interface RelationZustand {
 interface RelationZustandActions {
     relationExists: (relationId: string) => boolean,
     getRelation: (relationId: string) => RelationState,
+
+    showRelation: (relation: RelationState) => void,
     showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
@@ -150,6 +152,37 @@ export const useRelationsState = createWithEqualityFn(
 
                 relationExists: (relationId: string) => get().relations[relationId] !== undefined,
                 getRelation: (relationId: string) => get().relations[relationId],
+
+                showRelation(relation: RelationState) {
+                    const relationId = getRelationIdFromSource(relation.connectionId, relation.source)
+                    const {relations} = get(); // Get the current state
+                    const existingRelation = relations[relationId]; // Retrieve the relation
+
+                    if (existingRelation) {
+                        if (existingRelation.viewState.isTabOpen) {
+                            focusTabById(get().layoutModel, existingRelation.id);
+                        } else {
+                            const newRelation = deepClone(existingRelation);
+                            newRelation.viewState.isTabOpen = true;
+                            set((state) => ({
+                                relations: {
+                                    ...state.relations,
+                                    [relationId]: newRelation,
+                                },
+                            }));
+                            addRelationToLayout(get().layoutModel, existingRelation);
+                        }
+                    } else {
+                        set((state) => ({
+                            relations: {
+                                ...state.relations,
+                                [relationId]: relation,
+                            },
+                        }));
+                        const model = get().layoutModel;
+                        addRelationToLayout(model, relation);
+                    }
+                },
                 showRelationFromSource: async (connectionId: string, source: RelationSource) => {
 
                     const relationId = getRelationIdFromSource(connectionId, source);
@@ -157,7 +190,7 @@ export const useRelationsState = createWithEqualityFn(
                     // check if relation already exists
                     const existingRelation = get().relations[relationId];
                     if (existingRelation) {
-                        focusTabById(get().layoutModel, existingRelation.id);
+                        get().showRelation(existingRelation);
                     } else {
 
                         // update state with empty (loading) relation
@@ -255,22 +288,28 @@ export const useRelationsState = createWithEqualityFn(
 
                 },
                 closeTab: (tabId: string) => {
-                    // can be either a relation, schema or database
-                    const {schemas, databases, relations, dashboards} = get();
+                    const { schemas, databases, relations, dashboards } = get();
+
                     if (schemas[tabId]) {
-                        delete schemas[tabId];
-                        set({schemas});
+                        const newSchemas = { ...schemas };
+                        delete newSchemas[tabId];
+                        set({ schemas: newSchemas });
                     } else if (databases[tabId]) {
-                        delete databases[tabId];
-                        set({databases});
+                        const newDatabases = { ...databases };
+                        delete newDatabases[tabId];
+                        set({ databases: newDatabases });
                     } else if (relations[tabId]) {
-                        delete relations[tabId];
-                        set({relations});
-                    }else if (dashboards[tabId]) {
-                        delete dashboards[tabId];
-                        set({dashboards});
+
+                        const newRelations = { ...relations };
+                        newRelations[tabId].viewState.isTabOpen = false;
+                        set({ relations: newRelations });
+                    } else if (dashboards[tabId]) {
+                        const newDashboards = { ...dashboards };
+                        delete newDashboards[tabId];
+                        set({ dashboards: newDashboards });
                     }
                 },
+
 
                 getModel: () => get().layoutModel,
                 setModel: (model: Model) =>
@@ -304,6 +343,9 @@ const unsub = useRelationsState.persist.onFinishHydration((state) => {
         addDatabaseToLayout(model, databaseId, state.databases[databaseId]);
     }
     for (const relationId in state.relations) {
+        if (!state.relations[relationId].viewState.isTabOpen) {
+            continue;
+        }
         addRelationToLayout(model, state.relations[relationId]);
     }
     for (const dashboardId in state.dashboards) {
