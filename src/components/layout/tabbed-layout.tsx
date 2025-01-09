@@ -34,15 +34,15 @@ export function TabbedLayout() {
                     direction={'horizontal'}
                 >
                     <ResizablePanel
-                        defaultSize={24}
-                        minSize={10}
+                        defaultSize={20}
+                        minSize={8}
                         className={cn(hasTabs ? '' : 'hidden', '')}
                     >
                         {hasTabs && <NavigationBarContent selectedTabs={selectedTabs}/>}
                     </ResizablePanel>
                     <ResizableHandle className={hasTabs ? '' : 'hidden'}/>
                     <ResizablePanel
-                        defaultSize={hasTabs ? 76 : 100}
+                        defaultSize={hasTabs ? 80 : 100}
                         minSize={40}
                         className={'relative'}
                     >

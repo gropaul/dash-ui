@@ -6,7 +6,7 @@ import {
     addRelationToLayout,
     addSchemaToLayout,
     focusTabById,
-    getInitialLayoutModel
+    getInitialLayoutModel, renameTab
 } from "@/state/relations/layout-updates";
 import {
     executeQueryOfRelationState,
@@ -57,6 +57,8 @@ interface RelationZustandActions {
     showDashboard: (dashboard: DashboardState) => Promise<void>,
     getDashboardState: (dashboardId: string) => DashboardState,
     setDashboardState: (dashboardId: string, dashboard: DashboardState) => void,
+
+    manualPersistModel: () => void,
 
     getModel: () => Model;
     setModel: (model: Model) => void;
@@ -274,6 +276,12 @@ export const useRelationsState = createWithEqualityFn(
                 updateRelationViewState: (relationId: string, partialUpdate: DeepPartial<RelationViewState>) => {
 
                     const currentViewState = deepClone(get().relations[relationId].viewState);
+
+                    // check if displayName is updated, if so, update the tab title
+                    if (partialUpdate.displayName) {
+                        const model = get().layoutModel;
+                        renameTab(model, relationId, partialUpdate.displayName);
+                    }
                     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
 
                     set((state) => ({
@@ -317,6 +325,10 @@ export const useRelationsState = createWithEqualityFn(
                             layoutModel: model,
                         }),
                     ),
+
+                manualPersistModel: () => {
+                    set(() => ({}));
+                },
 
                 layoutModel: getInitialLayoutModel(),
             }),

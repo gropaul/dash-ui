@@ -37,9 +37,18 @@ export function onLayoutModelChange(action: Action): Action | undefined {
 
     if (action.type === "FlexLayout_DeleteTab") {
         state.closeTab(action.data.node);
+    } else {
+        // trigger persistence of the layout
+        state.manualPersistModel();
     }
 
+
+
     return action;
+}
+
+export function renameTab(model: Model, tabId: string, newName: string): void {
+    model.doAction(Actions.renameTab(tabId, newName));
 }
 
 // Tab Manipulation
@@ -48,7 +57,7 @@ export function focusTabById(model: Model, relationId: string): void {
 }
 
 export function addRelationToLayout(model: Model, relation: RelationState): void {
-    addNodeToLayout(model, relation.id, relation.name, 'RelationComponent', { relationId: relation.id });
+    addNodeToLayout(model, relation.id, relation.viewState.displayName, 'RelationComponent', { relationId: relation.id });
 }
 
 export function addDatabaseToLayout(model: Model, databaseId: string, database: DataSourceGroup): void {

@@ -17,7 +17,7 @@ export const getRunButtonContent = (props: CodeFenceButtonProps) => {
         default:
             return (
                 <div className="flex flex-row items-center h-6">
-                    <div className={"w-[62px] flex flex-row items-center gap-2 justify-center"}>
+                    <div className={"w-[62px] flex flex-row items-center gap-2 justify-center text-green-600 hover:text-green-800"}>
                         <Play size={18}/>
                     </div>
                     <span className="text-sm">{props.runText}</span>

@@ -24,7 +24,7 @@ export function RelationView(props: RelationViewProps){
             <Sheet size={16}/>
         </div>
         <span>
-            {props.relation.name}
+            {props.relation.viewState.displayName}
         </span>
 
         <div className={"px-2 ml-auto text-muted-foreground"}>

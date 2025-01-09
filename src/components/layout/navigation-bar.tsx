@@ -5,6 +5,7 @@ import {Database, Sheet} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Separator} from "@/components/ui/separator";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -25,30 +26,34 @@ export function NavigationBar(props: NavigationBarProps) {
     };
 
     return (
-        <div className={'w-fit h-full bg-background border-r border-separate flex flex-col items-center'}>
+        <div className={'w-16 h-full bg-background border-r border-separate flex flex-col items-center'}>
 
-            <Avatar className={'mt-2'}>
-                <AvatarImage src="logo/logo.png" alt="Logo"/>
-                <AvatarFallback>CN</AvatarFallback>
+            <Avatar
+                className={'mt-2'}
+            >
+                <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
             </Avatar>
 
             <ToggleGroup
                 type="multiple"
-                className={'flex flex-col p-2'}
+                className={'flex flex-col mt-4'}
                 value={selectedTabs}
                 onValueChange={handleTabChange}
             >
                 <ToggleGroupItem
+                    size={'lg'}
+                    className={'mb-2'}
                     value="connections"
                     aria-label="Toggle Connection"
                 >
-                    <Database className="h-8 w-8"/>
+                    <Database className="h-10 w-10"/>
                 </ToggleGroupItem>
                 <ToggleGroupItem
+                    size={'lg'}
                     value="relations"
                     aria-label="Toggle Relations"
                 >
-                    <Sheet className="h-8 w-8"/>
+                    <Sheet className="h-10 w-10"/>
                 </ToggleGroupItem>
             </ToggleGroup>
         </div>

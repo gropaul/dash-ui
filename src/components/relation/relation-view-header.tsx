@@ -19,7 +19,7 @@ export interface RelationViewHeaderProps {
 export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
 
-    const relationName = useRelationsState((state) => state.getRelation(relationId)?.name, shallow);
+    const relationDisplayName = useRelationsState((state) => state.getRelation(relationId)?.viewState.displayName, shallow);
     const source = useRelationsState((state) => state.getRelation(relationId).source, shallow);
     const connectionId = useRelationsState((state) => state.getRelation(relationId).connectionId, shallow);
     const lastExecutionDuration = useRelationsState((state) => state.getRelation(relationId).lastExecutionMetaData?.lastExecutionDuration, shallow);
@@ -30,6 +30,12 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
         (state) => state.getRelation(relationId).executionState,
         shallow
     );
+
+    const onRelationDisplayNameChange = (newName: string) => {
+        updateRelationViewState(relationId, {
+            displayName: newName,
+        });
+    }
 
     function onPathClick(element: string, index: number) {
         if (source.type === 'table') {
@@ -76,7 +82,8 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     return (
         <>
             <ViewHeader
-                title={relationName}
+                title={relationDisplayName}
+                onTitleChange={onRelationDisplayNameChange}
                 path={path}
                 onPathClick={onPathClick}
                 subtitle={durationString}

@@ -14,7 +14,7 @@ export function ConnectionsOverview() {
     return (
         <div className="h-full w-full flex flex-col">
             {/* Header Section */}
-            <div className="p-2 pb-1 flex flex-row items-center justify-between">
+            <div className="p-4 pt-3 pb-2 flex flex-row items-center justify-between">
                 <H5 className="text-primary text-nowrap">Data Sources</H5>
                 <Button disabled variant={'ghost'} size={'icon'} className={'h-8'}>
                     <Plus size={20}/>
