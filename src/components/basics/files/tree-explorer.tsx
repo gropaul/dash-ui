@@ -9,8 +9,8 @@ export interface TreeExplorerNodeProps {
     iconFactory: (type: string) => React.ReactNode;
 
     parent_id_path: string[]
-    onClickCallback: (tree_id_path: string[]) => void;
-    onDoubleClickCallback?: (tree_id_path: string[]) => void;
+    onClick: (tree_id_path: string[], node: TreeNode) => void;
+    onDoubleClick?: (tree_id_path: string[], node: TreeNode) => void;
 
     loadChildren?: (tree_id_path: string[]) => void;
 
@@ -40,12 +40,12 @@ function TreeExplorerNode(props: TreeExplorerNodeProps) {
 
 
     function localOnClick(e: React.MouseEvent) {
-        props.onClickCallback(current_tree_id_path);
+        props.onClick(current_tree_id_path, props.tree);
     }
 
     function localOnDoubleClick(e: React.MouseEvent) {
-        if (props.onDoubleClickCallback) {
-            props.onDoubleClickCallback(current_tree_id_path);
+        if (props.onDoubleClick) {
+            props.onDoubleClick(current_tree_id_path, props.tree);
         } else {
             if (childrenLoaded) {
                 setIsExpanded(!isExpanded);
@@ -92,7 +92,7 @@ function TreeExplorerNode(props: TreeExplorerNodeProps) {
                         </div>
                     </div>
                 </ContextMenuTrigger>
-                <ContextMenuContent>
+                <ContextMenuContent className={'min-w-40'}>
                     {props.contextMenuFactory && props.contextMenuFactory(current_tree_id_path, props.tree)}
                 </ContextMenuContent>
 
@@ -120,7 +120,7 @@ function TreeExplorerNode(props: TreeExplorerNodeProps) {
                             }}
                             iconFactory={props.iconFactory}
                             parent_id_path={current_tree_id_path}
-                            onClickCallback={props.onClickCallback}
+                            onClick={props.onClick}
                         />
                     </div>
             )
@@ -135,8 +135,8 @@ export type TreeContextMenuFactory = (tree_id_path: string[], tree: TreeNode) =>
 export interface TreeExplorerProps {
     tree: TreeNode | TreeNode[];
     iconFactory: (type: string) => React.ReactNode;
-    onClick: (tree_id_path: string[]) => void;
-    onDoubleClick?: (tree_id_path: string[]) => void;
+    onClick: (tree_id_path: string[], node: TreeNode) => void;
+    onDoubleClick?: (tree_id_path: string[], node: TreeNode) => void;
     contextMenuFactory?: TreeContextMenuFactory;
     loadChildren?: (tree_id_path: string[]) => void;
 }
@@ -161,8 +161,8 @@ export function TreeExplorer({
                         tree={treeNode}
                         iconFactory={iconFactory}
                         loadChildren={loadChildren}
-                        onClickCallback={onClick}
-                        onDoubleClickCallback={onDoubleClick}
+                        onClick={onClick}
+                        onDoubleClick={onDoubleClick}
                         contextMenuFactory={contextMenuFactory}
                     />
                 )

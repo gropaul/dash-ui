@@ -1,4 +1,4 @@
-import {ReactNode} from "react";
+import {ReactNode, useState} from "react";
 import {ContextMenuItem} from "@/components/ui/context-menu";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {Copy} from 'lucide-react';
@@ -50,8 +50,6 @@ export default function ContextMenuFactory(props: ContextMenuFactoryProps): Reac
 
     return (
         <>
-
-
             <ContextMenuItem onClick={onCopyName}>
                 <Copy size={16} style={{marginRight: 8}}/>
                 Copy Name

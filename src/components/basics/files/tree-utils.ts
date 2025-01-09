@@ -5,18 +5,19 @@ export interface TreeNode<C = TreeNode<any>, T = string> {
     type: T;
     // is undefined if not loaded, null if no children, otherwise an array of children
     children?: C[] | null;
+    payload?: any;
 }
 
 export function findNodeInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {
 
-    const artifical_root: TreeNode = {
+    const artificial_root: TreeNode = {
         id: '',
         name: '',
         type: '',
         children: trees
     }
 
-    return findNode(artifical_root, id_path);
+    return findNode(artificial_root, id_path);
 }
 
 export function findNodeParentInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {

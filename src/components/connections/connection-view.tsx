@@ -88,7 +88,7 @@ export function ConnectionView(props: ConnectionViewProps) {
     return (
         <li className="px-4 py-2 pt-0 text-primary text-s h-fit relative group">
             <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-nowrap">
+                <div className="flex items-center space-x-2 text-nowrap font-semibold">
                     <span>{props.connection.config.name}</span>
                     <ConnectionStateIcon connectionId={props.connection.id}/>
                 </div>

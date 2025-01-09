@@ -47,6 +47,7 @@ interface RelationZustandActions {
     setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
     getRelationViewState: (relationId: string) => RelationViewState,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
+    deleteRelation: (relationId: string) => void,
 
     showSchema: (connectionId: string, databaseId: string, schema: DataSourceGroup) => Promise<void>,
     getSchemaState: (schemaId: string) => SchemaState,
@@ -159,8 +160,9 @@ export const useRelationsState = createWithEqualityFn(
                     const relationId = getRelationIdFromSource(relation.connectionId, relation.source)
                     const {relations} = get(); // Get the current state
                     const existingRelation = relations[relationId]; // Retrieve the relation
-
+                    console.log("showRelation", relationId, existingRelation);
                     if (existingRelation) {
+                        console.log('relation found', relationId);
                         if (existingRelation.viewState.isTabOpen) {
                             focusTabById(get().layoutModel, existingRelation.id);
                         } else {
@@ -175,6 +177,8 @@ export const useRelationsState = createWithEqualityFn(
                             addRelationToLayout(get().layoutModel, existingRelation);
                         }
                     } else {
+                        console.log('relation not found', relationId);
+                        console.log('relation', relation);
                         set((state) => ({
                             relations: {
                                 ...state.relations,
@@ -294,6 +298,12 @@ export const useRelationsState = createWithEqualityFn(
                         },
                     }));
 
+                },
+                deleteRelation: (relationId: string) => {
+                    const {relations} = get();
+                    const newRelations = {...relations};
+                    delete newRelations[relationId];
+                    set({relations: newRelations});
                 },
                 closeTab: (tabId: string) => {
                     const { schemas, databases, relations, dashboards } = get();
