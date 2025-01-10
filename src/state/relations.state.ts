@@ -1,4 +1,4 @@
-import {getRelationIdFromSource, RelationSource} from "@/model/relation";
+import {getRelationIdFromSource, RelationSource, RelationSourceQuery} from "@/model/relation";
 import {Model} from "flexlayout-react";
 import {
     addDashboardToLayout,
@@ -6,7 +6,7 @@ import {
     addRelationToLayout,
     addSchemaToLayout,
     focusTabById,
-    getInitialLayoutModel, renameTab
+    getInitialLayoutModel, removeTab, renameTab
 } from "@/state/relations/layout-updates";
 import {
     executeQueryOfRelationState,
@@ -25,7 +25,12 @@ import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/utils";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {duckdbStorage} from "@/state/persistency/duckdb";
 import {createWithEqualityFn} from "zustand/traditional";
-import {DashboardState, getDashboardStateId} from "@/model/dashboard-state";
+import {
+    DashboardState,
+    DashboardViewState,
+    getInitDashboardViewState
+} from "@/model/dashboard-state";
+import {getRandomId} from "@/platform/id-utils";
 
 export interface RelationZustand {
 
@@ -33,6 +38,8 @@ export interface RelationZustand {
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
     dashboards: { [key: string]: DashboardState };
+
+    selectedTabId: string | undefined;
     layoutModel: Model;
 }
 
@@ -41,6 +48,7 @@ interface RelationZustandActions {
     getRelation: (relationId: string) => RelationState,
 
     showRelation: (relation: RelationState) => void,
+    addNewRelation: (connectionId: string) => Promise<void>,
     showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
@@ -56,6 +64,9 @@ interface RelationZustandActions {
     getDatabaseState: (databaseId: string) => DatabaseState,
 
     showDashboard: (dashboard: DashboardState) => Promise<void>,
+    addNewDashboard: (connectionId: string) => Promise<void>,
+    deleteDashboard: (dashboardId: string) => void,
+    updateDashboardViewState: (dashboardId: string, viewState: DeepPartial<DashboardViewState>) => void,
     getDashboardState: (dashboardId: string) => DashboardState,
     setDashboardState: (dashboardId: string, dashboard: DashboardState) => void,
 
@@ -64,6 +75,7 @@ interface RelationZustandActions {
     getModel: () => Model;
     setModel: (model: Model) => void;
     closeTab: (tabId: string) => void,
+    setSelectedTabId: (tabId: string) => void,
 }
 
 type RelationZustandCombined = RelationZustand & RelationZustandActions;
@@ -76,13 +88,78 @@ export const useRelationsState = createWithEqualityFn(
                 schemas: {},
                 databases: {},
                 dashboards: {},
+                selectedTabId: undefined,
+                addNewDashboard: async () => {
+                    const randomId = `dashboard-${getRandomId()}`;
+                    const dashboard: DashboardState = {
+                        id: randomId,
+                        name: "New Dashboard",
+                        elements: [],
+                        viewState: getInitDashboardViewState("New Dashboard"),
+                    }
+                    get().showDashboard(dashboard);
+                },
+                deleteDashboard: (dashboardId: string) => {
+                    const {dashboards} = get();
+                    if (dashboards[dashboardId].viewState.isTabOpen) {
+                        removeTab(get().layoutModel, dashboardId);
+                    }
+                    const newDashboards = {...dashboards};
+                    delete newDashboards[dashboardId];
+                    set({dashboards: newDashboards});
+                },
+                updateDashboardViewState: (dashboardId: string, partialUpdate: DeepPartial<DashboardViewState>) => {
+                    console.log('updateDashboardViewState', dashboardId, partialUpdate);
+                    console.log('dashboards', get().dashboards[dashboardId]);
+                    const currentViewState = deepClone(get().dashboards[dashboardId].viewState);
 
+                    // check if displayName is updated, if so, update the tab title
+                    if (partialUpdate.displayName) {
+                        const model = get().layoutModel;
+                        renameTab(model, dashboardId, partialUpdate.displayName);
+                    }
+                    safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
+
+                    set((state) => ({
+                        dashboards: {
+                            ...state.dashboards,
+                            [dashboardId]: {
+                                ...state.dashboards[dashboardId],
+                                viewState: currentViewState,
+                            },
+                        },
+                    }));
+                },
+                addNewRelation: async (connectionId: string) => {
+                    const randomId = getRandomId();
+                    const baseQuery = "SELECT 'Hello, World! 🦆' AS message;";
+                    const source: RelationSourceQuery = {
+                        type: "query",
+                        baseQuery: baseQuery,
+                        id: randomId,
+                        name: "New Query"
+                    }
+
+                    get().showRelationFromSource(connectionId, source);
+                },
                 showDashboard: async (dashboard: DashboardState) => {
-                    const {dashboards} = get(); // Get the current state
-                    const dashboardStateId = getDashboardStateId(dashboard); // Generate the database ID
+                    const {dashboards, layoutModel} = get(); // Get the current state
+                    const dashboardStateId = dashboard.id; // Use the dashboard ID as the state ID
                     const existingDashboard = dashboards[dashboardStateId]; // Retrieve the database
                     if (existingDashboard) {
-                        focusTabById(get().layoutModel, dashboardStateId);
+                        if (existingDashboard.viewState.isTabOpen) {
+                            focusTabById(layoutModel, dashboardStateId);
+                        } else {
+                            const newDashboard = deepClone(existingDashboard);
+                            newDashboard.viewState.isTabOpen = true;
+                            set((state) => ({
+                                dashboards: {
+                                    ...state.dashboards,
+                                    [dashboardStateId]: newDashboard,
+                                },
+                            }));
+                            addDashboardToLayout(layoutModel, dashboardStateId, dashboard);
+                        }
                     } else {
                         set((state) => ({
                             dashboards: {
@@ -90,8 +167,7 @@ export const useRelationsState = createWithEqualityFn(
                                 [dashboardStateId]: dashboard,
                             },
                         }));
-                        const model = get().layoutModel;
-                        addDashboardToLayout(model, dashboardStateId, dashboard);
+                        addDashboardToLayout(layoutModel, dashboardStateId, dashboard);
                     }
                 },
                 setDashboardState: (dashboardId: string, dashboard: DashboardState) => {
@@ -160,11 +236,10 @@ export const useRelationsState = createWithEqualityFn(
                     const relationId = getRelationIdFromSource(relation.connectionId, relation.source)
                     const {relations} = get(); // Get the current state
                     const existingRelation = relations[relationId]; // Retrieve the relation
-                    console.log("showRelation", relationId, existingRelation);
                     if (existingRelation) {
                         console.log('relation found', relationId);
                         if (existingRelation.viewState.isTabOpen) {
-                            focusTabById(get().layoutModel, existingRelation.id);
+                            focusTabById(get().layoutModel, relationId);
                         } else {
                             const newRelation = deepClone(existingRelation);
                             newRelation.viewState.isTabOpen = true;
@@ -303,7 +378,16 @@ export const useRelationsState = createWithEqualityFn(
                     const {relations} = get();
                     const newRelations = {...relations};
                     delete newRelations[relationId];
+
+                    if (relations[relationId].viewState.isTabOpen) {
+                        removeTab(get().layoutModel, relationId);
+                    }
                     set({relations: newRelations});
+                },
+
+                setSelectedTabId: (tabId: string) => {
+                    console.log('setSelectedTabId', tabId);
+                    set({selectedTabId: tabId});
                 },
                 closeTab: (tabId: string) => {
                     const { schemas, databases, relations, dashboards } = get();
@@ -317,13 +401,12 @@ export const useRelationsState = createWithEqualityFn(
                         delete newDatabases[tabId];
                         set({ databases: newDatabases });
                     } else if (relations[tabId]) {
-
                         const newRelations = { ...relations };
                         newRelations[tabId].viewState.isTabOpen = false;
                         set({ relations: newRelations });
                     } else if (dashboards[tabId]) {
                         const newDashboards = { ...dashboards };
-                        delete newDashboards[tabId];
+                        newDashboards[tabId].viewState.isTabOpen = false;
                         set({ dashboards: newDashboards });
                     }
                 },
@@ -371,6 +454,9 @@ const unsub = useRelationsState.persist.onFinishHydration((state) => {
         addRelationToLayout(model, state.relations[relationId]);
     }
     for (const dashboardId in state.dashboards) {
+        if (!state.dashboards[dashboardId].viewState.isTabOpen) {
+            continue;
+        }
         addDashboardToLayout(model, dashboardId, state.dashboards[dashboardId]);
     }
 

@@ -184,6 +184,13 @@ function returnEmptyErrorState(relation: RelationState, error: unknown): Relatio
     return {
         ...relation,
         data: undefined,
+        viewState: {
+            ...relation.viewState,
+            codeFenceState: {
+                ...relation.viewState.codeFenceState,
+                show: true,
+            },
+        },
         executionState: {
             state: 'error',
             error: getErrorMessage(error),

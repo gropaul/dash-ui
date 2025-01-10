@@ -1,4 +1,4 @@
-import { ReactNode, useState, useRef } from "react";
+import {ReactNode, useState, useRef, useEffect} from "react";
 import { TaskExecutionState } from "@/model/relation-state";
 import { RelationViewHeaderBorder } from "@/components/basics/basic-view/view-header-with-border";
 import { H5 } from "@/components/ui/typography";
@@ -32,6 +32,13 @@ export function ViewHeader({
     const titleRef = useRef<HTMLSpanElement>(null);
     const subtitleRef = useRef<HTMLSpanElement>(null);
 
+    // listen for changes to the title and subtitle
+    useEffect(() => {
+        setEditableTitle(title);
+    } , [title]);
+    useEffect(() => {
+        setEditableSubtitle(subtitle);
+    }, [subtitle]);
 
     const handleInput = (event: React.FormEvent<HTMLSpanElement>) => {
         if (onTitleChange) {
@@ -50,7 +57,7 @@ export function ViewHeader({
                         <span
                             ref={titleRef}
                             onInput={handleInput}
-                            contentEditable={true}
+                            contentEditable={!!onTitleChange}
                             suppressContentEditableWarning
                             className="outline-none"
                         >

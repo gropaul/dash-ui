@@ -21,12 +21,21 @@ export interface CodeFenceViewState {
     layout: Layout;
 }
 
-export interface RelationViewBaseState {
-    codeFenceState: CodeFenceViewState;
+export interface TabViewBaseState {
     displayName: string;
     isTabOpen: boolean;
-    selectedView: RelationViewType;
+}
 
+export function getInitialTabViewBaseState(displayName: string): TabViewBaseState {
+    return {
+        displayName: displayName,
+        isTabOpen: true,
+    };
+}
+
+export interface RelationViewBaseState extends TabViewBaseState {
+    codeFenceState: CodeFenceViewState;
+    selectedView: RelationViewType;
 }
 
 export interface RelationViewState extends RelationViewBaseState {
@@ -51,13 +60,12 @@ export function updateRelationViewState(currentState: RelationViewState, newData
 export function getInitViewState(displayName: string, data?: RelationData, showCode = false): RelationViewState {
 
     const baseState: RelationViewBaseState = {
-        displayName: displayName,
+        ...getInitialTabViewBaseState(displayName),
         codeFenceState: {
             show: showCode,
             sizePercentage: 0.3,
             layout: 'row',
         },
-        isTabOpen: true,
         selectedView: 'table',
     }
 

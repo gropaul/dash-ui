@@ -28,8 +28,8 @@ export function ConnectionView(props: ConnectionViewProps) {
     const refreshConnection = useConnectionsState((state) => state.refreshConnection);
     const updateConfig = useConnectionsState((state) => state.updateConfig);
     const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
-    const showRelationFromSource = useRelationsState((state) => state.showRelationFromSource);
-    const showDashboard = useRelationsState((state) => state.showDashboard);
+    const addNewRelation = useRelationsState((state) => state.addNewRelation);
+    const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
     const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
@@ -50,29 +50,6 @@ export function ConnectionView(props: ConnectionViewProps) {
 
     function onSettingsIconClicked() {
         setSettingsModalOpen(!settingsModalOpen);
-    }
-
-    function onNewEmptyQuery() {
-        const randomId = getRandomId();
-        const baseQuery = "SELECT 'Hello, World! 🦆' AS message;";
-        const source: RelationSourceQuery = {
-            type: "query",
-            baseQuery: baseQuery,
-            id: randomId,
-            name: "New Query"
-        }
-
-        showRelationFromSource(props.connection.id, source);
-    }
-
-    function onNewEmptyDashboard() {
-        const randomId = getRandomId();
-        const dashboard: DashboardState = {
-            id: randomId,
-            name: "New Dashboard",
-            elements: [],
-        }
-        showDashboard(dashboard);
     }
 
     function onSettingsModalOpenChanged(open: boolean) {
@@ -112,19 +89,25 @@ export function ConnectionView(props: ConnectionViewProps) {
                                     <span>Reload</span>
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem onClick={onNewEmptyQuery}>
-                                    <Plus />
-                                    <span>New Query</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem onClick={onNewEmptyDashboard}>
-                                    <Plus />
-                                    <span>New Dashboard</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
+                            {
+                                props.connection.type.includes('duckdb-' as any) && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem onClick={() => addNewRelation(props.connection.id)}>
+                                                <Plus />
+                                                <span>New Query</span>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem onClick={() => addNewDashboard(props.connection.id)}>
+                                                <Plus />
+                                                <span>New Dashboard</span>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                    </>
+                                )
+                            }
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

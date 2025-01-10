@@ -34,7 +34,6 @@ function TreeExplorerNode(props: TreeExplorerNodeProps) {
         if (!childrenLoaded && props.loadChildren) {
             props.loadChildren(current_tree_id_path);
         }
-
         setIsExpanded(!isExpanded);
     };
 

@@ -24,7 +24,7 @@ export function DashboardView(props: DashboardViewProps) {
 
     return (
         <div className="w-full h-full flex flex-col">
-            <ViewHeader title={dashboard.name} path={[]}/>
+            <ViewHeader title={dashboard.viewState.displayName} path={[]}/>
             {dashboard.elements.map((element, index) => (
                 <>
                     <DashboardElementDivider

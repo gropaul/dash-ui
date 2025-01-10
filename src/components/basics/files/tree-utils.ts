@@ -6,6 +6,7 @@ export interface TreeNode<C = TreeNode<any>, T = string> {
     // is undefined if not loaded, null if no children, otherwise an array of children
     children?: C[] | null;
     payload?: any;
+    selected?: boolean;
 }
 
 export function findNodeInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {

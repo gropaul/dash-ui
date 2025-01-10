@@ -6,8 +6,8 @@
     --color-2: #f0f0f0;
     --color-3: #e9e9e9;
     --color-4: hsl(var(--border));
-    --color-6: #d4d4d4;
-    --color-drag1: rgb(95, 134, 196);
+    --color-6: hsl(var(--card));
+    --color-drag1: rgb(55, 144, 255);
     --color-drag2: rgb(119, 166, 119);
     --color-drag1-background: rgba(95, 134, 196, 0.1);
     --color-drag2-background: rgba(119, 166, 119, 0.075);

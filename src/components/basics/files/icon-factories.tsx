@@ -5,7 +5,7 @@ import {
     File,
     FileWarning,
     Folder,
-    Hash,
+    Hash, LayoutDashboard,
     LoaderCircle,
     Network,
     Sheet,
@@ -34,6 +34,8 @@ export const defaultIconFactory = (type: string): ReactNode => {
             return <Folder size={iconSize} />
         case 'database':
             return <Database size={iconSize} />
+        case 'dashboard':
+            return <LayoutDashboard size={iconSize} />
         case 'schema':
             return <Network size={iconSize} />
         case 'duckdb-wasm':

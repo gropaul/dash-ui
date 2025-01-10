@@ -1,13 +1,24 @@
 import {getDefaultQueryParams, getQueryFromParams, RelationState} from "@/model/relation-state";
-import {getInitViewState} from "@/model/relation-view-state";
+import {getInitialTabViewBaseState, getInitViewState, TabViewBaseState} from "@/model/relation-view-state";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {getRandomId} from "@/platform/id-utils";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+
+export interface DashboardViewState extends TabViewBaseState {
+
+}
+
+export function getInitDashboardViewState(displayName: string): DashboardViewState {
+    return {
+        ...getInitialTabViewBaseState(displayName),
+    };
+}
 
 export interface DashboardState {
     id: string;
     name: string;
     elements: DashboardElement[];
+    viewState: DashboardViewState;
 }
 
 export type DashboardElementType = 'text' | 'data';
@@ -72,10 +83,4 @@ export async function getInitialElement(type: DashboardElementType): Promise<Das
         default:
             throw new Error(`Unsupported type: ${type}`); // Handle unsupported types
     }
-}
-
-
-
-export function getDashboardStateId(dashboard: DashboardState): string {
-    return `dashboard-${dashboard.id}`;
 }

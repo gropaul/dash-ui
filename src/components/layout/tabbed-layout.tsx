@@ -3,7 +3,7 @@ import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {RelationView} from "@/components/relation/relation-view";
 import {useRelationsState} from "@/state/relations.state";
-import {Database, Folder, Network, Sheet} from 'lucide-react';
+import {Database, Folder, LayoutDashboard, Network, Sheet} from 'lucide-react';
 import {ConnectionsOverview} from "@/components/connections/connections-overview";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
 import {SchemaView} from "@/components/schema/schema-view";
@@ -106,6 +106,12 @@ const iconFactory = (node: TabNode) => {
     if (component === 'RelationComponent') {
         return <div style={{width: 16, height: 16}}>
             <Sheet size={16}/>
+        </div>;
+    }
+
+    if (component === 'DashboardComponent') {
+        return <div style={{width: 16, height: 16}}>
+            <LayoutDashboard size={16}/>
         </div>;
     }
 
