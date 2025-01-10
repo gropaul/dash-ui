@@ -34,10 +34,14 @@ export function ViewHeader({
 
     // listen for changes to the title and subtitle
     useEffect(() => {
-        setEditableTitle(title);
+        if (title !== titleRef.current?.innerText) {
+            setEditableTitle(title);
+        }
     } , [title]);
     useEffect(() => {
-        setEditableSubtitle(subtitle);
+        if (subtitle !== subtitleRef.current?.innerText) {
+            setEditableSubtitle(subtitle);
+        }
     }, [subtitle]);
 
     const handleInput = (event: React.FormEvent<HTMLSpanElement>) => {

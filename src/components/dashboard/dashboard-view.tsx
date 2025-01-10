@@ -9,6 +9,7 @@ export function DashboardView(props: DashboardViewProps) {
 
     const dashboard = useRelationsState((state) => state.getDashboardState(props.dashboardId), shallow);
     const setDashboard = useRelationsState((state) => state.setDashboardState);
+    const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
     const elementCount = dashboard.elements.length;
 
     async function onAddElementClick(type: DashboardElementType, index: number) {
@@ -22,9 +23,16 @@ export function DashboardView(props: DashboardViewProps) {
         });
     }
 
+    function onRenameDisplay(name: string) {
+        updateDashboardViewState(props.dashboardId, {
+            displayName: name
+        });
+    }
+
+
     return (
         <div className="w-full h-full flex flex-col">
-            <ViewHeader title={dashboard.viewState.displayName} path={[]}/>
+            <ViewHeader title={dashboard.viewState.displayName} onTitleChange={onRenameDisplay} path={[]}/>
             {dashboard.elements.map((element, index) => (
                 <>
                     <DashboardElementDivider
