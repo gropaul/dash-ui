@@ -71,7 +71,16 @@ export function EditorOverview() {
         };
     });
 
-    const treeElements = dashboardTreeElements.concat(relationTreeElements);
+    const rootElement: TreeNode = {
+        type: 'folder',
+        id: 'root',
+        name: 'Examples',
+        children: []
+    }
+
+    const treeElements = [rootElement]
+        .concat(dashboardTreeElements)
+        .concat(relationTreeElements);
 
     function onTreeElementClick(_path: string[], node: TreeNode) {
         if (node.type === 'relation') {
@@ -111,8 +120,8 @@ export function EditorOverview() {
             setDeleteState({
                 isOpen: true,
                 currentNode: tree,
-                title: 'Delete Relation',
-                description: `Are you sure you want to delete the relation "${tree.payload.viewState.displayName}"? This action cannot be undone.`
+                title: 'Delete Data View',
+                description: `Are you sure you want to delete the data view "${tree.payload.viewState.displayName}"? This action cannot be undone.`
             });
             return;
         } else if (tree.type === 'dashboard') {
@@ -194,7 +203,7 @@ export function EditorOverview() {
                         </DropdownMenuContent>
                     </DropdownMenu>
             </div>
-            <div className="overflow-y-auto h-full">
+            <div className="overflow-y-auto h-full px-3">
                 <TreeExplorer
                     tree={treeElements}
                     iconFactory={defaultIconFactory}
@@ -203,8 +212,8 @@ export function EditorOverview() {
                 />
             </div>
             <RenameDialog
-                title={'Rename Relation'}
-                description={'Enter a new name for the relation'}
+                title={'Rename Data View'}
+                description={'Enter a new name for the data view.'}
                 isOpen={renameState.isOpen}
                 onOpenChange={(isOpen) => setRenameState({...renameState, isOpen})}
                 onRename={onRenameConfirmed}
@@ -228,7 +237,12 @@ function ContextMenuFactory(
     onRename: (tree: TreeNode) => void,
     onDuplicate: (tree: TreeNode) => void
 ) {
-
+    if (tree.type === 'folder') {
+        return (
+            <>
+            </>
+        );
+    }
     return (
         <>
             <ContextMenuItem onClick={() => onRename(tree)}>
