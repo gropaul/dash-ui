@@ -1,35 +1,25 @@
 import {ChartSpline, Code, Map, Sheet} from "lucide-react";
-import {useRelationsState} from "@/state/relations.state";
-import {shallow} from "zustand/shallow";
-import {formatDuration} from "@/platform/utils";
+import {DeepPartial, formatDuration} from "@/platform/utils";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
-import {RelationViewType} from "@/model/relation-view-state";
+import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
 import {Toggle} from "@/components/ui/toggle"
 
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {Separator} from "@/components/ui/separator";
 import {getPathFromRelation} from "@/model/relation";
 import {HeaderDownloadButton} from "@/components/relation/header/header-download-button";
+import {RelationState} from "@/model/relation-state";
 
 export interface RelationViewHeaderProps {
-    relationId: string;
+    relationState: RelationState;
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
     children?: React.ReactNode;
 }
 
-export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
-    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
+export function RelationViewHeader({relationState, updateRelationViewState}: RelationViewHeaderProps) {
 
-    const relationDisplayName = useRelationsState((state) => state.getRelation(relationId)?.viewState.displayName, shallow);
-    const source = useRelationsState((state) => state.getRelation(relationId).source, shallow);
-    const connectionId = useRelationsState((state) => state.getRelation(relationId).connectionId, shallow);
-    const lastExecutionDuration = useRelationsState((state) => state.getRelation(relationId).lastExecutionMetaData?.lastExecutionDuration, shallow);
-    const codeFenceState = useRelationsState((state) => state.getRelationViewState(relationId).codeFenceState!, shallow);
-    const currentView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
-
-    const queryState = useRelationsState(
-        (state) => state.getRelation(relationId).executionState,
-        shallow
-    );
+    const relationId = relationState.id;
+    const {source, connectionId, query, viewState} = relationState;
 
     const onRelationDisplayNameChange = (newName: string) => {
         updateRelationViewState(relationId, {
@@ -53,10 +43,11 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
         }
     }
 
+    const codeFenceState = viewState.codeFenceState;
     function onShowCode() {
         updateRelationViewState(relationId, {
             codeFenceState: {
-                show: !codeFenceState.show,
+                show: codeFenceState!.show,
             }
         });
     }
@@ -72,6 +63,8 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
         });
     }
 
+    const lastExecutionDuration = relationState.lastExecutionMetaData?.lastExecutionDuration;
+
     let durationString = '';
     if (lastExecutionDuration) {
         durationString += `(Took ${formatDuration(lastExecutionDuration)})`;
@@ -82,12 +75,12 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
     return (
         <>
             <ViewHeader
-                title={relationDisplayName}
+                title={viewState.displayName}
                 onTitleChange={onRelationDisplayNameChange}
                 path={path}
                 onPathClick={onPathClick}
                 subtitle={durationString}
-                state={queryState}
+                state={relationState.executionState}
                 actionButtons={
                     <>
 
@@ -99,7 +92,7 @@ export function RelationViewHeader({relationId}: RelationViewHeaderProps) {
                             <Code className="h-4 w-4"/>
                         </Toggle>
                         <Separator orientation={'vertical'}/>
-                        <ToggleGroup rovingFocus type="single" value={currentView} onValueChange={onViewChange}>
+                        <ToggleGroup rovingFocus type="single" value={viewState.selectedView} onValueChange={onViewChange}>
                             <ToggleGroupItem value="table" aria-label="Table view" title={'Table view'}>
                                 <Sheet className="h-4 w-4"/>
                             </ToggleGroupItem>

@@ -1,6 +1,6 @@
 import React from "react";
-import {ConnectionsOverview} from "@/components/connections/connections-overview";
-import {EditorOverview} from "@/components/editor/editor-overview";
+import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
+import {EditorOverviewTab} from "@/components/editor/editor-overview-tab";
 import {Database, Sheet} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
@@ -70,9 +70,9 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
     function renderTabContent(tab: AvailableTabs) {
         switch (tab) {
             case 'connections':
-                return <ConnectionsOverview/>;
+                return <ConnectionsOverviewTab/>;
             case 'relations':
-                return <EditorOverview/>;
+                return <EditorOverviewTab/>;
         }
     }
 

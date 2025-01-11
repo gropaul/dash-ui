@@ -9,7 +9,7 @@ interface DatabaseViewProps {
     databaseId: string;
 }
 
-export function DatabaseView(props: DatabaseViewProps) {
+export function DatabaseTab(props: DatabaseViewProps) {
 
     const database = useRelationsState((state) => state.getDatabaseState(props.databaseId), shallow);
 

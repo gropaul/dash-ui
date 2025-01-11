@@ -31,7 +31,7 @@ interface DeleteState {
     description?: string;
 }
 
-export function EditorOverview() {
+export function EditorOverviewTab() {
 
     const [renameState, setRenameState] = useState<RenameState>({isOpen: false});
     const [deleteState, setDeleteState] = useState<DeleteState>({isOpen: false});

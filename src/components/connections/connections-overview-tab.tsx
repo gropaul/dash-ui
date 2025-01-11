@@ -8,7 +8,7 @@ import {Separator} from "@/components/ui/separator";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
-export function ConnectionsOverview() {
+export function ConnectionsOverviewTab() {
     const connections = useConnectionsState((state) => state.connections);
 
     return (

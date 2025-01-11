@@ -2,30 +2,28 @@ import {useRelationsState} from "@/state/relations.state";
 import {RelationViewContent} from "@/components/relation/relation-view-content";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {shallow} from "zustand/shallow";
-import {RelationState, TaskExecutionState} from "@/model/relation-state";
+import {TaskExecutionState} from "@/model/relation-state";
 import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
-import {DeepPartial} from "@/platform/utils";
-import {RelationViewState} from "@/model/relation-view-state";
+import {RelationView} from "@/components/relation/relation-view";
 
-export interface RelationViewProps {
-    relationState: RelationState;
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
+export interface RelationTabProps {
+    relationId: string;
 }
 
-export function RelationView(props: RelationViewProps) {
-    return (
-        <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
-            {/* Header */}
-            <RelationViewHeader relationState={props.relationState} updateRelationViewState={props.updateRelationViewState}/>
+export function RelationTab(props: RelationTabProps) {
 
-            {/* Content */}
-            <div className={`flex-1 overflow-auto relative`}>
-                <RelationStateView relationState={props.relationState} />
-            </div>
-        </div>
-    );
+    const relationId = props.relationId;
+
+    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
+    const relationsState = useRelationsState((state) => state.getRelation(relationId), shallow);
+
+    return <RelationView
+        relationState={relationsState}
+        updateRelationViewState={updateRelationViewState}
+    />;
+
 }
 
 export interface ContentWrapperProps {

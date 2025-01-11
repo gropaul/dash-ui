@@ -1,19 +1,19 @@
 import React from 'react';
 import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
-import {RelationView} from "@/components/relation/relation-view";
 import {useRelationsState} from "@/state/relations.state";
 import {Database, Folder, LayoutDashboard, Network, Sheet} from 'lucide-react';
-import {ConnectionsOverview} from "@/components/connections/connections-overview";
+import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
-import {SchemaView} from "@/components/schema/schema-view";
-import {DatabaseView} from "@/components/database/database-view";
-import {DirectoryView} from "@/components/directory/directory-view";
-import {DashboardView} from "@/components/dashboard/dashboard-view";
-import {EditorOverview} from "@/components/editor/editor-overview";
+import {SchemaTab} from "@/components/schema/schema-tab";
+import {DatabaseTab} from "@/components/database/database-tab";
+import {DirectoryTab} from "@/components/directory/directory-tab";
+import {DashboardTab} from "@/components/dashboard/dashboard-tab";
+import {EditorOverviewTab} from "@/components/editor/editor-overview-tab";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {AvailableTabs, NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
 import {cn} from "@/lib/utils";
+import {RelationTab} from "@/components/relation/relation-tab";
 
 
 export function TabbedLayout() {
@@ -67,25 +67,25 @@ export function TabbedLayout() {
 const factory = (node: TabNode) => {
     const component = node.getComponent();
     if (component === 'ConnectionList') {
-        return <ConnectionsOverview/>;
+        return <ConnectionsOverviewTab/>;
     }
     if (component === 'RelationList') {
-        return <EditorOverview/>;
+        return <EditorOverviewTab/>;
     }
     if (component === 'RelationComponent') {
-        return <RelationView relationId={node.getConfig().relationId}/>;
+        return <RelationTab relationId={node.getConfig().relationId}/>;
     }
     if (component === 'SchemaComponent') {
-        return <SchemaView schemaId={node.getConfig().schemaId}/>;
+        return <SchemaTab schemaId={node.getConfig().schemaId}/>;
     }
     if (component === 'DatabaseComponent') {
-        return <DatabaseView databaseId={node.getConfig().databaseId}/>;
+        return <DatabaseTab databaseId={node.getConfig().databaseId}/>;
     }
     if (component === 'DirectoryComponent') {
-        return <DirectoryView directoryId={node.getConfig().directoryId}/>;
+        return <DirectoryTab directoryId={node.getConfig().directoryId}/>;
     }
     if (component === 'DashboardComponent') {
-        return <DashboardView dashboardId={node.getConfig().dashboardId}/>;
+        return <DashboardTab dashboardId={node.getConfig().dashboardId}/>;
     }
 
     return null;

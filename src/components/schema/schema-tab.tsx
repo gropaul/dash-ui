@@ -9,7 +9,7 @@ interface SchemaViewProps {
     schemaId: string;
 }
 
-export function SchemaView(props: SchemaViewProps) {
+export function SchemaTab(props: SchemaViewProps) {
 
     const schema = useRelationsState((state) => state.getSchemaState(props.schemaId), shallow);
     // todo display schema constraints

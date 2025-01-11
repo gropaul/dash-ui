@@ -5,7 +5,7 @@ export interface DashboardViewProps {
     dashboardId: string;
 }
 
-export function DashboardView(props: DashboardViewProps) {
+export function DashboardTab(props: DashboardViewProps) {
 
     const dashboard = useRelationsState((state) => state.getDashboardState(props.dashboardId), shallow);
     const setDashboard = useRelationsState((state) => state.setDashboardState);

@@ -2,7 +2,7 @@ interface DirectoryViewProps {
     directoryId: string;
 }
 
-export function DirectoryView(props: DirectoryViewProps) {
+export function DirectoryTab(props: DirectoryViewProps) {
 
 
 
