@@ -43,7 +43,14 @@ export interface RelationZustand {
     layoutModel: Model;
 }
 
-interface RelationZustandActions {
+export interface DefaultRelationZustandActions {
+    updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
+    updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
+
+}
+
+interface RelationZustandActions extends DefaultRelationZustandActions {
     relationExists: (relationId: string) => boolean,
     getRelation: (relationId: string) => RelationState,
 
@@ -54,7 +61,6 @@ interface RelationZustandActions {
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
     setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
     getRelationViewState: (relationId: string) => RelationViewState,
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
     deleteRelation: (relationId: string) => void,
 
     showSchema: (connectionId: string, databaseId: string, schema: DataSourceGroup) => Promise<void>,

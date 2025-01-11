@@ -1,26 +1,30 @@
-import {ChartViewState, PlotType} from "@/model/relation-view-state/chart";
+import {PlotType} from "@/model/relation-view-state/chart";
 import {H5, Muted} from "@/components/ui/typography";
 import {Column} from "@/model/column";
-import {useRelationsState} from "@/state/relations.state";
 import {Separator} from "@/components/ui/separator";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {ChartTypeSelector} from "@/components/relation/chart/chart-config/chart-type-selector";
 import {ConfigViewCartesian} from "@/components/relation/chart/chart-config/config-view-cartesian";
 import {ConfigViewPie} from "@/components/relation/chart/chart-config/config-view-pie";
+import {RelationState} from "@/model/relation-state";
+import {DeepPartial} from "@/platform/utils";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 export interface ChartConfigProps {
-    relationId: string;
-    config: ChartViewState;
-    columns: Column[];
+    relationState: RelationState
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
-export function ChartConfigView({relationId, config, columns}: ChartConfigProps) {
-    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
+export function ChartConfigView(props: ChartConfigProps) {
+
+    const columns = props.relationState?.data?.columns ?? ([] as Column[]);
+    const relationId = props.relationState.id;
+    const config = props.relationState.viewState.chartState;
 
     function updateTitle(title: string) {
-        updateRelationViewState(relationId, {
+        props.updateRelationViewState(relationId, {
             chartState: {
                 chart: {
                     plot: {
@@ -32,7 +36,7 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
     }
 
     function updatePlotType(type: PlotType) {
-        updateRelationViewState(relationId, {
+        props.updateRelationViewState(relationId, {
             chartState: {
                 chart: {
                     plot: {
@@ -63,7 +67,7 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
                     type={config.chart.plot.type}
                     onPlotTypeChange={updatePlotType}
                 />
-                <ChartSpecificConfig {...{relationId, config, columns}}/>
+                <ChartSpecificConfig {...props}/>
 
                 {/* Fill remaining space */}
                 <div className="flex-1 shrink"/>
@@ -74,7 +78,7 @@ export function ChartConfigView({relationId, config, columns}: ChartConfigProps)
 
 
 export function ChartSpecificConfig(props: ChartConfigProps) {
-    const config = props.config.chart.plot;
+    const config = props.relationState.viewState.chartState.chart.plot;
     switch (config.type) {
         case 'bar':
         case "radar":

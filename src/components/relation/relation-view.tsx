@@ -1,45 +1,45 @@
-import {useRelationsState} from "@/state/relations.state";
 import {RelationViewContent} from "@/components/relation/relation-view-content";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
-import {shallow} from "zustand/shallow";
-import {RelationState, TaskExecutionState} from "@/model/relation-state";
+import {RelationState} from "@/model/relation-state";
 import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
 import {DeepPartial} from "@/platform/utils";
 import {RelationViewState} from "@/model/relation-view-state";
+import {DefaultRelationZustandActions} from "@/state/relations.state";
 
-export interface RelationViewProps {
+export interface RelationViewProps extends DefaultRelationZustandActions{
     relationState: RelationState;
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
 export function RelationView(props: RelationViewProps) {
     return (
         <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
-            {/* Header */}
-            <RelationViewHeader relationState={props.relationState} updateRelationViewState={props.updateRelationViewState}/>
+            <RelationViewHeader {...props}/>
 
-            {/* Content */}
             <div className={`flex-1 overflow-auto relative`}>
-                <RelationStateView relationState={props.relationState} />
+                <RelationStateView {...props}/>
             </div>
         </div>
     );
 }
 
 export interface ContentWrapperProps {
-    isLoading: boolean;
-    relationId: string;
-    queryState: TaskExecutionState;
+    relationState: RelationState
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
 export function ContentWrapper(props: ContentWrapperProps) {
+
+    const queryState = props.relationState.executionState;
     return (
-        props.queryState.state === "error" ? (
-            <RelationViewError error={props.queryState.error}/>
+        queryState.state === "error" ? (
+            <RelationViewError error={queryState.error}/>
         ) : (
-            <RelationViewContent relationId={props.relationId}/>
+            <RelationViewContent
+                relationState={props.relationState}
+                updateRelationViewState={props.updateRelationViewState}
+            />
         )
     );
 }

@@ -1,29 +1,26 @@
-import {shallow} from "zustand/shallow";
-import {useRelationsState} from "@/state/relations.state";
+import {DefaultRelationZustandActions, useRelationsState} from "@/state/relations.state";
 import {CodeFence} from "@/components/basics/code-fence/code-fence";
-import {getDefaultQueryParams} from "@/model/relation-state";
+import {getDefaultQueryParams, RelationState} from "@/model/relation-state";
 import {getSeparatedStatements} from "@/platform/sql-utils";
 
-
-interface RelationViewQueryProps {
-    relationId: string;
+interface RelationViewQueryProps extends DefaultRelationZustandActions{
+    relationState: RelationState
 }
 
 export function RelationViewQueryView(props: RelationViewQueryProps) {
 
-    const codeFenceState = useRelationsState((state) => state.getRelationViewState(props.relationId).codeFenceState, shallow);
-    const queryString = useRelationsState((state) => state.getRelation(props.relationId).query.baseQuery, shallow);
-    const executionState = useRelationsState((state) => state.getRelation(props.relationId).executionState, shallow);
-    const updateRelationBaseQuery = useRelationsState((state) => state.updateRelationBaseQuery);
-    const updateRelationData = useRelationsState((state) => state.updateRelationDataWithParams);
+    const codeFenceState = props.relationState.viewState.codeFenceState;
+    const queryString = props.relationState.query.baseQuery;
+    const executionState = props.relationState.executionState;
 
+    const relationId = props.relationState.id;
     async function onRunQuery() {
         // we need to reset the view params as the could be columns removed now that had filters before!
-        await updateRelationData(props.relationId, getDefaultQueryParams());
+        await props.updateRelationDataWithParams(relationId, getDefaultQueryParams());
     }
 
     function onCodeChange(code: string) {
-        updateRelationBaseQuery(props.relationId, code);
+        props.updateRelationBaseQuery(relationId, code);
     }
 
     if (!codeFenceState!.show) {
@@ -52,7 +49,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
                 showLayoutButton={true}
                 currentLayout={codeFenceState.layout}
                 onLayoutChange={(layout) => {
-                    useRelationsState.getState().updateRelationViewState(props.relationId, {
+                    useRelationsState.getState().updateRelationViewState(relationId, {
                         codeFenceState: {
                             layout: layout
                         }

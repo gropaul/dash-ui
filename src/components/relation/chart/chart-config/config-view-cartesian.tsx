@@ -4,21 +4,19 @@ import {ColumnSelector} from "@/components/relation/chart/chart-config/column-se
 import {DEFAULT_COLORS} from "@/platform/global-data";
 import {CirclePlus} from "lucide-react";
 import {AxisConfig} from "@/model/relation-view-state/chart";
-import {useRelationsState} from "@/state/relations.state";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
+import {Column} from "@/model/column";
 
 
 export function ConfigViewCartesian(props: ChartConfigProps) {
 
-    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
-
-    const {config, columns, relationId} = props;
+    const config = props.relationState.viewState.chartState;
     const noYAxes = !config.chart.plot.cartesian.yAxes || config.chart.plot.cartesian.yAxes.length === 0;
-
+    const relationId = props.relationState.id;
     function deleteYAxis(index: number) {
         const yAxes = config.chart.plot.cartesian.yAxes ?? ([] as Partial<AxisConfig>[]);
         yAxes.splice(index, 1);
-        updateRelationViewState(relationId, {
+        props.updateRelationViewState(relationId, {
             chartState: {
                 chart: {
                     plot: {
@@ -33,7 +31,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     }
 
     function updateXAxis(axis: Partial<AxisConfig>) {
-        updateRelationViewState(relationId, {
+        props.updateRelationViewState(relationId, {
             chartState: {
                 chart: {
                     plot: {
@@ -58,7 +56,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             };
         }
 
-        updateRelationViewState(relationId, {
+        props.updateRelationViewState(relationId, {
             chartState: {
                 chart: {
                     plot: {
@@ -71,6 +69,8 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             }
         });
     }
+
+    const columns = props.relationState?.data?.columns ?? ([] as Column[]);
 
     return (
         <>

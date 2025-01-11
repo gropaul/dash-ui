@@ -1,4 +1,3 @@
-import {TableColumnHead} from "@/components/relation/table/table-head/table-column-head";
 import {TableRow} from "@/components/relation/table/table-row";
 import React from "react";
 import {RelationState} from "@/model/relation-state";

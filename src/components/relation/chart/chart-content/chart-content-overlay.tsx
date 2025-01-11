@@ -12,7 +12,8 @@ import {Button} from "@/components/ui/button";
 import {Eye, EyeOff, ImageDown, Menu} from "lucide-react";
 import {MyChartProps} from "@/components/relation/chart/chart-content";
 import {ConfigViewState} from "@/model/relation-view-state/chart";
-import {useRelationsState} from "@/state/relations.state";
+import {DeepPartial} from "@/platform/utils";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 export interface ChartContentOverlayProps extends MyChartProps{
@@ -20,17 +21,18 @@ export interface ChartContentOverlayProps extends MyChartProps{
     view: ConfigViewState;
     relationId: string;
 
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
+
     onExportAsSVG?: () => void;
     onExportAsPNG?: () => void;
 }
 
 export function ChartContentOverlay(props: ChartContentOverlayProps) {
 
-    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
     const showChartSettings = props.view.showConfig;
 
     function updateShowConfig() {
-        updateRelationViewState(props.relationId, {
+        props.updateRelationViewState(props.relationId, {
             chartState: {
                 view: {
                     showConfig: !showChartSettings

@@ -3,18 +3,17 @@ import {RelationViewQueryView} from "@/components/relation/relation-view-query-v
 import {ContentWrapper} from "@/components/relation/relation-view";
 import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
-import {useRelationsState} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
+import {DefaultRelationZustandActions} from "@/state/relations.state";
 
-interface RelationStateViewProps {
+interface RelationStateViewProps extends DefaultRelationZustandActions {
     relationState: RelationState
 }
 
 export function RelationStateView(props: RelationStateViewProps) {
+
     const executionState = props.relationState.executionState;
     const codeFenceState = props.relationState.viewState.codeFenceState;
-
-    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
 
     const relationId = props.relationState.id;
     const [isLoading, setIsLoading] = useState(false);
@@ -32,9 +31,8 @@ export function RelationStateView(props: RelationStateViewProps) {
     }, [executionState]);
 
 
-
     function setCodeFenceState(relationId: string, sizePercentage: number) {
-        updateRelationViewState(relationId, {
+        props.updateRelationViewState(relationId, {
             codeFenceState: {
                 ...codeFenceState,
                 sizePercentage: sizePercentage,
@@ -46,31 +44,27 @@ export function RelationStateView(props: RelationStateViewProps) {
     const showCode = codeFenceState.show;
 
     return (
-       <>
-           <WindowSplitter
-               child1Active={showCode}
-               child2Active={true}
-               ratio={codePercentage / 100}
-               onChange={(ratio) => setCodeFenceState(relationId, ratio)}
-               layout={codeFenceState.layout}
-           >
-               <RelationViewQueryView relationId={relationId}/>
-               <ContentWrapper
-                   isLoading={isLoading}
-                   relationId={relationId}
-                   queryState={executionState}
-               />
-           </WindowSplitter>
-           {isLoading && (
-               <div
-                   className="absolute top-0 left-0 w-full h-full bg-background z-50 flex items-center justify-center transition-opacity duration-200"
-                   style={{
-                       opacity: 0.7,
-                   }}
-               >
-                   Loading...
-               </div>
-           )}
-       </>
+        <>
+            <WindowSplitter
+                child1Active={showCode}
+                child2Active={true}
+                ratio={codePercentage / 100}
+                onChange={(ratio) => setCodeFenceState(relationId, ratio)}
+                layout={codeFenceState.layout}
+            >
+                <RelationViewQueryView {...props}/>
+                <ContentWrapper {...props}/>
+            </WindowSplitter>
+            {isLoading && (
+                <div
+                    className="absolute top-0 left-0 w-full h-full bg-background z-50 flex items-center justify-center transition-opacity duration-200"
+                    style={{
+                        opacity: 0.7,
+                    }}
+                >
+                    Loading...
+                </div>
+            )}
+        </>
     )
 }

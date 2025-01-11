@@ -9,21 +9,23 @@ import {CanDisplayPlot} from "@/model/relation-view-state/chart";
 import {ChartContentOverlay} from "@/components/relation/chart/chart-content/chart-content-overlay";
 import {ChartContentError} from "@/components/relation/chart/chart-content/chart-content-error";
 import {useRef} from "react";
+import {RelationState} from "@/model/relation-state";
+import {DeepPartial} from "@/platform/utils";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 export interface ChartProps {
-    relationId: string;
+    relationState: RelationState
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
 export function Chart(props: ChartProps) {
 
-    const relationState = useRelationsState((state) => state.getRelation(props.relationId), shallow);
     const exportableRef = useRef<ExportableRef>(null);
-
-    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
+    const relationId = props.relationState.id;
 
     function updateConfigRatio(ratio: number) {
-        updateRelationViewState(props.relationId, {
+        props.updateRelationViewState(relationId, {
             chartState: {
                 view: {
                     configPlotRatio: ratio,
@@ -32,12 +34,12 @@ export function Chart(props: ChartProps) {
         });
     }
 
-    if (relationState.data === undefined) {
+    if (props.relationState.data === undefined) {
         return null;
     }
 
-    const config = relationState.viewState.chartState;
-    const plotDisplayError = CanDisplayPlot(config.chart, relationState.data);
+    const config = props.relationState.viewState.chartState;
+    const plotDisplayError = CanDisplayPlot(config.chart, props.relationState.data);
     return (
         <div className="w-full h-full relative overflow-hidden">
             <WindowSplitter
@@ -51,25 +53,25 @@ export function Chart(props: ChartProps) {
                         <ChartContentError error={plotDisplayError}/>
                         :
                         <Exportable ref={exportableRef} fileName={toSnakeCase(config.chart.plot.title ?? 'plot')}>
-                            <ChartContent data={relationState.data} config={config.chart}/>
+                            <ChartContent data={props.relationState.data} config={config.chart}/>
                         </Exportable>
                     }
                     {/* Overlay Button panel so that it is not exportable */}
                     <ChartContentOverlay
                         hasError={plotDisplayError != undefined}
-                        data={relationState.data}
+                        data={props.relationState.data}
                         config={config.chart}
                         view={config.view}
-                        relationId={props.relationId}
+                        relationId={relationId}
                         onExportAsSVG={exportableRef.current?.exportChartAsSVG}
                         onExportAsPNG={exportableRef.current?.exportChartAsPNG}
+                        updateRelationViewState={props.updateRelationViewState}
                     />
                 </div>
                 <div className={'p-2 w-full h-full overflow-y-auto'}>
                     <ChartConfigView
-                        relationId={props.relationId}
-                        config={config}
-                        columns={relationState.data.columns}
+                        relationState={props.relationState}
+                        updateRelationViewState={props.updateRelationViewState}
                     />
                 </div>
             </WindowSplitter>

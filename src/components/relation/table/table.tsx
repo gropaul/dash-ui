@@ -5,19 +5,19 @@ import type {DragEndEvent, DragStartEvent} from "@dnd-kit/core/dist/types";
 import React, {useState} from "react";
 import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-state/table";
 import {TableColumnDragOverlay} from "@/components/relation/table/table-column-drag-overlay";
-import {useRelationsState} from "@/state/relations.state";
-import {shallow} from "zustand/shallow";
+import {RelationState} from "@/model/relation-state";
+import {DeepPartial} from "@/platform/utils";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 export interface RelationViewTableProps {
-    relationId: string;
+    relationState: RelationState
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
 export function Table(props: RelationViewTableProps) {
-    const relationState = useRelationsState((state) => state.getRelation(props.relationId), shallow);
-    const setRelationViewState = useRelationsState((state) => state.updateRelationViewState);
-    const relationData = relationState.data;
-    const columnsOrder = relationState.viewState.tableState.columnsOrder;
+    const relationData = props.relationState.data;
+    const columnsOrder = props.relationState.viewState.tableState.columnsOrder;
 
     const [dragStartOrder, setDragStartOrder] = useState<string[]>([]);
     const [activeId, setActiveId] = useState<string | number | null>(null);
@@ -37,8 +37,8 @@ export function Table(props: RelationViewTableProps) {
     }
 
     function setTableState(state: TableViewState) {
-        setRelationViewState(
-            props.relationId, {
+        props.updateRelationViewState(
+            props.relationState.id, {
                 tableState: state,
             });
     }
@@ -65,7 +65,7 @@ export function Table(props: RelationViewTableProps) {
         if (active === target) {
             // the order is the start order
             setTableState({
-                ...relationState.viewState.tableState,
+                ...props.relationState.viewState.tableState,
                 columnsOrder: dragStartOrder,
             });
         } else {
@@ -80,13 +80,13 @@ export function Table(props: RelationViewTableProps) {
             newColumnsOrder.splice(targetIndex, 0, active);
 
             setTableState({
-                ...relationState.viewState.tableState,
+                ...props.relationState.viewState.tableState,
                 columnsOrder: newColumnsOrder,
             });
         }
     }
 
-    const columnViewIndices = getTableColumnViewIndices(relationState.viewState.tableState, relationData);
+    const columnViewIndices = getTableColumnViewIndices(props.relationState.viewState.tableState, relationData);
 
     return (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
@@ -94,10 +94,10 @@ export function Table(props: RelationViewTableProps) {
                 <div className="relative overflow-y-auto flex-1 flex flex-row">
                     <TableContent
                         columnViewIndices={columnViewIndices}
-                        relation={relationState}
+                        relation={props.relationState}
                     />
                 </div>
-                <TableFooter relation={relationState}/>
+                <TableFooter relation={props.relationState}/>
             </div>
             <TableColumnDragOverlay activeId={activeId}/>
         </DndContext>

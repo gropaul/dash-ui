@@ -3,10 +3,14 @@ import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 import {useState} from "react";
 import {Chart} from "@/components/relation/chart/chart";
+import {RelationState} from "@/model/relation-state";
+import {DeepPartial} from "@/platform/utils";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 export interface RelationViewContentProps {
-    relationId: string;
+    relationState: RelationState
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
 const DATA_QUERY = "SELECT\n" +
@@ -19,10 +23,9 @@ const DATA_QUERY = "SELECT\n" +
     "     LIMIT 100\n" +
     " ) sub;\n";
 
-export function RelationViewContent({relationId}: RelationViewContentProps) {
+export function RelationViewContent(props: RelationViewContentProps) {
 
-    const selectedView = useRelationsState((state) => state.getRelationViewState(relationId).selectedView, shallow);
-    const [data, setData] = useState<any[]>([]);
+    const selectedView = props.relationState.viewState.selectedView;
 
     /*
     useEffect(() => {
@@ -58,7 +61,10 @@ export function RelationViewContent({relationId}: RelationViewContentProps) {
 
     if (selectedView === 'table') {
         return (
-            <Table relationId={relationId}/>
+            <Table
+                relationState={props.relationState}
+                updateRelationViewState={props.updateRelationViewState}
+            />
         );
     /* } else if (selectedView === 'map') {
         return (
@@ -67,7 +73,10 @@ export function RelationViewContent({relationId}: RelationViewContentProps) {
     */
     } else if (selectedView === 'chart') {
         return (
-            <Chart relationId={relationId}/>
+            <Chart
+                relationState={props.relationState}
+                updateRelationViewState={props.updateRelationViewState}
+            />
         );
 
     } else {

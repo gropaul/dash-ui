@@ -18,38 +18,12 @@ export function RelationTab(props: RelationTabProps) {
 
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
     const relationsState = useRelationsState((state) => state.getRelation(relationId), shallow);
-
+    const updateRelationBaseQuery = useRelationsState((state) => state.updateRelationBaseQuery);
+    const updateRelationDataWithParams = useRelationsState((state) => state.updateRelationDataWithParams);
     return <RelationView
         relationState={relationsState}
         updateRelationViewState={updateRelationViewState}
+        updateRelationBaseQuery={updateRelationBaseQuery}
+        updateRelationDataWithParams={updateRelationDataWithParams}
     />;
-
-}
-
-export interface ContentWrapperProps {
-    isLoading: boolean;
-    relationId: string;
-    queryState: TaskExecutionState;
-}
-
-export function ContentWrapper(props: ContentWrapperProps) {
-    return (
-        props.queryState.state === "error" ? (
-            <RelationViewError error={props.queryState.error}/>
-        ) : (
-            <RelationViewContent relationId={props.relationId}/>
-        )
-    );
-}
-
-export function RelationViewError({error}: { error: Record<string, any> }) {
-    return (
-        <div className="p-4 w-full h-full flex flex-col items-start justify-start">
-            <div className={'flex flex-row text-red-500 items-center space-x-2 h-6'}>
-                <TriangleAlert size={16}/>
-                <span>Error executing query</span>
-            </div>
-            <JsonViewer className="w-full text-red-500" json={error}/>
-        </div>
-    );
 }
