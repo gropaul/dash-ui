@@ -3,6 +3,7 @@ import { TaskExecutionState } from "@/model/relation-state";
 import { RelationViewHeaderBorder } from "@/components/basics/basic-view/view-header-with-border";
 import { H5 } from "@/components/ui/typography";
 import { ViewPathBreadcrumb } from "@/components/basics/basic-view/view-path-breadcrumb";
+import {EditableTextBase} from "@/components/dashboard/components/editable-text-base";
 
 export interface ViewHeaderProps {
     title: string;
@@ -27,28 +28,6 @@ export function ViewHeader({
                                onTitleChange,
                                onSubtitleChange,
                            }: ViewHeaderProps) {
-    const [editableTitle, setEditableTitle] = useState(title);
-    const [editableSubtitle, setEditableSubtitle] = useState(subtitle);
-    const titleRef = useRef<HTMLSpanElement>(null);
-    const subtitleRef = useRef<HTMLSpanElement>(null);
-
-    // listen for changes to the title and subtitle
-    useEffect(() => {
-        if (title !== titleRef.current?.innerText) {
-            setEditableTitle(title);
-        }
-    } , [title]);
-    useEffect(() => {
-        if (subtitle !== subtitleRef.current?.innerText) {
-            setEditableSubtitle(subtitle);
-        }
-    }, [subtitle]);
-
-    const handleInput = (event: React.FormEvent<HTMLSpanElement>) => {
-        if (onTitleChange) {
-            onTitleChange(event.currentTarget.innerText);
-        }
-    };
 
     return (
         <>
@@ -56,30 +35,14 @@ export function ViewHeader({
                 <div className="flex flex-row items-center flex-1 gap-4">
                     <H5
                         className="text-primary overflow-hidden text-ellipsis whitespace-nowrap max-w-[60%]"
-                        title={editableTitle} // Tooltip for full text on hover
                     >
-                        <span
-                            ref={titleRef}
-                            onInput={handleInput}
-                            contentEditable={!!onTitleChange}
-                            suppressContentEditableWarning
-                            className="outline-none"
-                        >
-                            {editableTitle}
-                        </span>
+                        <EditableTextBase text={title} onTextChange={onTitleChange} />
                     </H5>
 
                     <ViewPathBreadcrumb path={path} onClick={onPathClick} />
 
                     {subtitle && (
-                        <span
-                            ref={subtitleRef}
-                            contentEditable={!!onSubtitleChange}
-                            suppressContentEditableWarning
-                            className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap max-w-[50%] outline-none"
-                        >
-                            {editableSubtitle}
-                        </span>
+                        <EditableTextBase text={subtitle} onTextChange={onSubtitleChange} />
                     )}
                 </div>
                 <div className="flex flex-row items-center space-x-2 justify-end h-full pt-2 pb-2">
