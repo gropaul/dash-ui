@@ -186,7 +186,7 @@ export function EditorOverview() {
             <div className="p-4 pt-3 pb-2 flex flex-row items-center justify-between">
                 <H5 className="text-primary text-nowrap">Editor</H5>
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
+                        <DropdownMenuTrigger asChild>
                             <Button variant={'ghost'} size={'icon'} className={'h-8'}>
                                 <Plus size={16}/>
                             </Button>

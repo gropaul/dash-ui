@@ -65,15 +65,15 @@ export function getRelationIdFromSource(connectionId: string, source: RelationSo
     }
 }
 
-export function getRelationNameFromSource(relation: RelationSource): string {
-    if (relation.type === 'table') {
-        return relation.tableName;
-    } else if (relation.type === 'file') {
-        return relation.baseName;
-    } else if (relation.type === 'query') {
-        return relation.name;
+export function getRelationNameFromSource(source: RelationSource): string {
+    if (source.type === 'table') {
+        return `${source.tableName} View`;
+    } else if (source.type === 'file') {
+        return `${source.baseName} View`;
+    } else if (source.type === 'query') {
+        return source.name;
     } else {
-        throw new Error(`Unknown relation type: ${relation}`);
+        throw new Error(`Unknown relation type: ${source}`);
     }
 }
 
