@@ -1,4 +1,9 @@
 import {DashboardElementView} from "@/components/dashboard/dashboard-element-view";
+import {ViewHeader} from "@/components/basics/basic-view/view-header";
+import {shallow} from "zustand/shallow";
+import {useRelationsState} from "@/state/relations.state";
+import {DashboardElementDivider} from "@/components/dashboard/dashboard-element-divider";
+import {DashboardElementType, getInitialElement} from "@/model/dashboard-state";
 
 
 export interface DashboardViewProps {
@@ -10,15 +15,13 @@ export function DashboardTab(props: DashboardViewProps) {
     const dashboard = useRelationsState((state) => state.getDashboardState(props.dashboardId), shallow);
     const setDashboard = useRelationsState((state) => state.setDashboardState);
     const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
-    const elementCount = dashboard.elements.length;
 
-    async function onAddElementClick(type: DashboardElementType, index: number) {
-        const currentElements = [...dashboard.elements];
+    async function onAddElementClick(type: DashboardElementType) {
+        const currentElements = {...dashboard.elements};
         const newElement = await getInitialElement(type);
-
-        currentElements.splice(index, 0, newElement);
+        currentElements[newElement.id] = newElement;
         setDashboard(props.dashboardId, {
-            ... dashboard,
+            ...dashboard,
             elements: currentElements
         });
     }
@@ -33,33 +36,18 @@ export function DashboardTab(props: DashboardViewProps) {
     return (
         <div className="w-full h-full flex flex-col">
             <ViewHeader title={dashboard.viewState.displayName} onTitleChange={onRenameDisplay} path={[]}/>
-            {dashboard.elements.map((element, index) => (
-                <>
-                    <DashboardElementDivider
-                        onlyShowOnHover={true}
-                        onAddElementClicked={(type) => onAddElementClick(type, index)}
+            <div className="p-4 flex overflow-auto space-y-2 flex-col w-full h-full">
+                {Object.values(dashboard.elements).map((element, index) => (
+                    <DashboardElementView
+                        dashboardId={props.dashboardId}
+                        dashboardElement={element}
+                        key={index}
                     />
-                    <DashboardElementView dashboardElement={element} key={index}/>
-                </>
-            ))}
-            <DashboardElementDivider
-                onAddElementClicked={(type) => onAddElementClick(type, elementCount)}
-            />
+                ))}
+                <DashboardElementDivider
+                    onAddElementClicked={(type) => onAddElementClick(type)}
+                />
+            </div>
         </div>
     )
 }
-
-
-import {ViewHeader} from "@/components/basics/basic-view/view-header";
-import {shallow} from "zustand/shallow";
-import {useRelationsState} from "@/state/relations.state";
-import {DatabaseSchemaView} from "@/components/database/database-schema-view";
-import {DataSourceGroup} from "@/model/connection";
-import {GetPathOfDatabase} from "@/model/database-state";
-import {DashboardElementDivider} from "@/components/dashboard/dashboard-element-divider";
-import {DashboardElementType, getInitialElement} from "@/model/dashboard-state";
-
-interface DatabaseViewProps {
-    databaseId: string;
-}
-

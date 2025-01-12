@@ -26,6 +26,8 @@ import {createJSONStorage, persist} from "zustand/middleware";
 import {duckdbStorage} from "@/state/persistency/duckdb";
 import {createWithEqualityFn} from "zustand/traditional";
 import {
+    DashboardElement,
+    DashboardElementBase,
     DashboardState,
     DashboardViewState,
     getInitDashboardViewState
@@ -75,6 +77,7 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     updateDashboardViewState: (dashboardId: string, viewState: DeepPartial<DashboardViewState>) => void,
     getDashboardState: (dashboardId: string) => DashboardState,
     setDashboardState: (dashboardId: string, dashboard: DashboardState) => void,
+    setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement) => void,
 
     manualPersistModel: () => void,
 
@@ -100,7 +103,7 @@ export const useRelationsState = createWithEqualityFn(
                     const dashboard: DashboardState = {
                         id: randomId,
                         name: "New Dashboard",
-                        elements: [],
+                        elements: {},
                         viewState: getInitDashboardViewState("New Dashboard"),
                     }
                     get().showDashboard(dashboard);
@@ -181,6 +184,21 @@ export const useRelationsState = createWithEqualityFn(
                         dashboards: {
                             ...state.dashboards,
                             [dashboardId]: dashboard,
+                        },
+                    }));
+                },
+                setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement) => {
+                    const dashboard = get().dashboards[dashboardId];
+                    const newElements = {...dashboard.elements};
+                    newElements[elementId] = element;
+
+                    set((state) => ({
+                        dashboards: {
+                            ...state.dashboards,
+                            [dashboardId]: {
+                                ...state.dashboards[dashboardId],
+                                elements: newElements,
+                            },
                         },
                     }));
                 },

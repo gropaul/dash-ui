@@ -6,6 +6,7 @@ export interface EditableTextProps {
     text: string;
     placeholder?: string;
     onTextChange?: (newText: string) => void;
+    className?: string;
 }
 
 function textIsEmpty(text: string) {
@@ -40,10 +41,10 @@ export function EditableTextBase(props: EditableTextProps) {
 
 
     return (
-        <div className="relative">
+        <div className={cn("relative", props.className)}>
             {/* Editable span */}
             <div
-                className={cn("outline-none w-fit min-w-20")}
+                className={cn("outline-none w-fit min-w-20", props.className)}
                 ref={spanRef}
                 onInput={handleInput}
                 contentEditable={!!props.onTextChange}

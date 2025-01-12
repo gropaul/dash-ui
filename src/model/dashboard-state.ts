@@ -17,26 +17,12 @@ export function getInitDashboardViewState(displayName: string): DashboardViewSta
 export interface DashboardState {
     id: string;
     name: string;
-    elements: DashboardElement[];
+    elements: { [key: string]: DashboardElement };
     viewState: DashboardViewState;
 }
 
 export type DashboardElementType = 'text' | 'data';
 
-export interface DashboardElement {
-    type: DashboardElementType;
-}
-
-export interface DashboardElementText extends DashboardElement {
-    type: 'text';
-    // markdown formatted
-    text: string;
-}
-
-export interface DashboardElementData extends DashboardElement {
-    type: 'data';
-    data: RelationState;
-}
 
 // type map from DashboardElementType to the corresponding element type
 export interface DashboardElementMap {
@@ -44,12 +30,36 @@ export interface DashboardElementMap {
     'data': DashboardElementData;
 }
 
+export type DashboardElement = DashboardElementMap[DashboardElementType];
+
+export interface DashboardElementBase {
+    type: DashboardElementType;
+    id: string;
+}
+
+export type TextElementType = 'text' | 'h3';
+
+export interface DashboardElementText extends DashboardElementBase {
+    type: 'text';
+    elementType: TextElementType;
+    text: string;
+}
+
+
+export interface DashboardElementData extends DashboardElementBase {
+    type: 'data';
+    data: RelationState;
+}
+
+
 export async function getInitialElement(type: DashboardElementType): Promise<DashboardElementMap[typeof type]> {
     switch (type) {
         case 'text':
             return {
                 type: 'text',
-                text: ''
+                text: '',
+                elementType: 'text',
+                id: getRandomId(),
             };
         case 'data':
             const randomId = getRandomId();
@@ -67,6 +77,7 @@ export async function getInitialElement(type: DashboardElementType): Promise<Das
             const query = await getQueryFromParams(relation, defaultQueryParams, baseQuery)
             return {
                 type: 'data',
+                id: randomId,
                 data: {
                     ...relation,
                     query: query,
