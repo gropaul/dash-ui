@@ -15,15 +15,11 @@ export function DashboardTab(props: DashboardViewProps) {
     const dashboard = useRelationsState((state) => state.getDashboardState(props.dashboardId), shallow);
     const setDashboard = useRelationsState((state) => state.setDashboardState);
     const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
+    const addDashboardElement = useRelationsState((state) => state.addDashboardElement);
 
     async function onAddElementClick(type: DashboardElementType) {
-        const currentElements = {...dashboard.elements};
         const newElement = await getInitialElement(type);
-        currentElements[newElement.id] = newElement;
-        setDashboard(props.dashboardId, {
-            ...dashboard,
-            elements: currentElements
-        });
+        addDashboardElement(props.dashboardId, newElement);
     }
 
     function onRenameDisplay(name: string) {
@@ -32,17 +28,18 @@ export function DashboardTab(props: DashboardViewProps) {
         });
     }
 
-
     return (
         <div className="w-full h-full flex flex-col">
             <ViewHeader title={dashboard.viewState.displayName} onTitleChange={onRenameDisplay} path={[]}/>
             <div className="p-4 pl-1  overflow-auto w-full h-full">
                 <div className={'max-w-screen-md mx-auto h-full flex space-y-2 flex-col '}>
-                    {Object.values(dashboard.elements).map((element, index) => (
+                    {Object.values(dashboard.elementsOrder).map((elementId, index) => (
                         <DashboardElementView
                             dashboardId={props.dashboardId}
-                            dashboardElement={element}
+                            dashboardElement={dashboard.elements[elementId]}
                             key={index}
+                            elementIndex={index}
+                            elementsCount={dashboard.elementsOrder.length}
                         />
                     ))}
                     <DashboardElementDivider

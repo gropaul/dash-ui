@@ -73,7 +73,8 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     updateDashboardViewState: (dashboardId: string, viewState: DeepPartial<DashboardViewState>) => void,
     getDashboardState: (dashboardId: string) => DashboardState,
     setDashboardState: (dashboardId: string, dashboard: DashboardState) => void,
-    setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement) => void,
+    updateDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => void,
+    addDashboardElement: (dashboardId: string, element: DashboardElement, positionIndex?: number) => void,
     deleteDashboardElement: (dashboardId: string, elementId: string) => void,
 
     manualPersistModel: () => void,
@@ -101,6 +102,7 @@ export const useRelationsState = createWithEqualityFn(
                         id: randomId,
                         name: "New Dashboard",
                         elements: {},
+                        elementsOrder: [],
                         viewState: getInitDashboardViewState("New Dashboard"),
                     }
                     get().showDashboard(dashboard);
@@ -182,10 +184,24 @@ export const useRelationsState = createWithEqualityFn(
                         },
                     }));
                 },
-                setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement) => {
+                updateDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => {
                     const dashboard = get().dashboards[dashboardId];
                     const newElements = {...dashboard.elements};
+
+                    // id must be already set
+                    if (newElements[elementId] === undefined) {
+                        throw new Error(`Element with id ${elementId} does not exist in dashboard ${dashboardId}`);
+                    }
+
                     newElements[elementId] = element;
+
+                    // update the order if the element is moved
+                    const order = [...dashboard.elementsOrder];
+                    if (positionIndex !== undefined) {
+                        const currentIndex = order.indexOf(elementId);
+                        order.splice(currentIndex, 1);
+                        order.splice(positionIndex, 0, elementId);
+                    }
 
                     set((state) => ({
                         dashboards: {
@@ -193,6 +209,31 @@ export const useRelationsState = createWithEqualityFn(
                             [dashboardId]: {
                                 ...state.dashboards[dashboardId],
                                 elements: newElements,
+                                elementsOrder: order
+                            },
+                        },
+                    }));
+                },
+
+                addDashboardElement: (dashboardId: string, element: DashboardElement, positionIndex?: number) => {
+                    const dashboard = get().dashboards[dashboardId];
+                    const newElements = {...dashboard.elements};
+                    newElements[element.id] = element;
+
+                    const newElementsOrder = [...dashboard.elementsOrder];
+                    if (positionIndex !== undefined) {
+                        newElementsOrder.splice(positionIndex, 0, element.id);
+                    } else {
+                        newElementsOrder.push(element.id);
+                    }
+
+                    set((state) => ({
+                        dashboards: {
+                            ...state.dashboards,
+                            [dashboardId]: {
+                                ...state.dashboards[dashboardId],
+                                elements: newElements,
+                                elementsOrder: newElementsOrder,
                             },
                         },
                     }));
@@ -200,7 +241,14 @@ export const useRelationsState = createWithEqualityFn(
                 deleteDashboardElement: (dashboardId: string, elementId: string) => {
                     const dashboard = get().dashboards[dashboardId];
                     const newElements = {...dashboard.elements};
+                    const newElementsOrder = [...dashboard.elementsOrder];
                     delete newElements[elementId];
+
+                    const index = newElementsOrder.indexOf(elementId);
+                    if (index !== -1) {
+                        newElementsOrder.splice(index, 1);
+                    }
+
 
                     set((state) => ({
                         dashboards: {
@@ -208,6 +256,7 @@ export const useRelationsState = createWithEqualityFn(
                             [dashboardId]: {
                                 ...state.dashboards[dashboardId],
                                 elements: newElements,
+                                elementsOrder: newElementsOrder,
                             },
                         },
                     }));

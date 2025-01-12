@@ -1,18 +1,23 @@
-import {GripVertical, Repeat2, Trash2} from "lucide-react";
+import {GripVertical, MoveDown, MoveUp, Plus, Repeat2, Trash2} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuPortal,
+    DropdownMenuPortal, DropdownMenuSeparator,
     DropdownMenuSub,
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
-import {DashboardElement, ElementSubTypeOption, TextElementSubType} from "@/model/dashboard-state";
+import {
+    DashboardElement,
+    DashboardElementType,
+    ElementSubTypeOption, getInitialElement,
+    TextElementSubType
+} from "@/model/dashboard-state";
 import {useRelationsState} from "@/state/relations.state";
 
 export interface ViewElementBaseProps {
@@ -20,6 +25,8 @@ export interface ViewElementBaseProps {
     className?: string;
     startIconClass?: string;
     element: DashboardElement;
+    elementIndex: number;
+    elementsCount: number;
     typeOptions: ElementSubTypeOption[];
     onTypeChange?: (type: TextElementSubType) => void;
     onDelete?: () => void;
@@ -28,12 +35,23 @@ export interface ViewElementBaseProps {
 
 export function ViewElementBase(props: ViewElementBaseProps) {
 
-    const setDashboardElement = useRelationsState((state) => state.setDashboardElement);
+    const addDashboardElement = useRelationsState((state) => state.addDashboardElement);
+    const updateDashboardElement = useRelationsState((state) => state.updateDashboardElement);
     const deleteDashboardElement = useRelationsState((state) => state.deleteDashboardElement);
 
+    async function onAddBelow() {
+        const newElement = await getInitialElement('text');
+        addDashboardElement(props.dashboardId, newElement, props.elementIndex + 1);
+    }
+
+    async function setPosition(index: number) {
+        updateDashboardElement(props.dashboardId, props.element.id, {
+            ...props.element,
+        }, index);
+    }
 
     function onTypeChange(subtype: TextElementSubType) {
-        setDashboardElement(props.dashboardId, props.element.id, {
+        updateDashboardElement(props.dashboardId, props.element.id, {
             ...props.element,
             subtype: subtype,
         });
@@ -66,7 +84,12 @@ export function ViewElementBase(props: ViewElementBaseProps) {
                         </Button>
                     </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align={'start'} side={'right'} className={'w-56 group'}>
+                <DropdownMenuContent align={'center'} side={'left'} className={'w-48 group'}>
+                    <DropdownMenuItem onClick={onAddBelow}>
+                        <Plus size={16}/>
+                        <span>Add New Below</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator/>
                     <DropdownMenuItem onClick={onDelete}>
                         <Trash2 size={16}/>
                         <span>Delete</span>
@@ -89,6 +112,21 @@ export function ViewElementBase(props: ViewElementBaseProps) {
                                 ))}
                             </DropdownMenuSubContent>
                         </DropdownMenuPortal>
+                        <DropdownMenuSeparator/>
+                        <DropdownMenuItem
+                            onClick={() => setPosition(props.elementIndex - 1)}
+                            disabled={props.elementIndex === 0}
+                        >
+                            <MoveUp />
+                            Move Up
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => setPosition(props.elementIndex + 1)}
+                            disabled={props.elementIndex === props.elementsCount - 1}
+                        >
+                            <MoveDown />
+                            Move Down
+                        </DropdownMenuItem>
                     </DropdownMenuSub>
                 </DropdownMenuContent>
             </DropdownMenu>

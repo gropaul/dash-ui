@@ -47,7 +47,6 @@ export function EditorOverviewTab() {
     const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
     const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
     const addNewRelation = useRelationsState((state) => state.addNewRelation);
-    const selectedTabId = useRelationsState((state) => state.selectedTabId);
 
     const relationTreeElements: TreeNode[] = Object.keys(relations).map<TreeNode>(relationStateId => {
         const relation = relations[relationStateId];
@@ -199,8 +198,8 @@ export function EditorOverviewTab() {
             const currentElements = {...dashboard.elements};
             currentElements[newElement.id] = newElement;
 
-            const addElement = useRelationsState.getState().setDashboardElement;
-            addElement(dashboard.id, newElement.id, newElement);
+            const addElement = useRelationsState.getState().addDashboardElement;
+            addElement(dashboard.id, newElement);
         }
     }
 

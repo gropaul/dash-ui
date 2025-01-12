@@ -10,7 +10,7 @@ export interface EditableTextComponentsProps extends ViewElementBaseProps, Edita
 export function EditableH3(props: EditableTextComponentsProps) {
     return (
         <ViewElementBase {...props}>
-            <H3>
+            <H3 className={'w-full'}>
                 <EditableTextBase {...props} />
             </H3>
         </ViewElementBase>

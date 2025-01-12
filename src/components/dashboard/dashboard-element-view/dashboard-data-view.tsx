@@ -8,6 +8,8 @@ import {ViewElementBase, ViewElementBaseProps} from "@/components/dashboard/comp
 
 export interface DashboardDataViewProps {
     dashboardId: string;
+    elementIndex: number;
+    elementsCount: number;
     element: DashboardElementData;
 }
 
@@ -26,7 +28,9 @@ export function DashboardDataView(props: DashboardDataViewProps){
         dashboardId:  props.dashboardId,
         typeOptions: TYPE_OPTIONS_DATA,
         startIconClass: "h-10",
-        element: props.element
+        element: props.element,
+        elementIndex: props.elementIndex,
+        elementsCount: props.elementsCount,
     }
 
     return <ViewElementBase {...baseProps}>

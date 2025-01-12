@@ -9,15 +9,16 @@ import {useRelationsState} from "@/state/relations.state";
 
 export interface DashboardTextViewProps {
     dashboardId: string;
+    elementIndex: number;
+    elementsCount: number;
     element: DashboardElementText;
 }
 
 export function DashboardTextView(props: DashboardTextViewProps){
 
-    const setDashboardElement = useRelationsState((state) => state.setDashboardElement);
-    const deleteDashboardElement = useRelationsState((state) => state.deleteDashboardElement);
+    const updateDashboardElement = useRelationsState((state) => state.updateDashboardElement);
     function onTextChange(text: string) {
-        setDashboardElement(props.dashboardId, props.element.id, {
+        updateDashboardElement(props.dashboardId, props.element.id, {
             ...props.element,
             text: text,
         });
@@ -35,6 +36,8 @@ export function DashboardTextView(props: DashboardTextViewProps){
         startIconClass: startIconClass,
         text: props.element.text,
         element: props.element,
+        elementIndex: props.elementIndex,
+        elementsCount: props.elementsCount,
         onTextChange: onTextChange,
         typeOptions: TYPE_OPTIONS_TEXT,
         dashboardId: props.dashboardId,

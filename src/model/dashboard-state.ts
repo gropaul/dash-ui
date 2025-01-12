@@ -18,6 +18,7 @@ export interface DashboardState {
     id: string;
     name: string;
     elements: { [key: string]: DashboardElement };
+    elementsOrder: string[];
     viewState: DashboardViewState;
 }
 
