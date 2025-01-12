@@ -4,7 +4,6 @@ import {cn} from "@/lib/utils";
 import {
     DropdownMenu, DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    DropdownMenuItem,
     DropdownMenuLabel, DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
@@ -22,7 +21,7 @@ export function TextViewElementBase(props: TextViewElementBaseProps) {
         <div className={cn('flex flex-row space-x-2 items-center w-full', props.className)}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant={'ghost'} size={'icon'} className={'h-8'}>
+                    <Button variant={'ghost'} size={'icon'} className={'w-5 rounded'}>
                         <GripVertical size={16} className="text-muted-foreground"/>
                     </Button>
                 </DropdownMenuTrigger>

@@ -7,7 +7,7 @@ import {Button} from "@/components/ui/button";
 import {Copy, LayoutDashboard, PencilLine, Plus, Sheet, Trash} from "lucide-react";
 import {TreeExplorer} from "@/components/basics/files/tree-explorer";
 import {TreeNode} from "@/components/basics/files/tree-utils";
-import {ContextMenuItem} from "@/components/ui/context-menu";
+import {ContextMenuItem, ContextMenuLabel, ContextMenuSeparator} from "@/components/ui/context-menu";
 import {RenameDialog} from "@/components/editor/rename-dialog";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {DeleteDialog} from "@/components/editor/delete-dialog";
@@ -16,6 +16,7 @@ import {getRandomId} from "@/platform/id-utils";
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
+import {DashboardElement} from "@/model/dashboard-state";
 
 
 interface RenameState {
@@ -178,6 +179,31 @@ export function EditorOverviewTab() {
         }
     }
 
+    function onAddToDashboard(tree: TreeNode) {
+        if (tree.type === 'relation') {
+            const dashboards = Object.values(useRelationsState.getState().dashboards);
+            if (dashboards.length === 0) {
+                alert('No dashboards available to add the data view to.');
+                return;
+            }
+
+            const relation = tree.payload as RelationState;
+            const dashboard = dashboards[0];
+
+            const newElement: DashboardElement = {
+                type: 'data',
+                id: getRandomId(),
+                data: relation
+            }
+
+            const currentElements = {...dashboard.elements};
+            currentElements[newElement.id] = newElement;
+
+            const addElement = useRelationsState.getState().setDashboardElement;
+            addElement(dashboard.id, newElement.id, newElement);
+        }
+    }
+
     // show a list of the tables, have a light grey background
     return (
 
@@ -208,7 +234,7 @@ export function EditorOverviewTab() {
                     tree={treeElements}
                     iconFactory={defaultIconFactory}
                     onClick={onTreeElementClick}
-                    contextMenuFactory={(path, tree) => ContextMenuFactory(path, tree, onDelete, onRename, onDuplicate)}
+                    contextMenuFactory={(path, tree) => ContextMenuFactory(path, tree, onDelete, onRename, onDuplicate, onAddToDashboard)}
                 />
             </div>
             <RenameDialog
@@ -235,7 +261,8 @@ function ContextMenuFactory(
     tree: TreeNode,
     onDelete: (tree: TreeNode) => void,
     onRename: (tree: TreeNode) => void,
-    onDuplicate: (tree: TreeNode) => void
+    onDuplicate: (tree: TreeNode) => void,
+    onAddRelationToDashboard: (tree: TreeNode) => void
 ) {
     if (tree.type === 'folder') {
         return (
@@ -245,6 +272,10 @@ function ContextMenuFactory(
     }
     return (
         <>
+            <ContextMenuLabel className={'max-w-64 truncate text-left'}>
+                {tree.name}
+            </ContextMenuLabel>
+            <ContextMenuSeparator/>
             <ContextMenuItem onClick={() => onRename(tree)}>
                 <PencilLine size={16} className="mr-2"/>
                 <span>Rename</span>
@@ -257,6 +288,16 @@ function ContextMenuFactory(
                 <Copy size={16} className="mr-2"/>
                 <span>Duplicate</span>
             </ContextMenuItem>
+
+            { tree.type === 'relation' && (
+                <>
+                    <ContextMenuSeparator/>
+                    <ContextMenuItem onClick={() => onAddRelationToDashboard(tree)}>
+                        <LayoutDashboard size={16} className="mr-2"/>
+                        <span>Add to Dashboard</span>
+                    </ContextMenuItem>
+                </>
+            )}
         </>
     );
 }

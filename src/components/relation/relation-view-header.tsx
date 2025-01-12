@@ -47,7 +47,7 @@ export function RelationViewHeader({relationState, updateRelationViewState}: Rel
     function onShowCode() {
         updateRelationViewState(relationId, {
             codeFenceState: {
-                show: codeFenceState!.show,
+                show: !codeFenceState.show,
             }
         });
     }
