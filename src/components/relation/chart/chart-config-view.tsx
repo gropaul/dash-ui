@@ -8,7 +8,7 @@ import {ChartTypeSelector} from "@/components/relation/chart/chart-config/chart-
 import {ConfigViewCartesian} from "@/components/relation/chart/chart-config/config-view-cartesian";
 import {ConfigViewPie} from "@/components/relation/chart/chart-config/config-view-pie";
 import {RelationState} from "@/model/relation-state";
-import {DeepPartial} from "@/platform/utils";
+import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 
 

@@ -33,12 +33,7 @@ export function EditableTextBase(props: EditableTextProps) {
         }
     }, [props.text]);
 
-    console.log('needsPlaceholder', needsPlaceholder);
-    console.log('props.placeholder', props.placeholder);
-    console.log('localText', localText);
-
     const placeholder = props.placeholder || 'Enter text';
-
 
     return (
         <div className={cn("relative", props.className)}>

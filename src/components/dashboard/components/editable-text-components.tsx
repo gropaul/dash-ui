@@ -1,19 +1,26 @@
-import {EditableTextProps} from "@/components/dashboard/components/editable-text-base";
 import {H3} from "@/components/ui/typography";
-import {TextViewElementBase, TextViewElementBaseProps} from "@/components/dashboard/components/text-view-element-base";
+import {ViewElementBase, ViewElementBaseProps} from "@/components/dashboard/components/view-element-base";
+import {EditableTextBase, EditableTextProps} from "@/components/dashboard/components/editable-text-base";
 
 
-export function EditableH3(props: TextViewElementBaseProps) {
+export interface EditableTextComponentsProps extends ViewElementBaseProps, EditableTextProps {
+
+}
+
+export function EditableH3(props: EditableTextComponentsProps) {
     return (
-       <H3>
-           <TextViewElementBase {...props}/>
-       </H3>
+        <ViewElementBase {...props}>
+            <H3>
+                <EditableTextBase {...props} />
+            </H3>
+        </ViewElementBase>
     );
 }
 
-
-export function EditableText(props: TextViewElementBaseProps) {
+export function EditableText(props: EditableTextComponentsProps) {
     return (
-        <TextViewElementBase {...props} />
+        <ViewElementBase {...props}>
+            <EditableTextBase {...props} />
+        </ViewElementBase>
     );
 }

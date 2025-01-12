@@ -13,17 +13,21 @@ const chartConfig = {} satisfies RechartConfig
 
 export interface MyChartProps {
     data: RelationData,
+    hideTitleIfEmpty?: boolean,
     config: ChartConfig
 }
 
-export function ChartContent({data, config}: MyChartProps) {
-
+export function ChartContent({data, config, hideTitleIfEmpty = false}: MyChartProps) {
+    const emptyTitle = config.plot.title === undefined || config.plot.title === '';
+    const showTitle = !hideTitleIfEmpty || !emptyTitle;
     const chartData = getReChartDataFromConfig(data, config);
     return (
-        <div className="w-full h-full flex flex-col items-center">
-            <div className={"w-full h-9 flex items-center justify-center"}>
-                <H5>{config.plot.title}</H5>
-            </div>
+        <div className="h-full flex flex-col items-center">
+            { showTitle && (
+                <div className={"h-9 flex items-center justify-center"}>
+                    <H5>{config.plot.title}</H5>
+                </div>
+            )}
             <div className="flex-grow w-full min-h-4">
                 <ChartContainer config={chartConfig} className={"w-full h-full"}>
                     {

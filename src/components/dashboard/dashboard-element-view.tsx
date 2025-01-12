@@ -17,6 +17,6 @@ export function DashboardElementView(props: DashboardElementViewProps) {
         return <DashboardTextView dashboardId={props.dashboardId} element={props.dashboardElement as DashboardElementText}/>
     }
     if (props.dashboardElement.type === 'data') {
-        return <DashboardDataView element={props.dashboardElement as DashboardElementData}/>
+        return <DashboardDataView dashboardId={props.dashboardId} element={props.dashboardElement as DashboardElementData}/>
     }
 }

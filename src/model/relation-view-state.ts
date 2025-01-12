@@ -4,7 +4,7 @@ import {
     TableViewState
 } from "@/model/relation-view-state/table";
 import {RelationData} from "@/model/relation";
-import {deepEqual} from "@/platform/utils";
+import {deepEqual} from "@/platform/object-utils";
 import {
     ChartViewState,
     getInitialChartViewState,

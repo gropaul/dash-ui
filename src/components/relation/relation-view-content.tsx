@@ -4,12 +4,13 @@ import {shallow} from "zustand/shallow";
 import {useState} from "react";
 import {Chart} from "@/components/relation/chart/chart";
 import {RelationState} from "@/model/relation-state";
-import {DeepPartial} from "@/platform/utils";
+import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 
 
 export interface RelationViewContentProps {
-    relationState: RelationState
+    relationState: RelationState,
+    embedded?: boolean,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
@@ -73,10 +74,7 @@ export function RelationViewContent(props: RelationViewContentProps) {
     */
     } else if (selectedView === 'chart') {
         return (
-            <Chart
-                relationState={props.relationState}
-                updateRelationViewState={props.updateRelationViewState}
-            />
+            <Chart {...props}/>
         );
 
     } else {

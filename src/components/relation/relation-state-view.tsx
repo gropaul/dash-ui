@@ -1,16 +1,10 @@
 import {WindowSplitter} from "@/components/ui/window-splitter";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
-import {ContentWrapper} from "@/components/relation/relation-view";
+import {ContentWrapper, RelationViewProps} from "@/components/relation/relation-view";
 import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
-import {RelationState} from "@/model/relation-state";
-import {DefaultRelationZustandActions} from "@/state/relations.state";
 
-interface RelationStateViewProps extends DefaultRelationZustandActions {
-    relationState: RelationState
-}
-
-export function RelationStateView(props: RelationStateViewProps) {
+export function RelationStateView(props: RelationViewProps) {
 
     const executionState = props.relationState.executionState;
     const codeFenceState = props.relationState.viewState.codeFenceState;

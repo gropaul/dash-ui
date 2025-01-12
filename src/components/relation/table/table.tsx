@@ -6,7 +6,7 @@ import React, {useState} from "react";
 import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-state/table";
 import {TableColumnDragOverlay} from "@/components/relation/table/table-column-drag-overlay";
 import {RelationState} from "@/model/relation-state";
-import {DeepPartial} from "@/platform/utils";
+import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 
 

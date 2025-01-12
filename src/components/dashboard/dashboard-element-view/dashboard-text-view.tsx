@@ -1,6 +1,9 @@
-import {DashboardElementText, TextElementType} from "@/model/dashboard-state";
-import {RelationStateView} from "@/components/relation/relation-state-view";
-import {EditableH3, EditableText} from "@/components/dashboard/components/editable-text-components";
+import {DashboardElementText, TYPE_OPTIONS_TEXT} from "@/model/dashboard-state";
+import {
+    EditableH3,
+    EditableText,
+    EditableTextComponentsProps
+} from "@/components/dashboard/components/editable-text-components";
 import {useRelationsState} from "@/state/relations.state";
 
 
@@ -12,7 +15,7 @@ export interface DashboardTextViewProps {
 export function DashboardTextView(props: DashboardTextViewProps){
 
     const setDashboardElement = useRelationsState((state) => state.setDashboardElement);
-
+    const deleteDashboardElement = useRelationsState((state) => state.deleteDashboardElement);
     function onTextChange(text: string) {
         setDashboardElement(props.dashboardId, props.element.id, {
             ...props.element,
@@ -20,25 +23,27 @@ export function DashboardTextView(props: DashboardTextViewProps){
         });
     }
 
-    function onTypeChange(type: TextElementType) {
-        setDashboardElement(props.dashboardId, props.element.id, {
-            ...props.element,
-            elementType: type,
-        });
+    const startIconClassMap: {[key: string]: string} = {
+        'text-default': 'h-6',
+        'text-h3': 'h-8',
     }
 
-    const elementProps = {
+    const startIconClass = startIconClassMap[props.element.subtype];
+
+    const textElementProps: EditableTextComponentsProps = {
         className: 'w-full',
+        startIconClass: startIconClass,
         text: props.element.text,
+        element: props.element,
         onTextChange: onTextChange,
-        onTypeChange: onTypeChange,
-        type: props.element.elementType
+        typeOptions: TYPE_OPTIONS_TEXT,
+        dashboardId: props.dashboardId,
     }
 
-    switch (props.element.elementType) {
-        case 'text':
-            return <EditableText {...elementProps}/>
-        case 'h3':
-            return <EditableH3 {...elementProps}/>
+    switch (props.element.subtype) {
+        case 'text-default':
+            return <EditableText {...textElementProps}/>
+        case 'text-h3':
+            return <EditableH3 {...textElementProps}/>
     }
 }

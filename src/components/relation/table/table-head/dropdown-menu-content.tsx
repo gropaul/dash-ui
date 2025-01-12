@@ -52,7 +52,6 @@ export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuConte
     }
 
     function changeColumnState(columnName: string, hide: boolean) {
-        console.log("changeColumnState", columnName, hide);
         const newColumnsHidden = [...tableState.columnsHidden];
         if (hide) {
             if (!newColumnsHidden.includes(columnName)) {

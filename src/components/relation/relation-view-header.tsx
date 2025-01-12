@@ -1,5 +1,5 @@
 import {ChartSpline, Code, Map, Sheet} from "lucide-react";
-import {DeepPartial, formatDuration} from "@/platform/utils";
+import {DeepPartial, formatDuration} from "@/platform/object-utils";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
 import {Toggle} from "@/components/ui/toggle"

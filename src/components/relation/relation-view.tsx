@@ -1,15 +1,16 @@
-import {RelationViewContent} from "@/components/relation/relation-view-content";
+import {RelationViewContent, RelationViewContentProps} from "@/components/relation/relation-view-content";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {RelationState} from "@/model/relation-state";
 import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
-import {DeepPartial} from "@/platform/utils";
+import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 
 export interface RelationViewProps extends DefaultRelationZustandActions{
     relationState: RelationState;
+    embedded?: boolean;
 }
 
 export function RelationView(props: RelationViewProps) {
@@ -24,22 +25,15 @@ export function RelationView(props: RelationViewProps) {
     );
 }
 
-export interface ContentWrapperProps {
-    relationState: RelationState
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
-}
 
-export function ContentWrapper(props: ContentWrapperProps) {
+export function ContentWrapper(props: RelationViewContentProps) {
 
     const queryState = props.relationState.executionState;
     return (
         queryState.state === "error" ? (
             <RelationViewError error={queryState.error}/>
         ) : (
-            <RelationViewContent
-                relationState={props.relationState}
-                updateRelationViewState={props.updateRelationViewState}
-            />
+            <RelationViewContent {...props}/>
         )
     );
 }

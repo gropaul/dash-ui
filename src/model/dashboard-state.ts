@@ -34,14 +34,30 @@ export type DashboardElement = DashboardElementMap[DashboardElementType];
 
 export interface DashboardElementBase {
     type: DashboardElementType;
+    subtype: TextElementSubType;
     id: string;
 }
 
-export type TextElementType = 'text' | 'h3';
+export type TextElementSubType = 'text-default' | 'text-h3' | 'data-table' | 'data-chart';
+
+export interface ElementSubTypeOption {
+    value: TextElementSubType;
+    label: string;
+}
+
+export const TYPE_OPTIONS_TEXT: ElementSubTypeOption[] = [
+    {value: 'text-default', label: 'Text'},
+    {value: 'text-h3', label: 'Small Heading'},
+];
+
+export const TYPE_OPTIONS_DATA: ElementSubTypeOption[] = [
+    {value: 'data-table', label: 'Table'},
+    {value: 'data-chart', label: 'Chart'},
+];
+
 
 export interface DashboardElementText extends DashboardElementBase {
     type: 'text';
-    elementType: TextElementType;
     text: string;
 }
 
@@ -56,9 +72,9 @@ export async function getInitialElement(type: DashboardElementType): Promise<Das
     switch (type) {
         case 'text':
             return {
-                type: 'text',
                 text: '',
-                elementType: 'text',
+                type: 'text',
+                subtype: 'text-default',
                 id: getRandomId(),
             };
         case 'data':
@@ -77,6 +93,7 @@ export async function getInitialElement(type: DashboardElementType): Promise<Das
             const query = await getQueryFromParams(relation, defaultQueryParams, baseQuery)
             return {
                 type: 'data',
+                subtype: 'data-table',
                 id: randomId,
                 data: {
                     ...relation,

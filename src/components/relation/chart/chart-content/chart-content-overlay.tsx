@@ -12,7 +12,7 @@ import {Button} from "@/components/ui/button";
 import {Eye, EyeOff, ImageDown, Menu} from "lucide-react";
 import {MyChartProps} from "@/components/relation/chart/chart-content";
 import {ConfigViewState} from "@/model/relation-view-state/chart";
-import {DeepPartial} from "@/platform/utils";
+import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 
 
