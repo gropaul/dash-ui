@@ -121,7 +121,7 @@ export function CodeFence(
 
             <div
                 style={{fontFamily: fontMono.style.fontFamily, fontSize: "14px"}}
-                className={`relative py-4 h-full w-full ${roundedStyle}`}
+                className={`relative h-full w-full ${roundedStyle}`}
             >
                 <Editor
                     height={height}
@@ -134,6 +134,7 @@ export function CodeFence(
                         lineNumbers: showLineNumbers ? "on" : "off",
                         // get theme from the system
                         theme: editorTheme,
+                        padding: {top: 12, bottom: 12},
                         scrollBeyondLastLine: false,
                         tabSize: 2,
                         scrollbar: {

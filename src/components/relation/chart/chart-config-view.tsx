@@ -13,7 +13,8 @@ import {RelationViewState} from "@/model/relation-view-state";
 
 
 export interface ChartConfigProps {
-    relationState: RelationState
+    relationState: RelationState,
+    embedded?: boolean,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
@@ -22,6 +23,8 @@ export function ChartConfigView(props: ChartConfigProps) {
     const columns = props.relationState?.data?.columns ?? ([] as Column[]);
     const relationId = props.relationState.id;
     const config = props.relationState.viewState.chartState;
+
+    const embedded = props.embedded ?? false;
 
     function updateTitle(title: string) {
         props.updateRelationViewState(relationId, {
@@ -49,9 +52,14 @@ export function ChartConfigView(props: ChartConfigProps) {
 
     return (
         <div className="relative flex flex-col h-full w-full">
-            <H5>Chart Config</H5>
+            {!embedded && (
+                <>
+                    <H5>Chart Config</H5>
+                    <Separator/>
+                </>
+            )}
             <div className="flex-1 flex flex-col gap-2 w-full">
-                <Separator/>
+
                 <div className="grid w-full items-center gap-1.5 shrink-0">
                     <Label htmlFor="title"><Muted>Title</Muted></Label>
                     <Input

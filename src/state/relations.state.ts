@@ -49,36 +49,50 @@ export interface DefaultRelationZustandActions {
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
-    relationExists: (relationId: string) => boolean,
-    getRelation: (relationId: string) => RelationState,
 
-    showRelation: (relation: RelationState) => void,
+
+    /* relation actions */
+    getRelation: (relationId: string) => RelationState,
+    relationExists: (relationId: string) => boolean,
     addNewRelation: (connectionId: string) => Promise<void>,
+    deleteRelation: (relationId: string) => void,
+    showRelation: (relation: RelationState) => void,
     showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
+
+    /* relation data actions */
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
+
+    /* relation view state actions */
     setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
     getRelationViewState: (relationId: string) => RelationViewState,
-    deleteRelation: (relationId: string) => void,
 
+    /* schema actions */
     showSchema: (connectionId: string, databaseId: string, schema: DataSourceGroup) => Promise<void>,
     getSchemaState: (schemaId: string) => SchemaState,
 
+    /* database actions */
     showDatabase: (connectionId: string, database: DataSourceGroup) => Promise<void>,
     getDatabaseState: (databaseId: string) => DatabaseState,
 
+    /* dashboard actions */
     showDashboard: (dashboard: DashboardState) => Promise<void>,
     addNewDashboard: (connectionId: string) => Promise<void>,
     deleteDashboard: (dashboardId: string) => void,
     updateDashboardViewState: (dashboardId: string, viewState: DeepPartial<DashboardViewState>) => void,
     getDashboardState: (dashboardId: string) => DashboardState,
     setDashboardState: (dashboardId: string, dashboard: DashboardState) => void,
-    updateDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => void,
+
+    /* dashboard element actions */
+    setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => void,
+    updateDashboardElement: (dashboardId: string, elementId: string, partialUpdate: DeepPartial<DashboardElement>) => void,
     addDashboardElement: (dashboardId: string, element: DashboardElement, positionIndex?: number) => void,
     deleteDashboardElement: (dashboardId: string, elementId: string) => void,
 
+    /* dashboard element actions */
     manualPersistModel: () => void,
 
+    /* tab actions */
     getModel: () => Model;
     setModel: (model: Model) => void;
     closeTab: (tabId: string) => void,
@@ -184,7 +198,7 @@ export const useRelationsState = createWithEqualityFn(
                         },
                     }));
                 },
-                updateDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => {
+                setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => {
                     const dashboard = get().dashboards[dashboardId];
                     const newElements = {...dashboard.elements};
 
@@ -210,6 +224,28 @@ export const useRelationsState = createWithEqualityFn(
                                 ...state.dashboards[dashboardId],
                                 elements: newElements,
                                 elementsOrder: order
+                            },
+                        },
+                    }));
+                },
+
+                updateDashboardElement: (dashboardId: string, elementId: string, partialUpdate: DeepPartial<DashboardElement>) => {
+                    const dashboard = get().dashboards[dashboardId];
+                    // assert that the element exists
+                    if (dashboard.elements[elementId] === undefined) {
+                        throw new Error(`Element with id ${elementId} does not exist in dashboard ${dashboardId}`);
+                    }
+
+                    const newElements = {...dashboard.elements};
+
+                    safeDeepUpdate(newElements[elementId], partialUpdate);
+
+                    set((state) => ({
+                        dashboards: {
+                            ...state.dashboards,
+                            [dashboardId]: {
+                                ...state.dashboards[dashboardId],
+                                elements: newElements,
                             },
                         },
                     }));

@@ -35,14 +35,14 @@ export type DashboardElement = DashboardElementMap[DashboardElementType];
 
 export interface DashboardElementBase {
     type: DashboardElementType;
-    subtype: TextElementSubType;
+    subtype: ElementSubType;
     id: string;
 }
 
-export type TextElementSubType = 'text-default' | 'text-h3' | 'data-table' | 'data-chart';
+export type ElementSubType = 'text-default' | 'text-h3' | 'data-table' | 'data-chart' | 'data-map';
 
 export interface ElementSubTypeOption {
-    value: TextElementSubType;
+    value: ElementSubType;
     label: string;
 }
 

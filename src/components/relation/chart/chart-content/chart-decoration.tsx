@@ -18,7 +18,7 @@ export function ChartDecoration(props: ChartDecorationProps) {
         // Reset yMaxTickLength and xMaxTickLength when data changes
         setYMaxTickLength(0);
         setXMaxTickLength(0);
-    }, [props.data]);
+    }, [props.data, props.config.plot.cartesian.xAxis, props.config.plot.cartesian.yAxes]);
 
     function onYAxisCallback(value: number) {
         if (value > yMaxTickLength) {
@@ -34,7 +34,6 @@ export function ChartDecoration(props: ChartDecorationProps) {
 
     let xAxisLabelAngle = 0;
     let xAxisHeight = 30;
-    let xAxisTextAnchor = 'middle';
 
     let yAxisWidth = 40;
 
@@ -50,7 +49,6 @@ export function ChartDecoration(props: ChartDecorationProps) {
             const maxTextLength = context.measureText(text).width;
 
             xAxisLabelAngle = maxTextLength > 80 ? -90 : 0;
-            xAxisTextAnchor = maxTextLength > 80 ? 'end' : 'middle';
             xAxisHeight = Math.max(30, Math.min(200, maxTextLength)) + 8;
         }
 
@@ -80,7 +78,6 @@ export function ChartDecoration(props: ChartDecorationProps) {
                             dataKey={config.plot.cartesian.xAxis.columnId}
                             height={xAxisHeight}
                             angle={xAxisLabelAngle}
-                            textAnchor={xAxisTextAnchor}
                             tick={<CustomXTick callback={onXAxisCallback}/>} // Use callback for X-axis
                         />
                     )}
@@ -125,15 +122,20 @@ function CustomYTick(props: any) {
 }
 
 function CustomXTick(props: any) {
-    const {x, y, payload, callback} = props;
+    const {x, y, payload, callback, angle} = props;
 
     useEffect(() => {
         callback(String(payload.value).length);
     }, [payload.value, callback]);
 
+    const textAnchor = angle === 0 ? 'middle' : 'end';
+    const dy = angle === 0 ? 8 : 4;
+
+    // make dy adaptive to the angle using cos and sin
+    // const dyAdjust = Math.abs(Math.cos(angle * Math.PI / 180) * 4);
     return (
-        <g transform={`translate(${x},${y})`}>
-            <text x={0} y={12} textAnchor="middle">
+        <g transform={`translate(${x},${y}) rotate(${angle})`}>
+            <text x={0} y={0} textAnchor={textAnchor} dy={dy}>
                 {payload.value}
             </text>
         </g>

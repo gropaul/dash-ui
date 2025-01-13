@@ -68,7 +68,7 @@ export function addDatabaseToLayout(model: Model, databaseId: string, database: 
 }
 
 export function addDashboardToLayout(model: Model, dashboardId: string, dashboard: DashboardState): void {
-    addNodeToLayout(model, dashboardId, dashboard.name, 'DashboardComponent', { dashboardId });
+    addNodeToLayout(model, dashboardId, dashboard.viewState.displayName, 'DashboardComponent', { dashboardId });
 }
 
 export function addSchemaToLayout(model: Model, schemaId: string, schema: DataSourceGroup): void {

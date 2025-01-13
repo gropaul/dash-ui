@@ -1,4 +1,15 @@
-import {GripVertical, MoveDown, MoveUp, Plus, Repeat2, Trash2} from "lucide-react";
+import {
+    ChartSpline,
+    GripVertical,
+    Heading3,
+    LetterText,
+    MoveDown,
+    MoveUp,
+    Plus,
+    Repeat2,
+    Sheet,
+    Trash2
+} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {
     DropdownMenu,
@@ -16,7 +27,7 @@ import {
     DashboardElement,
     DashboardElementType,
     ElementSubTypeOption, getInitialElement,
-    TextElementSubType
+    ElementSubType
 } from "@/model/dashboard-state";
 import {useRelationsState} from "@/state/relations.state";
 
@@ -28,55 +39,55 @@ export interface ViewElementBaseProps {
     elementIndex: number;
     elementsCount: number;
     typeOptions: ElementSubTypeOption[];
-    onTypeChange?: (type: TextElementSubType) => void;
-    onDelete?: () => void;
+    onTypeChangeOverwrite?: (type: ElementSubType) => void;
+    onDeleteOverwrite?: () => void;
     children?: React.ReactNode;
+    extraContextMenuItems?: React.ReactNode;
 }
 
 export function ViewElementBase(props: ViewElementBaseProps) {
 
     const addDashboardElement = useRelationsState((state) => state.addDashboardElement);
-    const updateDashboardElement = useRelationsState((state) => state.updateDashboardElement);
+    const setDashboardElement = useRelationsState((state) => state.setDashboardElement);
     const deleteDashboardElement = useRelationsState((state) => state.deleteDashboardElement);
 
     async function onAddBelow() {
         const newElement = await getInitialElement('text');
         addDashboardElement(props.dashboardId, newElement, props.elementIndex + 1);
     }
-
     async function setPosition(index: number) {
-        updateDashboardElement(props.dashboardId, props.element.id, {
+        setDashboardElement(props.dashboardId, props.element.id, {
             ...props.element,
         }, index);
     }
 
-    function onTypeChange(subtype: TextElementSubType) {
-        updateDashboardElement(props.dashboardId, props.element.id, {
-            ...props.element,
-            subtype: subtype,
-        });
-
-        if (props.onTypeChange) {
-            props.onTypeChange(subtype);
+    function onTypeChange(subtype: ElementSubType) {
+        if (props.onTypeChangeOverwrite) {
+            props.onTypeChangeOverwrite(subtype);
+        } else {
+            setDashboardElement(props.dashboardId, props.element.id, {
+                ...props.element,
+                subtype: subtype,
+            });
         }
     }
 
     function onDelete() {
-        deleteDashboardElement(props.dashboardId, props.element.id);
-
-        if (props.onDelete) {
-            props.onDelete();
+        if (props.onDeleteOverwrite) {
+            props.onDeleteOverwrite();
+        } else {
+            deleteDashboardElement(props.dashboardId, props.element.id);
         }
     }
 
     return (
-        <div className={cn('flex flex-row space-x-1 items-start w-full group', props.className)}>
+        <div className={cn('flex flex-row space-x-1 items-start w-full group/element-base', props.className)}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <div
                         className={cn(
                             props.startIconClass,
-                            'flex items-center opacity-0 group-hover:opacity-100 transition-opacity'
+                            'flex items-center opacity-0 group-hover/element-base:opacity-100 transition-opacity'
                         )}
                     >
                         <Button variant={'ghost'} size={'icon'} className={cn('w-5 rounded h-6')}>
@@ -84,7 +95,7 @@ export function ViewElementBase(props: ViewElementBaseProps) {
                         </Button>
                     </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align={'center'} side={'left'} className={'w-48 group'}>
+                <DropdownMenuContent align={'center'} side={'left'} className={'w-48'}>
                     <DropdownMenuItem onClick={onAddBelow}>
                         <Plus size={16}/>
                         <span>Add New Below</span>
@@ -107,6 +118,7 @@ export function ViewElementBase(props: ViewElementBaseProps) {
                                         checked={props.element.subtype === option.value}
                                         onCheckedChange={() => onTypeChange(option.value)}
                                     >
+                                        <ViewElementIcon subtype={option.value}/>
                                         {option.label}
                                     </DropdownMenuCheckboxItem>
                                 ))}
@@ -128,9 +140,29 @@ export function ViewElementBase(props: ViewElementBaseProps) {
                             Move Down
                         </DropdownMenuItem>
                     </DropdownMenuSub>
+                    {props.extraContextMenuItems}
                 </DropdownMenuContent>
             </DropdownMenu>
             {props.children}
         </div>
     );
+}
+
+
+function ViewElementIcon({subtype}: { subtype: ElementSubType }) {
+
+    const iconSize = 16;
+    const className = 'mr-2';
+    switch (subtype) {
+        case 'data-chart':
+            return <ChartSpline size={iconSize} className={className}/>;
+        case 'data-table':
+            return <Sheet size={iconSize} className={className}/>;
+        case 'text-h3':
+            return <Heading3 size={iconSize} className={className}/>;
+        case 'text-default':
+            return <LetterText size={iconSize} className={className}/>;
+        default:
+            return <p>Text</p>;
+    }
 }

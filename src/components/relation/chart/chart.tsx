@@ -35,15 +35,17 @@ export function Chart(props: RelationViewContentProps) {
 
     const isEmbedded = props.embedded ?? false;
     const contentPaddingClass = isEmbedded ? 'p-0' : 'p-2';
+    const contentHeightClass = isEmbedded ? 'h-128' : 'h-full';
+    const overflowClass = isEmbedded ? 'overflow-hidden' : 'overflow-auto';
     return (
-        <div className="w-full h-full relative overflow-hidden">
+        <div className={cn('w-full relative overflow-hidden', contentHeightClass)}>
             <WindowSplitter
                 ratio={config.view.configPlotRatio}
                 layout={config.view.layout}
                 onChange={updateConfigRatio}
                 child2Active={config.view.showConfig}
             >
-                <div className={cn('h-full overflow-auto relative', contentPaddingClass)}>
+                <div className={cn('h-full relative', contentPaddingClass, overflowClass)}>
                     {plotDisplayError ?
                         <ChartContentError error={plotDisplayError}/>
                         :
@@ -69,6 +71,7 @@ export function Chart(props: RelationViewContentProps) {
                 </div>
                 <div className={'p-2 w-full h-full overflow-y-auto'}>
                     <ChartConfigView
+                        embedded={isEmbedded}
                         relationState={props.relationState}
                         updateRelationViewState={props.updateRelationViewState}
                     />

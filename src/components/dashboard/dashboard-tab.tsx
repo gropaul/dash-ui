@@ -32,7 +32,8 @@ export function DashboardTab(props: DashboardViewProps) {
         <div className="w-full h-full flex flex-col">
             <ViewHeader title={dashboard.viewState.displayName} onTitleChange={onRenameDisplay} path={[]}/>
             <div className="p-4 pl-1  overflow-auto w-full h-full">
-                <div className={'max-w-screen-md mx-auto h-full flex space-y-2 flex-col '}>
+                <div className={'max-w-screen-md mx-auto h-full flex space-y-2 flex-col mb-[50vh]'}>
+                    {/* todo: the resizing only works with h-full but then the bottom padding does not work*/}
                     {Object.values(dashboard.elementsOrder).map((elementId, index) => (
                         <DashboardElementView
                             dashboardId={props.dashboardId}
@@ -46,7 +47,7 @@ export function DashboardTab(props: DashboardViewProps) {
                         onAddElementClicked={(type) => onAddElementClick(type)}
                     />
                 </div>
-                <div style={{height: 256}}/>
+
             </div>
         </div>
     )
