@@ -16,7 +16,9 @@ import {getRandomId} from "@/platform/id-utils";
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
-import {DashboardElement} from "@/model/dashboard-state";
+import {DashboardElement, DashboardState} from "@/model/dashboard-state";
+import {toast} from "sonner";
+import {DashboardCommand} from "@/components/editor/dashboard-command";
 
 
 interface RenameState {
@@ -32,10 +34,16 @@ interface DeleteState {
     description?: string;
 }
 
+export interface DashboardCommandState {
+    open: boolean;
+    relation?: RelationState;
+}
+
 export function EditorOverviewTab() {
 
     const [renameState, setRenameState] = useState<RenameState>({isOpen: false});
     const [deleteState, setDeleteState] = useState<DeleteState>({isOpen: false});
+    const [dashboardCommand, setDashboardCommand] = useState<DashboardCommandState>({open: false});
 
     const relations = useRelationsState((state) => state.relations);
     const dashboards = useRelationsState((state) => state.dashboards);
@@ -179,28 +187,31 @@ export function EditorOverviewTab() {
 
     function onAddToDashboard(tree: TreeNode) {
         if (tree.type === 'relation') {
-            const dashboards = Object.values(useRelationsState.getState().dashboards);
-            if (dashboards.length === 0) {
-                alert('No dashboards available to add the data view to.');
-                return;
-            }
-
-            const relation = tree.payload as RelationState;
-            const dashboard = dashboards[0];
-
-            const newElement: DashboardElement = {
-                type: 'data',
-                subtype: 'data-table',
-                id: getRandomId(),
-                data: relation
-            }
-
-            const currentElements = {...dashboard.elements};
-            currentElements[newElement.id] = newElement;
-
-            const addElement = useRelationsState.getState().addDashboardElement;
-            addElement(dashboard.id, newElement);
+            setDashboardCommand({
+                open: true,
+                relation: tree.payload as RelationState
+            });
+            console.log('Add to dashboard', tree.payload);
         }
+    }
+
+    function onAddToDashboardSelected(relation: RelationState, dashboard: DashboardState) {
+        console.log('Add to dashboard selected', relation, dashboard);
+        const newElement: DashboardElement = {
+            type: 'data',
+            subtype: 'data-table',
+            id: getRandomId(),
+            data: relation
+        }
+
+        const currentElements = {...dashboard.elements};
+        currentElements[newElement.id] = newElement;
+
+        const addElement = useRelationsState.getState().addDashboardElement;
+        addElement(dashboard.id, newElement);
+
+        toast.success(`Added "${relation.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
+
     }
 
     // show a list of the tables, have a light grey background
@@ -250,6 +261,12 @@ export function EditorOverviewTab() {
                 isOpen={deleteState.isOpen}
                 onOpenChange={(isOpen) => setDeleteState({...deleteState, isOpen})}
                 onDelete={onDeleteConfirmed}
+            />
+            <DashboardCommand
+                dashboards={Object.values(dashboards)}
+                open={dashboardCommand.open}
+                setOpen={(open) => setDashboardCommand({...dashboardCommand, open})}
+                onDashboardSelected={(d) => onAddToDashboardSelected(dashboardCommand.relation!, d)}
             />
         </div>
     )

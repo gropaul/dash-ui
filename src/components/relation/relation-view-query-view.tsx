@@ -2,9 +2,11 @@ import {DefaultRelationZustandActions, useRelationsState} from "@/state/relation
 import {CodeFence} from "@/components/basics/code-fence/code-fence";
 import {getDefaultQueryParams, RelationState} from "@/model/relation-state";
 import {getSeparatedStatements} from "@/platform/sql-utils";
+import {cn} from "@/lib/utils";
 
 interface RelationViewQueryProps extends DefaultRelationZustandActions{
-    relationState: RelationState
+    relationState: RelationState,
+    embedded?: boolean;
 }
 
 export function RelationViewQueryView(props: RelationViewQueryProps) {
@@ -31,6 +33,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     const nQueries = getSeparatedStatements(queryString).length
     const runText = executionState.state == "running" ? "Running..." : `Run (${nQueries} Query${nQueries > 1 ? "s" : ""})`
 
+    const embedded = props.embedded ?? false;
     return (
         <div className={"w-full h-full overflow-hidden"}>
             <CodeFence
@@ -46,7 +49,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
                 onCodeChange={onCodeChange}
                 onRun={runQueryIfNotRunning}
                 executionState={executionState}
-                showLayoutButton={true}
+                showLayoutButton={!embedded}
                 currentLayout={codeFenceState.layout}
                 onLayoutChange={(layout) => {
                     useRelationsState.getState().updateRelationViewState(relationId, {

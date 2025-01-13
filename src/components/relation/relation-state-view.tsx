@@ -46,7 +46,7 @@ export function RelationStateView(props: RelationViewProps) {
                 onChange={(ratio) => setCodeFenceState(relationId, ratio)}
                 layout={codeFenceState.layout}
             >
-                <RelationViewQueryView {...props}/>
+                <RelationViewQueryView {...props} embedded={props.embedded}/>
                 <ContentWrapper {...props}/>
             </WindowSplitter>
             {isLoading && (
