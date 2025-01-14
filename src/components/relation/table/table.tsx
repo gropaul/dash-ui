@@ -5,17 +5,9 @@ import type {DragEndEvent, DragStartEvent} from "@dnd-kit/core/dist/types";
 import React, {useState} from "react";
 import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-state/table";
 import {TableColumnDragOverlay} from "@/components/relation/table/table-column-drag-overlay";
-import {RelationState} from "@/model/relation-state";
-import {DeepPartial} from "@/platform/object-utils";
-import {RelationViewState} from "@/model/relation-view-state";
+import {RelationViewProps} from "@/components/relation/relation-view";
 
-
-export interface RelationViewTableProps {
-    relationState: RelationState
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
-}
-
-export function Table(props: RelationViewTableProps) {
+export function Table(props: RelationViewProps) {
     const relationData = props.relationState.data;
     const columnsOrder = props.relationState.viewState.tableState.columnsOrder;
 
@@ -92,10 +84,7 @@ export function Table(props: RelationViewTableProps) {
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
             <div className="flex flex-col w-full h-full overflow-hidden">
                 <div className="relative overflow-y-auto flex-1 flex flex-row">
-                    <TableContent
-                        columnViewIndices={columnViewIndices}
-                        relation={props.relationState}
-                    />
+                    <TableContent {...props} columnViewIndices={columnViewIndices}/>
                 </div>
                 <TableFooter relation={props.relationState}/>
             </div>

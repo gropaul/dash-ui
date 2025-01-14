@@ -1,11 +1,9 @@
-import {RelationViewContent, RelationViewContentProps} from "@/components/relation/relation-view-content";
+import {RelationViewContent} from "@/components/relation/relation-view-content";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {RelationState} from "@/model/relation-state";
 import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
-import {DeepPartial} from "@/platform/object-utils";
-import {RelationViewState} from "@/model/relation-view-state";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 
 export interface RelationViewProps extends DefaultRelationZustandActions{
@@ -26,7 +24,7 @@ export function RelationView(props: RelationViewProps) {
 }
 
 
-export function ContentWrapper(props: RelationViewContentProps) {
+export function ContentWrapper(props: RelationViewProps) {
 
     const queryState = props.relationState.executionState;
     return (

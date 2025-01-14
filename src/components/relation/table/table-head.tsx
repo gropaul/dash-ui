@@ -1,18 +1,14 @@
-import { TableColumnHead } from "@/components/relation/table/table-head/table-column-head";
+import {TableColumnHead} from "@/components/relation/table/table-head/table-column-head";
 import React from "react";
-import { RelationData } from "@/model/relation";
-import { ColumnHeadDropDownMenuContent } from "@/components/relation/table/table-head/dropdown-menu-content";
-import { Column } from "@/model/column";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {ColumnHeadDropDownMenuContent} from "@/components/relation/table/table-head/dropdown-menu-content";
+import {Column} from "@/model/column";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 
-export interface TableHeadProps {
-    relationId: string;
-    relationData: RelationData;
-    columnViewIndices: number[];
-}
+export function TableHead(props: RelationViewTableContentProps) {
 
-export function TableHead(props: TableHeadProps) {
-    const [column, setColumn] = React.useState<Column>(props.relationData.columns[0]);
+    const relationData = props.relationState.data!;
+    const [column, setColumn] = React.useState<Column>(relationData.columns[0]);
     const [menuOpen, setMenuOpen] = React.useState(false);
     const [position, setPosition] = React.useState({ x: 0, y: 0 });
 
@@ -43,8 +39,8 @@ export function TableHead(props: TableHeadProps) {
                 {props.columnViewIndices.map((index) => (
                     <DropdownMenuTrigger asChild key={index}>
                         <TableColumnHead
-                            relationId={props.relationId}
-                            column={props.relationData.columns[index]}
+                            {...props}
+                            column={relationData.columns[index]}
                             onColumnMenuClick={(column, event) => onColumnMenuClick(column, event)}
                         />
                     </DropdownMenuTrigger>
@@ -62,7 +58,7 @@ export function TableHead(props: TableHeadProps) {
                     }}
                 >
                     <ColumnHeadDropDownMenuContent
-                        relationId={props.relationId}
+                        {...props}
                         column={column}
                     />
                 </DropdownMenuContent>

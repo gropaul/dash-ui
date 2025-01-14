@@ -1,18 +1,6 @@
 import {Table} from "@/components/relation/table/table";
-import {useRelationsState} from "@/state/relations.state";
-import {shallow} from "zustand/shallow";
-import {useState} from "react";
 import {Chart} from "@/components/relation/chart/chart";
-import {RelationState} from "@/model/relation-state";
-import {DeepPartial} from "@/platform/object-utils";
-import {RelationViewState} from "@/model/relation-view-state";
-
-
-export interface RelationViewContentProps {
-    relationState: RelationState,
-    embedded?: boolean,
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
-}
+import {RelationViewProps} from "@/components/relation/relation-view";
 
 const DATA_QUERY = "SELECT\n" +
     "     TO_JSON(LIST(geo_lng)) AS lng_list_json,\n" +
@@ -24,7 +12,7 @@ const DATA_QUERY = "SELECT\n" +
     "     LIMIT 100\n" +
     " ) sub;\n";
 
-export function RelationViewContent(props: RelationViewContentProps) {
+export function RelationViewContent(props: RelationViewProps) {
 
     const selectedView = props.relationState.viewState.selectedView;
 
@@ -62,10 +50,7 @@ export function RelationViewContent(props: RelationViewContentProps) {
 
     if (selectedView === 'table') {
         return (
-            <Table
-                relationState={props.relationState}
-                updateRelationViewState={props.updateRelationViewState}
-            />
+            <Table {...props}/>
         );
     /* } else if (selectedView === 'map') {
         return (

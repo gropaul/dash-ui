@@ -1,16 +1,15 @@
 import {TableRow} from "@/components/relation/table/table-row";
 import React from "react";
-import {RelationState} from "@/model/relation-state";
 import {TableHead} from "@/components/relation/table/table-head";
+import {RelationViewProps} from "@/components/relation/relation-view";
 
-export interface RelationViewTableContentProps {
-    relation: RelationState;
+export interface RelationViewTableContentProps extends RelationViewProps {
     columnViewIndices: number[];
 }
 
 export function TableContent(props: RelationViewTableContentProps) {
 
-    const relationData = props.relation.data!;
+    const relationData = props.relationState.data!;
     const columnViewIndices = props.columnViewIndices;
     return (
         <table
@@ -20,20 +19,16 @@ export function TableContent(props: RelationViewTableContentProps) {
                 borderCollapse: "collapse",
             }}
         >
-            <TableHead
-                relationId={props.relation.id}
-                relationData={relationData}
-                columnViewIndices={columnViewIndices}
-            />
+            <TableHead {...props} />
             <tbody>
             {relationData.rows.map((row, index) => (
                 <TableRow
                     key={index}
-                    relationId={props.relation.id}
+                    relationId={props.relationState.id}
                     rowIndex={index}
                     row={row}
                     columns={relationData.columns}
-                    offset={props.relation.lastExecutionMetaData?.lastResultOffset || 0}
+                    offset={props.relationState.lastExecutionMetaData?.lastResultOffset || 0}
                     columnViewIndices={columnViewIndices}
                 />
             ))}

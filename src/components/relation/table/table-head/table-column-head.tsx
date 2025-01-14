@@ -2,18 +2,15 @@ import React from 'react';
 import {Column} from "@/model/column";
 import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {ColumnSorting, getNextColumnSorting} from "@/model/relation-state";
-import {useRelationsState} from "@/state/relations.state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
-import {shallow} from "zustand/shallow";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
-import {DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {RelationViewProps} from "@/components/relation/relation-view";
 
 
-export interface ColumnHeadProps {
+export interface ColumnHeadProps extends RelationViewProps{
     column: Column;
-    relationId: string;
     onColumnMenuClick?: (column: Column, event: React.MouseEvent) => void;
 }
 
@@ -22,15 +19,15 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
     const {column} = props;
 
-    const displayState = useRelationsState((state) => state.getRelationViewState(props.relationId).tableState, shallow);
-    const columnState = useRelationsState((state) => state.getRelationViewState(props.relationId).tableState.columnStates[column.name], shallow) ?? INITIAL_COLUMN_VIEW_STATE;
+    const tableViewState = props.relationState.viewState.tableState;
+    const columnState = tableViewState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
 
     let columnWidth = columnState.width + 'px';
 
     const {listeners, setNodeRef: setDraggableNodeRef} = useDraggable({id: column.name});
     const {setNodeRef: setDroppableNodeRef} = useDroppable({id: column.name});
 
-    const queryParameters = useRelationsState((state) => state.getRelation(props.relationId)?.query.viewParameters, shallow);
+    const queryParameters = props.relationState.query.viewParameters;
     const columnSorting = queryParameters.sorting[props.column.name];
 
     const onlyShowOnHover = !columnSorting;
@@ -42,8 +39,6 @@ export function TableColumnHead(props: ColumnHeadProps) {
     const sortingClass = activeSorting ?
         'text-muted-foreground hover:text-primary' :
         'text-primary';
-
-    const updateRelation = useRelationsState((state) => state.updateRelationDataWithParams);
 
     function onSortClick() {
 
@@ -57,7 +52,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
                 ...remainingSortings,
             },
         };
-        updateRelation(props.relationId, newQueryParams);
+        props.updateRelationDataWithParams(props.relationState.id, newQueryParams);
     }
 
     return (
@@ -93,9 +88,10 @@ export function TableColumnHead(props: ColumnHeadProps) {
             </div>
 
             <ColumnHeadResizeHandle
-                relationId={props.relationId}
-                displayState={displayState}
+                relationId={props.relationState.id}
+                displayState={tableViewState}
                 column={column}
+                updateRelationViewState={props.updateRelationViewState}
             />
         </ColumnHeadWrapper>
     );

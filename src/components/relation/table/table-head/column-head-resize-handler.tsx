@@ -1,21 +1,21 @@
 import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
 import {Column} from "@/model/column";
 import React, {useRef} from "react";
-import {useRelationsState} from "@/state/relations.state";
+import {DeepPartial} from "@/platform/object-utils";
+import {RelationViewState} from "@/model/relation-view-state";
 
 interface ColumnHeadResizeHandleProps {
     relationId: string;
     displayState: TableViewState;
     column: Column;
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
 }
 
-export function ColumnHeadResizeHandle({relationId, displayState, column}: ColumnHeadResizeHandleProps) {
+export function ColumnHeadResizeHandle({relationId, displayState, column, updateRelationViewState}: ColumnHeadResizeHandleProps) {
 
     const initialX = useRef<number | null>(null);
     const columnViewState = displayState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
     const widthRef = useRef<number>(columnViewState.width);
-
-    const updateViewState = useRelationsState((state) => state.updateRelationViewState);
 
     function onMouseMove(event: MouseEvent) {
         if (initialX.current !== null) {
@@ -28,7 +28,7 @@ export function ColumnHeadResizeHandle({relationId, displayState, column}: Colum
 
             newStates[column.name].width = Math.max(widthRef.current + deltaX, 50); // Set a minimum width of 50px
 
-            updateViewState(relationId, {
+            updateRelationViewState(relationId, {
                 tableState: {
                     ...displayState,
                     columnStates: newStates,

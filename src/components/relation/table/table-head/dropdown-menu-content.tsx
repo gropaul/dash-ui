@@ -1,9 +1,9 @@
 import React from "react";
 import {ColumnHeadProps} from "@/components/relation/table/table-head/table-column-head";
 import {
-    DropdownMenuContent,
     DropdownMenuGroup,
-    DropdownMenuItem, DropdownMenuLabel,
+    DropdownMenuItem,
+    DropdownMenuLabel,
     DropdownMenuPortal,
     DropdownMenuSeparator,
     DropdownMenuSub,
@@ -13,8 +13,6 @@ import {
 import {Check, Copy, EyeOff} from "lucide-react";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 import {cn} from "@/lib/utils";
-import {useRelationsState} from "@/state/relations.state";
-import {shallow} from "zustand/shallow";
 import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon";
 
 
@@ -25,25 +23,22 @@ interface ColumnHeadDropDownMenuContentProps extends ColumnHeadProps {
 
 export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuContentProps) {
 
-    const relationsState = useRelationsState((state) => state.getRelation(props.relationId), shallow);
-    const updateRelation = useRelationsState((state) => state.updateRelationViewState);
-
     let columnNames: string[] = []
-    if (relationsState.data) {
-        columnNames = relationsState.data.columns.map((column) => column.name);
+    if (props.relationState.data) {
+        columnNames = props.relationState.data.columns.map((column) => column.name);
     }
 
     function onCopyName() {
         navigator.clipboard.writeText(props.column.name);
     }
 
-    const tableState = relationsState.viewState.tableState;
+    const tableState = props.relationState.viewState.tableState;
 
     function onHideColumn() {
         const newColumnsHidden = [...tableState.columnsHidden];
         newColumnsHidden.push(props.column.name);
 
-        updateRelation(props.relationId, {
+        props.updateRelationViewState(props.relationState.id, {
             tableState: {
                 ...tableState,
                 columnsHidden: newColumnsHidden
@@ -64,7 +59,7 @@ export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuConte
             }
         }
 
-        updateRelation(props.relationId, {
+        props.updateRelationViewState(props.relationState.id, {
             tableState: {
                 ...tableState,
                 columnsHidden: newColumnsHidden

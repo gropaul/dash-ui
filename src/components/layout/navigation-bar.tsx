@@ -1,11 +1,10 @@
 import React from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/editor/editor-overview-tab";
-import {Database, Sheet} from "lucide-react";
+import {Database, Folder} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {Separator} from "@/components/ui/separator";
+import {Avatar, AvatarImage} from "@/components/ui/avatar";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -53,7 +52,7 @@ export function NavigationBar(props: NavigationBarProps) {
                     value="relations"
                     aria-label="Toggle Relations"
                 >
-                    <Sheet className="h-10 w-10"/>
+                    <Folder className="h-10 w-10"/>
                 </ToggleGroupItem>
             </ToggleGroup>
         </div>
