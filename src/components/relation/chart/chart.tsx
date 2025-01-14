@@ -7,11 +7,11 @@ import {CanDisplayPlot} from "@/model/relation-view-state/chart";
 import {ChartContentOverlay} from "@/components/relation/chart/chart-content/chart-content-overlay";
 import {ChartContentError} from "@/components/relation/chart/chart-content/chart-content-error";
 import {useRef} from "react";
-import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 import {cn} from "@/lib/utils";
+import {RelationViewProps} from "@/components/relation/relation-view";
 
 
-export function Chart(props: RelationViewContentProps) {
+export function Chart(props: RelationViewProps) {
 
     const exportableRef = useRef<ExportableRef>(null);
     const relationId = props.relationState.id;
