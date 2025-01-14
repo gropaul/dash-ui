@@ -1,6 +1,11 @@
 import {DashboardElementData, ElementSubType, TYPE_OPTIONS_DATA} from "@/model/dashboard-state";
 import {RelationStateView} from "@/components/relation/relation-state-view";
-import {RelationQueryParams} from "@/model/relation-state";
+import {
+    executeQueryOfRelationState,
+    RelationQueryParams,
+    setRelationLoading,
+    updateRelationQueryForParams
+} from "@/model/relation-state";
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
 import {ViewElementBase, ViewElementBaseProps} from "@/components/dashboard/components/view-element-base";
@@ -28,7 +33,18 @@ export function DashboardDataView(props: DashboardDataViewProps) {
     }
 
     async function updateRelationDataWithParams(_relationId: string, query: RelationQueryParams) {
+        const relation = props.element.data;
+        const loadingRelationState = setRelationLoading(relation); // Set it loading
+        updateDashboardElement({
+            data: loadingRelationState
+        })
 
+        const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
+        const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
+        // update state with new data and completed state
+        updateDashboardElement({
+            data: executedRelationState
+        })
     }
 
     function updateRelationBaseQuery(_relationId: string, baseQuery: string) {

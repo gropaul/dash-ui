@@ -1,4 +1,3 @@
-import {RelationState} from "@/model/relation-state";
 import React from "react";
 import {ChevronFirst, ChevronLast, ChevronLeft, ChevronRight} from "lucide-react";
 import {useRelationsState} from "@/state/relations.state";
@@ -12,28 +11,24 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select";
-
-export interface RelationViewFooterProps {
-    relation: RelationState
-}
+import {RelationViewProps} from "@/components/relation/relation-view";
 
 function formatNumber(num: number): string {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-export function TableFooter(props: RelationViewFooterProps) {
+export function TableFooter(props: RelationViewProps) {
 
-    const lastResultCount = props.relation.lastExecutionMetaData?.lastResultCount || 0;
+    const lastResultCount = props.relationState.lastExecutionMetaData?.lastResultCount || 0;
 
-    const startIndex = props.relation.query.viewParameters.offset + 1;
-    const endIndex = Math.min(props.relation.query.viewParameters.offset + props.relation.query.viewParameters.limit, lastResultCount);
+    const startIndex = props.relationState.query.viewParameters.offset + 1;
+    const endIndex = Math.min(props.relationState.query.viewParameters.offset + props.relationState.query.viewParameters.limit, lastResultCount);
     const testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(lastResultCount)}`;
 
-    const connectionName = useConnectionsState((state) => state.getConnectionName(props.relation.connectionId));
     return (
         <div className="flex h-8 flex-row items-center p-2 border-t border-border text-sm text-primary space-x-4">
             <div className="flex flex-row items-center space-x-4">
-                <RelationViewPageController relation={props.relation}/>
+                <RelationViewPageController {...props}/>
             </div>
             <div className="flex-grow"/>
             <div className="pr-2">
@@ -43,48 +38,46 @@ export function TableFooter(props: RelationViewFooterProps) {
     );
 }
 
-export function RelationViewPageController(props: RelationViewFooterProps) {
-    const {relation} = props;
+export function RelationViewPageController(props: RelationViewProps) {
+    const {relationState} = props;
 
-    const totalCount = relation.lastExecutionMetaData?.lastResultCount;
+    const totalCount = relationState.lastExecutionMetaData?.lastResultCount;
 
     if (!totalCount) {
         return null;
     }
 
-    const currentPageIndex = Math.floor(relation.query.viewParameters.offset / relation.query.viewParameters.limit);
-    const maxPageIndex = Math.floor((totalCount - 1) / relation.query.viewParameters.limit);
+    const currentPageIndex = Math.floor(relationState.query.viewParameters.offset / relationState.query.viewParameters.limit);
+    const maxPageIndex = Math.floor((totalCount - 1) / relationState.query.viewParameters.limit);
     const minPageIndex = 0;
     const text = `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumber(maxPageIndex + 1)}`;
 
     const iconSize = 16;
-    const updateRelationDisplayRange = useRelationsState((state) => state.updateRelationDataWithParams);
-
     const isFirstPage = currentPageIndex === 0;
     const isLastPage = currentPageIndex === maxPageIndex;
 
     const handleUpdateRange = (pageIndex: number) => {
 
-        const offsetForPage = pageIndex * relation.query.viewParameters.limit;
-        const currentQueryParams = relation.query.viewParameters;
+        const offsetForPage = pageIndex * relationState.query.viewParameters.limit;
+        const currentQueryParams = relationState.query.viewParameters;
         const updatedQueryParams = {
             ...currentQueryParams,
             offset: offsetForPage
         }
-        updateRelationDisplayRange(relation.id, updatedQueryParams);
+        props.updateRelationDataWithParams(relationState.id, updatedQueryParams);
     };
 
-    const pageSize = relation.query.viewParameters.limit;
+    const pageSize = relationState.query.viewParameters.limit;
 
     function handlePageSizeChange(value: string) {
         const newPageSize = parseInt(value);
-        const currentQueryParams = relation.query.viewParameters;
+        const currentQueryParams = relationState.query.viewParameters;
         const updatedQueryParams = {
             ...currentQueryParams,
             limit: newPageSize,
             offset: 0
         }
-        updateRelationDisplayRange(relation.id, updatedQueryParams);
+        props.updateRelationDataWithParams(relationState.id, updatedQueryParams);
     }
 
     const limitOptions = [10, 20, 50, 100, 200];

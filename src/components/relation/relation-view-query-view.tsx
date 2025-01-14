@@ -18,7 +18,8 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     const relationId = props.relationState.id;
     async function onRunQuery() {
         // we need to reset the view params as the could be columns removed now that had filters before!
-        await props.updateRelationDataWithParams(relationId, getDefaultQueryParams());
+        const oldLimit = props.relationState.query.viewParameters.limit;
+        await props.updateRelationDataWithParams(relationId, getDefaultQueryParams(oldLimit));
     }
 
     function onCodeChange(code: string) {

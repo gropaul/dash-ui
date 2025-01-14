@@ -86,7 +86,7 @@ export function Table(props: RelationViewProps) {
                 <div className="relative overflow-y-auto flex-1 flex flex-row">
                     <TableContent {...props} columnViewIndices={columnViewIndices}/>
                 </div>
-                <TableFooter relation={props.relationState}/>
+                <TableFooter {...props}/>
             </div>
             <TableColumnDragOverlay activeId={activeId}/>
         </DndContext>

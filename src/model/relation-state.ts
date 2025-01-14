@@ -5,14 +5,15 @@ import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections/connections-service";
 
-export function getDefaultQueryParams(): RelationQueryParams {
+export function getDefaultQueryParams(oldLimit?: number): RelationQueryParams {
+
+    const limit = oldLimit ?? 50;
     return {
         offset: 0,
-        limit: 50,
+        limit: limit,
         sorting: {},
     };
 }
-
 
 export interface RelationQueryParams {
     offset: number;
