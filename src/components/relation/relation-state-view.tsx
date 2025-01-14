@@ -1,7 +1,7 @@
 import {WindowSplitter} from "@/components/ui/window-splitter";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
 import {ContentWrapper, RelationViewProps} from "@/components/relation/relation-view";
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 
 export function RelationStateView(props: RelationViewProps) {
@@ -22,7 +22,7 @@ export function RelationStateView(props: RelationViewProps) {
         }
 
         return () => clearTimeout(timer);
-    }, [executionState]);
+    }, [executionState.state]);
 
 
     function setCodeFenceState(relationId: string, sizePercentage: number) {
@@ -33,7 +33,6 @@ export function RelationStateView(props: RelationViewProps) {
             }
         });
     }
-
     const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage * 100 : 0;
     const showCode = codeFenceState.show;
 
@@ -53,12 +52,12 @@ export function RelationStateView(props: RelationViewProps) {
                 <div
                     className="absolute top-0 left-0 w-full h-full bg-background z-50 flex items-center justify-center transition-opacity duration-200"
                     style={{
-                        opacity: 0.7,
+                        opacity: 0.8,
                     }}
                 >
                     Loading...
                 </div>
             )}
         </>
-    )
+    );
 }
