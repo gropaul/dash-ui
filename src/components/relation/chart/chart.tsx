@@ -34,8 +34,8 @@ export function Chart(props: RelationViewProps) {
     const plotDisplayError = CanDisplayPlot(config.chart, props.relationState.data);
 
     const isEmbedded = props.embedded ?? false;
-    const contentPaddingClass = isEmbedded ? 'p-0' : 'p-2';
-    const contentHeightClass = isEmbedded ? 'h-128' : 'h-full';
+    const contentPaddingClass = isEmbedded ? 'p-0' : 'h-full p-2';
+    const contentHeightClass = isEmbedded ? 'h-fit' : 'h-full';
     const overflowClass = isEmbedded ? 'overflow-hidden' : 'overflow-auto';
     return (
         <div className={cn('w-full relative overflow-hidden', contentHeightClass)}>
@@ -45,7 +45,7 @@ export function Chart(props: RelationViewProps) {
                 onChange={updateConfigRatio}
                 child2Active={config.view.showConfig}
             >
-                <div className={cn('h-full relative', contentPaddingClass, overflowClass)}>
+                <div className={cn('relative', contentPaddingClass, overflowClass)}>
                     {plotDisplayError ?
                         <ChartContentError error={plotDisplayError}/>
                         :

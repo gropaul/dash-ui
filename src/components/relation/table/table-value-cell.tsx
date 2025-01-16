@@ -3,19 +3,16 @@ import {Column} from "@/model/column";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 import {CopyButton} from "@/components/basics/input/copy-button";
-import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
+import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
 
 interface RowElementViewProps {
-    relationId: string;
     element: any;
+    tableState: TableViewState;
     column: Column;
 }
 
-export function TableValueCell({ relationId, column, element }: RowElementViewProps) {
-    const columnViewState = useRelationsState(
-        (state) => state.getRelationViewState(relationId).tableState.columnStates[column.name],
-        shallow
-    ) ?? INITIAL_COLUMN_VIEW_STATE;
+export function TableValueCell({ tableState, column, element }: RowElementViewProps) {
+    const columnViewState = tableState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
     const wrapContent = columnViewState.wrapContent;
     const columnWidth = columnViewState.width + "px";
 

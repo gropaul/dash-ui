@@ -81,7 +81,7 @@ export function ViewElementBase(props: ViewElementBaseProps) {
     }
 
     return (
-        <div className={cn('flex flex-row space-x-1 items-start w-full group/element-base', props.className)}>
+        <div className={cn('flex flex-row h-fit w-full space-x-1 items-start group/element-base', props.className)}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <div

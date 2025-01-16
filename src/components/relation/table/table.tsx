@@ -6,6 +6,7 @@ import React, {useState} from "react";
 import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-state/table";
 import {TableColumnDragOverlay} from "@/components/relation/table/table-column-drag-overlay";
 import {RelationViewProps} from "@/components/relation/relation-view";
+import {cn} from "@/lib/utils";
 
 export function Table(props: RelationViewProps) {
     const relationData = props.relationState.data;
@@ -80,10 +81,15 @@ export function Table(props: RelationViewProps) {
 
     const columnViewIndices = getTableColumnViewIndices(props.relationState.viewState.tableState, relationData);
 
+    const isEmbedded = props.embedded ?? false;
+    // will the whole height of the screen when not embedded, todo: maybe make max height configurable
+    const wrapperClasses = isEmbedded ? 'h-fit max-h-96' : 'h-full';
+    const contentClasses = isEmbedded ? 'overflow-y-auto' : 'flex-1 overflow-y-auto ';
+
     return (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
-            <div className="flex flex-col w-full h-full overflow-hidden">
-                <div className="relative overflow-y-auto flex-1 flex flex-row">
+            <div className={cn("flex flex-col w-full overflow-hidden", wrapperClasses)}>
+                <div className={cn("relative flex flex-row", contentClasses)}>
                     <TableContent {...props} columnViewIndices={columnViewIndices}/>
                 </div>
                 <TableFooter {...props}/>

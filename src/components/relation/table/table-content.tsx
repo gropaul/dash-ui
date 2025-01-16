@@ -24,7 +24,7 @@ export function TableContent(props: RelationViewTableContentProps) {
             {relationData.rows.map((row, index) => (
                 <TableRow
                     key={index}
-                    relationId={props.relationState.id}
+                    tableState={props.relationState.viewState.tableState}
                     rowIndex={index}
                     row={row}
                     columns={relationData.columns}

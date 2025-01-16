@@ -21,6 +21,7 @@ export interface CodeFenceProps {
     showLineNumbers?: boolean;
     showCopyButton?: boolean;
     buttonPosition?: ButtonPosition;
+    alwaysConsumeMouseWheel?: boolean;
 
     executionState?: TaskExecutionState;
     showRunButton?: boolean;
@@ -54,6 +55,7 @@ export function CodeFence(
         readOnly = false,
         height = "auto",
         width = "auto",
+        alwaysConsumeMouseWheel = false,
 
         showLayoutButton = false,
         currentLayout = 'column',
@@ -61,7 +63,7 @@ export function CodeFence(
     }: CodeFenceProps) {
 
     copyCode = copyCode || displayCode;
-    const { resolvedTheme } = useTheme();
+    const {resolvedTheme} = useTheme();
 
     const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
 
@@ -103,6 +105,7 @@ export function CodeFence(
 
     const roundedStyle = rounded ? "rounded-lg" : "";
 
+
     return (
         <div className="flex flex-col h-full w-full">
             {buttonPosition === "panel" && (
@@ -119,44 +122,42 @@ export function CodeFence(
                 />
             )}
 
-            <div
-                style={{fontFamily: fontMono.style.fontFamily, fontSize: "14px"}}
-                className={`relative h-full w-full ${roundedStyle}`}
-            >
-                <Editor
-                    height={height}
-                    width={width}
-                    language={language}
-                    value={displayCode}
-                    options={{
-                        readOnly: readOnly,
-                        minimap: {enabled: false},
-                        lineNumbers: showLineNumbers ? "on" : "off",
-                        // get theme from the system
-                        theme: editorTheme,
-                        padding: {top: 12, bottom: 12},
-                        scrollBeyondLastLine: false,
-                        tabSize: 2,
-                        scrollbar: {
-                            horizontalScrollbarSize: 4,
-                            verticalScrollbarSize: 4
-                        },
-                        renderLineHighlight: "none",
-                    }}
-                    onChange={onLocalCodeChange}
-                    onMount={onMount}
+
+            <Editor
+                height={height}
+                width={width}
+                language={language}
+                value={displayCode}
+                options={{
+                    readOnly: readOnly,
+                    minimap: {enabled: false},
+                    lineHeight: 20,
+                    lineNumbers: showLineNumbers ? "on" : "off",
+                    // get theme from the system
+                    theme: editorTheme,
+                    padding: {top: 12, bottom: 12},
+                    tabSize: 2,
+                    scrollBeyondLastLine: false,
+                    scrollbar: {
+                        alwaysConsumeMouseWheel: alwaysConsumeMouseWheel,
+                        horizontalScrollbarSize: 4,
+                        verticalScrollbarSize: 4
+                    },
+                    renderLineHighlight: "none",
+                }}
+                onChange={onLocalCodeChange}
+                onMount={onMount}
+            />
+            {buttonPosition === "overlay" && (
+                <CodeFenceButtonOverlay
+                    showCopyButton={showCopyButton}
+                    copyCode={copyCode}
+                    showRunButton={showRunButton}
+                    onRun={onRun}
+                    executionState={executionState}
+                    runText={runText}
                 />
-                {buttonPosition === "overlay" && (
-                    <CodeFenceButtonOverlay
-                        showCopyButton={showCopyButton}
-                        copyCode={copyCode}
-                        showRunButton={showRunButton}
-                        onRun={onRun}
-                        executionState={executionState}
-                        runText={runText}
-                    />
-                )}
-            </div>
+            )}
         </div>
 
     );

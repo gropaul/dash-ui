@@ -38,6 +38,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     return (
         <div className={"w-full h-full overflow-hidden"}>
             <CodeFence
+                alwaysConsumeMouseWheel={!embedded}
                 buttonPosition={'panel'}
                 showLineNumbers={true}
                 height={'100%'}

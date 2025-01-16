@@ -143,14 +143,13 @@ export function DashboardDataView(props: DashboardDataViewProps) {
         </>
     }
 
-    return <ViewElementBase {...baseProps} className="relative">
+    return <ViewElementBase {...baseProps} className="relative min-h-32">
         <RelationStateView
             embedded
             relationState={props.element.data}
             updateRelationDataWithParams={updateRelationDataWithParams}
             updateRelationBaseQuery={updateRelationBaseQuery}
             updateRelationViewState={updateRelationViewState}
-
         />
     </ViewElementBase>
 }
