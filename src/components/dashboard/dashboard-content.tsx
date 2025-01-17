@@ -167,46 +167,48 @@ export function DashboardContent(props: DashboardContentProps) {
     }
 
     return (
-        <div
-            className="p-4 pl-1 overflow-auto w-full h-full relative"
-            ref={containerRef}
-            onPointerDown={onBasePointerDown}
-            onPointerMove={onBasePointerMove}
-            onPointerUp={onBasePointerUp}
-        >
-            <div className="max-w-screen-md mx-auto flex space-y-2 flex-col mb-[1024px] relative"
-                 data-element-id="root"
+        <div className={"w-full h-full relative"}>
+            <div
+                className="p-4 pl-1 overflow-auto w-full h-full"
+                ref={containerRef}
+                onPointerDown={onBasePointerDown}
+                onPointerMove={onBasePointerMove}
+                onPointerUp={onBasePointerUp}
             >
-                {Object.values(dashboard.elementsOrder).map((elementId, index) => (
-                    <div
-                        key={index}
-                        data-element-id={elementId}
-                    >
-                        <DashboardElementView
-                            focusState={focusState}
-                            setFocusState={setFocusState}
-                            dashboardId={dashboard.id}
-                            selected={dashboard.selectedElements.includes(elementId)}
-                            dashboardElement={dashboard.elements[elementId]}
-                            elementsOrder={dashboard.elementsOrder}
-                            elementIndex={index}
-                            elementsCount={dashboard.elementsOrder.length}
-                        />
-                    </div>
-                ))}
-            </div>
+                <div className="max-w-screen-md mx-auto flex space-y-2 flex-col mb-[1024px] relative"
+                     data-element-id="root"
+                >
+                    {Object.values(dashboard.elementsOrder).map((elementId, index) => (
+                        <div
+                            key={index}
+                            data-element-id={elementId}
+                        >
+                            <DashboardElementView
+                                focusState={focusState}
+                                setFocusState={setFocusState}
+                                dashboardId={dashboard.id}
+                                selected={dashboard.selectedElements.includes(elementId)}
+                                dashboardElement={dashboard.elements[elementId]}
+                                elementsOrder={dashboard.elementsOrder}
+                                elementIndex={index}
+                                elementsCount={dashboard.elementsOrder.length}
+                            />
+                        </div>
+                    ))}
+                </div>
 
-            {isSelecting && (
-                <div
-                    className="absolute bg-blue-200 opacity-50 border border-blue-500"
-                    style={{
-                        top: selectionBox.top,
-                        left: selectionBox.left,
-                        width: selectionBox.width,
-                        height: selectionBox.height,
-                    }}
-                />
-            )}
+                {isSelecting && (
+                    <div
+                        className="absolute bg-blue-200 opacity-50 border border-blue-500"
+                        style={{
+                            top: selectionBox.top,
+                            left: selectionBox.left,
+                            width: selectionBox.width,
+                            height: selectionBox.height,
+                        }}
+                    />
+                )}
+            </div>
         </div>
     );
 }
