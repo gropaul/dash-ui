@@ -13,7 +13,7 @@ export function TableContent(props: RelationViewTableContentProps) {
     const columnViewIndices = props.columnViewIndices;
     return (
         <table
-            className="text-sm text-left rtl:text-right text-muted-foreground w-fit h-fit mr-32"
+            className="text-sm bg-inherit text-left rtl:text-right text-muted-foreground w-fit h-fit mr-32"
             style={{
                 tableLayout: "fixed",
                 borderCollapse: "collapse",

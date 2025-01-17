@@ -19,6 +19,7 @@ export interface DashboardState {
     name: string;
     elements: { [key: string]: DashboardElement };
     elementsOrder: string[];
+    selectedElements: string[];
     viewState: DashboardViewState;
 }
 

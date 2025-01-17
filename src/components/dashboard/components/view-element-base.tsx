@@ -1,5 +1,5 @@
 import {
-    ChartSpline,
+    ChartSpline, Copy,
     GripVertical,
     Heading3,
     LetterText,
@@ -30,6 +30,8 @@ import {
     ElementSubType
 } from "@/model/dashboard-state";
 import {useRelationsState} from "@/state/relations.state";
+import {useRef, useState} from "react";
+import {FocusState} from "@/components/dashboard/dashboard-content";
 
 export interface ViewElementBaseProps {
     dashboardId: string;
@@ -43,18 +45,29 @@ export interface ViewElementBaseProps {
     onDeleteOverwrite?: () => void;
     children?: React.ReactNode;
     extraContextMenuItems?: React.ReactNode;
+    selected: boolean;
+    focusState: FocusState;
+    setFocusState: (elementId: FocusState) => void;
 }
 
 export function ViewElementBase(props: ViewElementBaseProps) {
 
     const addDashboardElement = useRelationsState((state) => state.addDashboardElement);
     const setDashboardElement = useRelationsState((state) => state.setDashboardElement);
-    const deleteDashboardElement = useRelationsState((state) => state.deleteDashboardElement);
+    const deleteDashboardElements = useRelationsState((state) => state.deleteDashboardElements);
+    const updateDashboardSelection = useRelationsState((state) => state.updateDashboardSelection);
+
+    const elementRootRef = useRef<HTMLDivElement>(null);
+    const elementChildWrapperRef = useRef<HTMLDivElement>(null);
+
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     async function onAddBelow() {
         const newElement = await getInitialElement('text');
         addDashboardElement(props.dashboardId, newElement, props.elementIndex + 1);
+        props.setFocusState({elementId: newElement.id});
     }
+
     async function setPosition(index: number) {
         setDashboardElement(props.dashboardId, props.element.id, {
             ...props.element,
@@ -72,22 +85,51 @@ export function ViewElementBase(props: ViewElementBaseProps) {
         }
     }
 
+    function onDuplicate() {
+        const newElement = {
+            ...props.element,
+            id: Math.random().toString(36).substring(7),
+        };
+        addDashboardElement(props.dashboardId, newElement, props.elementIndex + 1);
+    }
+
     function onDelete() {
         if (props.onDeleteOverwrite) {
             props.onDeleteOverwrite();
         } else {
-            deleteDashboardElement(props.dashboardId, props.element.id);
+            deleteDashboardElements(props.dashboardId, [props.element.id]);
         }
     }
 
+    function onDropdownOpenChange(open: boolean) {
+        setIsDropdownOpen(open);
+        if (open) {
+            updateDashboardSelection(props.dashboardId,[props.element.id], 'update', true);
+        }
+    }
+
+
+    const defaultBgClass = elementRootRef.current?.style.getPropertyValue('--background');
+    const bgClass = props.selected ? 'bg-blue-50' : defaultBgClass;
+
+    if (bgClass !== undefined) {
+        elementChildWrapperRef.current?.style.setProperty('--background', bgClass);
+    }
+
+    const handleClassName = isDropdownOpen ? '' : 'opacity-0';
+
     return (
-        <div className={cn('flex flex-row h-fit w-full space-x-1 items-start group/element-base', props.className)}>
-            <DropdownMenu>
+        <div
+            ref={elementRootRef}
+            className={cn('flex flex-row h-fit w-full bg-background space-x-1 items-start group/element-base relative', props.className)}
+        >
+            <DropdownMenu onOpenChange={onDropdownOpenChange}>
                 <DropdownMenuTrigger asChild>
                     <div
                         className={cn(
                             props.startIconClass,
-                            'flex items-center opacity-0 group-hover/element-base:opacity-100 transition-opacity'
+                            handleClassName,
+                            'flex items-center transition-opacity group-hover/element-base:opacity-100'
                         )}
                     >
                         <Button variant={'ghost'} size={'icon'} className={cn('w-5 rounded h-6')}>
@@ -101,6 +143,10 @@ export function ViewElementBase(props: ViewElementBaseProps) {
                         <span>Add New Below</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator/>
+                    <DropdownMenuItem onClick={onDuplicate}>
+                        <Copy size={16}/>
+                        <span>Duplicate</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={onDelete}>
                         <Trash2 size={16}/>
                         <span>Delete</span>
@@ -143,7 +189,13 @@ export function ViewElementBase(props: ViewElementBaseProps) {
                     {props.extraContextMenuItems}
                 </DropdownMenuContent>
             </DropdownMenu>
-            {props.children}
+            <div
+                ref={elementChildWrapperRef}
+                className={cn('flex-grow w-full rounded-sm pl-1 pr-1 transition-colors', bgClass)}
+            >
+                {props.children}
+            </div>
+
         </div>
     );
 }

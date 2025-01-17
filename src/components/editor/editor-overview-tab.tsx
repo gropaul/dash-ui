@@ -197,6 +197,11 @@ export function EditorOverviewTab() {
 
     function onAddToDashboardSelected(relation: RelationState, dashboard: DashboardState) {
         console.log('Add to dashboard selected', relation, dashboard);
+
+        // update relation ui
+        relation.viewState.codeFenceState.layout = 'row';
+        relation.viewState.codeFenceState.show = false;
+
         const newElement: DashboardElement = {
             type: 'data',
             subtype: 'data-table',

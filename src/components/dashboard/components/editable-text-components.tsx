@@ -11,7 +11,7 @@ export function EditableH3(props: EditableTextComponentsProps) {
     return (
         <ViewElementBase {...props}>
             <H3 className={'w-full'}>
-                <EditableTextBase {...props} />
+                <EditableTextBase {...props} placeholder={'Enter title'} />
             </H3>
         </ViewElementBase>
     );
@@ -20,7 +20,7 @@ export function EditableH3(props: EditableTextComponentsProps) {
 export function EditableText(props: EditableTextComponentsProps) {
     return (
         <ViewElementBase {...props}>
-            <EditableTextBase {...props} />
+            <EditableTextBase {...props} onlyShowPlaceholderIfFocused/>
         </ViewElementBase>
     );
 }

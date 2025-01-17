@@ -9,17 +9,13 @@ import {
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
 import {ViewElementBase, ViewElementBaseProps} from "@/components/dashboard/components/view-element-base";
-import {Button} from "@/components/ui/button";
-import {Code, Plus, Settings2} from "lucide-react";
-import {ContextMenuItem} from "@/components/ui/context-menu";
+import {Code, Settings2} from "lucide-react";
 import {DropdownMenuItem, DropdownMenuSeparator} from "@/components/ui/dropdown-menu";
 import {useRelationsState} from "@/state/relations.state";
+import {DashboardMacroProps} from "@/components/dashboard/dashboard-element-view";
 
 
-export interface DashboardDataViewProps {
-    dashboardId: string;
-    elementIndex: number;
-    elementsCount: number;
+export interface DashboardDataViewProps extends DashboardMacroProps {
     element: DashboardElementData;
 }
 
@@ -120,10 +116,14 @@ export function DashboardDataView(props: DashboardDataViewProps) {
 
     const isChart = props.element.subtype === 'data-chart'
 
+
     const baseProps: ViewElementBaseProps = {
+        focusState: props.focusState,
+        setFocusState: props.setFocusState,
+        selected: props.selected,
         dashboardId: props.dashboardId,
         typeOptions: TYPE_OPTIONS_DATA,
-        startIconClass: "h-10",
+        startIconClass: (showCode || isChart) ? "h-10" : "h-8",
         element: props.element,
         elementIndex: props.elementIndex,
         elementsCount: props.elementsCount,

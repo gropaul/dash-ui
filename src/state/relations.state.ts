@@ -86,8 +86,9 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     /* dashboard element actions */
     setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => void,
     updateDashboardElement: (dashboardId: string, elementId: string, partialUpdate: DeepPartial<DashboardElement>) => void,
+    updateDashboardSelection: (dashboardId: string, elementIds: string[], mode?: 'replace' | 'update', selected?: boolean) => void,
     addDashboardElement: (dashboardId: string, element: DashboardElement, positionIndex?: number) => void,
-    deleteDashboardElement: (dashboardId: string, elementId: string) => void,
+    deleteDashboardElements: (dashboardId: string, elementIds: string[]) => void,
 
     /* dashboard element actions */
     manualPersistModel: () => void,
@@ -117,6 +118,7 @@ export const useRelationsState = createWithEqualityFn(
                         name: "New Dashboard",
                         elements: {},
                         elementsOrder: [],
+                        selectedElements: [],
                         viewState: getInitDashboardViewState("New Dashboard"),
                     }
                     get().showDashboard(dashboard);
@@ -250,6 +252,45 @@ export const useRelationsState = createWithEqualityFn(
                         },
                     }));
                 },
+                updateDashboardSelection: (dashboardId: string, newSelectionIds: string[], mode: 'replace' | 'update' = 'replace', selected?: boolean) => {
+                    const dashboard = get().dashboards[dashboardId];
+                    let selectedElements = [...dashboard.selectedElements];
+
+                    if (mode === 'replace') {
+                        // replace the selection
+                        selectedElements = newSelectionIds;
+                    } else if (mode === 'update') {
+
+                        // selected must be defined
+                        if (selected === undefined) {
+                            throw new Error('selected must be defined when mode is update');
+                        }
+
+
+                        for (const elementId of newSelectionIds) {
+                            if (dashboard.elements[elementId] === undefined) {
+                                throw new Error(`Element with id ${elementId} does not exist in dashboard ${dashboardId}`);
+                            }
+
+                            if (selected && !selectedElements.includes(elementId)) {
+                                selectedElements.push(elementId);
+                            } else if (!selected && selectedElements.includes(elementId)) {
+                                const index = selectedElements.indexOf(elementId);
+                                selectedElements.splice(index, 1);
+                            }
+                        }
+                    }
+
+                    set((state) => ({
+                        dashboards: {
+                            ...state.dashboards,
+                            [dashboardId]: {
+                                ...state.dashboards[dashboardId],
+                                selectedElements: selectedElements,
+                            },
+                        },
+                    }));
+                },
 
                 addDashboardElement: (dashboardId: string, element: DashboardElement, positionIndex?: number) => {
                     const dashboard = get().dashboards[dashboardId];
@@ -274,17 +315,18 @@ export const useRelationsState = createWithEqualityFn(
                         },
                     }));
                 },
-                deleteDashboardElement: (dashboardId: string, elementId: string) => {
+                deleteDashboardElements: (dashboardId: string, elementIds: string[]) => {
                     const dashboard = get().dashboards[dashboardId];
                     const newElements = {...dashboard.elements};
                     const newElementsOrder = [...dashboard.elementsOrder];
-                    delete newElements[elementId];
 
-                    const index = newElementsOrder.indexOf(elementId);
-                    if (index !== -1) {
-                        newElementsOrder.splice(index, 1);
+                    for (const elementId of elementIds) {
+                        delete newElements[elementId];
+                        const index = newElementsOrder.indexOf(elementId);
+                        if (index !== -1) {
+                            newElementsOrder.splice(index, 1);
+                        }
                     }
-
 
                     set((state) => ({
                         dashboards: {
@@ -370,7 +412,7 @@ export const useRelationsState = createWithEqualityFn(
                             addRelationToLayout(get().layoutModel, existingRelation);
                         }
                     } else {
-                      set((state) => ({
+                        set((state) => ({
                             relations: {
                                 ...state.relations,
                                 [relationId]: relation,
@@ -505,24 +547,24 @@ export const useRelationsState = createWithEqualityFn(
                     set({selectedTabId: tabId});
                 },
                 closeTab: (tabId: string) => {
-                    const { schemas, databases, relations, dashboards } = get();
+                    const {schemas, databases, relations, dashboards} = get();
 
                     if (schemas[tabId]) {
-                        const newSchemas = { ...schemas };
+                        const newSchemas = {...schemas};
                         delete newSchemas[tabId];
-                        set({ schemas: newSchemas });
+                        set({schemas: newSchemas});
                     } else if (databases[tabId]) {
-                        const newDatabases = { ...databases };
+                        const newDatabases = {...databases};
                         delete newDatabases[tabId];
-                        set({ databases: newDatabases });
+                        set({databases: newDatabases});
                     } else if (relations[tabId]) {
-                        const newRelations = { ...relations };
+                        const newRelations = {...relations};
                         newRelations[tabId].viewState.isTabOpen = false;
-                        set({ relations: newRelations });
+                        set({relations: newRelations});
                     } else if (dashboards[tabId]) {
-                        const newDashboards = { ...dashboards };
+                        const newDashboards = {...dashboards};
                         newDashboards[tabId].viewState.isTabOpen = false;
-                        set({ dashboards: newDashboards });
+                        set({dashboards: newDashboards});
                     }
                 },
 

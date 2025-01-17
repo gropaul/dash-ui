@@ -24,7 +24,7 @@ export function ChartContent({data, config, hideTitleIfEmpty = false}: MyChartPr
     return (
         <div className="h-full flex flex-col items-center">
             { showTitle && (
-                <div className={"h-9 flex items-center justify-center"}>
+                <div className={"h-10 flex items-center justify-center"}>
                     <H5>{config.plot.title}</H5>
                 </div>
             )}
