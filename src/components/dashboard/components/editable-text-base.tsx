@@ -1,5 +1,4 @@
-import {RefObject, useEffect, useRef, useState} from "react";
-import {H5} from "@/components/ui/typography";
+import React, {RefObject, useEffect, useRef, useState} from "react";
 import {cn} from "@/lib/utils";
 
 export interface EditableTextProps {
@@ -12,19 +11,40 @@ export interface EditableTextProps {
 
     contentRef?: RefObject<HTMLDivElement>;
 
-    onFocused?: () => void; // Called when the text is focused
-    onEnter?: () => void; // Called if Enter is pressed
-    onFinalDelete?: () => void; // Called if Backspace is pressed on empty text
-    onEscape?: () => void; // Called if Escape is pressed
+    onFocused?: () => void;
+    onEnter?: () => void;
+    onLastDelete?: () => void;
+    onEscape?: () => void;
+
+    onLastUpArrow?: (offset: number) => void;
+    onLastDownArrow?: (offset: number) => void;
 }
 
-function textIsEmpty(text: string) {
-    return text.trim().length === 0;
+interface CursorPosition {
+    globalOffset: number;
+    lineOffset: number;
+    lineNumber: number;
+}
+
+function empty(text: string, trim = false) {
+    if (trim) {
+        return text.trim() === "";
+    } else {
+        return text === "";
+    }
+}
+function prepCurrentText(text: string) {
+    // there is sometimes a newline at the end of the text, remove it
+    if (text.endsWith("\n")) {
+        return text.slice(0, -1);
+    } else {
+        return text;
+    }
 }
 
 export function EditableTextBase(props: EditableTextProps) {
     const [localText, setLocalText] = useState(props.text);
-    const [needsPlaceholder, setNeedsPlaceholder] = useState(textIsEmpty(props.text));
+    const [needsPlaceholder, setNeedsPlaceholder] = useState(empty(props.text));
 
     const localContentRef = useRef<HTMLDivElement>(null);
     const contentRef = props.contentRef || localContentRef;
@@ -33,42 +53,69 @@ export function EditableTextBase(props: EditableTextProps) {
     useEffect(() => {
         if (props.text !== contentRef.current?.innerText) {
             setLocalText(props.text);
-            setNeedsPlaceholder(textIsEmpty(props.text));
+            setNeedsPlaceholder(empty(props.text));
         }
     }, [props.text]);
 
-    const handleInput = (event: React.FormEvent<HTMLSpanElement>) => {
-        setNeedsPlaceholder(textIsEmpty(event.currentTarget.innerText));
+    const handleInput = (event: React.FormEvent<HTMLDivElement>) => {
+        const localText = prepCurrentText(event.currentTarget.innerText);
+        setNeedsPlaceholder(empty(localText));
         if (props.onTextChange) {
+
+            console.log('localText:', localText);
+            console.log('localText number of lines:', localText.split("\n").length);
+            console.log('lines:', localText.split("\n"));
+
             props.onTextChange(event.currentTarget.innerText);
         }
     };
 
-    // Handle keydown events for custom behavior
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        const currentText = contentRef.current?.innerText || "";
+    const getCursorPos = (): CursorPosition => {
 
+    };
+
+    const isCursorAtFirstLine = (): boolean => {
+        return getCursorPos().lineNumber === 0;
+    };
+
+    const isCursorAtLastLine = (): boolean => {
+        const text = contentRef.current?.innerText || "";
+        const lines = text.split("\n");
+        console.log('total lines:', lines.length);
+        return getCursorPos().lineNumber === lines.length - 1;
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        const currentText = prepCurrentText(contentRef.current?.innerText || "");
         if (event.key === "Enter") {
             if (event.shiftKey || event.ctrlKey) {
-                // Allow Shift+Enter or Ctrl+Enter to add a newline
                 return;
             } else {
-                // Prevent Enter from adding a newline and call onEnter
                 event.preventDefault();
                 if (props.onEnter) {
                     props.onEnter();
                 }
             }
         } else if (event.key === "Backspace") {
-            if (textIsEmpty(currentText) && props.onFinalDelete) {
-                // Trigger onFinalDelete if text is empty
+            if (currentText.length === 0 && props.onLastDelete) {
                 event.preventDefault();
-                props.onFinalDelete();
+                props.onLastDelete();
             }
         } else if (event.key === "Escape") {
-            // Trigger onEscape if Escape is pressed
             if (props.onEscape) {
                 props.onEscape();
+            }
+        } else if (event.key === "ArrowUp") {
+            if (isCursorAtFirstLine() && props.onLastUpArrow) {
+                event.preventDefault();
+                const offset = getCursorPos().lineOffset;
+                props.onLastUpArrow(offset);
+            }
+        } else if (event.key === "ArrowDown") {
+            if (isCursorAtLastLine() && props.onLastDownArrow) {
+                event.preventDefault();
+                const offset = getCursorPos().lineOffset;
+                props.onLastDownArrow(offset);
             }
         }
     };
@@ -76,9 +123,13 @@ export function EditableTextBase(props: EditableTextProps) {
     const placeholder = props.placeholder || "Enter text";
     const onlyShowPlaceholderIfFocused = props.onlyShowPlaceholderIfFocused || false;
     const showPlaceholder = needsPlaceholder && (!onlyShowPlaceholderIfFocused || props.focused);
+
+    const localTextLines = localText.split("\n");
+    const linesEmpty = localTextLines.every((line) => empty(line, true));
+
     return (
         <div className={cn("relative", props.className)}>
-            {/* Editable span */}
+            {/* Editable div */}
             <div
                 className={cn("outline-none w-fit min-w-20", props.className)}
                 ref={contentRef}
@@ -88,7 +139,13 @@ export function EditableTextBase(props: EditableTextProps) {
                 contentEditable={!!props.onTextChange}
                 suppressContentEditableWarning
             >
-                {localText}
+                {linesEmpty ? localText :localTextLines.map((line, index) => (
+                    <>
+                        <>{line}</>
+                        {index < localTextLines.length - 1 ? <br /> : null}
+                    </>
+                ))}
+
             </div>
             {/* Placeholder */}
             {showPlaceholder && (

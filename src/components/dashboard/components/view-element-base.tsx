@@ -191,7 +191,7 @@ export function ViewElementBase(props: ViewElementBaseProps) {
             </DropdownMenu>
             <div
                 ref={elementChildWrapperRef}
-                className={cn('flex-grow w-full rounded-sm pl-1 pr-1 transition-colors', bgClass)}
+                className={cn('flex-grow w-full rounded-sm pl-1 pr-1 transition-colors relative', bgClass)}
             >
                 {props.children}
             </div>

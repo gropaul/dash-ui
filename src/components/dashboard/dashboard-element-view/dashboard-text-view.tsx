@@ -74,6 +74,14 @@ export function DashboardTextView(props: DashboardTextViewProps) {
         props.setFocusState({elementId: idBefore, cursorLocation: "end"});
     }
 
+    function onLastUpArrow(cursorPosition: number) {
+        console.log("onLastUpArrow", cursorPosition)
+    }
+
+    function onLastDownArrow(cursorPosition: number) {
+        console.log("onLastDownArrow", cursorPosition)
+    }
+
     const startIconClassMap: { [key: string]: string } = {
         'text-default': 'h-6',
         'text-h3': 'h-8',
@@ -93,12 +101,14 @@ export function DashboardTextView(props: DashboardTextViewProps) {
         dashboardId: props.dashboardId,
         selected: props.selected,
         onEnter: onEnterPress,
-        onFinalDelete: onFinalDelete,
+        onLastDelete: onFinalDelete,
         contentRef: contentRef,
         onFocused: onFocused,
         focused: props.focusState.elementId === props.element.id,
         focusState: props.focusState,
         setFocusState: props.setFocusState,
+        onLastDownArrow: onLastDownArrow,
+        onLastUpArrow: onLastUpArrow
     }
 
     switch (props.element.subtype) {
