@@ -167,7 +167,6 @@ export function DashboardContent(props: DashboardContentProps) {
     }
 
     return (
-        <div className={"w-full h-full relative"}>
             <div
                 className="p-4 pl-1 overflow-auto w-full h-full"
                 ref={containerRef}
@@ -209,6 +208,5 @@ export function DashboardContent(props: DashboardContentProps) {
                     />
                 )}
             </div>
-        </div>
     );
 }

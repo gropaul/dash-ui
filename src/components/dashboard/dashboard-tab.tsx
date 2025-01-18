@@ -25,7 +25,9 @@ export function DashboardTab(props: DashboardViewProps) {
     return (
         <div className="w-full h-full flex flex-col">
             <ViewHeader title={dashboard.viewState.displayName} onTitleChange={onRenameDisplay} path={[]}/>
-            <DashboardContent dashboard={dashboard}/>
+            <div className="flex-1 overflow-auto relative">
+                <DashboardContent dashboard={dashboard}/>
+            </div>
         </div>
     )
 }
