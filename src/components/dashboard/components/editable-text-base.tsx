@@ -16,14 +16,19 @@ export interface EditableTextProps {
     onLastDelete?: () => void;
     onEscape?: () => void;
 
-    onLastUpArrow?: (offset: number) => void;
-    onLastDownArrow?: (offset: number) => void;
+    onLastArrowUp?: (offset: number) => void;
+    onLastArrowDown?: (offset: number) => void;
+    onLastArrowLeft?: (offset: number) => void;
+    onLastArrowRight?: (offset: number) => void;
 }
 
 interface CursorPosition {
-    globalOffset: number;
-    lineOffset: number;
-    lineNumber: number;
+    globalOffset: number; // the offset of the cursor in the whole text
+    lineOffset: number; // the offset of the cursor in the current line
+    lineIndex: number; // the index of the current line
+
+    totalNumberOfLines: number; // total number of lines in the text
+    totalNumberOfCharacters: number; // total number of characters in the text
 }
 
 function empty(text: string, trim = false) {
@@ -33,7 +38,7 @@ function empty(text: string, trim = false) {
         return text === "";
     }
 }
-function prepCurrentText(text: string) {
+function prepInnerText(text: string) {
     // there is sometimes a newline at the end of the text, remove it
     if (text.endsWith("\n")) {
         return text.slice(0, -1);
@@ -58,35 +63,79 @@ export function EditableTextBase(props: EditableTextProps) {
     }, [props.text]);
 
     const handleInput = (event: React.FormEvent<HTMLDivElement>) => {
-        const localText = prepCurrentText(event.currentTarget.innerText);
-        setNeedsPlaceholder(empty(localText));
+        const innerText = prepInnerText(event.currentTarget.innerText);
+        setNeedsPlaceholder(empty(innerText));
         if (props.onTextChange) {
-
-            console.log('localText:', localText);
-            console.log('localText number of lines:', localText.split("\n").length);
-            console.log('lines:', localText.split("\n"));
-
             props.onTextChange(event.currentTarget.innerText);
         }
     };
 
     const getCursorPos = (): CursorPosition => {
+        const selection = window.getSelection();
+        console.log(selection);
+        if (!selection || !selection.anchorNode) {
+            return {
+                globalOffset: 0,
+                lineOffset: 0,
+                lineIndex: 0,
+                totalNumberOfLines: 1,
+                totalNumberOfCharacters: 0,
+            };
+        }
 
+        // get id of the selected element
+        const id = selection.anchorNode;
+        console.log(id);
+
+        const anchorNode = selection.anchorNode;
+        const anchorOffset = selection.anchorOffset;
+
+        const text = contentRef.current?.innerText || "";
+        const lines = text.split("\n");
+
+        let globalOffset = 0;
+        let lineOffset = 0;
+        let lineIndex = 0;
+        let totalNumberOfCharacters = 0;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            totalNumberOfCharacters += line.length;
+            if (anchorNode.textContent === line) {
+                lineIndex = i;
+                lineOffset = anchorOffset;
+                break;
+            }
+            globalOffset += line.length + 1; // +1 for the newline
+        }
+
+        return {
+            globalOffset,
+            lineOffset,
+            lineIndex,
+            totalNumberOfLines: lines.length,
+            totalNumberOfCharacters,
+        };
     };
 
     const isCursorAtFirstLine = (): boolean => {
-        return getCursorPos().lineNumber === 0;
+        return getCursorPos().lineIndex === 0;
     };
 
     const isCursorAtLastLine = (): boolean => {
-        const text = contentRef.current?.innerText || "";
-        const lines = text.split("\n");
-        console.log('total lines:', lines.length);
-        return getCursorPos().lineNumber === lines.length - 1;
+        const cursorPos = getCursorPos();
+        return cursorPos.lineIndex === cursorPos.totalNumberOfLines - 1;
     };
 
+    function lineKeyDown(event: React.KeyboardEvent<HTMLDivElement>, lineIndex: number) {
+        console.log("lineKeyDown", lineIndex);
+    }
+
+
     const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        const currentText = prepCurrentText(contentRef.current?.innerText || "");
+
+        const cursorPos = getCursorPos();
+        console.log(cursorPos);
+        const innerText = prepInnerText(contentRef.current?.innerText || "");
         if (event.key === "Enter") {
             if (event.shiftKey || event.ctrlKey) {
                 return;
@@ -97,25 +146,13 @@ export function EditableTextBase(props: EditableTextProps) {
                 }
             }
         } else if (event.key === "Backspace") {
-            if (currentText.length === 0 && props.onLastDelete) {
+            if (innerText.length === 0 && props.onLastDelete) {
                 event.preventDefault();
                 props.onLastDelete();
             }
         } else if (event.key === "Escape") {
             if (props.onEscape) {
                 props.onEscape();
-            }
-        } else if (event.key === "ArrowUp") {
-            if (isCursorAtFirstLine() && props.onLastUpArrow) {
-                event.preventDefault();
-                const offset = getCursorPos().lineOffset;
-                props.onLastUpArrow(offset);
-            }
-        } else if (event.key === "ArrowDown") {
-            if (isCursorAtLastLine() && props.onLastDownArrow) {
-                event.preventDefault();
-                const offset = getCursorPos().lineOffset;
-                props.onLastDownArrow(offset);
             }
         }
     };
@@ -126,6 +163,7 @@ export function EditableTextBase(props: EditableTextProps) {
 
     const localTextLines = localText.split("\n");
     const linesEmpty = localTextLines.every((line) => empty(line, true));
+
 
     return (
         <div className={cn("relative", props.className)}>
@@ -139,12 +177,19 @@ export function EditableTextBase(props: EditableTextProps) {
                 contentEditable={!!props.onTextChange}
                 suppressContentEditableWarning
             >
-                {linesEmpty ? localText :localTextLines.map((line, index) => (
-                    <>
-                        <>{line}</>
-                        {index < localTextLines.length - 1 ? <br /> : null}
-                    </>
-                ))}
+                {linesEmpty ? (
+                    localText
+                ) : (
+                    localTextLines.map((line, index) => (
+                        <React.Fragment key={index}>
+                            <span id={`line-${index}`}>{line}</span>
+                            {index < localTextLines.length - 1 && (
+                                <br key={`br-${index}`} id={`br-${index}`} />
+                            )}
+                        </React.Fragment>
+                    ))
+                )}
+
 
             </div>
             {/* Placeholder */}

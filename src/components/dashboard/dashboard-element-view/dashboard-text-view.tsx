@@ -107,8 +107,8 @@ export function DashboardTextView(props: DashboardTextViewProps) {
         focused: props.focusState.elementId === props.element.id,
         focusState: props.focusState,
         setFocusState: props.setFocusState,
-        onLastDownArrow: onLastDownArrow,
-        onLastUpArrow: onLastUpArrow
+       // onLastArrowDown: onLastDownArrow,
+       //  onLastArrowUp: onLastUpArrow
     }
 
     switch (props.element.subtype) {
