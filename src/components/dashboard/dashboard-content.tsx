@@ -12,7 +12,12 @@ interface DashboardContentProps {
 
 export interface FocusState {
     elementId: string | null;
-    cursorLocation?: "start" | "end"; // Where the text cursor should be placed
+    cursorLocation?: "start" | "end" | number; // number being global cursor position
+}
+
+export interface FocusStateResolved {
+    focused: boolean;
+    cursorLocation: "start" | "end" | number; // number being global cursor position
 }
 
 export function DashboardContent(props: DashboardContentProps) {
