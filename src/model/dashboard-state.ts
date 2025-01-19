@@ -114,3 +114,33 @@ export async function getInitialElement(type: DashboardElementType): Promise<Das
             throw new Error(`Unsupported type: ${type}`); // Handle unsupported types
     }
 }
+
+export function findElementOfTypeBefore(dashboardState: DashboardState, type: DashboardElementType, elementIndex: number): string | null {
+    const elementsOrder = dashboardState.elementsOrder;
+    const elements = dashboardState.elements;
+
+    let idBefore = null;
+    for ( let offset = elementIndex - 1; offset >= 0; offset--) {
+        const elementId = elementsOrder[offset];
+        if (elements[elementId].type === type) {
+            idBefore = elementId;
+            break;
+        }
+    }
+    return idBefore;
+}
+
+export function findElementOfTypeAfter(dashboardState: DashboardState, type: DashboardElementType, elementIndex: number): string | null {
+    const elementsOrder = dashboardState.elementsOrder;
+    const elements = dashboardState.elements;
+
+    let idAfter = null;
+    for ( let offset = elementIndex + 1; offset < elementsOrder.length; offset++) {
+        const elementId = elementsOrder[offset];
+        if (elements[elementId].type === type) {
+            idAfter = elementId;
+            break;
+        }
+    }
+    return idAfter;
+}

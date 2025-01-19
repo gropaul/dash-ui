@@ -12,12 +12,15 @@ interface DashboardContentProps {
 
 export interface FocusState {
     elementId: string | null;
-    cursorLocation?: "start" | "end" | number; // number being global cursor position
+    // start, end, number=global cursor position, {lineIndex, charIndex} = line and index in line
+    cursorLocation?: "start" | "end" | number | {lineIndex: number, charIndex: number};
+
 }
 
 export interface FocusStateResolved {
     focused: boolean;
-    cursorLocation: "start" | "end" | number; // number being global cursor position
+    // start, end, number=global cursor position, {lineIndex, charIndex} = line and index in line
+    cursorLocation?: "start" | "end" | number | {lineIndex: number, charIndex: number};
 }
 
 export function DashboardContent(props: DashboardContentProps) {

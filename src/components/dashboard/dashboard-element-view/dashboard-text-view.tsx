@@ -1,4 +1,10 @@
-import {DashboardElementText, DashboardState, getInitialElement, TYPE_OPTIONS_TEXT} from "@/model/dashboard-state";
+import {
+    DashboardElementText,
+    DashboardState, findElementOfTypeAfter,
+    findElementOfTypeBefore,
+    getInitialElement,
+    TYPE_OPTIONS_TEXT
+} from "@/model/dashboard-state";
 import {
     EditableH3,
     EditableText,
@@ -94,18 +100,9 @@ export function DashboardTextView(props: DashboardTextViewProps) {
         const elementsOrder = dashboardState.elementsOrder;
         const elements = dashboardState.elements;
 
-        let idBefore = null;
-        for ( let offset = props.elementIndex - 1; offset >= 0; offset--) {
-            const elementId = elementsOrder[offset];
-            if (elements[elementId].type === 'text') {
-                idBefore = elementId;
-                break;
-            }
-        }
+        const idBefore = findElementOfTypeBefore(dashboardState, 'text', props.elementIndex);
+        if (!idBefore) return;
 
-        if (!idBefore) {
-            return;
-        }
         const newElements = {...elements};
 
         // update the element before to append the text of the current element
@@ -130,12 +127,31 @@ export function DashboardTextView(props: DashboardTextViewProps) {
         props.setFocusState({elementId: idBefore, cursorLocation: oldTextOffset});
     }
 
-    function onLastUpArrow(cursorPosition: number) {
+    function onLastArrowUp(cursorPosition: number) {
         console.log("onLastUpArrow", cursorPosition)
     }
 
-    function onLastDownArrow(cursorPosition: number) {
+    function onLastArrowDown(cursorPosition: number) {
         console.log("onLastDownArrow", cursorPosition)
+    }
+
+    function onLastArrowLeft(cursorPosition: number) {
+        // find the next text element before this element
+        const dashboardState = getDashboardState(props.dashboardId);
+        const idBefore = findElementOfTypeBefore(dashboardState, 'text', props.elementIndex);
+        if (!idBefore) return;
+
+        props.setFocusState({elementId: idBefore, cursorLocation: 'end'});
+
+    }
+
+    function onLastArrowRight(cursorPosition: number) {
+        // find the next text element after this element
+        const dashboardState = getDashboardState(props.dashboardId);
+        const idAfter = findElementOfTypeAfter(dashboardState, 'text', props.elementIndex);
+        if (!idAfter) return;
+
+        props.setFocusState({elementId: idAfter, cursorLocation: 'start'});
     }
 
     const startIconClassMap: { [key: string]: string } = {
@@ -166,10 +182,10 @@ export function DashboardTextView(props: DashboardTextViewProps) {
         },
         focusState: props.focusState,
         setFocusState: props.setFocusState,
-        onLastArrowDown: (cursorPosition: number) => console.log("onLastArrowDown", cursorPosition),
-        onLastArrowUp: (cursorPosition: number) => console.log("onLastArrowUp", cursorPosition),
-        onLastArrowLeft: (cursorPosition: number) => console.log("onLastArrowLeft", cursorPosition),
-        onLastArrowRight: (cursorPosition: number) => console.log("onLastArrowRight", cursorPosition),
+        onLastArrowDown: onLastArrowDown,
+        onLastArrowUp: onLastArrowUp,
+        onLastArrowLeft: onLastArrowLeft,
+        onLastArrowRight: onLastArrowRight,
     }
 
     switch (props.element.subtype) {

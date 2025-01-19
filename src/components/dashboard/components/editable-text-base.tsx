@@ -91,6 +91,7 @@ function getCursorPosition(
         cumulativeChars += lineLength + 1;
     }
 
+
     return {
         globalOffset: selectionStart,
         lineOffset,
@@ -102,7 +103,8 @@ function getCursorPosition(
 
 export function setTextareaCursor(
     textareaRef: React.RefObject<HTMLTextAreaElement>,
-    position: number | "start" | "end"
+    // start, end, number=global cursor position, {lineIndex, charIndex} = line and index in line
+    position?: "start" | "end" | number | {lineIndex: number, charIndex: number}
 ) {
     const el = textareaRef.current;
     if (!el) return;
@@ -113,8 +115,23 @@ export function setTextareaCursor(
         offset = 0;
     } else if (position === "end") {
         offset = el.value.length;
-    } else {
+    } else if (typeof position === "number") {
         offset = position;
+    } else if (typeof position === "object") {
+        const lines = el.value.split("\n");
+        let cumulativeChars = 0;
+        for (let i = 0; i < lines.length; i++) {
+            if (i === position.lineIndex) {
+                offset = cumulativeChars + position.charIndex;
+                break;
+            }
+            cumulativeChars += lines[i].length + 1; // +1 for the newline
+        }
+
+        console.log("cumulativeChars", cumulativeChars);
+        console.log("position.charIndex", position.charIndex);
+        console.log("position.lineIndex", position.lineIndex);
+        console.log("offset", offset);
     }
 
     // Set the cursor (selection) range
