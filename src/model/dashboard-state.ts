@@ -40,7 +40,7 @@ export interface DashboardElementBase {
     id: string;
 }
 
-export type ElementSubType = 'text-default' | 'text-h3' | 'data-table' | 'data-chart' | 'data-map';
+export type ElementSubType = 'text-default' | 'text-h3' | 'text-list' | 'data-table' | 'data-chart' | 'data-map';
 
 export interface ElementSubTypeOption {
     value: ElementSubType;
@@ -50,6 +50,7 @@ export interface ElementSubTypeOption {
 export const TYPE_OPTIONS_TEXT: ElementSubTypeOption[] = [
     {value: 'text-default', label: 'Text'},
     {value: 'text-h3', label: 'Small Heading'},
+    {value: 'text-list', label: 'List'},
 ];
 
 export const TYPE_OPTIONS_DATA: ElementSubTypeOption[] = [
@@ -120,7 +121,7 @@ export function findElementOfTypeBefore(dashboardState: DashboardState, type: Da
     const elements = dashboardState.elements;
 
     let idBefore = null;
-    for ( let offset = elementIndex - 1; offset >= 0; offset--) {
+    for (let offset = elementIndex - 1; offset >= 0; offset--) {
         const elementId = elementsOrder[offset];
         if (elements[elementId].type === type) {
             idBefore = elementId;
@@ -135,7 +136,7 @@ export function findElementOfTypeAfter(dashboardState: DashboardState, type: Das
     const elements = dashboardState.elements;
 
     let idAfter = null;
-    for ( let offset = elementIndex + 1; offset < elementsOrder.length; offset++) {
+    for (let offset = elementIndex + 1; offset < elementsOrder.length; offset++) {
         const elementId = elementsOrder[offset];
         if (elements[elementId].type === type) {
             idAfter = elementId;

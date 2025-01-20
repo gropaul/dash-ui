@@ -1,4 +1,4 @@
-import {useState, useRef, useEffect} from "react";
+import {useState, useRef, useEffect, KeyboardEvent} from "react";
 import {DashboardElementView} from "@/components/dashboard/dashboard-element-view";
 import {DashboardElementDivider} from "@/components/dashboard/dashboard-element-divider";
 import {DashboardElementType, DashboardState, getInitialElement} from "@/model/dashboard-state";
@@ -174,6 +174,30 @@ export function DashboardContent(props: DashboardContentProps) {
         }
     }
 
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+        // Get the current selection
+        const selection = document.getSelection();
+        if (!selection) {
+            return;
+        }
+        if (!selection.rangeCount) {
+            return;
+        }
+
+        // Get the Range object for the current selection
+        const range = selection.getRangeAt(0);
+
+        // Find the nearest .subdiv element that contains the caret
+        const currentSubdiv = range.commonAncestorContainer.parentElement;
+
+        console.log(range)
+
+        if (currentSubdiv) {
+            console.log('Currently editing subdiv with id:', currentSubdiv.id);
+            // ... your logic here ...
+        }
+    }
+
     return (
             <div
                 className="p-4 pl-1 overflow-auto w-full h-full"
@@ -182,13 +206,17 @@ export function DashboardContent(props: DashboardContentProps) {
                 onPointerMove={onBasePointerMove}
                 onPointerUp={onBasePointerUp}
             >
-                <div className="max-w-screen-md mx-auto flex space-y-2 flex-col mb-[1024px] relative"
+                <div className="outline-none max-w-screen-md mx-auto flex space-y-2 flex-col mb-[1024px] relative select-none border-0"
                      data-element-id="root"
+                     contentEditable={true}
+                     suppressContentEditableWarning={true}
+                     onKeyDown={handleKeyDown}
                 >
                     {Object.values(dashboard.elementsOrder).map((elementId, index) => (
                         <div
                             key={index}
                             data-element-id={elementId}
+                            contentEditable={dashboard.elements[elementId].type === "text"}
                         >
                             <DashboardElementView
                                 focusState={focusState}

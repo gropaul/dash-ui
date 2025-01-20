@@ -10,6 +10,7 @@ import {cn} from "@/lib/utils";
 import {FocusState, FocusStateResolved} from "@/components/dashboard/dashboard-content";
 
 export interface EditableTextProps {
+    id?: string;
     text: string;
     placeholder?: string;
     onlyShowPlaceholderIfFocused?: boolean;
@@ -19,7 +20,7 @@ export interface EditableTextProps {
     focus?: FocusStateResolved;
 
     /** If you need an external ref to the <textarea> */
-    contentRef?: RefObject<HTMLTextAreaElement>;
+    contentRef?: RefObject<HTMLDivElement>;
 
     /** Called when the <textarea> receives focus */
     onFocused?: () => void;
@@ -59,7 +60,7 @@ function isEmpty(text: string, trim = false) {
  * Return line-based + total caret info from a <textarea>.
  */
 function getCursorPosition(
-    textarea: HTMLTextAreaElement | null
+    textarea: HTMLDivElement | null
 ): CursorPosition {
     if (!textarea) {
         return {
@@ -71,54 +72,64 @@ function getCursorPosition(
         };
     }
 
-    const text = textarea.value;
-    const selectionStart = textarea.selectionStart || 0;
-    const lines = text.split("\n");
-
-    let lineIndex = 0;
-    let lineOffset = 0;
-    let totalCharCount = text.length;
-
-    let cumulativeChars = 0;
-    for (let i = 0; i < lines.length; i++) {
-        const lineLength = lines[i].length;
-        if (selectionStart <= cumulativeChars + lineLength) {
-            lineIndex = i;
-            lineOffset = selectionStart - cumulativeChars;
-            break;
-        }
-        // +1 for the newline
-        cumulativeChars += lineLength + 1;
-    }
-
-
     return {
-        globalOffset: selectionStart,
-        lineOffset,
-        lineIndex,
-        totalNumberOfLines: lines.length,
-        totalNumberOfCharacters: totalCharCount,
+        globalOffset: 0,
+        lineOffset: 0,
+        lineIndex: 0,
+        totalNumberOfLines: 1,
+        totalNumberOfCharacters: 0,
     };
+
+    // const text = textarea.value;
+    // const selectionStart = textarea.selectionStart || 0;
+    // const lines = text.split("\n");
+    //
+    // let lineIndex = 0;
+    // let lineOffset = 0;
+    // let totalCharCount = text.length;
+    //
+    // let cumulativeChars = 0;
+    // for (let i = 0; i < lines.length; i++) {
+    //     const lineLength = lines[i].length;
+    //     if (selectionStart <= cumulativeChars + lineLength) {
+    //         lineIndex = i;
+    //         lineOffset = selectionStart - cumulativeChars;
+    //         break;
+    //     }
+    //     // +1 for the newline
+    //     cumulativeChars += lineLength + 1;
+    // }
+    //
+    //
+    // return {
+    //     globalOffset: selectionStart,
+    //     lineOffset,
+    //     lineIndex,
+    //     totalNumberOfLines: lines.length,
+    //     totalNumberOfCharacters: totalCharCount,
+    // };
 }
 
 export function setTextareaCursor(
-    textareaRef: React.RefObject<HTMLTextAreaElement>,
+    textareaRef: React.RefObject<HTMLDivElement>,
     // start, end, number=global cursor position, {lineIndex, charIndex} = line and index in line
-    position?: "start" | "end" | number | {lineIndex: number, charIndex: number}
+    position?: "start" | "end" | number | { lineIndex: number, charIndex: number }
 ) {
     const el = textareaRef.current;
     if (!el) return;
+
+    const value = el.textContent || "";
 
     // Compute the numeric offset
     let offset = 0;
     if (position === "start") {
         offset = 0;
     } else if (position === "end") {
-        offset = el.value.length;
+        offset = value.length;
     } else if (typeof position === "number") {
         offset = position;
     } else if (typeof position === "object") {
-        const lines = el.value.split("\n");
+        const lines = value.split("\n");
         let cumulativeChars = 0;
         for (let i = 0; i < lines.length; i++) {
             if (i === position.lineIndex) {
@@ -135,7 +146,7 @@ export function setTextareaCursor(
     }
 
     // Set the cursor (selection) range
-    el.setSelectionRange(offset, offset);
+    // el.setSelectionRange(offset, offset);
 
     console.log("el", el);
     console.log("offset", offset);
@@ -169,7 +180,7 @@ export function EditableTextBase(props: EditableTextProps) {
     const [isFocused, setIsFocused] = useState<boolean>(focus?.focused || false);
 
     // We create our own ref if user hasn't passed one
-    const localRef = useRef<HTMLTextAreaElement>(null);
+    const localRef = useRef<HTMLDivElement>(null);
     const textareaRef = contentRef || localRef;
 
     // Function to auto-resize the textarea to fit content
@@ -238,10 +249,12 @@ export function EditableTextBase(props: EditableTextProps) {
         setIsFocused(false);
     };
 
-    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
         // We'll get the caret position to detect "last line," "end of text," etc.
         const pos = getCursorPosition(textareaRef.current);
-
+        console.log('onKeyDown in EditableTextBase', pos);
+        // inner text
+        console.log('ref inner text', textareaRef.current?.textContent);
         if (e.key === "Enter") {
             // On Enter (without Shift/Ctrl), trigger onEnter
             if (!e.shiftKey && !e.ctrlKey) {
@@ -290,25 +303,25 @@ export function EditableTextBase(props: EditableTextProps) {
         : placeholder || "";
 
     return (
-        <div className={cn("relative w-full h-full bg-inherit", className)}>
-      <textarea
-          ref={textareaRef}
-          className={cn(
-              "block w-full outline-none bg-inherit",
-              // Remove resize handle, hide overflow (so no scrollbars appear)
-              "resize-none overflow-hidden",
-              className
-          )}
-          value={localText}
-          onChange={handleChange}
-          onInput={handleInput}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          placeholder={computedPlaceholder}
-          // If you have a default number of lines to display initially:
-          rows={1}
-      />
+        <div id={props.id}
+             className={cn("relative w-full h-full bg-inherit", className)}>
+            <div
+                id={props.id}
+                ref={textareaRef}
+                className={cn(
+                    "block w-full outline-none bg-inherit",
+                    // Remove resize handle, hide overflow (so no scrollbars appear)
+                    "resize-none",
+                    className
+                )}
+                // onChange={handleChange}
+                onInput={handleInput}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+                // If you have a default number of lines to display initially:
+            />
+            {localText}
         </div>
     );
 }

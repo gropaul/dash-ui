@@ -17,6 +17,24 @@ export function EditableH3(props: EditableTextComponentsProps) {
     );
 }
 
+export function EditableList(props: EditableTextComponentsProps) {
+    // list like
+    // - item 1
+    // - item 2
+    return (
+        <ViewElementBase {...props}>
+            { /* first horizontal line */}
+            <div className={'w-full flex flex-row'}>
+                <div contentEditable={false}> - </div>
+                <EditableTextBase {...props} placeholder={'Enter list item'} />
+            </div>
+            { /* list items */}
+
+
+        </ViewElementBase>
+    );
+}
+
 export function EditableText(props: EditableTextComponentsProps) {
     return (
         <ViewElementBase {...props}>

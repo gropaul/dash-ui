@@ -6,7 +6,7 @@ import {
     TYPE_OPTIONS_TEXT
 } from "@/model/dashboard-state";
 import {
-    EditableH3,
+    EditableH3, EditableList,
     EditableText,
     EditableTextComponentsProps
 } from "@/components/dashboard/components/editable-text-components";
@@ -26,7 +26,7 @@ export function DashboardTextView(props: DashboardTextViewProps) {
     const setDashboardState = useRelationsState((state) => state.setDashboardState);
     const updateDashboardElement = useRelationsState((state) => state.updateDashboardElement);
     const deleteDashboardElements = useRelationsState((state) => state.deleteDashboardElements);
-    const contentRef = useRef<HTMLTextAreaElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     // listen to focus change
     useEffect(() => {
@@ -182,10 +182,7 @@ export function DashboardTextView(props: DashboardTextViewProps) {
         },
         focusState: props.focusState,
         setFocusState: props.setFocusState,
-        onLastArrowDown: onLastArrowDown,
-        onLastArrowUp: onLastArrowUp,
-        onLastArrowLeft: onLastArrowLeft,
-        onLastArrowRight: onLastArrowRight,
+        id: props.element.id,
     }
 
     switch (props.element.subtype) {
@@ -193,5 +190,7 @@ export function DashboardTextView(props: DashboardTextViewProps) {
             return <EditableText {...textElementProps}/>
         case 'text-h3':
             return <EditableH3 {...textElementProps}/>
+        case 'text-list':
+            return <EditableList {...textElementProps}/>
     }
 }
