@@ -1,10 +1,12 @@
-import {useState, useRef, useEffect, KeyboardEvent} from "react";
+import {useState, useRef, useEffect, KeyboardEvent, ChangeEvent} from "react";
 import {DashboardElementView} from "@/components/dashboard/dashboard-element-view";
 import {DashboardElementDivider} from "@/components/dashboard/dashboard-element-divider";
 import {DashboardElementType, DashboardState, getInitialElement} from "@/model/dashboard-state";
 import {useRelationsState} from "@/state/relations.state";
 import {useHotkeys} from "react-hotkeys-hook";
 import {useStandardShortcuts} from "@/hooks/use-standard-shortcuts";
+import {handleTextKeyDown} from "@/components/dashboard/dashboard-element-view/text-element-interaction-functions";
+import exp from "node:constants";
 
 interface DashboardContentProps {
     dashboard: DashboardState;
@@ -13,14 +15,47 @@ interface DashboardContentProps {
 export interface FocusState {
     elementId: string | null;
     // start, end, number=global cursor position, {lineIndex, charIndex} = line and index in line
-    cursorLocation?: "start" | "end" | number | {lineIndex: number, charIndex: number};
+    cursorLocation?: "start" | "end" | number | { lineIndex: number, charIndex: number };
 
 }
 
 export interface FocusStateResolved {
     focused: boolean;
     // start, end, number=global cursor position, {lineIndex, charIndex} = line and index in line
-    cursorLocation?: "start" | "end" | number | {lineIndex: number, charIndex: number};
+    cursorLocation?: "start" | "end" | number | { lineIndex: number, charIndex: number };
+}
+
+export function FindIdInChildren(element: Element | null): string | null {
+    if (!element) {
+        return null;
+    }
+    const id = element.getAttribute("id");
+    if (id) {
+        return id;
+    }
+    // go down the tree
+    for (let i = 0; i < element.children.length; i++) {
+        const result = FindIdInChildren(element.children[i]);
+        if (result) {
+            return result;
+        }
+    }
+    return null;
+}
+
+export function FindIdInParents(element: Element | null): string | null {
+    if (!element) {
+        return null;
+    }
+    const id = element.getAttribute("id");
+    if (id) {
+        return id;
+    }
+    return FindIdInParents(element.parentElement);
+}
+
+export function FindId(element: Element | null): string | null {
+    return FindIdInParents(element) || FindIdInChildren(element);
 }
 
 export function DashboardContent(props: DashboardContentProps) {
@@ -174,75 +209,110 @@ export function DashboardContent(props: DashboardContentProps) {
         }
     }
 
-    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyDown = async (e: KeyboardEvent<HTMLDivElement>) => {
         // Get the current selection
         const selection = document.getSelection();
-        if (!selection) {
-            return;
-        }
-        if (!selection.rangeCount) {
-            return;
-        }
+
+        if (!selection || !selection.rangeCount) return;
 
         // Get the Range object for the current selection
         const range = selection.getRangeAt(0);
-
-        // Find the nearest .subdiv element that contains the caret
         const currentSubdiv = range.commonAncestorContainer.parentElement;
+        const id = FindId(currentSubdiv);
 
-        console.log(range)
-
-        if (currentSubdiv) {
-            console.log('Currently editing subdiv with id:', currentSubdiv.id);
-            // ... your logic here ...
+        if (!id) {
+            console.log("No id found, returning");
+            console.log(currentSubdiv);
+            return;
         }
+
+        const element = dashboard.elements[id];
+        if (element.type === "text") {
+            const handled = await handleTextKeyDown(dashboard.id, id, setFocusState, e);
+        }
+
+
     }
 
-    return (
-            <div
-                className="p-4 pl-1 overflow-auto w-full h-full"
-                ref={containerRef}
-                onPointerDown={onBasePointerDown}
-                onPointerMove={onBasePointerMove}
-                onPointerUp={onBasePointerUp}
-            >
-                <div className="outline-none max-w-screen-md mx-auto flex space-y-2 flex-col mb-[1024px] relative select-none border-0"
-                     data-element-id="root"
-                     contentEditable={true}
-                     suppressContentEditableWarning={true}
-                     onKeyDown={handleKeyDown}
-                >
-                    {Object.values(dashboard.elementsOrder).map((elementId, index) => (
-                        <div
-                            key={index}
-                            data-element-id={elementId}
-                            contentEditable={dashboard.elements[elementId].type === "text"}
-                        >
-                            <DashboardElementView
-                                focusState={focusState}
-                                setFocusState={setFocusState}
-                                dashboardId={dashboard.id}
-                                selected={dashboard.selectedElements.includes(elementId)}
-                                dashboardElement={dashboard.elements[elementId]}
-                                elementsOrder={dashboard.elementsOrder}
-                                elementIndex={index}
-                                elementsCount={dashboard.elementsOrder.length}
-                            />
-                        </div>
-                    ))}
-                </div>
+    // Called on <textarea> changes
+    const handleChange = () => {
 
-                {isSelecting && (
+        // Get the current selection
+        const selection = document.getSelection();
+
+        if (!selection || !selection.rangeCount) return;
+
+        // Get the Range object for the current selection
+        const range = selection.getRangeAt(0);
+        const currentSubdiv = range.commonAncestorContainer.parentElement;
+        const id = FindId(currentSubdiv);
+
+        if (!id) {
+            console.log("No id found, returning");
+            console.log(currentSubdiv);
+            return;
+        }
+
+        let newText = currentSubdiv!.textContent;
+
+        console.log("handleChange", newText, currentSubdiv);
+        console.log("id", id);
+
+        const updateDashboardElement = useRelationsState.getState().updateDashboardElement;
+        updateDashboardElement(dashboard.id, id, {
+            ...dashboard.elements[id],
+            text: newText,
+        } as any);
+    };
+
+    return (
+        <div
+            className="p-4 pl-1 overflow-auto w-full h-full"
+            ref={containerRef}
+            onPointerDown={onBasePointerDown}
+            onPointerMove={onBasePointerMove}
+            onPointerUp={onBasePointerUp}
+        >
+            <div
+                className="outline-none max-w-screen-md mx-auto flex space-y-2 flex-col mb-[1024px] relative select-none border-0"
+                data-element-id="root"
+                contentEditable={true}
+                suppressContentEditableWarning={true}
+                onKeyDown={handleKeyDown}
+                onInput={handleChange}
+            >
+                {Object.values(dashboard.elementsOrder).map((elementId, index) => (
                     <div
-                        className="absolute bg-blue-200 opacity-50 border border-blue-500"
-                        style={{
-                            top: selectionBox.top,
-                            left: selectionBox.left,
-                            width: selectionBox.width,
-                            height: selectionBox.height,
-                        }}
-                    />
-                )}
+                        key={index}
+                        data-element-id={elementId}
+                        contentEditable={dashboard.elements[elementId].type === "text"}
+                        suppressContentEditableWarning={true}
+                    >
+                        <DashboardElementView
+                            focusState={focusState}
+                            setFocusState={setFocusState}
+                            dashboardId={dashboard.id}
+                            selected={dashboard.selectedElements.includes(elementId)}
+                            dashboardElement={dashboard.elements[elementId]}
+                            elementsOrder={dashboard.elementsOrder}
+                            elementIndex={index}
+                            elementsCount={dashboard.elementsOrder.length}
+                        />
+                    </div>
+                ))}
             </div>
+
+            {isSelecting && (
+                <div
+                    className="absolute bg-blue-200 opacity-50 border border-blue-500"
+                    style={{
+                        top: selectionBox.top,
+                        left: selectionBox.left,
+                        width: selectionBox.width,
+                        height: selectionBox.height,
+                    }}
+                />
+            )}
+        </div>
     );
 }

@@ -24,8 +24,10 @@ export function EditableList(props: EditableTextComponentsProps) {
     return (
         <ViewElementBase {...props}>
             { /* first horizontal line */}
-            <div className={'w-full flex flex-row'}>
-                <div contentEditable={false}> - </div>
+            <div className={'w-full flex flex-row items-start'}>
+                <div contentEditable={false} className={'flex flex-row items-center h-6'}>
+                    <div className={'w-2 h-[1px] bg-primary rounded-full mr-2'}/>
+                </div>
                 <EditableTextBase {...props} placeholder={'Enter list item'} />
             </div>
             { /* list items */}

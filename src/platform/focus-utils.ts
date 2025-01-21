@@ -1,28 +1,36 @@
 export function setCursorPosition(element: HTMLElement, position: number): void {
-    const range = document.createRange();
     const selection = window.getSelection();
-
-    if (!selection) return;
+    if (!selection) return; // No selection available
 
     // Ensure the element has child nodes
-    if (element.childNodes.length > 0) {
-        let currentNode: ChildNode | null = element.firstChild;
-        let currentPosition = 0;
-
-        // Traverse child nodes to locate the correct text node
-        while (currentNode && currentPosition + (currentNode.textContent?.length || 0) < position) {
-            currentPosition += currentNode.textContent?.length || 0;
-            currentNode = currentNode.nextSibling;
-        }
-
-        if (currentNode) {
-            const offset = position - currentPosition;
-            range.setStart(currentNode, offset);
-            range.collapse(true);
-
-            selection.removeAllRanges();
-            selection.addRange(range);
-            element.focus();
-        }
+    if (element.childNodes.length === 0) {
+        // Optionally, create an empty text node if needed
+        // element.appendChild(document.createTextNode(""));
+        return;
     }
+
+    // Typically we care about the first child being a text node
+    const firstChild = element.childNodes[0];
+
+    // Make sure it's actually a text node
+    if (firstChild.nodeType !== Node.TEXT_NODE) {
+        // Optionally, replace or wrap with a text node if desired
+        // element.replaceChild(document.createTextNode(firstChild.textContent || ""), firstChild);
+        return;
+    }
+
+    const textNode = firstChild;
+    const textLength = textNode.nodeValue?.length ?? 0;
+
+    // Clamp the position so it's never out-of-bounds
+    const clampedPosition = Math.min(position, textLength);
+
+    // Create and set up the range
+    const range = document.createRange();
+    range.setStart(textNode, clampedPosition);
+    range.collapse(true);
+
+    // Clear any existing selections
+    selection.removeAllRanges();
+    selection.addRange(range);
 }
