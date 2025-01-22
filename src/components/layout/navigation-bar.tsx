@@ -1,6 +1,6 @@
 import React from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
-import {EditorOverviewTab} from "@/components/editor/editor-overview-tab";
+import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
 import {Database, Folder} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";

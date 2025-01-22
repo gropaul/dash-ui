@@ -8,9 +8,9 @@ import {Copy, LayoutDashboard, PencilLine, Plus, Sheet, Trash} from "lucide-reac
 import {TreeExplorer} from "@/components/basics/files/tree-explorer";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {ContextMenuItem, ContextMenuLabel, ContextMenuSeparator} from "@/components/ui/context-menu";
-import {RenameDialog} from "@/components/editor/rename-dialog";
+import {RenameDialog} from "@/components/workbench/rename-dialog";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
-import {DeleteDialog} from "@/components/editor/delete-dialog";
+import {DeleteDialog} from "@/components/workbench/delete-dialog";
 import {RelationState} from "@/model/relation-state";
 import {getRandomId} from "@/platform/id-utils";
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
@@ -18,7 +18,7 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {DashboardElement, DashboardState} from "@/model/dashboard-state";
 import {toast} from "sonner";
-import {DashboardCommand} from "@/components/editor/dashboard-command";
+import {DashboardCommand} from "@/components/workbench/dashboard-command";
 
 
 interface RenameState {

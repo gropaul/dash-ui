@@ -29,10 +29,7 @@ import {FocusState} from "@/components/dashboard/dashboard-content";
 
 export async function handleTextKeyDown(dashboardId: string, elementId: string, setFocusState: (focusState: FocusState) => void, event: React.KeyboardEvent<HTMLDivElement>): Promise<boolean> {
 
-    console.log("handleTextKeyDown", event.key);
     const caretOffset = window.getSelection()?.focusOffset;
-
-    console.log("caretOffset", caretOffset);
 
     if (caretOffset === undefined) {
         console.error("caretOffset is undefined");
@@ -40,17 +37,21 @@ export async function handleTextKeyDown(dashboardId: string, elementId: string, 
         return false;
     }
 
-    // if enter is pressed, split the text element
-    if (event.key === "Enter" && !(event.ctrlKey || event.metaKey)) {
+    // if enter is pressed, and not ctrl+enter or cmd+enter
+    if (event.key === "Enter") {
+        console.log("Enter pressed: ", event);
+        if (event.ctrlKey || event.shiftKey || event.metaKey) {
+            console.log("Ctrl or Meta key pressed -> ignore");
+            return false;
+        }
         event.preventDefault();
         await onEnterPress(dashboardId, elementId, caretOffset, setFocusState);
-        console.log("onEnterPress");
         return true;
     } else if (event.key === "Backspace" && caretOffset === 0) {
-        event.preventDefault();
-        await onLastDelete(dashboardId, elementId, setFocusState);
-        console.log("onLastDelete");
-        return true;
+        // event.preventDefault();
+        // await onLastDelete(dashboardId, elementId, setFocusState);
+        // console.log("onLastDelete");
+        // return true;
     }
 
     return false;
@@ -58,6 +59,9 @@ export async function handleTextKeyDown(dashboardId: string, elementId: string, 
 
 //
 async function onEnterPress(dashboardId: string, elementId: string, offset: number, setFocusState: (focusState: FocusState) => void) {
+
+    console.log("onEnterPress on element", elementId, "at offset", offset);
+
     const getDashboardState = useRelationsState.getState().getDashboardState;
     const dashboardState = getDashboardState(dashboardId);
     const elementsOrder = dashboardState.elementsOrder;

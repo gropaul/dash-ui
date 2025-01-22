@@ -1,4 +1,7 @@
 export function setCursorPosition(element: HTMLElement, position: number): void {
+
+    console.log("setCursorPosition", element, position);
+
     const selection = window.getSelection();
     if (!selection) return; // No selection available
 

@@ -23,24 +23,6 @@ export function DashboardTextView(props: DashboardTextViewProps) {
 
     const contentRef = useRef<HTMLDivElement>(null);
 
-    // listen to focus change
-    useEffect(() => {
-        if (props.focusState.elementId === props.element.id && contentRef.current) {
-            const location = props.focusState.cursorLocation ?? "start";
-            const textLength = contentRef.current.textContent?.length || 0;
-
-            let position = 0;
-            if (location === "end") {
-                position = textLength;
-            } else if (typeof location === "number") {
-                position = Math.min(location, textLength);
-            }
-            setCursorPosition(contentRef.current, position);
-        } else {
-            contentRef.current?.blur();
-        }
-    }, [props.focusState, props.element.id]);
-
     const startIconClassMap: { [key: string]: string } = {
         'text-default': 'h-6',
         'text-h3': 'h-8',
@@ -62,11 +44,11 @@ export function DashboardTextView(props: DashboardTextViewProps) {
         // onEnter: onEnterPress,
         // onLastDelete: onLastDelete,
         contentRef: contentRef,
-        focus: {
+        focusStateResolved: {
             focused: props.focusState.elementId === props.element.id,
             cursorLocation: props.focusState.cursorLocation ?? "end",
         },
-        onTextChange: (newText: string) => console.log(newText),
+        onTextChange: (newText: string) => console.log('onTextChange', newText),
         focusState: props.focusState,
         setFocusState: props.setFocusState,
         id: props.element.id,

@@ -1,4 +1,4 @@
-import {DashboardCommandState} from "@/components/editor/editor-overview-tab";
+import {DashboardCommandState} from "@/components/workbench/editor-overview-tab";
 import {
     Command,
     CommandDialog,

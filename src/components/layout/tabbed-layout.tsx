@@ -9,7 +9,7 @@ import {SchemaTab} from "@/components/schema/schema-tab";
 import {DatabaseTab} from "@/components/database/database-tab";
 import {DirectoryTab} from "@/components/directory/directory-tab";
 import {DashboardTab} from "@/components/dashboard/dashboard-tab";
-import {EditorOverviewTab} from "@/components/editor/editor-overview-tab";
+import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {AvailableTabs, NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
 import {cn} from "@/lib/utils";

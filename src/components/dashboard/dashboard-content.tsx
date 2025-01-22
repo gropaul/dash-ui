@@ -69,6 +69,8 @@ export function DashboardContent(props: DashboardContentProps) {
         cursorLocation: "end"
     });
 
+    console.log("DashboardContent focusState", focusState);
+
     useStandardShortcuts({
         onEscape: () => {
             setFocusState({elementId: null});
@@ -225,6 +227,8 @@ export function DashboardContent(props: DashboardContentProps) {
             console.log(currentSubdiv);
             return;
         }
+
+        console.log('handleKeyDown - id', id);
 
         const element = dashboard.elements[id];
         if (element.type === "text") {

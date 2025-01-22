@@ -22,10 +22,8 @@ const nextConfig = {
                 filename: "static/wasm/[name].[contenthash][ext]",
             },
         })
-
         return config;
     }
-
 }
 
 
