@@ -27,8 +27,10 @@ import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {duckdbStorage} from "@/state/persistency/duckdb";
 import {createWithEqualityFn} from "zustand/traditional";
-import {DashboardElement, DashboardState, DashboardViewState, getInitDashboardViewState} from "@/model/dashboard-state";
+import {DashboardState, DashboardViewState, getInitDashboardViewState} from "@/model/dashboard-state";
 import {getRandomId} from "@/platform/id-utils";
+import {createRef, useRef} from "react";
+import EditorJS from "@editorjs/editorjs";
 
 export interface RelationZustand {
 
@@ -84,13 +86,8 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     setDashboardState: (dashboardId: string, dashboard: DashboardState) => void,
 
     /* dashboard element actions */
-    setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => void,
-    updateDashboardElement: (dashboardId: string, elementId: string, partialUpdate: DeepPartial<DashboardElement>) => void,
-    updateDashboardSelection: (dashboardId: string, elementIds: string[], mode?: 'replace' | 'update', selected?: boolean) => void,
-    addDashboardElement: (dashboardId: string, element: DashboardElement, positionIndex?: number) => void,
-    deleteDashboardElements: (dashboardId: string, elementIds: string[]) => void,
 
-    /* dashboard element actions */
+    /* persistence actions */
     manualPersistModel: () => void,
 
     /* tab actions */
@@ -116,10 +113,8 @@ export const useRelationsState = createWithEqualityFn(
                     const dashboard: DashboardState = {
                         id: randomId,
                         name: "New Dashboard",
-                        elements: {},
-                        elementsOrder: [],
-                        selectedElements: [],
-                        viewState: getInitDashboardViewState("New Dashboard"),
+                        editorRef: createRef<EditorJS|null>(),
+                        viewState: getInitDashboardViewState("New Dashboard")
                     }
                     get().showDashboard(dashboard);
                 },
@@ -197,145 +192,6 @@ export const useRelationsState = createWithEqualityFn(
                         dashboards: {
                             ...state.dashboards,
                             [dashboardId]: dashboard,
-                        },
-                    }));
-                },
-                setDashboardElement: (dashboardId: string, elementId: string, element: DashboardElement, positionIndex?: number) => {
-                    const dashboard = get().dashboards[dashboardId];
-                    const newElements = {...dashboard.elements};
-
-                    // id must be already set
-                    if (newElements[elementId] === undefined) {
-                        throw new Error(`Element with id ${elementId} does not exist in dashboard ${dashboardId}`);
-                    }
-
-                    newElements[elementId] = element;
-
-                    // update the order if the element is moved
-                    const order = [...dashboard.elementsOrder];
-                    if (positionIndex !== undefined) {
-                        const currentIndex = order.indexOf(elementId);
-                        order.splice(currentIndex, 1);
-                        order.splice(positionIndex, 0, elementId);
-                    }
-
-                    set((state) => ({
-                        dashboards: {
-                            ...state.dashboards,
-                            [dashboardId]: {
-                                ...state.dashboards[dashboardId],
-                                elements: newElements,
-                                elementsOrder: order
-                            },
-                        },
-                    }));
-                },
-
-                updateDashboardElement: (dashboardId: string, elementId: string, partialUpdate: DeepPartial<DashboardElement>) => {
-                    const dashboard = get().dashboards[dashboardId];
-                    // assert that the element exists
-                    if (dashboard.elements[elementId] === undefined) {
-                        throw new Error(`Element with id ${elementId} does not exist in dashboard ${dashboardId}`);
-                    }
-
-                    const newElements = {...dashboard.elements};
-
-                    safeDeepUpdate(newElements[elementId], partialUpdate);
-
-                    set((state) => ({
-                        dashboards: {
-                            ...state.dashboards,
-                            [dashboardId]: {
-                                ...state.dashboards[dashboardId],
-                                elements: newElements,
-                            },
-                        },
-                    }));
-                },
-                updateDashboardSelection: (dashboardId: string, newSelectionIds: string[], mode: 'replace' | 'update' = 'replace', selected?: boolean) => {
-                    const dashboard = get().dashboards[dashboardId];
-                    let selectedElements = [...dashboard.selectedElements];
-
-                    if (mode === 'replace') {
-                        // replace the selection
-                        selectedElements = newSelectionIds;
-                    } else if (mode === 'update') {
-
-                        // selected must be defined
-                        if (selected === undefined) {
-                            throw new Error('selected must be defined when mode is update');
-                        }
-
-
-                        for (const elementId of newSelectionIds) {
-                            if (dashboard.elements[elementId] === undefined) {
-                                throw new Error(`Element with id ${elementId} does not exist in dashboard ${dashboardId}`);
-                            }
-
-                            if (selected && !selectedElements.includes(elementId)) {
-                                selectedElements.push(elementId);
-                            } else if (!selected && selectedElements.includes(elementId)) {
-                                const index = selectedElements.indexOf(elementId);
-                                selectedElements.splice(index, 1);
-                            }
-                        }
-                    }
-
-                    set((state) => ({
-                        dashboards: {
-                            ...state.dashboards,
-                            [dashboardId]: {
-                                ...state.dashboards[dashboardId],
-                                selectedElements: selectedElements,
-                            },
-                        },
-                    }));
-                },
-
-                addDashboardElement: (dashboardId: string, element: DashboardElement, positionIndex?: number) => {
-                    const dashboard = get().dashboards[dashboardId];
-                    const newElements = {...dashboard.elements};
-                    newElements[element.id] = element;
-
-                    const newElementsOrder = [...dashboard.elementsOrder];
-                    if (positionIndex !== undefined) {
-                        newElementsOrder.splice(positionIndex, 0, element.id);
-                    } else {
-                        newElementsOrder.push(element.id);
-                    }
-
-                    set((state) => ({
-                        dashboards: {
-                            ...state.dashboards,
-                            [dashboardId]: {
-                                ...state.dashboards[dashboardId],
-                                elements: newElements,
-                                elementsOrder: newElementsOrder,
-                            },
-                        },
-                    }));
-                },
-                deleteDashboardElements: (dashboardId: string, elementIds: string[]) => {
-                    const dashboard = get().dashboards[dashboardId];
-                    const newElements = {...dashboard.elements};
-                    const newElementsOrder = [...dashboard.elementsOrder];
-
-                    for (const elementId of elementIds) {
-                        delete newElements[elementId];
-                        const index = newElementsOrder.indexOf(elementId);
-                        if (index !== -1) {
-                            newElementsOrder.splice(index, 1);
-                        }
-                    }
-
-                    set((state) => ({
-                        dashboards: {
-                            ...state.dashboards,
-                            [dashboardId]: {
-                                ...state.dashboards[dashboardId],
-                                elements: newElements,
-                                elementsOrder: newElementsOrder,
-                            },
                         },
                     }));
                 },

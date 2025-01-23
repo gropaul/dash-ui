@@ -1,7 +1,7 @@
 import {WindowSplitter} from "@/components/ui/window-splitter";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
 import {ContentWrapper, RelationViewProps} from "@/components/relation/relation-view";
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 import {Sizable} from "@/components/ui/sizable";
 

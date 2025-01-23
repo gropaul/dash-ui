@@ -1,10 +1,6 @@
 // MyCustomBlock.tsx
-import { createRoot, Root } from 'react-dom/client';
-import type {
-    API,
-    BlockTool,
-    BlockToolConstructorOptions,
-} from '@editorjs/editorjs';
+import {createRoot, Root} from 'react-dom/client';
+import type {API, BlockTool, BlockToolConstructorOptions,} from '@editorjs/editorjs';
 
 import React from 'react';
 import {MyBlockComponent, MyBlockData} from "@/components/editor/tools/custom.component";

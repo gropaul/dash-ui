@@ -1,9 +1,9 @@
-import {ReactNode, useState, useRef, useEffect} from "react";
-import { TaskExecutionState } from "@/model/relation-state";
-import { RelationViewHeaderBorder } from "@/components/basics/basic-view/view-header-with-border";
-import { H5 } from "@/components/ui/typography";
-import { ViewPathBreadcrumb } from "@/components/basics/basic-view/view-path-breadcrumb";
-import {EditableTextBase} from "@/components/dashboard/components/editable-text-base";
+import {ReactNode} from "react";
+import {TaskExecutionState} from "@/model/relation-state";
+import {RelationViewHeaderBorder} from "@/components/basics/basic-view/view-header-with-border";
+import {H5} from "@/components/ui/typography";
+import {ViewPathBreadcrumb} from "@/components/basics/basic-view/view-path-breadcrumb";
+import {EditableTextBase} from "@/components/basics/input/editable-text-base";
 
 export interface ViewHeaderProps {
     title: string;

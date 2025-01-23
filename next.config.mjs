@@ -10,7 +10,6 @@ const nextConfig = {
     images: {
         unoptimized: true,
     },
-
     webpack(config, { isServer, dev }) {
         config.output.webassemblyModuleFilename = isServer && !dev ? '..static/wasm/[name].[moduleHash].wasm' : 'static/wasm/[name].[moduleHash].wasm'
         config.experiments = { ...config.experiments, asyncWebAssembly: true }

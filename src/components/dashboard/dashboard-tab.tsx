@@ -1,9 +1,6 @@
-import {DashboardElementView} from "@/components/dashboard/dashboard-element-view";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
-import {DashboardElementDivider} from "@/components/dashboard/dashboard-element-divider";
-import {DashboardElementType, getInitialElement} from "@/model/dashboard-state";
 import {DashboardContent} from "@/components/dashboard/dashboard-content";
 
 

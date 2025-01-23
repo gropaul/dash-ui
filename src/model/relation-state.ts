@@ -113,52 +113,122 @@ export function getBaseQueryFromSource(source: RelationSource): string {
     }
 }
 
-export async function getQueryFromParams(relation: Relation, query: RelationQueryParams, baseSQL: string): Promise<QueryData> {
+// 1. A helper that does all the heavy-lifting but doesn't do the async check.
+function buildQueries(
+    _relation: Relation,
+    query: RelationQueryParams,
+    baseSQL: string
+): {
+    initialQueries: string[];
+    finalQuery: string;
+    viewQuery: string;
+    countQuery: string;
+    baseQuery: string;
+    viewParameters: RelationQueryParams;
+    // optionally return any other intermediate results if needed
+} {
+    const { offset, limit } = query;
 
-    const {offset, limit} = query;
+    // Build "ORDER BY ..." from query.sorting
+    const orderByColumns = Object.entries(query.sorting)
+        .map(([column, sorting]) => (sorting ? `"${column}" ${sorting}` : ''))
+        .filter(Boolean)
+        .join(', ');
 
-    const orderByColumns = Object.entries(query.sorting).map(([column, sorting]) => {
-        if (!sorting) {
-            return '';
-        }
-        return `"${column}" ${sorting}`;
-    }).filter((s) => s.length > 0).join(', ');
-
+    // E.g. your existing split logic
     const baseQueries = cleanAndSplitSQL(baseSQL);
 
-    // Separate the base queries into initial queries and the final query
     const initialQueries = baseQueries.slice(0, -1);
     const finalQuery = baseQueries.at(-1);
-
     if (!finalQuery) {
         throw new Error('No final query found in base SQL');
     }
 
+    // Turn final query into a subquery
     const finalQueryAsSubQuery = turnQueryIntoSubquery(finalQuery);
-    const orderByQuery = orderByColumns ? "ORDER BY " + orderByColumns : "";
+
+    const orderByQuery = orderByColumns ? 'ORDER BY ' + orderByColumns : '';
     const viewQuery = `
-        SELECT *
-        FROM ${finalQueryAsSubQuery} ${orderByQuery} LIMIT ${limit}
-        OFFSET ${offset};
-    `;
+    SELECT *
+    FROM ${finalQueryAsSubQuery} ${orderByQuery}
+    LIMIT ${limit}
+    OFFSET ${offset};
+  `;
 
-    // check if viewQuery is executable as e.g. if base query is something like CREATE TABLE, the view query will be invalid,
-    // and we should only execute the base query, same for the count query
-    const executable = await ConnectionsService.getInstance().checkIfQueryIsExecutable(relation.connectionId, viewQuery);
-
-
-    // count query using subquery which is the query Get data without limit and offset
-    const countQuery = `SELECT COUNT(*)
-                        FROM ${finalQueryAsSubQuery} as subquery`;
+    // Build a count query
+    const countQuery = `
+    SELECT COUNT(*)
+    FROM ${finalQueryAsSubQuery} as subquery
+  `;
 
     return {
-        countQuery: executable ? countQuery : `SELECT 0`,
-        viewQuery: executable ? viewQuery : finalQuery,
-        initialQueries: initialQueries,
+        initialQueries,
+        finalQuery,
+        viewQuery,
+        countQuery,
         baseQuery: baseSQL,
         viewParameters: query,
     };
 }
+
+// 2. The async version that checks executability
+export async function getQueryFromParams(
+    relation: Relation,
+    query: RelationQueryParams,
+    baseSQL: string
+): Promise<QueryData> {
+    // Build the queries first
+    const {
+        initialQueries,
+        finalQuery,
+        viewQuery,
+        countQuery,
+        baseQuery,
+        viewParameters,
+    } = buildQueries(relation, query, baseSQL);
+
+    // Then do your async check:
+    const executable = await ConnectionsService.getInstance().checkIfQueryIsExecutable(
+        relation.connectionId,
+        viewQuery
+    );
+
+    // If not executable, fallback
+    return {
+        countQuery: executable ? countQuery : 'SELECT 0',
+        viewQuery: executable ? viewQuery : finalQuery,
+        initialQueries,
+        baseQuery,
+        viewParameters,
+    };
+}
+
+// 3. The sync version that SKIPS the check
+export function getQueryFromParamsUnchecked(
+    relation: Relation,
+    query: RelationQueryParams,
+    baseSQL: string
+): QueryData {
+    // Same shared build
+    const {
+        initialQueries,
+        finalQuery,
+        viewQuery,
+        countQuery,
+        baseQuery,
+        viewParameters,
+    } = buildQueries(relation, query, baseSQL);
+
+    // No check => always return viewQuery & countQuery
+    return {
+        countQuery,
+        viewQuery,
+        initialQueries,
+        baseQuery,
+        viewParameters,
+    };
+}
+
 
 export function setRelationLoading(relation: RelationState): RelationState {
     return {

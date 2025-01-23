@@ -15,9 +15,6 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {useRelationsState} from "@/state/relations.state";
-import {RelationSourceQuery} from "@/model/relation";
-import {getRandomId} from "@/platform/id-utils";
-import {DashboardState} from "@/model/dashboard-state";
 
 export interface ConnectionViewProps {
     connection: DataConnection;

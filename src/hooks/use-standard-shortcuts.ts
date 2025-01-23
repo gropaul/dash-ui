@@ -1,4 +1,4 @@
-import { useHotkeys } from 'react-hotkeys-hook';
+import {useHotkeys} from 'react-hotkeys-hook';
 
 interface StandardShortcuts {
     onDelete?: () => void;

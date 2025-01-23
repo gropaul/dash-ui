@@ -2,11 +2,11 @@ import {DashboardCommandState} from "@/components/workbench/editor-overview-tab"
 import {
     Command,
     CommandDialog,
-    CommandInput,
-    CommandList,
-    CommandItem,
     CommandEmpty,
-    CommandGroup
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList
 } from "@/components/ui/command";
 import {DashboardState} from "@/model/dashboard-state";
 

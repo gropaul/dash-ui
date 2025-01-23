@@ -2,7 +2,6 @@ import {DefaultRelationZustandActions, useRelationsState} from "@/state/relation
 import {CodeFence} from "@/components/basics/code-fence/code-fence";
 import {getDefaultQueryParams, RelationState} from "@/model/relation-state";
 import {getSeparatedStatements} from "@/platform/sql-utils";
-import {cn} from "@/lib/utils";
 
 interface RelationViewQueryProps extends DefaultRelationZustandActions{
     relationState: RelationState,

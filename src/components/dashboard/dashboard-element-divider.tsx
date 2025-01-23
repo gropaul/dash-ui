@@ -1,4 +1,4 @@
-import { DashboardElementType } from "@/model/dashboard-state";
+import {DashboardElementType} from "@/model/dashboard-state";
 import {Button} from "@/components/ui/button";
 import {ChartLine, LetterText} from "lucide-react";
 

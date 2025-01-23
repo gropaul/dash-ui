@@ -4,10 +4,9 @@ import React, {Fragment} from "react";
 import {useConnectionsState} from "@/state/connections.state";
 import {ConnectionView} from "@/components/connections/connection-view";
 import {H5} from "@/components/ui/typography";
-import {Separator} from "@/components/ui/separator";
-import {ScrollArea} from "@/components/ui/scroll-area";
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
+
 export function ConnectionsOverviewTab() {
     const connections = useConnectionsState((state) => state.connections);
 

@@ -1,10 +1,9 @@
-import { Action, Actions, DockLocation, Model } from "flexlayout-react";
-import { Relation } from "@/model/relation";
-import { IJsonTabNode } from "flexlayout-react/declarations/model/IJsonModel";
-import { useRelationsState } from "@/state/relations.state";
-import { RelationState } from "@/model/relation-state";
-import { DataSourceGroup } from "@/model/connection";
-import { DashboardState } from "@/model/dashboard-state";
+import {Action, Actions, DockLocation, Model} from "flexlayout-react";
+import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
+import {useRelationsState} from "@/state/relations.state";
+import {RelationState} from "@/model/relation-state";
+import {DataSourceGroup} from "@/model/connection";
+import {DashboardState} from "@/model/dashboard-state";
 
 // Layout Initialization
 export function getInitialLayoutModel(): Model {

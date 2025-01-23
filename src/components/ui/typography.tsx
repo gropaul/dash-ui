@@ -67,6 +67,12 @@ export const Large = createComponent<HTMLDivElement>(
     'Large'
 );
 
+export const Strong = createComponent<HTMLSpanElement>(
+    'span',
+    'font-semibold text-sm',
+    'Strong'
+);
+
 export const Small = createComponent<HTMLParagraphElement>(
     'p',
     'text-sm font-medium leading-none',
