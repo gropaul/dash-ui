@@ -1,0 +1,22 @@
+.codex-editor:has(.ce-popover--opened) {
+}
+
+.codex-editor {
+    z-index: unset;
+}
+
+.ce-popover__container {
+}
+
+.ce-toolbar:has(.ce-popover--opened) {
+    z-index: 4;
+}
+
+.ce-block {
+    background-color: hsl(var(--background));
+}
+
+.ce-block__content {
+
+    background-color: inherit;
+}

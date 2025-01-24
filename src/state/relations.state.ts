@@ -114,7 +114,17 @@ export const useRelationsState = createWithEqualityFn(
                         id: randomId,
                         name: "New Dashboard",
                         editorRef: createRef<EditorJS|null>(),
-                        viewState: getInitDashboardViewState("New Dashboard")
+                        viewState: getInitDashboardViewState("New Dashboard"),
+                        elementState: {
+                            blocks: [{
+                                id: "GgmmsvOcU5",
+                                type: "header",
+                                data: {
+                                    "text": "New Dashboard",
+                                    "level": 1
+                                }
+                            }]
+                        }
                     }
                     get().showDashboard(dashboard);
                 },
@@ -441,10 +451,20 @@ export const useRelationsState = createWithEqualityFn(
         {
             name: 'relationState',
             storage: createJSONStorage(() => duckdbStorage),
-            partialize: (state) =>
-                Object.fromEntries(
-                    Object.entries(state).filter(([key]) => !EXCLUDED_KEYS.includes(key)),
-                ) as RelationZustandCombined,
+            partialize: (state) => {
+                const newState = {...state};
+                // @ts-ignore
+                delete newState.layoutModel;
+
+                // delete all refs from the dashboard state
+                for (const dashboardId in newState.dashboards) {
+                    delete newState.dashboards[dashboardId].editorRef;
+                }
+
+                console.log('partialize', newState);
+
+                return newState;
+            }
         }
     )
 );
@@ -475,22 +495,3 @@ const unsub = useRelationsState.persist.onFinishHydration((state) => {
 
     unsub();
 })
-
-
-interface TestState {
-    bears: number;
-    increase: () => void;
-}
-
-export const useTestState = createWithEqualityFn(
-    persist<TestState>(
-        (set, get) => ({
-            bears: 0,
-            increase: () => set((state) => ({bears: state.bears + 1})),
-        }),
-        {
-            name: 'test-state',
-            // storage: createJSONStorage(() => duckdbStorage),
-        }
-    )
-);

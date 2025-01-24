@@ -20,7 +20,7 @@ export function getInitDashboardViewState(displayName: string): DashboardViewSta
 export interface DashboardState {
     id: string;
     name: string;
-    editorRef: MutableRefObject<EditorJS | null>;
+    editorRef?: MutableRefObject<EditorJS | null>;
     elementState?: OutputData;
     viewState: DashboardViewState;
 }

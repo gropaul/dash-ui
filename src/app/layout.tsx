@@ -1,6 +1,6 @@
 'use client';
 
-import "./globals.css";
+import "../styles/globals.css";
 import ConnectionsProvider from "@/components/provider/connections-provider";
 import {ThemeProvider} from "@/components/provider/theme-provider";
 import {cn} from "@/lib/utils";

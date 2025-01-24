@@ -88,8 +88,8 @@ export function Table(props: RelationViewProps) {
 
     return (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
-            <div className={cn("flex flex-col w-full overflow-hidden", wrapperClasses)}>
-                <div className={cn("relative flex flex-row", contentClasses)}>
+            <div className={cn("flex bg-inherit flex-col w-full overflow-hidden", wrapperClasses)}>
+                <div className={cn("bg-inherit flex flex-row", contentClasses)}>
                     <TableContent {...props} columnViewIndices={columnViewIndices}/>
                 </div>
                 <TableFooter {...props}/>

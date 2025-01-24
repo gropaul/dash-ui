@@ -28,7 +28,7 @@ export function ChartContent({data, config, hideTitleIfEmpty = false}: MyChartPr
                     <H5>{config.plot.title}</H5>
                 </div>
             )}
-            <div className="flex-grow w-full min-h-4">
+            <div className="flex-grow w-full min-h-4 no-outline">
                 <ChartContainer config={chartConfig} className={"w-full h-full"}>
                     {
                         ChartWrapper({

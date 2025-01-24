@@ -16,7 +16,7 @@ export function RelationView(props: RelationViewProps) {
         <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
             <RelationViewHeader {...props}/>
 
-            <div className={`flex-1 overflow-auto relative`}>
+            <div className={`flex-1 bg-background overflow-auto`}>
                 <RelationStateView {...props}/>
             </div>
         </div>
@@ -38,8 +38,8 @@ export function ContentWrapper(props: RelationViewProps) {
 
 export function RelationViewError({error}: { error: Record<string, any> }) {
     return (
-        <div className="p-4 w-full h-full flex flex-col items-start justify-start">
-            <div className={'flex flex-row text-red-500 items-center space-x-2 h-6'}>
+        <div className="p-4 w-full bg-inherit h-full flex flex-col items-start justify-start">
+            <div className={'flex bg-inherit flex-row text-red-500 items-center space-x-2 h-6'}>
                 <TriangleAlert size={16}/>
                 <span>Error executing query</span>
             </div>

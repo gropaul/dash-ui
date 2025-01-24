@@ -16,9 +16,10 @@ import {getRandomId} from "@/platform/id-utils";
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
-import {DashboardElement, DashboardState} from "@/model/dashboard-state";
 import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
+import {DashboardState} from "@/model/dashboard-state";
+import {RELATION_BLOCK_TYPE, RelationBlockData} from "@/components/editor/tools/relation.tool";
 
 
 interface RenameState {
@@ -55,6 +56,7 @@ export function EditorOverviewTab() {
     const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
     const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
     const addNewRelation = useRelationsState((state) => state.addNewRelation);
+    const setDashboardState = useRelationsState((state) => state.setDashboardState);
 
     const relationTreeElements: TreeNode[] = Object.keys(relations).map<TreeNode>(relationStateId => {
         const relation = relations[relationStateId];
@@ -202,19 +204,44 @@ export function EditorOverviewTab() {
         relation.viewState.codeFenceState.layout = 'row';
         relation.viewState.codeFenceState.show = false;
 
-        const newElement: DashboardElement = {
-            type: 'data',
-            subtype: 'data-table',
-            id: getRandomId(),
-            data: relation
+        const newElementData: RelationBlockData = {
+            ...relation,
+            viewState: {
+                ...relation.viewState,
+                chartState: {
+                    ...relation.viewState.chartState,
+                    view: {
+                        ...relation.viewState.chartState.view,
+                        showConfig: false,
+                    }
+                },
+                codeFenceState: {
+                    sizePercentage: 0.5,
+                    layout: 'row',
+                    show: false
+                }
+            }
         }
 
-        const currentElements = {...dashboard.elements};
-        currentElements[newElement.id] = newElement;
-
-        const addElement = useRelationsState.getState().addDashboardElement;
-        addElement(dashboard.id, newElement);
-
+        const newState: DashboardState = {
+            ...dashboard,
+            elementState: {
+                blocks: [
+                    ...(dashboard.elementState?.blocks || []),
+                    {
+                        type: RELATION_BLOCK_TYPE,
+                        data: newElementData,
+                        id: getRandomId()
+                    }
+                ]
+            }
+        }
+        // of there is a ref, update the editor
+        if (dashboard.editorRef?.current) {
+            dashboard.editorRef.current.blocks.insert(RELATION_BLOCK_TYPE, newElementData);
+        } else {
+            setDashboardState(dashboard.id, newState);
+        }
         toast.success(`Added "${relation.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
 
     }

@@ -15,6 +15,7 @@ export function ChartDataElement(props: ChartDataElementProps) {
     switch (props.type) {
         case 'line':
             return <Line
+                style={{stroke: props.axis.color}}
                 data={undefined}
                 dataKey={props.axis.columnId}
                 type="monotone"
@@ -29,12 +30,15 @@ export function ChartDataElement(props: ChartDataElementProps) {
             />
         case 'bar':
             return <Bar
+                style={{stroke: props.axis.color}}
                 dataKey={props.axis.columnId}
                 fill={props.axis.color}
+                stroke={props.axis.color}
                 radius={8}
             />
         case 'area':
             return <Area
+                style={{stroke: props.axis.color}}
                 dataKey={props.axis.columnId}
                 type="monotone"
                 fill={props.axis.color}
@@ -43,12 +47,14 @@ export function ChartDataElement(props: ChartDataElementProps) {
             />
         case "scatter":
             return <Scatter
+                style={{stroke: props.axis.color}}
                 dataKey={props.axis.columnId}
                 fill={props.axis.color}
                 radius={4}
             />
         case "pie":
             return <Pie
+                style={{stroke: props.axis.color}}
                 label={ (entry: any) => entry['name']}
                 data={props.elementData}
                 nameKey={props.nameKey}
@@ -63,6 +69,7 @@ export function ChartDataElement(props: ChartDataElementProps) {
             </Pie>
         case "radar":
             return <Radar
+                style={{stroke: props.axis.color}}
                 dataKey={props.axis.columnId}
                 stroke={props.axis.color}
                 fill={props.axis.color}

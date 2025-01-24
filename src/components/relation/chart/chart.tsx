@@ -45,7 +45,7 @@ export function Chart(props: RelationViewProps) {
                 onChange={updateConfigRatio}
                 child2Active={config.view.showConfig}
             >
-                <div className={cn('relative', contentPaddingClass, overflowClass)}>
+                <div className={cn(contentPaddingClass, overflowClass)}>
                     {plotDisplayError ?
                         <ChartContentError error={plotDisplayError}/>
                         :

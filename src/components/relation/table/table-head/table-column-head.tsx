@@ -118,8 +118,8 @@ function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.React
             style={{width: props.columnWidth, overflow: 'hidden'}}
             className={`p-0 m-0 h-full`}
         >
-            <div className="pl-4 border-b border-border flex items-center bg-background "
-                 style={{width: '100%', height: '100%', position: 'relative'}}>
+            <div className="pl-4 border-b border-border flex items-center bg-inherit relative "
+                 style={{width: '100%', height: '100%'}}>
                 {props.children}
             </div>
         </th>

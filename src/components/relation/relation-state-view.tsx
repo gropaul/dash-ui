@@ -39,6 +39,7 @@ export function RelationStateView(props: RelationViewProps) {
     const showCode = codeFenceState.show;
     const embedded = props.embedded ?? false;
 
+    console.log('RelationStateView: ShowCode', showCode, codePercentage, codeFenceState);
 
     return (
         <>
@@ -56,7 +57,7 @@ export function RelationStateView(props: RelationViewProps) {
             )}
             {
                 embedded && (
-                    <div className={"w-full h-fit flex flex-col"}>
+                    <div className={"w-full h-fit bg-inherit flex flex-col"}>
                         {showCode && <Sizable
                             width={'full'}
                             height={codeHeight}

@@ -97,3 +97,9 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.icon-smaller {
+    transform: scale(0.75);        /* Shrink to 75% of the size */
+    transform-origin: center;      /* Scale from the center, so it remains centered */
+}
+

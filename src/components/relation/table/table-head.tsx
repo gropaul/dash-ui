@@ -26,14 +26,14 @@ export function TableHead(props: RelationViewTableContentProps) {
 
     return (
         <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-            <thead className="border-0 text-s text-primary bg-background sticky top-0 z-20">
-            <tr>
+            <thead className="border-0 text-s text-primary bg-inherit sticky top-0 z-[3]">
+            <tr className={'bg-inherit'}>
                 {/* Row index column header */}
                 <th
                     scope="col"
-                    className="p-0 m-0 h-8 sticky left-0 z-20 bg-background w-20"
+                    className="p-0 m-0 h-8 sticky left-0 z-20 bg-inherit w-20"
                 >
-                    <div className="w-full h-full absolute right-0 top-0 z-50 border-r border-b border-border" />
+                    <div className="w-full h-full bg-inherit absolute right-0 top-0 z-[3] border-r border-b border-border" />
                 </th>
                 {/* Column headers */}
                 {props.columnViewIndices.map((index) => (

@@ -29,7 +29,7 @@ export function TableValueCell({ tableState, column, element }: RowElementViewPr
 
     return (
         <td
-            className="relative px-4 py-1 group"
+            className="px-4 py-1 group"
             style={{
                 width: columnWidth,
                 overflow: "hidden",
