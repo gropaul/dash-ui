@@ -20,6 +20,7 @@ import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import {DashboardState} from "@/model/dashboard-state";
 import {RELATION_BLOCK_TYPE, RelationBlockData} from "@/components/editor/tools/relation.tool";
+import {useEditorStore} from "@/state/editor.state";
 
 
 interface RenameState {
@@ -198,8 +199,6 @@ export function EditorOverviewTab() {
     }
 
     function onAddToDashboardSelected(relation: RelationState, dashboard: DashboardState) {
-        console.log('Add to dashboard selected', relation, dashboard);
-
         // update relation ui
         relation.viewState.codeFenceState.layout = 'row';
         relation.viewState.codeFenceState.show = false;
@@ -236,9 +235,15 @@ export function EditorOverviewTab() {
                 ]
             }
         }
+
+        const editorState = useEditorStore.getState();
+        const dashboardId = dashboard.id;
         // of there is a ref, update the editor
-        if (dashboard.editorRef?.current) {
-            dashboard.editorRef.current.blocks.insert(RELATION_BLOCK_TYPE, newElementData);
+        if (editorState.hasEditor(dashboardId)) {
+            console.log('Updating editor', dashboardId);
+            const editor = editorState.getEditor(dashboardId);
+            const nBlocks = editor.blocks.getBlocksCount();
+            editor.blocks.insert(RELATION_BLOCK_TYPE, newElementData, undefined, nBlocks);
         } else {
             setDashboardState(dashboard.id, newState);
         }

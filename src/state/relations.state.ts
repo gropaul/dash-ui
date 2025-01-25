@@ -113,7 +113,6 @@ export const useRelationsState = createWithEqualityFn(
                     const dashboard: DashboardState = {
                         id: randomId,
                         name: "New Dashboard",
-                        editorRef: createRef<EditorJS|null>(),
                         viewState: getInitDashboardViewState("New Dashboard"),
                         elementState: {
                             blocks: [{
@@ -455,11 +454,6 @@ export const useRelationsState = createWithEqualityFn(
                 const newState = {...state};
                 // @ts-ignore
                 delete newState.layoutModel;
-
-                // delete all refs from the dashboard state
-                for (const dashboardId in newState.dashboards) {
-                    delete newState.dashboards[dashboardId].editorRef;
-                }
 
                 console.log('partialize', newState);
 

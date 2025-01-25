@@ -10,29 +10,24 @@ import Undo from "editorjs-undo";
 import "@/styles/editor-js.css";
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
 import {EDITOR_JS_TOOLS} from "@/components/editor/tools";
+import {useEditorStore} from "@/state/editor.state";
 
 
 // Props interface (TypeScript)
 interface EditorProps {
+    id: string;
     readOnly?: boolean;
-    editorRef?: MutableRefObject<EditorJS | null>;
     onBlockChangeEvent?: (events: BlockMutationEvent[]) => void;
     initialData?: OutputData;
     onSaved?: (data: OutputData) => void;
     onToggleReadOnly?: (val: boolean) => void;
 }
 
-export interface EditorBlock {
-    id: string;
-    type: string;
-    data: any;
-}
-
 export default function Editor(props: EditorProps) {
 
     const {readOnly = false, onToggleReadOnly} = props;
-    const localEditorRef = useRef<EditorJS | null>(null);
-    const editorRef = props.editorRef ?? localEditorRef;
+    const editorRef = useRef<EditorJS | null>(null);
+    const { setEditor, removeEditor } = useEditorStore(); // Zustand action to set editorRef
 
     useEffect(() => {
         // Cleanup any existing instance
@@ -41,12 +36,13 @@ export default function Editor(props: EditorProps) {
         }
 
         const editor = new EditorJS({
-            holder: "editorjs",
+            holder: props.id,
             placeholder: "Start writting here..",
-            readOnly,
+            readOnly: false,
             onReady: () => {
                 new Undo({editor})
                 new DragDrop(editor);
+                setEditor(props.id, editor);
             },
             onChange: (api, event) => {
                 const events = Array.isArray(event) ? event : [event];
@@ -67,11 +63,12 @@ export default function Editor(props: EditorProps) {
         return () => {
             if (editorRef.current && editorRef.current.destroy) {
                 editorRef.current.destroy();
+                removeEditor(props.id);
             }
         };
     }, [readOnly]);
 
     return (
-        <div id="editorjs" className="w-[1000px] min-h-[400px] p-2"/>
+        <div id={props.id} className="max-w-[1000px] w-full min-h-[400px] p-2"/>
     );
 }

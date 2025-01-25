@@ -17,6 +17,42 @@
 }
 
 .ce-block__content {
-
     background-color: inherit;
+}
+
+h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h6 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
 }

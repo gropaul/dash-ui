@@ -16,7 +16,7 @@ import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
 import Table from "@editorjs/table";
 import List from "@editorjs/list";
-import Header from "@/components/editor/tools/header.tool";
+import Header from "@editorjs/header";
 
 export const EDITOR_JS_TOOLS = {
     [RELATION_BLOCK_TYPE]: {

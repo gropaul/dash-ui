@@ -3,8 +3,7 @@ import {getInitialTabViewBaseState, getInitViewState, TabViewBaseState} from "@/
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {getRandomId} from "@/platform/id-utils";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import EditorJS, {OutputData} from "@editorjs/editorjs";
-import {MutableRefObject} from "react";
+import {OutputData} from "@editorjs/editorjs";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 
 export interface DashboardViewState extends TabViewBaseState {
@@ -20,7 +19,6 @@ export function getInitDashboardViewState(displayName: string): DashboardViewSta
 export interface DashboardState {
     id: string;
     name: string;
-    editorRef?: MutableRefObject<EditorJS | null>;
     elementState?: OutputData;
     viewState: DashboardViewState;
 }

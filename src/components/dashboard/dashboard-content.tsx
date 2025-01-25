@@ -1,8 +1,9 @@
 import {DashboardState} from "@/model/dashboard-state";
 import {useRelationsState} from "@/state/relations.state";
-import {OutputData} from "@editorjs/editorjs";
+import EditorJS, {OutputData} from "@editorjs/editorjs";
 
 import dynamic from "next/dynamic";
+import {useRef} from "react";
 const Editor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 
 
@@ -25,10 +26,10 @@ export function DashboardContent(props: DashboardContentProps) {
 
     return (
         <div
-            className="p-4 pl-1 overflow-auto w-full h-full bg-inherit"
+            className="p-4 pl-1 overflow-auto w-full h-full bg-inherit flex flex-col items-center justify-start"
         >
             <Editor
-                editorRef={dashboard.editorRef}
+                id={dashboard.id}
                 initialData={dashboard.elementState}
                 onSaved={onSaved}
             />

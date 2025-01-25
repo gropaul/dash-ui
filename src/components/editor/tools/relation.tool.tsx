@@ -63,6 +63,10 @@ export default class RelationBlockTool implements BlockTool {
     private wrapper: HTMLElement | null = null;
     private reactRoot: Root | null = null;
 
+    static get isReadOnlySupported() {
+        return true;
+    }
+
     // Editor.js config
     static get toolbox() {
         return {
@@ -70,6 +74,8 @@ export default class RelationBlockTool implements BlockTool {
             icon: ICON_TABLE,
         };
     }
+
+
 
     public static isRelationBlockData(data: any): data is RelationBlockData {
         return data && typeof data === 'object' && 'viewState' in data;
