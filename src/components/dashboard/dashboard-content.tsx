@@ -1,9 +1,9 @@
 import {DashboardState} from "@/model/dashboard-state";
 import {useRelationsState} from "@/state/relations.state";
-import EditorJS, {OutputData} from "@editorjs/editorjs";
+import {OutputData} from "@editorjs/editorjs";
 
 import dynamic from "next/dynamic";
-import {useRef} from "react";
+
 const Editor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 
 
@@ -17,7 +17,6 @@ export function DashboardContent(props: DashboardContentProps) {
     const setDashboardState = useRelationsState((state) => state.setDashboardState);
 
     function onSaved(outputData: OutputData) {
-        console.log("onSaved", outputData);
         setDashboardState(dashboard.id, {
             ...dashboard,
             elementState: outputData

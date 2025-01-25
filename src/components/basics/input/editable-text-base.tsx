@@ -51,10 +51,6 @@ export function EditableTextBase(props: EditableTextProps) {
     // Update local text if the prop text changes outside
     useEffect(() => {
         if (props.text !== contentRef.current?.innerText) {
-            // print both text's ascii values
-            console.log('Local text:', localText.split('').map(c => c.charCodeAt(0)));
-            console.log('Prop text: ', props.text.split('').map(c => c.charCodeAt(0)));
-            console.log('Changing text');
             setLocalText(props.text);
             setNeedsPlaceholder(empty(props.text));
         }

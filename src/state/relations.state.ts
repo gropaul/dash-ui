@@ -29,8 +29,6 @@ import {duckdbStorage} from "@/state/persistency/duckdb";
 import {createWithEqualityFn} from "zustand/traditional";
 import {DashboardState, DashboardViewState, getInitDashboardViewState} from "@/model/dashboard-state";
 import {getRandomId} from "@/platform/id-utils";
-import {createRef, useRef} from "react";
-import EditorJS from "@editorjs/editorjs";
 
 export interface RelationZustand {
 

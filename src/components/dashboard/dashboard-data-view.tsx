@@ -7,9 +7,7 @@ import {
     updateRelationQueryForParams
 } from "@/model/relation-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
-import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
-import {useRelationsState} from "@/state/relations.state";
-import {renameTab} from "@/state/relations/layout-updates";
+import {RelationViewState} from "@/model/relation-view-state";
 
 export interface DashboardDataViewProps {
     relation: RelationState;

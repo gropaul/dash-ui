@@ -194,7 +194,6 @@ export function EditorOverviewTab() {
                 open: true,
                 relation: tree.payload as RelationState
             });
-            console.log('Add to dashboard', tree.payload);
         }
     }
 
@@ -240,7 +239,6 @@ export function EditorOverviewTab() {
         const dashboardId = dashboard.id;
         // of there is a ref, update the editor
         if (editorState.hasEditor(dashboardId)) {
-            console.log('Updating editor', dashboardId);
             const editor = editorState.getEditor(dashboardId);
             const nBlocks = editor.blocks.getBlocksCount();
             editor.blocks.insert(RELATION_BLOCK_TYPE, newElementData, undefined, nBlocks);

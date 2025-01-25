@@ -1,6 +1,6 @@
 'use client'
 
-import {MutableRefObject, useEffect, useRef} from "react";
+import {useEffect, useRef} from "react";
 import EditorJS, {OutputData} from "@editorjs/editorjs";
 // @ts-ignore
 import DragDrop from "editorjs-drag-drop";
