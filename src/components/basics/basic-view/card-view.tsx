@@ -1,4 +1,5 @@
 import React from "react";
+import {H1, H3, H5} from "@/components/ui/typography";
 
 
 interface CardViewProps {
@@ -13,9 +14,9 @@ export function CardView(props: CardViewProps) {
         <div className={'border border-gray-200 rounded w-72 h-fit'}>
             <div className={'w-full flex items-center justify-between border-b border-gray-200 px-4 py-1'}>
                 <div className="flex items-center justify-between space-x-2 w-full">
-                    <h1 className="text-md font-semibold flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <H5 className="text-md font-semibold flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
                         {props.header}
-                    </h1>
+                    </H5>
                     <div>
                         {props.headerButtons}
                     </div>

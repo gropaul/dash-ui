@@ -1,7 +1,11 @@
 import {useConnectionsState} from "@/state/connections.state";
 import {FormDefinition} from "@/components/basics/input/custom-form";
 import {RelationData, RelationSource} from "@/model/relation";
-import {CONNECTION_ID_DUCKDB_LOCAL, CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,} from "@/platform/global-data";
+import {
+    CONNECTION_ID_DUCKDB_LOCAL,
+    CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,
+    DEFAULT_RELATION_VIEW_PATH,
+} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
 import {findNodeInTrees, TreeNode} from "@/components/basics/files/tree-utils";
@@ -168,7 +172,7 @@ export class FileSystemOverDuckdb implements DataConnection {
             }
 
             // show the table
-            await useRelationsState.getState().showRelationFromSource(this.id, source);
+            await useRelationsState.getState().showRelationFromSource(this.id, source, DEFAULT_RELATION_VIEW_PATH);
         }
     }
 

@@ -6,6 +6,7 @@ import {RelationSourceTable} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {CardView} from "@/components/basics/basic-view/card-view";
 import {ValueIcon} from "@/components/relation/common/value-icon";
+import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 
 
 interface SchemaRelationViewProps {
@@ -25,7 +26,7 @@ export function SchemaRelationView(props: SchemaRelationViewProps) {
             tableName: props.table.name,
         }
 
-        showRelation(props.schema.connectionId, relationSourceTable);
+        showRelation(props.schema.connectionId, relationSourceTable, DEFAULT_RELATION_VIEW_PATH);
     }
 
 
@@ -45,20 +46,24 @@ export function SchemaRelationView(props: SchemaRelationViewProps) {
                 />
             }
         >
-            {props.table.children!.map((column) => (
-                <div key={column.name} className="flex items-center justify-between px-4 py-0.5 border-gray-100">
-                    <div className="flex-1 flex items-center space-x-2 overflow-hidden pr-1">
-                        <ValueIcon type={column.type}/>
-                        <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap" title={column.name}>
+            <div className={'flex flex-col space-y-0.5'}>
+
+                {props.table.children!.map((column) => (
+                    <div key={column.name} className="flex items-center justify-between px-4 py-0.5 border-gray-100">
+                        <div className="flex-1 flex items-center space-x-2 overflow-hidden pr-1">
+                            <ValueIcon type={column.type}/>
+                            <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+                                  title={column.name}>
                             {column.name}
                         </span>
-                    </div>
-                    {/* Type always fully visible */}
-                    <span className="flex-shrink-0 text-gray-500 text-s">
+                        </div>
+                        {/* Type always fully visible */}
+                        <span className="flex-shrink-0 text-gray-500 text-s">
                         {column.type}
                     </span>
-                </div>
-            ))}
+                    </div>
+                ))}
+            </div>
         </CardView>
     )
 }

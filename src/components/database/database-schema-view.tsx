@@ -4,6 +4,7 @@ import React from "react";
 import {RelationSourceTable} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {Database, ExternalLink, Network} from "lucide-react";
+import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 
 
 interface DatabaseSchemaViewProps {
@@ -29,7 +30,7 @@ export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
             schema: props.schema.name,
             tableName: tableName,
         }
-        showRelation(props.connectionId, relationSourceTable);
+        showRelation(props.connectionId, relationSourceTable, DEFAULT_RELATION_VIEW_PATH);
     }
 
 
@@ -49,28 +50,30 @@ export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
                 />
             }
         >
-            {props.schema.children!.map((table, index) => (
-                <div
-                    key={table.name}
-                    className="group flex items-center justify-between px-4 py-0.5 border-gray-100"
-                >
-                    <div className="flex-1 flex items-center space-x-2 overflow-hidden pr-1">
-                        <Database size={16}/>
-                        <span
-                            className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
-                            title={table.name}
-                        >
+            <div className={'flex flex-col space-y-0.5'}>
+                {props.schema.children!.map((table, index) => (
+                    <div
+                        key={table.name}
+                        className="group flex items-center justify-between px-4 py-0.5 border-gray-100"
+                    >
+                        <div className="flex-1 flex items-center space-x-2 overflow-hidden pr-1">
+                            <Database size={16}/>
+                            <span
+                                className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+                                title={table.name}
+                            >
                           {table.name}
                         </span>
+                        </div>
+                        <ExternalLink
+                            size={16}
+                            className="text-gray-500 hover:text-gray-700 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => onShowRelation(table.name)}
+                        />
                     </div>
-                    <ExternalLink
-                        size={16}
-                        className="text-gray-500 hover:text-gray-700 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => onShowRelation(table.name)}
-                    />
-                </div>
 
-            ))}
+                ))}
+            </div>
         </CardView>
     )
 }

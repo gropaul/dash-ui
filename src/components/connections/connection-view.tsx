@@ -2,7 +2,7 @@ import {TreeExplorer} from "@/components/basics/files/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import React from "react";
 import {useConnectionsState} from "@/state/connections.state";
-import {EllipsisVertical, Plus, RefreshCw, Settings} from "lucide-react";
+import {EllipsisVertical, RefreshCw, Settings} from "lucide-react";
 import {ConnectionConfigModal} from "@/components/connections/connection-config-modal";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DataConnection, DataConnectionConfig} from "@/model/connection";
@@ -11,10 +11,8 @@ import {
     DropdownMenuContent,
     DropdownMenuGroup,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import {useRelationsState} from "@/state/relations.state";
 
 export interface ConnectionViewProps {
     connection: DataConnection;
@@ -25,8 +23,6 @@ export function ConnectionView(props: ConnectionViewProps) {
     const refreshConnection = useConnectionsState((state) => state.refreshConnection);
     const updateConfig = useConnectionsState((state) => state.updateConfig);
     const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
-    const addNewRelation = useRelationsState((state) => state.addNewRelation);
-    const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
     const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
@@ -86,25 +82,6 @@ export function ConnectionView(props: ConnectionViewProps) {
                                     <span>Reload</span>
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
-                            {
-                                props.connection.type.includes('duckdb-' as any) && (
-                                    <>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuGroup>
-                                            <DropdownMenuItem onClick={() => addNewRelation(props.connection.id)}>
-                                                <Plus />
-                                                <span>New Query</span>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuGroup>
-                                        <DropdownMenuGroup>
-                                            <DropdownMenuItem onClick={() => addNewDashboard(props.connection.id)}>
-                                                <Plus />
-                                                <span>New Dashboard</span>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuGroup>
-                                    </>
-                                )
-                            }
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

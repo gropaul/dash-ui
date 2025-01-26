@@ -3,7 +3,7 @@ import {RelationData, RelationSource, RelationSourceTable} from "@/model/relatio
 import {useRelationsState} from "@/state/relations.state";
 import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/model/connection";
 import {useConnectionsState} from "@/state/connections.state";
-import {DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
+import {DEFAULT_RELATION_VIEW_PATH, DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {removeSemicolon} from "@/platform/sql-utils";
@@ -54,7 +54,7 @@ export async function onDuckDBDataSourceClick(
             schema: schemaName,
             tableName: relationName,
         };
-        await showRelation(connection.id, source);
+        await showRelation(connection.id, source, DEFAULT_RELATION_VIEW_PATH);
     }
 }
 
@@ -159,7 +159,7 @@ export async function creatTableIfNotExistsFromFilePath(connection: DataConnecti
         tableName: tableName,
     }
 
-    await useRelationsState.getState().showRelationFromSource(connection.id, relationSource);
+    await useRelationsState.getState().showRelationFromSource(connection.id, relationSource, DEFAULT_RELATION_VIEW_PATH);
 
     return tableName;
 }

@@ -14,4 +14,4 @@ export const DUCKDB_IN_MEMORY_DB = 'memory';
 
 export const DEFAULT_COLORS = ["#ea5545", "#f46a9b", "#ef9b20", "#edbf33", "#ede15b", "#bdcf32", "#87bc45", "#27aeef", "#b33dc6"]
 
-
+export const DEFAULT_RELATION_VIEW_PATH =[]

@@ -1,7 +1,7 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {RelationSource} from "@/model/relation";
-import {DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
+import {DEFAULT_RELATION_VIEW_PATH, DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
 import {useRelationsState} from "@/state/relations.state";
 import {useConnectionsState} from "@/state/connections.state";
 
@@ -23,7 +23,7 @@ export async function importAndShowRelationsWithWASM(files: File[]) {
             schema: DUCKDB_BASE_SCHEMA,
             tableName: tableName,
         }
-        await showRelation(duckDBWasm.id, source);
+        await showRelation(duckDBWasm.id, source, DEFAULT_RELATION_VIEW_PATH);
     }
     await updateDataSources(duckDBWasm.id);
 }
