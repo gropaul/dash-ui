@@ -14,10 +14,10 @@ interface DashboardContentProps {
 export function DashboardContent(props: DashboardContentProps) {
 
     const dashboard = props.dashboard;
-    const setDashboardState = useRelationsState((state) => state.setDashboardState);
+    const setDashboardStateUnsafe = useRelationsState((state) => state.setDashboardStateUnsafe);
 
     function onSaved(outputData: OutputData) {
-        setDashboardState(dashboard.id, {
+        setDashboardStateUnsafe(dashboard.id, {
             ...dashboard,
             elementState: outputData
         });

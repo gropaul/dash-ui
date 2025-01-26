@@ -29,9 +29,25 @@ import {duckdbStorage} from "@/state/persistency/duckdb";
 import {createWithEqualityFn} from "zustand/traditional";
 import {DashboardState, DashboardViewState, getInitDashboardViewState} from "@/model/dashboard-state";
 import {getRandomId} from "@/platform/id-utils";
+import {EditorFolder, GetNewEditorRelation} from "@/model/editor-folder";
+import {
+    addNode,
+    applyTreeAction,
+    applyTreeActions, copyAndApplyTreeActions, findNodeInTrees, findNodeParentInTrees, IterateAll,
+    removeNode,
+    TreeAction,
+    updateNode
+} from "@/components/basics/files/tree-utils";
+import {
+    AddDashboardActions,
+    AddRelationActions,
+    RemoveNodeAction,
+    RenameNodeActions
+} from "@/components/basics/files/tree-action-utils";
 
 export interface RelationZustand {
 
+    editorElements: EditorFolder[];
     relations: { [key: string]: RelationState };
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
@@ -44,7 +60,7 @@ export interface RelationZustand {
 export interface DefaultRelationZustandActions {
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>, path?: string[]) => void,
 
 }
 
@@ -53,11 +69,12 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
     /* relation actions */
     getRelation: (relationId: string) => RelationState,
+    addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
     relationExists: (relationId: string) => boolean,
-    addNewRelation: (connectionId: string) => Promise<void>,
-    deleteRelation: (relationId: string) => void,
-    showRelation: (relation: RelationState) => void,
-    showRelationFromSource: (connectionId: string, source: RelationSource) => Promise<void>,
+    deleteRelation: (relationId: string, editorPath: string[]) => void,
+    showRelation: (relation: RelationState, editorPath: string[]) => void,
+    showRelationFromId: (relationId: string, editorPath: string[]) => void,
+    showRelationFromSource: (connectionId: string, source: RelationSource, editorPath: string[]) => void,
 
     /* relation data actions */
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
@@ -76,14 +93,21 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     getDatabaseState: (databaseId: string) => DatabaseState,
 
     /* dashboard actions */
-    showDashboard: (dashboard: DashboardState) => Promise<void>,
-    addNewDashboard: (connectionId: string) => Promise<void>,
-    deleteDashboard: (dashboardId: string) => void,
-    updateDashboardViewState: (dashboardId: string, viewState: DeepPartial<DashboardViewState>) => void,
+    showDashboard: (dashboard: DashboardState, editorPath: string[]) => Promise<void>,
+    showDashboardFromId: (dashboardId: string, editorPath: string[]) => void,
+    addNewDashboard: (connectionId: string, editorPath: string[], dashboard?: DashboardState) => void,
+    deleteDashboard: (dashboardId: string, editorPath: string[]) => void,
+    updateDashboardViewState: (dashboardId: string, viewState: DeepPartial<DashboardViewState>, editorPath?: string[]) => void,
     getDashboardState: (dashboardId: string) => DashboardState,
-    setDashboardState: (dashboardId: string, dashboard: DashboardState) => void,
+    // **unsafe in terms of adding, renaming, and deleting dashboards**
+    setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => void,
 
-    /* dashboard element actions */
+    /* editor folder actions */
+    updateEditorElements: (path: string[], newFolder: EditorFolder) => void,
+    addEditorElement: (path: string[], newFolder: EditorFolder) => void,
+    removeEditorElement: (path: string[]) => void,
+    applyEditorElementsActions: (actions: TreeAction[]) => void,
+    resetEditorElements: () => void,
 
     /* persistence actions */
     manualPersistModel: () => void,
@@ -105,42 +129,62 @@ export const useRelationsState = createWithEqualityFn(
                 schemas: {},
                 databases: {},
                 dashboards: {},
+                editorElements: [],
                 selectedTabId: undefined,
-                addNewDashboard: async () => {
+                addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
                     const randomId = `dashboard-${getRandomId()}`;
-                    const dashboard: DashboardState = {
-                        id: randomId,
-                        name: "New Dashboard",
-                        viewState: getInitDashboardViewState("New Dashboard"),
-                        elementState: {
-                            blocks: [{
-                                id: "GgmmsvOcU5",
-                                type: "header",
-                                data: {
-                                    "text": "New Dashboard",
-                                    "level": 1
-                                }
-                            }]
+                    let local_dashboard: DashboardState | undefined = dashboard;
+                    if (!local_dashboard) {
+                        local_dashboard = {
+                            id: randomId,
+                            name: "New Dashboard",
+                            viewState: getInitDashboardViewState("New Dashboard"),
+                            elementState: {
+                                blocks: [{
+                                    id: getRandomId(),
+                                    type: "header",
+                                    data: {
+                                        "text": "New Dashboard",
+                                        "level": 1
+                                    }
+                                }]
+                            }
                         }
                     }
-                    get().showDashboard(dashboard);
+                    get().showDashboard(local_dashboard, editorPath);
                 },
-                deleteDashboard: (dashboardId: string) => {
+                deleteDashboard: (dashboardId: string, editorPath: string[]) => {
                     const {dashboards} = get();
                     if (dashboards[dashboardId].viewState.isTabOpen) {
                         removeTab(get().layoutModel, dashboardId);
                     }
                     const newDashboards = {...dashboards};
                     delete newDashboards[dashboardId];
-                    set({dashboards: newDashboards});
-                },
-                updateDashboardViewState: (dashboardId: string, partialUpdate: DeepPartial<DashboardViewState>) => {
-                    const currentViewState = deepClone(get().dashboards[dashboardId].viewState);
 
+                    const actions = RemoveNodeAction(editorPath);
+                    const newElements = copyAndApplyTreeActions(get().editorElements, actions);
+                    set({
+                        dashboards: newDashboards,
+                        editorElements: newElements,
+                    });
+                },
+                updateDashboardViewState: (dashboardId: string, partialUpdate: DeepPartial<DashboardViewState>, path?: string[]) => {
+                    const currentViewState = deepClone(get().dashboards[dashboardId].viewState);
+                    let newEditorElements = get().editorElements;
                     // check if displayName is updated, if so, update the tab title
                     if (partialUpdate.displayName) {
                         const model = get().layoutModel;
                         renameTab(model, dashboardId, partialUpdate.displayName);
+
+                        // path must be provided if the displayName is updated
+                        if (!path) {
+                            throw new Error('Path must be provided if displayName is updated');
+                        }
+
+                        const node = findNodeInTrees(get().editorElements, path);
+                        const actions = RenameNodeActions(path, partialUpdate.displayName, node!);
+                        newEditorElements = copyAndApplyTreeActions(get().editorElements, actions);
+
                     }
                     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
 
@@ -152,21 +196,30 @@ export const useRelationsState = createWithEqualityFn(
                                 viewState: currentViewState,
                             },
                         },
+                        editorElements: newEditorElements,
                     }));
                 },
-                addNewRelation: async (connectionId: string) => {
-                    const randomId = getRandomId();
-                    const baseQuery = "SELECT 'Hello, World! 🦆' AS message;";
-                    const source: RelationSourceQuery = {
-                        type: "query",
-                        baseQuery: baseQuery,
-                        id: randomId,
-                        name: "New Query"
-                    }
 
-                    get().showRelationFromSource(connectionId, source);
+                addNewRelation: async (connectionId: string, editorPath: string[], relation?: RelationState) => {
+                    const baseQuery = "SELECT 'Hello, World! 🦆' AS message;";
+                    if (!relation) {
+                        const local_source: RelationSource = {
+                            type: "query",
+                            baseQuery: baseQuery,
+                            id: getRandomId(),
+                            name: "New Query"
+                        }
+                        get().showRelationFromSource(connectionId, local_source, editorPath);
+                    } else {
+                        // make sure that this relation is not already in the state
+                        get().showRelation(relation, editorPath);
+                    }
                 },
-                showDashboard: async (dashboard: DashboardState) => {
+                showDashboardFromId: (dashboardId: string, editorPath: string[]) => {
+                    const dashboard = get().dashboards[dashboardId];
+                    get().showDashboard(dashboard, editorPath);
+                },
+                showDashboard: async (dashboard: DashboardState, editorPath: string[]) => {
                     const {dashboards, layoutModel} = get(); // Get the current state
                     const dashboardStateId = dashboard.id; // Use the dashboard ID as the state ID
                     const existingDashboard = dashboards[dashboardStateId]; // Retrieve the database
@@ -185,16 +238,22 @@ export const useRelationsState = createWithEqualityFn(
                             addDashboardToLayout(layoutModel, dashboardStateId, dashboard);
                         }
                     } else {
+                        // add to editor elements
+                        const parent = findNodeInTrees(get().editorElements, editorPath);
+                        const actions = AddDashboardActions(editorPath, dashboardStateId, parent, dashboard.viewState.displayName);
+                        const newElements = copyAndApplyTreeActions(get().editorElements, actions);
+
                         set((state) => ({
                             dashboards: {
                                 ...state.dashboards,
                                 [dashboardStateId]: dashboard,
                             },
+                            editorElements: newElements,
                         }));
                         addDashboardToLayout(layoutModel, dashboardStateId, dashboard);
                     }
                 },
-                setDashboardState: (dashboardId: string, dashboard: DashboardState) => {
+                setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => {
                     set((state) => ({
                         dashboards: {
                             ...state.dashboards,
@@ -256,7 +315,7 @@ export const useRelationsState = createWithEqualityFn(
                 relationExists: (relationId: string) => get().relations[relationId] !== undefined,
                 getRelation: (relationId: string) => get().relations[relationId],
 
-                showRelation(relation: RelationState) {
+                showRelation(relation: RelationState, editorPath: string[]) {
                     const relationId = getRelationIdFromSource(relation.connectionId, relation.source)
                     const {relations} = get(); // Get the current state
                     const existingRelation = relations[relationId]; // Retrieve the relation
@@ -275,34 +334,57 @@ export const useRelationsState = createWithEqualityFn(
                             addRelationToLayout(get().layoutModel, existingRelation);
                         }
                     } else {
+
+                        console.log('showRelation', relationId, relation, editorPath)
+                        const parent = findNodeParentInTrees(get().editorElements, editorPath);
+                        console.log('showRelation - parent:', parent)
+                        const actions = AddRelationActions(editorPath, relationId, parent, relation.viewState.displayName);
+                        console.log('showRelation - actions:', actions)
+                        const newElements = copyAndApplyTreeActions(get().editorElements, actions);
+                        console.log('showRelation - newElements:', newElements)
                         set((state) => ({
                             relations: {
                                 ...state.relations,
                                 [relationId]: relation,
                             },
+                            editorElements: newElements,
                         }));
                         const model = get().layoutModel;
                         addRelationToLayout(model, relation);
                     }
                 },
-                showRelationFromSource: async (connectionId: string, source: RelationSource) => {
+                showRelationFromId: (relationId: string, editorPath: string[]) => {
+                    const relation = get().relations[relationId];
+                    get().showRelation(relation, editorPath);
+                },
+                showRelationFromSource: async (connectionId: string, source: RelationSource, editorPath: string[]) => {
 
                     const relationId = getRelationIdFromSource(connectionId, source);
 
                     // check if relation already exists
                     const existingRelation = get().relations[relationId];
                     if (existingRelation) {
-                        get().showRelation(existingRelation);
+                        get().showRelation(existingRelation, editorPath);
                     } else {
-
+                        console.log('showRelationFromSource', relationId, source, editorPath)
                         // update state with empty (loading) relation
                         const defaultQueryParams = getDefaultQueryParams();
                         const emptyRelationState = await getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
+
+                        // as the relation did not exist yet, we also have to add a reference to the editor
+                        const parent = findNodeInTrees(get().editorElements, editorPath);
+                        console.log('showRelationFromSource - parent:', parent)
+                        const actions = AddRelationActions(editorPath, relationId, parent, emptyRelationState.viewState.displayName);
+                        console.log('showRelationFromSource - actions:', actions)
+                        const newElements = copyAndApplyTreeActions(get().editorElements, actions);
+                        console.log('showRelationFromSource - newElements:', newElements)
+                        // finally update the state
                         set((state) => ({
                             relations: {
                                 ...state.relations,
                                 [relationId]: emptyRelationState,
                             },
+                            editorElements: newElements,
                         }));
 
                         const model = get().layoutModel;
@@ -373,14 +455,23 @@ export const useRelationsState = createWithEqualityFn(
                 getRelationViewState: (relationId: string) => {
                     return get().relations[relationId].viewState;
                 },
-                updateRelationViewState: (relationId: string, partialUpdate: DeepPartial<RelationViewState>) => {
+                updateRelationViewState: (relationId: string, partialUpdate: DeepPartial<RelationViewState>, path?: string[]) => {
 
                     const currentViewState = deepClone(get().relations[relationId].viewState);
-
+                    let newEditorElements = get().editorElements;
                     // check if displayName is updated, if so, update the tab title
                     if (partialUpdate.displayName) {
                         const model = get().layoutModel;
                         renameTab(model, relationId, partialUpdate.displayName);
+
+                        // path must be provided if the displayName is updated
+                        if (!path) {
+                            throw new Error('Path must be provided if displayName is updated');
+                        }
+
+                        const node = findNodeInTrees(newEditorElements, path);
+                        const actions = RenameNodeActions(path, partialUpdate.displayName, node!);
+                        newEditorElements = copyAndApplyTreeActions(newEditorElements, actions);
                     }
                     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
 
@@ -392,10 +483,11 @@ export const useRelationsState = createWithEqualityFn(
                                 viewState: currentViewState,
                             },
                         },
+                        editorElements: newEditorElements,
                     }));
 
                 },
-                deleteRelation: (relationId: string) => {
+                deleteRelation: (relationId: string, editorPath: string[]) => {
                     const {relations} = get();
                     const newRelations = {...relations};
                     delete newRelations[relationId];
@@ -403,7 +495,14 @@ export const useRelationsState = createWithEqualityFn(
                     if (relations[relationId].viewState.isTabOpen) {
                         removeTab(get().layoutModel, relationId);
                     }
-                    set({relations: newRelations});
+                    
+                    const actions = RemoveNodeAction(editorPath);
+                    const newElements = copyAndApplyTreeActions(get().editorElements, actions);
+                    
+                    set({
+                        relations: newRelations,
+                        editorElements: newElements,
+                    });
                 },
 
                 setSelectedTabId: (tabId: string) => {
@@ -438,6 +537,56 @@ export const useRelationsState = createWithEqualityFn(
                             layoutModel: model,
                         }),
                     ),
+                updateEditorElements: (path: string[], newFolder: EditorFolder) => {
+                    const newElements = [...get().editorElements];
+                    const updatedFolders = updateNode(newElements, path, newFolder);
+                    set(() => ({editorElements: updatedFolders}));
+                },
+                addEditorElement: (path: string[], newFolder: EditorFolder) => {
+                    const newElements = [...get().editorElements];
+                    const updatedFolders = addNode(newElements, path, newFolder);
+                    set(() => ({editorElements: updatedFolders}));
+                },
+
+                removeEditorElement: (path: string[]) => {
+
+                    const newElements = [...get().editorElements];
+                    const newRelations = {...get().relations};
+                    const newDashboards = {...get().dashboards};
+                        
+                    const elementToRemove = findNodeInTrees(newElements, path);
+                    if (!elementToRemove) throw new Error('Element to remove not found');
+
+                    IterateAll([elementToRemove], (node, id_path) => {
+                        if (node.type === 'dashboard') {
+                            if (newDashboards[node.id].viewState.isTabOpen) {
+                                removeTab(get().layoutModel, node.id);
+                            }
+                            delete newDashboards[node.id];
+                        } else if (node.type === 'relation') {
+                            if (newRelations[node.id].viewState.isTabOpen) {
+                                removeTab(get().layoutModel, node.id);
+                            }
+                            delete newRelations[node.id];
+                        }
+                    });
+
+                    const updatedFolders = removeNode(newElements, path);
+                    set(() => ({
+                        editorElements: updatedFolders,
+                        relations: newRelations,
+                        dashboards: newDashboards,
+                    }));
+                },
+
+                applyEditorElementsActions: (actions: TreeAction[]) => {
+                    const newElements = [...get().editorElements];
+                    let updatedFolders = applyTreeActions(newElements, actions);
+                    set(() => ({editorElements: updatedFolders}));
+                },
+                resetEditorElements: () => {
+                    set(() => ({editorElements: []}));
+                },
 
                 manualPersistModel: () => {
                     set(() => ({}));
@@ -452,9 +601,6 @@ export const useRelationsState = createWithEqualityFn(
                 const newState = {...state};
                 // @ts-ignore
                 delete newState.layoutModel;
-
-                console.log('partialize', newState);
-
                 return newState;
             }
         }

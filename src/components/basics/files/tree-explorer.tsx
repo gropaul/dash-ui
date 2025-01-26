@@ -10,15 +10,20 @@ export interface TreeExplorerNodeProps {
 
     parent_id_path: string[]
     onClick: (tree_id_path: string[], node: TreeNode) => void;
+    onExpandedChange?: (tree_id_path: string[], node: TreeNode, expanded: boolean) => void;
     onDoubleClick?: (tree_id_path: string[], node: TreeNode) => void;
-
     loadChildren?: (tree_id_path: string[]) => void;
 
     contextMenuFactory?: TreeContextMenuFactory;
 }
 
 function TreeExplorerNode(props: TreeExplorerNodeProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(props.tree.expanded ?? false);
+
+    // listen for changes in the expanded prop
+    React.useEffect(() => {
+        setIsExpanded(props.tree.expanded ?? false);
+    }, [props.tree.expanded]);
 
     const childrenLoaded = props.tree.children !== undefined;
     const hasNoChildren = props.tree.children === null;
@@ -34,9 +39,11 @@ function TreeExplorerNode(props: TreeExplorerNodeProps) {
         if (!childrenLoaded && props.loadChildren) {
             props.loadChildren(current_tree_id_path);
         }
-        setIsExpanded(!isExpanded);
-    };
+        const newExpanded = !isExpanded;
+        setIsExpanded(newExpanded);
+        props.onExpandedChange?.(current_tree_id_path, props.tree, newExpanded);
 
+    };
 
     function localOnClick(e: React.MouseEvent) {
         props.onClick(current_tree_id_path, props.tree);
@@ -137,6 +144,8 @@ export interface TreeExplorerProps {
     onClick: (tree_id_path: string[], node: TreeNode) => void;
     onDoubleClick?: (tree_id_path: string[], node: TreeNode) => void;
     contextMenuFactory?: TreeContextMenuFactory;
+    onExpandedChange?: (tree_id_path: string[], node: TreeNode, expanded: boolean) => void;
+
     loadChildren?: (tree_id_path: string[]) => void;
 }
 
@@ -146,7 +155,8 @@ export function TreeExplorer({
                                  onClick,
                                  onDoubleClick,
                                  loadChildren,
-                                 contextMenuFactory
+                                 contextMenuFactory,
+                                 onExpandedChange,
                              }: TreeExplorerProps) {
     // Convert tree to array if it’s a single TreeNode
     const trees = Array.isArray(tree) ? tree : [tree];
@@ -163,6 +173,7 @@ export function TreeExplorer({
                         onClick={onClick}
                         onDoubleClick={onDoubleClick}
                         contextMenuFactory={contextMenuFactory}
+                        onExpandedChange={onExpandedChange}
                     />
                 )
             )}

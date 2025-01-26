@@ -19,13 +19,7 @@ export interface RelationViewHeaderProps {
 export function RelationViewHeader({relationState, updateRelationViewState}: RelationViewHeaderProps) {
 
     const relationId = relationState.id;
-    const {source, connectionId, query, viewState} = relationState;
-
-    const onRelationDisplayNameChange = (newName: string) => {
-        updateRelationViewState(relationId, {
-            displayName: newName,
-        });
-    }
+    const {source, connectionId, viewState} = relationState;
 
     function onPathClick(element: string, index: number) {
         if (source.type === 'table') {
@@ -76,7 +70,6 @@ export function RelationViewHeader({relationState, updateRelationViewState}: Rel
         <>
             <ViewHeader
                 title={viewState.displayName}
-                onTitleChange={onRelationDisplayNameChange}
                 path={path}
                 onPathClick={onPathClick}
                 subtitle={durationString}

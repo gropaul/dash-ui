@@ -4,10 +4,9 @@ import React, {useState} from "react";
 import {H5} from "@/components/ui/typography";
 import {useRelationsState} from "@/state/relations.state";
 import {Button} from "@/components/ui/button";
-import {Copy, LayoutDashboard, PencilLine, Plus, Sheet, Trash} from "lucide-react";
+import {Folder, LayoutDashboard, Plus, Sheet} from "lucide-react";
 import {TreeExplorer} from "@/components/basics/files/tree-explorer";
-import {TreeNode} from "@/components/basics/files/tree-utils";
-import {ContextMenuItem, ContextMenuLabel, ContextMenuSeparator} from "@/components/ui/context-menu";
+import {IterateAll, TreeActionUpdate, TreeNode} from "@/components/basics/files/tree-utils";
 import {RenameDialog} from "@/components/workbench/rename-dialog";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {DeleteDialog} from "@/components/workbench/delete-dialog";
@@ -21,16 +20,22 @@ import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import {DashboardState} from "@/model/dashboard-state";
 import {RELATION_BLOCK_TYPE, RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {useEditorStore} from "@/state/editor.state";
+import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
+import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
 
 
 interface RenameState {
+    title?: string;
+    description?: string;
     isOpen: boolean;
+    path?: string[];
     currentNode?: TreeNode;
     currentName?: string;
 }
 
 interface DeleteState {
     isOpen: boolean;
+    path?: string[];
     currentNode?: TreeNode;
     title?: string;
     description?: string;
@@ -49,64 +54,54 @@ export function EditorOverviewTab() {
 
     const relations = useRelationsState((state) => state.relations);
     const dashboards = useRelationsState((state) => state.dashboards);
-    const showRelation = useRelationsState((state) => state.showRelation);
-    const showDashboard = useRelationsState((state) => state.showDashboard);
+    const editorElements = useRelationsState((state) => state.editorElements);
+
+    const showRelationFromId = useRelationsState((state) => state.showRelationFromId);
     const deleteRelation = useRelationsState((state) => state.deleteRelation);
-    const deleteDashboard = useRelationsState((state) => state.deleteDashboard);
     const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
-    const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
-    const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
     const addNewRelation = useRelationsState((state) => state.addNewRelation);
-    const setDashboardState = useRelationsState((state) => state.setDashboardState);
 
-    const relationTreeElements: TreeNode[] = Object.keys(relations).map<TreeNode>(relationStateId => {
-        const relation = relations[relationStateId];
-        return {
-            id: relation.id,
-            name: relation.viewState.displayName,
-            type: 'relation',
-            children: null,
-            payload: relation
-        };
-    });
+    const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
+    const showDashboardFromId = useRelationsState((state) => state.showDashboardFromId);
+    const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
+    const setDashboardStateUnsafe = useRelationsState((state) => state.setDashboardStateUnsafe);
+    const deleteDashboard = useRelationsState((state) => state.deleteDashboard);
 
-    const dashboardTreeElements: TreeNode[] = Object.keys(dashboards).map<TreeNode>(dashboardStateId => {
-        const dashboard = dashboards[dashboardStateId];
-        return {
-            id: dashboard.id,
-            name: dashboard.viewState.displayName,
-            type: 'dashboard',
-            children: null,
-            payload: dashboard
-        };
-    });
+    const updateEditorElements = useRelationsState((state) => state.updateEditorElements);
+    const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
+    const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
+    const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
 
-    const rootElement: TreeNode = {
-        type: 'folder',
-        id: 'root',
-        name: 'Examples',
-        children: []
-    }
-
-    const treeElements = [rootElement]
-        .concat(dashboardTreeElements)
-        .concat(relationTreeElements);
-
-    function onTreeElementClick(_path: string[], node: TreeNode) {
+    function onTreeElementClick(path: string[], node: TreeNode) {
         if (node.type === 'relation') {
-            showRelation(node.payload);
+            showRelationFromId(node.id, path);
         } else if (node.type === 'dashboard') {
-            showDashboard(node.payload);
+            showDashboardFromId(node.id, path);
         }
     }
 
-    function onRename(tree: TreeNode) {
+    function onRename(path: string[], tree: TreeNode) {
         let displayName = tree.name;
-        if (tree.type === 'relation' || tree.type === 'dashboard') {
-            displayName = tree.payload.viewState.displayName;
+        let title = 'Rename';
+        let description = 'Enter a new name';
+        if (tree.type === 'relation') {
+            displayName = tree.name;
+            title = 'Rename Data View';
+            description = 'Enter a new name for the data view.';
+        } else if (tree.type === 'dashboard') {
+            displayName = tree.name;
+            title = 'Rename Dashboard';
+            description = 'Enter a new name for the dashboard.';
+        } else if (tree.type === 'folder') {
+            displayName = tree.name;
+            title = 'Rename Folder';
+            description = 'Enter a new name for the folder.';
         }
 
         setRenameState({
+            title: title,
+            description: description,
+            path: path,
             isOpen: true,
             currentNode: tree,
             currentName: displayName
@@ -115,47 +110,83 @@ export function EditorOverviewTab() {
 
     function onRenameConfirmed(newName: string) {
         if (renameState.currentNode?.type === 'relation') {
-            updateRelationViewState(renameState.currentNode.payload.id, {
+            updateRelationViewState(renameState.currentNode.id, {
                 displayName: newName
-            })
+            }, renameState.path!);
         } else if (renameState.currentNode?.type === 'dashboard') {
-            updateDashboardViewState(renameState.currentNode.payload.id, {
+            updateDashboardViewState(renameState.currentNode.id, {
                 displayName: newName
-            })
+            }, renameState.path!);
+        } else if (renameState.currentNode?.type === 'folder') {
+            const newFolder = {
+                ...renameState.currentNode,
+                name: newName
+            }
+            updateEditorElements(renameState.path!, newFolder);
         }
     }
 
-    function onDelete(tree: TreeNode) {
+    function onDelete(path: string[], tree: TreeNode) {
+
+        const baseState = {
+            path: path,
+            isOpen: true,
+            currentNode: tree,
+        }
+
         if (tree.type === 'relation') {
+            const relation = relations[tree.id];
             setDeleteState({
-                isOpen: true,
-                currentNode: tree,
+                ...baseState,
                 title: 'Delete Data View',
-                description: `Are you sure you want to delete the data view "${tree.payload.viewState.displayName}"? This action cannot be undone.`
+                description: `Are you sure you want to delete the data view "${relation.viewState.displayName}"? This action cannot be undone.`
             });
             return;
         } else if (tree.type === 'dashboard') {
+            const dashboard = dashboards[tree.id];
             setDeleteState({
-                isOpen: true,
-                currentNode: tree,
+                ...baseState,
                 title: 'Delete Dashboard',
-                description: `Are you sure you want to delete the dashboard "${tree.payload.viewState.displayName}"? This action cannot be undone.`
+                description: `Are you sure you want to delete the dashboard "${dashboard.viewState.displayName}"? This action cannot be undone.`
             });
             return;
+        } else if (tree.type === 'folder') {
+            const dashboardNames: string[] = [];
+            const relationNames: string[]  = [];
+            IterateAll([tree], (node) => {
+                if (node.type === 'dashboard') {
+                    dashboardNames.push(node.name);
+                } else if (node.type === 'relation') {
+                    relationNames.push(node.name);
+                }
+            });
+            const description = `Are you sure you want to delete the folder "${tree.name}" and all its contents? This action cannot be undone. The folder contains ${dashboardNames.length} dashboards and ${relationNames.length} data views:
+${dashboardNames.join(', ')}
+${relationNames.join(', ')}`;
+            setDeleteState({
+                ...baseState,
+                title: 'Delete Folder with Contents',
+                description: description
+            });
+            return
         }
     }
 
     function onDeleteConfirmed() {
         if (deleteState.currentNode?.type === 'relation') {
-            deleteRelation(deleteState.currentNode.payload.id);
+            deleteRelation(deleteState.currentNode.id, deleteState.path!);
         } else if (deleteState.currentNode?.type === 'dashboard') {
-            deleteDashboard(deleteState.currentNode.payload.id);
+            deleteDashboard(deleteState.currentNode.id, deleteState.path!);
+        } else if (deleteState.currentNode?.type === 'folder') {
+            removeEditorElement(deleteState.path!);
         }
     }
 
-    function onDuplicate(tree: TreeNode) {
+    function onDuplicate(path: string[], tree: TreeNode) {
+        const parentPath = path.slice(0, path.length - 1);
+
         if (tree.type === 'relation') {
-            const relation = tree.payload as RelationState;
+            const relation = relations[tree.id];
             const newSource: RelationSource = {
                 type: 'query',
                 id: getRandomId(),
@@ -172,27 +203,29 @@ export function EditorOverviewTab() {
                 },
                 source: newSource
             }
-            showRelation(newRelation);
+            // add the relation to the parent path
+            addNewRelation(MAIN_CONNECTION_ID, parentPath, newRelation);
         } else if (tree.type === 'dashboard') {
-            const dashboard = tree.payload;
+            const dashboard = dashboards[tree.id];
             const newDashboard = {
                 ...dashboard,
                 id: `dashboard-${getRandomId()}`,
-                name: dashboard.name + ' (Copy)',
+                name: dashboard.viewState.displayName + ' (Copy)',
                 viewState: {
                     ...dashboard.viewState,
                     displayName: dashboard.viewState.displayName + ' (Copy)'
                 }
             }
-            showDashboard(newDashboard);
+            addNewDashboard(MAIN_CONNECTION_ID, parentPath, newDashboard);
         }
     }
 
-    function onAddToDashboard(tree: TreeNode) {
+    function onAddToDashboard(path: string[], tree: TreeNode) {
         if (tree.type === 'relation') {
+            const relation = relations[tree.id];
             setDashboardCommand({
                 open: true,
-                relation: tree.payload as RelationState
+                relation: relation
             });
         }
     }
@@ -243,48 +276,82 @@ export function EditorOverviewTab() {
             const nBlocks = editor.blocks.getBlocksCount();
             editor.blocks.insert(RELATION_BLOCK_TYPE, newElementData, undefined, nBlocks);
         } else {
-            setDashboardState(dashboard.id, newState);
+            // we can use this here as we are not adding, deleting or renaming a dashboard
+            setDashboardStateUnsafe(dashboard.id, newState);
         }
         toast.success(`Added "${relation.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
 
     }
 
+    function onAddNewRelation(path: string[], tree: TreeNode) {
+        console.log('EditorOverviewTab.onAddNewRelation', path, tree);
+        addNewRelation(MAIN_CONNECTION_ID, path, undefined);
+    }
+
+    function onAddNewDashboard(path: string[], tree: TreeNode) {
+        addNewDashboard(MAIN_CONNECTION_ID, path, undefined);
+    }
+
+    function onAddNewFolder(path?: string[], tree?: TreeNode) {
+        const actions = AddFolderActions(path || [], tree);
+        applyEditorElementsActions(actions);
+    }
+
+    function onExpandChange(path: string[], tree: TreeNode, expanded: boolean) {
+        const action: TreeActionUpdate = {
+            id_path: path,
+            node: {...tree, expanded: expanded},
+            type: "update"
+        }
+        applyEditorElementsActions([action]);
+    }
+
     // show a list of the tables, have a light grey background
     return (
-
         <div className="h-full w-full flex flex-col">
             {/* Header Section */}
             <div className="p-4 pt-3 pb-2 pr-3 flex flex-row items-center justify-between">
                 <H5 className="text-primary text-nowrap">Editor</H5>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant={'ghost'} size={'icon'} className={'h-8 w-8'}>
-                                <Plus size={16}/>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => addNewRelation(MAIN_CONNECTION_ID)}>
-                                <Sheet size={16} className="mr-2"/>
-                                <span>New Query</span>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant={'ghost'} size={'icon'} className={'h-8 w-8'}>
+                            <Plus size={16}/>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => onAddNewFolder()}>
+                            <Folder size={16} className="mr-2"/>
+                            <span>New Folder</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => addNewRelation(MAIN_CONNECTION_ID, [], undefined)}>
+                            <Sheet size={16} className="mr-2"/>
+                            <span>New Query</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => addNewDashboard(MAIN_CONNECTION_ID, [], undefined)}>
+                            <LayoutDashboard size={16} className="mr-2"/>
+                            <span>New Dashboard</span>
+                        </DropdownMenuItem>
+                        { /* only in development */}
+                        {process.env.NODE_ENV === 'development' && (
+                            <DropdownMenuItem onClick={() => resetEditorElements()}>
+                                <span>Reset Editor</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => addNewDashboard(MAIN_CONNECTION_ID)}>
-                                <LayoutDashboard size={16} className="mr-2"/>
-                                <span>New Dashboard</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
             <div className="overflow-y-auto h-full px-3">
                 <TreeExplorer
-                    tree={treeElements}
+                    tree={editorElements}
                     iconFactory={defaultIconFactory}
                     onClick={onTreeElementClick}
-                    contextMenuFactory={(path, tree) => ContextMenuFactory(path, tree, onDelete, onRename, onDuplicate, onAddToDashboard)}
+                    onExpandedChange={onExpandChange}
+                    contextMenuFactory={(path, tree) => ContextMenuFactory(path, tree, onDelete, onRename, onDuplicate, onAddToDashboard, onAddNewRelation, onAddNewDashboard, onAddNewFolder)}
                 />
             </div>
             <RenameDialog
-                title={'Rename Data View'}
-                description={'Enter a new name for the data view.'}
+                title={renameState.title || 'Rename'}
+                description={renameState.description}
                 isOpen={renameState.isOpen}
                 onOpenChange={(isOpen) => setRenameState({...renameState, isOpen})}
                 onRename={onRenameConfirmed}
@@ -305,50 +372,4 @@ export function EditorOverviewTab() {
             />
         </div>
     )
-}
-
-function ContextMenuFactory(
-    path: string[],
-    tree: TreeNode,
-    onDelete: (tree: TreeNode) => void,
-    onRename: (tree: TreeNode) => void,
-    onDuplicate: (tree: TreeNode) => void,
-    onAddRelationToDashboard: (tree: TreeNode) => void
-) {
-    if (tree.type === 'folder') {
-        return (
-            <>
-            </>
-        );
-    }
-    return (
-        <>
-            <ContextMenuLabel className={'max-w-64 truncate text-left'}>
-                {tree.name}
-            </ContextMenuLabel>
-            <ContextMenuSeparator/>
-            <ContextMenuItem onClick={() => onRename(tree)}>
-                <PencilLine size={16} className="mr-2"/>
-                <span>Rename</span>
-            </ContextMenuItem>
-            <ContextMenuItem onClick={() => onDelete(tree)}>
-                <Trash size={16} className="mr-2"/>
-                <span>Delete</span>
-            </ContextMenuItem>
-            <ContextMenuItem onClick={() => onDuplicate(tree)}>
-                <Copy size={16} className="mr-2"/>
-                <span>Duplicate</span>
-            </ContextMenuItem>
-
-            { tree.type === 'relation' && (
-                <>
-                    <ContextMenuSeparator/>
-                    <ContextMenuItem onClick={() => onAddRelationToDashboard(tree)}>
-                        <LayoutDashboard size={16} className="mr-2"/>
-                        <span>Add to Dashboard</span>
-                    </ContextMenuItem>
-                </>
-            )}
-        </>
-    );
 }
