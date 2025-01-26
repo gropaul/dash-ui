@@ -39,8 +39,6 @@ export function RelationStateView(props: RelationViewProps) {
     const showCode = codeFenceState.show;
     const embedded = props.embedded ?? false;
 
-    console.log('RelationStateView: ShowCode', showCode, codePercentage, codeFenceState);
-
     return (
         <>
             {!embedded && (

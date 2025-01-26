@@ -39,7 +39,6 @@ function RelationComponent({
 
     // update if the data changes
     useEffect(() => {
-        console.log('updating local data', initialData);
         setLocalData(initialData);
     }, [initialData]);
 
@@ -98,8 +97,6 @@ export default class RelationBlockTool implements BlockTool {
             this.wrapper.style.backgroundColor = 'inherit';
             this.reactRoot = createRoot(this.wrapper);
         }
-
-        console.log('rendering relation block', this.data);
 
         // Re-render the React component into the (existing) root
         this.reactRoot!.render(

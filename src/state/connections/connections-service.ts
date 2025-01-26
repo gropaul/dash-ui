@@ -97,8 +97,8 @@ export class ConnectionsService {
 
         });
 
-        const duckDBWasm = getDuckDBWasmConnection();
-        await state.addConnection(duckDBWasm, true, true);
+        // const duckDBWasm = getDuckDBWasmConnection();
+        // await state.addConnection(duckDBWasm, true, true);
     }
 
     async showExampleQuery(connectionId: string) {

@@ -50,6 +50,7 @@ export function EditorOverviewTab() {
 
     const [renameState, setRenameState] = useState<RenameState>({isOpen: false});
     const [deleteState, setDeleteState] = useState<DeleteState>({isOpen: false});
+    const [selectedNodeIds, setSelectedNodeIds] = useState<string[][]>([]);
     const [dashboardCommand, setDashboardCommand] = useState<DashboardCommandState>({open: false});
 
     const relations = useRelationsState((state) => state.relations);
@@ -72,11 +73,22 @@ export function EditorOverviewTab() {
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
     const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
 
-    function onTreeElementClick(path: string[], node: TreeNode) {
-        if (node.type === 'relation') {
-            showRelationFromId(node.id, path);
-        } else if (node.type === 'dashboard') {
-            showDashboardFromId(node.id, path);
+    function onTreeElementClick(path: string[], node: TreeNode, event: React.MouseEvent) {
+
+
+        // if shift is pressed, add to the selection, otherwise set the selection
+        if (event.shiftKey) {
+            const newSelection = [...selectedNodeIds];
+            newSelection.push(path);
+            setSelectedNodeIds(newSelection);
+        } else {
+            setSelectedNodeIds([path]);
+
+            if (node.type === 'relation') {
+                showRelationFromId(node.id, path);
+            } else if (node.type === 'dashboard') {
+                showDashboardFromId(node.id, path);
+            }
         }
     }
 
@@ -152,7 +164,7 @@ export function EditorOverviewTab() {
             return;
         } else if (tree.type === 'folder') {
             const dashboardNames: string[] = [];
-            const relationNames: string[]  = [];
+            const relationNames: string[] = [];
             IterateAll([tree], (node) => {
                 if (node.type === 'dashboard') {
                     dashboardNames.push(node.name);
@@ -284,7 +296,6 @@ ${relationNames.join(', ')}`;
     }
 
     function onAddNewRelation(path: string[], tree: TreeNode) {
-        console.log('EditorOverviewTab.onAddNewRelation', path, tree);
         addNewRelation(MAIN_CONNECTION_ID, path, undefined);
     }
 
@@ -342,6 +353,8 @@ ${relationNames.join(', ')}`;
             </div>
             <div className="overflow-y-auto h-full px-3">
                 <TreeExplorer
+                    selectedIds={selectedNodeIds}
+                    orderBy={OrderFolder}
                     tree={editorElements}
                     iconFactory={defaultIconFactory}
                     onClick={onTreeElementClick}
@@ -372,4 +385,30 @@ ${relationNames.join(', ')}`;
             />
         </div>
     )
+}
+
+
+function OrderFolder(a: TreeNode, b: TreeNode) {
+    // if same type, order by name
+    if (a.type === b.type) {
+        return a.name.localeCompare(b.name);
+    } else {
+        // folders first, then dashboards, then relations
+        const type_a = a.type;
+        const type_b = b.type;
+
+        if (type_a === 'folder') { // always first
+            return -1;
+        } else {
+            if (type_b === 'folder') { // always last
+                return 1;
+            } else { // now check for dashboards vs relations
+                if (type_a === 'dashboard') {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
+        }
+    }
 }

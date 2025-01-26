@@ -11,17 +11,9 @@ export interface DashboardViewProps {
 export function DashboardTab(props: DashboardViewProps) {
 
     const dashboard = useRelationsState((state) => state.getDashboardState(props.dashboardId), shallow);
-    const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
-
-    function onRenameDisplay(name: string) {
-        updateDashboardViewState(props.dashboardId, {
-            displayName: name
-        });
-    }
 
     return (
         <div className="w-full h-full flex flex-col">
-            {false && <ViewHeader title={dashboard.viewState.displayName} onTitleChange={onRenameDisplay} path={[]}/>}
             <div className="flex-1 overflow-auto relative">
                 <DashboardContent dashboard={dashboard}/>
             </div>

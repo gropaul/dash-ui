@@ -17,9 +17,10 @@ export function DashboardContent(props: DashboardContentProps) {
     const setDashboardStateUnsafe = useRelationsState((state) => state.setDashboardStateUnsafe);
 
     function onSaved(outputData: OutputData) {
+        const currentDashboard = useRelationsState.getState().getDashboardState(dashboard.id);
         setDashboardStateUnsafe(dashboard.id, {
-            ...dashboard,
-            elementState: outputData
+            ...currentDashboard,
+            elementState: outputData,
         });
     }
 

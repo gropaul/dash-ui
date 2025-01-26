@@ -29,10 +29,9 @@ import {duckdbStorage} from "@/state/persistency/duckdb";
 import {createWithEqualityFn} from "zustand/traditional";
 import {DashboardState, DashboardViewState, getInitDashboardViewState} from "@/model/dashboard-state";
 import {getRandomId} from "@/platform/id-utils";
-import {EditorFolder, GetNewEditorRelation} from "@/model/editor-folder";
+import {EditorFolder} from "@/model/editor-folder";
 import {
     addNode,
-    applyTreeAction,
     applyTreeActions, copyAndApplyTreeActions, findNodeInTrees, findNodeParentInTrees, IterateAll,
     removeNode,
     TreeAction,
@@ -187,7 +186,9 @@ export const useRelationsState = createWithEqualityFn(
 
                     }
                     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
-
+                    console.log('currentViewState', currentViewState);
+                    console.log('partialUpdate', partialUpdate);
+                    console.log('id', dashboardId);
                     set((state) => ({
                         dashboards: {
                             ...state.dashboards,
@@ -198,6 +199,8 @@ export const useRelationsState = createWithEqualityFn(
                         },
                         editorElements: newEditorElements,
                     }));
+
+                    console.log('dashboards', get().dashboards);
                 },
 
                 addNewRelation: async (connectionId: string, editorPath: string[], relation?: RelationState) => {
@@ -335,13 +338,9 @@ export const useRelationsState = createWithEqualityFn(
                         }
                     } else {
 
-                        console.log('showRelation', relationId, relation, editorPath)
                         const parent = findNodeParentInTrees(get().editorElements, editorPath);
-                        console.log('showRelation - parent:', parent)
                         const actions = AddRelationActions(editorPath, relationId, parent, relation.viewState.displayName);
-                        console.log('showRelation - actions:', actions)
                         const newElements = copyAndApplyTreeActions(get().editorElements, actions);
-                        console.log('showRelation - newElements:', newElements)
                         set((state) => ({
                             relations: {
                                 ...state.relations,
@@ -366,18 +365,14 @@ export const useRelationsState = createWithEqualityFn(
                     if (existingRelation) {
                         get().showRelation(existingRelation, editorPath);
                     } else {
-                        console.log('showRelationFromSource', relationId, source, editorPath)
                         // update state with empty (loading) relation
                         const defaultQueryParams = getDefaultQueryParams();
                         const emptyRelationState = await getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
 
                         // as the relation did not exist yet, we also have to add a reference to the editor
                         const parent = findNodeInTrees(get().editorElements, editorPath);
-                        console.log('showRelationFromSource - parent:', parent)
                         const actions = AddRelationActions(editorPath, relationId, parent, emptyRelationState.viewState.displayName);
-                        console.log('showRelationFromSource - actions:', actions)
                         const newElements = copyAndApplyTreeActions(get().editorElements, actions);
-                        console.log('showRelationFromSource - newElements:', newElements)
                         // finally update the state
                         set((state) => ({
                             relations: {
@@ -459,6 +454,7 @@ export const useRelationsState = createWithEqualityFn(
 
                     const currentViewState = deepClone(get().relations[relationId].viewState);
                     let newEditorElements = get().editorElements;
+
                     // check if displayName is updated, if so, update the tab title
                     if (partialUpdate.displayName) {
                         const model = get().layoutModel;
@@ -474,7 +470,6 @@ export const useRelationsState = createWithEqualityFn(
                         newEditorElements = copyAndApplyTreeActions(newEditorElements, actions);
                     }
                     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
-
                     set((state) => ({
                         relations: {
                             ...state.relations,
@@ -495,10 +490,10 @@ export const useRelationsState = createWithEqualityFn(
                     if (relations[relationId].viewState.isTabOpen) {
                         removeTab(get().layoutModel, relationId);
                     }
-                    
+
                     const actions = RemoveNodeAction(editorPath);
                     const newElements = copyAndApplyTreeActions(get().editorElements, actions);
-                    
+
                     set({
                         relations: newRelations,
                         editorElements: newElements,
@@ -553,7 +548,7 @@ export const useRelationsState = createWithEqualityFn(
                     const newElements = [...get().editorElements];
                     const newRelations = {...get().relations};
                     const newDashboards = {...get().dashboards};
-                        
+
                     const elementToRemove = findNodeInTrees(newElements, path);
                     if (!elementToRemove) throw new Error('Element to remove not found');
 

@@ -50,8 +50,6 @@ export function DashboardDataView(props: DashboardDataViewProps) {
 
     }
 
-    console.log('DashboardDataView', props.relation)
-
     return <RelationStateView
         embedded
         relationState={props.relation}
