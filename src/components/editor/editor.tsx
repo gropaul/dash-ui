@@ -69,6 +69,6 @@ export default function Editor(props: EditorProps) {
     }, [readOnly]);
 
     return (
-        <div id={props.id} className="max-w-[1000px] w-full min-h-[400px] p-2"/>
+        <div id={props.id} className="w-full min-h-[400px] p-2"/>
     );
 }

@@ -16,6 +16,11 @@
     background-color: hsl(var(--background));
 }
 
+.ce-block__content,
+.ce-toolbar__content {
+    max-width: 762px;
+}
+
 .ce-block__content {
     background-color: inherit;
 }
