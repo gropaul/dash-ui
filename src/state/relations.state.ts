@@ -186,9 +186,6 @@ export const useRelationsState = createWithEqualityFn(
 
                     }
                     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
-                    console.log('currentViewState', currentViewState);
-                    console.log('partialUpdate', partialUpdate);
-                    console.log('id', dashboardId);
                     set((state) => ({
                         dashboards: {
                             ...state.dashboards,

@@ -12,8 +12,8 @@ export interface TreeNode<C = TreeNode<any>, T = string> {
     selected?: boolean;
 }
 
-export type TreeActionType = 'update' | 'remove' | 'add' | 'partial_update';
-export type TreeAction = TreeActionUpdate | TreeActionRemove | TreeActionAdd | TreeActionPartialUpdate;
+export type TreeActionType = 'update' | 'remove' | 'add' | 'partial_update' | 'move';
+export type TreeAction = TreeActionUpdate | TreeActionRemove | TreeActionAdd | TreeActionPartialUpdate | TreeActionMove;
 
 export interface TreeActionBase {
     type: TreeActionType;
@@ -39,6 +39,11 @@ export interface TreeActionRemove extends TreeActionBase {
     type: 'remove';
 }
 
+export interface TreeActionMove extends TreeActionBase {
+    type: 'move';
+    target_id_path: string[];
+}
+
 export function copyAndApplyTreeActions(trees: TreeNode[], action: TreeAction[]): TreeNode[] {
     const copy = [...trees];
     return applyTreeActions(copy, action);
@@ -58,7 +63,13 @@ export function applyTreeAction(trees: TreeNode[], action: TreeAction): TreeNode
             return partialUpdateNode(trees, action.id_path, action.node!);
         case 'remove':
             return removeNode(trees, action.id_path);
+        case "move":
+            return moveNode(trees, action.id_path, action.target_id_path);
     }
+}
+
+export function findNodesInTrees(trees: TreeNode[], id_paths: string[][]): (TreeNode | undefined)[] {
+    return id_paths.map((id_path) => findNodeInTrees(trees, id_path));
 }
 
 export function findNodeInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {
@@ -230,4 +241,18 @@ export function removeNode(
 
     // If not at the last step, return the updated array
     return updated;
+}
+
+export function moveNode(
+    nodes: TreeNode[],
+    id_path: string[],
+    target_id_path: string[]
+): TreeNode[] {
+    const node = findNodeInTrees(nodes, id_path);
+    if (!node) {
+        return nodes;
+    }
+
+    const updatedNodes = removeNode(nodes, id_path);
+    return addNode(updatedNodes, target_id_path, node);
 }

@@ -73,17 +73,24 @@ export function EditorOverviewTab() {
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
     const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
 
-    function onTreeElementClick(path: string[], node: TreeNode, event: React.MouseEvent) {
-
-
+    function onTreeElementPointerDown(path: string[], node: TreeNode, event: React.MouseEvent) {
         // if shift is pressed, add to the selection, otherwise set the selection
         if (event.shiftKey) {
-            const newSelection = [...selectedNodeIds];
-            newSelection.push(path);
-            setSelectedNodeIds(newSelection);
+            // if path is already selected, remove it, else add it
+            if (selectedNodeIds.some((p) => p.join() === path.join())) {
+                setSelectedNodeIds(selectedNodeIds.filter((p) => p.join() !== path.join()));
+            } else {
+                setSelectedNodeIds([...selectedNodeIds, path]);
+            }
+
         } else {
             setSelectedNodeIds([path]);
+        }
+    }
 
+    function onTreeElementClick(path: string[], node: TreeNode, event: React.MouseEvent) {
+        // if shift is pressed, do not change the selection
+        if(!event.shiftKey) {
             if (node.type === 'relation') {
                 showRelationFromId(node.id, path);
             } else if (node.type === 'dashboard') {
@@ -357,6 +364,7 @@ ${relationNames.join(', ')}`;
                     orderBy={OrderFolder}
                     tree={editorElements}
                     iconFactory={defaultIconFactory}
+                    onPointerDown={onTreeElementPointerDown}
                     onClick={onTreeElementClick}
                     onExpandedChange={onExpandChange}
                     contextMenuFactory={(path, tree) => ContextMenuFactory(path, tree, onDelete, onRename, onDuplicate, onAddToDashboard, onAddNewRelation, onAddNewDashboard, onAddNewFolder)}

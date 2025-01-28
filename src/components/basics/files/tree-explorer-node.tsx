@@ -4,12 +4,14 @@ import {ContextMenu, ContextMenuContent, ContextMenuTrigger} from "@/components/
 import {cn} from "@/lib/utils";
 import {ChevronDown, ChevronRight} from "lucide-react";
 import {SelectionMode, TreeContextMenuFactory} from "@/components/basics/files/tree-explorer";
+import {useDraggable, useDroppable} from "@dnd-kit/core";
 
 export interface TreeExplorerNodeProps {
     tree: TreeNode;
     iconFactory: (type: string) => React.ReactNode;
 
     parent_id_path: string[]
+    onPointerDown?: (tree_id_path: string[], node: TreeNode, e: React.PointerEvent) => void;
     onClick: (tree_id_path: string[], node: TreeNode, e: React.MouseEvent) => void;
     onExpandedChange?: (tree_id_path: string[], node: TreeNode, expanded: boolean) => void;
     onDoubleClick?: (tree_id_path: string[], node: TreeNode) => void;
@@ -24,18 +26,28 @@ export interface TreeExplorerNodeProps {
 }
 
 export function TreeExplorerNode(props: TreeExplorerNodeProps) {
+
+    const childrenLoaded = props.tree.children !== undefined;
+    const cantHaveChildren = props.tree.children === null;
+
+    const depth = props.parent_id_path.length;
+    const id = props.tree.id;
+    const current_tree_id_path = props.parent_id_path.concat(props.tree.id);
+
     const [isExpanded, setIsExpanded] = useState(props.tree.expanded ?? false);
+    const {listeners, setNodeRef: setDraggableNodeRef} = useDraggable({id: id});
+    const {setNodeRef: setDroppableNodeRef, isOver} = useDroppable({
+        id: id, data: {
+            path: current_tree_id_path,
+            canHaveChildren: !cantHaveChildren
+        }
+    });
 
     // listen for changes in the expanded prop
     React.useEffect(() => {
         setIsExpanded(props.tree.expanded ?? false);
     }, [props.tree.expanded]);
 
-    const childrenLoaded = props.tree.children !== undefined;
-    const hasNoChildren = props.tree.children === null;
-
-    const depth = props.parent_id_path.length;
-    const current_tree_id_path = props.parent_id_path.concat(props.tree.id);
 
     const toggleExpand = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -83,12 +95,13 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
 
     const classIsSelected = isSelected ?
         props.selectionMode === "active" ?
-            `bg-[rgba(0,96,255,0.06)] hover:bg-[rgba(0,96,255,0.10)]` :
+            `bg-[rgba(0,96,255,0.04)] hover:bg-[rgba(0,96,255,0.08)]` :
             "bg-[hsl(var(--muted-light))] hover:bg-[hsl(var(--muted))]" :
         props.selectionMode === "active" ?
-            `hover:bg-[rgba(0,96,255,0.10)]` :
+            `hover:bg-[rgba(0,96,255,0.08)]` :
             "hover:bg-[hsl(var(--muted))]";
 
+    const classIsOver = isOver ? "border border-primary bg-[rgba(0,96,255,0.08)]" : "border border-transparent";
     return (
         <>
             {/* Node content */}
@@ -96,32 +109,40 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                 <ContextMenuTrigger disabled={!props.contextMenuFactory}>
                     {/* Node content */}
                     <div
-                        className={cn('flex items-center p-0.5 rounded-md', classIsSelected)}
-                        style={{paddingLeft: `${depth * 1.5}rem`}}
+                        className={cn('')}
                         onClick={localOnClick}
+                        ref={setDroppableNodeRef}
                         onDoubleClick={localOnDoubleClick}
                         onMouseDown={(e) => e.preventDefault()}
+                        onPointerDown={(e) => props.onPointerDown?.(current_tree_id_path, props.tree, e)}
                     >
-                        {/* Expand/collapse icon */}
                         <div
-                            onClick={toggleExpand}
-                            className="cursor-pointer flex-shrink-0 flex items-center"
-                            style={{width: '1.5rem'}}
+                            style={{paddingLeft: `${depth * 1.5}rem`}}
+                            className={cn('flex items-center p-0.5 rounded-md', classIsSelected, classIsOver)}
+                            ref={setDraggableNodeRef}
+                            {...listeners}
                         >
                             {/* Expand/collapse icon */}
-                            {!hasNoChildren && (isExpanded ?
-                                <ChevronDown size={chevronSize} color={chevronColor}/> :
-                                <ChevronRight size={chevronSize} color={chevronColor}/>)}
-                        </div>
-                        <div
-                            className="flex-shrink-0 flex items-center"
-                            style={{width: '1.5rem'}}
-                        >
-                            {props.iconFactory(props.tree.type)}
-                        </div>
-                        {/* Node name with flex-grow to use remaining space */}
-                        <div className="flex-grow whitespace-nowrap break-words">
-                            {props.tree.name}
+                            <div
+                                onClick={toggleExpand}
+                                className="cursor-pointer flex-shrink-0 flex items-center"
+                                style={{width: '1.5rem'}}
+                            >
+                                {/* Expand/collapse icon */}
+                                {!cantHaveChildren && (isExpanded ?
+                                    <ChevronDown size={chevronSize} color={chevronColor}/> :
+                                    <ChevronRight size={chevronSize} color={chevronColor}/>)}
+                            </div>
+                            <div
+                                className="flex-shrink-0 flex items-center"
+                                style={{width: '1.5rem'}}
+                            >
+                                {props.iconFactory(props.tree.type)}
+                            </div>
+                            {/* Node name with flex-grow to use remaining space */}
+                            <div className="flex-grow whitespace-nowrap break-words">
+                                {props.tree.name}
+                            </div>
                         </div>
                     </div>
                 </ContextMenuTrigger>

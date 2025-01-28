@@ -4,6 +4,7 @@ import {TreeNode} from "@/components/basics/files/tree-utils";
 import {ContextMenu, ContextMenuContent, ContextMenuTrigger} from "@/components/ui/context-menu";
 import {cn} from "@/lib/utils";
 import {TreeExplorerNode} from "@/components/basics/files/tree-explorer-node";
+import {TreeDndContext} from "@/components/basics/files/tree-dnd-context";
 
 
 export type TreeContextMenuFactory = (tree_id_path: string[], tree: TreeNode) => React.ReactNode;
@@ -14,11 +15,14 @@ export type SelectionMode = "active" | "passive";
 
 export interface TreeExplorerProps {
     tree: TreeNode | TreeNode[];
-    iconFactory: (type: string) => React.ReactNode;
+
+    onPointerDown?: (tree_id_path: string[], node: TreeNode, e: React.PointerEvent) => void;
     onClick: (tree_id_path: string[], node: TreeNode, e: React.MouseEvent) => void;
     onDoubleClick?: (tree_id_path: string[], node: TreeNode) => void;
-    contextMenuFactory?: TreeContextMenuFactory;
     onExpandedChange?: (tree_id_path: string[], node: TreeNode, expanded: boolean) => void;
+
+    contextMenuFactory?: TreeContextMenuFactory;
+    iconFactory: (type: string) => React.ReactNode;
 
     loadChildren?: (tree_id_path: string[]) => void;
     orderBy?: (a: TreeNode, b: TreeNode) => number;
@@ -29,6 +33,7 @@ export interface TreeExplorerProps {
 export function TreeExplorer({
                                  tree,
                                  iconFactory,
+                                 onPointerDown,
                                  onClick,
                                  onDoubleClick,
                                  loadChildren,
@@ -70,24 +75,31 @@ export function TreeExplorer({
     }, []);
     return (
         <div className="h-fit" ref={containerRef}>
-            {sortedTrees.map((treeNode, index) => (
-                <TreeExplorerNode
-                    orderBy={orderBy}
-                    parent_id_path={[]}
-                    key={index}
-                    tree={treeNode}
-                    iconFactory={iconFactory}
-                    loadChildren={loadChildren}
-                    onClick={onClick}
-                    onDoubleClick={onDoubleClick}
-                    contextMenuFactory={contextMenuFactory}
-                    onExpandedChange={onExpandedChange}
+            <TreeDndContext
+                active={true}
+                tree={sortedTrees}
+                selectedIds={selectedIds}
+                iconFactory={iconFactory}
+            >
+                {sortedTrees.map((treeNode, index) => (
+                    <TreeExplorerNode
+                        orderBy={orderBy}
+                        parent_id_path={[]}
+                        key={index}
+                        tree={treeNode}
+                        loadChildren={loadChildren}
+                        onPointerDown={onPointerDown}
+                        onClick={onClick}
+                        onDoubleClick={onDoubleClick}
+                        iconFactory={iconFactory}
+                        contextMenuFactory={contextMenuFactory}
+                        onExpandedChange={onExpandedChange}
 
-                    selectedIds={selectedIds}
-                    selectionMode={selectedIds === undefined ? "passive" : selectionMode}
-                />
-            ))}
+                        selectedIds={selectedIds}
+                        selectionMode={selectedIds === undefined ? "passive" : selectionMode}
+                    />
+                ))}
+            </TreeDndContext>
         </div>
     )
-        ;
 }
