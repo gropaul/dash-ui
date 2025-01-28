@@ -20,7 +20,7 @@ import {
     updateRelationQueryForParams,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
-import {DataSourceGroup} from "@/model/connection";
+import {DataConnection, DataSourceGroup} from "@/model/connection";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
@@ -60,7 +60,6 @@ export interface DefaultRelationZustandActions {
     updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>, path?: string[]) => void,
-
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
