@@ -22,7 +22,6 @@ export default function Home() {
         DuckDBProvider.getInstance().then((duckdb) => {
             duckdb.setOnForceReloadCallback(() => {
                 setShowForceReloadDialog(true);
-                console.log("force reload");
             });
         });
     });

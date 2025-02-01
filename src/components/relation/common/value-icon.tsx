@@ -1,5 +1,5 @@
 import {ValueType} from "@/model/value-type";
-import {Calendar, CircleHelp, Hash, Text, ToggleLeft} from "lucide-react";
+import {Braces, Brackets, Calendar, CircleHelp, Hash, Text, ToggleLeft} from "lucide-react";
 import React from "react";
 
 export function ValueIcon({type, size}: { type: ValueType, size?: number }) {
@@ -15,6 +15,11 @@ export function ValueIcon({type, size}: { type: ValueType, size?: number }) {
             return <ToggleLeft size={iconSize}/>;
         case 'Timestamp':
             return <Calendar size={iconSize}/>;
+        case 'List':
+            return <Brackets size={iconSize}/>;
+        case 'Map':
+        case 'Struct':
+            return <Braces size={iconSize}/>;
         default:
             console.warn(`Unknown column type: ${type}`);
             return <CircleHelp size={iconSize}/>;

@@ -2,6 +2,7 @@ import React from "react";
 import {Column} from "@/model/column";
 import {CopyButton} from "@/components/basics/input/copy-button";
 import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
+import {JsonViewer, RecursiveJsonViewer} from "@/components/ui/json-viewer";
 
 interface RowElementViewProps {
     element: any;
@@ -9,23 +10,13 @@ interface RowElementViewProps {
     column: Column;
 }
 
+
 export function TableValueCell({ tableState, column, element }: RowElementViewProps) {
     const columnViewState = tableState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
     const wrapContent = columnViewState.wrapContent;
     const columnWidth = columnViewState.width + "px";
 
-    let stringElement: string;
-    try {
-        if (element === null || element === undefined) {
-            stringElement = "null";
-        } else {
-            stringElement = element.toString();
-        }
-    } catch (e) {
-        stringElement = "Error";
-        console.error("Error converting element to string", element, e);
-    }
-
+    const stringElement = elementToString(element);
 
     return (
         <td
@@ -47,7 +38,11 @@ export function TableValueCell({ tableState, column, element }: RowElementViewPr
                         textOverflow: "ellipsis",
                     }}
                 >
-                    {stringElement}
+                    <ValueElement
+                        column={column}
+                        element={element}
+                        stringElement={stringElement}
+                    />
                 </span>
                 <CopyButton
                     className={"hidden group-hover:block"}
@@ -56,5 +51,43 @@ export function TableValueCell({ tableState, column, element }: RowElementViewPr
                 />
             </div>
         </td>
+    );
+}
+
+
+function elementToString(element: any): string {
+    if (element === null || element === undefined) {
+        return "NULL";
+    }
+
+    // if object or array, return the json string
+    if (typeof element === "object") {
+        return JSON.stringify(element);
+    }
+
+    return element.toString();
+}
+
+interface ValueElementProps {
+    column: Column;
+    element: any;
+    stringElement: string;
+}
+
+
+export function ValueElement({ column, element, stringElement }: ValueElementProps) {
+
+    if (element === null || element === undefined) {
+        return <span>NULL</span>;
+    }
+
+    // if element is array or object, show the json element viewer
+    if (column.type === "List" || column.type === "Map" || column.type === "Struct") {
+        return (
+            <RecursiveJsonViewer json={element} />
+        );
+    }
+    return (
+        <span>{stringElement}</span>
     );
 }

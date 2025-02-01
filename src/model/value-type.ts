@@ -1,4 +1,13 @@
-export type ValueType = 'Integer' | 'Float' | 'String' | 'Boolean' | 'Timestamp' | 'Struct' | 'List' | 'Map' | 'Unknown';
+export type ValueType =
+    'Integer'
+    | 'Float'
+    | 'String'
+    | 'Boolean'
+    | 'Timestamp'
+    | 'Struct'
+    | 'List'
+    | 'Map'
+    | 'Unknown';
 
 export function duckDBTypeToValueType(duckDBType: string): ValueType {
 
@@ -6,6 +15,12 @@ export function duckDBTypeToValueType(duckDBType: string): ValueType {
     // to combat types like "VARCHAR(255)", DECIMAL(10,2), etc.
     duckDBType = duckDBType.split('(')[0];
     duckDBType = duckDBType.trim();
+
+    // if the type has [] at the end, make it as a list
+    // todo: support nested types
+    if (duckDBType.endsWith('[]')) {
+        return 'List';
+    }
 
     switch (duckDBType.toLowerCase()) {
         // Boolean Types
