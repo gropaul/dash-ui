@@ -39,15 +39,11 @@ import {
 import {useGUIState} from "@/state/gui.state";
 
 export interface RelationZustand {
-
-    hydrated: boolean;
     editorElements: EditorFolder[];
     relations: { [key: string]: RelationState };
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
     dashboards: { [key: string]: DashboardState };
-
-
 }
 
 export interface DefaultRelationZustandActions {
@@ -57,7 +53,6 @@ export interface DefaultRelationZustandActions {
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
-
 
     /* relation actions */
     getRelation: (relationId: string) => RelationState,
@@ -103,7 +98,6 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
     /* persistence actions */
     manualPersistModel: () => void,
-    setHydrated: (stateHydrated: boolean) => void,
 
     /* tab actions */
     closeTab: (tabId: string) => void,
@@ -111,12 +105,23 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
 type RelationZustandCombined = RelationZustand & RelationZustandActions;
 
+interface HydrationState {
+    hydrated: boolean;
+    setHydrated: (hydrated: boolean) => void;
+}
+
+export const useHydrationState = createWithEqualityFn<HydrationState>(
+    (set, get) => ({
+        hydrated: false,
+        setHydrated: (hydrated: boolean) => set({hydrated}),
+    }),
+);
+
 export const useRelationsState = createWithEqualityFn(
     persist<RelationZustandCombined>(
         (set, get) =>
             ({
 
-                hydrated: false,
                 relations: {},
                 schemas: {},
                 databases: {},
@@ -554,10 +559,6 @@ export const useRelationsState = createWithEqualityFn(
                 manualPersistModel: () => {
                     set(() => ({}));
                 },
-
-                setHydrated: (hydrated: boolean) => {
-                    set(() => ({hydrated: hydrated}));
-                }
             }),
         {
             name: 'relationState',
@@ -567,12 +568,31 @@ export const useRelationsState = createWithEqualityFn(
                 // @ts-ignore
                 delete newState.layoutModel;
                 return newState;
-            }
+            },
+            onRehydrateStorage: (state => {
+                function callback(state: any, error: any) {
+
+                    // get the list of all possible open tabs
+                    const ids = [];
+                    for (const key in state.relations) {
+                        ids.push(key);
+                    }
+                    for (const key in state.schemas) {
+                        ids.push(key);
+                    }
+                    for (const key in state.databases) {
+                        ids.push(key);
+                    }
+                    for (const key in state.dashboards) {
+                        ids.push(key);
+                    }
+
+                    useGUIState.getState().keepTabsOfIds(ids);
+
+                    useHydrationState.getState().setHydrated(true);
+                }
+                return callback;
+            })
         }
     )
 );
-
-const unsub = useRelationsState.persist.onFinishHydration((state) => {
-    useRelationsState.getState().setHydrated(true);
-    unsub();
-})

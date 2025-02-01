@@ -12,7 +12,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import {useRelationsState} from "@/state/relations.state";
+import {useHydrationState} from "@/state/relations.state";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 
 
@@ -20,7 +20,7 @@ export default function Home() {
 
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
 
-    const relationsHydrated = useRelationsState((state) => state.hydrated);
+    const relationsHydrated = useHydrationState((state) => state.hydrated);
 
     useEffect(() => {
         DuckDBProvider.getInstance().then((duckdb) => {

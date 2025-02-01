@@ -42,6 +42,8 @@ export interface GUIZustandActions {
 
     addDatabaseTab(id: string, database: DataSourceGroup): void;
 
+    keepTabsOfIds(ids: string[]): void;
+
     persistState(): void;
 
     increment(): void;
@@ -88,6 +90,30 @@ export const useGUIState = create<GUIZustandCombined>()(
                 const model = get().layoutModel;
                 removeTab(model, tabId);
                 get().persistState();
+            },
+
+            keepTabsOfIds: (ids: string[]) => {
+                // is called for first application load. It could be the case that the local browser ui state
+                // still has tabs from which the contents have been removed. This method is called to remove
+                // such tabs.
+                const model = get().layoutModel;
+                const nodesToRemove: string[] = [];
+                model.visitNodes( (node) => {
+                    // it is a potentially removable tab if the id starts with 'relation'/ 'dashboard' / 'schema' / 'database'
+                    const nodeId = node.getId();
+                    if (nodeId.startsWith('relation') || nodeId.startsWith('dashboard') || nodeId.startsWith('schema') || nodeId.startsWith('database')) {
+                        if (!ids.includes(nodeId)) {
+                            nodesToRemove.push(nodeId);
+                        }
+                    }
+                    return;
+                });
+
+                nodesToRemove.forEach( (nodeId) => {
+                    console.warn('Removing tab because of the underlying data has been removed', nodeId);
+                    removeTab(model, nodeId);
+                });
+
             },
 
             renameTab: (tabId: string, newName: string) => {

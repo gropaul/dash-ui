@@ -93,6 +93,8 @@ export class DuckDBProvider {
     }
 
    async getItem(tableName: string): Promise<string | null> {
+
+        console.log("Getting item from table", tableName);
         await this.createTableIfNotExists(tableName);
         const query = `SELECT value, version
                        FROM "${tableName}" LIMIT 1;`;
@@ -108,6 +110,7 @@ export class DuckDBProvider {
 
         // get can always read the version
         this.updateVersion(versionCode);
+
         return jsonString;
     }
 

@@ -14,7 +14,9 @@ export function SchemaTab(props: SchemaViewProps) {
     const schema = useRelationsState((state) => state.getSchemaState(props.schemaId), shallow);
     // todo display schema constraints
     // https://duckdb.org/docs/sql/meta/information_schema.html#table_constraints-table-constraints
-
+    if (!schema) {
+        return <div>Schema not found: {props.schemaId}</div>
+    }
     return (
         <div className="w-full h-full flex flex-col">
             <ViewHeader title={schema.name} path={GetPathOfSchema(schema)}/>
