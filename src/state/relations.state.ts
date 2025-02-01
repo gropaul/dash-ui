@@ -1,15 +1,4 @@
-import {getRelationIdFromSource, RelationSource, RelationSourceQuery} from "@/model/relation";
-import {Model} from "flexlayout-react";
-import {
-    addDashboardToLayout,
-    addDatabaseToLayout,
-    addRelationToLayout,
-    addSchemaToLayout,
-    focusTabById,
-    getInitialLayoutModel,
-    removeTab,
-    renameTab
-} from "@/state/relations/layout-updates";
+import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {
     executeQueryOfRelationState,
     getDefaultQueryParams,
@@ -20,7 +9,7 @@ import {
     updateRelationQueryForParams,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
-import {DataConnection, DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/connection";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
@@ -32,7 +21,11 @@ import {getRandomId} from "@/platform/id-utils";
 import {EditorFolder} from "@/model/editor-folder";
 import {
     addNode,
-    applyTreeActions, copyAndApplyTreeActions, findNodeInTrees, findNodeParentInTrees, IterateAll,
+    applyTreeActions,
+    copyAndApplyTreeActions,
+    findNodeInTrees,
+    findNodeParentInTrees,
+    IterateAll,
     removeNode,
     TreeAction,
     updateNode
@@ -43,17 +36,18 @@ import {
     RemoveNodeAction,
     RenameNodeActions
 } from "@/components/basics/files/tree-action-utils";
+import {useGUIState} from "@/state/gui.state";
 
 export interface RelationZustand {
 
+    hydrated: boolean;
     editorElements: EditorFolder[];
     relations: { [key: string]: RelationState };
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
     dashboards: { [key: string]: DashboardState };
 
-    selectedTabId: string | undefined;
-    layoutModel: Model;
+
 }
 
 export interface DefaultRelationZustandActions {
@@ -109,12 +103,10 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
     /* persistence actions */
     manualPersistModel: () => void,
+    setHydrated: (stateHydrated: boolean) => void,
 
     /* tab actions */
-    getModel: () => Model;
-    setModel: (model: Model) => void;
     closeTab: (tabId: string) => void,
-    setSelectedTabId: (tabId: string) => void,
 }
 
 type RelationZustandCombined = RelationZustand & RelationZustandActions;
@@ -123,6 +115,8 @@ export const useRelationsState = createWithEqualityFn(
     persist<RelationZustandCombined>(
         (set, get) =>
             ({
+
+                hydrated: false,
                 relations: {},
                 schemas: {},
                 databases: {},
@@ -153,8 +147,8 @@ export const useRelationsState = createWithEqualityFn(
                 },
                 deleteDashboard: (dashboardId: string, editorPath: string[]) => {
                     const {dashboards} = get();
-                    if (dashboards[dashboardId].viewState.isTabOpen) {
-                        removeTab(get().layoutModel, dashboardId);
+                    if (useGUIState.getState().isTabOpen(dashboardId)) {
+                        useGUIState.getState().removeTab(dashboardId);
                     }
                     const newDashboards = {...dashboards};
                     delete newDashboards[dashboardId];
@@ -171,9 +165,7 @@ export const useRelationsState = createWithEqualityFn(
                     let newEditorElements = get().editorElements;
                     // check if displayName is updated, if so, update the tab title
                     if (partialUpdate.displayName) {
-                        const model = get().layoutModel;
-                        renameTab(model, dashboardId, partialUpdate.displayName);
-
+                        useGUIState.getState().renameTab(dashboardId, partialUpdate.displayName);
                         // path must be provided if the displayName is updated
                         if (!path) {
                             throw new Error('Path must be provided if displayName is updated');
@@ -219,22 +211,21 @@ export const useRelationsState = createWithEqualityFn(
                     get().showDashboard(dashboard, editorPath);
                 },
                 showDashboard: async (dashboard: DashboardState, editorPath: string[]) => {
-                    const {dashboards, layoutModel} = get(); // Get the current state
+                    const {dashboards} = get(); // Get the current state
                     const dashboardStateId = dashboard.id; // Use the dashboard ID as the state ID
                     const existingDashboard = dashboards[dashboardStateId]; // Retrieve the database
                     if (existingDashboard) {
-                        if (existingDashboard.viewState.isTabOpen) {
-                            focusTabById(layoutModel, dashboardStateId);
+                        if (useGUIState.getState().isTabOpen(dashboardStateId)) {
+                            useGUIState.getState().focusTab(dashboardStateId);
                         } else {
                             const newDashboard = deepClone(existingDashboard);
-                            newDashboard.viewState.isTabOpen = true;
                             set((state) => ({
                                 dashboards: {
                                     ...state.dashboards,
                                     [dashboardStateId]: newDashboard,
                                 },
                             }));
-                            addDashboardToLayout(layoutModel, dashboardStateId, dashboard);
+                            useGUIState.getState().addDashboardTab(dashboard);
                         }
                     } else {
                         // add to editor elements
@@ -249,7 +240,7 @@ export const useRelationsState = createWithEqualityFn(
                             },
                             editorElements: newElements,
                         }));
-                        addDashboardToLayout(layoutModel, dashboardStateId, dashboard);
+                        useGUIState.getState().addDashboardTab(dashboard);
                     }
                 },
                 setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => {
@@ -265,7 +256,7 @@ export const useRelationsState = createWithEqualityFn(
                     const schemaId = getSchemaId(connectionId, databaseId, schema); // Generate the schema ID
                     const existingSchema = schemas[schemaId]; // Retrieve the schema
                     if (existingSchema) {
-                        focusTabById(get().layoutModel, schemaId);
+                        useGUIState.getState().focusTab(schemaId);
                     } else {
                         set((state) => ({
                             schemas: {
@@ -277,8 +268,7 @@ export const useRelationsState = createWithEqualityFn(
                                 }
                             },
                         }));
-                        const model = get().layoutModel;
-                        addSchemaToLayout(model, schemaId, schema);
+                        useGUIState.getState().addSchemaTab(schemaId, schema);
                     }
                 },
                 showDatabase: async (connectionId: string, database: DataSourceGroup) => {
@@ -286,7 +276,7 @@ export const useRelationsState = createWithEqualityFn(
                     const databaseId = getDatabaseId(connectionId, database.id); // Generate the database ID
                     const existingDatabase = databases[databaseId]; // Retrieve the database
                     if (existingDatabase) {
-                        focusTabById(get().layoutModel, databaseId);
+                        useGUIState.getState().focusTab(databaseId);
                     } else {
                         set((state) => ({
                             databases: {
@@ -297,8 +287,7 @@ export const useRelationsState = createWithEqualityFn(
                                 }
                             },
                         }));
-                        const model = get().layoutModel;
-                        addDatabaseToLayout(model, databaseId, database);
+                        useGUIState.getState().addDatabaseTab(databaseId, database);
                     }
                 },
                 getDashboardState: (dashboardId: string) => {
@@ -319,18 +308,17 @@ export const useRelationsState = createWithEqualityFn(
                     const {relations} = get(); // Get the current state
                     const existingRelation = relations[relationId]; // Retrieve the relation
                     if (existingRelation) {
-                        if (existingRelation.viewState.isTabOpen) {
-                            focusTabById(get().layoutModel, relationId);
+                        if (useGUIState.getState().isTabOpen(relationId)) {
+                            useGUIState.getState().focusTab(relationId);
                         } else {
                             const newRelation = deepClone(existingRelation);
-                            newRelation.viewState.isTabOpen = true;
                             set((state) => ({
                                 relations: {
                                     ...state.relations,
                                     [relationId]: newRelation,
                                 },
                             }));
-                            addRelationToLayout(get().layoutModel, existingRelation);
+                            useGUIState.getState().addRelationTab(relation);
                         }
                     } else {
 
@@ -344,8 +332,7 @@ export const useRelationsState = createWithEqualityFn(
                             },
                             editorElements: newElements,
                         }));
-                        const model = get().layoutModel;
-                        addRelationToLayout(model, relation);
+                        useGUIState.getState().addRelationTab(relation);
                     }
                 },
                 showRelationFromId: (relationId: string, editorPath: string[]) => {
@@ -378,8 +365,7 @@ export const useRelationsState = createWithEqualityFn(
                             editorElements: newElements,
                         }));
 
-                        const model = get().layoutModel;
-                        addRelationToLayout(model, emptyRelationState);
+                        useGUIState.getState().addRelationTab(emptyRelationState);
 
                         // execute query
                         const executedRelationState = await executeQueryOfRelationState(emptyRelationState);
@@ -453,8 +439,7 @@ export const useRelationsState = createWithEqualityFn(
 
                     // check if displayName is updated, if so, update the tab title
                     if (partialUpdate.displayName) {
-                        const model = get().layoutModel;
-                        renameTab(model, relationId, partialUpdate.displayName);
+                        useGUIState.getState().renameTab(relationId, partialUpdate.displayName);
 
                         // path must be provided if the displayName is updated
                         if (!path) {
@@ -483,8 +468,8 @@ export const useRelationsState = createWithEqualityFn(
                     const newRelations = {...relations};
                     delete newRelations[relationId];
 
-                    if (relations[relationId].viewState.isTabOpen) {
-                        removeTab(get().layoutModel, relationId);
+                    if (useGUIState.getState().isTabOpen(relationId)) {
+                        useGUIState.getState().removeTab(relationId);
                     }
 
                     const actions = RemoveNodeAction(editorPath);
@@ -494,10 +479,6 @@ export const useRelationsState = createWithEqualityFn(
                         relations: newRelations,
                         editorElements: newElements,
                     });
-                },
-
-                setSelectedTabId: (tabId: string) => {
-                    set({selectedTabId: tabId});
                 },
                 closeTab: (tabId: string) => {
                     const {schemas, databases, relations, dashboards} = get();
@@ -512,22 +493,13 @@ export const useRelationsState = createWithEqualityFn(
                         set({databases: newDatabases});
                     } else if (relations[tabId]) {
                         const newRelations = {...relations};
-                        newRelations[tabId].viewState.isTabOpen = false;
                         set({relations: newRelations});
                     } else if (dashboards[tabId]) {
                         const newDashboards = {...dashboards};
-                        newDashboards[tabId].viewState.isTabOpen = false;
                         set({dashboards: newDashboards});
                     }
                 },
 
-
-                getModel: () => get().layoutModel,
-                setModel: (model: Model) =>
-                    set(() => ({
-                            layoutModel: model,
-                        }),
-                    ),
                 updateEditorElements: (path: string[], newFolder: EditorFolder) => {
                     const newElements = [...get().editorElements];
                     const updatedFolders = updateNode(newElements, path, newFolder);
@@ -550,13 +522,13 @@ export const useRelationsState = createWithEqualityFn(
 
                     IterateAll([elementToRemove], (node, id_path) => {
                         if (node.type === 'dashboard') {
-                            if (newDashboards[node.id].viewState.isTabOpen) {
-                                removeTab(get().layoutModel, node.id);
+                            if (useGUIState.getState().isTabOpen(node.id)) {
+                                useGUIState.getState().removeTab(node.id);
                             }
                             delete newDashboards[node.id];
                         } else if (node.type === 'relation') {
-                            if (newRelations[node.id].viewState.isTabOpen) {
-                                removeTab(get().layoutModel, node.id);
+                            if (useGUIState.getState().isTabOpen(node.id)) {
+                                useGUIState.getState().removeTab(node.id);
                             }
                             delete newRelations[node.id];
                         }
@@ -583,7 +555,9 @@ export const useRelationsState = createWithEqualityFn(
                     set(() => ({}));
                 },
 
-                layoutModel: getInitialLayoutModel(),
+                setHydrated: (hydrated: boolean) => {
+                    set(() => ({hydrated: hydrated}));
+                }
             }),
         {
             name: 'relationState',
@@ -598,29 +572,7 @@ export const useRelationsState = createWithEqualityFn(
     )
 );
 
-const EXCLUDED_KEYS = ['layoutModel'];
-
 const unsub = useRelationsState.persist.onFinishHydration((state) => {
-
-    const model = state.layoutModel;
-    for (const schemaId in state.schemas) {
-        addSchemaToLayout(model, schemaId, state.schemas[schemaId]);
-    }
-    for (const databaseId in state.databases) {
-        addDatabaseToLayout(model, databaseId, state.databases[databaseId]);
-    }
-    for (const relationId in state.relations) {
-        if (!state.relations[relationId].viewState.isTabOpen) {
-            continue;
-        }
-        addRelationToLayout(model, state.relations[relationId]);
-    }
-    for (const dashboardId in state.dashboards) {
-        if (!state.dashboards[dashboardId].viewState.isTabOpen) {
-            continue;
-        }
-        addDashboardToLayout(model, dashboardId, state.dashboards[dashboardId]);
-    }
-
+    useRelationsState.getState().setHydrated(true);
     unsub();
 })

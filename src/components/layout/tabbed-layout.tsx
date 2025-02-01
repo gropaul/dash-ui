@@ -1,5 +1,5 @@
 import React from 'react';
-import {Layout, TabNode} from 'flexlayout-react';
+import {Layout, Model, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {useRelationsState} from "@/state/relations.state";
 import {Database, Folder, LayoutDashboard, Network, Sheet} from 'lucide-react';
@@ -14,13 +14,20 @@ import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components
 import {AvailableTabs, NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
 import {cn} from "@/lib/utils";
 import {RelationTab} from "@/components/relation/relation-tab";
+import {useGUIState} from "@/state/gui.state";
+import {Button} from "@/components/ui/button";
 
 
 export function TabbedLayout() {
     const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(['connections', 'relations']);
-    const layoutModel = useRelationsState(state => state.layoutModel);
 
+    const layoutModel = useGUIState(state => state.layoutModel);
+    console.log('TabbedLayout', layoutModel.toJson());
     const hasTabs = selectedTabs.length > 0;
+
+    const increment = useGUIState(state => state.increment);
+    const number = useGUIState(state => state.number);
+
 
     return (
         <div className="relative h-full w-full">
@@ -54,6 +61,7 @@ export function TabbedLayout() {
                             factory={factory}
                             iconFactory={iconFactory}
                             onAction={onLayoutModelChange}
+                            onModelChange={useGUIState.getState().persistState}
                         />
                     </ResizablePanel>
                 </ResizablePanelGroup>

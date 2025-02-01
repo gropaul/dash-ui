@@ -2,7 +2,7 @@
 
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {TabbedLayout} from "@/components/layout/tabbed-layout";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {DuckDBProvider} from "@/state/persistency/duckdb";
 import { AlertDialog } from "@radix-ui/react-alert-dialog";
 import {
@@ -12,11 +12,15 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import {useRelationsState} from "@/state/relations.state";
+import {Avatar, AvatarImage} from "@/components/ui/avatar";
 
 
 export default function Home() {
 
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
+
+    const relationsHydrated = useRelationsState((state) => state.hydrated);
 
     useEffect(() => {
         DuckDBProvider.getInstance().then((duckdb) => {
@@ -28,6 +32,21 @@ export default function Home() {
 
     function reloadWindow() {
         window.location.reload();
+    }
+
+    if (!relationsHydrated) {
+        return <div className="h-screen w-screen flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center space-y-2">
+                <Avatar
+                    className={'mt-2'}
+                >
+                    <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
+                </Avatar>
+
+                <div className={'text-muted-foreground'}> Loading... </div>
+            </div>
+
+        </div>;
     }
 
     return (

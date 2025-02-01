@@ -23,13 +23,11 @@ export interface CodeFenceViewState {
 
 export interface TabViewBaseState {
     displayName: string;
-    isTabOpen: boolean;
 }
 
 export function getInitialTabViewBaseState(displayName: string): TabViewBaseState {
     return {
         displayName: displayName,
-        isTabOpen: true,
     };
 }
 

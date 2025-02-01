@@ -4,10 +4,11 @@ import {useRelationsState} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
 import {DataSourceGroup} from "@/model/connection";
 import {DashboardState} from "@/model/dashboard-state";
+import {useGUIState} from "@/state/gui.state";
 
 // Layout Initialization
 export function getInitialLayoutModel(): Model {
-
+    console.log('getInitialLayoutModel');
     return Model.fromJson({
         global: {
             splitterSize: 1,
@@ -33,14 +34,16 @@ export function getInitialLayoutModel(): Model {
 // Layout Change Handling
 export function onLayoutModelChange(action: Action): Action | undefined {
     const state = useRelationsState.getState();
+    const guiState = useGUIState.getState();
+    console.log('onLayoutModelChange', action);
 
     if (action.type === "FlexLayout_DeleteTab") {
         state.closeTab(action.data.node);
     } else if (action.type === "FlexLayout_SelectTab") {
-        state.setSelectedTabId(action.data.tabNode);
+        guiState.setSelectedTabId(action.data.tabNode.id);
     } else {
-        // trigger persistence of the layout
-        state.manualPersistModel();
+        // trigger persistence of the layout but
+        guiState.persistState();
     }
     return action;
 }
@@ -54,9 +57,10 @@ export function renameTab(model: Model, tabId: string, newName: string): void {
 }
 
 // Tab Manipulation
-export function focusTabById(model: Model, tabId: string): void {
+export function focusTab(model: Model, tabId: string): void {
     model.doAction(Actions.selectTab(tabId));
 }
+
 
 export function addRelationToLayout(model: Model, relation: RelationState): void {
     addNodeToLayout(model, relation.id, relation.viewState.displayName, 'RelationComponent', { relationId: relation.id });
@@ -66,7 +70,8 @@ export function addDatabaseToLayout(model: Model, databaseId: string, database: 
     addNodeToLayout(model, databaseId, database.name, 'DatabaseComponent', { databaseId });
 }
 
-export function addDashboardToLayout(model: Model, dashboardId: string, dashboard: DashboardState): void {
+export function addDashboardToLayout(model: Model, dashboard: DashboardState): void {
+    const dashboardId = dashboard.id;
     addNodeToLayout(model, dashboardId, dashboard.viewState.displayName, 'DashboardComponent', { dashboardId });
 }
 
