@@ -20,6 +20,7 @@ interface DuckProxyState {
 }
 
 const saveToUrl = (config: DuckProxyState["config"]) => {
+    if(typeof window === "undefined") return;
     const url = new URL(window.location.href);
     const params = url.searchParams;
     const possibleKeys = ["type", "useAuthentication", "token", "url", "motherduckToken"];
@@ -50,6 +51,7 @@ const saveToUrl = (config: DuckProxyState["config"]) => {
 }
 
 const loadFromUrl = (): DuckProxyState["config"] => {
+    if (typeof window === "undefined") return {type: "none"};
     const url = new URL(window.location.href);
     const params = url.searchParams;
     const type = params.get("type");

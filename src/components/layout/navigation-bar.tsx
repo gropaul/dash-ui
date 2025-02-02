@@ -5,6 +5,7 @@ import {Database, Folder} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
+import {AvailableTabs} from "@/state/gui.state";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];

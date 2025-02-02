@@ -40,28 +40,6 @@ export class FileSystemOverDuckdb implements DataConnection {
     id: string;
     type: DBConnectionType = 'local-filesystem-over-duckdb';
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
-    configForm: FormDefinition = {
-        fields: [
-            {
-                type: 'text',
-                label: 'Name',
-                key: 'name',
-                required: true
-            },
-            {
-                type: 'text',
-                label: 'Root Path',
-                key: 'rootPath',
-                required: true
-            },
-            {
-                type: 'boolean',
-                label: 'Show Hidden Files',
-                key: 'showHiddenFiles',
-                required: false
-            }
-        ],
-    }
     dataSources: DataSource[] = [];
 
     constructor(id: string, config: FileSystemOverDuckDBConfig) {

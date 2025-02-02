@@ -2,17 +2,9 @@ import {TreeExplorer} from "@/components/basics/files/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import React from "react";
 import {useConnectionsState} from "@/state/connections.state";
-import {EllipsisVertical, RefreshCw, Settings} from "lucide-react";
-import {ConnectionConfigModal} from "@/components/connections/connection-config-modal";
+import {RefreshCw} from "lucide-react";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DataConnection, DataConnectionConfig} from "@/model/connection";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import {DataConnection} from "@/model/connection";
 import {Button} from "@/components/ui/button";
 
 export interface ConnectionViewProps {
@@ -22,9 +14,7 @@ export interface ConnectionViewProps {
 export function ConnectionView(props: ConnectionViewProps) {
 
     const refreshConnection = useConnectionsState((state) => state.refreshConnection);
-    const updateConfig = useConnectionsState((state) => state.updateConfig);
     const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
-    const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
         ConnectionsService.getInstance().getConnection(connection_id).onDataSourceClick(id_path);
@@ -42,19 +32,6 @@ export function ConnectionView(props: ConnectionViewProps) {
         await refreshConnection(props.connection.id);
     }
 
-    function onSettingsIconClicked() {
-        setSettingsModalOpen(!settingsModalOpen);
-    }
-
-    function onSettingsModalOpenChanged(open: boolean) {
-        setSettingsModalOpen(open);
-    }
-
-    function saveSettings(newConfig: DataConnectionConfig) {
-        updateConfig(props.connection.id, newConfig);
-        setSettingsModalOpen(false);
-    }
-
 
     return (
         <li className="px-4 pr-0 py-2 pt-0 text-primary text-s h-fit relative group">
@@ -65,28 +42,9 @@ export function ConnectionView(props: ConnectionViewProps) {
                 </div>
 
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <Button variant={'ghost'} size={'icon'}>
-                                <EllipsisVertical
-                                    size={16}
-                                    className="text-muted-foreground hover:text-primary cursor-pointer"
-                                />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem onClick={onSettingsIconClicked}>
-                                    <Settings />
-                                    <span>Settings</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={handleRefresh}>
-                                    <RefreshCw/>
-                                    <span>Reload</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button variant={'ghost'} size={'icon'} onClick={handleRefresh}>
+                        <RefreshCw/>
+                    </Button>
                 </div>
             </div>
             <div className={'pr-4'}>
@@ -99,13 +57,6 @@ export function ConnectionView(props: ConnectionViewProps) {
                     loadChildren={(id_path) => onElementLoadRequest(props.connection.id, id_path)}
                 />
             </div>
-
-            <ConnectionConfigModal
-                isOpen={settingsModalOpen}
-                onOpenChange={onSettingsModalOpenChanged}
-                onSave={saveSettings}
-                connection={props.connection}
-            />
         </li>
     );
 }

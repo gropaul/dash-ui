@@ -37,9 +37,9 @@ export default function Home() {
         window.location.reload();
     }
 
-    if (!duckdbProxy) {
-        return <ConnectionConfig/>
-    }
+    // if (!duckdbProxy) {
+    //     return <ConnectionConfig/>
+    // }
 
     if (!relationsHydrated) {
         return <div className="h-screen w-screen flex items-center justify-center">

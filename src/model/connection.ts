@@ -24,7 +24,6 @@ export interface DataConnection {
     id: string;
 
     config: DataConnectionConfig
-    configForm: FormDefinition;
 
     type: DBConnectionType;
     connectionStatus: ConnectionStatus;

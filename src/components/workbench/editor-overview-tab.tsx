@@ -90,7 +90,7 @@ export function EditorOverviewTab() {
 
     function onTreeElementClick(path: string[], node: TreeNode, event: React.MouseEvent) {
         // if shift is pressed, do not change the selection
-        if(!event.shiftKey) {
+        if (!event.shiftKey) {
             if (node.type === 'relation') {
                 showRelationFromId(node.id, path);
             } else if (node.type === 'dashboard') {
@@ -287,7 +287,7 @@ ${relationNames.join(', ')}`;
             }
         }
 
-        const editorState = useEditorStore.getState();
+        const editorState = useEditorStore();
         const dashboardId = dashboard.id;
         // of there is a ref, update the editor
         if (editorState.hasEditor(dashboardId)) {

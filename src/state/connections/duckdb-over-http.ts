@@ -1,9 +1,6 @@
 import {RelationData} from "@/model/relation";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections/duckdb-helper";
-import {FormDefinition} from "@/components/basics/input/custom-form";
-import {validateUrl} from "@/platform/string-validation";
-import {ConnectionStringField, showConnectionStringIfLocalHost} from "@/state/connections/duckdb-over-http/widgets";
 import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {ConnectionStatus, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
 import {QueryResponse} from "@/model/query-response";
@@ -35,54 +32,7 @@ class DuckDBOverHttp implements DataConnection {
 
     id: string;
     type: DBConnectionType;
-
     config: DuckDBOverHttpConfig;
-
-    configForm: FormDefinition = {
-        fields: [
-            {
-                type: 'text',
-                label: 'Name',
-                key: 'name',
-                required: true
-            },
-            {
-                type: 'text',
-                label: 'URL',
-                key: 'url',
-                required: true,
-                validation: (rawValue: string) => validateUrl(rawValue, 'port_required')
-            },
-            {
-                type: 'select',
-                label: 'Authentication',
-                key: 'authentication',
-                required: true,
-                selectOptions: [
-                    {label: 'None', value: 'none'},
-                    {label: 'Token', value: 'token'}
-                ]
-            },
-            {
-                type: 'password',
-                label: 'Token',
-                key: 'token',
-                required: true,
-                shouldBeVisible: (formData) => formData['authentication'] === 'token'
-            },
-            {
-                type: 'custom',
-                label: 'Connection String',
-                key: 'connectionString',
-                required: false,
-                validation: () => undefined,
-                shouldBeVisible: showConnectionStringIfLocalHost,
-                customField: {
-                    render: ConnectionStringField
-                }
-            }
-        ]
-    }
 
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
     dataSources: DataSource[] = [];
