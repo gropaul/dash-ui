@@ -68,7 +68,7 @@ class DuckDBOverHttp implements DataConnection {
                 label: 'Token',
                 key: 'token',
                 required: true,
-                shouldValidate: (formData) => formData['authentication'] === 'token'
+                shouldBeVisible: (formData) => formData['authentication'] === 'token'
             },
             {
                 type: 'custom',
@@ -76,7 +76,7 @@ class DuckDBOverHttp implements DataConnection {
                 key: 'connectionString',
                 required: false,
                 validation: () => undefined,
-                shouldValidate: showConnectionStringIfLocalHost,
+                shouldBeVisible: showConnectionStringIfLocalHost,
                 customField: {
                     render: ConnectionStringField
                 }

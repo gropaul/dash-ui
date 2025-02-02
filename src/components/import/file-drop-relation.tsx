@@ -3,10 +3,7 @@
 import {FileDrop} from "@/components/basics/input/file-drop";
 import React from "react";
 import {useRelationsState} from "@/state/relations.state";
-import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {creatTableIfNotExistsFromFilePath} from "@/state/connections/duckdb-helper";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {deleteFile, uploadFile} from "@/app/api/upload/utils";
 
 interface Props {
     className?: string;
@@ -38,14 +35,6 @@ export function FileDropRelation(props: Props) {
     async function importFilesToDuckWasm(file: File) {
         const duckDBWasm = ConnectionsService.getInstance().getDuckDBWasmConnection();
         await duckDBWasm.createTableFromBrowserFileHandler(file);
-    }
-
-    async function importFilesToDuckDBOverHttp(file: File) {
-        const {downloadUrl, fileName} = await uploadFile(file);
-        const localDuckDBConnection = ConnectionsService.getInstance().getConnection(CONNECTION_ID_DUCKDB_LOCAL);
-        await creatTableIfNotExistsFromFilePath(localDuckDBConnection, downloadUrl, fileName);
-        // delete the file after uploading
-        const success = await deleteFile(fileName);
     }
 
     const onErrorConfirm = () => {

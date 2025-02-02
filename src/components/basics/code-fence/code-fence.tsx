@@ -107,7 +107,7 @@ export function CodeFence(
 
 
     return (
-        <div className="flex flex-col h-full w-full">
+        <div className="flex flex-col h-full w-full relative">
             {buttonPosition === "panel" && (
                 <CodeFenceButtonPanel
                     showLayoutButton={showLayoutButton}

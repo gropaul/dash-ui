@@ -25,8 +25,6 @@ export function ConnectionConfigModal({isOpen, onOpenChange, onSave, connection}
         <MyDialog open={isOpen} onOpenChange={onOpenChange}>
             <h2 className="text-2xl font-semibold mb-4">Connection Configuration</h2>
 
-            {/* Configuration form goes here */}
-
             <CustomForm
                 initialFormData={connection.config}
                 formDefinition={connection.configForm}

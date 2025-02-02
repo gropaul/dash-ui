@@ -3,41 +3,27 @@ type PortOption = "no_port_allowed" | "port_allowed" | "port_required";
 export function validateUrl(
     value?: string,
     portOption: PortOption = "port_allowed",
-    missingPortMessage: string = "URL must include a port"
 ): string | undefined {
     if (!value) {
-        return "URL cannot be empty";
+        return 'URL cannot be empty';
     }
 
-    const urlPatternWithPort = /^(https?:\/\/)(([\da-z.-]+|localhost)|(\d{1,3}\.){3}\d{1,3})(:\d{1,5})(\/[^\s]*)?$/;
-    const urlPatternWithoutPort = /^(https?:\/\/)(([\da-z.-]+|localhost)|(\d{1,3}\.){3}\d{1,3})(\/[^\s]*)?$/;
-    const optionalPortPattern = /^(https?:\/\/)(([\da-z.-]+|localhost)|(\d{1,3}\.){3}\d{1,3})(:\d{1,5})?(\/[^\s]*)?$/;
-
-    // Select the appropriate pattern based on the `portOption`
-    let pattern;
-    switch (portOption) {
-        case "port_required":
-            pattern = urlPatternWithPort;
-            break;
-        case "no_port_allowed":
-            pattern = urlPatternWithoutPort;
-            break;
-        case "port_allowed":
-        default:
-            pattern = optionalPortPattern;
-            break;
+    let url: URL
+    try {
+        url = new URL(value);
+    } catch (e) {
+        return 'Invalid URL';
     }
 
-    if (!pattern.test(value)) {
-        return `Invalid URL format${portOption === "no_port_allowed" ? " (ports are not allowed)" : ""}`;
+    if (portOption === "no_port_allowed" && url.port) {
+        return "URL must not include a port";
+    } else if (portOption === "port_required" && !url.port) {
+        return "URL must include a port";
     }
 
-    // Additional check if port is required but missing
-    if (portOption === "port_required" && !/:\d{1,5}/.test(value)) {
-        return missingPortMessage;
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return 'URL must have http or https protocol';
     }
-
-    return undefined; // Return undefined if the URL is valid
 }
 
 

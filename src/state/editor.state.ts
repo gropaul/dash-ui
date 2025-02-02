@@ -1,4 +1,3 @@
-import create from 'zustand';
 import EditorJS from '@editorjs/editorjs';
 
 // we need long living instances of the editor, so we need a singleton as updating the
@@ -46,7 +45,7 @@ interface EditorState {
     hasEditor: (id: string) => boolean;
 }
 
-export const useEditorStore = create<EditorState>((set, get) => ({
+export const useEditorStore = (): EditorState => ({
     setEditor: (id, editor) => {
         EditorsService.getInstance().setEditor(id, editor);
     },
@@ -59,4 +58,4 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     hasEditor: (id) => {
         return EditorsService.getInstance().hasEditor(id);
     }
-}));
+});

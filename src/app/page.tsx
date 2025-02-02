@@ -15,10 +15,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import {useHydrationState} from "@/state/relations.state";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
+import {ConnectionConfig} from "@/components/connections/connection-config";
 
 
 export default function Home() {
 
+    const [duckdbProxy, setDuckdbProxy] = useState(null);
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
 
     const relationsHydrated = useHydrationState((state) => state.hydrated);
@@ -35,6 +37,10 @@ export default function Home() {
         window.location.reload();
     }
 
+    if (!duckdbProxy) {
+        return <ConnectionConfig/>
+    }
+
     if (!relationsHydrated) {
         return <div className="h-screen w-screen flex items-center justify-center">
             <div className="flex flex-col items-center justify-center space-y-2">
@@ -44,7 +50,7 @@ export default function Home() {
                     <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
                 </Avatar>
 
-                <div className={'text-muted-foreground'}> Loading... </div>
+                <div className={'text-muted-foreground'}> Loading...</div>
             </div>
 
         </div>;
@@ -62,7 +68,8 @@ export default function Home() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Changes detected!</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Another User or Tab has made changes. To ensure you have the latest data, please reload the page. Otherwise, your changes
+                            Another User or Tab has made changes. To ensure you have the latest data, please reload the
+                            page. Otherwise, your changes
                             may be lost.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
