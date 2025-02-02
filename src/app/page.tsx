@@ -4,11 +4,12 @@ import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {TabbedLayout} from "@/components/layout/tabbed-layout";
 import React, {useEffect, useState} from "react";
 import {DuckDBProvider} from "@/state/persistency/duckdb";
-import { AlertDialog } from "@radix-ui/react-alert-dialog";
+import {AlertDialog} from "@radix-ui/react-alert-dialog";
 import {
     AlertDialogAction,
     AlertDialogContent,
-    AlertDialogDescription, AlertDialogFooter,
+    AlertDialogDescription,
+    AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";

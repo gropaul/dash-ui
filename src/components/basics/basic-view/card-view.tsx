@@ -1,5 +1,5 @@
 import React from "react";
-import {H1, H3, H5} from "@/components/ui/typography";
+import {H5} from "@/components/ui/typography";
 
 
 interface CardViewProps {

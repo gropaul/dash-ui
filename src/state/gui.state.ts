@@ -1,6 +1,6 @@
 import {Model} from "flexlayout-react";
 import create from "zustand";
-import {createJSONStorage, persist, PersistStorage} from "zustand/middleware";
+import {createJSONStorage, persist} from "zustand/middleware";
 import {
     addDashboardToLayout,
     addDatabaseToLayout,
@@ -8,21 +8,31 @@ import {
     addSchemaToLayout,
     focusTab,
     getInitialLayoutModel,
-    removeTab, renameTab,
+    removeTab,
+    renameTab,
 } from "@/state/relations/layout-updates";
 import {RelationState} from "@/model/relation-state";
 import {DashboardState} from "@/model/dashboard-state";
 import {DataSourceGroup} from "@/model/connection";
 
+export type AvailableTabs = 'connections' | 'relations';
+
 export interface GUIZustand {
     selectedTabId: string | undefined;
     layoutModel: Model;
+    mainBarSizeRatio: number;
+    selectedSidebarTabs: AvailableTabs[];
     number: number;
 }
+
 
 export interface GUIZustandActions {
     getModel: () => Model;
     setModel: (model: Model) => void;
+
+    setMainBarSizeRatio: (ratio: number) => void;
+
+    setSelectedSidebarTabs: (tabs: AvailableTabs[]) => void;
 
     removeTab(tabId: string): void;
 
@@ -76,6 +86,16 @@ export const useGUIState = create<GUIZustandCombined>()(
             layoutModel: getInitialLayoutModel(),
             selectedTabId: undefined,
             number: 0,
+            mainBarSizeRatio: 40,
+            selectedSidebarTabs: ['connections', 'relations'],
+
+            setSelectedSidebarTabs: (tabs: AvailableTabs[]) => {
+                set({selectedSidebarTabs: tabs});
+            },
+
+            setMainBarSizeRatio: (ratio: number) => {
+                set({mainBarSizeRatio: ratio});
+            },
 
             setSelectedTabId: (tabId: string) => {
                 set({selectedTabId: tabId});

@@ -1,6 +1,7 @@
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {
-    ContextMenuItem, ContextMenuSeparator,
+    ContextMenuItem,
+    ContextMenuSeparator,
     ContextMenuSub,
     ContextMenuSubContent,
     ContextMenuSubTrigger

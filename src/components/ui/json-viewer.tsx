@@ -25,7 +25,7 @@ export const isObject = (value: any) => typeof value === 'object' && value !== n
 
 export function RecursiveJsonViewer(props: RecursiveJsonViewerProps) {
     return (
-        <RecursiveJsonViewerInternal {...props}/>
+        <RecursiveJsonViewerInternal {...props} isLast={true}/>
     )
 }
 
@@ -51,7 +51,10 @@ export function RecursiveJsonViewerInternal(props: RecursiveJsonViewerInternalPr
 
         const isObject = !Array.isArray(json);
 
-        const content = JSON.stringify(json);
+        let content = JSON.stringify(json);
+        if (!props.isLast) {
+            content += ',';
+        }
 
         return (
             <div className={`w-full cursor-pointer`}>
@@ -67,7 +70,6 @@ export function RecursiveJsonViewerInternal(props: RecursiveJsonViewerInternalPr
         return (
             <div className={`w-full ${className} ${depthColor}`}>
                 <JsonChildWrapper
-                    key={0}
                     onSeparatorClick={toggleCollapse}
                     json_key={undefined}
                     value={json}

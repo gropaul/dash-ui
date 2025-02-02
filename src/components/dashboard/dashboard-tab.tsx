@@ -1,4 +1,3 @@
-import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
 import {DashboardContent} from "@/components/dashboard/dashboard-content";

@@ -1,8 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {ChevronDown, ChevronRight} from "lucide-react";
 import {TreeNode} from "@/components/basics/files/tree-utils";
-import {ContextMenu, ContextMenuContent, ContextMenuTrigger} from "@/components/ui/context-menu";
-import {cn} from "@/lib/utils";
 import {TreeExplorerNode} from "@/components/basics/files/tree-explorer-node";
 import {TreeDndContext} from "@/components/basics/files/tree-dnd-context";
 
@@ -28,6 +25,7 @@ export interface TreeExplorerProps {
     orderBy?: (a: TreeNode, b: TreeNode) => number;
 
     selectedIds?: string[][];
+    enableDnd?: boolean;
 }
 
 export function TreeExplorer({
@@ -40,7 +38,8 @@ export function TreeExplorer({
                                  contextMenuFactory,
                                  onExpandedChange,
                                  orderBy,
-                                 selectedIds
+                                 selectedIds,
+                                 enableDnd = true,
                              }: TreeExplorerProps) {
     // Convert tree to array if it’s a single TreeNode
     const trees = Array.isArray(tree) ? tree : [tree];
@@ -76,7 +75,7 @@ export function TreeExplorer({
     return (
         <div className="h-fit" ref={containerRef}>
             <TreeDndContext
-                active={true}
+                enabled={enableDnd}
                 tree={sortedTrees}
                 selectedIds={selectedIds}
                 iconFactory={iconFactory}

@@ -1,14 +1,13 @@
-import {DndContext, DragOverEvent, DragOverlay, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
+import {DndContext, DragOverlay, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import React, {ReactNode, useState} from "react";
 import type {DragEndEvent, DragStartEvent} from "@dnd-kit/core/dist/types";
-import {findNodeInTrees, findNodesInTrees, TreeAction, TreeNode} from "@/components/basics/files/tree-utils";
-import {snapCenterToCursor} from "@dnd-kit/modifiers";
+import {findNodesInTrees, TreeAction, TreeNode} from "@/components/basics/files/tree-utils";
 import {useRelationsState} from "@/state/relations.state";
 import {cn} from "@/lib/utils";
 
 
 export interface TreeDndContextProps {
-    active: boolean;
+    enabled: boolean;
     children: ReactNode;
     tree: TreeNode[];
     selectedIds?: string[][];
@@ -69,7 +68,7 @@ export function TreeDndContext(props: TreeDndContextProps) {
     }
 
 
-    if (!props.active) {
+    if (!props.enabled) {
         return props.children;
     }
 

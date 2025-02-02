@@ -13,6 +13,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {Button} from "@/components/ui/button";
 
 export interface ConnectionViewProps {
     connection: DataConnection;
@@ -56,8 +57,8 @@ export function ConnectionView(props: ConnectionViewProps) {
 
 
     return (
-        <li className="px-4 py-2 pt-0 text-primary text-s h-fit relative group">
-            <div className="flex items-center justify-between">
+        <li className="px-4 pr-0 py-2 pt-0 text-primary text-s h-fit relative group">
+            <div className="flex pr-3 items-center justify-between">
                 <div className="flex items-center space-x-2 text-nowrap font-semibold">
                     <span>{props.connection.config.name}</span>
                     <ConnectionStateIcon connectionId={props.connection.id}/>
@@ -66,10 +67,12 @@ export function ConnectionView(props: ConnectionViewProps) {
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DropdownMenu>
                         <DropdownMenuTrigger>
-                            <EllipsisVertical
-                                size={16}
-                                className="text-muted-foreground hover:text-primary cursor-pointer"
-                            />
+                            <Button variant={'ghost'} size={'icon'}>
+                                <EllipsisVertical
+                                    size={16}
+                                    className="text-muted-foreground hover:text-primary cursor-pointer"
+                                />
+                            </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                             <DropdownMenuGroup>
@@ -86,13 +89,16 @@ export function ConnectionView(props: ConnectionViewProps) {
                     </DropdownMenu>
                 </div>
             </div>
-            <TreeExplorer
-                tree={props.connection.dataSources}
-                iconFactory={defaultIconFactory}
-                contextMenuFactory={getContextMenuFactory(props.connection.id)}
-                onClick={(id_path) => onElementClick(props.connection.id, id_path)}
-                loadChildren={(id_path) => onElementLoadRequest(props.connection.id, id_path)}
-            />
+            <div className={'pr-4'}>
+                <TreeExplorer
+                    enableDnd={false}
+                    tree={props.connection.dataSources}
+                    iconFactory={defaultIconFactory}
+                    contextMenuFactory={getContextMenuFactory(props.connection.id)}
+                    onClick={(id_path) => onElementClick(props.connection.id, id_path)}
+                    loadChildren={(id_path) => onElementLoadRequest(props.connection.id, id_path)}
+                />
+            </div>
 
             <ConnectionConfigModal
                 isOpen={settingsModalOpen}

@@ -1,7 +1,6 @@
 import React from 'react';
-import {Layout, Model, TabNode} from 'flexlayout-react';
+import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
-import {useRelationsState} from "@/state/relations.state";
 import {Database, Folder, LayoutDashboard, Network, Sheet} from 'lucide-react';
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
@@ -11,23 +10,21 @@ import {DirectoryTab} from "@/components/directory/directory-tab";
 import {DashboardTab} from "@/components/dashboard/dashboard-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
-import {AvailableTabs, NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
+import {NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
 import {cn} from "@/lib/utils";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
-import {Button} from "@/components/ui/button";
 
 
 export function TabbedLayout() {
-    const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(['connections', 'relations']);
 
     const layoutModel = useGUIState(state => state.layoutModel);
-    console.log('TabbedLayout', layoutModel.toJson());
+    const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
+    const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
     const hasTabs = selectedTabs.length > 0;
 
-    const increment = useGUIState(state => state.increment);
-    const number = useGUIState(state => state.number);
-
+    const panelRatio = useGUIState(state => state.mainBarSizeRatio);
+    const setPanelRatio = useGUIState(state => state.setMainBarSizeRatio);
 
     return (
         <div className="relative h-full w-full">
@@ -41,7 +38,8 @@ export function TabbedLayout() {
                     direction={'horizontal'}
                 >
                     <ResizablePanel
-                        defaultSize={20}
+                        defaultSize={panelRatio}
+                        onResize={setPanelRatio}
                         minSize={8}
                         className={cn(hasTabs ? '' : 'hidden', '')}
                     >
@@ -49,7 +47,7 @@ export function TabbedLayout() {
                     </ResizablePanel>
                     <ResizableHandle className={hasTabs ? '' : 'hidden'}/>
                     <ResizablePanel
-                        defaultSize={hasTabs ? 80 : 100}
+                        defaultSize={hasTabs ? (100 - panelRatio) : 100}
                         minSize={40}
                         className={'relative'}
                     >
