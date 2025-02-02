@@ -1,5 +1,4 @@
 import RelationBlockTool, {RELATION_BLOCK_TYPE} from "@/components/editor/tools/relation.tool";
-import Quote from "@editorjs/quote";
 import Warning from "@editorjs/warning";
 import CodeTool from "@editorjs/code";
 import Delimiter from "@/components/editor/tools/delimiter.tools";
@@ -40,24 +39,24 @@ export const EDITOR_JS_TOOLS = {
             inlineToolbar: true,
             shortcut: "CMD+SHIFT+L",
     },
-    quote: {
-        class: Quote,
-            inlineToolbar: true,
-            config: {
-            quotePlaceholder: "Enter a quote",
-                captionPlaceholder: "Quote's author",
-        },
-        shortcut: "CMD+SHIFT+O",
-    },
+    // quote: {
+    //     class: Quote,
+    //         inlineToolbar: true,
+    //         config: {
+    //         quotePlaceholder: "Enter a quote",
+    //             captionPlaceholder: "Quote's author",
+    //     },
+    //     shortcut: "CMD+SHIFT+O",
+    // },
     warning: Warning,
         marker: {
     class: Marker,
         shortcut: "CMD+SHIFT+M",
 },
-    code: {
-        class: CodeTool,
-            shortcut: "CMD+SHIFT+C",
-    },
+    // code: {
+    //     class: CodeTool,
+    //         shortcut: "CMD+SHIFT+C",
+    // },
     delimiter: Delimiter,
         inlineCode: {
     class: InlineCode,

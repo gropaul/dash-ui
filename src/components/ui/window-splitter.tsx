@@ -66,7 +66,7 @@ export function WindowSplitter(props: WindowSplitterProps) {
     const child2Style = { flex: `${100 - codePercentage} 1 0%`, alignSelf: 'stretch' };
 
     if (props.children === undefined || (props.children as any[]).length !== 2) {
-        throw new Error("WindowSplitter requires exactly 2 children");
+        throw new Error("WindowSplitter requires exactly 2 children but has " + (props.children as any[]).length);
     }
 
     const [child1, child2] = props.children as any[];

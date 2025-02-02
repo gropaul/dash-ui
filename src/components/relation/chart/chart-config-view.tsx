@@ -10,9 +10,11 @@ import {ConfigViewPie} from "@/components/relation/chart/chart-config/config-vie
 import {RelationState} from "@/model/relation-state";
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
+import {cn} from "@/lib/utils";
 
 
 export interface ChartConfigProps {
+    className?: string,
     relationState: RelationState,
     embedded?: boolean,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
@@ -51,7 +53,7 @@ export function ChartConfigView(props: ChartConfigProps) {
     }
 
     return (
-        <div className="relative flex flex-col h-full w-full">
+        <div className={cn("relative flex flex-col h-full w-full", props.className)}>
             {!embedded && (
                 <>
                     <H5>Chart Config</H5>
