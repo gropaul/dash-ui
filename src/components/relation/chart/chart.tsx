@@ -29,7 +29,7 @@ export function Chart(props: RelationViewProps) {
     const overflowClass = isEmbedded ? 'overflow-hidden' : 'overflow-auto';
     return (
         <>
-            <div className={cn('w-full relative overflow-hidden', contentHeightClass)}>
+            <div className={cn('group w-full relative overflow-hidden', contentHeightClass)}>
                 <WindowSplitter
                     ratio={config.view.configPlotRatio}
                     layout={config.view.layout}

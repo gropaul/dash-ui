@@ -14,7 +14,7 @@ export function ChartWrapper(props: ChartWrapperProps) {
     const margin = {top: 12, right: 16, bottom: 16, left: 0}
     switch (props.plotType) {
         case 'bar':
-            return <BarChart compact margin={margin} data={props.data}>{props.children}</BarChart>
+            return <BarChart margin={margin} data={props.data}>{props.children}</BarChart>
         case 'area':
             return <AreaChart margin={margin} data={props.data}>{props.children}</AreaChart>
         case 'line':

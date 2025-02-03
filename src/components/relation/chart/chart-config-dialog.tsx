@@ -24,14 +24,18 @@ export function ChartConfigDialog(props: ChartConfigDialogProps) {
                     <ResizablePanel
                         defaultSize={70}
                     >
-                        <ChartContentWrapper {...props}/>
+                        <ChartContentWrapper showOverlay={false} {...props}/>
                     </ResizablePanel>
                     <ResizableHandle/>
                     <ResizablePanel
                         defaultSize={30}
+                        style={{
+                            overflowY: 'auto',
+                        }}
                     >
                         <ChartConfigView
-                            className={'pl-4'}
+
+                            className={'pl-4 pr-[1px]'}
                             embedded={true}
                             relationState={props.relationState}
                             updateRelationViewState={props.updateRelationViewState}

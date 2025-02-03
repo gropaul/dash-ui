@@ -1,5 +1,5 @@
-import {CartesianGrid, PolarAngleAxis, PolarGrid, PolarRadiusAxis, XAxis, YAxis} from "recharts";
-import {ChartConfig, PlotType} from "@/model/relation-view-state/chart";
+import {CartesianGrid, Label, Legend, PolarAngleAxis, PolarGrid, PolarRadiusAxis, XAxis, YAxis} from "recharts";
+import {ChartConfig, PlotType, rangeDefined, transformRange} from "@/model/relation-view-state/chart";
 import {RelationData} from "@/model/relation";
 import {useEffect, useState} from "react";
 
@@ -49,7 +49,7 @@ export function ChartDecoration(props: ChartDecorationProps) {
             const maxTextLength = context.measureText(text).width;
 
             xAxisLabelAngle = maxTextLength > 80 ? -90 : 0;
-            xAxisHeight = Math.max(30, Math.min(200, maxTextLength)) + 8;
+            xAxisHeight = maxTextLength > 80 ? Math.max(30, Math.min(200, maxTextLength)) + 8 : 30;
         }
 
 
@@ -72,20 +72,48 @@ export function ChartDecoration(props: ChartDecorationProps) {
         <>
             {showCartesianElementsFor(config.plot.type) && (
                 <>
+                    <Legend/>
+
                     <CartesianGrid vertical={false}/>
                     {config.plot.cartesian.xAxis && (
                         <XAxis
+                            allowDataOverflow={true}
+                            type={rangeDefined(config.plot.cartesian.xRange) ? 'number' : undefined}
+                            domain={transformRange(config.plot.cartesian.xRange)}
                             dataKey={config.plot.cartesian.xAxis.columnId}
                             height={xAxisHeight}
                             angle={xAxisLabelAngle}
                             tick={<CustomXTick callback={onXAxisCallback}/>} // Use callback for X-axis
-                        />
+                        >
+                            <Label
+                                style={{
+                                    textAnchor: "middle",
+                                    fontSize: "120%",
+                                }}
+                                position={'insideBottom'}
+                                offset={0}
+                                value={config.plot.cartesian.xLabel}/>
+                        </XAxis>
                     )}
                     <YAxis
-                        domain={['auto', 'auto']}
-                        width={yAxisWidth}
+                        allowDataOverflow={true}
+                        type={rangeDefined(config.plot.cartesian.xRange) ? 'number' : undefined}
+                        domain={transformRange(config.plot.cartesian.yRange)}
+                        width={yAxisWidth + 16}
                         tick={<CustomYTick callback={onYAxisCallback}/>} // Use callback for Y-axis
-                    />
+                    >
+                        <Label
+                            style={{
+                                textAnchor: "middle",
+                                fontSize: "120%",
+                            }}
+                            angle={270}
+                            offset={6}
+                            position={'insideLeft'}
+                            value={config.plot.cartesian.yLabel}
+                        />
+
+                    </YAxis>
                 </>
             )}
             {showRadarElementsFor(config.plot.type) && (

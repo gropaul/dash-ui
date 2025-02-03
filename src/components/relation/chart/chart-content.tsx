@@ -24,8 +24,8 @@ export function ChartContent({data, config, hideTitleIfEmpty = false, embedded =
     const showTitle = !hideTitleIfEmpty || !emptyTitle;
     const chartData = getReChartDataFromConfig(data, config);
 
-
-    const headerHeight = embedded ? 'h-[26px]' : 'h-10';
+    // const headerHeight = embedded ? 'h-[26px]' : 'h-10';
+    const headerHeight = embedded ? 'h-10' : 'h-10';
     return (
         <div className="h-full flex flex-col items-center">
             { showTitle && (
@@ -43,7 +43,7 @@ export function ChartContent({data, config, hideTitleIfEmpty = false, embedded =
                                 <>
 
                                     <ChartTooltip
-                                        cursor={false}
+                                        cursor={true}
                                         content={<ChartTooltipContent/>}
                                     />
                                     {

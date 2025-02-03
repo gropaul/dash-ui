@@ -1,11 +1,13 @@
 import {Label} from "@/components/ui/label";
-import {Muted, Small} from "@/components/ui/typography";
+import {H5, Muted, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {DEFAULT_COLORS} from "@/platform/global-data";
 import {CirclePlus} from "lucide-react";
-import {AxisConfig} from "@/model/relation-view-state/chart";
+import {AxisConfig, AxisRange} from "@/model/relation-view-state/chart";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 import {Column} from "@/model/column";
+import {Input} from "@/components/ui/input";
+import {Separator} from "@/components/ui/separator";
 
 
 export function ConfigViewCartesian(props: ChartConfigProps) {
@@ -13,6 +15,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     const config = props.relationState.viewState.chartState;
     const noYAxes = !config.chart.plot.cartesian.yAxes || config.chart.plot.cartesian.yAxes.length === 0;
     const relationId = props.relationState.id;
+
     function deleteYAxis(index: number) {
         const yAxes = config.chart.plot.cartesian.yAxes ?? ([] as Partial<AxisConfig>[]);
         yAxes.splice(index, 1);
@@ -45,6 +48,20 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         });
     }
 
+    function updateAxisRange(range: AxisRange, axis: 'xRange' | 'yRange') {
+        props.updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        cartesian: {
+                            [axis]: range,
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     function updateYAxis(index: number, update: Partial<AxisConfig>) {
         const yAxes = config.chart.plot.cartesian.yAxes ?? ([] as Partial<AxisConfig>[]);
         if (yAxes.length <= index) {
@@ -70,11 +87,39 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         });
     }
 
+    function updateXLabel(label: string) {
+        props.updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        cartesian: {
+                            xLabel: label,
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateYLabel(label: string) {
+        props.updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        cartesian: {
+                            yLabel: label,
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     const columns = props.relationState?.data?.columns ?? ([] as Column[]);
 
     return (
         <>
-            <Label><Muted>Data</Muted></Label>
+            <Label className={'h-3'}><Muted>Data</Muted></Label>
             <ColumnSelector
                 axisType={"x"}
                 axis={config.chart.plot.cartesian.xAxis}
@@ -120,6 +165,103 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                 </div>
                 <Small className="text-gray-500">Add Y-Axis</Small>
             </button>
+
+            {config.chart.plot.type !== 'radar' && <>
+                <div className={'pb-1'}>
+                    <H5>X-Axis</H5>
+                    <Separator/>
+                </div>
+                <Input
+                    type="text"
+                    id="x-axis-label"
+                    placeholder="Label"
+                    value={config.chart.plot.cartesian.xLabel}
+                    onChange={(e) => updateXLabel(e.target.value)}
+                />
+                <AxisRangeWidget
+                    range={config.chart.plot.cartesian.xRange}
+                    updateRange={(range) => updateAxisRange(range, 'xRange')}
+                />
+
+                <div className={'pb-1'}>
+                    <H5>Y-Axis</H5>
+                    <Separator/>
+                </div>
+                <Input
+                    type="text"
+                    id="y-axis-label"
+                    placeholder="Label"
+                    value={config.chart.plot.cartesian.yLabel}
+                    onChange={(e) => updateYLabel(e.target.value)}
+                />
+                <AxisRangeWidget
+                    range={config.chart.plot.cartesian.yRange}
+                    updateRange={(range) => updateAxisRange(range, 'yRange')}
+                />
+            </>}
+        </>
+    )
+}
+
+
+export interface AxisRangeWidgetProps{
+    range: AxisRange;
+    updateRange: (range: AxisRange) => void;
+}
+
+
+export function AxisRangeWidget(props: AxisRangeWidgetProps) {
+
+    let localRange = props.range;
+    if (!localRange) {
+        localRange = {};
+    }
+
+    // get as number, undefined if not a number or empty
+    function parseString(value: string): number | undefined {
+        if (value === '') {
+            return undefined;
+        } else {
+            const num = Number(value);
+            return isNaN(num) ? undefined : num;
+        }
+    }
+
+    function updateStart(start: string) {
+        props.updateRange({
+            ...props.range,
+            start: parseString(start),
+        });
+    }
+
+    function updateEnd(end: string) {
+        props.updateRange({
+            ...props.range,
+            end: parseString(end),
+        });
+    }
+
+    return (
+        <>
+            <Label className={'h-3'}><Muted>Range</Muted></Label>
+            <div className={'flex flex-row gap-2 items-center'}>
+                <Input
+                    type="number"
+                    id="x-axis-label"
+                    placeholder="Auto"
+                    value={localRange.start ?? ''}
+                    onChange={(e) => updateStart(e.target.value)}
+
+                />
+                <div className={'h-[1px] w-3 bg-muted-foreground'}/>
+                <Input
+                    type="number"
+                    id="x-axis-label"
+                    placeholder="Auto"
+                    value={localRange.end ?? ''}
+                    onChange={(e) => updateEnd(e.target.value)}
+                />
+            </div>
         </>
     )
 }

@@ -1,6 +1,5 @@
 import {PlotType} from "@/model/relation-view-state/chart";
 import {H5, Muted} from "@/components/ui/typography";
-import {Column} from "@/model/column";
 import {Separator} from "@/components/ui/separator";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
@@ -22,7 +21,6 @@ export interface ChartConfigProps {
 
 export function ChartConfigView(props: ChartConfigProps) {
 
-    const columns = props.relationState?.data?.columns ?? ([] as Column[]);
     const relationId = props.relationState.id;
     const config = props.relationState.viewState.chartState;
 
@@ -54,16 +52,14 @@ export function ChartConfigView(props: ChartConfigProps) {
 
     return (
         <div className={cn("relative flex flex-col h-full w-full", props.className)}>
-            {!embedded && (
-                <>
-                    <H5>Chart Config</H5>
-                    <Separator/>
-                </>
-            )}
+            <div className={'pb-1'}>
+                <H5>Data Config</H5>
+                <Separator/>
+            </div>
             <div className="flex-1 flex flex-col gap-2 w-full">
 
                 <div className="grid w-full items-center gap-1.5 shrink-0">
-                    <Label htmlFor="title"><Muted>Title</Muted></Label>
+                    <Label className={'h-3'}><Muted>Title</Muted></Label>
                     <Input
                         type="text"
                         id="title"
@@ -72,7 +68,7 @@ export function ChartConfigView(props: ChartConfigProps) {
                         onChange={(e) => updateTitle(e.target.value)}
                     />
                 </div>
-                <Label htmlFor="title"><Muted>Type</Muted></Label>
+                <Label className={'h-3'}><Muted>Type</Muted></Label>
                 <ChartTypeSelector
                     type={config.chart.plot.type}
                     onPlotTypeChange={updatePlotType}
@@ -80,6 +76,7 @@ export function ChartConfigView(props: ChartConfigProps) {
                 <ChartSpecificConfig {...props}/>
 
                 {/* Fill remaining space */}
+                <div className="h-8"/>
                 <div className="flex-1 shrink"/>
             </div>
         </div>

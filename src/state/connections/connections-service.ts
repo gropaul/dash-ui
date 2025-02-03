@@ -94,7 +94,6 @@ export class ConnectionsService {
                 await this.showExampleQuery(duckDBLocal.id);
             }
 
-
         });
 
         // const duckDBWasm = getDuckDBWasmConnection();
