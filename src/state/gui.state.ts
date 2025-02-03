@@ -66,14 +66,12 @@ type GUIZustandCombined = GUIZustand & GUIZustandActions;
 const storage = createJSONStorage(() => localStorage, {
     reviver: (key, value) => {
         if (key === 'layoutModel') {
-            console.log('reviver', value);
             return Model.fromJson(value as any);
         }
         return value;
     },
     replacer: (key, value) => {
         if (key === 'layoutModel') {
-            console.log('replacer', value);
             return (value as Model).toJson();
         }
         return value;

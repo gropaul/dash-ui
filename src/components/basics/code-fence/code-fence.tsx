@@ -1,13 +1,15 @@
 import React from "react";
-import {Sometype_Mono} from "next/font/google";
 import {CodeFenceButtonOverlay} from "@/components/basics/code-fence/code-fence-button-overlay";
-import Editor from "@monaco-editor/react";
+import Editor, {Monaco} from "@monaco-editor/react";
 import {TaskExecutionState} from "@/model/relation-state";
 import {CodeFenceButtonPanel} from "@/components/basics/code-fence/code-fence-button-panel";
 import {Layout} from "@/model/relation-view-state";
 import {useTheme} from "next-themes";
+import {editor, KeyCode, KeyMod} from "monaco-editor";
 
-const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
+import "@/styles/editor-monaco.css";
+import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
+import {configureMonaco} from "@/components/basics/code-fence/monaco-sql-setup";
 
 export type SupportedLanguages = "sql" | "plaintext";
 
@@ -65,7 +67,24 @@ export function CodeFence(
     copyCode = copyCode || displayCode;
     const {resolvedTheme} = useTheme();
 
+    const [editor, setEditor] = React.useState<any>(null);
     const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
+
+    const executeAction =  {
+        id: "run-code",
+        label: "Run Code",
+        contextMenuOrder: 2,
+        contextMenuGroupId: "1_modification",
+        keybindings: [
+            KeyMod.CtrlCmd | KeyCode.Enter,
+        ],
+        run: () => {
+            if (onRun) {
+                onRun();
+            }
+        }
+    }
+
 
     function onLocalCodeChange(value: string | undefined) {
         if (readOnly) {
@@ -78,7 +97,7 @@ export function CodeFence(
     }
 
     // define custom theme to set the background transparent
-    const customTheme = {
+    const customTheme: any = {
         base: 'vs',
         inherit: true,
         rules: [],
@@ -87,7 +106,7 @@ export function CodeFence(
         },
     };
 
-    const customThemeDark = {
+    const customThemeDark: any = {
         base: 'vs-dark',
         inherit: true,
         rules: [],
@@ -96,15 +115,15 @@ export function CodeFence(
         },
     };
 
-    function onMount(editor: any, monaco: any) {
+    function onMount(editor: IStandaloneCodeEditor, monaco: Monaco) {
         // add the custom theme
         monaco.editor.defineTheme('customTheme', customTheme);
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
         monaco.editor.setTheme(editorTheme);
+        monaco.editor.addEditorAction(executeAction)
+        setEditor(editor);
+        // configureMonaco(monaco);
     }
-
-    const roundedStyle = rounded ? "rounded-lg" : "";
-
 
     return (
         <div className="flex flex-col h-full w-full">
@@ -126,7 +145,7 @@ export function CodeFence(
             <Editor
                 height={height}
                 width={width}
-                language={language}
+                language={'sql'}
                 value={displayCode}
                 options={{
                     readOnly: readOnly,
