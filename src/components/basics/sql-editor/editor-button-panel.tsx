@@ -1,7 +1,7 @@
 import React from "react";
 import {TaskExecutionState} from "@/model/relation-state";
 import {CopyButton} from "@/components/basics/input/copy-button";
-import {getRunButtonContent} from "@/components/basics/code-fence/run-button-content";
+import {getRunButtonContent} from "@/components/basics/sql-editor/run-button-content";
 import {Columns2, Rows2} from "lucide-react";
 import {Layout} from "@/model/relation-view-state";
 
@@ -20,7 +20,7 @@ export interface CodeFenceButtonProps {
     executionState: TaskExecutionState;
 }
 
-export function CodeFenceButtonPanel(props: CodeFenceButtonProps) {
+export function EditorButtonPanel(props: CodeFenceButtonProps) {
 
     return (
         <>

@@ -1,10 +1,10 @@
 import React from "react";
 import {CopyButton} from "@/components/basics/input/copy-button";
-import {CodeFenceButtonProps} from "@/components/basics/code-fence/code-fence-button-panel";
-import {getRunButtonContent} from "@/components/basics/code-fence/run-button-content";
+import {CodeFenceButtonProps} from "@/components/basics/sql-editor/editor-button-panel";
+import {getRunButtonContent} from "@/components/basics/sql-editor/run-button-content";
 
 
-export function CodeFenceButtonOverlay(props: CodeFenceButtonProps) {
+export function EditorButtonOverlay(props: CodeFenceButtonProps) {
 
     return (
         <div>

@@ -6,7 +6,7 @@ import {
     getDatabaseFunctions,
     getDatabaseKeywords,
     getDatabaseStructure, Table
-} from "@/components/basics/code-fence/get-schema";
+} from "@/components/basics/sql-editor/get-schema";
 import {format} from "sql-formatter";
 
 
@@ -230,17 +230,4 @@ export function configureMonaco(monaco: Monaco) {
             };
         },
     });
-
-    // Use sql formatter for formatting SQL code using import { format } from "sql-formatter";
-    monaco.languages.registerDocumentFormattingEditProvider("sql", {
-        provideDocumentFormattingEdits: (model) => {
-            const formatted = format(model.getValue(), { language: "sql" });
-            return [
-                {
-                    range: model.getFullModelRange(),
-                    text: formatted,
-                },
-            ];
-        },
-    });
-};
+}

@@ -1,6 +1,6 @@
 import {Loader2, Play} from "lucide-react";
 import React from "react";
-import {CodeFenceButtonProps} from "@/components/basics/code-fence/code-fence-button-panel";
+import {CodeFenceButtonProps} from "@/components/basics/sql-editor/editor-button-panel";
 
 
 export const getRunButtonContent = (props: CodeFenceButtonProps) => {

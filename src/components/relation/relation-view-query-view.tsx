@@ -1,5 +1,5 @@
 import {DefaultRelationZustandActions, useRelationsState} from "@/state/relations.state";
-import {CodeFence} from "@/components/basics/code-fence/code-fence";
+import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {getDefaultQueryParams, RelationState} from "@/model/relation-state";
 import {getSeparatedStatements} from "@/platform/sql-utils";
 
@@ -36,7 +36,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     const embedded = props.embedded ?? false;
     return (
         <div className={"w-full h-full overflow-hidden"}>
-            <CodeFence
+            <SqlEditor
                 alwaysConsumeMouseWheel={!embedded}
                 buttonPosition={'panel'}
                 showLineNumbers={true}
