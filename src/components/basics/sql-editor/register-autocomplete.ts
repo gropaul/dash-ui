@@ -1,4 +1,3 @@
-import {editor, languages, Position} from "monaco-editor";
 import { Monaco } from "@monaco-editor/react";
 import {
     Column,
@@ -7,13 +6,12 @@ import {
     getDatabaseKeywords,
     getDatabaseStructure, Table
 } from "@/components/basics/sql-editor/get-schema";
-import {format} from "sql-formatter";
 
 
 // Parse the SQL query to determine the context
 function parseQueryContext(
     query: string,
-    position: Position
+    position: any,
 ): { database?: string; table?: string; isTypingDatabase: boolean } {
     const lines = query.split("\n");
     const currentLine = lines[position.lineNumber - 1].substring(
@@ -154,7 +152,7 @@ export function configureMonaco(monaco: Monaco) {
             const clickHouseFunctionsArray = await getDatabaseFunctions();
             const clickHouseKeywordsArray = await getDatabaseKeywords(); // Fetch keywords from API
 
-            const suggestions: languages.CompletionItem[] = [];
+            const suggestions: any = [];
 
             dbStructure.forEach((database: Database) => {
                 if (
