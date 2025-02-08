@@ -44,13 +44,17 @@ export const useConnectionsState = createWithEqualityFn<DataConnectionsState>((s
         set((state) => ({
             connections: {...state.connections, [connection.id]: connection},
         }));
+        console.log('Adding connection', connection);
         ConnectionsService.getInstance().addConnectionIfNotExists(connection);
 
+        console.log('Connection added', connection);
         let state: ConnectionStatus | undefined = undefined;
         if (initialise) {
+            console.log('Initialising connection', connection);
             state = await get().initialiseConnection(connection.id);
         }
 
+        console.log('Connection initialised', connection);
         if (loadDataSources) {
             await get().loadAllDataSources(connection.id);
         }

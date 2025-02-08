@@ -16,12 +16,9 @@ import {ReactNode} from "react";
 import ContextMenuFactory from "@/state/connections/file-system-over-duckdb/context-menu-factory";
 
 export async function getFileSystemOverDuckdbConnection(): Promise<DataConnection> {
-
-    const executeQuery = ConnectionsService.getInstance().getConnection(CONNECTION_ID_DUCKDB_LOCAL).executeQuery;
-    const [_rootName, rootPath] = await getDuckDBCurrentPath(executeQuery);
     return new FileSystemOverDuckdb(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, {
-        rootPath: rootPath,
-        name: 'Local Filesystem',
+        rootPath: undefined,
+        name: 'Filesystem',
         showHiddenFiles: false,
         duckdbConnectionId: CONNECTION_ID_DUCKDB_LOCAL
     });
@@ -30,8 +27,9 @@ export async function getFileSystemOverDuckdbConnection(): Promise<DataConnectio
 interface FileSystemOverDuckDBConfig {
     name: string;
     duckdbConnectionId: string;
-    rootPath: string;
+    rootPath?: string;
     showHiddenFiles: boolean;
+
     [key: string]: string | number | boolean | undefined;
 }
 
@@ -78,9 +76,23 @@ export class FileSystemOverDuckdb implements DataConnection {
         return this.connectionStatus;
     }
 
-    initialise(): Promise<ConnectionStatus> {
-        // no initialisation needed
+    async initialise(): Promise<ConnectionStatus> {
+
+        // install hostfs from community extensions
+        try {
+            await this.executeQuery('INSTALL hostfs FROM community;');
+            await this.executeQuery('LOAD hostfs;');
+        } catch (e) {
+            console.error('Error installing hostfs', e);
+            return Promise.resolve({state: 'error', message: 'Error installing hostfs'});
+        }
+        console.log('Loading root path');
+        const [_rootName, rootPath] = await getDuckDBCurrentPath( this.executeQuery.bind(this));
+        console.log('This:', this);
+        this.config.rootPath = rootPath;
+        console.log('Root path loaded', rootPath);
         return this.checkConnectionState();
+
     }
 
     async getDirAsDataSource(rootPath: string, depth: number | undefined): Promise<DataSourceGroup> {
@@ -92,9 +104,8 @@ export class FileSystemOverDuckdb implements DataConnection {
         const hiddenFilesCondition = showHiddenFiles ? '' : "WHERE file_name(path) NOT LIKE '.%'";
 
         const fileSystemQuery = `SELECT path, is_file(path) as file, file_name(path) as basename
-                         FROM ${lsrPart}
-                         ${hiddenFilesCondition}
-                         ORDER BY file, path;`;
+                                 FROM ${lsrPart} ${hiddenFilesCondition}
+                                 ORDER BY file, path;`;
 
 
         const fileSystemResult = await this.executeQuery(fileSystemQuery);
@@ -147,6 +158,10 @@ export class FileSystemOverDuckdb implements DataConnection {
 
     async loadDataSources(): Promise<DataSource[]> {
         const rootPath = this.config.rootPath;
+
+        if (!rootPath) {
+            throw new Error('Root path not set, please initialise the connection');
+        }
         const rootDataSource: DataSourceGroup = await this.getDirAsDataSource(rootPath, 0);
         return [rootDataSource];
     }
