@@ -1,4 +1,4 @@
-import React, {FC, ReactNode, useState} from "react";
+import React, {FC, ReactNode, useEffect, useState} from "react";
 import {Eye, EyeOff} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -31,7 +31,7 @@ export interface FormFieldCustom<T = any> {
 
 export interface FormField<T = any> {
     key: string;
-    label: string;
+    label?: string;
     required?: boolean; // default is false
     type: FormFieldTypes;
     selectOptions?: FormFieldSelectOption[];
@@ -45,6 +45,7 @@ export interface CustomFormProps {
     formDefinition: FormDefinition,
     onUpdate?: (formData: any, valid: boolean) => void,
     onSubmit: (formData: any) => void,
+    buttonBarLeading?: ReactNode,
     onCancel?: () => void,
     formWrapper?: React.FC<{ children: React.ReactElement }>
     className?: string
@@ -63,7 +64,7 @@ export const FormFields: FC<{
             const inlineLabel = field.type === 'boolean';
             const classWrapper = inlineLabel ? 'flex items-center space-x-2' : '';
 
-            const labelVisible = INFO_ONLY_TYPES.includes(field.type) ? 'hidden' : 'block';
+            const labelVisible = INFO_ONLY_TYPES.includes(field.type) || !field.label  ? 'hidden' : 'block'
 
             return (
                 <div key={field.key} className={`${classWrapper}`}>
@@ -98,11 +99,13 @@ export const FormFields: FC<{
                             onCheckedChange={(checked) => handleChange(field.key, checked)}
                         />
                     )}
+
                     {field.type === 'select' && (
                         <Select
                             onValueChange={(value) => handleChange(field.key, value)}
-                            defaultValue={formData[field.key]}
+                            value={formData[field.key]}
                         >
+
                             <SelectTrigger>
                                 <SelectValue/>
                             </SelectTrigger>
@@ -143,6 +146,7 @@ export function CustomForm({
                                onCancel,
                                onUpdate,
                                initialFormData,
+                                buttonBarLeading,
                                formWrapper,
                                className
                            }: CustomFormProps) {
@@ -152,6 +156,18 @@ export function CustomForm({
             return acc;
         }, {} as { [key: string]: any })
     );
+
+    // update if initialFormData changes
+    useEffect(() => {
+        setFormData((prevData) => {
+            const newFormData = {...prevData};
+            formDefinition.fields.forEach((field) => {
+                newFormData[field.key] = initialFormData[field.key] || '';
+            });
+            return newFormData;
+        });
+    }, [initialFormData]);
+
     const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
 
     const checkErrors = () => {
@@ -176,7 +192,7 @@ export function CustomForm({
     };
 
     const validateField = (field: FormField, value: any) => {
-        if (field.required && !value) {
+        if (field.required && (value === undefined || value === '')) {
             return 'This field is required';
         }
         if (field.validation) {
@@ -204,14 +220,23 @@ export function CustomForm({
                 }) : (<FormFields formDefinition={formDefinition} formData={formData} handleChange={handleChange}
                                   errors={errors}/>)
             }
-            <div className={`flex space-x-2 ${onCancel ? 'justify-between' : 'justify-end'}`}>
-                {onCancel && (
-                    <Button variant="secondary" onClick={onCancel}>
-                        Cancel
-                    </Button>
-                )}
-                <Button type="submit">Save</Button>
+            <div
+                className={`flex items-center space-x-2 ${
+                    onCancel ? 'justify-between' : 'justify-end'
+                }`}
+            >
+                <div>{buttonBarLeading}</div>
+                <div className="flex-1"/>
+                <div>
+                    {onCancel && (
+                        <Button variant="secondary" onClick={onCancel}>
+                            Cancel
+                        </Button>
+                    )}
+                    <Button type="submit">Save</Button>
+                </div>
             </div>
+
         </form>
     );
 }

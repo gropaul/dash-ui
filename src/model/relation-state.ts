@@ -276,8 +276,6 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     // start a timer to measure the query duration
     const start = performance.now();
 
-    console.log('Executing query', viewQuery, 'connection instance', ConnectionsService.getInstance());
-
     // first execute the initial queries
     for (const query of input.query.initialQueries) {
         try {

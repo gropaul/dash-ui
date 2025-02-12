@@ -7,18 +7,18 @@ import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {AvailableTabs} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
+import {useDatabaseConState} from "@/state/connections-database.state";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
     onSelectedTabsChanged?: (selectedTabs: AvailableTabs[]) => void;
-    onConnectionSettingsOpen?: () => void;
 }
 
 
 export function NavigationBar(props: NavigationBarProps) {
 
     const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(props.initialSelectedTabs || ['connections', 'relations']);
-
+    const setConnectionSettingsOpen = useDatabaseConState(state => state.setConnectionsConfigOpen);
     // Handle tab selection change
     const handleTabChange = (value: string[]) => {
         setSelectedTabs(value as AvailableTabs[]);
@@ -56,7 +56,7 @@ export function NavigationBar(props: NavigationBarProps) {
                 </ToggleGroupItem>
             </ToggleGroup>
             <div className={'flex-1'}/>
-            <Button variant={'ghost'} size={'icon'} onClick={props.onConnectionSettingsOpen}>
+            <Button variant={'ghost'} size={'icon'} onClick={() => setConnectionSettingsOpen(true)}>
                 <Settings />
             </Button>
         </div>

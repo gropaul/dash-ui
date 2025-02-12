@@ -105,12 +105,12 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
 type RelationZustandCombined = RelationZustand & RelationZustandActions;
 
-interface HydrationState {
+interface RelationsHydrationState {
     hydrated: boolean;
     setHydrated: (hydrated: boolean) => void;
 }
 
-export const useHydrationState = createWithEqualityFn<HydrationState>(
+export const useRelationsHydrationState = createWithEqualityFn<RelationsHydrationState>(
     (set, get) => ({
         hydrated: false,
         setHydrated: (hydrated: boolean) => set({hydrated}),
@@ -193,7 +193,6 @@ export const useRelationsState = createWithEqualityFn(
                         editorElements: newEditorElements,
                     }));
 
-                    console.log('dashboards', get().dashboards);
                 },
 
                 addNewRelation: async (connectionId: string, editorPath: string[], relation?: RelationState) => {
@@ -572,8 +571,6 @@ export const useRelationsState = createWithEqualityFn(
             onRehydrateStorage: (state => {
                 function callback(state: any, error: any) {
 
-                    console.log('Rehydrated state', state);
-
                     // get the list of all possible open tabs
                     const ids = [];
                     for (const key in state.relations) {
@@ -591,7 +588,7 @@ export const useRelationsState = createWithEqualityFn(
 
                     useGUIState.getState().keepTabsOfIds(ids);
 
-                    useHydrationState.getState().setHydrated(true);
+                    useRelationsHydrationState.getState().setHydrated(true);
                 }
                 return callback;
             })

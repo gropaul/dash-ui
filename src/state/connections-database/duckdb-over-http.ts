@@ -1,20 +1,13 @@
 import {RelationData} from "@/model/relation";
 import {duckDBTypeToValueType} from "@/model/value-type";
-import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {DataSource} from "@/model/data-source-connection";
 import {QueryResponse} from "@/model/query-response";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections-database/configs";
 
-export function getDuckDBLocalConnection(config: DuckDBOverHttpConfig): DatabaseConnection {
-
-    return new DuckDBOverHttp(config, DATABASE_CONNECTION_ID_DUCKDB_LOCAL);
-}
-
 export interface DuckDBOverHttpConfig {
     name: string;
     url: string;
-    authentication: 'none' | 'token';
+    useToken: boolean;
 
     // if authentication is token, these fields are required
     token?: string;
@@ -22,14 +15,13 @@ export interface DuckDBOverHttpConfig {
     [key: string]: string | number | boolean | undefined; // index signature
 }
 
-class DuckDBOverHttp implements DatabaseConnection {
+export class DuckDBOverHttp implements DatabaseConnection {
 
     id: string;
     type: DatabaseConnectionType;
     config: DuckDBOverHttpConfig;
 
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
-    dataSources: DataSource[] = [];
 
     constructor(config: DuckDBOverHttpConfig, id: string) {
         this.id = id;
@@ -51,7 +43,7 @@ class DuckDBOverHttp implements DatabaseConnection {
             'Content-Type': 'application/json'
         };
 
-        if (this.config.authentication === 'token') {
+        if (this.config.useToken) {
             headers['X-API-Key'] = this.config.token!;
         }
 

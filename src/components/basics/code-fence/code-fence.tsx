@@ -10,7 +10,7 @@ export interface CodeFenceProps {
 export function CodeFence(props: CodeFenceProps) {
     const {displayCode, copyCode, showCopyButton} = props;
     return (
-        <div className={"relative w-full bg-muted rounded-md p-4 overflow-auto"}>
+        <div className={"relative w-full bg-muted rounded-md p-2 overflow-auto"}>
             <pre>
                 <code className={"language-sql"}
                     style={{

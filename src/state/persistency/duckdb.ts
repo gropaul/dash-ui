@@ -1,5 +1,4 @@
 import {ConnectionsService} from "@/state/connections-service";
-import {getDuckDBLocalConnection} from "@/state/connections-database/duckdb-over-http";
 import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";

@@ -46,8 +46,6 @@ function parseQueryContext(
         }
     }
 
-    console.log('Context:', { database, table, isTypingDatabase });
-
     return { database, table, isTypingDatabase };
 }
 

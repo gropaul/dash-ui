@@ -1,10 +1,6 @@
-import {SourceConnectionZustand} from "@/state/connections-source.state";
-import {getDuckDBLocalConnection} from "@/state/connections-database/duckdb-over-http";
-import {getDuckDBLocalFilesystem} from "@/state/connections-source/duckdb-local-filesystem";
 import {DataSourceConnection} from "@/model/data-source-connection";
 import {removeSemicolon} from "@/platform/sql-utils";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
-import {getDuckDBInternalDatabase} from "@/state/connections-source/duckdb-internal-databases";
 
 
 export class ConnectionsService {

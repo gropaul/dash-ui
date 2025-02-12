@@ -13,14 +13,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import {useHydrationState} from "@/state/relations.state";
+import {useRelationsHydrationState} from "@/state/relations.state";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 
 
 export default function Home() {
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
 
-    const relationsHydrated = useHydrationState((state) => state.hydrated);
+    const relationsHydrated = useRelationsHydrationState((state) => state.hydrated);
 
     useEffect(() => {
         StorageDuckAPI.getInstance().then((duckdb) => {

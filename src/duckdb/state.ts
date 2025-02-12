@@ -1,7 +1,6 @@
 import {createWithEqualityFn} from "zustand/traditional";
 import {validateUrl} from "@/platform/string-validation";
 
-export type DuckInstanceType = "local-duckdb" | "duckdb-wasm" | "motherduck-wasm";
 
 interface DuckProxyState {
     config: {
@@ -82,14 +81,3 @@ const loadFromUrl = (): DuckProxyState["config"] => {
 
     return config;
 }
-
-
-export const useDuckProxyState = createWithEqualityFn<DuckProxyState>((setState, getState) => {
-    return {
-        config: loadFromUrl(),
-        setConfig: (config) => {
-            saveToUrl(config);
-            setState({...getState(), config});
-        }
-    }
-})

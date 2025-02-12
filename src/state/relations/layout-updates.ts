@@ -34,7 +34,6 @@ export function getInitialLayoutModel(): Model {
 export function onLayoutModelChange(action: Action): Action | undefined {
     const state = useRelationsState.getState();
     const guiState = useGUIState.getState();
-    console.log('onLayoutModelChange', action);
 
     if (action.type === "FlexLayout_DeleteTab") {
         state.closeTab(action.data.node);

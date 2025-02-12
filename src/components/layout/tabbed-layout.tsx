@@ -15,14 +15,13 @@ import {cn} from "@/lib/utils";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
 import {ConnectionViewDialog} from "@/components/connections/connection-view-dialog";
+import {useDatabaseConState} from "@/state/connections-database.state";
 
 
 export function TabbedLayout() {
-
-    const layoutModel = useGUIState(state => state.layoutModel);
+     const layoutModel = useGUIState(state => state.layoutModel);
     const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
-    const [connectionSettingsOpen, setConnectionSettingsOpen] = React.useState(false);
 
     const hasTabs = selectedTabs.length > 0;
 
@@ -35,7 +34,6 @@ export function TabbedLayout() {
                 <NavigationBar
                     initialSelectedTabs={selectedTabs}
                     onSelectedTabsChanged={setSelectedTabs}
-                    onConnectionSettingsOpen={() => setConnectionSettingsOpen(true)}
                 />
                 <ResizablePanelGroup
                     className={'flex-1 h-full'}
@@ -67,11 +65,6 @@ export function TabbedLayout() {
                         />
                     </ResizablePanel>
                 </ResizablePanelGroup>
-                <ConnectionViewDialog
-                    open={connectionSettingsOpen}
-                    onOpenChange={setConnectionSettingsOpen}
-                />
-
             </div>
         </div>
     );
