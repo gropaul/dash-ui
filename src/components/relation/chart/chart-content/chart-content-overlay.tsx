@@ -1,74 +1,55 @@
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuPortal,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
-import {Eye, EyeOff, ImageDown, Menu} from "lucide-react";
+import {ImageDown, Pencil, PencilOff} from "lucide-react";
 import {MyChartProps} from "@/components/relation/chart/chart-content";
 import {ConfigViewState} from "@/model/relation-view-state/chart";
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
+import {cn} from "@/lib/utils";
 
-
-export interface ChartContentOverlayProps extends MyChartProps{
+export interface ChartContentOverlayProps extends MyChartProps {
+    className?: string;
     hasError?: boolean;
     view: ConfigViewState;
     relationId: string;
 
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
-
+    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void;
     onExportAsSVG?: () => void;
     onExportAsPNG?: () => void;
 }
 
 export function ChartContentOverlay(props: ChartContentOverlayProps) {
-
     const showChartSettings = props.view.showConfig;
 
     function updateShowConfig() {
         props.updateRelationViewState(props.relationId, {
             chartState: {
                 view: {
-                    showConfig: !showChartSettings
-                }
+                    showConfig: !showChartSettings,
+                },
             },
         });
     }
+
     return (
-        <div className='absolute right-2 top-2'>
+        <div className={cn("absolute right-2 top-2 flex gap-2", props.className)}>
+            {/* Toggle Chart Settings Button */}
+            <Button variant="ghost" size="icon" onClick={updateShowConfig}>
+                {showChartSettings ? <PencilOff size={16} /> : <Pencil size={16} />}
+            </Button>
+
+            {/* Export Chart Dropdown Button */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant={'ghost'} size={'icon'}>
-                        <Menu className="h-4 w-4"/>
+                    <Button variant="ghost" size="icon">
+                        <ImageDown className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuSub>
-                        <DropdownMenuItem onClick={updateShowConfig}>
-                            {showChartSettings ?
-                                <> <EyeOff size={16 }/> Hide Chart Settings </>
-                                :
-                                <> <Eye size={16} /> Show Chart Settings</>
-                            }
-                        </DropdownMenuItem>
-                        <DropdownMenuSubTrigger>
-                            <ImageDown size={16}/> Export Chart
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem onClick={props.onExportAsPNG}>PNG</DropdownMenuItem>
-                                <DropdownMenuItem disabled onClick={props.onExportAsSVG}>SVG</DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                    </DropdownMenuSub>
+                    <DropdownMenuItem onClick={props.onExportAsPNG}>Export as PNG</DropdownMenuItem>
+                    <DropdownMenuItem disabled onClick={props.onExportAsSVG}>Export as SVG</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
-    )
+    );
 }

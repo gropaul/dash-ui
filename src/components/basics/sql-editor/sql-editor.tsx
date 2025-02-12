@@ -1,14 +1,16 @@
+'use client'
+
 import React from "react";
-import {Sometype_Mono} from "next/font/google";
-import {CodeFenceButtonOverlay} from "@/components/basics/code-fence/code-fence-button-overlay";
-import Editor from "@monaco-editor/react";
+import {EditorButtonOverlay} from "@/components/basics/sql-editor/editor-button-overlay";
+import Editor, {Monaco} from "@monaco-editor/react";
 import {TaskExecutionState} from "@/model/relation-state";
-import {CodeFenceButtonPanel} from "@/components/basics/code-fence/code-fence-button-panel";
+import {EditorButtonPanel} from "@/components/basics/sql-editor/editor-button-panel";
 import {Layout} from "@/model/relation-view-state";
 import {useTheme} from "next-themes";
 
-const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
-
+import "@/styles/editor-monaco.css";
+import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
+import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
 export type SupportedLanguages = "sql" | "plaintext";
 
 export type ButtonPosition = "panel" | "overlay";
@@ -38,7 +40,7 @@ export interface CodeFenceProps {
     width?: string;
 }
 
-export function CodeFence(
+export function SqlEditor(
     {
         language,
         displayCode,
@@ -65,6 +67,7 @@ export function CodeFence(
     copyCode = copyCode || displayCode;
     const {resolvedTheme} = useTheme();
 
+    const [editor, setEditor] = React.useState<any>(null);
     const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
 
     function onLocalCodeChange(value: string | undefined) {
@@ -78,7 +81,7 @@ export function CodeFence(
     }
 
     // define custom theme to set the background transparent
-    const customTheme = {
+    const customTheme: any = {
         base: 'vs',
         inherit: true,
         rules: [],
@@ -87,7 +90,7 @@ export function CodeFence(
         },
     };
 
-    const customThemeDark = {
+    const customThemeDark: any = {
         base: 'vs-dark',
         inherit: true,
         rules: [],
@@ -96,20 +99,21 @@ export function CodeFence(
         },
     };
 
-    function onMount(editor: any, monaco: any) {
+    function onMount(editor: any, monaco: Monaco) {
         // add the custom theme
         monaco.editor.defineTheme('customTheme', customTheme);
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
         monaco.editor.setTheme(editorTheme);
+
+        registerHotkeys(monaco, onRun);
+        registerFormatter(monaco);
+        setEditor(editor);
     }
-
-    const roundedStyle = rounded ? "rounded-lg" : "";
-
 
     return (
         <div className="flex flex-col h-full w-full relative">
             {buttonPosition === "panel" && (
-                <CodeFenceButtonPanel
+                <EditorButtonPanel
                     showLayoutButton={showLayoutButton}
                     currentLayout={currentLayout}
                     onLayoutChange={onLayoutChange}
@@ -126,7 +130,7 @@ export function CodeFence(
             <Editor
                 height={height}
                 width={width}
-                language={language}
+                language={'sql'}
                 value={displayCode}
                 options={{
                     readOnly: readOnly,
@@ -149,7 +153,7 @@ export function CodeFence(
                 onMount={onMount}
             />
             {buttonPosition === "overlay" && (
-                <CodeFenceButtonOverlay
+                <EditorButtonOverlay
                     showCopyButton={showCopyButton}
                     copyCode={copyCode}
                     showRunButton={showRunButton}

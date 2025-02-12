@@ -8,7 +8,7 @@ import {QueryResponse} from "@/model/query-response";
 export function getDuckDBLocalConnection() {
 
     const config: DuckDBOverHttpConfig = {
-        name: 'Local DuckDB',
+        name: 'DuckDB',
         url: 'http://localhost:4200',
         authentication: 'token',
         token: 'supersecrettoken'

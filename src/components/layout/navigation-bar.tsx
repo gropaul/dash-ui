@@ -14,6 +14,7 @@ export interface NavigationBarProps {
 
 
 export function NavigationBar(props: NavigationBarProps) {
+
     const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(props.initialSelectedTabs || ['connections', 'relations']);
 
     // Handle tab selection change

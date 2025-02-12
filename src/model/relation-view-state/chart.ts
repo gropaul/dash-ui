@@ -22,10 +22,42 @@ export interface PlotConfig {
     pie: PiePlotConfig;
 }
 
+
+export interface AxisRange {
+    start?: number
+    end?: number
+}
+
+export function rangeDefined(range: AxisRange): boolean {
+    return range.start !== undefined || range.end !== undefined;
+}
+
+export function transformRange(range: AxisRange): [number | string, number | string] {
+
+    // if the range is undefined then 'auto'
+    if (range === undefined) {
+        return ['auto', 'auto']
+    }
+
+    // if both are undefined then 'auto'
+    if (range.start === undefined && range.end === undefined) {
+        return [0, 'auto']
+    }
+
+    // if undefined then 'auto'
+    return [range.start ?? 0, range.end ?? 'maxValue']
+}
+
 // plot types: bar, line, area, scatter, radar
 export interface CartesianPlotConfig {
     xAxis?: AxisConfig;
     yAxes?: AxisConfig[]; // can have multiple y axes over the same x axis
+
+    xLabel?: string;
+    yLabel?: string;
+
+    xRange: AxisRange;
+    yRange: AxisRange;
 }
 
 // plot type: pie
@@ -54,7 +86,10 @@ export function getInitialChartViewStateEmpty(): ChartViewState {
         chart: {
             plot: {
                 type: 'bar',
-                cartesian: {},
+                cartesian: {
+                    xRange: {},
+                    yRange: {}
+                },
                 pie: {
                     axis: {}
                 }
@@ -73,7 +108,10 @@ export function getInitialChartViewState(data: RelationData): ChartViewState {
         chart: {
             plot: {
                 type: 'bar',
-                cartesian: {},
+                cartesian: {
+                    xRange: {},
+                    yRange: {}
+                },
                 pie: {
                     axis: {}
                 }

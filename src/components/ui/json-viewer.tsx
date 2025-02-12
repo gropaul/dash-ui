@@ -25,7 +25,7 @@ export const isObject = (value: any) => typeof value === 'object' && value !== n
 
 export function RecursiveJsonViewer(props: RecursiveJsonViewerProps) {
     return (
-        <RecursiveJsonViewerInternal {...props} isLast={true}/>
+        <RecursiveJsonViewerInternal {...props} isLast={true} depth={0} index={0}/>
     )
 }
 
@@ -34,6 +34,7 @@ export interface RecursiveJsonViewerInternalProps {
     json: any;
     className?: string;
     depth?: number;
+    index?: number;
     key?: string;
     isLast?: boolean;
 }
@@ -58,7 +59,7 @@ export function RecursiveJsonViewerInternal(props: RecursiveJsonViewerInternalPr
 
         return (
             <div className={`w-full cursor-pointer`}>
-                <div onClick={toggleCollapse}>{props.json_key ? props.json_key + ':' : ''} {content}</div>
+                <div onClick={toggleCollapse}>{props.json_key ? '"' + props.json_key + '": ' : ''}{content}</div>
             </div>
         );
     }
@@ -70,16 +71,18 @@ export function RecursiveJsonViewerInternal(props: RecursiveJsonViewerInternalPr
         return (
             <div className={`w-full ${className} ${depthColor}`}>
                 <JsonChildWrapper
+                    depth={depth}
+                    index={props.index}
                     onSeparatorClick={toggleCollapse}
-                    json_key={undefined}
+                    json_key={props.json_key}
                     value={json}
                     isLast={props.isLast}
                 >
                     {json.map((value, index) => {
                         return <RecursiveJsonViewerInternal
                             json={value}
-                            className="pl-2"
                             depth={depth + 1}
+                            index={index}
                             isLast={index === json.length - 1}
                         />
                     })}
@@ -94,6 +97,8 @@ export function RecursiveJsonViewerInternal(props: RecursiveJsonViewerInternalPr
 
         return (
             <JsonChildWrapper
+                depth={depth}
+                index={props.index}
                 onSeparatorClick={toggleCollapse}
                 json_key={props.json_key}
                 value={json}
@@ -106,7 +111,7 @@ export function RecursiveJsonViewerInternal(props: RecursiveJsonViewerInternalPr
                             key={key}
                             json_key={key}
                             json={value}
-                            className="pl-2"
+                            index={index}
                             depth={depth + 1}
                             isLast={index === keys.length - 1}
                         />
@@ -117,6 +122,8 @@ export function RecursiveJsonViewerInternal(props: RecursiveJsonViewerInternalPr
     }
     return (
         <JsonChildWrapper
+            depth={depth}
+            index={props.index}
             json_key={props.json_key}
             value={json}
             isLast={props.isLast}
@@ -132,6 +139,8 @@ export interface JsonChildWrapperProps {
     isLast?: boolean;
     onSeparatorClick?: () => void;
     children: React.ReactNode;
+    depth?: number;
+    index?: number;
 }
 
 export function JsonChildWrapper(props: JsonChildWrapperProps) {
@@ -140,18 +149,22 @@ export function JsonChildWrapper(props: JsonChildWrapperProps) {
 
     const needsComma = !isLast;
 
-    const keyString = json_key ? (json_key + ':') : '';
+    const keyString = json_key ? ('"' + json_key + '": ') : '';
+
+    const groupName = `group/${props.depth}-${props.index}`;
+    const groupHover = groupName + '-hover:text-red-500';
     if (Array.isArray(value)) {
         return (
-            <div>
+            <div className={`${groupName}`}>
                 <div
                     onClick={props.onSeparatorClick}
                     className="cursor-pointer"
-                >{keyString} {'['}</div>
+                >{keyString}</div><span className={groupHover}>{'['}</span>
                 <div className="pl-4">
                     {children}
                 </div>
-                <div>{']'}{needsComma && ','} </div>
+                <span className={groupHover}>{']'}</span>
+                <span>{needsComma && ','}</span>
             </div>
         );
     } else if (isObject(value)) {
@@ -160,7 +173,7 @@ export function JsonChildWrapper(props: JsonChildWrapperProps) {
                 <div
                     onClick={props.onSeparatorClick}
                     className="cursor-pointer"
-                >{keyString} {'{'}</div>
+                >{keyString}{'{'}</div>
                 <div className="pl-4">
                     {children}
                 </div>
@@ -168,6 +181,6 @@ export function JsonChildWrapper(props: JsonChildWrapperProps) {
             </div>
         );
     } else {
-        return <div>{keyString} {children}{needsComma && ','}</div>;
+        return <div>{keyString}{children}{needsComma && ','}</div>;
     }
 }

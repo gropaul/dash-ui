@@ -1,5 +1,5 @@
 import {FormFieldCustomProps} from "@/components/basics/input/custom-form";
-import {CodeFence} from "@/components/basics/code-fence/code-fence";
+import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 
 
@@ -43,7 +43,7 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
     }
 
     return (
-        <CodeFence
+        <SqlEditor
             rounded={true}
             height={"6rem"}
             language="sql"

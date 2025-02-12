@@ -43,6 +43,7 @@ export class DuckDBProvider {
     async createTableIfNotExists(tableName: string) {
         // create table if not exists
         if (!this.createdTables.includes(tableName)) {
+            const loadData = await this.executeQuery(`LOAD json`); // load the json extension
             const data = await this.executeQuery(`CREATE TABLE IF NOT EXISTS "${tableName}"
                                                   (
                                                       id
@@ -94,7 +95,6 @@ export class DuckDBProvider {
 
    async getItem(tableName: string): Promise<string | null> {
 
-        console.log("Getting item from table", tableName);
         await this.createTableIfNotExists(tableName);
         const query = `SELECT value, version
                        FROM "${tableName}" LIMIT 1;`;
@@ -141,7 +141,6 @@ export class DuckDBProvider {
             if (newVersionCode === null) {
                 throw new Error("Could not get version code, there should be one after the insert");
             }
-            console.log("Updated version code", newVersionCode);
             this.updateVersion(newVersionCode);
         } else {
             this.onForceReloadCallback()

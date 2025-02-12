@@ -8,23 +8,28 @@ import {H5} from "@/components/ui/typography";
 import {ChartWrapper} from "@/components/relation/chart/chart-content/chart-wrapper";
 import {ChartDataElement} from "@/components/relation/chart/chart-content/chart-data-element";
 import {ChartDecoration} from "@/components/relation/chart/chart-content/chart-decoration";
+import {cn} from "@/lib/utils";
 
 const chartConfig = {} satisfies RechartConfig
 
 export interface MyChartProps {
+    embedded?: boolean,
     data: RelationData,
     hideTitleIfEmpty?: boolean,
     config: ChartConfig
 }
 
-export function ChartContent({data, config, hideTitleIfEmpty = false}: MyChartProps) {
+export function ChartContent({data, config, hideTitleIfEmpty = false, embedded = false}: MyChartProps) {
     const emptyTitle = config.plot.title === undefined || config.plot.title === '';
     const showTitle = !hideTitleIfEmpty || !emptyTitle;
     const chartData = getReChartDataFromConfig(data, config);
+
+    // const headerHeight = embedded ? 'h-[26px]' : 'h-10';
+    const headerHeight = embedded ? 'h-10' : 'h-10';
     return (
         <div className="h-full flex flex-col items-center">
             { showTitle && (
-                <div className={"h-10 flex items-center justify-center"}>
+                <div className={cn("flex items-center justify-center", headerHeight)}>
                     <H5>{config.plot.title}</H5>
                 </div>
             )}
@@ -38,7 +43,7 @@ export function ChartContent({data, config, hideTitleIfEmpty = false}: MyChartPr
                                 <>
 
                                     <ChartTooltip
-                                        cursor={false}
+                                        cursor={true}
                                         content={<ChartTooltipContent/>}
                                     />
                                     {

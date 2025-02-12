@@ -3,7 +3,8 @@ import {ChartConfig, PieAxisConfig} from "@/model/relation-view-state/chart";
 
 
 export function  getReChartDataFromConfig(data: RelationData, config: ChartConfig): any[] {
-    const neededColumns = []
+    const neededColumns = [];
+
     if (config.plot.cartesian.xAxis) {
         neededColumns.push(config.plot.cartesian.xAxis.columnId);
     }
@@ -29,6 +30,7 @@ export function getReChartDataFromRelation(data: RelationData, columns: string[]
     const resultSize = data.rows.length;
     const columnNames = data.columns.map((column) => column.name);
     const columnIndices = columns.map((column) => columnNames.indexOf(column));
+
     // already reserved space for the result
     const result = new Array(resultSize);
     for (let i = 0; i < resultSize; i++) {
