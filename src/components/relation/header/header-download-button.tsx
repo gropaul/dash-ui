@@ -11,7 +11,7 @@ import {Button} from "@/components/ui/button";
 import {Download} from "lucide-react";
 import {FilepathDialog} from "@/components/export/filepath-dialog";
 import {useState} from "react";
-import {exportQueryToFile, FileFormat} from "@/state/connections/duckdb-helper";
+import {exportQueryToFile, FileFormat} from "@/state/connections-source/duckdb-helper";
 import {useRelationsState} from "@/state/relations.state";
 import {toast} from "sonner";
 
@@ -40,7 +40,7 @@ export function HeaderDownloadButton(props: HeaderDownloadButtonProps) {
         const toastId = toast.loading('Exporting file to ' + path, { duration: 0 });
 
         try {
-            await exportQueryToFile(query, path, dialogState.fileFormat, relation.connectionId);
+            await exportQueryToFile(query, path, dialogState.fileFormat);
             // Update the same toast to success
             toast.success(`Exported result to ${path}`, { id: toastId, duration: 2000 });
         } catch (e: any) {

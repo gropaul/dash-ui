@@ -14,13 +14,15 @@ import {NavigationBar, NavigationBarContent} from "@/components/layout/navigatio
 import {cn} from "@/lib/utils";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
+import {ConnectionViewDialog} from "@/components/connections/connection-view-dialog";
+import {useDatabaseConState} from "@/state/connections-database.state";
 
 
 export function TabbedLayout() {
-
-    const layoutModel = useGUIState(state => state.layoutModel);
+     const layoutModel = useGUIState(state => state.layoutModel);
     const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
+
     const hasTabs = selectedTabs.length > 0;
 
     const panelRatio = useGUIState(state => state.mainBarSizeRatio);

@@ -44,8 +44,6 @@ export function TreeDndContext(props: TreeDndContextProps) {
         const path = over.data.current?.path;
         const canHaveChildren = over.data.current?.canHaveChildren;
 
-        console.log(path, canHaveChildren, props.selectedIds);
-
         // if these variables are null or selectedIds is null, return
         if (!path || !props.selectedIds) {
             return;
@@ -53,7 +51,6 @@ export function TreeDndContext(props: TreeDndContextProps) {
 
         // either take the targets parent path if it cant have children or the target path if it can
         const target = canHaveChildren ? path : path.slice(0, -1);
-        console.log(target);
         setLastTarget(target);
 
         const actions: TreeAction[] = props.selectedIds.map((selectedId) => {

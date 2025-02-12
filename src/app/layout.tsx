@@ -36,8 +36,8 @@ export default function RootLayout({
                         </div>
                     </ConnectionsProvider>
                 </ThemeProvider>
-                <Toaster/>
             </div>
+            <Toaster/>
         </main>
 
         </body>

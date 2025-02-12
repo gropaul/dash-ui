@@ -1,11 +1,13 @@
 import React from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
-import {Database, Folder} from "lucide-react";
+import {Database, Folder, Settings} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {AvailableTabs} from "@/state/gui.state";
+import {Button} from "@/components/ui/button";
+import {useDatabaseConState} from "@/state/connections-database.state";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -16,7 +18,7 @@ export interface NavigationBarProps {
 export function NavigationBar(props: NavigationBarProps) {
 
     const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(props.initialSelectedTabs || ['connections', 'relations']);
-
+    const setConnectionSettingsOpen = useDatabaseConState(state => state.setConnectionsConfigOpen);
     // Handle tab selection change
     const handleTabChange = (value: string[]) => {
         setSelectedTabs(value as AvailableTabs[]);
@@ -26,11 +28,8 @@ export function NavigationBar(props: NavigationBarProps) {
     };
 
     return (
-        <div className={'w-16 h-full bg-background border-r border-separate flex flex-col items-center'}>
-
-            <Avatar
-                className={'mt-2'}
-            >
+        <div className={'w-16 py-4 h-full bg-background border-r border-separate flex flex-col items-center'}>
+            <Avatar>
                 <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
             </Avatar>
 
@@ -56,6 +55,10 @@ export function NavigationBar(props: NavigationBarProps) {
                     <Folder className="h-10 w-10"/>
                 </ToggleGroupItem>
             </ToggleGroup>
+            <div className={'flex-1'}/>
+            <Button variant={'ghost'} size={'icon'} onClick={() => setConnectionSettingsOpen(true)}>
+                <Settings />
+            </Button>
         </div>
     );
 }

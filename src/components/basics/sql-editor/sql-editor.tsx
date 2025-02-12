@@ -11,6 +11,7 @@ import {useTheme} from "next-themes";
 import "@/styles/editor-monaco.css";
 import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
 import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
+
 export type SupportedLanguages = "sql" | "plaintext";
 
 export type ButtonPosition = "panel" | "overlay";
@@ -111,7 +112,7 @@ export function SqlEditor(
     }
 
     return (
-        <div className="flex flex-col h-full w-full">
+        <div className="flex flex-col h-full w-full relative">
             {buttonPosition === "panel" && (
                 <EditorButtonPanel
                     showLayoutButton={showLayoutButton}

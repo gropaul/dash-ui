@@ -43,8 +43,6 @@ export function DashboardDataView(props: DashboardDataViewProps) {
         const currentViewState = deepClone(props.relation.viewState);
         safeDeepUpdate(currentViewState, viewState);
 
-        console.log(currentViewState)
-
         props.onRelationUpdate({
             ...props.relation,
             viewState: currentViewState

@@ -3,10 +3,7 @@
 import {FileDrop} from "@/components/basics/input/file-drop";
 import React from "react";
 import {useRelationsState} from "@/state/relations.state";
-import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {creatTableIfNotExistsFromFilePath} from "@/state/connections/duckdb-helper";
-import {ConnectionsService} from "@/state/connections/connections-service";
-import {deleteFile, uploadFile} from "@/app/api/upload/utils";
+import {toast} from "sonner";
 
 interface Props {
     className?: string;
@@ -23,8 +20,11 @@ export function FileDropRelation(props: Props) {
     async function onDrop(files: File[]) {
         setFileUploadState('uploading');
         try {
+            toast.error('Importing file via Drag and Drop is not yet supported. Please use the CLI to import files.');
+
             for (const file of files) {
-                await importFilesToDuckWasm(file);
+                // show toast
+                // await importFilesToDuckWasm(file);
             }
 
             setFileUploadState('done');
@@ -33,19 +33,6 @@ export function FileDropRelation(props: Props) {
             setFileUploadState('error');
         }
 
-    }
-
-    async function importFilesToDuckWasm(file: File) {
-        const duckDBWasm = ConnectionsService.getInstance().getDuckDBWasmConnection();
-        await duckDBWasm.createTableFromBrowserFileHandler(file);
-    }
-
-    async function importFilesToDuckDBOverHttp(file: File) {
-        const {downloadUrl, fileName} = await uploadFile(file);
-        const localDuckDBConnection = ConnectionsService.getInstance().getConnection(CONNECTION_ID_DUCKDB_LOCAL);
-        await creatTableIfNotExistsFromFilePath(localDuckDBConnection, downloadUrl, fileName);
-        // delete the file after uploading
-        const success = await deleteFile(fileName);
     }
 
     const onErrorConfirm = () => {

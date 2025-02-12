@@ -2,7 +2,7 @@ import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {useRelationsState} from "@/state/relations.state";
 import {shallow} from "zustand/shallow";
 import {SchemaRelationView} from "@/components/schema/schema-relation-view";
-import {DataSourceElement} from "@/model/connection";
+import {DataSourceElement} from "@/model/data-source-connection";
 import {GetPathOfSchema} from "@/model/schema-state";
 
 interface SchemaViewProps {

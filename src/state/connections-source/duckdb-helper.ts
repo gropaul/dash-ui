@@ -1,16 +1,15 @@
 import {duckDBTypeToValueType} from "@/model/value-type";
-import {RelationData, RelationSource, RelationSourceTable} from "@/model/relation";
+import {RelationData, RelationSource} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
-import {DataConnection, DataSource, DataSourceElement, DataSourceGroup} from "@/model/connection";
-import {useConnectionsState} from "@/state/connections.state";
-import {DEFAULT_RELATION_VIEW_PATH, DUCKDB_BASE_SCHEMA, DUCKDB_IN_MEMORY_DB} from "@/platform/global-data";
+import {DataSource, DataSourceConnection, DataSourceElement, DataSourceGroup} from "@/model/data-source-connection";
+import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
-import {ConnectionsService} from "@/state/connections/connections-service";
+import {ConnectionsService} from "@/state/connections-service";
 import {removeSemicolon} from "@/platform/sql-utils";
 
 
 export async function onDuckDBDataSourceClick(
-    connection: DataConnection,
+    connection: DataSourceConnection,
     id_path: string[],
     dataSources: DataSource[]
 ) {
@@ -141,34 +140,11 @@ export async function getDuckDBCurrentPath(executeQuery: (query: string) => Prom
     return [rootName, rootPath];
 }
 
-export async function creatTableIfNotExistsFromFilePath(connection: DataConnection, filePath: string, tableName: string): Promise<string> {
-
-    const tableNameEscaped = `"${tableName}"`;
-    const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS ${tableNameEscaped} AS
-        SELECT *
-        FROM '${filePath}';`;
-    const _result = await connection.executeQuery(createTableQuery);
-
-    await useConnectionsState.getState().loadAllDataSources(connection.id);
-
-    const relationSource: RelationSourceTable = {
-        type: 'table',
-        database: DUCKDB_IN_MEMORY_DB,
-        schema: DUCKDB_BASE_SCHEMA,
-        tableName: tableName,
-    }
-
-    await useRelationsState.getState().showRelationFromSource(connection.id, relationSource, DEFAULT_RELATION_VIEW_PATH);
-
-    return tableName;
-}
-
 
 export type FileFormat = 'csv' | 'json' | 'parquet' | 'xlsx';
 
 
-async function getAndPrepareExportQuery(query: string, path: string, fileFormat: FileFormat, connectionId: string): Promise<string> {
+async function getAndPrepareExportQuery(query: string, path: string, fileFormat: FileFormat): Promise<string> {
 
     // remove query terminator if present
     const preparedSQL = removeSemicolon(query);
@@ -185,16 +161,16 @@ async function getAndPrepareExportQuery(query: string, path: string, fileFormat:
             // install and load the spatial extension (https://duckdb.org/docs/guides/file_formats/excel_export.html)
 
             const installQuery = "INSTALL spatial;";
-            await ConnectionsService.getInstance().executeQuery(connectionId, installQuery);
+            await ConnectionsService.getInstance().executeQuery(installQuery);
             const loadQuery = "LOAD spatial;";
-            await ConnectionsService.getInstance().executeQuery(connectionId, loadQuery);
+            await ConnectionsService.getInstance().executeQuery(loadQuery);
 
             return `COPY (${preparedSQL}) TO '${path}' WITH (FORMAT GDAL, DRIVER 'xlsx');`
     }
 
 }
 
-export async function exportQueryToFile(query: string, path: string, fileFormat: FileFormat, connectionId: string) {
-    const exportQuery = await getAndPrepareExportQuery(query, path, fileFormat, connectionId);
-    return await ConnectionsService.getInstance().executeQuery(connectionId, exportQuery);
+export async function exportQueryToFile(query: string, path: string, fileFormat: FileFormat) {
+    const exportQuery = await getAndPrepareExportQuery(query, path, fileFormat);
+    return await ConnectionsService.getInstance().executeQuery(exportQuery);
 }

@@ -9,7 +9,7 @@ import {
     updateRelationQueryForParams,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
-import {DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/data-source-connection";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
@@ -105,12 +105,12 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
 type RelationZustandCombined = RelationZustand & RelationZustandActions;
 
-interface HydrationState {
+interface RelationsHydrationState {
     hydrated: boolean;
     setHydrated: (hydrated: boolean) => void;
 }
 
-export const useHydrationState = createWithEqualityFn<HydrationState>(
+export const useRelationsHydrationState = createWithEqualityFn<RelationsHydrationState>(
     (set, get) => ({
         hydrated: false,
         setHydrated: (hydrated: boolean) => set({hydrated}),
@@ -193,7 +193,6 @@ export const useRelationsState = createWithEqualityFn(
                         editorElements: newEditorElements,
                     }));
 
-                    console.log('dashboards', get().dashboards);
                 },
 
                 addNewRelation: async (connectionId: string, editorPath: string[], relation?: RelationState) => {
@@ -589,7 +588,7 @@ export const useRelationsState = createWithEqualityFn(
 
                     useGUIState.getState().keepTabsOfIds(ids);
 
-                    useHydrationState.getState().setHydrated(true);
+                    useRelationsHydrationState.getState().setHydrated(true);
                 }
                 return callback;
             })

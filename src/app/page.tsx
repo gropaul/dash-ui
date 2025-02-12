@@ -3,7 +3,7 @@
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {TabbedLayout} from "@/components/layout/tabbed-layout";
 import React, {useEffect, useState} from "react";
-import {DuckDBProvider} from "@/state/persistency/duckdb";
+import {StorageDuckAPI} from "@/state/persistency/duckdb";
 import {AlertDialog} from "@radix-ui/react-alert-dialog";
 import {
     AlertDialogAction,
@@ -13,18 +13,17 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import {useHydrationState} from "@/state/relations.state";
+import {useRelationsHydrationState} from "@/state/relations.state";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 
 
 export default function Home() {
-
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
 
-    const relationsHydrated = useHydrationState((state) => state.hydrated);
+    const relationsHydrated = useRelationsHydrationState((state) => state.hydrated);
 
     useEffect(() => {
-        DuckDBProvider.getInstance().then((duckdb) => {
+        StorageDuckAPI.getInstance().then((duckdb) => {
             duckdb.setOnForceReloadCallback(() => {
                 setShowForceReloadDialog(true);
             });
@@ -44,7 +43,7 @@ export default function Home() {
                     <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
                 </Avatar>
 
-                <div className={'text-muted-foreground'}> Loading... </div>
+                <div className={'text-muted-foreground'}> Loading...</div>
             </div>
 
         </div>;
@@ -62,7 +61,8 @@ export default function Home() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Changes detected!</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Another User or Tab has made changes. To ensure you have the latest data, please reload the page. Otherwise, your changes
+                            Another User or Tab has made changes. To ensure you have the latest data, please reload the
+                            page. Otherwise, your changes
                             may be lost.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

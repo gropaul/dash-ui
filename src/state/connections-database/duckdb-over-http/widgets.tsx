@@ -1,17 +1,17 @@
 import {FormFieldCustomProps} from "@/components/basics/input/custom-form";
-import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
-import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
+import {DuckDBOverHttpConfig} from "@/state/connections-database/duckdb-over-http";
+import {CodeFence} from "@/components/basics/code-fence/code-fence";
 
 
 export function showConnectionStringIfLocalHost(formData: any) {
-    return formData['url'].includes('localhost');
+    return formData['url'].includes('localhost') || formData['url'].includes('127.0.0.1');
 }
 
 export function ConnectionStringField({formData, hasError}: FormFieldCustomProps<DuckDBOverHttpConfig>) {
 
     // display the connection string and have a copy button, but only if the form is valid otherwise grayed out
     const getConnectionString = (hide_secrets: boolean) => {
-        let install = `INSTALL duck_explorer FROM community;\n`
+        let install = "INSTALL duck_explorer FROM community;\n"
         install += "LOAD duck_explorer;"
 
         let start_server: string;
@@ -29,7 +29,7 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
         }
 
 
-        if (formData.authentication === 'token') {
+        if (formData.useAuthentication) {
             let token = formData.token
             if (hide_secrets) {
                 token = '********';
@@ -43,11 +43,7 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
     }
 
     return (
-        <SqlEditor
-            rounded={true}
-            height={"4rem"}
-            language="sql"
-            readOnly={true}
+        <CodeFence
             displayCode={getConnectionString(true)}
             copyCode={getConnectionString(false)}
             showCopyButton={!hasError}

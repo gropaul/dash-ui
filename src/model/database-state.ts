@@ -1,4 +1,4 @@
-import {DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/data-source-connection";
 
 
 export interface DatabaseState extends DataSourceGroup {

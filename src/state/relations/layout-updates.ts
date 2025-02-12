@@ -2,13 +2,12 @@ import {Action, Actions, DockLocation, Model} from "flexlayout-react";
 import {IJsonTabNode} from "flexlayout-react/declarations/model/IJsonModel";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
-import {DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/data-source-connection";
 import {DashboardState} from "@/model/dashboard-state";
 import {useGUIState} from "@/state/gui.state";
 
 // Layout Initialization
 export function getInitialLayoutModel(): Model {
-    console.log('getInitialLayoutModel');
     return Model.fromJson({
         global: {
             splitterSize: 1,
@@ -35,7 +34,6 @@ export function getInitialLayoutModel(): Model {
 export function onLayoutModelChange(action: Action): Action | undefined {
     const state = useRelationsState.getState();
     const guiState = useGUIState.getState();
-    console.log('onLayoutModelChange', action);
 
     if (action.type === "FlexLayout_DeleteTab") {
         state.closeTab(action.data.node);

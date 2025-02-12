@@ -13,7 +13,8 @@ import {
 } from "@/state/relations/layout-updates";
 import {RelationState} from "@/model/relation-state";
 import {DashboardState} from "@/model/dashboard-state";
-import {DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/data-source-connection";
+import {createWithEqualityFn} from "zustand/traditional";
 
 export type AvailableTabs = 'connections' | 'relations';
 
@@ -78,7 +79,7 @@ const storage = createJSONStorage(() => localStorage, {
     }
 });
 
-export const useGUIState = create<GUIZustandCombined>()(
+export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
     persist(
         (set, get) => ({
             layoutModel: getInitialLayoutModel(),

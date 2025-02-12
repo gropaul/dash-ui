@@ -1,7 +1,6 @@
 import {Monaco} from "@monaco-editor/react";
 
 
-
 export function registerHotkeys(monaco: Monaco, onRun?: () => void) {
     const executeAction =  {
         id: "run-code",

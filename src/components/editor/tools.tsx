@@ -1,6 +1,5 @@
 import RelationBlockTool, {RELATION_BLOCK_TYPE} from "@/components/editor/tools/relation.tool";
 import Warning from "@editorjs/warning";
-import CodeTool from "@editorjs/code";
 import Delimiter from "@/components/editor/tools/delimiter.tools";
 import InlineCode from "@editorjs/inline-code";
 // @ts-ignore

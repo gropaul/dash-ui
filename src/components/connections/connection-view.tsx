@@ -1,37 +1,27 @@
 import {TreeExplorer} from "@/components/basics/files/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import React from "react";
-import {useConnectionsState} from "@/state/connections.state";
-import {EllipsisVertical, RefreshCw, Settings} from "lucide-react";
-import {ConnectionConfigModal} from "@/components/connections/connection-config-modal";
-import {ConnectionsService} from "@/state/connections/connections-service";
-import {DataConnection, DataConnectionConfig} from "@/model/connection";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import {useSourceConState} from "@/state/connections-source.state";
+import {RefreshCw} from "lucide-react";
+import {ConnectionsService} from "@/state/connections-service";
+import {DataSourceConnection} from "@/model/data-source-connection";
 import {Button} from "@/components/ui/button";
 
 export interface ConnectionViewProps {
-    connection: DataConnection;
+    connection: DataSourceConnection;
 }
 
 export function ConnectionView(props: ConnectionViewProps) {
 
-    const refreshConnection = useConnectionsState((state) => state.refreshConnection);
-    const updateConfig = useConnectionsState((state) => state.updateConfig);
-    const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
-    const [settingsModalOpen, setSettingsModalOpen] = React.useState(false);
+    const refreshConnection = useSourceConState((state) => state.refreshConnection);
+    const loadChildrenForDataSource = useSourceConState((state) => state.loadChildrenForDataSource);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
-        ConnectionsService.getInstance().getConnection(connection_id).onDataSourceClick(id_path);
+        ConnectionsService.getInstance().getSourceConnection(connection_id).onDataSourceClick(id_path);
     }
 
     function getContextMenuFactory(connection_id: string) {
-        return ConnectionsService.getInstance().getConnection(connection_id).dataSourceContextMenuFactory;
+        return ConnectionsService.getInstance().getSourceConnection(connection_id).dataSourceContextMenuFactory;
     }
 
     async function onElementLoadRequest(connection_id: string, id_path: string[]) {
@@ -40,19 +30,6 @@ export function ConnectionView(props: ConnectionViewProps) {
 
     async function handleRefresh() {
         await refreshConnection(props.connection.id);
-    }
-
-    function onSettingsIconClicked() {
-        setSettingsModalOpen(!settingsModalOpen);
-    }
-
-    function onSettingsModalOpenChanged(open: boolean) {
-        setSettingsModalOpen(open);
-    }
-
-    function saveSettings(newConfig: DataConnectionConfig) {
-        updateConfig(props.connection.id, newConfig);
-        setSettingsModalOpen(false);
     }
 
 
@@ -65,28 +42,9 @@ export function ConnectionView(props: ConnectionViewProps) {
                 </div>
 
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <Button variant={'ghost'} size={'icon'}>
-                                <EllipsisVertical
-                                    size={16}
-                                    className="text-muted-foreground hover:text-primary cursor-pointer"
-                                />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem onClick={onSettingsIconClicked}>
-                                    <Settings />
-                                    <span>Settings</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={handleRefresh}>
-                                    <RefreshCw/>
-                                    <span>Reload</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button variant={'ghost'} size={'icon'} onClick={handleRefresh} className={'h-8 w-8'}>
+                        <RefreshCw size={12}/>
+                    </Button>
                 </div>
             </div>
             <div className={'pr-4'}>
@@ -99,13 +57,6 @@ export function ConnectionView(props: ConnectionViewProps) {
                     loadChildren={(id_path) => onElementLoadRequest(props.connection.id, id_path)}
                 />
             </div>
-
-            <ConnectionConfigModal
-                isOpen={settingsModalOpen}
-                onOpenChange={onSettingsModalOpenChanged}
-                onSave={saveSettings}
-                connection={props.connection}
-            />
         </li>
     );
 }
@@ -115,7 +66,7 @@ interface ConnectionStateIconProps {
 }
 
 function ConnectionStateIcon(props: ConnectionStateIconProps) {
-    const connectionsState = useConnectionsState(state => state.getConnectionState(props.connectionId));
+    const connectionsState = useSourceConState(state => state.getConnectionState(props.connectionId));
     const message = connectionsState.message;
     if (connectionsState.state === "connected") {
         return <span className="text-green-500">●</span>

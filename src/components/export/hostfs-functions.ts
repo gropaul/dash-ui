@@ -1,5 +1,4 @@
-import {ConnectionsService} from "@/state/connections/connections-service";
-import {CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB} from "@/platform/global-data";
+import {ConnectionsService} from "@/state/connections-service";
 
 
 export type DirectoryItemType = 'file' | 'directory';
@@ -81,9 +80,7 @@ export interface directoryItemFile extends DirectoryItem {
 export async function getCurrentWorkingDirectory(): Promise<string> {
     const query = "SELECT pwd();"
 
-    const result = await ConnectionsService.getInstance()
-        .getConnection(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB)
-        .executeQuery(query);
+    const result = await ConnectionsService.getInstance().executeQuery(query);
 
     return result.rows[0][0];
 }
@@ -112,9 +109,7 @@ export async function getDirectoryContent(path: string, orderBy: OrderOption = '
         FROM ls('${path}') ${getOrderByClause(orderBy)};
     `
 
-    const result = await ConnectionsService.getInstance()
-        .getConnection(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB)
-        .executeQuery(query);
+    const result = await ConnectionsService.getInstance().executeQuery(query);
 
     return result.rows.map(row => {
         const [path, name, type, size, lastModified] = row;

@@ -1,0 +1,109 @@
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
+import {useDatabaseConState} from "@/state/connections-database.state";
+import {DBConnectionSpec, specToConnection, typeToLabel} from "@/state/connections-database/configs";
+import {DatabaseConnection} from "@/model/database-connection";
+import {useEffect, useState} from "react";
+import {DuckDBOverHttpConfig} from "@/state/connections-database/duckdb-over-http";
+import {Eye, EyeOff} from "lucide-react";
+
+
+
+export function ObscurableString(props: { value: string }) {
+    const [show, setShow] = useState(false);
+    return (
+        <div className="flex items-center space-x-1">
+            <div className="flex items-center">
+                {show ? props.value : '********'}
+            </div>
+            <div className="text-xs text-gray-500 cursor-pointer" onClick={() => setShow(!show)}>
+                {show ? <EyeOff size={16}/> : <Eye size={16} />}
+            </div>
+        </div>
+    );
+}
+
+export interface DBConnectionPreviewProps {
+    connection: DatabaseConnection;
+    onClick?: () => void;
+}
+
+export function DBConnectionPreview(props: DBConnectionPreviewProps) {
+
+    const [working, setWorking] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        props.connection.checkConnectionState().then((status) => {
+            setWorking(status.state === 'connected');
+        });
+    }, [props.connection]);
+
+    function getDetails( connection: DatabaseConnection) {
+        if (connection.type === 'duckdb-over-http') {
+            const config = connection.config as DuckDBOverHttpConfig;
+            return (
+                <div className="space-x-1 text-sm flex">
+                    <div>{config.url}</div>
+                    {config.useToken &&
+                        <>
+                            <span>Token=</span>
+                            <ObscurableString value={config.token!} />
+                        </>
+                    }
+                </div>
+            );
+        }
+    }
+
+    return (
+        <div>
+            <div
+                className="flex justify-between items-center p-2 cursor-pointer hover:bg-muted"
+                onClick={props.onClick}
+            >
+                <div>
+                    <div className="font-bold">{typeToLabel(props.connection.type)}</div>
+                    {getDetails(props.connection)}
+                </div>
+                <div>
+                    {working === true && <div>✅</div>}
+                    {working === false && <div>❌</div>}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export interface ConnectionHistoryProps {
+    onSpecSelected: (spec: DBConnectionSpec) => void;
+}
+
+
+export function ConnectionHistory(props: ConnectionHistoryProps) {
+    let history = useDatabaseConState(state => state.history);
+    const historyLength = history.length;
+
+    // repeat each element in the history array 10 times
+    const enabled = historyLength > 0;
+    return (
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+                <AccordionTrigger>
+                    Connection History ({historyLength})
+                </AccordionTrigger>
+                <AccordionContent className={'max-h-32 overflow-auto border-t p-0 m-0'}>
+                    <div>
+                        {history.map((spec, index) => {
+                            return (
+                                <DBConnectionPreview
+                                    onClick={() => props.onSpecSelected(spec)}
+                                    connection={specToConnection(spec)}
+                                    key={index}
+                                />
+                            );
+                        })}
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+    );
+}

@@ -1,10 +1,11 @@
-import { Monaco } from "@monaco-editor/react";
+import {Monaco} from "@monaco-editor/react";
 import {
     Column,
     Database,
     getDatabaseFunctions,
     getDatabaseKeywords,
-    getDatabaseStructure, Table
+    getDatabaseStructure,
+    Table
 } from "@/components/basics/sql-editor/get-schema";
 
 
@@ -44,8 +45,6 @@ function parseQueryContext(
             break;
         }
     }
-
-    console.log('Context:', { database, table, isTypingDatabase });
 
     return { database, table, isTypingDatabase };
 }

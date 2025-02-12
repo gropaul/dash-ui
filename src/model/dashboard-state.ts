@@ -2,7 +2,7 @@ import {getDefaultQueryParams, getQueryFromParamsUnchecked} from "@/model/relati
 import {getInitialTabViewBaseState, getInitViewState, TabViewBaseState} from "@/model/relation-view-state";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {getRandomId} from "@/platform/id-utils";
-import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {OutputData} from "@editorjs/editorjs";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 
@@ -35,7 +35,7 @@ export function getInitialDataElement(): RelationBlockData {
     }
     const defaultQueryParams = getDefaultQueryParams();
     const relation: Relation = {
-        connectionId: CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
+        connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }
     const query = getQueryFromParamsUnchecked(relation, defaultQueryParams, baseQuery)
     return {

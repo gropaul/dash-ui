@@ -2,7 +2,7 @@ import {ReactNode} from "react";
 import {ContextMenuItem} from "@/components/ui/context-menu";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {Copy} from 'lucide-react';
-import {ConnectionsService} from "@/state/connections/connections-service";
+import {ConnectionsService} from "@/state/connections-service";
 
 interface ContextMenuFactoryProps {
     tree_id_path: string[];
@@ -22,7 +22,7 @@ export default function ContextMenuFactory(props: ContextMenuFactoryProps): Reac
             const path = getFilePath();
             const query = `SELECT content
                            FROM read_text('${path}')`;
-            const result = await ConnectionsService.getInstance().getConnection(props.connection_id).executeQuery(query);
+            const result = await ConnectionsService.getInstance().executeQuery(query);
             const content = result.rows[0][0];
             await navigator.clipboard.writeText(content);
         } catch (err) {

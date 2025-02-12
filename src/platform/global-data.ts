@@ -2,15 +2,12 @@
 export const LOADING_TIMER_OFFSET = 150;
 
 // connection ids
-export const CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';
-export const CONNECTION_ID_DUCKDB_LOCAL = 'duckdb-local';
-export const CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB = 'file-system-over-duckdb';
+export const DATABASE_CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';
+export const DATABASE_CONNECTION_ID_DUCKDB_LOCAL = 'duckdb-local';
+export const SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM = 'file-system-over-duckdb';
+export const SOURCE_CONNECTION_ID_DUCKDB_INTERNAL_DATABASES = 'duckdb-internal-databases';
+export const MAIN_CONNECTION_ID = DATABASE_CONNECTION_ID_DUCKDB_LOCAL;
 
-export const MAIN_CONNECTION_ID = CONNECTION_ID_DUCKDB_LOCAL;
-
-
-export const DUCKDB_BASE_SCHEMA = 'main';
-export const DUCKDB_IN_MEMORY_DB = 'memory';
 
 export const DEFAULT_COLORS = ["#ea5545", "#f46a9b", "#ef9b20", "#edbf33", "#ede15b", "#bdcf32", "#87bc45", "#27aeef", "#b33dc6"]
 

@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 
-export type DBConnectionType = 'duckdb-wasm' | 'duckdb-over-http' | 'local-filesystem';
+export type DBConnectionType = 'duckdb-wasm' | 'duckdb-wasm-motherduck' | 'duckdb-over-http';
 export type DataSourceType = 'file' | 'relation';
 export type DataGroupType = 'folder' | 'database';
 
