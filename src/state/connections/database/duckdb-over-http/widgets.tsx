@@ -1,6 +1,6 @@
 import {FormFieldCustomProps} from "@/components/basics/input/custom-form";
-import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {DuckDBOverHttpConfig} from "@/state/connections/database/duckdb-over-http";
+import {CodeFence} from "@/components/basics/code-fence/code-fence";
 
 
 export function showConnectionStringIfLocalHost(formData: any) {
@@ -43,11 +43,7 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
     }
 
     return (
-        <SqlEditor
-            rounded={true}
-            height={"6rem"}
-            language="sql"
-            readOnly={true}
+        <CodeFence
             displayCode={getConnectionString(true)}
             copyCode={getConnectionString(false)}
             showCopyButton={!hasError}

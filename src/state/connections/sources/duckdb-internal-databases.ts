@@ -1,7 +1,5 @@
 import {RelationData} from "@/model/relation";
-import {
-    SOURCE_CONNECTION_ID_DUCKDB_INTERNAL_DATABASES
-} from "@/platform/global-data";
+import {SOURCE_CONNECTION_ID_DUCKDB_INTERNAL_DATABASES} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DataSource, DataSourceConnection, DataSourceConnectionType} from "@/model/data-source-connection";
 import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections/duckdb-helper";

@@ -1,5 +1,4 @@
-
-import { format } from 'sql-formatter';
+import {format} from 'sql-formatter';
 import {Monaco} from "@monaco-editor/react";
 
 

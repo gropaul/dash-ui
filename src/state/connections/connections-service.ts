@@ -1,11 +1,7 @@
 import {DataConnectionsState} from "@/state/connections.state";
 import {getDuckDBLocalConnection} from "@/state/connections/database/duckdb-over-http";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {getDuckDBLocalFilesystem} from "@/state/connections/sources/duckdb-local-filesystem";
 import {DataSourceConnection} from "@/model/data-source-connection";
-import {getRandomId} from "@/platform/id-utils";
-import {RelationSourceQuery} from "@/model/relation";
-import {useRelationsState} from "@/state/relations.state";
 import {removeSemicolon} from "@/platform/sql-utils";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {getDuckDBInternalDatabase} from "@/state/connections/sources/duckdb-internal-databases";
