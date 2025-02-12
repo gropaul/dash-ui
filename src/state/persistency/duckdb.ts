@@ -1,9 +1,9 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
+import {getDuckDBLocalConnection} from "@/state/connections/database/duckdb-over-http";
 import {StateStorage} from "zustand/middleware";
-import {CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
+import {DatabaseConnection} from "@/model/database-connection";
 
 
 interface QueueInput {
@@ -11,14 +11,12 @@ interface QueueInput {
     value: string
 }
 
-export class DuckDBProvider {
+export class StorageDuckAPI {
 
     createdTables: string[] = [];
     // singleton instance
-    private static instance: DuckDBProvider;
+    private static instance: StorageDuckAPI;
 
-
-    connectionId: string = CONNECTION_ID_DUCKDB_LOCAL;
     lastVersionCode: number | null = null;
     queue: AsyncQueue<QueueInput, void>;
 
@@ -33,11 +31,11 @@ export class DuckDBProvider {
         this.onForceReloadCallback = callback;
     }
 
-    getOrWaitForConnection() {
-        if (!ConnectionsService.getInstance().hasConnection(this.connectionId)) {
-            ConnectionsService.getInstance().addConnectionIfNotExists(getDuckDBLocalConnection());
+    getOrWaitForConnection(): DatabaseConnection {
+        if (!ConnectionsService.getInstance().hasDatabaseConnection()) {
+            ConnectionsService.getInstance().setDatabaseConnection(getDuckDBLocalConnection());
         }
-        return ConnectionsService.getInstance().getConnection(this.connectionId);
+        return ConnectionsService.getInstance().getDatabaseConnection();
     }
 
     async createTableIfNotExists(tableName: string) {
@@ -65,13 +63,13 @@ export class DuckDBProvider {
         return connection.executeQuery(query);
     }
 
-    static async getInstance(): Promise<DuckDBProvider> {
+    static async getInstance(): Promise<StorageDuckAPI> {
 
-        if (!DuckDBProvider.instance) {
-            DuckDBProvider.instance = new DuckDBProvider();
+        if (!StorageDuckAPI.instance) {
+            StorageDuckAPI.instance = new StorageDuckAPI();
         }
 
-        return DuckDBProvider.instance;
+        return StorageDuckAPI.instance;
     }
 
     updateVersion(versionCode: number) {
@@ -151,15 +149,15 @@ export class DuckDBProvider {
 
 export const duckdbStorage: StateStorage = {
     getItem: async (tableName: string): Promise<string | null> => {
-        const provider = await DuckDBProvider.getInstance();
+        const provider = await StorageDuckAPI.getInstance();
         return provider.getItem(tableName);
     },
     setItem: async (tableName: string, value: string): Promise<void> => {
-        const provider = await DuckDBProvider.getInstance();
+        const provider = await StorageDuckAPI.getInstance();
         return provider.setItem(tableName, value);
     },
     removeItem: async (tableName: string): Promise<void> => {
-        const provider = await DuckDBProvider.getInstance();
+        const provider = await StorageDuckAPI.getInstance();
         await provider.createTableIfNotExists(tableName);
         await provider.executeQuery(`DELETE
                                      FROM "${tableName};"`);

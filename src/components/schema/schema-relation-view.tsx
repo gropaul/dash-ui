@@ -1,4 +1,4 @@
-import {DataSourceElement} from "@/model/connection";
+import {DataSourceElement} from "@/model/data-source-connection";
 import React from "react";
 import {SchemaState} from "@/model/schema-state";
 import {ExternalLink, Sheet} from "lucide-react";

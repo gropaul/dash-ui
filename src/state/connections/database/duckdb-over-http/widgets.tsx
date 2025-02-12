@@ -1,6 +1,6 @@
 import {FormFieldCustomProps} from "@/components/basics/input/custom-form";
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
-import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
+import {DuckDBOverHttpConfig} from "@/state/connections/database/duckdb-over-http";
 
 
 export function showConnectionStringIfLocalHost(formData: any) {

@@ -1,42 +1,40 @@
-import {useConnectionsState} from "@/state/connections.state";
-import {FormDefinition} from "@/components/basics/input/custom-form";
 import {RelationData, RelationSource} from "@/model/relation";
-import {
-    CONNECTION_ID_DUCKDB_LOCAL,
-    CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB,
-    DEFAULT_RELATION_VIEW_PATH,
-} from "@/platform/global-data";
+import {DEFAULT_RELATION_VIEW_PATH, SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM,} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationsState} from "@/state/relations.state";
 import {findNodeInTrees, TreeNode} from "@/components/basics/files/tree-utils";
-import {ConnectionStatus, DataConnection, DataSource, DataSourceGroup, DBConnectionType} from "@/model/connection";
-import {getDuckDBCurrentPath} from "@/state/connections/duckdb-helper";
+import {
+    DataSource,
+    DataSourceConnection,
+    DataSourceConnectionType,
+    DataSourceGroup
+} from "@/model/data-source-connection";
 import * as path from 'path';
 import {ReactNode} from "react";
-import ContextMenuFactory from "@/state/connections/file-system-over-duckdb/context-menu-factory";
+import ContextMenuFactory from "@/state/connections/sources/duckdb-local-filesystem/context-menu-factory";
+import {ConnectionStatus} from "@/model/database-connection";
+import {getDuckDBCurrentPath} from "@/state/connections/duckdb-helper";
 
-export async function getFileSystemOverDuckdbConnection(): Promise<DataConnection> {
-    return new FileSystemOverDuckdb(CONNECTION_ID_FILE_SYSTEM_OVER_DUCKDB, {
+export async function getDuckDBLocalFilesystem(): Promise<DataSourceConnection> {
+    return new DuckdbLocalFilesystem(SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM, {
         rootPath: undefined,
         name: 'Filesystem',
-        showHiddenFiles: false,
-        duckdbConnectionId: CONNECTION_ID_DUCKDB_LOCAL
+        showHiddenFiles: false
     });
 }
 
 interface FileSystemOverDuckDBConfig {
     name: string;
-    duckdbConnectionId: string;
     rootPath?: string;
     showHiddenFiles: boolean;
 
     [key: string]: string | number | boolean | undefined;
 }
 
-export class FileSystemOverDuckdb implements DataConnection {
+export class DuckdbLocalFilesystem implements DataSourceConnection {
     config: FileSystemOverDuckDBConfig;
     id: string;
-    type: DBConnectionType = 'local-filesystem-over-duckdb';
+    type: DataSourceConnectionType = 'duckdb-local-filesystem';
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
     dataSources: DataSource[] = [];
 
@@ -45,12 +43,12 @@ export class FileSystemOverDuckdb implements DataConnection {
         this.config = config;
     }
 
-    executeQuery(query: string): Promise<RelationData> {
-        return ConnectionsService.getInstance().executeQuery(this.config.duckdbConnectionId, query);
+    executeQueryViaDatabaseConnection(query: string): Promise<RelationData> {
+        return ConnectionsService.getInstance().executeQuery(query);
     }
 
     async checkConnectionState(): Promise<ConnectionStatus> {
-        this.connectionStatus = await useConnectionsState.getState().updateConnectionState(this.config.duckdbConnectionId);
+        this.connectionStatus = await ConnectionsService.getInstance().getDatabaseConnectionState();
         return this.connectionStatus;
     }
 
@@ -58,14 +56,14 @@ export class FileSystemOverDuckdb implements DataConnection {
 
         // install hostfs from community extensions
         try {
-            await this.executeQuery('INSTALL hostfs FROM community;');
-            await this.executeQuery('LOAD hostfs;');
+            await this.executeQueryViaDatabaseConnection('INSTALL hostfs FROM community;');
+            await this.executeQueryViaDatabaseConnection('LOAD hostfs;');
         } catch (e) {
             console.error('Error installing hostfs', e);
             return Promise.resolve({state: 'error', message: 'Error installing hostfs'});
         }
         console.log('Loading root path');
-        const [_rootName, rootPath] = await getDuckDBCurrentPath( this.executeQuery.bind(this));
+        const [_rootName, rootPath] = await getDuckDBCurrentPath( this.executeQueryViaDatabaseConnection.bind(this));
         console.log('This:', this);
         this.config.rootPath = rootPath;
         console.log('Root path loaded', rootPath);
@@ -86,7 +84,7 @@ export class FileSystemOverDuckdb implements DataConnection {
                                  ORDER BY file, path;`;
 
 
-        const fileSystemResult = await this.executeQuery(fileSystemQuery);
+        const fileSystemResult = await this.executeQueryViaDatabaseConnection(fileSystemQuery);
 
         // get rootName as basepath, could be Unix or Windows path
         const rootName = path.basename(rootPath);

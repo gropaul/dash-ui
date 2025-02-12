@@ -2,7 +2,7 @@ import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
 import {DatabaseSchemaView} from "@/components/database/database-schema-view";
-import {DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/data-source-connection";
 import {GetPathOfDatabase} from "@/model/database-state";
 
 interface DatabaseViewProps {

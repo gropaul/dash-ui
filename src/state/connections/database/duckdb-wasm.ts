@@ -1,18 +1,14 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
-import {AsyncDuckDBConnection, DuckDBDataProtocol} from "@duckdb/duckdb-wasm";
+import {AsyncDuckDBConnection} from "@duckdb/duckdb-wasm";
 import {RelationData} from "@/model/relation";
-import {
-    creatTableIfNotExistsFromFilePath,
-    loadDuckDBDataSources,
-    onDuckDBDataSourceClick
-} from "@/state/connections/duckdb-helper";
-import Error from "next/error";
-import {CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
-import {ConnectionStatus, DataConnection, DataSource, DBConnectionType} from "@/model/connection";
+import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
+import {DATABASE_CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
+import {DataSource} from "@/model/data-source-connection";
+import {ConnectionStatus, DatabaseConnection, DatabaseConnectionType} from "@/model/database-connection";
 
 
-export function getDuckDBWasmConnection(): DataConnection {
-    return new DuckDBWasm(CONNECTION_ID_DUCKDB_WASM, {name: 'DuckDB WASM'});
+export function getDuckDBWasmConnection(): DatabaseConnection {
+    return new DuckDBWasm(DATABASE_CONNECTION_ID_DUCKDB_WASM, {name: 'DuckDB WASM'});
 }
 
 export interface DuckDBWasmConfig {
@@ -21,10 +17,10 @@ export interface DuckDBWasmConfig {
     [key: string]: string | number | boolean | undefined; // index signature
 }
 
-export class DuckDBWasm implements DataConnection {
+export class DuckDBWasm implements DatabaseConnection {
 
     id: string;
-    type: DBConnectionType;
+    type: DatabaseConnectionType;
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
 
     dataSources: DataSource[];
@@ -76,31 +72,6 @@ export class DuckDBWasm implements DataConnection {
             this.connectionStatus = {state: 'disconnected', message: 'DuckDB WASM not initialised'};
         }
         return this.connectionStatus;
-    }
-
-    // Create a table from a file that is loaded from the browser, returns the table name
-    async createTableFromBrowserFileHandler(file: File): Promise<string> {
-
-        if (!this.db || !this.connection) {
-            // @ts-ignore
-            throw new Error("DuckDB WASM not initialised");
-        }
-
-        const fileName = file.name;
-        const tableName = fileName
-
-        await this.db.registerFileHandle(fileName, file, DuckDBDataProtocol.BROWSER_FILEREADER, true);
-        await creatTableIfNotExistsFromFilePath(this, fileName, tableName);
-        return tableName;
-    }
-
-    async onDataSourceClick(id_path: string[]) {
-        await onDuckDBDataSourceClick(this, id_path, this.dataSources);
-    }
-
-    loadChildrenForDataSource(_id_path: string[]): Promise<DataSource[]> {
-        console.error('Not implemented');
-        return Promise.resolve([]);
     }
 
     updateConfig(config: Partial<DuckDBWasmConfig>): void {

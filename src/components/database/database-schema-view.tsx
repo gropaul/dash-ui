@@ -1,4 +1,4 @@
-import {DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/data-source-connection";
 import {CardView} from "@/components/basics/basic-view/card-view";
 import React from "react";
 import {RelationSourceTable} from "@/model/relation";

@@ -1,23 +1,28 @@
 import {DataConnectionsState} from "@/state/connections.state";
-import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
-import {getDuckDBLocalConnection} from "@/state/connections/duckdb-over-http";
-import {CONNECTION_ID_DUCKDB_WASM, DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
-import {getFileSystemOverDuckdbConnection} from "@/state/connections/file-system-over-duckdb";
-import {DataConnection} from "@/model/connection";
+import {getDuckDBLocalConnection} from "@/state/connections/database/duckdb-over-http";
+import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
+import {getDuckDBLocalFilesystem} from "@/state/connections/sources/duckdb-local-filesystem";
+import {DataSourceConnection} from "@/model/data-source-connection";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationSourceQuery} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {removeSemicolon} from "@/platform/sql-utils";
+import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
+import {getDuckDBInternalDatabase} from "@/state/connections/sources/duckdb-internal-databases";
 
 
 export class ConnectionsService {
     // singleton instance
     private static instance: ConnectionsService;
 
-    connections: { [key: string]: DataConnection };
+    // there is always only one active database connection
+    database_connection?: DatabaseConnection;
+
+    // there can be multiple data source connections
+    source_connections: { [key: string]: DataSourceConnection };
 
     private constructor() {
-        this.connections = {};
+        this.source_connections = {};
     }
 
     static getInstance(): ConnectionsService {
@@ -27,52 +32,69 @@ export class ConnectionsService {
         return ConnectionsService.instance;
     }
 
-    getConnection(connectionId: string) {
-        return this.connections[connectionId];
+    hasDatabaseConnection() {
+        return this.database_connection !== undefined;
     }
 
-    hasConnection(connectionId: string) {
-        if (this.connections[connectionId]) {
+    setDatabaseConnection(connection: DatabaseConnection) {
+        this.database_connection = connection;
+    }
+
+    getDatabaseConnection(): DatabaseConnection {
+        if (!this.database_connection) {
+            throw new Error('No active database connection');
+        }
+        return this.database_connection;
+    }
+
+    getSourceConnection(connectionId: string) {
+        return this.source_connections[connectionId];
+    }
+
+    hasSourceConnection(connectionId: string) {
+        if (this.source_connections[connectionId]) {
             return true;
         } else {
             return false;
         }
     }
 
-    addConnectionIfNotExists(connection: DataConnection) {
-        if (!this.connections[connection.id]) {
-            this.connections[connection.id] = connection;
+    addSourceConnectionIfNotExists(connection: DataSourceConnection) {
+        if (!this.source_connections[connection.id]) {
+            this.source_connections[connection.id] = connection;
         }
     }
 
-    async executeQuery(connectionId: string, query: string) {
-        const connection = this.connections[connectionId];
-        if (!connection) {
-            throw new Error(`Connection with id ${connectionId} not found`);
+    async executeQuery(query: string) {
+        if (!this.database_connection) {
+            throw new Error('No active database connection');
         }
-        return connection.executeQuery(query);
+        return await this.database_connection.executeQuery(query);
     }
 
-    getDuckDBWasmConnection() {
-        return this.connections[CONNECTION_ID_DUCKDB_WASM] as DuckDBWasm
+    async getDatabaseConnectionState(): Promise<ConnectionStatus> {
+        if (!this.database_connection) {
+            throw new Error('No active database connection');
+        }
+        return await this.database_connection.checkConnectionState();
     }
 
-    updateConfig(connectionId: string, config: any) {
-        const connection = this.connections[connectionId];
+    updateSourceConnectionConfig(id: string, config: any) {
+        const connection = this.source_connections[id];
         if (!connection) {
-            throw new Error(`Connection with id ${connectionId} not found`);
+            throw new Error(`Connection with id ${id} not found`);
         }
         // update all the fields in the config
         connection.updateConfig(config);
     }
 
-    async checkIfQueryIsExecutable(connectionId: string, sql: string) {
+    async checkIfQueryIsExecutable(sql: string) {
 
         const preparedSQL = removeSemicolon(sql)
         const explainQuery = `EXPLAIN ${preparedSQL}`
 
         try {
-            const result = await this.executeQuery(connectionId, explainQuery);
+            const _result = await this.executeQuery(explainQuery);
             return true;
         } catch (e) {
             return false;
@@ -81,44 +103,21 @@ export class ConnectionsService {
 
     async initialiseDefaultConnections(state: DataConnectionsState) {
 
-        const duckDBLocal: DataConnection = getDuckDBLocalConnection();
-        state.addConnection(duckDBLocal, true, true).then(async () => {
+        const duckDBLocal: DatabaseConnection = getDuckDBLocalConnection();
+        await state.setDatabaseConnection(duckDBLocal);
 
-            // is dependent on duckdb local
-            const fileSystemOverDuckdb = await getFileSystemOverDuckdbConnection();
-            await state.addConnection(fileSystemOverDuckdb, true, true).then(() => {
-            })
+        console.log('DuckDB Local connection initialised');
 
-            // if there are no relations, create an example query
-            if (Object.keys(useRelationsState.getState().relations).length === 0) {
-                await this.showExampleQuery(duckDBLocal.id);
-            }
+        // add the duckdb internal databases as data sources
+        const duckdbInternalDatabases = await getDuckDBInternalDatabase();
+        await state.addSourceConnection(duckdbInternalDatabases, true, true);
 
-        });
+        // add the local file system over duckdb connection
+        const fileSystemOverDuckdb = await getDuckDBLocalFilesystem();
+        await state.addSourceConnection(fileSystemOverDuckdb, true, true);
 
-        // const duckDBWasm = getDuckDBWasmConnection();
-        // await state.addConnection(duckDBWasm, true, true);
+
     }
 
-    async showExampleQuery(connectionId: string) {
-        // add example query
-        const randomId = getRandomId();
-        const baseQuery = `-- Directly query Parquet file in S3
-SELECT
-station_name,
-count(*) AS num_services
-FROM 's3://duckdb-blobs/train_services.parquet'
--- FROM train_services
-GROUP BY ALL
-ORDER BY num_services DESC
-LIMIT 10;`;
-        const source: RelationSourceQuery = {
-            type: "query",
-            baseQuery: baseQuery,
-            id: randomId,
-            name: "Train Station Services"
-        }
-        const showRelationFromSource = useRelationsState.getState().showRelationFromSource;
-        showRelationFromSource(connectionId, source, DEFAULT_RELATION_VIEW_PATH);
-    }
+
 }

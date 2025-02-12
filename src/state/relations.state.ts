@@ -9,7 +9,7 @@ import {
     updateRelationQueryForParams,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
-import {DataSourceGroup} from "@/model/connection";
+import {DataSourceGroup} from "@/model/data-source-connection";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";

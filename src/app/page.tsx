@@ -3,7 +3,7 @@
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {TabbedLayout} from "@/components/layout/tabbed-layout";
 import React, {useEffect, useState} from "react";
-import {DuckDBProvider} from "@/state/persistency/duckdb";
+import {StorageDuckAPI} from "@/state/persistency/duckdb";
 import {AlertDialog} from "@radix-ui/react-alert-dialog";
 import {
     AlertDialogAction,
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {useHydrationState} from "@/state/relations.state";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {ConnectionConfig} from "@/components/connections/connection-config";
 
 
 export default function Home() {
@@ -24,7 +23,7 @@ export default function Home() {
     const relationsHydrated = useHydrationState((state) => state.hydrated);
 
     useEffect(() => {
-        DuckDBProvider.getInstance().then((duckdb) => {
+        StorageDuckAPI.getInstance().then((duckdb) => {
             duckdb.setOnForceReloadCallback(() => {
                 setShowForceReloadDialog(true);
             });

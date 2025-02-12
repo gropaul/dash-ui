@@ -1,5 +1,4 @@
 import {getRelationIdFromSource, getRelationNameFromSource, Relation, RelationSource} from "@/model/relation";
-import {useConnectionsState} from "@/state/connections.state";
 import {getInitViewState, RelationViewState, updateRelationViewState} from "@/model/relation-view-state";
 import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
@@ -127,7 +126,7 @@ function buildQueries(
     viewParameters: RelationQueryParams;
     // optionally return any other intermediate results if needed
 } {
-    const { offset, limit } = query;
+    const {offset, limit} = query;
 
     // Build "ORDER BY ..." from query.sorting
     const orderByColumns = Object.entries(query.sorting)
@@ -149,17 +148,16 @@ function buildQueries(
 
     const orderByQuery = orderByColumns ? 'ORDER BY ' + orderByColumns : '';
     const viewQuery = `
-    SELECT *
-    FROM ${finalQueryAsSubQuery} ${orderByQuery}
-    LIMIT ${limit}
-    OFFSET ${offset};
-  `;
+        SELECT *
+        FROM ${finalQueryAsSubQuery} ${orderByQuery} LIMIT ${limit}
+        OFFSET ${offset};
+    `;
 
     // Build a count query
     const countQuery = `
-    SELECT COUNT(*)
-    FROM ${finalQueryAsSubQuery} as subquery
-  `;
+        SELECT COUNT(*)
+        FROM ${finalQueryAsSubQuery} as subquery
+    `;
 
     return {
         initialQueries,
@@ -189,7 +187,6 @@ export async function getQueryFromParams(
 
     // Then do your async check:
     const executable = await ConnectionsService.getInstance().checkIfQueryIsExecutable(
-        relation.connectionId,
         viewQuery
     );
 
@@ -273,18 +270,18 @@ function returnEmptyErrorState(relation: RelationState, error: unknown): Relatio
 // executes the query and updates the view state
 export async function executeQueryOfRelationState(input: RelationState): Promise<RelationState> {
 
-    const executeQuery = useConnectionsState.getState().executeQuery;
-    const connectionId = input.connectionId;
     const viewQuery = input.query.viewQuery;
     const countQuery = input.query.countQuery;
 
     // start a timer to measure the query duration
     const start = performance.now();
 
+    console.log('Executing query', viewQuery, 'connection instance', ConnectionsService.getInstance());
+
     // first execute the initial queries
     for (const query of input.query.initialQueries) {
         try {
-            await executeQuery(connectionId, query);
+            await ConnectionsService.getInstance().executeQuery(query);
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }
@@ -295,7 +292,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
 
     if (viewQuery) {
         try {
-            viewData = await executeQuery(connectionId, viewQuery);
+            viewData = await ConnectionsService.getInstance().executeQuery(viewQuery);
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }
@@ -308,7 +305,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
 
     if (countQuery) {
         try {
-            countData = await executeQuery(connectionId, countQuery);
+            countData = await ConnectionsService.getInstance().executeQuery(countQuery);
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }

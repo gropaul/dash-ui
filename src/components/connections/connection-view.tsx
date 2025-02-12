@@ -4,11 +4,11 @@ import React from "react";
 import {useConnectionsState} from "@/state/connections.state";
 import {RefreshCw} from "lucide-react";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DataConnection} from "@/model/connection";
+import {DataSourceConnection} from "@/model/data-source-connection";
 import {Button} from "@/components/ui/button";
 
 export interface ConnectionViewProps {
-    connection: DataConnection;
+    connection: DataSourceConnection;
 }
 
 export function ConnectionView(props: ConnectionViewProps) {
@@ -17,11 +17,11 @@ export function ConnectionView(props: ConnectionViewProps) {
     const loadChildrenForDataSource = useConnectionsState((state) => state.loadChildrenForDataSource);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
-        ConnectionsService.getInstance().getConnection(connection_id).onDataSourceClick(id_path);
+        ConnectionsService.getInstance().getSourceConnection(connection_id).onDataSourceClick(id_path);
     }
 
     function getContextMenuFactory(connection_id: string) {
-        return ConnectionsService.getInstance().getConnection(connection_id).dataSourceContextMenuFactory;
+        return ConnectionsService.getInstance().getSourceConnection(connection_id).dataSourceContextMenuFactory;
     }
 
     async function onElementLoadRequest(connection_id: string, id_path: string[]) {
