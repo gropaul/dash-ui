@@ -1,15 +1,11 @@
 import {createWithEqualityFn} from "zustand/traditional";
-import {ConnectionsService} from "@/state/connections/connections-service";
+import {ConnectionsService} from "@/state/connections-service";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 import {DataConnectionConfig, DataSource, DataSourceConnection, DataSourceGroup} from "@/model/data-source-connection";
-import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
+import {ConnectionStatus} from "@/model/database-connection";
 
-export interface DataConnectionsState {
+export interface SourceConnectionZustand {
     connections: { [key: string]: DataSourceConnection };
-
-    initialiseDefaultConnections: () => Promise<void>;
-
-    setDatabaseConnection: (connection: DatabaseConnection) => Promise<void>;
     // default autoInitialise is true
     addSourceConnection: (connection: DataSourceConnection, initialise: boolean, loadDataSources: boolean) => Promise<ConnectionStatus | undefined>;
     initialiseSourceConnection: (connectionId: string) => Promise<ConnectionStatus>;
@@ -31,31 +27,21 @@ export interface DataConnectionsState {
     refreshConnection: (connectionId: string) => Promise<void>;
 }
 
-export const useConnectionsState = createWithEqualityFn<DataConnectionsState>((set, get) => ({
+export const useSourceConState = createWithEqualityFn<SourceConnectionZustand>((set, get) => ({
     connections: {},
 
-    initialiseDefaultConnections: async () => {
-        const state = get();
-        return ConnectionsService.getInstance().initialiseDefaultConnections(state);
-    },
-    setDatabaseConnection: async (connection) => {
-        ConnectionsService.getInstance().setDatabaseConnection(connection);
-    },
+
     addSourceConnection: async (connection, initialise, loadDataSources) => {
         set((state) => ({
             connections: {...state.connections, [connection.id]: connection},
         }));
-        console.log('Adding connection', connection);
         ConnectionsService.getInstance().addSourceConnectionIfNotExists(connection);
 
-        console.log('Connection added', connection);
         let state: ConnectionStatus | undefined = undefined;
         if (initialise) {
-            console.log('Initialising connection', connection);
             state = await get().initialiseSourceConnection(connection.id);
         }
 
-        console.log('Connection initialised', connection);
         if (loadDataSources) {
             await get().loadAllDataSources(connection.id);
         }

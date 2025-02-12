@@ -2,7 +2,7 @@ import React, {FC, ReactElement} from "react";
 import {CustomForm, FormDefinition} from "@/components/basics/input/custom-form";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {validateUrl} from "@/platform/string-validation";
-import {ConnectionStringField} from "@/state/connections/database/duckdb-over-http/widgets";
+import {ConnectionStringField} from "@/state/connections-database/duckdb-over-http/widgets";
 import {DuckInstanceType, useDuckProxyState} from "@/duckdb/state";
 
 

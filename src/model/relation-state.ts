@@ -2,7 +2,7 @@ import {getRelationIdFromSource, getRelationNameFromSource, Relation, RelationSo
 import {getInitViewState, RelationViewState, updateRelationViewState} from "@/model/relation-view-state";
 import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
-import {ConnectionsService} from "@/state/connections/connections-service";
+import {ConnectionsService} from "@/state/connections-service";
 
 export function getDefaultQueryParams(oldLimit?: number): RelationQueryParams {
 

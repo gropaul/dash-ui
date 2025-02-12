@@ -1,6 +1,6 @@
 import {RelationData, RelationSource} from "@/model/relation";
 import {DEFAULT_RELATION_VIEW_PATH, SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM,} from "@/platform/global-data";
-import {ConnectionsService} from "@/state/connections/connections-service";
+import {ConnectionsService} from "@/state/connections-service";
 import {useRelationsState} from "@/state/relations.state";
 import {findNodeInTrees, TreeNode} from "@/components/basics/files/tree-utils";
 import {
@@ -11,9 +11,9 @@ import {
 } from "@/model/data-source-connection";
 import * as path from 'path';
 import {ReactNode} from "react";
-import ContextMenuFactory from "@/state/connections/sources/duckdb-local-filesystem/context-menu-factory";
+import ContextMenuFactory from "@/state/connections-source/duckdb-local-filesystem/context-menu-factory";
 import {ConnectionStatus} from "@/model/database-connection";
-import {getDuckDBCurrentPath} from "@/state/connections/duckdb-helper";
+import {getDuckDBCurrentPath} from "@/state/connections-source/duckdb-helper";
 
 export async function getDuckDBLocalFilesystem(): Promise<DataSourceConnection> {
     return new DuckdbLocalFilesystem(SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM, {
@@ -62,11 +62,8 @@ export class DuckdbLocalFilesystem implements DataSourceConnection {
             console.error('Error installing hostfs', e);
             return Promise.resolve({state: 'error', message: 'Error installing hostfs'});
         }
-        console.log('Loading root path');
         const [_rootName, rootPath] = await getDuckDBCurrentPath( this.executeQueryViaDatabaseConnection.bind(this));
-        console.log('This:', this);
         this.config.rootPath = rootPath;
-        console.log('Root path loaded', rootPath);
         return this.checkConnectionState();
 
     }

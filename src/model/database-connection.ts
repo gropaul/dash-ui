@@ -1,6 +1,5 @@
 import {RelationData} from "@/model/relation";
-
-export type DatabaseConnectionType = 'duckdb-over-http' | 'duckdb-wasm' | 'duckdb-wasm-motherduck';
+import {DatabaseConnectionType} from "@/state/connections-database/configs";
 
 export interface ConnectionStatus {
     state: 'connected' | 'disconnected' | 'connecting' | 'error';

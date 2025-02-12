@@ -1,10 +1,10 @@
-import {DataConnectionsState} from "@/state/connections.state";
-import {getDuckDBLocalConnection} from "@/state/connections/database/duckdb-over-http";
-import {getDuckDBLocalFilesystem} from "@/state/connections/sources/duckdb-local-filesystem";
+import {SourceConnectionZustand} from "@/state/connections-source.state";
+import {getDuckDBLocalConnection} from "@/state/connections-database/duckdb-over-http";
+import {getDuckDBLocalFilesystem} from "@/state/connections-source/duckdb-local-filesystem";
 import {DataSourceConnection} from "@/model/data-source-connection";
 import {removeSemicolon} from "@/platform/sql-utils";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
-import {getDuckDBInternalDatabase} from "@/state/connections/sources/duckdb-internal-databases";
+import {getDuckDBInternalDatabase} from "@/state/connections-source/duckdb-internal-databases";
 
 
 export class ConnectionsService {
@@ -96,24 +96,4 @@ export class ConnectionsService {
             return false;
         }
     }
-
-    async initialiseDefaultConnections(state: DataConnectionsState) {
-
-        const duckDBLocal: DatabaseConnection = getDuckDBLocalConnection();
-        await state.setDatabaseConnection(duckDBLocal);
-
-        console.log('DuckDB Local connection initialised');
-
-        // add the duckdb internal databases as data sources
-        const duckdbInternalDatabases = await getDuckDBInternalDatabase();
-        await state.addSourceConnection(duckdbInternalDatabases, true, true);
-
-        // add the local file system over duckdb connection
-        const fileSystemOverDuckdb = await getDuckDBLocalFilesystem();
-        await state.addSourceConnection(fileSystemOverDuckdb, true, true);
-
-
-    }
-
-
 }

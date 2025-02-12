@@ -572,6 +572,8 @@ export const useRelationsState = createWithEqualityFn(
             onRehydrateStorage: (state => {
                 function callback(state: any, error: any) {
 
+                    console.log('Rehydrated state', state);
+
                     // get the list of all possible open tabs
                     const ids = [];
                     for (const key in state.relations) {

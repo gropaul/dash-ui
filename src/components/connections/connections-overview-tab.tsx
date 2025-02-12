@@ -1,14 +1,14 @@
 'use client';
 
 import React, {Fragment} from "react";
-import {useConnectionsState} from "@/state/connections.state";
+import {useSourceConState} from "@/state/connections-source.state";
 import {ConnectionView} from "@/components/connections/connection-view";
 import {H5} from "@/components/ui/typography";
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
 
 export function ConnectionsOverviewTab() {
-    const connections = useConnectionsState((state) => state.connections);
+    const connections = useSourceConState((state) => state.connections);
 
     return (
         <div className="h-full w-full flex flex-col">

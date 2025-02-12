@@ -4,7 +4,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {DataSource, DataSourceConnection, DataSourceElement, DataSourceGroup} from "@/model/data-source-connection";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
-import {ConnectionsService} from "@/state/connections/connections-service";
+import {ConnectionsService} from "@/state/connections-service";
 import {removeSemicolon} from "@/platform/sql-utils";
 
 

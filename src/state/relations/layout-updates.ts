@@ -8,7 +8,6 @@ import {useGUIState} from "@/state/gui.state";
 
 // Layout Initialization
 export function getInitialLayoutModel(): Model {
-    console.log('getInitialLayoutModel');
     return Model.fromJson({
         global: {
             splitterSize: 1,

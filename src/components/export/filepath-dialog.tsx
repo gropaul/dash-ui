@@ -1,5 +1,5 @@
 import React from "react";
-import {FileFormat} from "@/state/connections/duckdb-helper";
+import {FileFormat} from "@/state/connections-source/duckdb-helper";
 import {FilepathDialogContentView} from "@/components/export/filepath-dialog-content-view";
 import {MyDialog} from "@/components/ui/my-dialog";
 

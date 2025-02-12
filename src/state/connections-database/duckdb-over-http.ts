@@ -3,16 +3,10 @@ import {duckDBTypeToValueType} from "@/model/value-type";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {DataSource} from "@/model/data-source-connection";
 import {QueryResponse} from "@/model/query-response";
-import {ConnectionStatus, DatabaseConnection, DatabaseConnectionType} from "@/model/database-connection";
+import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
+import {DatabaseConnectionType} from "@/state/connections-database/configs";
 
-export function getDuckDBLocalConnection() {
-
-    const config: DuckDBOverHttpConfig = {
-        name: 'DuckDB',
-        url: 'http://localhost:4200',
-        authentication: 'token',
-        token: 'supersecrettoken'
-    }
+export function getDuckDBLocalConnection(config: DuckDBOverHttpConfig): DatabaseConnection {
 
     return new DuckDBOverHttp(config, DATABASE_CONNECTION_ID_DUCKDB_LOCAL);
 }

@@ -1,5 +1,5 @@
-import {ConnectionsService} from "@/state/connections/connections-service";
-import {getDuckDBLocalConnection} from "@/state/connections/database/duckdb-over-http";
+import {ConnectionsService} from "@/state/connections-service";
+import {getDuckDBLocalConnection} from "@/state/connections-database/duckdb-over-http";
 import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
@@ -31,9 +31,10 @@ export class StorageDuckAPI {
         this.onForceReloadCallback = callback;
     }
 
-    getOrWaitForConnection(): DatabaseConnection {
-        if (!ConnectionsService.getInstance().hasDatabaseConnection()) {
-            ConnectionsService.getInstance().setDatabaseConnection(getDuckDBLocalConnection());
+    async getOrWaitForConnection(): Promise<DatabaseConnection> {
+        // wait for the connection to be initialised
+        while (!ConnectionsService.getInstance().hasDatabaseConnection()) {
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
         return ConnectionsService.getInstance().getDatabaseConnection();
     }

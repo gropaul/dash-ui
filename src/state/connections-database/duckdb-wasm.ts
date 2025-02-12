@@ -1,10 +1,11 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDBConnection} from "@duckdb/duckdb-wasm";
 import {RelationData} from "@/model/relation";
-import {loadDuckDBDataSources} from "@/state/connections/duckdb-helper";
+import {loadDuckDBDataSources} from "@/state/connections-source/duckdb-helper";
 import {DATABASE_CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
 import {DataSource} from "@/model/data-source-connection";
-import {ConnectionStatus, DatabaseConnection, DatabaseConnectionType} from "@/model/database-connection";
+import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
+import {DatabaseConnectionType} from "@/state/connections-database/configs";
 
 
 export function getDuckDBWasmConnection(): DatabaseConnection {

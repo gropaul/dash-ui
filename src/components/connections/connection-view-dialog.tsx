@@ -1,5 +1,6 @@
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {ConnectionConfig} from "@/components/connections/connection-config";
+import {ConnectionHistory} from "@/components/connections/connection-history.";
 
 
 export interface ConnectionViewDialogProps {
@@ -17,6 +18,7 @@ export function ConnectionViewDialog(props: ConnectionViewDialogProps) {
                         Configure how you would like to use DuckDB.
                     </DialogDescription>
                 </DialogHeader>
+                <ConnectionHistory/>
                 <ConnectionConfig/>
             </DialogContent>
         </Dialog>
