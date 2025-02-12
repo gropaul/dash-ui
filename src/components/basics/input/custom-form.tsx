@@ -4,12 +4,15 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Checkbox} from "@/components/ui/checkbox";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {cn} from "@/lib/utils";
 
 export interface FormDefinition {
     fields: FormField[];
 }
 
-export type FormFieldTypes = 'text' | 'number' | 'boolean' | 'select' | 'password' | 'custom';
+export type FormFieldTypes = 'text' | 'number' | 'boolean' | 'select' | 'password' | 'custom' | 'description' | 'warning';
+
+export const INFO_ONLY_TYPES: FormFieldTypes[]  = ['description', 'warning'];
 
 export interface FormFieldSelectOption {
     value: string;
@@ -29,7 +32,7 @@ export interface FormFieldCustom<T = any> {
 export interface FormField<T = any> {
     key: string;
     label: string;
-    required: boolean;
+    required?: boolean; // default is false
     type: FormFieldTypes;
     selectOptions?: FormFieldSelectOption[];
     customField?: FormFieldCustom<T>;
@@ -59,11 +62,22 @@ export const FormFields: FC<{
             const requiredString = field.required ? '*' : '';
             const inlineLabel = field.type === 'boolean';
             const classWrapper = inlineLabel ? 'flex items-center space-x-2' : '';
+
+            const labelVisible = INFO_ONLY_TYPES.includes(field.type) ? 'hidden' : 'block';
+
             return (
                 <div key={field.key} className={`${classWrapper}`}>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className={cn("text-sm font-medium text-gray-700", labelVisible)}>
                         {field.label + requiredString}
                     </label>
+                    {field.type === 'description' && (
+                        <span className="text-sm text-gray-500">{field.label}</span>
+                    )}
+                    {field.type === 'warning' && (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded">
+                            <span className="text-sm text-yellow-700">{field.label}</span>
+                        </div>
+                    )}
                     {field.type === 'text' && (
                         <Input
                             type="text"

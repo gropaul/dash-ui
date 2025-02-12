@@ -19,8 +19,6 @@ import {ConnectionConfig} from "@/components/connections/connection-config";
 
 
 export default function Home() {
-
-    const [duckdbProxy, setDuckdbProxy] = useState(null);
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
 
     const relationsHydrated = useHydrationState((state) => state.hydrated);
@@ -36,10 +34,6 @@ export default function Home() {
     function reloadWindow() {
         window.location.reload();
     }
-
-    // if (!duckdbProxy) {
-    //     return <ConnectionConfig/>
-    // }
 
     if (!relationsHydrated) {
         return <div className="h-screen w-screen flex items-center justify-center">

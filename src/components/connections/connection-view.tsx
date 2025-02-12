@@ -42,8 +42,8 @@ export function ConnectionView(props: ConnectionViewProps) {
                 </div>
 
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant={'ghost'} size={'icon'} onClick={handleRefresh}>
-                        <RefreshCw/>
+                    <Button variant={'ghost'} size={'icon'} onClick={handleRefresh} className={'h-8 w-8'}>
+                        <RefreshCw size={12}/>
                     </Button>
                 </div>
             </div>
