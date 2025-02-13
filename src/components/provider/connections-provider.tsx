@@ -6,7 +6,7 @@ import {ConnectionsService} from "@/state/connections-service";
 import {useDatabaseConState, useDBConHydrationState} from "@/state/connections-database.state";
 import {connectionToString, DBConnectionSpec, specToConnection} from "@/state/connections-database/configs";
 import {toast} from "sonner";
-import {useRouter} from 'next/navigation'
+import {usePathname, useRouter} from 'next/navigation'
 import {showExampleQuery} from "@/components/provider/example-query";
 import {getConnection} from "@/components/provider/config-utils";
 import {ConnectionViewDialog} from "@/components/connections/connection-view-dialog";
@@ -27,6 +27,7 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
         state.setConnectionsConfigOpen, state.setConnectionsConfigForcedOpen
     ]);
     const router = useRouter()
+    const pathname = usePathname()
 
     const onSaveSpec = async (spec: DBConnectionSpec) => {
         const connection = specToConnection(spec);
@@ -43,7 +44,8 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
         // get the current url params to configure the connection
         const urlParams = new URLSearchParams(window.location.search);
         let connection = await getConnection(urlParams, history);
-        router.push('/');
+        // stay at the same page but remove the params from the url
+        router.replace(pathname, undefined);
 
         if (!connection) {
             toast.error('No viable connection found');
