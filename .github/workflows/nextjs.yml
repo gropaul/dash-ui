@@ -34,7 +34,7 @@ jobs:
       - name: Detect package manager
         id: detect-package-manager
         run: |
-          npm install -g pnpm@9.15.2
+          npm install -g pnpm
           echo "manager=pnpm" >> $GITHUB_OUTPUT
           echo "command=install" >> $GITHUB_OUTPUT
           echo "runner=pnpm" >> $GITHUB_OUTPUT
