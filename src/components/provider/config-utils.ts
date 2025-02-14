@@ -23,11 +23,13 @@ function parseConnectionParams(urlParams: URLSearchParams): DBConnectionSpec | u
     switch (api) {
         case 'http':
             // get the "path" parameter
-            const url = urlParams.get('url');
+            let url = urlParams.get('url');
 
             if (!url) {
-                console.error('No URL parameter found, but required for HTTP API');
-                return undefined;
+                // if there is no url, use the same url as the current page
+                const loc = window.location;
+                url = `${loc.protocol}//${loc.host}`;
+                console.log('No url parameter found, using current page url:', url);
             }
 
             // optional: k for api key
