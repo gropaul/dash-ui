@@ -4,7 +4,7 @@ import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections-service";
 
-export function getDefaultQueryParams(oldLimit?: number): RelationQueryParams {
+export function getDefaultQueryParams(oldLimit?: number): RelationQueryViewParams {
 
     const limit = oldLimit ?? 50;
     return {
@@ -14,7 +14,7 @@ export function getDefaultQueryParams(oldLimit?: number): RelationQueryParams {
     };
 }
 
-export interface RelationQueryParams {
+export interface RelationQueryViewParams {
     offset: number;
     limit: number;
     sorting: { [key: string]: ColumnSorting | undefined };
@@ -28,7 +28,7 @@ export interface QueryData {
     viewQuery: string;
     // the query getting the count for the view Query
     countQuery: string;
-    viewParameters: RelationQueryParams;
+    viewParameters: RelationQueryViewParams;
 }
 
 export type TaskExecutionState = {
@@ -68,7 +68,7 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export async function getViewFromSource(connectionId: string, source: RelationSource, viewParams: RelationQueryParams, state: TaskExecutionState): Promise<RelationState> {
+export async function getViewFromSource(connectionId: string, source: RelationSource, viewParams: RelationQueryViewParams, state: TaskExecutionState): Promise<RelationState> {
 
     const name = getRelationNameFromSource(source);
     const relation: Relation = {
@@ -115,7 +115,7 @@ export function getBaseQueryFromSource(source: RelationSource): string {
 // 1. A helper that does all the heavy-lifting but doesn't do the async check.
 function buildQueries(
     _relation: Relation,
-    query: RelationQueryParams,
+    query: RelationQueryViewParams,
     baseSQL: string
 ): {
     initialQueries: string[];
@@ -123,7 +123,7 @@ function buildQueries(
     viewQuery: string;
     countQuery: string;
     baseQuery: string;
-    viewParameters: RelationQueryParams;
+    viewParameters: RelationQueryViewParams;
     // optionally return any other intermediate results if needed
 } {
     const {offset, limit} = query;
@@ -172,7 +172,7 @@ function buildQueries(
 // 2. The async version that checks executability
 export async function getQueryFromParams(
     relation: Relation,
-    query: RelationQueryParams,
+    query: RelationQueryViewParams,
     baseSQL: string
 ): Promise<QueryData> {
     // Build the queries first
@@ -203,7 +203,7 @@ export async function getQueryFromParams(
 // 3. The sync version that SKIPS the check
 export function getQueryFromParamsUnchecked(
     relation: Relation,
-    query: RelationQueryParams,
+    query: RelationQueryViewParams,
     baseSQL: string
 ): QueryData {
     // Same shared build
@@ -236,7 +236,7 @@ export function setRelationLoading(relation: RelationState): RelationState {
     };
 }
 
-export async function updateRelationQueryForParams(relation: RelationState, newParams: RelationQueryParams, state?: TaskExecutionState): Promise<RelationState> {
+export async function updateRelationQueryForParams(relation: RelationState, newParams: RelationQueryViewParams, state?: TaskExecutionState): Promise<RelationState> {
     const baseQuery = relation.query.baseQuery;
     const query = await getQueryFromParams(relation, newParams, baseQuery);
 

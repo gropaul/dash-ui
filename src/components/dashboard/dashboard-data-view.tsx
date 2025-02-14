@@ -1,7 +1,7 @@
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {
     executeQueryOfRelationState,
-    RelationQueryParams,
+    RelationQueryViewParams,
     RelationState,
     setRelationLoading,
     updateRelationQueryForParams
@@ -15,7 +15,7 @@ export interface DashboardDataViewProps {
 }
 
 export function DashboardDataView(props: DashboardDataViewProps) {
-    async function updateRelationDataWithParams(_relationId: string, query: RelationQueryParams) {
+    async function updateRelationDataWithParams(_relationId: string, query: RelationQueryViewParams) {
 
         const relation = props.relation;
         const loadingRelationState = setRelationLoading(relation); // Set it loading

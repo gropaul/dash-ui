@@ -3,7 +3,7 @@ import {
     executeQueryOfRelationState,
     getDefaultQueryParams,
     getViewFromSource,
-    RelationQueryParams,
+    RelationQueryViewParams,
     RelationState,
     setRelationLoading,
     updateRelationQueryForParams,
@@ -47,7 +47,7 @@ export interface RelationZustand {
 }
 
 export interface DefaultRelationZustandActions {
-    updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
+    updateRelationDataWithParams: (relationId: string, query: RelationQueryViewParams) => Promise<void>,
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>, path?: string[]) => void,
 }
@@ -64,7 +64,7 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     showRelationFromSource: (connectionId: string, source: RelationSource, editorPath: string[]) => void,
 
     /* relation data actions */
-    updateRelationDataWithParams: (relationId: string, query: RelationQueryParams) => Promise<void>,
+    updateRelationDataWithParams: (relationId: string, query: RelationQueryViewParams) => Promise<void>,
     updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
 
     /* relation view state actions */

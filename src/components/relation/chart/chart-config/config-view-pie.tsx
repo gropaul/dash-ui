@@ -41,12 +41,14 @@ export function ChartColumnSelector(props: ChartConfigProps) {
     return (
         <>
             <ColumnSelector
+                plotType={props.relationState.viewState.chartState.chart.plot.type}
                 axisType={"pie-label"}
                 axis={config.chart.plot.pie.axis.label}
                 columns={columns}
                 updateAxis={(update) => updatePieAxisConfig(update, 'label')}
             />
             <ColumnSelector
+                plotType={props.relationState.viewState.chartState.chart.plot.type}
                 axisType={"pie-radius"}
                 axis={config.chart.plot.pie.axis.radius}
                 columns={columns}

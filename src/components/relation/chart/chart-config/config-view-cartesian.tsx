@@ -3,7 +3,7 @@ import {H5, Muted, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {DEFAULT_COLORS} from "@/platform/global-data";
 import {CirclePlus} from "lucide-react";
-import {AxisConfig, AxisRange} from "@/model/relation-view-state/chart";
+import {AxisConfig, AxisRange, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 import {Column} from "@/model/column";
 import {Input} from "@/components/ui/input";
@@ -121,6 +121,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         <>
             <Label className={'h-3'}><Muted>Data</Muted></Label>
             <ColumnSelector
+                plotType={config.chart.plot.type}
                 axisType={"x"}
                 axis={config.chart.plot.cartesian.xAxis}
                 columns={columns}
@@ -128,6 +129,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             />
             {config.chart.plot.cartesian.yAxes?.map((yAxis, index) => (
                 <ColumnSelector
+                    plotType={config.chart.plot.type}
                     axisType={"y"}
                     key={index}
                     axis={yAxis}
@@ -138,11 +140,12 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             ))}
             {noYAxes && (
                 <ColumnSelector
+                    plotType={config.chart.plot.type}
                     axisType={"y"}
                     columns={columns}
                     updateAxis={(update) =>
                         updateYAxis(0, {
-                            color: DEFAULT_COLORS[0],
+                            decoration: getInitialAxisDecoration(),
                             ...update,
                         })
                     }
@@ -152,10 +155,10 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             <button
                 onClick={() =>
                     updateYAxis(config.chart.plot.cartesian.yAxes!.length, {
-                        color:
-                            DEFAULT_COLORS[
-                            config.chart.plot.cartesian.yAxes!.length % DEFAULT_COLORS.length
-                                ],
+                        decoration: {
+                            ...getInitialAxisDecoration(),
+                            color: DEFAULT_COLORS[config.chart.plot.cartesian.yAxes!.length % DEFAULT_COLORS.length],
+                        },
                     })
                 }
                 className="flex items-center gap-2 p-2 shrink-0"
@@ -204,7 +207,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
 }
 
 
-export interface AxisRangeWidgetProps{
+export interface AxisRangeWidgetProps {
     range: AxisRange;
     updateRange: (range: AxisRange) => void;
 }

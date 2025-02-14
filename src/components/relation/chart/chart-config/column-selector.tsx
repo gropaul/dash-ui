@@ -9,15 +9,16 @@ import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandL
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {Column} from "@/model/column";
 import {Muted} from "@/components/ui/typography";
-import PopupColorPicker from "@/components/ui/popup-color-picker";
-import {AxisConfig} from "@/model/relation-view-state/chart";
+import {AxisConfig, AxisDecoration, getInitialAxisDecoration, PlotType} from "@/model/relation-view-state/chart";
 import {Separator} from "@/components/ui/separator";
 import {ValueIcon} from "@/components/relation/common/value-icon";
+import {DataAxisDecorationMenu} from "@/components/relation/chart/chart-config/data-axis-decoration-menu";
 
 
 export type AxisType = "x" | "y" | 'pie-label' | 'pie-radius'
 
 interface ColumnSelectorProps {
+    plotType: PlotType
     columns: Column[]
     axis?: AxisConfig,
     axisType: AxisType,
@@ -28,8 +29,8 @@ interface ColumnSelectorProps {
 const PLACEHOLDER = "Select column..."
 
 // @ts-ignore
-export function ColumnSelector({columns, axis, axisType, updateAxis, deleteAxis}: ColumnSelectorProps) {
-
+export function ColumnSelector(props: ColumnSelectorProps) {
+    const {columns, axis, axisType, updateAxis, deleteAxis} = props
     const [open, setOpen] = React.useState(false)
     const currentColumn = columns.find((column) => column.id === axis?.columnId)
 
@@ -37,19 +38,20 @@ export function ColumnSelector({columns, axis, axisType, updateAxis, deleteAxis}
         updateAxis({columnId})
     }
 
-    function setAxisColor(color: string) {
-        updateAxis({color})
+    function updateAxisDecoration(decoration: AxisDecoration) {
+        updateAxis({decoration: decoration})
     }
 
     return (
-        <div className='flex flex-row gap-2 items-center w-full'>
-            {/* Button that opens the color picker popup for y axis */}
+        <div className='flex flex-row gap-2 items-center w-full justify-between'>
+            {/* Button that opens the color picker popup for y-axis */}
             {axisType === "y" && (
                 <>
                     <div/>
-                    <PopupColorPicker
-                        color={axis?.color}
-                        setColor={setAxisColor}
+                    <DataAxisDecorationMenu
+                        plotType={props.plotType}
+                        decoration={axis?.decoration ?? getInitialAxisDecoration()}
+                        setDecoration={updateAxisDecoration}
                     />
                 </>
             )}

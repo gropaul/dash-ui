@@ -1,82 +1,283 @@
-import {Area, Bar, Cell, Line, Pie, Radar, Scatter} from "recharts";
-import {AxisConfig, PlotType} from "@/model/relation-view-state/chart";
-import {DEFAULT_COLORS} from "@/platform/global-data";
+import React from "react";
+import {
+    Area,
+    Bar,
+    Cell,
+    Line,
+    Pie,
+    Radar,
+    Scatter,
+    // Recharts doesn't have a direct "dot" prop for Radar, but we can pass it if we do <Radar dot={{...}}>.
+} from "recharts";
+import { AxisConfig, PlotType } from "@/model/relation-view-state/chart";
+import { DEFAULT_COLORS } from "@/platform/global-data";
 
-
+/**
+ * The entire AxisDecoration interface and sub-interfaces are assumed to be
+ * part of `props.axis.decoration.*`.
+ */
 interface ChartDataElementProps {
     type: PlotType;
     axis: AxisConfig;
+    /**
+     * For Pie charts, we need the whole data array, as Pie doesn't automatically
+     * pick it up from the parent context in all Recharts usage patterns.
+     */
+    elementData?: any[];
+    /**
+     * For Pie, which key in the data to use as the "name" or category
+     */
     nameKey?: string;
-    elementData?: any;
 }
 
-
 export function ChartDataElement(props: ChartDataElementProps) {
-    switch (props.type) {
-        case 'line':
-            return <Line
-                style={{stroke: props.axis.color}}
-                data={undefined}
-                dataKey={props.axis.columnId}
-                type="monotone"
-                stroke={props.axis.color}
-                strokeWidth={2}
-                dot={{
-                    fill: props.axis.color,
-                }}
-                activeDot={{
-                    r: 6,
-                }}
-            />
-        case 'bar':
-            return <Bar
-                style={{stroke: props.axis.color}}
-                dataKey={props.axis.columnId}
-                fill={props.axis.color}
-                stroke={props.axis.color}
-                radius={8}
-            />
-        case 'area':
-            return <Area
-                style={{stroke: props.axis.color}}
-                dataKey={props.axis.columnId}
-                type="monotone"
-                fill={props.axis.color}
-                fillOpacity={0.4}
-                stroke={props.axis.color}
-            />
-        case "scatter":
-            return <Scatter
-                style={{stroke: props.axis.color}}
-                dataKey={props.axis.columnId}
-                fill={props.axis.color}
-                radius={4}
-            />
-        case "pie":
-            return <Pie
-                style={{stroke: props.axis.color}}
-                label={ (entry: any) => entry['name']}
-                data={props.elementData}
-                nameKey={props.nameKey}
-                dataKey={props.axis.columnId}
-                innerRadius={'30%'}
-                outerRadius={'50%'}
-                paddingAngle={2}
-            >
-                {props.elementData.map((entry: any, index: any) => (
-                    <Cell key={`cell-${index}`} fill={DEFAULT_COLORS[index % DEFAULT_COLORS.length]} />
-                ))}
-            </Pie>
-        case "radar":
-            return <Radar
-                style={{stroke: props.axis.color}}
-                dataKey={props.axis.columnId}
-                stroke={props.axis.color}
-                fill={props.axis.color}
-                fillOpacity={0.2}
-            />
-        default:
-            throw new Error(`Unknown plot type ${props.type}`)
+    const { type, axis, elementData = [], nameKey } = props;
 
+    switch (type) {
+        case "line": {
+            // Extract line-specific decoration
+            const {
+                strokeWidth,
+                strokeDasharray,
+                dots: {
+                    visible: dotVisible,
+                    fill: dotFill,
+                    radius: dotRadius,
+                    borderWidth: dotBorderWidth,
+                    borderColor: dotBorderColor,
+                },
+            } = axis.decoration.line;
+
+            const lineStroke = axis.decoration.color;
+            const dotProps =
+                dotVisible
+                    ? {
+                        r: dotRadius,
+                        fill: dotFill,
+                        strokeWidth: dotBorderWidth,
+                        stroke: dotBorderColor,
+                    }
+                    : false;
+
+            return (
+                <Line
+                    dataKey={axis.columnId}
+                    type="monotone"
+                    stroke={lineStroke}
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={strokeDasharray}
+                    dot={dotProps}
+                    /* Optionally customize the active dot when hovering */
+                    activeDot={{ r: dotRadius + 2 }}
+                />
+            );
+        }
+
+        case "bar": {
+            // Extract bar-specific decoration
+            const {
+                barWidth,
+                stacked,
+                cornerRadius,
+                fillOpacity,
+                border,
+            } = axis.decoration.bar;
+
+            const barStroke = border?.width
+                ? border.color || "#000"
+                : "none";
+            const barStrokeWidth = border?.width || 0;
+
+            // Recharts:
+            // - `barSize` is the approximate width in px.
+            // - There's no direct prop for barSpacing on <Bar> itself; that is typically managed at <BarChart> level via `barGap` / `barCategoryGap`.
+            // - For stacked bars, you must add the same non-empty string to `stackId` for each series that should be in the stack.
+            // - `cornerRadius` is done via the `radius` prop.
+            // - fillOpacity can be set on <Bar> directly.
+
+            return (
+                <Bar
+                    dataKey={axis.columnId}
+                    fill={axis.decoration.color}
+                    fillOpacity={fillOpacity}
+                    stroke={barStroke}
+                    strokeWidth={barStrokeWidth}
+                    /*
+                      barSize (number) adjusts the bar width in px.
+                      If `barWidth` is a string like '0.8' (meaning 80%), you'd typically set that
+                      on the parent chart as `barCategoryGap={...}`. For partial support, you can
+                      parse to a number or skip if it's not numeric.
+                    */
+                    barSize={typeof barWidth === "number" ? barWidth : undefined}
+                    /*
+                      If you want a stacked bar, you must provide the same stackId to each <Bar> component
+                      that shares the "stack".
+                    */
+                    stackId={stacked ? "stack-1" : undefined}
+                    /*
+                      Recharts supports a single radius or an array of corner radii, e.g. [topLeft, topRight, bottomRight, bottomLeft].
+                      For simplicity, we pass one cornerRadius value:
+                    */
+                    radius={cornerRadius}
+                />
+            );
+        }
+
+        case "scatter": {
+            // Extract scatter-specific decoration
+            const {
+                shape,
+                stroke: { width: scatterStrokeWidth, color: scatterStrokeColor },
+                fillColor,
+                fillOpacity,
+            } = axis.decoration.scatter;
+
+            // Recharts supports shape as a built-in string or a custom component.
+            // Supported strings: "circle", "cross", "diamond", "square", "star", "triangle", "wye".
+            // There's no direct 'size' prop, but you can pass a custom shape or manage via data points.
+            // We can pass an inline function or object to `shape` for partial control.
+
+            // For demonstration, let's do a minimal approach:
+            return (
+                <Scatter
+                    dataKey={axis.columnId}
+                    fill={fillColor}
+                    fillOpacity={fillOpacity}
+                    stroke={scatterStrokeColor}
+                    strokeWidth={scatterStrokeWidth}
+                    shape={shape} // e.g. "circle", "square", "triangle", etc.
+                />
+            );
+        }
+
+        case "pie": {
+            // Extract pie-specific decoration
+            const {
+                innerRadius,
+                padAngle,
+                cornerRadius,
+                showLabels,
+                label: { color: labelColor, fontSize, fontFamily },
+            } = axis.decoration.pie;
+
+            // For "offset" in a pie label, Recharts doesn't have a direct offset prop.
+            // You can do a custom label function or pass "labelLine={...}" props.
+            // We'll pass a partial style to label, but it won't handle 'offset' by default.
+
+            return (
+                <Pie
+                    data={elementData}
+                    dataKey={axis.columnId}
+                    nameKey={nameKey}
+                    innerRadius={innerRadius}
+                    outerRadius={"70%"}
+                    paddingAngle={padAngle}
+                    // Recharts uses `padAngle` for slice spacing
+                    cornerRadius={cornerRadius}
+                    /*
+                      `label` can be a boolean, function, or object. We'll do an object if showLabels
+                      is true; otherwise false. We can set fill, fontSize, etc.
+                      Offsets or advanced styling might require a custom label component.
+                    */
+                    label={
+                        showLabels
+                            ? {
+                                fill: labelColor,
+                                fontSize,
+                                fontFamily,
+                                // offset is not directly supported; would need a custom label
+                            }
+                            : false
+                    }
+                >
+                    {elementData.map((entry, index) => (
+                        <Cell
+                            key={`cell-${index}`}
+                            fill={DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
+                        />
+                    ))}
+                </Pie>
+            );
+        }
+
+        case "radar": {
+            // Extract radar-specific decoration
+            const {
+                strokeWidth,
+                borderColor,
+                fillColor,
+                fillOpacity,
+                showDots,
+                dotSize,
+                dotColor,
+                dotBorderWidth,
+                dotBorderColor,
+            } = axis.decoration.radar;
+
+            // <Radar> can accept `dot` as an object or boolean to show/hide.
+            // If showDots is true, we can pass an object with radius, stroke, fill, etc.
+
+            const dotProps = showDots
+                ? {
+                    r: dotSize,
+                    fill: dotColor,
+                    strokeWidth: dotBorderWidth,
+                    stroke: dotBorderColor,
+                }
+                : false;
+
+            return (
+                <Radar
+                    dataKey={axis.columnId}
+                    stroke={borderColor}
+                    strokeWidth={strokeWidth}
+                    fill={fillColor}
+                    fillOpacity={fillOpacity}
+                    dot={dotProps}
+                />
+            );
+        }
+
+        case "area": {
+            // Extract area-specific decoration
+            const {
+                stroke: { width: areaStrokeWidth, dasharray, color: areaStrokeColor },
+                fillColor,
+                fillOpacity,
+                showDots,
+                dotSize,
+                dotColor,
+                dotBorderWidth,
+                dotBorderColor,
+            } = axis.decoration.area;
+
+            // Recharts <Area> supports dot similarly to <Line>.
+            // We'll pass dot={false} if showDots is false.
+
+            const dotProps = showDots
+                ? {
+                    r: dotSize,
+                    fill: dotColor,
+                    strokeWidth: dotBorderWidth,
+                    stroke: dotBorderColor,
+                }
+                : false;
+
+            return (
+                <Area
+                    dataKey={axis.columnId}
+                    type="monotone"
+                    stroke={areaStrokeColor}
+                    strokeWidth={areaStrokeWidth}
+                    strokeDasharray={dasharray}
+                    fill={fillColor}
+                    fillOpacity={fillOpacity}
+                    dot={dotProps}
+                />
+            );
+        }
+
+        default:
+            throw new Error(`Unknown plot type ${type}`);
     }
 }

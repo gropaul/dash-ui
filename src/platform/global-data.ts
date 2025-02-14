@@ -9,6 +9,6 @@ export const SOURCE_CONNECTION_ID_DUCKDB_INTERNAL_DATABASES = 'duckdb-internal-d
 export const MAIN_CONNECTION_ID = DATABASE_CONNECTION_ID_DUCKDB_LOCAL;
 
 
-export const DEFAULT_COLORS = ["#ea5545", "#f46a9b", "#ef9b20", "#edbf33", "#ede15b", "#bdcf32", "#87bc45", "#27aeef", "#b33dc6"]
+export const DEFAULT_COLORS = ["#ea5545", "#f46a9b", "#edbf33", "#ede15b", "#bdcf32", "#87bc45", "#27aeef", "#b33dc6"]
 
 export const DEFAULT_RELATION_VIEW_PATH =[]
