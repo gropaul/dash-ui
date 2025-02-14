@@ -2,7 +2,7 @@ import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 import {Label} from "@/components/ui/label";
 import {Muted} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
-import {AxisConfig} from "@/model/relation-view-state/chart";
+import {AxisConfig, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {Column} from "@/model/column";
 
 
@@ -23,6 +23,12 @@ export function ChartColumnSelector(props: ChartConfigProps) {
     const config = props.relationState.viewState.chartState;
 
     function updatePieAxisConfig(axis: Partial<AxisConfig>, key: 'label' | 'radius') {
+
+        console.log('updatePieAxisConfig', axis, key)
+        // if not decoraction is set, set default decoration
+        if (!axis.decoration) {
+            axis.decoration = getInitialAxisDecoration()
+        }
         props.updateRelationViewState(relationId, {
             chartState: {
                 chart: {

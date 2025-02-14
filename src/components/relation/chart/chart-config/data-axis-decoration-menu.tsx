@@ -257,12 +257,6 @@ function LineAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) {
                             onChange={(e) => updateDots({radius: +e.target.value})}
                         />
                     </DropdownMenuItem>
-
-                    <ColorSubMenu
-                        label="Dot Fill"
-                        color={line.dots.fill}
-                        setColor={(c) => updateDots({fill: c.hex})}
-                    />
                     <DropdownMenuItem
                         className={'flex items-center justify-between w-full'}
                         onClick={(e) => {
@@ -280,9 +274,9 @@ function LineAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) {
                     </DropdownMenuItem>
 
                     <ColorSubMenu
-                        label="Dot Border Color"
-                        color={line.dots.borderColor}
-                        setColor={(c) => updateDots({borderColor: c.hex})}
+                        label="Dot Fill"
+                        color={line.dots.fill}
+                        setColor={(c) => updateDots({fill: c.hex})}
                     />
                 </>
             )}
@@ -447,6 +441,12 @@ function ScatterAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps
         });
     };
 
+    const updateColor = (color: ColorResult) => {
+        setDecoration({
+            ...decoration,
+            color: color.hex,
+    })};
+
     const updateStroke = (partial: Partial<ScatterAxisDecoration["stroke"]>) => {
         setDecoration({
             ...decoration,
@@ -462,6 +462,12 @@ function ScatterAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps
 
     return (
         <>
+            {/* Fill Settings */}
+            <ColorSubMenu
+                label="Fill Color"
+                color={decoration.color}
+                setColor={(c) => updateColor(c)}
+            />
             {/* Shape */}
             <DropdownMenuItem
                 className={'flex items-center justify-between w-full'}
@@ -489,12 +495,7 @@ function ScatterAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps
                 </Select>
             </DropdownMenuItem>
 
-            {/* Fill Settings */}
-            <ColorSubMenu
-                label="Fill Color"
-                color={scatter.fillColor}
-                setColor={(c) => updateScatter({fillColor: c.hex})}
-            />
+
 
             <DropdownMenuItem
                 className={'flex items-center justify-between w-full'}
@@ -706,6 +707,13 @@ function RadarAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) 
         });
     };
 
+    const updateColor = (color: ColorResult) => {
+        setDecoration({
+            ...decoration,
+            color: color.hex,
+        });
+    }
+
     return (
         <>
             {/* Stroke */}
@@ -727,8 +735,8 @@ function RadarAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) 
 
             <ColorSubMenu
                 label="Border Color"
-                color={radar.borderColor}
-                setColor={(c) => updateRadar({borderColor: c.hex})}
+                color={decoration.color}
+                setColor={(c) => updateColor(c)}
             />
 
             <Separator className="my-2"/>
@@ -793,12 +801,6 @@ function RadarAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) 
                         />
                     </DropdownMenuItem>
 
-                    <ColorSubMenu
-                        label="Dot Color"
-                        color={radar.dotColor}
-                        setColor={(c) => updateRadar({dotColor: c.hex})}
-                    />
-
                     <DropdownMenuItem
                         className={'flex items-center justify-between w-full'}
                         onClick={(e) => {
@@ -815,10 +817,11 @@ function RadarAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) 
                         />
                     </DropdownMenuItem>
 
+
                     <ColorSubMenu
-                        label="Dot Border Color"
-                        color={radar.dotBorderColor}
-                        setColor={(c) => updateRadar({dotBorderColor: c.hex})}
+                        label="Dot Color"
+                        color={radar.dotColor}
+                        setColor={(c) => updateRadar({dotColor: c.hex})}
                     />
                 </>
             )}
@@ -843,6 +846,13 @@ function AreaAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) {
             },
         });
     };
+
+    const updateColor = (color: ColorResult) => {
+        setDecoration({
+            ...decoration,
+            color: color.hex,
+        });
+    }
 
     const updateAreaStroke = (partial: Partial<AreaAxisDecoration["stroke"]>) => {
         setDecoration({
@@ -894,8 +904,8 @@ function AreaAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) {
 
             <ColorSubMenu
                 label="Stroke Color"
-                color={area.stroke.color}
-                setColor={(c) => updateAreaStroke({color: c.hex})}
+                color={decoration.color}
+                setColor={(c) => updateColor(c)}
             />
 
             <Separator className="my-2"/>
@@ -960,11 +970,6 @@ function AreaAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) {
                         />
                     </DropdownMenuItem>
 
-                    <ColorSubMenu
-                        label="Dot Color"
-                        color={area.dotColor}
-                        setColor={(c) => updateArea({dotColor: c.hex})}
-                    />
 
                     <DropdownMenuItem
                         className={'flex items-center justify-between w-full'}
@@ -981,12 +986,12 @@ function AreaAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) {
                             onChange={(e) => updateArea({dotBorderWidth: +e.target.value})}
                         />
                     </DropdownMenuItem>
-
                     <ColorSubMenu
-                        label="Dot Border Color"
-                        color={area.dotBorderColor}
-                        setColor={(c) => updateArea({dotBorderColor: c.hex})}
+                        label="Dot Color"
+                        color={area.dotColor}
+                        setColor={(c) => updateArea({dotColor: c.hex})}
                     />
+
                 </>
             )}
         </>

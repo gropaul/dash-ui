@@ -44,7 +44,6 @@ export function ChartDataElement(props: ChartDataElementProps) {
                     fill: dotFill,
                     radius: dotRadius,
                     borderWidth: dotBorderWidth,
-                    borderColor: dotBorderColor,
                 },
             } = axis.decoration.line;
 
@@ -54,13 +53,14 @@ export function ChartDataElement(props: ChartDataElementProps) {
                     ? {
                         r: dotRadius,
                         fill: dotFill,
-                        strokeWidth: dotBorderWidth,
-                        stroke: dotBorderColor,
-                    }
+                        strokeWidth: dotBorderWidth
+            }
                     : false;
 
             return (
                 <Line
+                    // set the circle color to doteProps.stroke
+                    style={{ stroke: lineStroke }}
                     dataKey={axis.columnId}
                     type="monotone"
                     stroke={lineStroke}
@@ -97,6 +97,8 @@ export function ChartDataElement(props: ChartDataElementProps) {
 
             return (
                 <Bar
+                    style={{ stroke: barStroke }}
+
                     dataKey={axis.columnId}
                     fill={axis.decoration.color}
                     fillOpacity={fillOpacity}
@@ -128,7 +130,6 @@ export function ChartDataElement(props: ChartDataElementProps) {
             const {
                 shape,
                 stroke: { width: scatterStrokeWidth, color: scatterStrokeColor },
-                fillColor,
                 fillOpacity,
             } = axis.decoration.scatter;
 
@@ -140,8 +141,9 @@ export function ChartDataElement(props: ChartDataElementProps) {
             // For demonstration, let's do a minimal approach:
             return (
                 <Scatter
+                    style={{ stroke: scatterStrokeColor }}
                     dataKey={axis.columnId}
-                    fill={fillColor}
+                    fill={axis.decoration.color}
                     fillOpacity={fillOpacity}
                     stroke={scatterStrokeColor}
                     strokeWidth={scatterStrokeWidth}
@@ -151,6 +153,7 @@ export function ChartDataElement(props: ChartDataElementProps) {
         }
 
         case "pie": {
+            console.log("Pie chart data", axis.decoration);
             // Extract pie-specific decoration
             const {
                 innerRadius,
@@ -204,14 +207,12 @@ export function ChartDataElement(props: ChartDataElementProps) {
             // Extract radar-specific decoration
             const {
                 strokeWidth,
-                borderColor,
                 fillColor,
                 fillOpacity,
                 showDots,
                 dotSize,
                 dotColor,
-                dotBorderWidth,
-                dotBorderColor,
+                dotBorderWidth
             } = axis.decoration.radar;
 
             // <Radar> can accept `dot` as an object or boolean to show/hide.
@@ -221,15 +222,16 @@ export function ChartDataElement(props: ChartDataElementProps) {
                 ? {
                     r: dotSize,
                     fill: dotColor,
-                    strokeWidth: dotBorderWidth,
-                    stroke: dotBorderColor,
+                    strokeWidth: dotBorderWidth
                 }
                 : false;
 
             return (
                 <Radar
+                    style={{ stroke: axis.decoration.color }}
+
                     dataKey={axis.columnId}
-                    stroke={borderColor}
+                    stroke={axis.decoration.color}
                     strokeWidth={strokeWidth}
                     fill={fillColor}
                     fillOpacity={fillOpacity}
@@ -241,14 +243,13 @@ export function ChartDataElement(props: ChartDataElementProps) {
         case "area": {
             // Extract area-specific decoration
             const {
-                stroke: { width: areaStrokeWidth, dasharray, color: areaStrokeColor },
+                stroke: { width: areaStrokeWidth, dasharray },
                 fillColor,
                 fillOpacity,
                 showDots,
                 dotSize,
                 dotColor,
-                dotBorderWidth,
-                dotBorderColor,
+                dotBorderWidth
             } = axis.decoration.area;
 
             // Recharts <Area> supports dot similarly to <Line>.
@@ -259,15 +260,17 @@ export function ChartDataElement(props: ChartDataElementProps) {
                     r: dotSize,
                     fill: dotColor,
                     strokeWidth: dotBorderWidth,
-                    stroke: dotBorderColor,
-                }
+                    fillOpacity: 1
+            }
                 : false;
 
             return (
                 <Area
+                    style={{ stroke: axis.decoration.color }}
+
                     dataKey={axis.columnId}
                     type="monotone"
-                    stroke={areaStrokeColor}
+                    stroke={axis.decoration.color}
                     strokeWidth={areaStrokeWidth}
                     strokeDasharray={dasharray}
                     fill={fillColor}

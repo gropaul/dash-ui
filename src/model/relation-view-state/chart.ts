@@ -63,7 +63,6 @@ export interface LineAxisDecoration {
         fill: string;
         radius: number;
         borderWidth: number;
-        borderColor: string;
     };
 }
 
@@ -129,10 +128,6 @@ export interface ScatterAxisDecoration {
         color: string;
     };
     /**
-     * Fill color for the points (maps to <Scatter fill>).
-     */
-    fillColor: string;
-    /**
      * Opacity (0 to 1) for the scatter points.
      */
     fillOpacity: number;
@@ -183,10 +178,6 @@ export interface RadarAxisDecoration {
      */
     strokeWidth: number;
     /**
-     * Color for the border of each area in the radar (maps to <Radar stroke>)
-     */
-    borderColor: string;
-    /**
      * Optionally fill each area (maps to <Radar fill> + fillOpacity)
      */
     fillColor: string;
@@ -198,7 +189,6 @@ export interface RadarAxisDecoration {
     dotSize: number;
     dotColor: string;
     dotBorderWidth: number;
-    dotBorderColor: string;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -212,7 +202,6 @@ export interface AreaAxisDecoration {
     stroke: {
         width: number;
         dasharray: string;
-        color: string;
     };
     /**
      * Fill color of the area
@@ -229,7 +218,6 @@ export interface AreaAxisDecoration {
     dotSize: number;
     dotColor: string;
     dotBorderWidth: number;
-    dotBorderColor: string;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -239,16 +227,14 @@ export interface AreaAxisDecoration {
 export function getInitialAxisDecoration(): AxisDecoration {
     return {
         color: DEFAULT_COLORS[0],
-
         line: {
             strokeWidth: 2,
             strokeDasharray: 'none',
             dots: {
                 visible: true,
                 fill: DEFAULT_COLORS[0],
-                radius: 3,
+                radius: 6,
                 borderWidth: 0,
-                borderColor: '#000000',
             },
         },
 
@@ -266,10 +252,9 @@ export function getInitialAxisDecoration(): AxisDecoration {
         scatter: {
             shape: 'circle',
             stroke: {
-                width: 1,
+                width: 2,
                 color: '#333333',
             },
-            fillColor: DEFAULT_COLORS[0],
             fillOpacity: 1,
         },
 
@@ -287,29 +272,25 @@ export function getInitialAxisDecoration(): AxisDecoration {
 
         radar: {
             strokeWidth: 2,
-            borderColor: DEFAULT_COLORS[0],
             fillColor: DEFAULT_COLORS[0],
             fillOpacity: 0.2,
             showDots: true,
-            dotSize: 4,
+            dotSize: 6,
             dotColor: DEFAULT_COLORS[0],
             dotBorderWidth: 1,
-            dotBorderColor: '#000000',
         },
 
         area: {
             stroke: {
                 width: 2,
                 dasharray: 'none',
-                color: DEFAULT_COLORS[0],
             },
             fillColor: DEFAULT_COLORS[0],
             fillOpacity: 0.2,
             showDots: true,
-            dotSize: 3,
+            dotSize: 6,
             dotColor: DEFAULT_COLORS[0],
             dotBorderWidth: 0,
-            dotBorderColor: '#000000',
         },
     };
 }
