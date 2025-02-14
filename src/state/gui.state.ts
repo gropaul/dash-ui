@@ -22,6 +22,7 @@ export interface GUIZustand {
     selectedTabId: string | undefined;
     layoutModel: Model;
     mainBarSizeRatio: number;
+    sideBarTabsSizeRatio: number;
     selectedSidebarTabs: AvailableTabs[];
     number: number;
 }
@@ -32,6 +33,7 @@ export interface GUIZustandActions {
     setModel: (model: Model) => void;
 
     setMainBarSizeRatio: (ratio: number) => void;
+    setSideBarTabsSizeRatio: (ratio: number) => void;
 
     setSelectedSidebarTabs: (tabs: AvailableTabs[]) => void;
 
@@ -85,8 +87,13 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             layoutModel: getInitialLayoutModel(),
             selectedTabId: undefined,
             number: 0,
-            mainBarSizeRatio: 40,
+            mainBarSizeRatio: 25,
+            sideBarTabsSizeRatio: 70,
             selectedSidebarTabs: ['connections', 'relations'],
+
+            setSideBarTabsSizeRatio: (ratio: number) => {
+                set({sideBarTabsSizeRatio: ratio});
+            },
 
             setSelectedSidebarTabs: (tabs: AvailableTabs[]) => {
                 set({selectedSidebarTabs: tabs});

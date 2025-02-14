@@ -5,7 +5,7 @@ import {Database, Folder, Settings} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {AvailableTabs} from "@/state/gui.state";
+import {AvailableTabs, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {useDatabaseConState} from "@/state/connections-database.state";
 
@@ -70,6 +70,9 @@ interface NavigationBarContentProps {
 
 export function NavigationBarContent(props: NavigationBarContentProps) {
 
+    const sideBarTabsRatio = useGUIState(state => state.sideBarTabsSizeRatio);
+    const setSideBarTabsRatio = useGUIState(state => state.setSideBarTabsSizeRatio);
+
     function renderTabContent(tab: AvailableTabs) {
         switch (tab) {
             case 'connections':
@@ -78,6 +81,8 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
                 return <EditorOverviewTab/>;
         }
     }
+
+
 
     return (
         <div className={'flex-1 h-screen overflow-auto'}>
@@ -88,8 +93,8 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
                         <ResizablePanel
                             style={{overflow: 'auto'}}
                             key={index}
-                            defaultSize={50}
-                            minSize={20}
+                            onResize={(size) => setSideBarTabsRatio(size)}
+                            defaultSize={index === 1 ? sideBarTabsRatio : 100 - sideBarTabsRatio}
                         >
                             {renderTabContent(tab)}
                         </ResizablePanel>

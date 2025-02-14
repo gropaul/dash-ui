@@ -41,7 +41,8 @@ export class StorageDuckAPI {
     async createTableIfNotExists(tableName: string) {
         // create table if not exists
         if (!this.createdTables.includes(tableName)) {
-            const loadData = await this.executeQuery(`LOAD json`); // load the json extension
+            await this.executeQuery(`INSTALL json`); // load the json extension
+            await this.executeQuery(`LOAD json`); // load the json extension
             const data = await this.executeQuery(`CREATE TABLE IF NOT EXISTS "${tableName}"
                                                   (
                                                       id
