@@ -42,7 +42,6 @@ export interface ChartTableQueryParameters {
 }
 
 
-
 export interface QueryData {
     baseQuery: string;  // the query that the user defined, e.g. FROM basetable
     initialQueries: string[]; // the queries that must be run before the actual view query/count query
@@ -151,25 +150,7 @@ function buildQueries(
     query: ViewQueryParameters,
     baseSQL: string
 ): BuildQuery {
-    if (query.type === 'table') {
-        return buildTableQuery(query, baseSQL);
-    } else {
-        //todo
-        throw new Error('Unknown view type: ' + query.type);
-    }
-}
 
-export function buildTableQuery(viewParams: ViewQueryParameters, baseSQL: string): BuildQuery {
-    const tableViewParams = viewParams.table;
-    const {offset, limit} = tableViewParams;
-
-    // Build "ORDER BY ..." from query.sorting
-    const orderByColumns = Object.entries(tableViewParams.sorting)
-        .map(([column, sorting]) => (sorting ? `"${column}" ${sorting}` : ''))
-        .filter(Boolean)
-        .join(', ');
-
-    // E.g. your existing split logic
     const baseQueries = cleanAndSplitSQL(baseSQL);
 
     const initialQueries = baseQueries.slice(0, -1);
@@ -181,18 +162,19 @@ export function buildTableQuery(viewParams: ViewQueryParameters, baseSQL: string
     // Turn final query into a subquery
     const finalQueryAsSubQuery = turnQueryIntoSubquery(finalQuery);
 
-    const orderByQuery = orderByColumns ? 'ORDER BY ' + orderByColumns : '';
-    const viewQuery = `
-        SELECT *
-        FROM ${finalQueryAsSubQuery} ${orderByQuery} LIMIT ${limit}
-        OFFSET ${offset};
-    `;
-
     // Build a count query
     const countQuery = `
         SELECT COUNT(*)
         FROM ${finalQueryAsSubQuery} as subquery
     `;
+    let viewQuery;
+    if (query.type === 'table') {
+        viewQuery = buildTableQuery(query, finalQueryAsSubQuery);
+    } else if (query.type === 'chart') {
+        viewQuery = buildChartQuery(query, finalQueryAsSubQuery);
+    } else {
+        throw new Error(`Unknown view type: ${query.type}`);
+    }
 
     return {
         initialQueries,
@@ -200,8 +182,35 @@ export function buildTableQuery(viewParams: ViewQueryParameters, baseSQL: string
         viewQuery,
         countQuery,
         baseQuery: baseSQL,
-        viewParameters: viewParams,
+        viewParameters: query,
     };
+}
+
+export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): string {
+    const chartViewParams = viewParams.chart;
+
+    return `
+        SELECT *
+        FROM ${finalQueryAsSubQuery};
+    `;
+}
+
+export function buildTableQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): string {
+    const tableViewParams = viewParams.table;
+    const {offset, limit} = tableViewParams;
+
+    // Build "ORDER BY ..." from query.sorting
+    const orderByColumns = Object.entries(tableViewParams.sorting)
+        .map(([column, sorting]) => (sorting ? `"${column}" ${sorting}` : ''))
+        .filter(Boolean)
+        .join(', ');
+
+    const orderByQuery = orderByColumns ? 'ORDER BY ' + orderByColumns : '';
+    return `
+        SELECT *
+        FROM ${finalQueryAsSubQuery} ${orderByQuery} LIMIT ${limit}
+        OFFSET ${offset};
+    `;
 }
 
 // 2. The async version that checks executability

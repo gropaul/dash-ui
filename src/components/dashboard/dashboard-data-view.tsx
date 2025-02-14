@@ -14,18 +14,21 @@ export interface DashboardDataViewProps {
     onRelationUpdate: (relation: RelationState) => void;
 }
 
+export async function updateRelationDataWithParamsSkeleton(_relationId: string, query: ViewQueryParameters, relation: RelationState, onRelationUpdate: (relation: RelationState) => void) {
+
+    const loadingRelationState = setRelationLoading(relation); // Set it loading
+    onRelationUpdate(loadingRelationState);
+
+    const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
+    const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
+    // update state with new data and completed state
+    onRelationUpdate(executedRelationState);
+}
+
 export function DashboardDataView(props: DashboardDataViewProps) {
-    async function updateRelationDataWithParams(_relationId: string, query: ViewQueryParameters) {
 
-        const relation = props.relation;
-        const loadingRelationState = setRelationLoading(relation); // Set it loading
-        props.onRelationUpdate(loadingRelationState);
-
-        const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
-        const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
-        // update state with new data and completed state
-        props.onRelationUpdate(executedRelationState);
-
+    function updateRelationDataWithParams(_relationId: string, query: ViewQueryParameters) {
+        return updateRelationDataWithParamsSkeleton(_relationId, query, props.relation, props.onRelationUpdate)
     }
 
     function updateRelationBaseQuery(_relationId: string, baseQuery: string) {
@@ -47,6 +50,14 @@ export function DashboardDataView(props: DashboardDataViewProps) {
             ...props.relation,
             viewState: currentViewState
         })
+
+        // if the viewState contains the view mode, update the data
+        if (viewState.selectedView) {
+            updateRelationDataWithParams(_relationId, {
+                ...props.relation.query.viewParameters,
+                type: viewState.selectedView
+            })
+        }
 
     }
 

@@ -464,7 +464,6 @@ export const useRelationsState = createWithEqualityFn(
                         },
                         editorElements: newEditorElements,
                     }));
-
                 },
                 deleteRelation: (relationId: string, editorPath: string[]) => {
                     const {relations} = get();

@@ -3,8 +3,8 @@ import {createRoot, Root} from 'react-dom/client';
 import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
-import {RelationState} from '@/model/relation-state';
-import {DashboardDataView} from '@/components/dashboard/dashboard-data-view';
+import {RelationState, ViewQueryParameters} from '@/model/relation-state';
+import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/components/dashboard/dashboard-data-view';
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {RelationViewType} from "@/model/relation-view-state";
@@ -126,7 +126,7 @@ export default class RelationBlockTool implements BlockTool {
         this.render();
     }
 
-    public setViewType(viewType: RelationViewType) {
+    public async setViewType(viewType: RelationViewType) {
         this.data = {
             ...this.data,
             viewState: {
@@ -134,7 +134,16 @@ export default class RelationBlockTool implements BlockTool {
                 selectedView: viewType,
             }
         }
-        this.render();
+        const currentPrams = this.data.query.viewParameters;
+        const newParams : ViewQueryParameters= {
+            ...currentPrams,
+            type: viewType,
+        }
+
+        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, (updatedData) => {
+            this.data = updatedData;
+            this.render();
+        });
     }
 
     public showChartSettings(show: boolean) {
