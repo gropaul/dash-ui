@@ -9,18 +9,28 @@ import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections-service";
 
-export function getDefaultQueryParams(oldLimit?: number): ViewQueryParameters {
+//! Is called when the user changes the code and reruns the query -> Reset some view parameters
+export function getNewQueryParams(oldParams: ViewQueryParameters): ViewQueryParameters {
 
-    const limit = oldLimit ?? 50;
-    return {
-        type: 'table',
-        table: {
-            offset: 0,
-            limit: limit,
-            sorting: {},
-        },
-        chart: {}
-    };
+
+    if (oldParams.type === 'table') {
+        return {
+            ...oldParams,
+            type: 'table',
+            table: {
+                ...oldParams.table,
+                limit: oldParams.table.limit,
+            },
+        };
+    } else if (oldParams.type === 'chart') {
+        return {
+            ...oldParams,
+            type: 'chart',
+            chart: {}
+        };
+    } else {
+        throw new Error(`Unknown view type: ${oldParams.type}`);
+    }
 }
 
 

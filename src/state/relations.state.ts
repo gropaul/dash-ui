@@ -1,7 +1,7 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {
     executeQueryOfRelationState,
-    getDefaultQueryParams,
+    getNewQueryParams,
     getViewFromSource,
     RelationState,
     setRelationLoading,
@@ -352,7 +352,7 @@ export const useRelationsState = createWithEqualityFn(
                         get().showRelation(existingRelation, editorPath);
                     } else {
                         // update state with empty (loading) relation
-                        const defaultQueryParams = getDefaultQueryParams();
+                        const defaultQueryParams = getNewQueryParams();
                         const emptyRelationState = await getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
 
                         // as the relation did not exist yet, we also have to add a reference to the editor
@@ -464,6 +464,14 @@ export const useRelationsState = createWithEqualityFn(
                         },
                         editorElements: newEditorElements,
                     }));
+
+                    // if the view mode has been changed, update the query params
+                    if (partialUpdate.selectedView) {
+                        const relation = get().relations[relationId];
+                        const viewParameters = relation.query.viewParameters;
+                        const newViewParameters: ViewQueryParameters = {...viewParameters, type: partialUpdate.selectedView};
+                        get().updateRelationDataWithParams(relationId, newViewParameters);
+                    }
                 },
                 deleteRelation: (relationId: string, editorPath: string[]) => {
                     const {relations} = get();
