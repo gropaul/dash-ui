@@ -1,7 +1,7 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {
-    executeQueryOfRelationState,
-    getNewQueryParams,
+    executeQueryOfRelationState, getInitialParams,
+    getUpdatedParams,
     getViewFromSource,
     RelationState,
     setRelationLoading,
@@ -352,7 +352,7 @@ export const useRelationsState = createWithEqualityFn(
                         get().showRelation(existingRelation, editorPath);
                     } else {
                         // update state with empty (loading) relation
-                        const defaultQueryParams = getNewQueryParams();
+                        const defaultQueryParams = getInitialParams();
                         const emptyRelationState = await getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
 
                         // as the relation did not exist yet, we also have to add a reference to the editor

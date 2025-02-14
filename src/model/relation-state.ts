@@ -9,8 +9,20 @@ import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections-service";
 
+export function getInitialParams(): ViewQueryParameters {
+    return {
+        type: 'table',
+        table: {
+            offset: 0,
+            limit: 100,
+            sorting: {},
+        },
+        chart: {},
+    };
+}
+
 //! Is called when the user changes the code and reruns the query -> Reset some view parameters
-export function getNewQueryParams(oldParams: ViewQueryParameters): ViewQueryParameters {
+export function getUpdatedParams(oldParams: ViewQueryParameters): ViewQueryParameters {
 
 
     if (oldParams.type === 'table') {

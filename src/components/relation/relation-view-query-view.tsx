@@ -1,6 +1,6 @@
 import {DefaultRelationZustandActions, useRelationsState} from "@/state/relations.state";
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
-import {getNewQueryParams, RelationState} from "@/model/relation-state";
+import {getUpdatedParams, RelationState} from "@/model/relation-state";
 import {getSeparatedStatements} from "@/platform/sql-utils";
 
 interface RelationViewQueryProps extends DefaultRelationZustandActions{
@@ -17,7 +17,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     const relationId = props.relationState.id;
     async function onRunQuery() {
         // we need to reset the view params as the could be columns removed now that had filters before!
-        await props.updateRelationDataWithParams(relationId, getNewQueryParams(props.relationState.query.viewParameters));
+        await props.updateRelationDataWithParams(relationId, getUpdatedParams(props.relationState.query.viewParameters));
     }
 
     function onCodeChange(code: string) {

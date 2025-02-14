@@ -1,4 +1,4 @@
-import {getNewQueryParams, getQueryFromParamsUnchecked} from "@/model/relation-state";
+import {getUpdatedParams, getQueryFromParamsUnchecked, getInitialParams} from "@/model/relation-state";
 import {getInitialTabViewBaseState, getInitViewState, TabViewBaseState} from "@/model/relation-view-state";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {getRandomId} from "@/platform/id-utils";
@@ -33,7 +33,7 @@ export function getInitialDataElement(): RelationBlockData {
         id: randomId,
         name: "New Query"
     }
-    const defaultQueryParams = getNewQueryParams();
+    const defaultQueryParams = getInitialParams();
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }

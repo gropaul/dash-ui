@@ -213,7 +213,7 @@ function LineAxisDecorationMenu({decoration, setDecoration}: ButtonColorProps) {
                     e.preventDefault()
                 }}
             >
-                <Label>Dasharray</Label>
+                <Label>Stroke Dashes</Label>
                 <Input
                     className="max-w-[80px]"
                     type="text"
