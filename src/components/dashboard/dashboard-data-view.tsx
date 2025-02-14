@@ -1,10 +1,10 @@
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {
     executeQueryOfRelationState,
-    RelationQueryViewParams,
+    TableViewQueryParameters,
     RelationState,
     setRelationLoading,
-    updateRelationQueryForParams
+    updateRelationQueryForParams, ViewQueryParameters
 } from "@/model/relation-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
@@ -15,7 +15,7 @@ export interface DashboardDataViewProps {
 }
 
 export function DashboardDataView(props: DashboardDataViewProps) {
-    async function updateRelationDataWithParams(_relationId: string, query: RelationQueryViewParams) {
+    async function updateRelationDataWithParams(_relationId: string, query: ViewQueryParameters) {
 
         const relation = props.relation;
         const loadingRelationState = setRelationLoading(relation); // Set it loading

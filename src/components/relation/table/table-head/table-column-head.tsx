@@ -1,7 +1,7 @@
 import React from 'react';
 import {Column} from "@/model/column";
 import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
-import {ColumnSorting, getNextColumnSorting} from "@/model/relation-state";
+import {ColumnSorting, getNextColumnSorting, ViewQueryParameters} from "@/model/relation-state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
 import {ValueIcon} from "@/components/relation/common/value-icon";
@@ -28,7 +28,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
     const {setNodeRef: setDroppableNodeRef} = useDroppable({id: column.name});
 
     const queryParameters = props.relationState.query.viewParameters;
-    const columnSorting = queryParameters.sorting[props.column.name];
+    const columnSorting = queryParameters.table.sorting[props.column.name];
 
     const onlyShowOnHover = !columnSorting;
 
@@ -44,15 +44,20 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
         const nextSorting = getNextColumnSorting(columnSorting);
 
-        const {[props.column.name]: _, ...remainingSortings} = queryParameters.sorting || {};
-        const newQueryParams = {
+        const {[props.column.name]: _, ...remainingSortings} = queryParameters.table.sorting || {};
+
+        const queryParams: ViewQueryParameters = {
             ...queryParameters,
-            sorting: {
-                [props.column.name]: nextSorting,
-                ...remainingSortings,
-            },
-        };
-        props.updateRelationDataWithParams(props.relationState.id, newQueryParams);
+            table: {
+                ...queryParameters.table,
+                sorting: {
+                    [props.column.name]: nextSorting,
+                    ...remainingSortings,
+                },
+            }
+        }
+
+        props.updateRelationDataWithParams(props.relationState.id, queryParams);
     }
 
     return (

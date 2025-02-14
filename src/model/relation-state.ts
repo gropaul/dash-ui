@@ -1,24 +1,47 @@
 import {getRelationIdFromSource, getRelationNameFromSource, Relation, RelationSource} from "@/model/relation";
-import {getInitViewState, RelationViewState, updateRelationViewState} from "@/model/relation-view-state";
+import {
+    getInitViewState,
+    RelationViewState,
+    RelationViewType,
+    updateRelationViewState
+} from "@/model/relation-view-state";
 import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections-service";
 
-export function getDefaultQueryParams(oldLimit?: number): RelationQueryViewParams {
+export function getDefaultQueryParams(oldLimit?: number): ViewQueryParameters {
 
     const limit = oldLimit ?? 50;
     return {
-        offset: 0,
-        limit: limit,
-        sorting: {},
+        type: 'table',
+        table: {
+            offset: 0,
+            limit: limit,
+            sorting: {},
+        },
+        chart: {}
     };
 }
 
-export interface RelationQueryViewParams {
+
+export interface ViewQueryParameters {
+    type: RelationViewType;
+    table: TableViewQueryParameters;
+    chart: ChartTableQueryParameters;
+}
+
+export interface TableViewQueryParameters {
     offset: number;
     limit: number;
     sorting: { [key: string]: ColumnSorting | undefined };
 }
+
+export interface ChartTableQueryParameters {
+    xAxis?: string;   // the name of the column to use as x-axis
+    yAxes?: string[]; // the names of the columns to use as y-axes
+}
+
+
 
 export interface QueryData {
     baseQuery: string;  // the query that the user defined, e.g. FROM basetable
@@ -28,7 +51,7 @@ export interface QueryData {
     viewQuery: string;
     // the query getting the count for the view Query
     countQuery: string;
-    viewParameters: RelationQueryViewParams;
+    viewParameters: ViewQueryParameters;
 }
 
 export type TaskExecutionState = {
@@ -42,7 +65,7 @@ export type TaskExecutionState = {
 export interface QueryExecutionMetaData {
     lastExecutionDuration: number; // in s
     lastResultCount: number;
-    lastResultOffset: number;
+    lastResultOffset?: number;
 }
 
 export interface RelationWithQuery extends Relation {
@@ -68,7 +91,7 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export async function getViewFromSource(connectionId: string, source: RelationSource, viewParams: RelationQueryViewParams, state: TaskExecutionState): Promise<RelationState> {
+export async function getViewFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters, state: TaskExecutionState): Promise<RelationState> {
 
     const name = getRelationNameFromSource(source);
     const relation: Relation = {
@@ -112,24 +135,36 @@ export function getBaseQueryFromSource(source: RelationSource): string {
     }
 }
 
-// 1. A helper that does all the heavy-lifting but doesn't do the async check.
-function buildQueries(
-    _relation: Relation,
-    query: RelationQueryViewParams,
-    baseSQL: string
-): {
+interface BuildQuery {
     initialQueries: string[];
     finalQuery: string;
     viewQuery: string;
     countQuery: string;
     baseQuery: string;
-    viewParameters: RelationQueryViewParams;
+    viewParameters: ViewQueryParameters;
     // optionally return any other intermediate results if needed
-} {
-    const {offset, limit} = query;
+};
+
+// 1. A helper that does all the heavy-lifting but doesn't do the async check.
+function buildQueries(
+    _relation: Relation,
+    query: ViewQueryParameters,
+    baseSQL: string
+): BuildQuery {
+    if (query.type === 'table') {
+        return buildTableQuery(query, baseSQL);
+    } else {
+        //todo
+        throw new Error('Unknown view type: ' + query.type);
+    }
+}
+
+export function buildTableQuery(viewParams: ViewQueryParameters, baseSQL: string): BuildQuery {
+    const tableViewParams = viewParams.table;
+    const {offset, limit} = tableViewParams;
 
     // Build "ORDER BY ..." from query.sorting
-    const orderByColumns = Object.entries(query.sorting)
+    const orderByColumns = Object.entries(tableViewParams.sorting)
         .map(([column, sorting]) => (sorting ? `"${column}" ${sorting}` : ''))
         .filter(Boolean)
         .join(', ');
@@ -165,14 +200,14 @@ function buildQueries(
         viewQuery,
         countQuery,
         baseQuery: baseSQL,
-        viewParameters: query,
+        viewParameters: viewParams,
     };
 }
 
 // 2. The async version that checks executability
 export async function getQueryFromParams(
     relation: Relation,
-    query: RelationQueryViewParams,
+    query: ViewQueryParameters,
     baseSQL: string
 ): Promise<QueryData> {
     // Build the queries first
@@ -203,7 +238,7 @@ export async function getQueryFromParams(
 // 3. The sync version that SKIPS the check
 export function getQueryFromParamsUnchecked(
     relation: Relation,
-    query: RelationQueryViewParams,
+    query: ViewQueryParameters,
     baseSQL: string
 ): QueryData {
     // Same shared build
@@ -236,7 +271,7 @@ export function setRelationLoading(relation: RelationState): RelationState {
     };
 }
 
-export async function updateRelationQueryForParams(relation: RelationState, newParams: RelationQueryViewParams, state?: TaskExecutionState): Promise<RelationState> {
+export async function updateRelationQueryForParams(relation: RelationState, newParams: ViewQueryParameters, state?: TaskExecutionState): Promise<RelationState> {
     const baseQuery = relation.query.baseQuery;
     const query = await getQueryFromParams(relation, newParams, baseQuery);
 
@@ -330,7 +365,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
         lastExecutionMetaData: {
             lastExecutionDuration: duration,
             lastResultCount: count,
-            lastResultOffset: input.query.viewParameters.offset,
+            lastResultOffset: input.query.viewParameters.table.offset,
         },
         viewState: updateRelationViewState(input.viewState, viewData),
     }

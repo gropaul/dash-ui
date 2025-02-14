@@ -10,6 +10,7 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import {RelationViewProps} from "@/components/relation/relation-view";
+import {ViewQueryParameters} from "@/model/relation-state";
 
 function formatNumber(num: number): string {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -19,8 +20,8 @@ export function TableFooter(props: RelationViewProps) {
 
     const lastResultCount = props.relationState.lastExecutionMetaData?.lastResultCount || 0;
 
-    const startIndex = props.relationState.query.viewParameters.offset + 1;
-    const endIndex = Math.min(props.relationState.query.viewParameters.offset + props.relationState.query.viewParameters.limit, lastResultCount);
+    const startIndex = props.relationState.query.viewParameters.table.offset + 1;
+    const endIndex = Math.min(props.relationState.query.viewParameters.table.offset + props.relationState.query.viewParameters.table.limit, lastResultCount);
     const testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(lastResultCount)}`;
 
     return (
@@ -45,8 +46,8 @@ export function RelationViewPageController(props: RelationViewProps) {
         return null;
     }
 
-    const currentPageIndex = Math.floor(relationState.query.viewParameters.offset / relationState.query.viewParameters.limit);
-    const maxPageIndex = Math.floor((totalCount - 1) / relationState.query.viewParameters.limit);
+    const currentPageIndex = Math.floor(relationState.query.viewParameters.table.offset / relationState.query.viewParameters.table.limit);
+    const maxPageIndex = Math.floor((totalCount - 1) / relationState.query.viewParameters.table.limit);
     const minPageIndex = 0;
     const text = `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumber(maxPageIndex + 1)}`;
 
@@ -56,24 +57,30 @@ export function RelationViewPageController(props: RelationViewProps) {
 
     const handleUpdateRange = (pageIndex: number) => {
 
-        const offsetForPage = pageIndex * relationState.query.viewParameters.limit;
+        const offsetForPage = pageIndex * relationState.query.viewParameters.table.limit;
         const currentQueryParams = relationState.query.viewParameters;
-        const updatedQueryParams = {
+        const updatedQueryParams: ViewQueryParameters = {
             ...currentQueryParams,
-            offset: offsetForPage
+            table: {
+                ...currentQueryParams.table,
+                offset: offsetForPage,
+            }
         }
         props.updateRelationDataWithParams(relationState.id, updatedQueryParams);
     };
 
-    const pageSize = relationState.query.viewParameters.limit;
+    const pageSize = relationState.query.viewParameters.table.limit;
 
     function handlePageSizeChange(value: string) {
         const newPageSize = parseInt(value);
         const currentQueryParams = relationState.query.viewParameters;
-        const updatedQueryParams = {
+        const updatedQueryParams: ViewQueryParameters = {
             ...currentQueryParams,
-            limit: newPageSize,
-            offset: 0
+            table: {
+                ...currentQueryParams.table,
+                limit: newPageSize,
+                offset: 0,
+            }
         }
         props.updateRelationDataWithParams(relationState.id, updatedQueryParams);
     }

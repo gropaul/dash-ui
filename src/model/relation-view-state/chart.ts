@@ -241,7 +241,7 @@ export function getInitialAxisDecoration(): AxisDecoration {
         bar: {
             barWidth: 20, // default pixel width; adjust as needed
             stacked: false,
-            cornerRadius: 0,
+            cornerRadius: 4,
             fillOpacity: 1,
             border: {
                 width: 0,
