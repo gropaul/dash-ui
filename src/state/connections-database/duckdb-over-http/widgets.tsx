@@ -11,8 +11,8 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
 
     // display the connection string and have a copy button, but only if the form is valid otherwise grayed out
     const getConnectionString = (hide_secrets: boolean) => {
-        let install = "INSTALL duck_explorer FROM community;\n"
-        install += "LOAD duck_explorer;"
+        let install = "INSTALL dash FROM community;\n"
+        install += "LOAD dash;"
 
         let start_server: string;
         let port: number
@@ -34,9 +34,9 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
             if (hide_secrets) {
                 token = '********';
             }
-            start_server = `CALL start_duck_explorer('127.0.0.1', ${port}, api_key='${token}');`;
+            start_server = `CALL start_dash('127.0.0.1', ${port}, api_key='${token}');`;
         } else {
-            start_server = `CALL start_duck_explorer('127.0.0.1', ${port});`;
+            start_server = `CALL start_dash('127.0.0.1', ${port});`;
         }
 
         return `${install}\n${start_server}`;
