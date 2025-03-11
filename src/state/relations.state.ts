@@ -582,6 +582,8 @@ export const useRelationsState = createWithEqualityFn(
             onRehydrateStorage: (state => {
                 function callback(state: any, error: any) {
                     if (state === undefined) {
+                        // if state is undefined, remove all tabs
+                        useGUIState.getState().keepTabsOfIds([]);
                         useRelationsHydrationState.getState().setHydrated(true);
                         console.log('State was undefined, setting hydrated to true');
                         return INIT;
