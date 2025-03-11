@@ -23,12 +23,14 @@ export interface TreeExplorerNodeProps {
 
     selectedIds?: string[][];
     selectionMode: SelectionMode;
+    enableDnd?: boolean;
 }
 
 export function TreeExplorerNode(props: TreeExplorerNodeProps) {
 
     const childrenLoaded = props.tree.children !== undefined;
     const cantHaveChildren = props.tree.children === null;
+    const enableDnd = props.enableDnd ?? false;
 
     const depth = props.parent_id_path.length;
     const id = props.tree.id;
@@ -101,7 +103,7 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
             `hover:bg-[rgba(0,96,255,0.08)]` :
             "hover:bg-[hsl(var(--muted))]";
 
-    const classIsOver = isOver ? "border border-primary bg-[rgba(0,96,255,0.08)]" : "border border-transparent";
+    const classIsOver = isOver && enableDnd? "border border-primary bg-[rgba(0,96,255,0.08)]" : "border border-transparent";
     return (
         <>
             {/* Node content */}
@@ -157,6 +159,7 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                         {children.map((child, index) => (
                             <TreeExplorerNode
                                 {...props}
+                                enableDnd={enableDnd}
                                 selectedIds={childSelectedIds}
                                 key={index}
                                 tree={child}
@@ -173,6 +176,7 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                                 type: "loading",
                                 children: []
                             }}
+                            enableDnd={false}
                             iconFactory={props.iconFactory}
                             parent_id_path={current_tree_id_path}
                             onClick={props.onClick}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {H5} from "@/components/ui/typography";
 import {useRelationsState} from "@/state/relations.state";
 import {Button} from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {RelationState} from "@/model/relation-state";
 import {getRandomId} from "@/platform/id-utils";
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
-import {MAIN_CONNECTION_ID} from "@/platform/global-data";
+import {DEFAULT_STATE_STORAGE_DESTINATION, MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import {DashboardState} from "@/model/dashboard-state";
@@ -22,6 +22,11 @@ import {RELATION_BLOCK_TYPE, RelationBlockData} from "@/components/editor/tools/
 import {useEditorStore} from "@/state/editor.state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
+import {StateStorageInfo} from "@/model/database-connection";
+import {GetStateStorageStatus} from "@/state/persistency/duckdb";
+import {ConnectionsService} from "@/state/connections-service";
+import {Badge} from "@/components/ui/badge";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
 
 interface RenameState {
@@ -48,6 +53,7 @@ export interface DashboardCommandState {
 
 export function EditorOverviewTab() {
 
+    const [storageInfo, setStorageInfo] = useState<StateStorageInfo | null>(null);
     const [renameState, setRenameState] = useState<RenameState>({isOpen: false});
     const [deleteState, setDeleteState] = useState<DeleteState>({isOpen: false});
     const [selectedNodeIds, setSelectedNodeIds] = useState<string[][]>([]);
@@ -72,6 +78,13 @@ export function EditorOverviewTab() {
     const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
     const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
+
+    useEffect(() => {
+        GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, ConnectionsService.getInstance().getDatabaseConnection()).then((info) => {
+            setStorageInfo(info);
+            console.log('Storage Info', info);
+        });
+    }, []);
 
     function onTreeElementPointerDown(path: string[], node: TreeNode, event: React.MouseEvent) {
         // if shift is pressed, add to the selection, otherwise set the selection
@@ -329,7 +342,27 @@ ${relationNames.join(', ')}`;
         <div className="h-full w-full flex flex-col">
             {/* Header Section */}
             <div className="p-4 pt-3 pb-2 pr-3 flex flex-row items-center justify-between">
-                <H5 className="text-primary text-nowrap">Editor</H5>
+                <H5 className="text-primary text-nowrap flex flex-row space-x-1 items-center">Editor {
+                    storageInfo?.databaseReadonly || storageInfo?.databaseStatus == 'temporary'? <>
+                        <div className="w-1"/>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div
+                                        style={{fontSize: 14}}
+                                        className="h-6 flex items-center space-x-1 text-orange-400 border border-orange-300 px-1 font-semibold rounded-md cursor-pointer">
+                                        {storageInfo?.databaseReadonly ? 'Read-Only' : 'Temporary'}
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent style={{fontSize: 14}} className="bg-primary text-primary-foreground p-0.5 rounded-md">
+                                    <p>The editor state is stored in the {storageInfo?.databaseReadonly ? 'Read-Only' : 'Temporary'} database.</p>
+                                    <p>New Dashboards etc. will not be stored permanently.</p>
+                                    <p>(Storage Destination = {storageInfo?.destination.databaseName}.{storageInfo?.destination.schemaName}.{storageInfo?.destination.tableName})</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </> : null
+                }</H5>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant={'ghost'} size={'icon'} className={'h-8 w-8'}>

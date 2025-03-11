@@ -93,7 +93,7 @@ export function TreeExplorer({
                         iconFactory={iconFactory}
                         contextMenuFactory={contextMenuFactory}
                         onExpandedChange={onExpandedChange}
-
+                        enableDnd={enableDnd}
                         selectedIds={selectedIds}
                         selectionMode={selectedIds === undefined ? "passive" : selectionMode}
                     />

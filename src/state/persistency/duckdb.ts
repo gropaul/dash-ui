@@ -2,7 +2,36 @@ import {ConnectionsService} from "@/state/connections-service";
 import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
-import {DatabaseConnection} from "@/model/database-connection";
+import {DatabaseConnection, StateStorageInfo, StorageDestination} from "@/model/database-connection";
+import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
+
+
+export function GetFullNameDestination(destination: StorageDestination) {
+    if (destination.databaseName) {
+        return `${destination.databaseName}.${destination.schemaName}.${destination.tableName}`;
+    } else {
+        return `${destination.schemaName}.${destination.tableName}`;
+    }
+}
+
+export function GetFullName(storageInfo: StateStorageInfo) {
+    return GetFullNameDestination(storageInfo.destination);
+}
+
+export async function GetStateStorageStatus(destination: StorageDestination, connection: DatabaseConnection): Promise<StateStorageInfo>  {
+    const current_database_query = `SELECT (path IS NOT null) as persistent, readonly, database_name FROM duckdb_databases() WHERE database_name = current_catalog();`;
+    const current_database_result = await connection.executeQuery(current_database_query)
+    const persistent = current_database_result.rows[0][0];
+    const readonly = current_database_result.rows[0][1];
+    destination.databaseName = current_database_result.rows[0][2];
+
+    return {
+        tableStatus: 'found',
+        databaseStatus: persistent ? 'permanent' : 'temporary',
+        databaseReadonly: readonly,
+        destination: destination
+    };
+}
 
 
 interface QueueInput {
@@ -12,8 +41,8 @@ interface QueueInput {
 
 export class StorageDuckAPI {
 
-    createdTables: string[] = [];
-    // singleton instance
+    activeStorageInfo: StateStorageInfo | null = null;
+    createdTables: string[] = [];    // singleton instance
     private static instance: StorageDuckAPI;
 
     lastVersionCode: number | null = null;
@@ -35,10 +64,24 @@ export class StorageDuckAPI {
         while (!ConnectionsService.getInstance().hasDatabaseConnection()) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
+
+
+        if (this.activeStorageInfo === null) {
+            console.log("Connection established, getting active storage info")
+            this.activeStorageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, ConnectionsService.getInstance().getDatabaseConnection());
+            console.log(this.activeStorageInfo)
+        }
+
         return ConnectionsService.getInstance().getDatabaseConnection();
     }
 
     async createTableIfNotExists(tableName: string) {
+
+        // if we are in readonly mode, do not create the table
+        if (this.activeStorageInfo!.databaseReadonly) {
+            return;
+        }
+
         // create table if not exists
         if (!this.createdTables.includes(tableName)) {
             await this.executeQuery(`INSTALL json`); // load the json extension
@@ -69,6 +112,8 @@ export class StorageDuckAPI {
         if (!StorageDuckAPI.instance) {
             StorageDuckAPI.instance = new StorageDuckAPI();
         }
+
+        await StorageDuckAPI.instance.getOrWaitForConnection();
 
         return StorageDuckAPI.instance;
     }
@@ -114,6 +159,12 @@ export class StorageDuckAPI {
     }
 
     async setItem(tableName: string, value: string): Promise<void> {
+
+        // not allowed to write in readonly mode
+        if (this.activeStorageInfo!.databaseReadonly) {
+            return;
+        }
+
         return this.queue.add({tableName, value});
     }
 
@@ -149,18 +200,20 @@ export class StorageDuckAPI {
 
 
 export const duckdbStorage: StateStorage = {
-    getItem: async (tableName: string): Promise<string | null> => {
+    getItem: async (_tableName: string): Promise<string | null> => {
         const provider = await StorageDuckAPI.getInstance();
+        const tableName = GetFullName(provider.activeStorageInfo!);
         return provider.getItem(tableName);
     },
-    setItem: async (tableName: string, value: string): Promise<void> => {
+    setItem: async (_tableName: string, value: string): Promise<void> => {
         const provider = await StorageDuckAPI.getInstance();
+        const tableName = GetFullName(provider.activeStorageInfo!);
         return provider.setItem(tableName, value);
     },
-    removeItem: async (tableName: string): Promise<void> => {
+    removeItem: async (_tableName: string): Promise<void> => {
         const provider = await StorageDuckAPI.getInstance();
+        const tableName = GetFullName(provider.activeStorageInfo!);
         await provider.createTableIfNotExists(tableName);
-        await provider.executeQuery(`DELETE
-                                     FROM "${tableName};"`);
+        await provider.executeQuery(`DELETE FROM "${tableName};"`);
     },
 }

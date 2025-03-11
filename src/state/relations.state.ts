@@ -1,7 +1,6 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {
     executeQueryOfRelationState, getInitialParams,
-    getUpdatedParams,
     getViewFromSource,
     RelationState,
     setRelationLoading,
@@ -36,6 +35,7 @@ import {
     RenameNodeActions
 } from "@/components/basics/files/tree-action-utils";
 import {useGUIState} from "@/state/gui.state";
+import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 
 export interface RelationZustand {
     editorElements: EditorFolder[];
@@ -116,17 +116,19 @@ export const useRelationsHydrationState = createWithEqualityFn<RelationsHydratio
     }),
 );
 
+export const INIT: RelationZustand = {
+    relations: {},
+    schemas: {},
+    databases: {},
+    dashboards: {},
+    editorElements: [],
+};
+
 export const useRelationsState = createWithEqualityFn(
     persist<RelationZustandCombined>(
         (set, get) =>
             ({
-
-                relations: {},
-                schemas: {},
-                databases: {},
-                dashboards: {},
-                editorElements: [],
-                selectedTabId: undefined,
+                ...INIT,
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
                     const randomId = `dashboard-${getRandomId()}`;
                     let local_dashboard: DashboardState | undefined = dashboard;
@@ -469,7 +471,10 @@ export const useRelationsState = createWithEqualityFn(
                     if (partialUpdate.selectedView) {
                         const relation = get().relations[relationId];
                         const viewParameters = relation.query.viewParameters;
-                        const newViewParameters: ViewQueryParameters = {...viewParameters, type: partialUpdate.selectedView};
+                        const newViewParameters: ViewQueryParameters = {
+                            ...viewParameters,
+                            type: partialUpdate.selectedView
+                        };
                         get().updateRelationDataWithParams(relationId, newViewParameters);
                     }
                 },
@@ -566,7 +571,7 @@ export const useRelationsState = createWithEqualityFn(
                 },
             }),
         {
-            name: 'relationState',
+            name: DEFAULT_STATE_STORAGE_DESTINATION.tableName!,
             storage: createJSONStorage(() => duckdbStorage),
             partialize: (state) => {
                 const newState = {...state};
@@ -576,26 +581,41 @@ export const useRelationsState = createWithEqualityFn(
             },
             onRehydrateStorage: (state => {
                 function callback(state: any, error: any) {
+                    if (state === undefined) {
+                        useRelationsHydrationState.getState().setHydrated(true);
+                        console.log('State was undefined, setting hydrated to true');
+                        return INIT;
+                    }
+
+                    console.log('State:', state);
 
                     // get the list of all possible open tabs
                     const ids = [];
-                    for (const key in state.relations) {
-                        ids.push(key);
+                    // check if key is in the state
+                    if (state.relations) {
+                        for (const key in state.relations) {
+                            ids.push(key);
+                        }
                     }
-                    for (const key in state.schemas) {
-                        ids.push(key);
+                    if (state.schemas) {
+                        for (const key in state.schemas) {
+                            ids.push(key);
+                        }
                     }
-                    for (const key in state.databases) {
-                        ids.push(key);
+                    if (state.databases) {
+                        for (const key in state.databases) {
+                            ids.push(key);
+                        }
                     }
-                    for (const key in state.dashboards) {
-                        ids.push(key);
+                    if (state.dashboards) {
+                        for (const key in state.dashboards) {
+                            ids.push(key);
+                        }
                     }
-
                     useGUIState.getState().keepTabsOfIds(ids);
-
                     useRelationsHydrationState.getState().setHydrated(true);
                 }
+
                 return callback;
             })
         }

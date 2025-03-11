@@ -6,6 +6,23 @@ export interface ConnectionStatus {
     message?: string;
 }
 
+export interface StorageDestination {
+    tableName: string;
+    schemaName: string;
+    databaseName?: string;
+}
+
+
+export type TableStateStorageStatus = 'found' | 'not_found';
+export type DatabaseStateStorageStatus = 'not_found' | 'temporary' | 'permanent';
+
+export interface StateStorageInfo {
+    tableStatus: TableStateStorageStatus;
+    databaseStatus: DatabaseStateStorageStatus;
+    databaseReadonly: boolean;
+    destination: StorageDestination;
+}
+
 export type DataConnectionConfig = { [key: string]: string | number | boolean | undefined };
 
 //! A DatabaseConnection manages the connection to a database. Only one DatabaseConnection can be active at a time.
@@ -23,4 +40,5 @@ export interface DatabaseConnection {
     checkConnectionState: () => Promise<ConnectionStatus>;
 
     updateConfig: (config: Partial<DataConnectionConfig>) => void;
+    stateStorageInfo?: StateStorageInfo;
 }
