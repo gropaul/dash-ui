@@ -8,9 +8,9 @@ import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 
 export function GetFullNameDestination(destination: StorageDestination) {
     if (destination.databaseName) {
-        return `${destination.databaseName}.${destination.schemaName}.${destination.tableName}`;
+        return `"${destination.databaseName}"."${destination.schemaName}"."${destination.tableName}"`;
     } else {
-        return `${destination.schemaName}.${destination.tableName}`;
+        return `"${destination.schemaName}"."${destination.tableName}"`;
     }
 }
 
@@ -35,7 +35,7 @@ export async function GetStateStorageStatus(destination: StorageDestination, con
 
 
 interface QueueInput {
-    tableName: string,
+    storageDestination: StorageDestination,
     value: string
 }
 
@@ -75,17 +75,21 @@ export class StorageDuckAPI {
         return ConnectionsService.getInstance().getDatabaseConnection();
     }
 
-    async createTableIfNotExists(tableName: string) {
+    async createTableIfNotExists(storageDestination: StorageDestination) {
 
         // if we are in readonly mode, do not create the table
         if (this.activeStorageInfo!.databaseReadonly) {
             return;
         }
 
+        const tableName = GetFullNameDestination(storageDestination);
         // create table if not exists
         if (!this.createdTables.includes(tableName)) {
             await this.executeQuery(`INSTALL json`); // load the json extension
             await this.executeQuery(`LOAD json`); // load the json extension
+
+            // create schema dash if not exists
+            await this.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${storageDestination.schemaName};`);
             const data = await this.executeQuery(`CREATE TABLE IF NOT EXISTS "${tableName}"
                                                   (
                                                       id
@@ -122,8 +126,9 @@ export class StorageDuckAPI {
         this.lastVersionCode = versionCode;
     }
 
-    async loadVersionFromServer(tableName: string) {
+    async loadVersionFromServer(storageDestination: StorageDestination) {
         // only update if the version is still valid
+        const tableName = GetFullNameDestination(storageDestination);
         const data = await this.executeQuery(`SELECT version
                                               FROM "${tableName}";`);
         let versionCode: number | null = null;
@@ -137,9 +142,10 @@ export class StorageDuckAPI {
         return versionCode === this.lastVersionCode;
     }
 
-   async getItem(tableName: string): Promise<string | null> {
+   async getItem(storageDestination: StorageDestination): Promise<string | null> {
+       const tableName = GetFullNameDestination(storageDestination);
 
-        await this.createTableIfNotExists(tableName);
+        await this.createTableIfNotExists(storageDestination);
         const query = `SELECT value, version
                        FROM "${tableName}" LIMIT 1;`;
         const data = await this.executeQuery(query);
@@ -158,26 +164,28 @@ export class StorageDuckAPI {
         return jsonString;
     }
 
-    async setItem(tableName: string, value: string): Promise<void> {
+    async setItem(storageDestination: StorageDestination, value: string): Promise<void> {
 
         // not allowed to write in readonly mode
         if (this.activeStorageInfo!.databaseReadonly) {
             return;
         }
 
-        return this.queue.add({tableName, value});
+        return this.queue.add({storageDestination, value});
     }
 
     private async setItemInternal(input: QueueInput): Promise<void> {
 
-        let {tableName, value} = input;
+        let {storageDestination, value} = input;
         // escape single quotes in value
         value = value.replace(/'/g, "''");
 
-        await this.createTableIfNotExists(tableName);
+        await this.createTableIfNotExists(storageDestination);
 
         // check if the version is still valid
-        const versionCode = await this.loadVersionFromServer(tableName);
+        const versionCode = await this.loadVersionFromServer(storageDestination);
+        const tableName = GetFullNameDestination(storageDestination);
+
         if (this.isVersionValid(versionCode)) {
             const query = `
                 INSERT INTO "${tableName}"
@@ -187,7 +195,7 @@ export class StorageDuckAPI {
             await this.executeQuery(query);
 
             // get the current version, if null then error
-            const newVersionCode = await this.loadVersionFromServer(tableName);
+            const newVersionCode = await this.loadVersionFromServer(storageDestination);
             if (newVersionCode === null) {
                 throw new Error("Could not get version code, there should be one after the insert");
             }
@@ -202,18 +210,16 @@ export class StorageDuckAPI {
 export const duckdbStorage: StateStorage = {
     getItem: async (_tableName: string): Promise<string | null> => {
         const provider = await StorageDuckAPI.getInstance();
-        const tableName = GetFullName(provider.activeStorageInfo!);
-        return provider.getItem(tableName);
+        return provider.getItem(provider.activeStorageInfo!.destination);
     },
     setItem: async (_tableName: string, value: string): Promise<void> => {
         const provider = await StorageDuckAPI.getInstance();
-        const tableName = GetFullName(provider.activeStorageInfo!);
-        return provider.setItem(tableName, value);
+        return provider.setItem(provider.activeStorageInfo!.destination, value);
     },
     removeItem: async (_tableName: string): Promise<void> => {
         const provider = await StorageDuckAPI.getInstance();
-        const tableName = GetFullName(provider.activeStorageInfo!);
-        await provider.createTableIfNotExists(tableName);
+        await provider.createTableIfNotExists(provider.activeStorageInfo!.destination);
+        const tableName = GetFullNameDestination(provider.activeStorageInfo!.destination);
         await provider.executeQuery(`DELETE FROM "${tableName};"`);
     },
 }
