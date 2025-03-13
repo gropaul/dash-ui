@@ -1,5 +1,6 @@
 import React, {ReactNode} from "react";
 import {
+    Braces,
     Calendar,
     Database,
     File,
@@ -55,6 +56,9 @@ export const defaultIconFactory = (type: string): ReactNode => {
             return <ToggleLeft size={iconSize}/>;
         case 'Timestamp':
             return <Calendar size={iconSize}/>;
+        case 'Map':
+        case 'Struct':
+            return <Braces size={iconSize}/>;
         default:
             return <FileWarning size={iconSize} />
     }
