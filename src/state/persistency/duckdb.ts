@@ -90,7 +90,7 @@ export class StorageDuckAPI {
 
             // create schema dash if not exists
             await this.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${storageDestination.schemaName};`);
-            const data = await this.executeQuery(`CREATE TABLE IF NOT EXISTS "${tableName}"
+            const data = await this.executeQuery(`CREATE TABLE IF NOT EXISTS ${tableName}
                                                   (
                                                       id
                                                       INT
@@ -130,7 +130,7 @@ export class StorageDuckAPI {
         // only update if the version is still valid
         const tableName = GetFullNameDestination(storageDestination);
         const data = await this.executeQuery(`SELECT version
-                                              FROM "${tableName}";`);
+                                              FROM ${tableName};`);
         let versionCode: number | null = null;
         if (data.rows.length > 0) {
             versionCode = new Date(data.rows[0][0]).getTime();
@@ -147,7 +147,7 @@ export class StorageDuckAPI {
 
         await this.createTableIfNotExists(storageDestination);
         const query = `SELECT value, version
-                       FROM "${tableName}" LIMIT 1;`;
+                       FROM ${tableName} LIMIT 1;`;
         const data = await this.executeQuery(query);
 
         if (data.rows.length === 0) {
@@ -188,7 +188,7 @@ export class StorageDuckAPI {
 
         if (this.isVersionValid(versionCode)) {
             const query = `
-                INSERT INTO "${tableName}"
+                INSERT INTO ${tableName}
                 VALUES (0, '${value}', NOW()) ON CONFLICT DO
                 UPDATE SET value = EXCLUDED.value, version = NOW();
             `;
@@ -220,6 +220,6 @@ export const duckdbStorage: StateStorage = {
         const provider = await StorageDuckAPI.getInstance();
         await provider.createTableIfNotExists(provider.activeStorageInfo!.destination);
         const tableName = GetFullNameDestination(provider.activeStorageInfo!.destination);
-        await provider.executeQuery(`DELETE FROM "${tableName};"`);
+        await provider.executeQuery(`DELETE FROM ${tableName};`);
     },
 }
