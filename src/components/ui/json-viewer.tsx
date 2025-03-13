@@ -24,8 +24,20 @@ interface RecursiveJsonViewerProps {
 export const isObject = (value: any) => typeof value === 'object' && value !== null;
 
 export function RecursiveJsonViewer(props: RecursiveJsonViewerProps) {
+
+
+    let parsed_json = props.json;
+    const {json} = props;
+    if (typeof props.json === 'string') {
+        try {
+            parsed_json = JSON.parse(json);
+        } catch (e) {
+            console.error('Could not parse json', e);
+        }
+    }
+
     return (
-        <RecursiveJsonViewerInternal {...props} isLast={true} depth={0} index={0}/>
+        <RecursiveJsonViewerInternal {...props} isLast={true} depth={0} index={0} json={parsed_json}/>
     )
 }
 
