@@ -29,12 +29,12 @@ export class DuckDBOverHttp implements DatabaseConnection {
         this.type = 'duckdb-over-http';
     }
 
-    async sendPing(): Promise<boolean> {
+    async sendPing(): Promise<string | null> {
         try {
-            await this.sendQuery("SELECT 1;");
-            return true;
+            const versionResult = await this.sendQuery("select version();");
+            return versionResult.rows[0][0] as string;
         } catch (e) {
-            return false;
+            return null;
         }
     }
 
@@ -77,11 +77,11 @@ export class DuckDBOverHttp implements DatabaseConnection {
     };
 
     async checkConnectionState(): Promise<ConnectionStatus> {
-        const ok = await this.sendPing();
-        if (ok) {
-            this.connectionStatus = {state: 'connected'};
+        const version = await this.sendPing();
+        if (version) {
+            this.connectionStatus = {state: 'connected', version: version, message: `Connected to ${this.config.url}, version: ${version}`};
         } else {
-            this.connectionStatus = {state: 'error', message: `Failed to ping ${this.config.url}`};
+            this.connectionStatus = {state: 'error', message: `Failed to ping ${this.config.url}`, version: undefined};
         }
         return this.connectionStatus;
     }

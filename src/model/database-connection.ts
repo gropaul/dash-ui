@@ -4,6 +4,7 @@ import {DatabaseConnectionType} from "@/state/connections-database/configs";
 export interface ConnectionStatus {
     state: 'connected' | 'disconnected' | 'connecting' | 'error';
     message?: string;
+    version?: string;
 }
 
 export interface StorageDestination {

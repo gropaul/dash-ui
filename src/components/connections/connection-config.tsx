@@ -1,4 +1,4 @@
-import React, {FC, ReactElement, useEffect, useState} from "react";
+import React, {FC, ReactElement, useEffect, useRef, useState} from "react";
 import {CustomForm, FormDefinition} from "@/components/basics/input/custom-form";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {validateUrl} from "@/platform/string-validation";
@@ -7,6 +7,8 @@ import {DBConnectionSpec, getDefaultSpec, specToConnection, typeToLabel} from "@
 import {DBConnectionType} from "@/components/basics/files/icon-factories";
 import {Button} from "@/components/ui/button";
 import {RefreshCcw} from "lucide-react";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import {deepEqual} from "@/platform/object-utils";
 
 
 const DUCKDB_WASM_DESCRIPTION =
@@ -63,7 +65,7 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
                 type: 'custom',
                 key: 'connectionCheck',
                 customField: {
-                    render: ConnectionChecker // todo: this only works for duckdb-over-http
+                    render: (data) => ConnectionChecker({formData: data.formData, type: 'duckdb-over-http'})
                 },
 
             },
@@ -80,6 +82,13 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
                 type: 'warning',
                 label: 'This configuration is still in development.',
                 key: 'warning'
+            },
+            {
+                type: 'custom',
+                key: 'connectionCheck',
+                customField: {
+                    render: (data) => ConnectionChecker({formData: data.formData, type: 'duckdb-wasm'})
+                },
             },
         ]
     },
@@ -107,45 +116,90 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
 
 export interface ConnectionCheckerProps {
     formData: any;
+    type: DBConnectionType;
 }
 
-export function ConnectionChecker({formData}: ConnectionCheckerProps) {
+export function ConnectionChecker({formData, type}: ConnectionCheckerProps) {
     const [working, setWorking] = useState<boolean | null>(null);
+    const [message, setMessage] = useState<string | undefined>(undefined);
 
-    async function checkConnection() {
-        // todo: what do we do if it is another type?
-        const spec: DBConnectionSpec = {
-            type: 'duckdb-over-http',
-            config: formData
+    // Remember the last used spec so we don't re-check unless it actually changes
+    const lastSpec = useRef<{ type: DBConnectionType; formData: any } | null>(null);
+
+    // Runs on every render, but only triggers a connection check if there's a real change
+    useEffect(() => {
+        const specChanged =
+            !lastSpec.current ||
+            lastSpec.current.type !== type ||
+            !deepEqual(lastSpec.current.formData, formData);
+        if (specChanged) {
+            lastSpec.current = {type, formData};
+            triggerConnectionCheck();
         }
+    }, [type, formData]);
+
+    // We extract the logic for actually doing the check
+    async function triggerConnectionCheck() {
+        // Immediately show "Testing..."
         setWorking(null);
-        // wait 200ms before checking connection
+        setMessage(undefined);
+
+        // Wait a bit so we don't spam the server with every tiny keystroke
         await new Promise((resolve) => setTimeout(resolve, 200));
-        specToConnection(spec).checkConnectionState().then((status) => {
-            setWorking(status.state === 'connected');
-        });
+
+        const spec: DBConnectionSpec = {
+            type: type,
+            config: formData,
+        };
+
+        specToConnection(spec).initialise().then((status) => {
+            setWorking(status.state === "connected");
+            setMessage(status.message);
+        })
+
+
     }
 
-    useEffect(() => {
-        checkConnection();
-    }, [formData]);
+    // The Refresh button calls the same function, ignoring the lastSpec check
+    function handleManualRefresh(event: React.MouseEvent) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        // If you want to treat the refresh as a *brand-new* check, reset lastSpec
+        lastSpec.current = {type, formData};
+        triggerConnectionCheck();
+    };
 
     return (
-        <div className={"flex text-sm items-center h-6 group transition-opacity duration-200 gap-2"}>
-            {working === null &&  <div>Testing ... 🔄</div>}
-            {working === true  && <div>Test successful ✅</div>}
-            {working === false && <div>Test failed ❌ </div>}
+        <div className="flex text-sm items-center h-6 group transition-opacity duration-200 gap-2">
+
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div>
+                            {working === null && <div>Testing ... 🔄</div>}
+                            {working === true && <div>Test successful ✅</div>}
+                            {working === false && <div>Test failed ❌</div>}
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                        <p>{message}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+
+
             <Button
-                className={"group-hover:opacity-100 opacity-0 transition-opacity duration-200"}
+                className="group-hover:opacity-100 opacity-0 transition-opacity duration-200"
                 style={{width: 24, height: 24}}
-                variant={"ghost"}
-                size={"icon"}
-                onClick={checkConnection}>
+                variant="ghost"
+                size="icon"
+                onClick={handleManualRefresh}
+            >
                 <RefreshCcw size={16}/>
             </Button>
         </div>
     );
-
 }
 
 export interface ConnectionConfigProps {
@@ -153,7 +207,6 @@ export interface ConnectionConfigProps {
     onSpecChange: (spec: DBConnectionSpec) => void;
     onSpecSave?: (spec: DBConnectionSpec) => void;
 }
-
 
 
 export function ConnectionConfig({spec, onSpecChange, onSpecSave}: ConnectionConfigProps) {
