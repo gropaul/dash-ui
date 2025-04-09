@@ -80,19 +80,9 @@ async function staticDuckDBBundles(): Promise<{
     connection: AsyncDuckDBConnection
 }> {
     const _JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-    const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
 
-        "mvp": {
-            "mainModule": "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.1-dev9.0/dist/duckdb-mvp.wasm",
-            "mainWorker": "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.1-dev9.0/dist/duckdb-browser-mvp.worker.js"
-        },
-        "eh": {
-            "mainModule": "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.1-dev9.0/dist/duckdb-eh.wasm",
-            "mainWorker": "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.1-dev9.0/dist/duckdb-browser-eh.worker.js"
-        }
-    };
     // Select a bundle based on browser checks
-    const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
+    const bundle = await duckdb.selectBundle(_JSDELIVR_BUNDLES);
 
     const worker_url = URL.createObjectURL(
         new Blob([`importScripts("${bundle.mainWorker!}");`], {type: 'text/javascript'})
