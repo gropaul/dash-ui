@@ -3,7 +3,7 @@
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {TabbedLayout} from "@/components/layout/tabbed-layout";
 import React, {useEffect, useState} from "react";
-import {StorageDuckAPI} from "@/state/persistency/duckdb";
+import {StorageDuckAPI} from "@/state/persistency/duckdb-over-http";
 import {AlertDialog} from "@radix-ui/react-alert-dialog";
 import {
     AlertDialogAction,

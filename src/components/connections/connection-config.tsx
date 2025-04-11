@@ -74,6 +74,11 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
     "duckdb-wasm": {
         fields: [
             {
+                type: 'boolean',
+                label: 'Use persistent storage',
+                key: 'persist_state',
+            },
+            {
                 type: 'description',
                 label: DUCKDB_WASM_DESCRIPTION,
                 key: 'description'
@@ -152,11 +157,12 @@ export function ConnectionChecker({formData, type}: ConnectionCheckerProps) {
             config: formData,
         };
 
-        specToConnection(spec).initialise().then((status) => {
-            setWorking(status.state === "connected");
-            setMessage(status.message);
-        })
+        const con = specToConnection(spec)
+        const status = await con.initialise();
+        setWorking(status.state === "connected");
+        setMessage(status.message);
 
+        await con.destroy();
 
     }
 

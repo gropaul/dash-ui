@@ -1,27 +1,89 @@
-import {ValueType} from "@/model/value-type";
 import {Braces, Brackets, Calendar, CircleHelp, Hash, Text, ToggleLeft} from "lucide-react";
 import React from "react";
 
-export function ValueIcon({type, size}: { type: ValueType, size?: number }) {
+
+// Adapt this type to match all the strings you expect (from your own system + arrow).
+export type ValueType =
+    | 'Integer'
+    | 'Int'
+    | 'Int8'
+    | 'Int16'
+    | 'Int32'
+    | 'Int64'
+    | 'UInt8'
+    | 'UInt16'
+    | 'UInt32'
+    | 'UInt64'
+    | 'Float'
+    | 'Float16'
+    | 'Float32'
+    | 'Float64'
+    | 'String'
+    | 'Utf8'
+    | 'Boolean'
+    | 'Bool'
+    | 'Timestamp'
+    | 'Date64'
+    | 'List'
+    | 'FixedSizeList'
+    | 'Map'
+    | 'Struct'
+    | 'RecordBatch'
+    | 'Unknown';
+
+export function ValueIcon({ type, size }: { type: ValueType; size?: number }) {
     const iconSize = size || 16;
-    switch (type) {
-        case 'Integer':
-            return <Hash size={iconSize}/>;
-        case 'Float':
-            return <Hash size={iconSize}/>;
-        case 'String':
-            return <Text size={iconSize}/>;
-        case 'Boolean':
-            return <ToggleLeft size={iconSize}/>;
-        case 'Timestamp':
-            return <Calendar size={iconSize}/>;
-        case 'List':
-            return <Brackets size={iconSize}/>;
-        case 'Map':
-        case 'Struct':
-            return <Braces size={iconSize}/>;
+    const normalized = type.toLowerCase();
+
+    switch (normalized) {
+        // Integers
+        case 'integer':
+        case 'int':
+        case 'int8':
+        case 'int16':
+        case 'int32':
+        case 'int64':
+        case 'uint8':
+        case 'uint16':
+        case 'uint32':
+        case 'uint64':
+            return <Hash size={iconSize} />;
+
+        // Floats
+        case 'float':
+        case 'float16':
+        case 'float32':
+        case 'float64':
+            return <Hash size={iconSize} />;
+
+        // Text / String
+        case 'string':
+        case 'utf8':
+            return <Text size={iconSize} />;
+
+        // Boolean
+        case 'boolean':
+        case 'bool':
+            return <ToggleLeft size={iconSize} />;
+
+        // Date / Timestamp
+        case 'timestamp':
+        case 'date64':
+            return <Calendar size={iconSize} />;
+
+        // Lists
+        case 'list':
+        case 'fixedsizelist':
+            return <Brackets size={iconSize} />;
+
+        // Structs / Maps
+        case 'map':
+        case 'struct':
+        case 'recordbatch':
+            return <Braces size={iconSize} />;
+
         default:
-            console.warn(`Unknown column type: ${type}`);
-            return <CircleHelp size={iconSize}/>;
+            console.warn(`Unknown or unhandled column type: "${type}"`);
+            return <CircleHelp size={iconSize} />;
     }
 }

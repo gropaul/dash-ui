@@ -27,7 +27,7 @@ export type DatabaseConfigMap = {
 
 export interface DBConnectionSpec {
     type: DatabaseConnectionType;
-    config: DatabaseConfigMap[DBConnectionSpec["type"]];
+    config: DatabaseConfigMap[DatabaseConnectionType];
 }
 
 export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"): DBConnectionSpec {
@@ -40,12 +40,13 @@ export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"
                     url: "http://localhost:4200",
                     authentication: "none",
                     token: "supersecrettoken",
-                },
-            };
+                } ,
+            } as any;
         case "duckdb-wasm":
             return {
                 type: "duckdb-wasm",
                 config: {
+                    persist_state: true,
                     name: "DuckDB WASM",
                 },
             };
@@ -53,6 +54,7 @@ export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"
             return {
                 type: "duckdb-wasm-motherduck",
                 config: {
+                    persist_state: true,
                     name: "DuckDB WASM (Motherduck)",
                 },
             }
@@ -91,8 +93,8 @@ export function specToString(spec: DBConnectionSpec, withSecrets = false): strin
         case "duckdb-over-http":
             return `Connected to DuckDB via ${config.url} ${withSecrets ? `(${config.useToken ? "Token: " + config.token : "No authentication"})` : ""}`;
         case "duckdb-wasm":
-            return `DuckDB WASM: ${config.name}`;
+            return `Connected to DuckDB WASM`
         case "duckdb-wasm-motherduck":
-            return `DuckDB WASM (Motherduck): ${config.name}`;
+            return `Connected to DuckDB WASM (Motherduck)`
     }
 }

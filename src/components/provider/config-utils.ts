@@ -83,7 +83,7 @@ export async function getConnectionFromHistory(history: DBConnectionSpec[]): Pro
 
     for (let i = history.length - 1; i >= 0; i--) {
         const connection = specToConnection(history[i]);
-        const state = await connection.checkConnectionState();
+        const state = await connection.initialise();
         if (state.state === 'connected') {
             return connection;
         }
@@ -92,7 +92,7 @@ export async function getConnectionFromHistory(history: DBConnectionSpec[]): Pro
     return undefined;
 }
 
-export async function getConnection(urlParams: URLSearchParams, history: DBConnectionSpec[]): Promise<DatabaseConnection | undefined> {
+export async function findWorkingConnection(urlParams: URLSearchParams, history: DBConnectionSpec[]): Promise<DatabaseConnection | undefined> {
     const connection = await getConnectionFromParams(urlParams);
     if (connection) {
         return connection;

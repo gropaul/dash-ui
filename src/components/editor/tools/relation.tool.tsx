@@ -168,7 +168,7 @@ export default class RelationBlockTool implements BlockTool {
     public renderSettings(): HTMLElement | MenuConfig {
 
         const codeVisibility = this.data.viewState.codeFenceState.show;
-        const codeText = codeVisibility ? 'Hide Code' : 'Show Code';
+        const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
 
         const chartSettingsVisible = this.data.viewState.chartState.view.showConfig;
         const chartSettingsText = chartSettingsVisible ? 'Hide Chart Settings' : 'Show Chart Settings';

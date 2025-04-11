@@ -86,9 +86,11 @@ export const useDatabaseConState = createWithEqualityFn<DatabaseConnectionZustan
                 const duckdbInternalDatabases = await getDuckDBInternalDatabase();
                 await sourceState.addSourceConnection(duckdbInternalDatabases, true, true);
 
-                // add the local file system over duckdb connection
-                const fileSystemOverDuckdb = await getDuckDBLocalFilesystem();
-                await sourceState.addSourceConnection(fileSystemOverDuckdb, true, true);
+                if (connection.type in ['duckdb-over-http']) {
+                    // add the local file system over duckdb connection
+                    const fileSystemOverDuckdb = await getDuckDBLocalFilesystem();
+                    await sourceState.addSourceConnection(fileSystemOverDuckdb, true, true);
+                }
 
             },
         }),

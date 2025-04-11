@@ -23,7 +23,7 @@ import {useEditorStore} from "@/state/editor.state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
 import {StateStorageInfo} from "@/model/database-connection";
-import {GetStateStorageStatus} from "@/state/persistency/duckdb";
+import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
 import {ConnectionsService} from "@/state/connections-service";
 import {Badge} from "@/components/ui/badge";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
@@ -80,11 +80,30 @@ export function EditorOverviewTab() {
     const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
 
     useEffect(() => {
-        GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, ConnectionsService.getInstance().getDatabaseConnection()).then((info) => {
-            setStorageInfo(info);
-            console.log('Storage Info', info);
-        });
+        let cancelled = false;
+
+        const waitForConnectionAndFetch = async () => {
+            while (!cancelled) {
+                const service = ConnectionsService.getInstance();
+                if (service.hasDatabaseConnection()) {
+                    const info = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, service.getDatabaseConnection());
+                    if (!cancelled) {
+                        setStorageInfo(info);
+                        console.log('Storage Info', info);
+                    }
+                    break; // Exit the loop once info is fetched
+                }
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+        };
+
+        waitForConnectionAndFetch();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
+
 
     function onTreeElementPointerDown(path: string[], node: TreeNode, event: React.MouseEvent) {
         // if shift is pressed, add to the selection, otherwise set the selection

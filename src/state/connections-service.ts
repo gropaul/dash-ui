@@ -2,6 +2,7 @@ import {DataSourceConnection} from "@/model/data-source-connection";
 import {removeSemicolon} from "@/platform/sql-utils";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 
+type DatabaseConnectionCallback = (connection: DatabaseConnection | undefined) => void;
 
 export class ConnectionsService {
     // singleton instance
@@ -12,9 +13,11 @@ export class ConnectionsService {
 
     // there can be multiple data source connections
     source_connections: { [key: string]: DataSourceConnection };
+    databaseConnectionCallbacks: Set<DatabaseConnectionCallback>;
 
     private constructor() {
         this.source_connections = {};
+        this.databaseConnectionCallbacks = new Set();
     }
 
     static getInstance(): ConnectionsService {
@@ -24,12 +27,27 @@ export class ConnectionsService {
         return ConnectionsService.instance;
     }
 
+    onDatabaseConnectionChange(callback: DatabaseConnectionCallback): () => void {
+        this.databaseConnectionCallbacks.add(callback);
+        // Return an unsubscribe function
+        return () => {
+            this.databaseConnectionCallbacks.delete(callback);
+        };
+    }
+
+    private notifyDatabaseConnectionChange() {
+        for (const callback of this.databaseConnectionCallbacks) {
+            callback(this.database_connection);
+        }
+    }
+
     hasDatabaseConnection() {
         return this.database_connection !== undefined;
     }
 
     setDatabaseConnection(connection: DatabaseConnection) {
         this.database_connection = connection;
+        this.notifyDatabaseConnectionChange();
     }
 
     getDatabaseConnection(): DatabaseConnection {

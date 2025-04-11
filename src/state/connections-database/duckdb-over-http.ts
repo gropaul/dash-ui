@@ -29,6 +29,11 @@ export class DuckDBOverHttp implements DatabaseConnection {
         this.type = 'duckdb-over-http';
     }
 
+    destroy(): Promise<void> {
+        // no need to destroy anything
+        return Promise.resolve();
+    }
+
     async sendPing(): Promise<string | null> {
         try {
             const versionResult = await this.sendQuery("select version();");

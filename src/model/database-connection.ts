@@ -42,4 +42,6 @@ export interface DatabaseConnection {
 
     updateConfig: (config: Partial<DataConnectionConfig>) => void;
     stateStorageInfo?: StateStorageInfo;
+
+    destroy: () => Promise<void>;
 }

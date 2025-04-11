@@ -10,6 +10,17 @@ const nextConfig = {
     images: {
         unoptimized: true,
     },
+    async headers() {
+        return [
+            {
+                source: '/(.*)', // match all routes
+                headers: [
+                    { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+                    { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+                ],
+            },
+        ];
+    },
     webpack(config, { isServer, dev }) {
         config.output.webassemblyModuleFilename = isServer && !dev ? '..static/wasm/[name].[moduleHash].wasm' : 'static/wasm/[name].[moduleHash].wasm'
         config.experiments = { ...config.experiments, asyncWebAssembly: true }

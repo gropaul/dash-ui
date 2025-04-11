@@ -1,9 +1,11 @@
 import {ConnectionsService} from "@/state/connections-service";
-import {StateStorage} from "zustand/middleware";
+import {createJSONStorage, StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
 import {DatabaseConnection, StateStorageInfo, StorageDestination} from "@/model/database-connection";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
+import {useRelationsState} from "@/state/relations.state";
+import {RelationState} from "@/model/relation-state";
 
 
 export function GetFullNameDestination(destination: StorageDestination) {
@@ -18,8 +20,10 @@ export function GetFullName(storageInfo: StateStorageInfo) {
     return GetFullNameDestination(storageInfo.destination);
 }
 
-export async function GetStateStorageStatus(destination: StorageDestination, connection: DatabaseConnection): Promise<StateStorageInfo>  {
-    const current_database_query = `SELECT (path IS NOT null) as persistent, readonly, database_name FROM duckdb_databases() WHERE database_name = current_catalog();`;
+export async function GetStateStorageStatus(destination: StorageDestination, connection: DatabaseConnection): Promise<StateStorageInfo> {
+    const current_database_query = `SELECT (path IS NOT null) as persistent, readonly, database_name
+                                    FROM duckdb_databases()
+                                    WHERE database_name = current_catalog();`;
     const current_database_result = await connection.executeQuery(current_database_query)
     const persistent = current_database_result.rows[0][0];
     const readonly = current_database_result.rows[0][1];
@@ -48,7 +52,8 @@ export class StorageDuckAPI {
     lastVersionCode: number | null = null;
     queue: AsyncQueue<QueueInput, void>;
 
-    onForceReloadCallback: () => void = () => {};
+    onForceReloadCallback: () => void = () => {
+    };
 
     private constructor() {
         // weird way of adding the function to ensure that the 'this' context is correct
@@ -142,8 +147,8 @@ export class StorageDuckAPI {
         return versionCode === this.lastVersionCode;
     }
 
-   async getItem(storageDestination: StorageDestination): Promise<string | null> {
-       const tableName = GetFullNameDestination(storageDestination);
+    async getItem(storageDestination: StorageDestination): Promise<string | null> {
+        const tableName = GetFullNameDestination(storageDestination);
 
         await this.createTableIfNotExists(storageDestination);
         const query = `SELECT value, version
@@ -207,7 +212,8 @@ export class StorageDuckAPI {
 }
 
 
-export const duckdbStorage: StateStorage = {
+
+export const duckdbOverHttpStorageProvider: StateStorage = {
     getItem: async (_tableName: string): Promise<string | null> => {
         const provider = await StorageDuckAPI.getInstance();
         return provider.getItem(provider.activeStorageInfo!.destination);
@@ -220,6 +226,7 @@ export const duckdbStorage: StateStorage = {
         const provider = await StorageDuckAPI.getInstance();
         await provider.createTableIfNotExists(provider.activeStorageInfo!.destination);
         const tableName = GetFullNameDestination(provider.activeStorageInfo!.destination);
-        await provider.executeQuery(`DELETE FROM ${tableName};`);
+        await provider.executeQuery(`DELETE
+                                     FROM ${tableName};`);
     },
 }

@@ -32,7 +32,7 @@ export function DBConnectionPreview(props: DBConnectionPreviewProps) {
     const [working, setWorking] = useState<boolean | null>(null);
 
     useEffect(() => {
-        props.connection.checkConnectionState().then((status) => {
+        props.connection.initialise().then((status) => {
             setWorking(status.state === 'connected');
         });
     }, [props.connection]);

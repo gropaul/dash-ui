@@ -11,8 +11,7 @@ import {DataSourceGroup} from "@/model/data-source-connection";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
-import {createJSONStorage, persist} from "zustand/middleware";
-import {duckdbStorage} from "@/state/persistency/duckdb";
+import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {DashboardState, DashboardViewState, getInitDashboardViewState} from "@/model/dashboard-state";
 import {getRandomId} from "@/platform/id-utils";
@@ -36,6 +35,7 @@ import {
 } from "@/components/basics/files/tree-action-utils";
 import {useGUIState} from "@/state/gui.state";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
+import {InitializeStorage} from "@/state/persistency/api";
 
 export interface RelationZustand {
     editorElements: EditorFolder[];
@@ -102,7 +102,7 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     closeTab: (tabId: string) => void,
 }
 
-type RelationZustandCombined = RelationZustand & RelationZustandActions;
+export type RelationZustandCombined = RelationZustand & RelationZustandActions;
 
 interface RelationsHydrationState {
     hydrated: boolean;
@@ -572,7 +572,7 @@ export const useRelationsState = createWithEqualityFn(
             }),
         {
             name: DEFAULT_STATE_STORAGE_DESTINATION.tableName!,
-            storage: createJSONStorage(() => duckdbStorage),
+            storage: InitializeStorage(),
             partialize: (state) => {
                 const newState = {...state};
                 // @ts-ignore

@@ -25,7 +25,7 @@ export function registerHotkeys(monaco: Monaco, onRun?: () => void) {
 
     const executeAction =  {
         id: "run-code",
-        label: "Run Code",
+        label: "Run Query",
         contextMenuOrder: 2,
         contextMenuGroupId: "1_modification",
         keybindings: [
