@@ -72,9 +72,7 @@ export class StorageDuckAPI {
 
 
         if (this.activeStorageInfo === null) {
-            console.log("Connection established, getting active storage info")
             this.activeStorageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, ConnectionsService.getInstance().getDatabaseConnection());
-            console.log(this.activeStorageInfo)
         }
 
         return ConnectionsService.getInstance().getDatabaseConnection();

@@ -5,6 +5,7 @@ import {loadDuckDBDataSources} from "@/state/connections-source/duckdb-helper";
 import {DataSource} from "@/model/data-source-connection";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections-database/configs";
+import {importAndShowRelationsWithWASM} from "@/state/connections-database/duckdb-wasm/utils";
 
 export interface DuckDBWasmConfig {
     name: string;
@@ -60,12 +61,13 @@ export class DuckDBWasm implements DatabaseConnection {
         return relationFromDuckDBArrowResult('result', this.id, arrowResult);
     }
 
-    async loadDataSources(): Promise<DataSource[]> {
-        return loadDuckDBDataSources((query: string) => this.executeQuery(query));
+    async importFilesFromBrowser(files: File[]) : Promise<void> {
+        await importAndShowRelationsWithWASM(files, this);
+        // await updateDataSources(duckDBWasm.id); todo
+
     }
 
     async checkConnectionState(): Promise<ConnectionStatus> {
-        console.log("Checking connection state: ", this.connectionStatus, this.db, this.connection);
         if (this.db && this.connection) {
             // test connection by running a simple query
             try {
@@ -169,9 +171,6 @@ export function relationFromDuckDBArrowResult(relationName: string, connectionId
             return value;
         });
     });
-
-
-    console.log("DuckDB WASM relation:", arrowResult)
 
     return {
         columns: columns.map((column, index) => {

@@ -585,11 +585,8 @@ export const useRelationsState = createWithEqualityFn(
                         // if state is undefined, remove all tabs
                         useGUIState.getState().keepTabsOfIds([]);
                         useRelationsHydrationState.getState().setHydrated(true);
-                        console.log('State was undefined, setting hydrated to true');
                         return INIT;
                     }
-
-                    console.log('State:', state);
 
                     // get the list of all possible open tabs
                     const ids = [];

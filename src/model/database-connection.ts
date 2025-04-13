@@ -36,12 +36,14 @@ export interface DatabaseConnection {
     type: DatabaseConnectionType;
     connectionStatus: ConnectionStatus;
 
-    executeQuery: (query: string) => Promise<RelationData>;
     initialise: () => Promise<ConnectionStatus>;
     checkConnectionState: () => Promise<ConnectionStatus>;
 
     updateConfig: (config: Partial<DataConnectionConfig>) => void;
     stateStorageInfo?: StateStorageInfo;
+
+    executeQuery: (query: string) => Promise<RelationData>;
+    importFilesFromBrowser: (files: File[]) => Promise<void>;
 
     destroy: () => Promise<void>;
 }

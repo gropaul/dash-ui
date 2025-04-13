@@ -24,7 +24,6 @@ export function ChartColumnSelector(props: ChartConfigProps) {
 
     function updatePieAxisConfig(axis: Partial<AxisConfig>, key: 'label' | 'radius') {
 
-        console.log('updatePieAxisConfig', axis, key)
         // if not decoraction is set, set default decoration
         if (!axis.decoration) {
             axis.decoration = getInitialAxisDecoration()

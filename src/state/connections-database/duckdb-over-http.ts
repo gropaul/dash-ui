@@ -3,6 +3,7 @@ import {duckDBTypeToValueType} from "@/model/value-type";
 import {QueryResponse} from "@/model/query-response";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections-database/configs";
+import {toast} from "sonner";
 
 export interface DuckDBOverHttpConfig {
     name: string;
@@ -79,6 +80,10 @@ export class DuckDBOverHttp implements DatabaseConnection {
 
     executeQuery = (query: string): Promise<RelationData> => {
         return this.sendQuery(query);
+    };
+
+    importFilesFromBrowser = async (files: File[]): Promise<void> => {
+        toast.error('Importing file via Drag and Drop is not yet supported. Please use the CLI to import files.');
     };
 
     async checkConnectionState(): Promise<ConnectionStatus> {

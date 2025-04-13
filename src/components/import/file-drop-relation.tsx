@@ -4,6 +4,7 @@ import {FileDrop} from "@/components/basics/input/file-drop";
 import React from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {toast} from "sonner";
+import {ConnectionsService} from "@/state/connections-service";
 
 interface Props {
     className?: string;
@@ -20,13 +21,10 @@ export function FileDropRelation(props: Props) {
     async function onDrop(files: File[]) {
         setFileUploadState('uploading');
         try {
-            toast.error('Importing file via Drag and Drop is not yet supported. Please use the CLI to import files.');
-
-            for (const file of files) {
-                // show toast
-                // await importFilesToDuckWasm(file);
+            if(ConnectionsService.getInstance().hasDatabaseConnection()) {
+                const connection = ConnectionsService.getInstance().getDatabaseConnection();
+                await connection.importFilesFromBrowser(files);
             }
-
             setFileUploadState('done');
         } catch (e) {
             console.error('Failed to import file', e);

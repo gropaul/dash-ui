@@ -153,7 +153,6 @@ export function ChartDataElement(props: ChartDataElementProps) {
         }
 
         case "pie": {
-            console.log("Pie chart data", axis.decoration);
             // Extract pie-specific decoration
             const {
                 innerRadius,

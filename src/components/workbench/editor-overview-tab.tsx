@@ -89,7 +89,6 @@ export function EditorOverviewTab() {
                     const info = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, service.getDatabaseConnection());
                     if (!cancelled) {
                         setStorageInfo(info);
-                        console.log('Storage Info', info);
                     }
                     break; // Exit the loop once info is fetched
                 }
@@ -360,7 +359,7 @@ ${relationNames.join(', ')}`;
     return (
         <div className="h-full w-full flex flex-col">
             {/* Header Section */}
-            <div className="p-4 pt-3 pb-2 pr-3 flex flex-row items-center justify-between">
+            <div className="p-4 pt-3 pb-2 pr-3 flex flex-row items-center justify-between  overflow-hidden">
                 <H5 className="text-primary text-nowrap flex flex-row space-x-1 items-center">Editor {
                     storageInfo?.databaseReadonly || storageInfo?.databaseStatus == 'temporary'? <>
                         <div className="w-1"/>

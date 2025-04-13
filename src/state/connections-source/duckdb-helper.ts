@@ -158,8 +158,6 @@ async function getAndPrepareExportQuery(query: string, path: string, fileFormat:
             return `COPY (${preparedSQL}) TO '${path}' (FORMAT 'parquet');`
         case 'xlsx':
 
-            // install and load the spatial extension (https://duckdb.org/docs/guides/file_formats/excel_export.html)
-
             const installQuery = "INSTALL spatial;";
             await ConnectionsService.getInstance().executeQuery(installQuery);
             const loadQuery = "LOAD spatial;";
