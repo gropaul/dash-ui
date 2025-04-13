@@ -34,7 +34,7 @@ interface FileSystemOverDuckDBConfig {
 export class DuckdbLocalFilesystem implements DataSourceConnection {
     config: FileSystemOverDuckDBConfig;
     id: string;
-    type: DataSourceConnectionType = 'filesystem';
+    type: DataSourceConnectionType = 'duckdb-local-filesystem';
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
     dataSources: DataSource[] = [];
 

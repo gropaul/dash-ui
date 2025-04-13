@@ -6,8 +6,7 @@ export const LOADING_TIMER_OFFSET = 150;
 // connection ids
 export const DATABASE_CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';
 export const DATABASE_CONNECTION_ID_DUCKDB_LOCAL = 'duckdb-local';
-export const SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM = 'file-system-over-duckdb';
-export const SOURCE_CONNECTION_ID_DUCKDB_INTERNAL_DATABASES = 'duckdb-internal-databases';
+export const SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM = 'filesystem';
 export const MAIN_CONNECTION_ID = DATABASE_CONNECTION_ID_DUCKDB_LOCAL;
 
 

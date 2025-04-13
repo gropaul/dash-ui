@@ -1,12 +1,11 @@
 import {RelationData} from "@/model/relation";
-import {SOURCE_CONNECTION_ID_DUCKDB_INTERNAL_DATABASES} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections-service";
 import {DataSource, DataSourceConnection, DataSourceConnectionType} from "@/model/data-source-connection";
 import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections-source/duckdb-helper";
-import {ConnectionStatus} from "@/model/database-connection";
+import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 
-export async function getDuckDBInternalDatabase(): Promise<DataSourceConnection> {
-    return new DuckdbInternalDatabases(SOURCE_CONNECTION_ID_DUCKDB_INTERNAL_DATABASES, {
+export async function getDuckDBInternalDatabase(con: DatabaseConnection): Promise<DataSourceConnection> {
+    return new DuckdbInternalDatabases(con.id, {
         name: 'DuckDB',
     });
 }

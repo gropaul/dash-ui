@@ -83,7 +83,7 @@ export const useDatabaseConState = createWithEqualityFn<DatabaseConnectionZustan
                 // add sources
                 const sourceState = useSourceConState.getState();
                 // add the duckdb internal databases as data sources
-                const duckdbInternalDatabases = await getDuckDBInternalDatabase();
+                const duckdbInternalDatabases = await getDuckDBInternalDatabase(connection);
                 await sourceState.addSourceConnection(duckdbInternalDatabases, true, true);
 
                 if (connection.type in ['duckdb-over-http']) {
