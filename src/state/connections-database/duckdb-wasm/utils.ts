@@ -4,6 +4,7 @@ import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {useRelationsState} from "@/state/relations.state";
 import {DuckDBWasm} from "@/state/connections-database/duckdb-wasm";
 import {FileFormat} from "@/state/connections-source/duckdb-helper";
+import {WasmProvider} from "@/state/connections-database/duckdb-wasm/connection-provider";
 
 
 
@@ -67,7 +68,8 @@ export async function importFilesToDuckDBWasm(duckDBWasm: DuckDBWasm, files: Fil
     const table_names = [];
     for (const file of files) {
         const fileBytes = new Uint8Array(await file.arrayBuffer());
-        duckDBWasm.db?.registerFileBuffer(file.name, fileBytes);
+        const {db, con} = await WasmProvider.getInstance().getWasm();
+        db.registerFileBuffer(file.name, fileBytes);
         const fileFormat = await inferFileTableName(file);
         if (!fileFormat) {
             console.error('Unsupported file format:', file.name);

@@ -34,7 +34,7 @@ export function ConnectionsOverviewTab() {
         <div className="h-full w-full flex flex-col">
             {/* Header Section */}
             <div className="pl-4 pt-3 pr-3 pb-2 flex flex-row items-center justify-between overflow-hidden">
-                <H5 className="text-primary text-nowrap">Data Sources</H5>
+                <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">Data Sources</div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant={'ghost'} size={'icon'} className={'h-8 w-8'}>
