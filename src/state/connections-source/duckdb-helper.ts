@@ -57,6 +57,17 @@ export async function onDuckDBDataSourceClick(
     }
 }
 
+export async function attachDatabase(path: string, executeQuery: (query: string) => Promise<RelationData>) {
+    // if this is a remote db first load httpfs extension
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        await executeQuery(installQuery);
+        const loadQuery = "LOAD httpfs;";
+        await executeQuery(loadQuery);
+    }
+
+    const query = `ATTACH '${path}';`;
+    await executeQuery(query);
+}
 
 export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<DataSource[]> {
 // get all columns and tables
