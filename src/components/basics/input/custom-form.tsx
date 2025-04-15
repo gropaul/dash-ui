@@ -10,9 +10,17 @@ export interface FormDefinition {
     fields: FormField[];
 }
 
-export type FormFieldTypes = 'text' | 'number' | 'boolean' | 'select' | 'password' | 'custom' | 'description' | 'warning';
+export type FormFieldTypes =
+    'text'
+    | 'number'
+    | 'boolean'
+    | 'select'
+    | 'password'
+    | 'custom'
+    | 'description'
+    | 'warning';
 
-export const INFO_ONLY_TYPES: FormFieldTypes[]  = ['description', 'warning'];
+export const INFO_ONLY_TYPES: FormFieldTypes[] = ['description', 'warning'];
 
 export interface FormFieldSelectOption {
     value: string;
@@ -45,6 +53,7 @@ export interface CustomFormProps {
     formDefinition: FormDefinition,
     onUpdate?: (formData: any, valid: boolean) => void,
     onSubmit: (formData: any) => void,
+    submitButtonLabel?: string,
     buttonBarLeading?: ReactNode,
     onCancel?: () => void,
     formWrapper?: React.FC<{ children: React.ReactElement }>
@@ -64,7 +73,7 @@ export const FormFields: FC<{
             const inlineLabel = field.type === 'boolean';
             const classWrapper = inlineLabel ? 'flex items-center space-x-2' : '';
 
-            const labelVisible = INFO_ONLY_TYPES.includes(field.type) || !field.label  ? 'hidden' : 'block'
+            const labelVisible = INFO_ONLY_TYPES.includes(field.type) || !field.label ? 'hidden' : 'block'
 
             return (
                 <div key={field.key} className={`${classWrapper}`}>
@@ -144,9 +153,10 @@ export function CustomForm({
                                formDefinition,
                                onSubmit,
                                onCancel,
+                               submitButtonLabel = 'Save',
                                onUpdate,
                                initialFormData,
-                                buttonBarLeading,
+                               buttonBarLeading,
                                formWrapper,
                                className
                            }: CustomFormProps) {
@@ -233,7 +243,7 @@ export function CustomForm({
                             Cancel
                         </Button>
                     )}
-                    <Button type="submit">Save</Button>
+                    <Button type="submit">{submitButtonLabel}</Button>
                 </div>
             </div>
 

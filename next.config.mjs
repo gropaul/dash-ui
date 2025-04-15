@@ -13,17 +13,24 @@ const nextConfig = {
     async headers() {
         return [
             {
-                source: '/(.*)', // match all routes
+                source: "/(.*)", // apply to all routes
                 headers: [
-                    { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-                    { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+                    {
+                        key: "Cross-Origin-Embedder-Policy",
+                        value: "require-corp",
+                    },
+                    {
+                        key: "Cross-Origin-Opener-Policy",
+                        value: "same-origin",
+                    },
                 ],
             },
         ];
     },
-    webpack(config, { isServer, dev }) {
+
+    webpack(config, {isServer, dev}) {
         config.output.webassemblyModuleFilename = isServer && !dev ? '..static/wasm/[name].[moduleHash].wasm' : 'static/wasm/[name].[moduleHash].wasm'
-        config.experiments = { ...config.experiments, asyncWebAssembly: true }
+        config.experiments = {...config.experiments, asyncWebAssembly: true}
 
         config.module.rules.push({
             test: /.*\.wasm$/,

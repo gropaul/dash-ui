@@ -10,11 +10,15 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {AttachDatabaseDialog, DialogResult} from "@/components/connections/attach-database-dialog";
 import {ConnectionsService} from "@/state/connections-service";
 import {attachDatabase} from "@/state/connections-source/duckdb-helper";
+import {clearOPFS} from "@/state/connections-database/duckdb-wasm/connection-provider";
+
+const IS_DEBUG = process.env.NODE_ENV === 'development';
 
 export function ConnectionsOverviewTab() {
     const connections = useSourceConState((state) => state.connections);
 
     const [isAttachDatabaseDialogOpen, setAttachDatabaseDialogOpen] = React.useState(false);
+
     function onAttachDatabaseClicked() {
         setAttachDatabaseDialogOpen(true);
     }
@@ -34,7 +38,8 @@ export function ConnectionsOverviewTab() {
         <div className="h-full w-full flex flex-col">
             {/* Header Section */}
             <div className="pl-4 pt-3 pr-3 pb-2 flex flex-row items-center justify-between overflow-hidden">
-                <H5 className="text-primary text-nowrap">Data Sources</H5>
+                <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">Data Sources
+                </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant={'ghost'} size={'icon'} className={'h-8 w-8'}>
@@ -46,6 +51,10 @@ export function ConnectionsOverviewTab() {
                             <Database size={16} className="mr-2"/>
                             <span>Attach Database</span>
                         </DropdownMenuItem>
+                        {IS_DEBUG && <DropdownMenuItem onClick={clearOPFS}>
+                            <Database size={16} className="mr-2"/>
+                            <span>Clear WASM OPFS</span>
+                        </DropdownMenuItem>}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
