@@ -60,6 +60,7 @@ export async function onDuckDBDataSourceClick(
 export async function attachDatabase(path: string, executeQuery: (query: string) => Promise<RelationData>) {
     // if this is a remote db first load httpfs extension
     if (path.startsWith('http://') || path.startsWith('https://')) {
+        const installQuery = "INSTALL httpfs;";
         await executeQuery(installQuery);
         const loadQuery = "LOAD httpfs;";
         await executeQuery(loadQuery);

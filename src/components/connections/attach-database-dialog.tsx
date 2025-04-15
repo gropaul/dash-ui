@@ -46,7 +46,7 @@ export function AttachDatabaseDialog(props: AttachDatabaseDialogProps) {
                     <Button variant="secondary" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={handleSubmit}>
+                    <Button onClick={handleSubmit}>
                         Submit
                     </Button>
                 </DialogFooter>
