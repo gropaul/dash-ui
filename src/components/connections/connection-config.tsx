@@ -265,6 +265,7 @@ export function ConnectionConfig({spec, onSpecChange, onSpecSave}: ConnectionCon
                         initialFormData={spec.config}
                         formDefinition={selectedFromDefinition}
                         onSubmit={onSubmit}
+                        submitButtonLabel={"Connect"}
                         formWrapper={FormWrapper}
                     />
 
