@@ -14,6 +14,7 @@ import {
     Text,
     ToggleLeft
 } from "lucide-react";
+import {ValueIcon, ValueType} from "@/components/relation/common/value-icon";
 
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-wasm-motherduck' | 'duckdb-over-http';
@@ -60,6 +61,6 @@ export const defaultIconFactory = (type: string): ReactNode => {
         case 'Struct':
             return <Braces size={iconSize}/>;
         default:
-            return <FileWarning size={iconSize} />
+            return ValueIcon({type: type as any, size: iconSize});
     }
 }

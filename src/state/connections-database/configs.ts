@@ -46,7 +46,6 @@ export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"
             return {
                 type: "duckdb-wasm",
                 config: {
-                    persist_state: true,
                     name: "DuckDB WASM",
                 },
             };
@@ -54,7 +53,6 @@ export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"
             return {
                 type: "duckdb-wasm-motherduck",
                 config: {
-                    persist_state: true,
                     name: "DuckDB WASM (Motherduck)",
                 },
             }

@@ -29,7 +29,6 @@ function parseConnectionParams(urlParams: URLSearchParams): DBConnectionSpec | u
                 // if there is no url, use the same url as the current page
                 const loc = window.location;
                 url = `${loc.protocol}//${loc.host}`;
-                console.log('No url parameter found, using current page url:', url);
             }
 
             // optional: k for api key

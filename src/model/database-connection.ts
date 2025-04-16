@@ -40,7 +40,6 @@ export interface DatabaseConnection {
     checkConnectionState: () => Promise<ConnectionStatus>;
 
     updateConfig: (config: Partial<DataConnectionConfig>) => void;
-    stateStorageInfo?: StateStorageInfo;
 
     executeQuery: (query: string) => Promise<RelationData>;
     importFilesFromBrowser: (files: File[]) => Promise<void>;

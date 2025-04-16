@@ -156,43 +156,51 @@ export interface JsonChildWrapperProps {
 }
 
 export function JsonChildWrapper(props: JsonChildWrapperProps) {
-
-    const {json_key, value, children, isLast = false} = props;
-
+    const { json_key, value, children, isLast = false, onSeparatorClick } = props;
+    const keyString = json_key ? `"${json_key}": ` : '';
     const needsComma = !isLast;
 
-    const keyString = json_key ? ('"' + json_key + '": ') : '';
-
-    const groupName = `group/${props.depth}-${props.index}`;
-    const groupHover = groupName + '-hover:text-red-500';
     if (Array.isArray(value)) {
         return (
-            <div className={`${groupName}`}>
-                <div
-                    onClick={props.onSeparatorClick}
-                    className="cursor-pointer"
-                >{keyString}</div><span className={groupHover}>{'['}</span>
-                <div className="pl-4">
-                    {children}
-                </div>
-                <span className={groupHover}>{']'}</span>
-                <span>{needsComma && ','}</span>
+            <div className="w-full">
+                {/* ───── opening line ───── */}
+                <span onClick={onSeparatorClick} className="cursor-pointer">
+          {keyString}[{/* click here too */}
+        </span>
+                {/* ───── children ───── */}
+                <div className="pl-4">{children}</div>
+                {/* ───── closing line ───── */}
+                <span onClick={onSeparatorClick} className="cursor-pointer">
+          ]{/* click here too */}
+        </span>
+                {needsComma && ','}
             </div>
         );
-    } else if (isObject(value)) {
-        return (
-            <div>
-                <div
-                    onClick={props.onSeparatorClick}
-                    className="cursor-pointer"
-                >{keyString}{'{'}</div>
-                <div className="pl-4">
-                    {children}
-                </div>
-                <div>{'}'}{needsComma && ','} </div>
-            </div>
-        );
-    } else {
-        return <div>{keyString}{children}{needsComma && ','}</div>;
     }
+
+    if (isObject(value)) {
+        return (
+            <div className="w-full">
+                {/* opening brace */}
+                <span onClick={onSeparatorClick} className="cursor-pointer">
+          {keyString}{'{'}
+        </span>
+                <div className="pl-4">{children}</div>
+                {/* closing brace */}
+                <span onClick={onSeparatorClick} className="cursor-pointer">
+          {'}'}{/* click here too */}
+        </span>
+                {needsComma && ','}
+            </div>
+        );
+    }
+
+    /* primitive value */
+    return (
+        <div>
+            {keyString}
+            {children}
+            {needsComma && ','}
+        </div>
+    );
 }

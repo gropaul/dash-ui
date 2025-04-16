@@ -89,10 +89,10 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
             <ResizablePanelGroup direction={'vertical'}>
                 {props.selectedTabs.toSorted().reverse().map((tab, index) => (
                     <>
-                        {index > 0 && <ResizableHandle/>}
+                        {index > 0 && <ResizableHandle key={`handle-${tab}`}  />}
                         <ResizablePanel
                             style={{overflow: 'auto'}}
-                            key={index}
+                            key={`panel-${tab}`}
                             minSize={30}
                             onResize={(size) => setSideBarTabsRatio(size)}
                             defaultSize={index === 1 ? sideBarTabsRatio : 100 - sideBarTabsRatio}

@@ -14,15 +14,14 @@ export async function importAndShowRelationsWithWASM(files: File[], duckDBWasm: 
         throw new Error('DuckDB WASM connection not found');
     }
 
-    console.log('Importing files to DuckDB WASM:', files);
     const tableNames = await importFilesToDuckDBWasm(duckDBWasm, files);
 
     const showRelation = useRelationsState.getState().showRelationFromSource;
-
+    const catalog_query_result = await duckDBWasm.executeQuery(`SELECT current_catalog();`);
     for (const tableName of tableNames) {
         const source: RelationSource = {
             type: 'table',
-            database: 'memory',
+            database: catalog_query_result.rows[0][0],
             schema: 'main',
             tableName: tableName,
         }
@@ -68,7 +67,7 @@ export async function importFilesToDuckDBWasm(duckDBWasm: DuckDBWasm, files: Fil
     const table_names = [];
     for (const file of files) {
         const fileBytes = new Uint8Array(await file.arrayBuffer());
-        const {db, con} = await WasmProvider.getInstance().getWasm();
+        const {db, con} = await WasmProvider.getInstance().getCurrentWasm();
         db.registerFileBuffer(file.name, fileBytes);
         const fileFormat = await inferFileTableName(file);
         if (!fileFormat) {

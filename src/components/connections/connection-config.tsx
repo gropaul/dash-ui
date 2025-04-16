@@ -6,7 +6,7 @@ import {ConnectionStringField} from "@/state/connections-database/duckdb-over-ht
 import {DBConnectionSpec, getDefaultSpec, specToConnection, typeToLabel} from "@/state/connections-database/configs";
 import {DBConnectionType} from "@/components/basics/files/icon-factories";
 import {Button} from "@/components/ui/button";
-import {RefreshCcw} from "lucide-react";
+import {Check, Info, LoaderCircle, RefreshCcw} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {deepEqual} from "@/platform/object-utils";
 
@@ -73,11 +73,6 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
     },
     "duckdb-wasm": {
         fields: [
-            {
-                type: 'boolean',
-                label: 'Use persistent storage',
-                key: 'persist_state',
-            },
             {
                 type: 'description',
                 label: DUCKDB_WASM_DESCRIPTION,
@@ -182,10 +177,17 @@ export function ConnectionChecker({formData, type}: ConnectionCheckerProps) {
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <div>
-                            {working === null && <div>Testing ... 🔄</div>}
-                            {working === true && <div>Test successful ✅</div>}
-                            {working === false && <div>Test failed ❌</div>}
+                        <div className="inline-flex items-center space-x-2 py-2">
+                            <span className="text-sm font-medium text-gray-700">
+                                {working === null && 'Testing ...'}
+                                {working === true && 'Test successful'}
+                                {working === false && 'Test failed'}
+                            </span>
+                            <div className="flex-shrink-0 text-gray-600">
+                                {working === null && <LoaderCircle size={16} className="animate-spin" />}
+                                {working === true && <Check size={16}/>}
+                                {working === false && <Info size={16}/>}
+                            </div>
                         </div>
                     </TooltipTrigger>
                     <TooltipContent side="top">

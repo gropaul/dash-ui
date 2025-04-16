@@ -14,7 +14,7 @@ const useHotkeyState = createWithEqualityFn<HotkeyState>((set) => ({
     setEditorExists: (exists: boolean) => set({editorExists: exists}),
 }));
 
-export function registerHotkeys(monaco: Monaco, onRun?: () => void) {
+export function registerHotkeys(monaco: Monaco, runQuery?: () => void) {
 
     const editorExists = useHotkeyState.getState().editorExists;
     if (editorExists) {
@@ -32,10 +32,10 @@ export function registerHotkeys(monaco: Monaco, onRun?: () => void) {
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
         ],
         run: () => {
-            if (onRun) {
-                onRun();
+            if (runQuery) {
+                runQuery();
             }
-        }
+        },
     }
 
     monaco.editor.addEditorAction(executeAction);

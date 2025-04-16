@@ -16,10 +16,6 @@ export function GetFullNameDestination(destination: StorageDestination) {
     }
 }
 
-export function GetFullName(storageInfo: StateStorageInfo) {
-    return GetFullNameDestination(storageInfo.destination);
-}
-
 export async function GetStateStorageStatus(destination: StorageDestination, connection: DatabaseConnection): Promise<StateStorageInfo> {
     const current_database_query = `SELECT (path IS NOT null) as persistent, readonly, database_name
                                     FROM duckdb_databases()

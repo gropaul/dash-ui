@@ -1,10 +1,30 @@
 // Example imports – adjust to match your local setup
 import * as duckdb from '@duckdb/duckdb-wasm';
-import {
-    AsyncDuckDB,
-    AsyncDuckDBConnection,
-    DuckDBBundles
-} from '@duckdb/duckdb-wasm';
+import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, LogLevel} from '@duckdb/duckdb-wasm';
+
+export const DUCKDB_WASM_BASE_TABLE_PATH = 'browser.duckdb';
+
+export async function clearOPFS(): Promise<void> {
+
+    await WasmProvider.getInstance().destroy();
+
+    // clear main.duckdb and its wal
+    const walPath = `${DUCKDB_WASM_BASE_TABLE_PATH}.wal`;
+
+    const rootHandle = await navigator.storage.getDirectory();
+    const dbHandle = await rootHandle.removeEntry(DUCKDB_WASM_BASE_TABLE_PATH);
+    const walHandle = await rootHandle.removeEntry(walPath);
+
+    console.log('Removed database files:', dbHandle, walHandle);
+
+}
+
+
+export type WasmAccessMode = 'TEMPORARY' | 'PERSISTENT_READ' | 'PERSISTENT_WRITE'
+
+export interface WasmConfig {
+    db_path: string;
+}
 
 export class WasmProvider {
     private static instance: WasmProvider | null = null;
@@ -30,10 +50,24 @@ export class WasmProvider {
         return WasmProvider.instance;
     }
 
-    public async getWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
+    public async destroy(): Promise<void> {
+        if (this.con) {
+            await this.con.close();
+            this.con = null;
+        }
+        if (this.db) {
+            await this.db.terminate();
+            this.db = null;
+        }
+
+        this.asyncDuckDBState = 'uninitialised';
+        this.initPromise = null;
+    }
+
+    public async getCurrentWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
         // If already initialized, just return the existing connection
         if (this.asyncDuckDBState === 'initialised' && this.con && this.db) {
-            return { db: this.db, con: this.con };
+            return {db: this.db, con: this.con};
         }
 
         // If in the process of initializing, return that shared promise
@@ -47,7 +81,7 @@ export class WasmProvider {
         // Store the initialization promise so subsequent calls reuse it
         this.initPromise = this._initDuckDBWasm()
             .then(result => {
-                const { db, con } = result;
+                const {db, con} = result;
                 this.con = con;
                 this.asyncDuckDBState = 'initialised';
                 this.db = db;
@@ -73,14 +107,14 @@ export class WasmProvider {
 
         // Build a temporary worker script using importScripts
         const workerUrl = URL.createObjectURL(
-            new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
+            new Blob([`importScripts("${bundle.mainWorker}");`], {type: 'text/javascript'})
         );
 
         // Create the worker
         const worker = new Worker(workerUrl);
 
         // (Optional) Provide a console logger
-        const logger = new duckdb.ConsoleLogger();
+        const logger = new duckdb.ConsoleLogger(LogLevel.ERROR);
 
         // Create the DuckDB instance
         const db = new duckdb.AsyncDuckDB(logger, worker);
@@ -93,7 +127,7 @@ export class WasmProvider {
 
         // Open a DB, adjusting config as necessary
         await db.open({
-            path: 'opfs://ahegpsb7u8f.duckdb',
+            path: `opfs://${DUCKDB_WASM_BASE_TABLE_PATH}`,
             accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
             query: {
                 castBigIntToDouble: true,
@@ -105,7 +139,6 @@ export class WasmProvider {
 
         // Finally, create a connection
         const connection = await db.connect();
-        console.log('DuckDB WASM successfully initialized and connected!');
-        return { db, con: connection };
+        return {db, con: connection};
     }
 }
