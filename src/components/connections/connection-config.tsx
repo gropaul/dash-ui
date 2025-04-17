@@ -9,6 +9,7 @@ import {Button} from "@/components/ui/button";
 import {Check, Info, LoaderCircle, RefreshCcw} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {deepEqual} from "@/platform/object-utils";
+import {clearOPFS} from "@/state/connections-database/duckdb-wasm/connection-provider";
 
 
 const DUCKDB_WASM_DESCRIPTION =
@@ -85,6 +86,13 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
             },
             {
                 type: 'custom',
+                key: 'resetOpfs',
+                customField: {
+                    render: (data) => ClearOpfsButton()
+                },
+            },
+            {
+                type: 'custom',
                 key: 'connectionCheck',
                 customField: {
                     render: (data) => ConnectionChecker({formData: data.formData, type: 'duckdb-wasm'})
@@ -112,6 +120,14 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
             // }
         ]
     }
+}
+
+export function ClearOpfsButton() {
+
+
+    return (
+        <Button onClick={clearOPFS}>Clear OPFS</Button>
+    )
 }
 
 export interface ConnectionCheckerProps {

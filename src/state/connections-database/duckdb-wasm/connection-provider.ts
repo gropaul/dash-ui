@@ -2,7 +2,8 @@
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, LogLevel} from '@duckdb/duckdb-wasm';
 
-export const DUCKDB_WASM_BASE_TABLE_PATH = 'browser.duckdb';
+export const DUCKDB_WASM_BASE_TABLE_PATH = 'browser2.duckdb';
+
 
 export async function clearOPFS(): Promise<void> {
 
@@ -17,6 +18,54 @@ export async function clearOPFS(): Promise<void> {
 
     console.log('Removed database files:', dbHandle, walHandle);
 
+}
+
+/**
+ * Ensures the environment can use the Origin‑Private File System (OPFS)
+ * which DuckDB‑Wasm relies on when the "opfs" bundle is selected.
+ *
+ * Throws an Error if:
+ *  – the code is executed during SSR (nowindow)
+ *  – the page is not asecure context (neither HTTPS nor localhost)
+ *  – the browser lacks the StorageManager.getDirectory() API
+ */
+export function assertOPFSSupported(): void {
+    /* 1– Next.js pages can run on the server; bail out there. */
+    if (typeof window === "undefined") {
+        throw new Error(
+            "DuckDB‑Wasm with OPFS must be initialised in the browser. " +
+            "This code is running on the server (SSR)."
+        );
+    }
+
+    /* 2– Secure‑context check: HTTPS or localhost/127.0.0.1 */
+    const { hostname, protocol } = window.location;
+    const isLocalhost =
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.endsWith(".localhost");
+
+
+
+    if (!window.isSecureContext && !isLocalhost && protocol !== "https:") {
+        throw new Error(
+            "OPFS is only available in secure contexts (HTTPS or localhost). " +
+            `Current origin: ${protocol}//${hostname}`
+        );
+    }
+
+    /* 3– Basic feature‑detection for the OPFS entry‑point. */
+    const hasOPFS =
+        typeof navigator !== "undefined" &&
+        !!navigator.storage &&
+        "getDirectory" in navigator.storage;
+
+    if (!hasOPFS) {
+        throw new Error(
+            "This browser does not implement the Origin‑Private File System API " +
+            "(navigator.storage.getDirectory). DuckDB‑Wasm cannot use OPFS here."
+        );
+    }
 }
 
 
@@ -99,6 +148,10 @@ export class WasmProvider {
     }
 
     private async _initDuckDBWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
+
+        // check if OPFS is supported
+        assertOPFSSupported();
+
         // Grab available bundles
         const bundles: DuckDBBundles = duckdb.getJsDelivrBundles();
 
