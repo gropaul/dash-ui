@@ -11,7 +11,7 @@ import {removeSemicolon} from "@/platform/sql-utils";
 export async function onDuckDBDataSourceClick(
     connection: DataSourceConnection,
     id_path: string[],
-    dataSources: DataSource[]
+    dataSources: { [key: string]: DataSource },
 ) {
 
 
@@ -19,10 +19,10 @@ export async function onDuckDBDataSourceClick(
     if (id_path.length === 1) {
         const showDatabase = useRelationsState.getState().showDatabase;
 
-        const database = findNodeInTrees(dataSources, id_path);
+        const database = findNodeInTrees(Object.values(dataSources), id_path);
         if (database) {
             const connectionId = connection.id;
-            await showDatabase(connectionId, database as DataSourceGroup);
+            await showDatabase(connectionId, database.id);
         }
     }
 
@@ -33,7 +33,7 @@ export async function onDuckDBDataSourceClick(
 
         const [databaseName, _schemaName] = id_path;
 
-        const schema = findNodeInTrees(dataSources, id_path);
+        const schema = findNodeInTrees(Object.values(dataSources), id_path);
         if (schema) {
             const connectionId = connection.id;
             await showSchema(connectionId, databaseName, schema as DataSourceGroup);
@@ -67,10 +67,11 @@ export async function attachDatabase(path: string, executeQuery: (query: string)
     }
 
     const query = `ATTACH '${path}';`;
+    console.log('Attaching query', query);
     await executeQuery(query);
 }
 
-export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<DataSource[]> {
+export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<{[database: string]: DataSource}> {
 // get all columns and tables
 
     const query = `SELECT table_catalog, table_schema, table_name, column_name, data_type
@@ -97,7 +98,7 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
         map[database][table_schema][table_name].push([column_name, type]);
     }
 
-    let localDataSources: DataSource[] = [];
+    let localDataSources: { [key: string]: DataSource } = {};
 
     for (const database in map) {
         const database_schemas: DataSourceGroup[] = [];
@@ -131,12 +132,12 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
         }
 
         // add database to data sources
-        localDataSources.push({
+        localDataSources[database] = {
             id: database,
             type: 'database',
             name: database,
             children: database_schemas,
-        });
+        };
     }
     return localDataSources;
 }
@@ -153,7 +154,7 @@ export async function getDuckDBCurrentPath(executeQuery: (query: string) => Prom
 }
 
 
-export type FileFormat = 'csv' | 'json' | 'parquet' | 'xlsx';
+export type FileFormat = 'csv' | 'json' | 'parquet' | 'xlsx' | 'database';
 
 
 async function getAndPrepareExportQuery(query: string, path: string, fileFormat: FileFormat): Promise<string> {
@@ -169,13 +170,14 @@ async function getAndPrepareExportQuery(query: string, path: string, fileFormat:
         case 'parquet':
             return `COPY (${preparedSQL}) TO '${path}' (FORMAT 'parquet');`
         case 'xlsx':
-
             const installQuery = "INSTALL spatial;";
             await ConnectionsService.getInstance().executeQuery(installQuery);
             const loadQuery = "LOAD spatial;";
             await ConnectionsService.getInstance().executeQuery(loadQuery);
 
             return `COPY (${preparedSQL}) TO '${path}' WITH (FORMAT GDAL, DRIVER 'xlsx');`
+        case 'database':
+            throw new Error('Exporting to database is not supported');
     }
 
 }

@@ -8,25 +8,13 @@ import {WasmProvider} from "@/state/connections-database/duckdb-wasm/connection-
 
 
 
-export async function importAndShowRelationsWithWASM(files: File[], duckDBWasm: DuckDBWasm) {
+export async function mountFilesOnWasm(files: File[], duckDBWasm: DuckDBWasm) {
     if (!duckDBWasm) {
         console.error('DuckDB WASM connection not found');
         throw new Error('DuckDB WASM connection not found');
     }
 
-    const tableNames = await importFilesToDuckDBWasm(duckDBWasm, files);
-
-    const showRelation = useRelationsState.getState().showRelationFromSource;
-    const catalog_query_result = await duckDBWasm.executeQuery(`SELECT current_catalog();`);
-    for (const tableName of tableNames) {
-        const source: RelationSource = {
-            type: 'table',
-            database: catalog_query_result.rows[0][0],
-            schema: 'main',
-            tableName: tableName,
-        }
-        showRelation(duckDBWasm.id, source, DEFAULT_RELATION_VIEW_PATH);
-    }
+    await registerWasmFiles(duckDBWasm, files);
 }
 
 
@@ -43,6 +31,10 @@ export async function inferFileTableName(file: File): Promise<FileFormat | undef
         return "json";
     } else if (fileExtension === 'xlsx') {
         return "xlsx";
+    } else if (fileExtension === 'duckdb') {
+        return "database";
+    } else if (fileExtension === 'db') {
+        return "database";
     }
     return undefined;
 }
@@ -57,30 +49,20 @@ export async function getImportQuery(fileName: string, table_name: string, fileF
         query = `CREATE TABLE "${table_name}" AS SELECT * FROM read_json('${fileName}')`;
     } else if (fileFormat === 'xlsx') {
         query = `CREATE TABLE "${table_name}" AS SELECT * FROM read_excel('${fileName}')`;
+    } else if (fileFormat === 'database') {
+        query = `ATTACH '${fileName}' AS  "${table_name}"`;
     }
     return query;
 }
 
-export async function importFilesToDuckDBWasm(duckDBWasm: DuckDBWasm, files: File[]): Promise<string[]> {
+export async function registerWasmFiles(duckDBWasm: DuckDBWasm, files: File[]): Promise<void> {
     // get the first file
     // read the file
-    const table_names = [];
     for (const file of files) {
         const fileBytes = new Uint8Array(await file.arrayBuffer());
         const {db, con} = await WasmProvider.getInstance().getCurrentWasm();
-        db.registerFileBuffer(file.name, fileBytes);
-        const fileFormat = await inferFileTableName(file);
-        if (!fileFormat) {
-            console.error('Unsupported file format:', file.name);
-            continue;
-        }
-        const table_name = file.name.split('.').slice(0, -1).join('.');
-        const query = await getImportQuery(file.name, table_name,  fileFormat);
-        const result = await duckDBWasm.executeQuery(query);
-
-        // Check if the result is valid
-        table_names.push(table_name);
+        await db.registerFileBuffer(file.name, fileBytes);
     }
-    return table_names;
+
 }
 

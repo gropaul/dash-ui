@@ -2,7 +2,7 @@
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, LogLevel} from '@duckdb/duckdb-wasm';
 
-export const DUCKDB_WASM_BASE_TABLE_PATH = 'browser2.duckdb';
+export const DUCKDB_WASM_BASE_TABLE_PATH = 'browser3.duckdb';
 
 
 export async function clearOPFS(): Promise<void> {
@@ -105,7 +105,11 @@ export class WasmProvider {
             this.con = null;
         }
         if (this.db) {
+            console.log('Destroying DuckDB instance');
+            await this.db.dropFile('attached.duckdb');
+
             await this.db.terminate();
+
             this.db = null;
         }
 
@@ -167,7 +171,9 @@ export class WasmProvider {
         const worker = new Worker(workerUrl);
 
         // (Optional) Provide a console logger
-        const logger = new duckdb.ConsoleLogger(LogLevel.ERROR);
+        const IS_DEBUG = process.env.NODE_ENV === 'development';
+        const logLevel = IS_DEBUG ? LogLevel.DEBUG : LogLevel.ERROR;
+        const logger = new duckdb.ConsoleLogger(logLevel);
 
         // Create the DuckDB instance
         const db = new duckdb.AsyncDuckDB(logger, worker);
@@ -192,6 +198,16 @@ export class WasmProvider {
 
         // Finally, create a connection
         const connection = await db.connect();
+        // await db.registerOPFSFileName('opfs://attached.duckdb');
+        // console.log('Registered OPFS file name');
+        // // try to attach a second database
+        // await connection.query("ATTACH DATABASE 'opfs://attached.duckdb' AS attached;");
+        // console.log('Attached database');
+
+        // check if we have write access
+        const result = await connection.query("CREATE OR REPLACE TABLE dash_write_test_table AS SELECT 1 as a;");
+        // drop the test table
+        await connection.query("DROP TABLE dash_write_test_table;");
         return {db, con: connection};
     }
 }

@@ -82,7 +82,7 @@ export class DuckDBOverHttp implements DatabaseConnection {
         return this.sendQuery(query);
     };
 
-    importFilesFromBrowser = async (files: File[]): Promise<void> => {
+    mountFiles = async (files: File[]): Promise<void> => {
         toast.error('Importing file via Drag and Drop is not yet supported. Please use the CLI to import files.');
     };
 

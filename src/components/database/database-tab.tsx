@@ -14,7 +14,7 @@ export function DatabaseTab(props: DatabaseViewProps) {
     const database = useRelationsState((state) => state.getDatabaseState(props.databaseId), shallow);
 
     if (!database) {
-        return <div>Database not found: {props.databaseId}</div>
+        return <div>Database not found: {props.databaseId}: Available: {Object.keys(useRelationsState.getState().databases)}</div>
     }
 
     return (

@@ -123,8 +123,6 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
 }
 
 export function ClearOpfsButton() {
-
-
     return (
         <Button onClick={clearOPFS}>Clear OPFS</Button>
     )

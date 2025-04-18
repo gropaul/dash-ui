@@ -1,4 +1,4 @@
-import React from "react";
+import React, {Fragment} from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
 import {Database, Folder, Settings} from "lucide-react";
@@ -88,19 +88,17 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
         <div className={'flex-1 h-screen overflow-auto'}>
             <ResizablePanelGroup direction={'vertical'}>
                 {props.selectedTabs.toSorted().reverse().map((tab, index) => (
-                    <>
-                        {index > 0 && <ResizableHandle key={`handle-${tab}`}  />}
+                    <Fragment key={`panel-group-${tab}`}>
+                        {index > 0 && <ResizableHandle />}
                         <ResizablePanel
-                            style={{overflow: 'auto'}}
-                            key={`panel-${tab}`}
+                            style={{ overflow: 'auto' }}
                             minSize={30}
-                            onResize={(size) => setSideBarTabsRatio(size)}
+                            onResize={size => setSideBarTabsRatio(size)}
                             defaultSize={index === 1 ? sideBarTabsRatio : 100 - sideBarTabsRatio}
                         >
                             {renderTabContent(tab)}
                         </ResizablePanel>
-
-                    </>
+                    </Fragment>
                 ))}
             </ResizablePanelGroup>
         </div>

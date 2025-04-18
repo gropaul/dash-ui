@@ -36,7 +36,7 @@ export class DuckdbLocalFilesystem implements DataSourceConnection {
     id: string;
     type: DataSourceConnectionType = 'duckdb-local-filesystem';
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
-    dataSources: DataSource[] = [];
+    dataSources: { [key: string]: DataSource } = {};
 
     constructor(id: string, config: FileSystemOverDuckDBConfig) {
         this.id = id;
@@ -129,20 +129,20 @@ export class DuckdbLocalFilesystem implements DataSourceConnection {
         return root;
     }
 
-    async loadDataSources(): Promise<DataSource[]> {
+    async loadDataSources(): Promise<{ [key: string]: DataSource }> {
         const rootPath = this.config.rootPath;
 
         if (!rootPath) {
             throw new Error('Root path not set, please initialise the connection');
         }
         const rootDataSource: DataSourceGroup = await this.getDirAsDataSource(rootPath, 0);
-        return [rootDataSource];
+        return { [rootDataSource.id]: rootDataSource };
     }
 
     async onDataSourceClick(id_path: string[]) {
 
         const lastId = id_path[id_path.length - 1];
-        const element = findNodeInTrees(this.dataSources, id_path);
+        const element = findNodeInTrees(Object.values(this.dataSources), id_path);
 
         if (!element) {
             console.error(`Element with id ${lastId} not found`);
@@ -164,10 +164,14 @@ export class DuckdbLocalFilesystem implements DataSourceConnection {
         }
     }
 
-    async loadChildrenForDataSource(id_path: string[]): Promise<DataSource[]> {
+    async loadChildrenForDataSource(id_path: string[]): Promise<{ [key: string]: DataSource }> {
         const last_id = id_path[id_path.length - 1];
         const path_root = await this.getDirAsDataSource(last_id, 0);
-        return path_root.children!;
+        const map : { [key: string]: DataSource } = {};
+        path_root.children?.forEach((child) => {
+            map[child.id] = child;
+        });
+        return map;
     }
 
     async updateConfig(new_config: Partial<FileSystemOverDuckDBConfig>): Promise<void> {

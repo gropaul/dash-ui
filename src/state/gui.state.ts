@@ -37,6 +37,9 @@ export interface GUIZustandActions {
 
     setSelectedSidebarTabs: (tabs: AvailableTabs[]) => void;
 
+    relationFileDropEnabled: boolean;
+    setRelationFileDropEnabled: (enabled: boolean) => void;
+
     removeTab(tabId: string): void;
 
     renameTab(tabId: string, newName: string): void;
@@ -89,6 +92,11 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             number: 0,
             mainBarSizeRatio: 25,
             sideBarTabsSizeRatio: 70,
+            relationFileDropEnabled: true,
+
+            setRelationFileDropEnabled: (enabled: boolean) => {
+                set({relationFileDropEnabled: enabled});
+            },
             selectedSidebarTabs: ['connections', 'relations'],
 
             setSideBarTabsSizeRatio: (ratio: number) => {

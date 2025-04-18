@@ -36,6 +36,7 @@ import {
 import {useGUIState} from "@/state/gui.state";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
+import {useSourceConState} from "@/state/connections-source.state";
 
 export interface RelationZustand {
     editorElements: EditorFolder[];
@@ -75,7 +76,7 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     getSchemaState: (schemaId: string) => SchemaState,
 
     /* database actions */
-    showDatabase: (connectionId: string, database: DataSourceGroup) => Promise<void>,
+    showDatabase: (connectionId: string, databaseId: string) => Promise<void>,
     getDatabaseState: (databaseId: string) => DatabaseState,
 
     /* dashboard actions */
@@ -276,23 +277,33 @@ export const useRelationsState = createWithEqualityFn(
                         useGUIState.getState().addSchemaTab(schemaId, schema);
                     }
                 },
-                showDatabase: async (connectionId: string, database: DataSourceGroup) => {
+                showDatabase: async (connectionId: string, databaseId: string) => {
                     const {databases} = get(); // Get the current state
-                    const databaseId = getDatabaseId(connectionId, database.id); // Generate the database ID
+                    const databaseTabId = getDatabaseId(connectionId, databaseId); // Generate the database ID
                     const existingDatabase = databases[databaseId]; // Retrieve the database
                     if (existingDatabase) {
-                        useGUIState.getState().focusTab(databaseId);
+                        useGUIState.getState().focusTab(databaseTabId);
                     } else {
+                        const sourceConnection = useSourceConState.getState().getSourceConnection(connectionId);
+                        const databaseSource = sourceConnection?.dataSources[databaseId]!;
+                        if (!databaseSource) {
+                            throw new Error(`Database ${databaseId} not found`);
+                        }
+                        const database: DatabaseState = {
+                            ...databaseSource as any,
+                            databaseId: databaseTabId,
+                            connectionId,
+                        }
                         set((state) => ({
                             databases: {
                                 ...state.databases,
-                                [databaseId]: {
+                                [databaseTabId]: {
                                     ...database,
                                     connectionId,
                                 }
                             },
                         }));
-                        useGUIState.getState().addDatabaseTab(databaseId, database);
+                        useGUIState.getState().addDatabaseTab(databaseTabId, database);
                     }
                 },
                 getDashboardState: (dashboardId: string) => {

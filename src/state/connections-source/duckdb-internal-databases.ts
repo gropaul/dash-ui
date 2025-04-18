@@ -21,7 +21,7 @@ export class DuckdbInternalDatabases implements DataSourceConnection {
     id: string;
     type: DataSourceConnectionType = 'duckdb-internal-databases';
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
-    dataSources: DataSource[] = [];
+    dataSources: { [key: string]: DataSource } = {};
 
     constructor(id: string, config: DuckdbInternalDatabasesConfig) {
         this.id = id;
@@ -41,7 +41,7 @@ export class DuckdbInternalDatabases implements DataSourceConnection {
         return this.checkConnectionState();
     }
 
-    async loadDataSources(): Promise<DataSource[]> {
+    async loadDataSources(): Promise<{ [key: string]: DataSource }> {
         return loadDuckDBDataSources((query) => this.executeQuery(query));
     }
 
@@ -49,10 +49,10 @@ export class DuckdbInternalDatabases implements DataSourceConnection {
         await onDuckDBDataSourceClick(this, id_path, this.dataSources);
     }
 
-    loadChildrenForDataSource(_id_path: string[]): Promise<DataSource[]> {
+    loadChildrenForDataSource(_id_path: string[]): Promise<{ [key: string]: DataSource }> {
         // not necessary as for dbs all the data is loaded at once!
         console.error('loadChildrenForDataSource not implemented for DuckDBOverHttp');
-        return Promise.resolve([]);
+        return Promise.resolve({});
     }
 
     async updateConfig(config: Partial<DuckdbInternalDatabasesConfig>): Promise<void> {

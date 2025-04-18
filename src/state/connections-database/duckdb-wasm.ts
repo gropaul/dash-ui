@@ -2,7 +2,7 @@ import {RelationData} from "@/model/relation";
 import {DataSource} from "@/model/data-source-connection";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections-database/configs";
-import {importAndShowRelationsWithWASM} from "@/state/connections-database/duckdb-wasm/utils";
+import {mountFilesOnWasm} from "@/state/connections-database/duckdb-wasm/utils";
 import {WasmProvider} from "@/state/connections-database/duckdb-wasm/connection-provider";
 import {normalizeArrowType, ValueType} from "@/components/relation/common/value-icon";
 
@@ -46,8 +46,8 @@ export class DuckDBWasm implements DatabaseConnection {
         return result;
     }
 
-    async importFilesFromBrowser(files: File[]): Promise<void> {
-        await importAndShowRelationsWithWASM(files, this);
+    async mountFiles(files: File[]): Promise<void> {
+        await mountFilesOnWasm(files, this);
         // await updateDataSources(duckDBWasm.id); todo
 
     }
@@ -65,6 +65,7 @@ export class DuckDBWasm implements DatabaseConnection {
                     state: 'error',
                     message: 'Failed to open the local database. This is likely because it is already in use by another browser tab.'
                 };
+                console.error('Failed to open the local database. Message: ', message);
             } else {
                 this.connectionStatus = {state: 'error', message: e.message};
             }

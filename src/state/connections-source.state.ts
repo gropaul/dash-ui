@@ -21,7 +21,7 @@ export interface SourceConnectionZustand {
     removeConnection: (connectionId: string) => void;
 
     updateConfig: (connectionId: string, config: DataConnectionConfig) => Promise<void>;
-    loadAllDataSources: (connectionId: string) => Promise<DataSource[]>;
+    loadAllDataSources: (connectionId: string) => Promise<{ [key: string]: DataSource }>;
     loadChildrenForDataSource: (connectionId: string, id_path: string[]) => Promise<DataSourceGroup | undefined>;
 
     refreshConnection: (connectionId: string) => Promise<void>;
@@ -145,7 +145,7 @@ export const useSourceConState = createWithEqualityFn<SourceConnectionZustand>((
             get().setConnectionError(connectionId, new Error(`Connection with id ${connectionId} not found`));
         }
 
-        let dataSources: DataSource[] = [];
+        let dataSources: {[key: string]: DataSource} = {};
         try {
             dataSources = await connection.loadDataSources();
         } catch (e: any) {
@@ -173,7 +173,7 @@ export const useSourceConState = createWithEqualityFn<SourceConnectionZustand>((
             get().setConnectionError(connectionId, new Error(`Connection with id ${connectionId} not found`));
         }
         // Fetch the new data sources
-        let children: DataSource[] = [];
+        let children: {[key: string]: DataSource} = {};
         try {
             children = await connection.loadChildrenForDataSource(id_path);
         } catch (e: any) {
@@ -181,13 +181,13 @@ export const useSourceConState = createWithEqualityFn<SourceConnectionZustand>((
         }
 
         const currentDataSources = connection.dataSources;
-        const dataSourceToLoadChildrenFor = findNodeInTrees(currentDataSources, id_path);
+        const dataSourceToLoadChildrenFor = findNodeInTrees(Object.values(currentDataSources), id_path);
 
         if (!dataSourceToLoadChildrenFor) {
             get().setConnectionError(connectionId, new Error(`Data source with id path ${id_path} not found`));
             return undefined;
         } else {
-            dataSourceToLoadChildrenFor.children = children;
+            dataSourceToLoadChildrenFor.children = Object.values(children);
         }
 
         set((state) => ({

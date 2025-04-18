@@ -28,9 +28,9 @@ export interface DataSourceConnection {
     initialise: () => Promise<ConnectionStatus>;
     checkConnectionState: () => Promise<ConnectionStatus>;
 
-    dataSources: DataSource[];
-    loadDataSources: () => Promise<DataSource[]>;
-    loadChildrenForDataSource: (id_path: string[]) => Promise<DataSource[]>;
+    dataSources: { [key: string]: DataSource };
+    loadDataSources: () => Promise<{ [key: string]: DataSource }>;
+    loadChildrenForDataSource: (id_path: string[]) => Promise<{ [key: string]: DataSource }>;
     onDataSourceClick: (id_path: string[]) => void;
     dataSourceContextMenuFactory?: TreeContextMenuFactory;
 

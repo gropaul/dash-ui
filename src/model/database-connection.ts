@@ -42,7 +42,7 @@ export interface DatabaseConnection {
     updateConfig: (config: Partial<DataConnectionConfig>) => void;
 
     executeQuery: (query: string) => Promise<RelationData>;
-    importFilesFromBrowser: (files: File[]) => Promise<void>;
+    mountFiles: (files: File[]) => Promise<void>;
 
     destroy: () => Promise<void>;
 }

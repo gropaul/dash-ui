@@ -11,25 +11,44 @@ import {AttachDatabaseDialog, DialogResult} from "@/components/connections/attac
 import {ConnectionsService} from "@/state/connections-service";
 import {attachDatabase} from "@/state/connections-source/duckdb-helper";
 import {clearOPFS} from "@/state/connections-database/duckdb-wasm/connection-provider";
+import {useGUIState} from "@/state/gui.state";
 
 const IS_DEBUG = process.env.NODE_ENV === 'development';
 
 export function ConnectionsOverviewTab() {
     const connections = useSourceConState((state) => state.connections);
 
-    const [isAttachDatabaseDialogOpen, setAttachDatabaseDialogOpen] = React.useState(false);
+    const [isAttachDatabaseDialogOpen, setIsDatabaseDialogOpenInternal] = React.useState(false);
 
+    function setAttachDatabaseDialogOpen(open: boolean) {
+        setIsDatabaseDialogOpenInternal(open);
+        useGUIState.getState().setRelationFileDropEnabled(!open);
+    }
     function onAttachDatabaseClicked() {
         setAttachDatabaseDialogOpen(true);
     }
 
-    function onAttachDatabaseSubmit(result: DialogResult) {
+    async function onAttachDatabaseSubmit(result: DialogResult) {
         if (ConnectionsService.getInstance().hasDatabaseConnection()) {
             const db = ConnectionsService.getInstance().getDatabaseConnection();
-            attachDatabase(result.url, (query) => db.executeQuery(query)).then(() => {
-                toast.success(`Database ${result.url} attached successfully.`);
+            let fileName = '';
+            if (result.url) {
+                fileName = result.url;
+            }
+            if (result.file) {
+                await db.mountFiles([result.file]);
+                fileName = result.file.name;
+            }
+
+            if (!fileName) {
+                toast.error('No file or URL provided.');
+                return;
+            }
+
+            attachDatabase(fileName, (query) => db.executeQuery(query)).then(() => {
+                toast.success(`Database ${fileName} attached successfully.`);
             }).catch((error) => {
-                toast.error(`Failed to attach database from ${result.url}: ${error.message}`);
+                toast.error(`Failed to attach database from ${fileName}: ${error.message}`);
             });
         }
     }
