@@ -7,6 +7,7 @@ import React from 'react';
 import ReactECharts from 'echarts-for-react';
 import {EChartsOption} from "echarts-for-react/src/types";
 import {toEChartOptions} from "@/components/relation/chart/echart-utils";
+import {cn} from "@/lib/utils";
 
 export interface MyChartProps {
     embedded?: boolean,
@@ -18,10 +19,12 @@ export interface MyChartProps {
 export function ChartContent({data, config, hideTitleIfEmpty = false, embedded = false}: MyChartProps) {
     const option: EChartsOption = toEChartOptions(config, data);
 
+    const heightClass = embedded ? '24rem' : '100%';
+
     console.log('EChartsOption', option);
     return (
-        <div className="h-full flex flex-col items-center relative">
-            <ReactECharts notMerge={true} option={option} style={{height: '100%', width: '100%'}} lazyUpdate={true}/>
+        <div className="h-full w-full flex flex-col items-center relative">
+            <ReactECharts notMerge={true} option={option} style={{height: heightClass, width: '100%'}} lazyUpdate={true}/>
         </div>
     )
 }
