@@ -12,6 +12,11 @@ interface ChartConfigDialogProps extends RelationViewProps {
 
 export function ChartConfigDialog(props: ChartConfigDialogProps) {
 
+    const propsCopy = {
+        ...props,
+        embedded: false,
+    }
+
     return (
         <Dialog
             open={props.isOpen}
@@ -24,7 +29,7 @@ export function ChartConfigDialog(props: ChartConfigDialogProps) {
                     <ResizablePanel
                         defaultSize={70}
                     >
-                        <ChartContentWrapper showOverlay={false} {...props}/>
+                        <ChartContentWrapper {...propsCopy} showOverlay={false} />
                     </ResizablePanel>
                     <ResizableHandle/>
                     <ResizablePanel
