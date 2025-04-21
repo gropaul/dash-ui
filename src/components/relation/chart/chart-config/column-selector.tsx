@@ -50,7 +50,7 @@ export function ColumnSelector(props: ColumnSelectorProps) {
                     <div/>
                     <DataAxisDecorationMenu
                         plotType={props.plotType}
-                        decoration={axis?.decoration ?? getInitialAxisDecoration()}
+                        decoration={axis?.decoration ?? getInitialAxisDecoration(0)}
                         setDecoration={updateAxisDecoration}
                     />
                 </>
