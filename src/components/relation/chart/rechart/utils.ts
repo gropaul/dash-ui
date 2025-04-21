@@ -11,6 +11,7 @@ export function  getReChartDataFromConfig(data: RelationData, config: ChartConfi
     for (const yAxis of config.plot.cartesian.yAxes ?? []) {
         neededColumns.push(yAxis.columnId);
     }
+
     return getReChartDataFromRelation(data, neededColumns);
 }
 

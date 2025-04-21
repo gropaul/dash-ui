@@ -26,7 +26,7 @@ export function ChartColumnSelector(props: ChartConfigProps) {
 
         // if not decoraction is set, set default decoration
         if (!axis.decoration) {
-            axis.decoration = getInitialAxisDecoration()
+            axis.decoration = getInitialAxisDecoration(0)
         }
         props.updateRelationViewState(relationId, {
             chartState: {

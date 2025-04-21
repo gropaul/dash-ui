@@ -1,13 +1,14 @@
 import {Label} from "@/components/ui/label";
 import {H5, Muted, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
-import {DEFAULT_COLORS} from "@/platform/global-data";
 import {CirclePlus} from "lucide-react";
 import {AxisConfig, AxisRange, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 import {Column} from "@/model/column";
 import {Input} from "@/components/ui/input";
 import {Separator} from "@/components/ui/separator";
+import {Switch} from "@/components/ui/switch";
+import React from "react";
 
 
 export function ConfigViewCartesian(props: ChartConfigProps) {
@@ -115,6 +116,24 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         });
     }
 
+    function updateBar(update: {stacked?: boolean}) {
+        props.updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        cartesian: {
+                            decoration: {
+                                bar: {
+                                    stacked: update.stacked,
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     const columns = props.relationState?.data?.columns ?? ([] as Column[]);
 
     return (
@@ -145,7 +164,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     columns={columns}
                     updateAxis={(update) =>
                         updateYAxis(0, {
-                            decoration: getInitialAxisDecoration(),
+                            decoration: getInitialAxisDecoration(0),
                             ...update,
                         })
                     }
@@ -156,8 +175,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                 onClick={() =>
                     updateYAxis(config.chart.plot.cartesian.yAxes!.length, {
                         decoration: {
-                            ...getInitialAxisDecoration(),
-                            color: DEFAULT_COLORS[config.chart.plot.cartesian.yAxes!.length % DEFAULT_COLORS.length],
+                            ...getInitialAxisDecoration(config.chart.plot.cartesian.yAxes!.length),
                         },
                     })
                 }
@@ -185,7 +203,15 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     range={config.chart.plot.cartesian.xRange}
                     updateRange={(range) => updateAxisRange(range, 'xRange')}
                 />
-
+                {
+                    config.chart.plot.type == 'bar' && <div className={'flex flex-row gap-2 items-center'}>
+                        <Muted>Stacked</Muted>
+                        <Switch
+                            checked={config.chart.plot.cartesian?.decoration?.bar?.stacked}
+                            onCheckedChange={(checked) => updateBar({stacked: checked})}
+                        />
+                    </div>
+                }
                 <div className={'pb-1'}>
                     <H5>Y-Axis</H5>
                     <Separator/>
@@ -213,21 +239,21 @@ export interface AxisRangeWidgetProps {
 }
 
 
+// get as number, undefined if not a number or empty
+export function parseString(value: string): number | undefined {
+    if (value === '') {
+        return undefined;
+    } else {
+        const num = Number(value);
+        return isNaN(num) ? undefined : num;
+    }
+}
+
 export function AxisRangeWidget(props: AxisRangeWidgetProps) {
 
     let localRange = props.range;
     if (!localRange) {
         localRange = {};
-    }
-
-    // get as number, undefined if not a number or empty
-    function parseString(value: string): number | undefined {
-        if (value === '') {
-            return undefined;
-        } else {
-            const num = Number(value);
-            return isNaN(num) ? undefined : num;
-        }
     }
 
     function updateStart(start: string) {

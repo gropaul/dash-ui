@@ -3,7 +3,7 @@ import {RelationData} from "@/model/relation";
 import {DEFAULT_COLORS} from "@/platform/global-data";
 
 export type PlotType = 'bar' | 'area' | 'line' | 'scatter' | 'pie' | 'radar';
-export const AVAILABLE_PLOT_TYPES: PlotType[] = ["bar", "area", "line", "scatter", "pie", "radar"]
+export const AVAILABLE_PLOT_TYPES: PlotType[] = ["bar", "scatter", "line", "area", "pie", "radar"]
 
 export interface AxisConfig {
     label: string;
@@ -18,12 +18,17 @@ export interface AxisDecoration {
     /**
      * Base color for the series (used as a fallback or main color).
      */
-    color: string;
+    color: string; //todo: this must be the bar/stroke color
 
     /**
      * Decoration settings specific to Line plots
      */
     line: LineAxisDecoration;
+
+    /**
+     * Decoration settings specific to Area plots, takes stroke and dots from line
+     */
+    area: AreaAxisDecoration;
 
     /**
      * Decoration settings specific to Bar plots
@@ -45,25 +50,45 @@ export interface AxisDecoration {
      */
     radar: RadarAxisDecoration;
 
-    /**
-     * Decoration settings specific to Area plots
-     */
-    area: AreaAxisDecoration;
 }
 
 /* -------------------------------------------------------------------------- */
 /* LINE */
 /* -------------------------------------------------------------------------- */
 
+
+export interface StrokeDecoration {
+    width?: number;
+    color: string;
+    dashArray?: string;
+}
+
+export const DEFAULT_STROKE_DECORATION: StrokeDecoration = {
+    width: 2,
+    color: '#000000',
+    dashArray: 'none',
+}
+
+export type DotsShape = 'circle' | 'square' | 'triangle' | 'diamond';
+
+export interface DotsDecoration {
+    visible: boolean;
+    fill: string;
+    radius?: number;
+    borderWidth?: number;
+    shape: DotsShape;
+}
+
+export const DEFAULT_DOTS_DECORATION: DotsDecoration = {
+    visible: true,
+    fill: 'white',
+    radius: 6,
+    borderWidth: 0,
+    shape: 'circle',
+}
+
 export interface LineAxisDecoration {
-    strokeWidth: number;
-    strokeDasharray: string;
-    dots: {
-        visible: boolean;
-        fill: string;
-        radius: number;
-        borderWidth: number;
-    };
+    stroke: StrokeDecoration,
 }
 
 /* -------------------------------------------------------------------------- */
@@ -81,12 +106,7 @@ export interface BarAxisDecoration {
      * Width of each bar in pixels.
      * In Recharts, this can be passed to <Bar> as `barSize`.
      */
-    barWidth: number;
-    /**
-     * Whether to stack multiple bars that share the same x-axis value
-     * (implemented by passing `stackId` on <Bar>).
-     */
-    stacked: boolean;
+    barWidth?: number;
     /**
      * Corner radius for rounded bars
      * (used on <Bar> as `radius`).
@@ -114,23 +134,7 @@ export interface BarAxisDecoration {
 */
 
 export interface ScatterAxisDecoration {
-    /**
-     * Built-in shape name used by Recharts.
-     * Valid strings (in Recharts) include "circle", "cross", "diamond",
-     * "square", "star", "triangle", and "wye".
-     */
-    shape: 'circle' | 'square' | 'triangle' | 'diamond';
-    /**
-     * Stroke around each point (maps to <Scatter stroke / strokeWidth>).
-     */
-    stroke: {
-        width: number;
-        color: string;
-    };
-    /**
-     * Opacity (0 to 1) for the scatter points.
-     */
-    fillOpacity: number;
+    dots: DotsDecoration,
 }
 
 /* -------------------------------------------------------------------------- */
@@ -195,52 +199,54 @@ export interface RadarAxisDecoration {
 /* AREA */
 /* -------------------------------------------------------------------------- */
 
+export interface FillDecoration {
+    color: string;
+    opacity?: number;
+}
+
+export const DEFAULT_FILL_DECORATION: FillDecoration = {
+    color: '#000000',
+    opacity: 0.2,
+}
+
 export interface AreaAxisDecoration {
-    /**
-     * Stroke settings for the line around the area
-     */
-    stroke: {
-        width: number;
-        dasharray: string;
-    };
-    /**
-     * Fill color of the area
-     */
-    fillColor: string;
-    /**
-     * Opacity of the fill (0 to 1)
-     */
-    fillOpacity: number;
-    /**
-     * Show or hide dots on the area boundary
-     */
-    showDots: boolean;
-    dotSize: number;
-    dotColor: string;
-    dotBorderWidth: number;
+    fill: FillDecoration;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Defaults */
 /* -------------------------------------------------------------------------- */
 
-export function getInitialAxisDecoration(): AxisDecoration {
+export function getInitialAxisDecoration(yIndex: number): AxisDecoration {
+    const base_color = DEFAULT_COLORS[yIndex % DEFAULT_COLORS.length]
     return {
-        color: DEFAULT_COLORS[0],
-        line: {
-            strokeWidth: 2,
-            strokeDasharray: 'none',
+        color: base_color,
+
+        scatter: {
             dots: {
+                shape: 'circle',
                 visible: true,
-                fill: DEFAULT_COLORS[0],
+                fill: base_color,
                 radius: 6,
                 borderWidth: 0,
             },
         },
+        line: {
+            stroke: {
+                color: base_color,
+                width: 2,
+                dashArray: 'none',
+            }
+        },
+        // takes stroke and dots from the line decoration
+        area: {
+            fill: {
+                color: base_color,
+                opacity: 0.2,
+            }
+        },
 
         bar: {
-            barWidth: 20, // default pixel width; adjust as needed
-            stacked: false,
             cornerRadius: 4,
             fillOpacity: 1,
             border: {
@@ -249,14 +255,6 @@ export function getInitialAxisDecoration(): AxisDecoration {
             },
         },
 
-        scatter: {
-            shape: 'circle',
-            stroke: {
-                width: 2,
-                color: '#333333',
-            },
-            fillOpacity: 1,
-        },
 
         pie: {
             innerRadius: 0,
@@ -272,26 +270,14 @@ export function getInitialAxisDecoration(): AxisDecoration {
 
         radar: {
             strokeWidth: 2,
-            fillColor: DEFAULT_COLORS[0],
+            fillColor: base_color,
             fillOpacity: 0.2,
             showDots: true,
             dotSize: 6,
-            dotColor: DEFAULT_COLORS[0],
+            dotColor: base_color,
             dotBorderWidth: 1,
         },
 
-        area: {
-            stroke: {
-                width: 2,
-                dasharray: 'none',
-            },
-            fillColor: DEFAULT_COLORS[0],
-            fillOpacity: 0.2,
-            showDots: true,
-            dotSize: 6,
-            dotColor: DEFAULT_COLORS[0],
-            dotBorderWidth: 0,
-        },
     };
 }
 
@@ -343,6 +329,16 @@ export interface CartesianPlotConfig {
 
     xRange: AxisRange;
     yRange: AxisRange;
+
+    decoration: CartesianPlotDecoration;
+}
+
+interface CartesianPlotDecoration {
+    bar: BarPlotDecoration;
+}
+
+interface BarPlotDecoration {
+    stacked: boolean;
 }
 
 // plot type: pie
@@ -373,7 +369,12 @@ export function getInitialChartViewStateEmpty(): ChartViewState {
                 type: 'bar',
                 cartesian: {
                     xRange: {},
-                    yRange: {}
+                    yRange: {},
+                    decoration: {
+                        bar: {
+                            stacked: false
+                        }
+                    }
                 },
                 pie: {
                     axis: {}
@@ -395,7 +396,12 @@ export function getInitialChartViewState(data: RelationData): ChartViewState {
                 type: 'bar',
                 cartesian: {
                     xRange: {},
-                    yRange: {}
+                    yRange: {},
+                    decoration: {
+                        bar: {
+                            stacked: false
+                        }
+                    }
                 },
                 pie: {
                     axis: {}

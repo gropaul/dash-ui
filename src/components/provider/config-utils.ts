@@ -14,7 +14,7 @@ function XorDecrypt(key: string, data: string) {
 function parseConnectionParams(urlParams: URLSearchParams): DBConnectionSpec | undefined {
     // first get the "api" parameter
     if (!urlParams.has('api')) {
-        console.error('No API parameter found');
+        console.info('No API parameter found');
         return undefined;
     }
 

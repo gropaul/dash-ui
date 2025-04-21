@@ -28,17 +28,15 @@ export function ConnectionStringField({formData, hasError}: FormFieldCustomProps
             return "invalid url"
         }
 
-
-        if (formData.useAuthentication) {
+        if (formData.useToken) {
             let token = formData.token
             if (hide_secrets) {
                 token = '********';
             }
-            start_server = `CALL start_dash('127.0.0.1', ${port}, api_key='${token}');`;
+            start_server = `CALL start_dash('127.0.0.1', ${port}, enable_cors=true, api_key='${token}');`;
         } else {
-            start_server = `CALL start_dash('127.0.0.1', ${port});`;
+            start_server = `CALL start_dash('127.0.0.1', ${port}, enable_cors=true);`;
         }
-
         return `${install}\n${start_server}`;
     }
 
