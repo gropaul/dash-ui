@@ -327,6 +327,9 @@ export interface CartesianPlotConfig {
     xLabel?: string;
     yLabel?: string;
 
+    xLabelRotation?: number;
+    yLabelRotation?: number;
+
     xRange: AxisRange;
     yRange: AxisRange;
 

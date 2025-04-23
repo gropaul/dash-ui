@@ -116,6 +116,34 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         });
     }
 
+    function updateXTickAngle(angle: string) {
+        props.updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        cartesian: {
+                            xLabelRotation: parseString(angle),
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateYTickAngle(angle: string) {
+        props.updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        cartesian: {
+                            yLabelRotation: parseString(angle),
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     function updateBar(update: {stacked?: boolean}) {
         props.updateRelationViewState(relationId, {
             chartState: {
@@ -192,10 +220,11 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     <H5>X-Axis</H5>
                     <Separator/>
                 </div>
+                <Label className={'h-3'}><Muted>Label</Muted></Label>
                 <Input
                     type="text"
                     id="x-axis-label"
-                    placeholder="Label"
+                    placeholder="None"
                     value={config.chart.plot.cartesian.xLabel}
                     onChange={(e) => updateXLabel(e.target.value)}
                 />
@@ -203,29 +232,53 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     range={config.chart.plot.cartesian.xRange}
                     updateRange={(range) => updateAxisRange(range, 'xRange')}
                 />
+                <Label className={'h-3'}><Muted>Tick Angle</Muted></Label>
+                <Input
+                    type="number"
+                    id="x-tick-angle"
+                    min={-90}
+                    max={90}
+                    step={1}
+                    placeholder="0"
+                    value={config.chart.plot.cartesian?.xLabelRotation ?? ''}
+                    onChange={(e) => updateXTickAngle(e.target.value)}
+                />
                 {
                     config.chart.plot.type == 'bar' && <div className={'flex flex-row gap-2 items-center'}>
-                        <Muted>Stacked</Muted>
+                        <Muted>Stacked Bars</Muted>
                         <Switch
                             checked={config.chart.plot.cartesian?.decoration?.bar?.stacked}
                             onCheckedChange={(checked) => updateBar({stacked: checked})}
                         />
                     </div>
                 }
+
                 <div className={'pb-1'}>
                     <H5>Y-Axis</H5>
                     <Separator/>
                 </div>
+                <Label className={'h-3'}><Muted>Label</Muted></Label>
                 <Input
                     type="text"
                     id="y-axis-label"
-                    placeholder="Label"
+                    placeholder="None"
                     value={config.chart.plot.cartesian.yLabel}
                     onChange={(e) => updateYLabel(e.target.value)}
                 />
                 <AxisRangeWidget
                     range={config.chart.plot.cartesian.yRange}
                     updateRange={(range) => updateAxisRange(range, 'yRange')}
+                />
+                <Label className={'h-3'}><Muted>Tick Angle</Muted></Label>
+                <Input
+                    type="number"
+                    id="y-tick-angle"
+                    min={-90}
+                    max={90}
+                    step={1}
+                    placeholder="0"
+                    value={config.chart.plot.cartesian?.yLabelRotation ?? ''}
+                    onChange={(e) => updateYTickAngle(e.target.value)}
                 />
             </>}
         </>

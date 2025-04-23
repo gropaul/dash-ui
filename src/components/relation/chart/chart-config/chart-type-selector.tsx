@@ -89,7 +89,7 @@ export function ChartTypeIcon(props: { type: PlotType }) {
         case "line":
             return <ChartLine />
         case "bar":
-            return <ChartBar />
+            return <ChartBar className={"rotate-90 scale-x-[-1]"} />
         case "area":
             return <ChartArea />
         case "scatter":

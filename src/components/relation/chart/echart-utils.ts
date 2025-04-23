@@ -21,6 +21,9 @@ export function toEChartOptions(
             orient: 'horizontal',
             top: 24, // Adjust so it's below the title
         },
+        grid: {
+            containLabel: true,
+        }
     }
 
     const idToIndex = new Map<string, number>(
@@ -99,6 +102,7 @@ export function toEChartOptions(
             xAxis.name = cartesian.xLabel
             xAxis.nameLocation = 'center';
             xAxis.nameGap = 30;
+
         }
         if (cartesian.xRange.start !== undefined) {
             xAxis.min = cartesian.xRange.start;
@@ -109,6 +113,12 @@ export function toEChartOptions(
             xAxis.max = cartesian.xRange.end;
         } else {
             xAxis.max = 'dataMax';
+        }
+        if (cartesian?.xLabelRotation) {
+            xAxis.axisLabel = {
+                interval: 0,
+                rotate: cartesian.xLabelRotation,
+            }
         }
 
         const yAxis: any = {type: "value"};
@@ -122,6 +132,12 @@ export function toEChartOptions(
             yAxis.max = cartesian.yRange.end;
         } else {
             yAxis.max = 'dataMax';
+        }
+        if (cartesian?.yLabelRotation) {
+            yAxis.axisLabel = {
+                interval: 0,
+                rotate: cartesian.yLabelRotation,
+            }
         }
 
         const series = getSeries(plot, valueVector);
