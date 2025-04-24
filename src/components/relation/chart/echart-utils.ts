@@ -13,16 +13,20 @@ export function toEChartOptions(
         title: {
             text: plot.title ? plot.title : '',
             left: 'center',
-            top: 0, // You can also use '10px' or a number like 10
+            top: 4, // You can also use '10px' or a number like 10
         },
         tooltip: { trigger: 'axis' },
         legend: {
             selectedMode: true,
             orient: 'horizontal',
-            top: 24, // Adjust so it's below the title
+            top: 28, // Adjust so it's below the title
         },
         grid: {
             containLabel: true,
+            left: '3%',
+            right: '3%',
+            bottom: '3%',
+            top: '15%'
         }
     }
 
