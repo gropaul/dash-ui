@@ -1,7 +1,7 @@
 import {Label} from "@/components/ui/label";
 import {Switch} from "@/components/ui/switch";
 import {Input} from "@/components/ui/input";
-import {ColorSubMenu} from "@/components/relation/chart/chart-config/data-axis-decoration-menu";
+import {ColorSubMenu} from "@/components/relation/chart/chart-config/color-sub-menu";
 import React from "react";
 import {
     DEFAULT_DOTS_DECORATION,

@@ -1,4 +1,4 @@
-import {ColorSubMenu} from "@/components/relation/chart/chart-config/data-axis-decoration-menu";
+import {ColorSubMenu} from "@/components/relation/chart/chart-config/color-sub-menu";
 import {Input} from "@/components/ui/input";
 import {DEFAULT_FILL_DECORATION, FillDecoration} from "@/model/relation-view-state/chart";
 
