@@ -61,6 +61,7 @@ export interface TableViewQueryParameters {
 export interface ChartTableQueryParameters {
     xAxis?: string;   // the name of the column to use as x-axis
     yAxes?: string[]; // the names of the columns to use as y-axes
+    groupBy?: string; // the names of the columns to use as group by
 }
 
 
@@ -208,8 +209,19 @@ function buildQueries(
     };
 }
 
+`
+WITH data AS (SELECT _last_update, extension, downloads_last_week
+  FROM "download_data"."main"."downloads"
+  WHERE extension IN ('flockmtl', 'quack', 'hostfs') ORDER BY "_last_update"
+  ) 
+PIVOT data
+ON extension
+USING AVG(downloads_last_week);
+`
 export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): string {
     const chartViewParams = viewParams.chart;
+
+    console.log('chartViewParams', chartViewParams);
 
     return `
         SELECT *

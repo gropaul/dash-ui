@@ -4,7 +4,7 @@ import {DBConnectionSpec, specToConnection, typeToLabel} from "@/state/connectio
 import {DatabaseConnection} from "@/model/database-connection";
 import {useEffect, useState} from "react";
 import {DuckDBOverHttpConfig} from "@/state/connections-database/duckdb-over-http";
-import {Eye, EyeOff} from "lucide-react";
+import {Eye, EyeOff, Trash2} from "lucide-react";
 
 
 
@@ -25,6 +25,7 @@ export function ObscurableString(props: { value: string }) {
 export interface DBConnectionPreviewProps {
     connection: DatabaseConnection;
     onClick?: () => void;
+    onDelete?: () => void;
 }
 
 export function DBConnectionPreview(props: DBConnectionPreviewProps) {
@@ -64,9 +65,20 @@ export function DBConnectionPreview(props: DBConnectionPreviewProps) {
                     <div className="font-bold">{typeToLabel(props.connection.type)}</div>
                     {getDetails(props.connection)}
                 </div>
-                <div>
+                <div className="flex items-center space-x-2">
                     {working === true && <div>✅</div>}
                     {working === false && <div>❌</div>}
+                    {props.onDelete && (
+                        <div 
+                            className="cursor-pointer text-gray-500 hover:text-red-500"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                props.onDelete?.();
+                            }}
+                        >
+                            <Trash2 size={16} />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -80,6 +92,7 @@ export interface ConnectionHistoryProps {
 
 export function ConnectionHistory(props: ConnectionHistoryProps) {
     let history = useDatabaseConState(state => state.history);
+    const deleteConnectionFromHistory = useDatabaseConState(state => state.deleteConnectionFromHistory);
     const historyLength = history.length;
 
     // repeat each element in the history array 10 times
@@ -97,6 +110,7 @@ export function ConnectionHistory(props: ConnectionHistoryProps) {
                                 <DBConnectionPreview
                                     onClick={() => props.onSpecSelected(spec)}
                                     connection={specToConnection(spec)}
+                                    onDelete={() => deleteConnectionFromHistory(index)}
                                     key={index}
                                 />
                             );

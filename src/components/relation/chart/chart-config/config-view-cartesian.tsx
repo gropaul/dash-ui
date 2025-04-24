@@ -1,7 +1,7 @@
 import {Label} from "@/components/ui/label";
 import {H5, Muted, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
-import {CirclePlus} from "lucide-react";
+import {CirclePlus, Info, Lock} from "lucide-react";
 import {AxisConfig, AxisRange, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 import {Column} from "@/model/column";
@@ -9,6 +9,10 @@ import {Input} from "@/components/ui/input";
 import {Separator} from "@/components/ui/separator";
 import {Switch} from "@/components/ui/switch";
 import React from "react";
+import {Button} from "@/components/ui/button";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
+import {RelationViewState} from "@/model/relation-view-state";
 
 
 export function ConfigViewCartesian(props: ChartConfigProps) {
@@ -18,24 +22,12 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     const relationId = props.relationState.id;
 
     function deleteYAxis(index: number) {
-        const yAxes = config.chart.plot.cartesian.yAxes ?? ([] as Partial<AxisConfig>[]);
-        yAxes.splice(index, 1);
-        props.updateRelationViewState(relationId, {
-            chartState: {
-                chart: {
-                    plot: {
-                        cartesian: {
-                            // @ts-ignore
-                            yAxes: yAxes,
-                        }
-                    },
-                },
-            },
-        });
+        updateYAxis(index, undefined);
     }
 
-    function updateXAxis(axis: Partial<AxisConfig>) {
-        props.updateRelationViewState(relationId, {
+    async function updateXAxis(axis: Partial<AxisConfig> | undefined) {
+
+        const newState: DeepPartial<RelationViewState> = {
             chartState: {
                 chart: {
                     plot: {
@@ -46,7 +38,10 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     }
                 }
             }
-        });
+        }
+        await updateDataForGroupBy(newState);
+
+        props.updateRelationViewState(relationId, newState);
     }
 
     function updateAxisRange(range: AxisRange, axis: 'xRange' | 'yRange') {
@@ -63,9 +58,15 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         });
     }
 
-    function updateYAxis(index: number, update: Partial<AxisConfig>) {
+    async function updateYAxis(index: number, update: Partial<AxisConfig> | undefined) {
         const yAxes = config.chart.plot.cartesian.yAxes ?? ([] as Partial<AxisConfig>[]);
-        if (yAxes.length <= index) {
+
+        if (update === undefined) {
+            // Delete the axis at the specified index
+            if (index < yAxes.length) {
+                yAxes.splice(index, 1);
+            }
+        } else if (yAxes.length <= index) {
             yAxes.push(update);
         } else {
             yAxes[index] = {
@@ -73,8 +74,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                 ...update,
             };
         }
-
-        props.updateRelationViewState(relationId, {
+        const newState: DeepPartial<RelationViewState> = {
             chartState: {
                 chart: {
                     plot: {
@@ -85,7 +85,10 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     }
                 }
             }
-        });
+        }
+
+        await updateDataForGroupBy(newState);
+        props.updateRelationViewState(relationId, newState);
     }
 
     function updateXLabel(label: string) {
@@ -144,7 +147,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         });
     }
 
-    function updateBar(update: {stacked?: boolean}) {
+    function updateBar(update: { stacked?: boolean }) {
         props.updateRelationViewState(relationId, {
             chartState: {
                 chart: {
@@ -162,7 +165,63 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         });
     }
 
+    async function updateDataForGroupBy(update: DeepPartial<RelationViewState>) {
+
+        const copy = deepClone(update);
+        const updated = safeDeepUpdate( props.relationState.viewState, copy);
+
+        const xAxisId = updated.chartState?.chart?.plot?.cartesian?.xAxis?.columnId;
+        const yAxisId = updated.chartState?.chart?.plot?.cartesian?.yAxes?.[0]?.columnId;
+        const groupById = updated.chartState?.chart?.plot?.cartesian?.groupBy?.columnId;
+
+        console.log('groupById', groupById);
+
+        const xAxisChanged = props.relationState.query.viewParameters.chart.xAxis !== xAxisId;
+        const yAxisChanged = props.relationState.query.viewParameters.chart.yAxes?.[0] !== yAxisId;
+        const groupByChanged = props.relationState.query.viewParameters.chart.groupBy !== groupById;
+
+        // Only update if the groupById is different and all data is ready
+        if ((xAxisChanged || yAxisChanged || groupByChanged) && xAxisId && yAxisId) {
+            await props.updateRelationDataWithParams(relationId, {
+                ...props.relationState.query.viewParameters,
+                chart: {
+                    xAxis: xAxisId,
+                    yAxes: [yAxisId],
+                    groupBy: groupById,
+                }
+            })
+        }
+    }
+
+    async function updateGroupAxis(update: Partial<AxisConfig> | undefined) {
+
+        const newState: DeepPartial<RelationViewState> = {
+            chartState: {
+                chart: {
+                    plot: {
+                        cartesian: {
+                            // @ts-ignore
+                            groupBy: update
+                        }
+                    }
+                }
+            }
+        }
+
+        await updateDataForGroupBy(newState);
+        props.updateRelationViewState(relationId, newState);
+
+
+    }
+
     const columns = props.relationState?.data?.columns ?? ([] as Column[]);
+
+    const yAxis = config.chart.plot.cartesian.yAxes;
+
+    const showStackedBars = config.chart.plot.type == 'bar' && (yAxis?.length ?? 0) > 1;
+    const showGroupBy = config.chart.plot.type !== 'radar' && (yAxis == undefined || yAxis?.length == 0 || yAxis?.length === 1);
+
+    const disableAddYAxis = config.chart.plot.cartesian.groupBy !== undefined;
 
     return (
         <>
@@ -172,9 +231,10 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                 axisType={"x"}
                 axis={config.chart.plot.cartesian.xAxis}
                 columns={columns}
+                deleteAxis={() => updateXAxis(undefined)}
                 updateAxis={(update) => updateXAxis(update)}
             />
-            {config.chart.plot.cartesian.yAxes?.map((yAxis, index) => (
+            {yAxis?.map((yAxis, index) => (
                 <ColumnSelector
                     plotType={config.chart.plot.type}
                     axisType={"y"}
@@ -199,22 +259,55 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                 />
             )}
 
-            <button
-                onClick={() =>
-                    updateYAxis(config.chart.plot.cartesian.yAxes!.length, {
-                        decoration: {
-                            ...getInitialAxisDecoration(config.chart.plot.cartesian.yAxes!.length),
-                        },
-                    })
-                }
-                className="flex items-center gap-2 p-2 shrink-0"
-            >
-                <div className="w-4 h-4 mr-1 flex items-center justify-center">
-                    <CirclePlus size={16} className="text-gray-500"/>
-                </div>
-                <Small className="text-gray-500">Add Y-Axis</Small>
-            </button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={disableAddYAxis}
+                            className="w-auto justify-start px-2"
+                            onClick={() =>
+                                updateYAxis(config.chart.plot.cartesian.yAxes!.length, {
+                                    decoration: {
+                                        ...getInitialAxisDecoration(config.chart.plot.cartesian.yAxes!.length),
+                                    },
+                                })
+                            }
+                        >
+                            <div className="w-4 h-4 mr-1 flex items-center justify-center">
+                                {
+                                    disableAddYAxis
+                                        ? <Lock className="w-4 h-4 text-muted-foreground"/>
+                                        : <CirclePlus className="w-4 h-4 text-muted-foreground"/>
+                                }
 
+                            </div>
+                            <Small className="text-gray-500">Add Y-Axis</Small>
+                        </Button>
+
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <div className="text-sm">
+                            {disableAddYAxis
+                                ? "You can only add one Y-Axis if you have a group by column."
+                                : "Add Y-Axis"}
+                        </div>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            {(showGroupBy) && (
+                <>
+                    <ColumnSelector
+                        plotType={config.chart.plot.type}
+                        axisType={"group"}
+                        axis={config.chart.plot.cartesian.groupBy}
+                        columns={columns}
+                        deleteAxis={() => updateGroupAxis(undefined)}
+                        updateAxis={(update) => updateGroupAxis(update)}
+                    />
+                </>
+            )}
             {config.chart.plot.type !== 'radar' && <>
                 <div className={'pb-1'}>
                     <H5>X-Axis</H5>
@@ -244,7 +337,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     onChange={(e) => updateXTickAngle(e.target.value)}
                 />
                 {
-                    config.chart.plot.type == 'bar' && <div className={'flex flex-row gap-2 items-center'}>
+                    showStackedBars && <div className={'flex flex-row gap-2 items-center'}>
                         <Muted>Stacked Bars</Muted>
                         <Switch
                             checked={config.chart.plot.cartesian?.decoration?.bar?.stacked}

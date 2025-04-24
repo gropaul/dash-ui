@@ -16,6 +16,7 @@ export interface DatabaseConnectionZustand {
     setConnectionsConfigOpen: (open: boolean) => void;
     setConnectionsConfigForcedOpen: (open: boolean) => void;
     setDatabaseConnection: (connection: DatabaseConnection) => Promise<void>;
+    deleteConnectionFromHistory: (index: number) => void;
 }
 
 
@@ -93,6 +94,13 @@ export const useDatabaseConState = createWithEqualityFn<DatabaseConnectionZustan
                 }
 
             },
+            deleteConnectionFromHistory: (index) => {
+                const history_copy = [...get().history];
+                if (index >= 0 && index < history_copy.length) {
+                    history_copy.splice(index, 1);
+                    set({history: history_copy});
+                }
+            },
         }),
         {
             onRehydrateStorage: (state) => {
@@ -103,7 +111,3 @@ export const useDatabaseConState = createWithEqualityFn<DatabaseConnectionZustan
         }
     )
 );
-
-
-
-

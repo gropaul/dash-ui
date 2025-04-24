@@ -1,6 +1,6 @@
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {ConnectionConfig} from "@/components/connections/connection-config";
-import {ConnectionHistory} from "@/components/connections/connection-history.";
+import {ConnectionHistory} from "@/components/connections/connection-history";
 import {toast} from "sonner";
 import {useEffect, useState} from "react";
 import {

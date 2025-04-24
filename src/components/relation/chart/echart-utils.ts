@@ -2,6 +2,11 @@ import {ChartConfig, PlotConfig} from "@/model/relation-view-state/chart";
 import {RelationData} from "@/model/relation";
 import {EChartsOption} from "echarts-for-react/src/types";
 
+
+export function plotIsCartesian(plot: PlotConfig) {
+    return ["bar", "line", "area", "scatter"].includes(plot.type)
+}
+
 export function toEChartOptions(
     config: ChartConfig,
     data: RelationData
@@ -92,7 +97,7 @@ export function toEChartOptions(
     // —————————————————————————————————————————
     // 3. Cartesian‑based diagrams (Bar, Line, Area, Scatter)
     // —————————————————————————————————————————
-    if (["bar", "line", "area", "scatter"].includes(plot.type)) {
+    if (plotIsCartesian(plot)) {
 
         const {cartesian} = plot;
 

@@ -21,8 +21,7 @@ const DUCKDB_WASM_MOTHERDUCK_DESCRIPTION =
     "effectively query data that is both available in the browser and via MotherDuck. "
 
 const DUCKDB_LOCAL_DESCRIPTION =
-    "This configuration uses a local DuckDB instance via HTTP, giving you full machine power and unrestricted local file access. " +
-    "You must have DuckDB running locally. You can also connect to MotherDuck.";
+    "This setup uses a local DuckDB via HTTP, giving full machine power and file access. DuckDB must be running locally.";
 
 const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
     "duckdb-over-http": {

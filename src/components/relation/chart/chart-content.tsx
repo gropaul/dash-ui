@@ -7,7 +7,6 @@ import React from 'react';
 import ReactECharts from 'echarts-for-react';
 import {EChartsOption} from "echarts-for-react/src/types";
 import {toEChartOptions} from "@/components/relation/chart/echart-utils";
-import {cn} from "@/lib/utils";
 
 export interface MyChartProps {
     embedded?: boolean,

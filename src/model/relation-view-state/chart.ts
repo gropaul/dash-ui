@@ -323,6 +323,7 @@ export function transformRange(range: AxisRange): [number | string, number | str
 export interface CartesianPlotConfig {
     xAxis?: AxisConfig;
     yAxes?: AxisConfig[]; // can have multiple y axes over the same x axis
+    groupBy?: AxisConfig; // optional group by column when there's only one Y-Axis series
 
     xLabel?: string;
     yLabel?: string;
@@ -377,7 +378,8 @@ export function getInitialChartViewStateEmpty(): ChartViewState {
                         bar: {
                             stacked: false
                         }
-                    }
+                    },
+                    groupBy: undefined
                 },
                 pie: {
                     axis: {}
@@ -404,7 +406,8 @@ export function getInitialChartViewState(data: RelationData): ChartViewState {
                         bar: {
                             stacked: false
                         }
-                    }
+                    },
+                    groupBy: undefined
                 },
                 pie: {
                     axis: {}

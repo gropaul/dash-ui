@@ -39,11 +39,12 @@ export function Chart(props: RelationViewProps) {
                     <div className={cn(contentPaddingClass, overflowClass, 'relative')}>
                         <ChartContentWrapper {...props}/>
                     </div>
-                    {!isEmbedded ? <div className={'p-2 w-full h-full overflow-y-auto'}>
+                    {!isEmbedded ? <div className={'px-4 py-3 w-full h-full overflow-y-auto'}>
                         <ChartConfigView
                             embedded={isEmbedded}
                             relationState={props.relationState}
                             updateRelationViewState={props.updateRelationViewState}
+                            updateRelationDataWithParams={props.updateRelationDataWithParams}
                         />
                     </div> : <div/>}
                 </WindowSplitter>

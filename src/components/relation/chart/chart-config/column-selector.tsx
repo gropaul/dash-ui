@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {CaseSensitive, Check, ChevronDown, MoveRight, MoveUp, Radius, Trash2} from "lucide-react"
+import {CaseSensitive, Check, ChevronDown, Component, MoveRight, MoveUp, Radius, Trash2} from "lucide-react"
 
 import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
@@ -14,8 +14,7 @@ import {Separator} from "@/components/ui/separator";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {DataAxisDecorationMenu} from "@/components/relation/chart/chart-config/data-axis-decoration-menu";
 
-
-export type AxisType = "x" | "y" | 'pie-label' | 'pie-radius'
+export type AxisType = "x" | "y" | 'pie-label' | 'pie-radius' | 'group'
 
 interface ColumnSelectorProps {
     plotType: PlotType
@@ -154,6 +153,11 @@ function AxisDetails({axis}: { axis: AxisType }) {
             return <>
                 <Radius size={7} className="text-indigo-600 pr-1"/>
                 <Muted>Radius</Muted>
+            </>
+        case "group":
+            return <>
+                <Component  size={8} className="text-indigo-600"/>
+                <Muted>Group</Muted>
             </>
         default:
             throw new Error(`Unsupported axis type: ${axis}`)

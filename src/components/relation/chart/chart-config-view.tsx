@@ -6,7 +6,7 @@ import {Label} from "@/components/ui/label";
 import {ChartTypeSelector} from "@/components/relation/chart/chart-config/chart-type-selector";
 import {ConfigViewCartesian} from "@/components/relation/chart/chart-config/config-view-cartesian";
 import {ConfigViewPie} from "@/components/relation/chart/chart-config/config-view-pie";
-import {RelationState} from "@/model/relation-state";
+import {RelationState, ViewQueryParameters} from "@/model/relation-state";
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 import {cn} from "@/lib/utils";
@@ -17,14 +17,14 @@ export interface ChartConfigProps {
     relationState: RelationState,
     embedded?: boolean,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
+    updateRelationDataWithParams: (relationId: string, query: ViewQueryParameters) => Promise<void>,
+
 }
 
 export function ChartConfigView(props: ChartConfigProps) {
 
     const relationId = props.relationState.id;
     const config = props.relationState.viewState.chartState;
-
-    const embedded = props.embedded ?? false;
 
     function updateTitle(title: string) {
         props.updateRelationViewState(relationId, {
