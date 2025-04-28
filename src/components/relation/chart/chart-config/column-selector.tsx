@@ -20,6 +20,7 @@ interface ColumnSelectorProps {
     plotType: PlotType
     columns: Column[]
     axis?: AxisConfig,
+    decorationMenu? : boolean
     axisType: AxisType,
     updateAxis: (update: Partial<AxisConfig>) => void
     deleteAxis?: () => void
@@ -33,6 +34,7 @@ export function ColumnSelector(props: ColumnSelectorProps) {
     const [open, setOpen] = React.useState(false)
     const currentColumn = columns.find((column) => column.id === axis?.columnId)
 
+    const decorationMenu = props.decorationMenu ?? false
     function setAxisId(columnId: string) {
         updateAxis({columnId})
     }
@@ -44,7 +46,7 @@ export function ColumnSelector(props: ColumnSelectorProps) {
     return (
         <div className='flex flex-row gap-2 items-center w-full justify-between'>
             {/* Button that opens the color picker popup for y-axis */}
-            {axisType === "y" && (
+            {decorationMenu && (
                 <>
                     <div/>
                     <DataAxisDecorationMenu

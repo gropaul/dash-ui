@@ -13,6 +13,7 @@ import {Button} from "@/components/ui/button";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
+import {plotUsesGroup} from "@/components/relation/chart/echart-utils";
 
 
 export function ConfigViewCartesian(props: ChartConfigProps) {
@@ -174,8 +175,6 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         const yAxisId = updated.chartState?.chart?.plot?.cartesian?.yAxes?.[0]?.columnId;
         const groupById = updated.chartState?.chart?.plot?.cartesian?.groupBy?.columnId;
 
-        console.log('groupById', groupById);
-
         const xAxisChanged = props.relationState.query.viewParameters.chart.xAxis !== xAxisId;
         const yAxisChanged = props.relationState.query.viewParameters.chart.yAxes?.[0] !== yAxisId;
         const groupByChanged = props.relationState.query.viewParameters.chart.groupBy !== groupById;
@@ -236,6 +235,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             />
             {yAxis?.map((yAxis, index) => (
                 <ColumnSelector
+                    decorationMenu={!plotUsesGroup(config.chart.plot)}
                     plotType={config.chart.plot.type}
                     axisType={"y"}
                     key={index}
@@ -247,6 +247,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             ))}
             {noYAxes && (
                 <ColumnSelector
+                    decorationMenu={true}
                     plotType={config.chart.plot.type}
                     axisType={"y"}
                     columns={columns}

@@ -473,6 +473,8 @@ export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationD
     const missingColumns = neededColumns.filter(columnId => !relationData.columns.find(column => column.id === columnId));
 
     if (missingColumns.length > 0) {
+
+        console.log(`Missing columns: ${missingColumns.join(', ')}, available columns: ${relationData.columns.map(column => column.id).join(', ')}`)
         return {
             type: 'missing-data',
             message: `Missing data columns: ${missingColumns.join(', ')}`
@@ -492,6 +494,13 @@ export function getNeededColumnsForConfig(chartConfig: ChartConfig) {
         case "line":
         case "scatter":
         case "area": {
+
+            if (plotConfig.cartesian.groupBy) {
+                if (plotConfig.cartesian.xAxis) {
+                    return [plotConfig.cartesian.xAxis.columnId];
+                }
+            }
+
             let columns = plotConfig.cartesian.yAxes?.map(axis => axis.columnId) ?? [];
             if (plotConfig.cartesian.xAxis) {
                 columns.push(plotConfig.cartesian.xAxis.columnId);

@@ -1,13 +1,20 @@
-import React, {Fragment} from "react";
+import React, {Fragment, useState} from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
-import {Database, Folder, Settings} from "lucide-react";
+import {Database, Folder, Info, Settings, Star} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {AvailableTabs, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {useDatabaseConState} from "@/state/connections-database.state";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle
+} from "@/components/ui/dialog";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -18,6 +25,7 @@ export interface NavigationBarProps {
 export function NavigationBar(props: NavigationBarProps) {
 
     const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(props.initialSelectedTabs || ['connections', 'relations']);
+    const [infoDialogOpen, setInfoDialogOpen] = useState(false);
     const setConnectionSettingsOpen = useDatabaseConState(state => state.setConnectionsConfigOpen);
     // Handle tab selection change
     const handleTabChange = (value: string[]) => {
@@ -56,9 +64,49 @@ export function NavigationBar(props: NavigationBarProps) {
                 </ToggleGroupItem>
             </ToggleGroup>
             <div className={'flex-1'}/>
+            <Button variant={'ghost'} size={'icon'} onClick={() => setInfoDialogOpen(true)}>
+                <Info />
+            </Button>
             <Button variant={'ghost'} size={'icon'} onClick={() => setConnectionSettingsOpen(true)}>
                 <Settings />
             </Button>
+
+            <Dialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center justify-center sm:justify-start">
+                            <Avatar className="h-10 w-10 mr-2">
+                                <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
+                            </Avatar>
+                            <span>About Explorer</span>
+                        </DialogTitle>
+                        <DialogDescription>
+                            <p className="py-2">
+                                Explorer is an open source project for exploring and visualizing data using DuckDB.
+                            </p>
+                            <p className="py-2">
+                                Visit our repository: <a 
+                                    href="https://github.com/duckdb/explorer"
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:underline"
+                                >
+                                    github.com/duckdb/explorer
+                                </a>
+                            </p>
+                            <div className="mt-4 p-3 bg-muted rounded-md">
+                                <div className="flex items-center mb-2">
+                                    <Star className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" />
+                                    <p className="text-sm">
+                                        If you find Explorer helpful, please consider giving our repository a star on GitHub. 
+                                        It helps us grow and improve the project!
+                                    </p>
+                                </div>
+                            </div>
+                        </DialogDescription>
+                    </DialogHeader>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

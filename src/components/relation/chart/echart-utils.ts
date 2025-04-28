@@ -1,10 +1,20 @@
-import {ChartConfig, PlotConfig} from "@/model/relation-view-state/chart";
+import {
+    AxisConfig,
+    AxisDecoration,
+    ChartConfig,
+    getInitialAxisDecoration,
+    PlotConfig
+} from "@/model/relation-view-state/chart";
 import {RelationData} from "@/model/relation";
 import {EChartsOption} from "echarts-for-react/src/types";
 
 
 export function plotIsCartesian(plot: PlotConfig) {
     return ["bar", "line", "area", "scatter"].includes(plot.type)
+}
+
+export function plotUsesGroup(plot: PlotConfig) {
+    return plotIsCartesian(plot) && plot.cartesian.groupBy
 }
 
 export function toEChartOptions(
@@ -39,7 +49,7 @@ export function toEChartOptions(
         data.columns.map((c, i) => [c.id, i])
     );
 
-    const col = (columnId: string): number => {
+    const GetColumnIdx = (columnId: string): number => {
         const idx = idToIndex.get(columnId);
         if (idx === undefined) {
             throw new Error(`Column '${columnId}' not found in relation data`);
@@ -47,8 +57,8 @@ export function toEChartOptions(
         return idx;
     };
 
-    const valueVector = (columnId: string) =>
-        data.rows.map(row => row[col(columnId)]);
+    const GetColumn = (columnId: string) =>
+        data.rows.map(row => row[GetColumnIdx(columnId)]);
 
     // —————————————————————————————————————————
     // 2. Pie Chart
@@ -64,8 +74,8 @@ export function toEChartOptions(
             throw new Error("Pie chart requires both label and radius axis.");
         }
 
-        const labelIdx = col(labelAxis.columnId);
-        const radiusIdx = col(radiusAxis.columnId);
+        const labelIdx = GetColumnIdx(labelAxis.columnId);
+        const radiusIdx = GetColumnIdx(radiusAxis.columnId);
         const dec = radiusAxis.decoration.pie;
 
         const seriesData = data.rows.map(row => ({
@@ -103,7 +113,7 @@ export function toEChartOptions(
 
         // x‑Data
         const xData = cartesian.xAxis
-            ? valueVector(cartesian.xAxis.columnId)
+            ? GetColumn(cartesian.xAxis.columnId)
             : data.rows.map((_, i) => i);
 
         const xAxis: any = {type: "category", data: xData};
@@ -149,7 +159,7 @@ export function toEChartOptions(
             }
         }
 
-        const series = getSeries(plot, valueVector);
+        const series = getSeries(plot, GetColumn, data);
 
         return {
             ...baseConfig,
@@ -171,9 +181,9 @@ export function toEChartOptions(
             throw new Error("Radar chart requires at least one Y‑axis series.");
         }
 
-        const indicators = valueVector(cartesian.xAxis.columnId)
+        const indicators = GetColumn(cartesian.xAxis.columnId)
             .map((v: any) => ({name: String(v), max: 20}));
-        const series = getSeries(plot, valueVector)
+        const series = getSeries(plot, GetColumn, data)
 
         return {
             ...baseConfig,
@@ -190,79 +200,103 @@ export function toEChartOptions(
 
 
 
-function getSeries(plot: PlotConfig, valueVector: (columnId: string) => any[]) {
+function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], data: RelationData) {
+
+    if (plotUsesGroup(plot)) {
+        const xAxisId = plot.cartesian.xAxis?.columnId;
+        if (!xAxisId) {
+            return []
+        }
+
+        // other columns that are not the x-axis but are in the data
+        const otherColumns = data.columns.filter(c => c.id !== xAxisId);
+        const count = otherColumns.length;
+        return otherColumns.map((c, index) => {
+            const decoration = getInitialAxisDecoration(index);
+            const config: AxisConfig = {
+                columnId: c.id,
+                decoration: decoration,
+                label: c.name
+            }
+            return getEChartSeriesFromAxis(config, GetColumn(c.id), plot, count);
+        })
+    }
 
     const {cartesian} = plot;
     const yAxisCount = (plot.cartesian.yAxes ?? []).length;
 
-
     // series for y-axis
     return (cartesian.yAxes ?? []).map((axis, index) => {
-        let vals = valueVector(axis.columnId);
-        const dec = axis.decoration;
-
-        if (plot.type === 'radar' ){
-            vals = [
-                {
-                    value: vals
-                }
-            ]
-        }
-
-
-        const base: any = {
-            name: axis.columnId,
-            type: plot.type === "area" ? "line" : plot.type, // Area = Line + areaStyle
-            data: vals,
-            color: dec.color,
-        };
-
-        switch (plot.type) {
-            case "bar":
-                if (dec.bar.barWidth) {
-                    base.barWidth = dec.bar.barWidth;
-                } else {
-                    const percentage = 0.8 / yAxisCount
-                    base.barWidth = `${percentage * 100}%`
-                }
-                base.itemStyle = {
-                    borderRadius: dec.bar.cornerRadius,
-                    opacity: dec.bar.fillOpacity,
-                    borderWidth: dec.bar.border.width,
-                    borderColor: dec.bar.border.color,
-                };
-                base.stack = plot.cartesian.decoration.bar.stacked ? "total" : undefined;
-
-                break;
-
-            case "line":
-            case "area":
-            case "scatter":
-            case "radar":
-                base.lineStyle = {
-                    color: dec.color,
-                    width: dec.line.stroke.width,
-                    type: dec.line.stroke.dashArray,
-                };
-                base.symbol = dec.scatter.dots.visible || plot.type === 'scatter' ? dec.scatter.dots.shape : "none";
-                base.symbolSize = dec.scatter.dots.radius;
-                base.itemStyle = {
-                    color: dec.scatter.dots.fill,
-                    borderWidth: dec.scatter.dots.borderWidth,
-                    borderColor: dec.color,
-
-                };
-                if (plot.type === "area" || plot.type === "radar") {
-                    base.areaStyle = {
-                        opacity: dec.area.fill.opacity,
-                        color: dec.area.fill.color,
-                    };
-                } else {
-                    base.areaStyle = undefined;
-                }
-
-                break;
-        }
-        return base;
+        let vals = GetColumn(axis.columnId);
+        return getEChartSeriesFromAxis(axis, vals, plot, yAxisCount);
     })
+}
+
+
+function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConfig, yAxisCount: number) {
+    const dec = axis.decoration;
+
+    if (plot.type === 'radar' ){
+        values = [
+            {
+                value: values
+            }
+        ]
+    }
+
+    const base: any = {
+        name: axis.columnId,
+        type: plot.type === "area" ? "line" : plot.type, // Area = Line + areaStyle
+        data: values,
+        color: dec.color,
+    };
+
+    switch (plot.type) {
+        case "bar":
+            if (dec.bar.barWidth) {
+                base.barWidth = dec.bar.barWidth;
+            } else {
+                const percentage = 0.8 / yAxisCount
+                base.barWidth = `${percentage * 100}%`
+            }
+            base.itemStyle = {
+                borderRadius: dec.bar.cornerRadius,
+                opacity: dec.bar.fillOpacity,
+                borderWidth: dec.bar.border.width,
+                borderColor: dec.bar.border.color,
+            };
+            base.stack = plot.cartesian.decoration.bar.stacked ? "total" : undefined;
+
+            break;
+
+        case "line":
+        case "area":
+        case "scatter":
+        case "radar":
+            base.lineStyle = {
+                color: dec.color,
+                width: dec.line.stroke.width,
+                type: dec.line.stroke.dashArray,
+            };
+            base.symbol = dec.scatter.dots.visible || plot.type === 'scatter' ? dec.scatter.dots.shape : "none";
+            base.symbolSize = dec.scatter.dots.radius;
+            base.itemStyle = {
+                color: dec.scatter.dots.fill,
+                borderWidth: dec.scatter.dots.borderWidth,
+                borderColor: dec.color,
+
+            };
+            if (plot.type === "area" || plot.type === "radar") {
+                base.areaStyle = {
+                    opacity: dec.area.fill.opacity,
+                    color: dec.area.fill.color,
+                };
+            } else {
+                base.areaStyle = undefined;
+            }
+
+            break;
+    }
+    return base;
+
 }

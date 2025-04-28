@@ -65,17 +65,6 @@ export interface ChartTableQueryParameters {
 }
 
 
-export interface QueryData {
-    baseQuery: string;  // the query that the user defined, e.g. FROM basetable
-    initialQueries: string[]; // the queries that must be run before the actual view query/count query
-    // the query defined by the view adding sorting etc, e.g. SELECT * FROM (FROM basetable), can be undefined if the
-    // base query is not viewable like CREATE TABLE
-    viewQuery: string;
-    // the query getting the count for the view Query
-    countQuery: string;
-    viewParameters: ViewQueryParameters;
-}
-
 export type TaskExecutionState = {
     state: 'not-started' | 'running' | 'success'
 } | {
@@ -157,11 +146,24 @@ export function getBaseQueryFromSource(source: RelationSource): string {
     }
 }
 
+export interface QueryData {
+    baseQuery: string;  // the query that the user defined, e.g. FROM basetable
+    initialQueries: string[]; // the queries that must be run before the actual view query/count query
+    // the query defined by the view adding sorting etc, e.g. SELECT * FROM (FROM basetable), can be undefined if the
+    // base query is not viewable like CREATE TABLE
+    viewQuery: string;
+    schemaQuery?: string; // the query to get the schema for the view, can be undefined if deduced from the view query
+    // the query getting the count for the view Query
+    countQuery?: string;
+    viewParameters: ViewQueryParameters;
+}
+
 interface BuildQuery {
     initialQueries: string[];
     finalQuery: string;
     viewQuery: string;
-    countQuery: string;
+    countQuery?: string;
+    schemaQuery?: string;
     baseQuery: string;
     viewParameters: ViewQueryParameters;
     // optionally return any other intermediate results if needed
@@ -186,15 +188,19 @@ function buildQueries(
     const finalQueryAsSubQuery = turnQueryIntoSubquery(finalQuery);
 
     // Build a count query
-    const countQuery = `
-        SELECT COUNT(*)
-        FROM ${finalQueryAsSubQuery} as subquery
-    `;
+    let countQuery = undefined;
     let viewQuery;
+    let schemaQuery = undefined;
     if (query.type === 'table') {
         viewQuery = buildTableQuery(query, finalQueryAsSubQuery);
+        countQuery = `
+            SELECT COUNT(*)
+            FROM ${finalQueryAsSubQuery} as subquery
+        `;
     } else if (query.type === 'chart') {
-        viewQuery = buildChartQuery(query, finalQueryAsSubQuery);
+        const [lViewQuery, lSchemaQuery] = buildChartQuery(query, finalQueryAsSubQuery);
+        viewQuery = lViewQuery;
+        schemaQuery = lSchemaQuery;
     } else {
         throw new Error(`Unknown view type: ${query.type}`);
     }
@@ -203,30 +209,42 @@ function buildQueries(
         initialQueries,
         finalQuery,
         viewQuery,
+        schemaQuery,
         countQuery,
         baseQuery: baseSQL,
         viewParameters: query,
     };
 }
 
-`
-WITH data AS (SELECT _last_update, extension, downloads_last_week
-  FROM "download_data"."main"."downloads"
-  WHERE extension IN ('flockmtl', 'quack', 'hostfs') ORDER BY "_last_update"
-  ) 
-PIVOT data
-ON extension
-USING AVG(downloads_last_week);
-`
-export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): string {
+export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): [string, string?] {
     const chartViewParams = viewParams.chart;
 
-    console.log('chartViewParams', chartViewParams);
-
-    return `
+    const baseQuery = `
         SELECT *
         FROM ${finalQueryAsSubQuery};
     `;
+
+    if (chartViewParams.groupBy && chartViewParams.xAxis && chartViewParams.yAxes?.length === 1) {
+        const groupBy = chartViewParams.groupBy;
+        const xAxis = chartViewParams.xAxis;
+        const yAxis = chartViewParams.yAxes[0];
+
+        // in this case, we need the base table to get the schema
+        const schemaQuery = `
+            SELECT *
+            FROM ${finalQueryAsSubQuery}
+            LIMIT 0;
+        `;
+
+        return [`
+            WITH data AS (SELECT ${xAxis}, ${groupBy}, ${yAxis}
+                          FROM ${finalQueryAsSubQuery})
+                PIVOT data
+            ON ${groupBy}
+                USING FIRST (${yAxis});
+        `, schemaQuery];
+    }
+    return [baseQuery, undefined];
 }
 
 export function buildTableQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): string {
@@ -261,6 +279,7 @@ export async function getQueryFromParams(
         countQuery,
         baseQuery,
         viewParameters,
+        schemaQuery,
     } = buildQueries(relation, query, baseSQL);
 
     // Then do your async check:
@@ -270,7 +289,8 @@ export async function getQueryFromParams(
 
     // If not executable, fallback
     return {
-        countQuery: executable ? countQuery : 'SELECT 0',
+        schemaQuery,
+        countQuery: executable ? countQuery : undefined,
         viewQuery: executable ? viewQuery : finalQuery,
         initialQueries,
         baseQuery,
@@ -289,6 +309,7 @@ export function getQueryFromParamsUnchecked(
         initialQueries,
         finalQuery,
         viewQuery,
+        schemaQuery,
         countQuery,
         baseQuery,
         viewParameters,
@@ -298,6 +319,7 @@ export function getQueryFromParamsUnchecked(
     return {
         countQuery,
         viewQuery,
+        schemaQuery,
         initialQueries,
         baseQuery,
         viewParameters,
@@ -350,6 +372,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
 
     const viewQuery = input.query.viewQuery;
     const countQuery = input.query.countQuery;
+    const schemaQuery = input.query.schemaQuery;
 
     // start a timer to measure the query duration
     const start = performance.now();
@@ -379,6 +402,15 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
         };
     }
 
+    if (schemaQuery) {
+        try {
+            const schemaData = await ConnectionsService.getInstance().executeQuery(schemaQuery);
+            // todo: Where to put this?
+        } catch (e) {
+            return returnEmptyErrorState(input, e);
+        }
+    }
+
     if (countQuery) {
         try {
             countData = await ConnectionsService.getInstance().executeQuery(countQuery);
@@ -397,6 +429,9 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     // stop the timer, get duration in s
     const end = performance.now();
     const duration = (end - start) / 1000;
+
+    console.log(`Query executed in ${duration} seconds: ${viewQuery}`);
+    console.log(`Data: `, viewData);
 
     // update the view state with the new data
     return {
