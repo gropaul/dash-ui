@@ -225,11 +225,15 @@ export function toEChartOptions(
 
 function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], data: RelationData) {
 
+    const xAxisId = plot.cartesian.xAxis?.columnId;
+    if (!xAxisId) {
+        return []
+    }
+
+    const xValues = GetColumn(xAxisId);
+
     if (plotUsesGroup(plot)) {
-        const xAxisId = plot.cartesian.xAxis?.columnId;
-        if (!xAxisId) {
-            return []
-        }
+
 
         // other columns that are not the x-axis but are in the data
         const otherColumns = data.columns.filter(c => c.id !== xAxisId);
@@ -241,7 +245,7 @@ function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], dat
                 decoration: decoration,
                 label: c.name
             }
-            return getEChartSeriesFromAxis(config, GetColumn(c.id), plot, count);
+            return getEChartSeriesFromAxis(config, GetColumn(c.id), plot, count, xAxisId, xValues);
         })
     }
 
@@ -251,12 +255,12 @@ function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], dat
     // series for y-axis
     return (cartesian.yAxes ?? []).map((axis, index) => {
         let vals = GetColumn(axis.columnId);
-        return getEChartSeriesFromAxis(axis, vals, plot, yAxisCount);
+        return getEChartSeriesFromAxis(axis, vals, plot, yAxisCount, xAxisId, xValues);
     })
 }
 
 
-function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConfig, yAxisCount: number) {
+function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConfig, yAxisCount: number, xAxisId: string, xValues: any[]): any {
     const dec = axis.decoration;
 
     if (plot.type === 'radar') {
@@ -267,10 +271,18 @@ function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConf
         ]
     }
 
+    const valuesMapList = values.map((value, index) => {
+        const xValue = xValues[index];
+        return {
+            name: xValues[index],
+            value: [xValue, value],
+        }
+    })
+
     const base: any = {
         name: axis.columnId,
         type: plot.type === "area" ? "line" : plot.type, // Area = Line + areaStyle
-        data: values,
+        data: valuesMapList,
         color: dec.color,
     };
 
