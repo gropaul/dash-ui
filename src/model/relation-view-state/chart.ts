@@ -468,6 +468,39 @@ export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationD
             throw new Error(`Unsupported plot type: ${plotConfig.type}`);
     }
 
+    // if groupBy is defined, then xAxis must be defined. If both are defined, they must be different
+    if (plotConfig.cartesian.groupBy && plotConfig.cartesian.xAxis) {
+        if (plotConfig.cartesian.groupBy.columnId === plotConfig.cartesian.xAxis.columnId) {
+            return {
+                type: 'config-not-complete',
+                message: 'Group by column and x-axis column must be different.'
+            }
+        }
+    } else if (plotConfig.cartesian.groupBy) {
+        // if groupBy is defined, then xAxis must be defined, same for yAxes
+        if (!plotConfig.cartesian.xAxis) {
+            return {
+                type: 'config-not-complete',
+                message: 'Please define the x-axis column.'
+            }
+        } else if (!plotConfig.cartesian.yAxes) {
+            return {
+                type: 'config-not-complete',
+                message: 'Please define at least one Y-axis.'
+            }
+        } else if ((plotConfig.cartesian.yAxes?.length ?? 0) > 1) {
+            return {
+                type: 'config-not-complete',
+                message: 'Group by column is only supported with one Y-axis.'
+            }
+        } else if (plotConfig.cartesian?.yAxes[0].columnId === plotConfig.cartesian.groupBy.columnId) {
+            return {
+                type: 'config-not-complete',
+                message: 'Group by column and y-axis column must be different.'
+            }
+        }
+    }
+
     // check if needed columns are there
     const neededColumns = getNeededColumnsForConfig(chartConfig);
     const missingColumns = neededColumns.filter(columnId => !relationData.columns.find(column => column.id === columnId));
@@ -497,7 +530,10 @@ export function getNeededColumnsForConfig(chartConfig: ChartConfig) {
 
             if (plotConfig.cartesian.groupBy) {
                 if (plotConfig.cartesian.xAxis) {
+
                     return [plotConfig.cartesian.xAxis.columnId];
+                } else {
+                    return [];
                 }
             }
 

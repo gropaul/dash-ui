@@ -114,6 +114,11 @@ function convertArrowValue(value: any, normalized_type: ValueType, type: any): a
             list.push(item_flat);
         }
         return list;
+    } else if (normalized_type.includes('Date')) {
+        // Convert to a date object
+        // return value;
+        return new Date(value);
+
     }
 
     // For a primitive type, just return as is
@@ -124,7 +129,6 @@ export function relationFromDuckDBArrowResult(relationName: string, connectionId
 
     // Convert arrow table to json
     const json = arrowResult.toArray().map((row: any) => row.toJSON());
-
     // if the json is empty, return an empty relation
     if (json.length === 0) {
         return {

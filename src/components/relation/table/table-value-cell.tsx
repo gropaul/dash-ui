@@ -11,7 +11,7 @@ interface RowElementViewProps {
 }
 
 
-export function TableValueCell({ tableState, column, element }: RowElementViewProps) {
+export function TableValueCell({tableState, column, element}: RowElementViewProps) {
     const columnViewState = tableState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
     const wrapContent = columnViewState.wrapContent;
     const columnWidth = columnViewState.width + "px";
@@ -75,7 +75,7 @@ interface ValueElementProps {
 }
 
 
-export function ValueElement({ column, element, stringElement }: ValueElementProps) {
+export function ValueElement({column, element, stringElement}: ValueElementProps) {
 
     if (element === null || element === undefined) {
         return <span>NULL</span>;
@@ -84,10 +84,15 @@ export function ValueElement({ column, element, stringElement }: ValueElementPro
     // if element is array or object, show the json element viewer
     if (column.type === "List" || column.type === "Map" || column.type === "Struct") {
         return (
-            <RecursiveJsonViewer json={element} />
+            <RecursiveJsonViewer json={element}/>
         );
+    } else { // @ts-ignore
+        if (column.type === "Date64") {
+            return <span>{element.toLocaleString()}</span>;
+        }
     }
+
     return (
-        <span>{stringElement}</span>
+        <span>{stringElement} {column.type}</span>
     );
 }

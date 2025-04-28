@@ -207,13 +207,13 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             }
         }
 
-        await updateDataForGroupBy(newState);
         props.updateRelationViewState(relationId, newState);
+        await updateDataForGroupBy(newState);
 
 
     }
 
-    const columns = props.relationState?.data?.columns ?? ([] as Column[]);
+    const columns = props.relationState?.viewState.selectableColumns ?? ([] as Column[]);
 
     const yAxis = config.chart.plot.cartesian.yAxes;
 

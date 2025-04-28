@@ -35,6 +35,10 @@ export type ValueType =
 
 export function normalizeArrowType(type: any): ValueType {
 
+    if (DataType.isDate(type)) {
+        return 'Date64';
+    }
+
     // if normalized contains list, set it to 'list'
     if (DataType.isList(type)) {
         return 'List';

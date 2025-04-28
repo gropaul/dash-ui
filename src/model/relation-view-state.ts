@@ -10,6 +10,7 @@ import {
     getInitialChartViewState,
     getInitialChartViewStateEmpty
 } from "@/model/relation-view-state/chart";
+import {Column} from "@/model/column";
 
 //
 
@@ -39,6 +40,7 @@ export interface RelationViewBaseState extends TabViewBaseState {
 export interface RelationViewState extends RelationViewBaseState {
     tableState: TableViewState
     chartState: ChartViewState
+    selectableColumns: Column[];
 }
 
 export type RelationViewType = 'table' | 'chart' | 'map';
@@ -55,7 +57,7 @@ export function updateRelationViewState(currentState: RelationViewState, newData
     }
 }
 
-export function getInitViewState(displayName: string, data?: RelationData, showCode = false): RelationViewState {
+export function getInitViewState(displayName: string, data?: RelationData, schemaColumns?: Column[], showCode = false): RelationViewState {
 
     const baseState: RelationViewBaseState = {
         ...getInitialTabViewBaseState(displayName),
@@ -72,6 +74,7 @@ export function getInitViewState(displayName: string, data?: RelationData, showC
             ...baseState,
             chartState: getInitialChartViewStateEmpty(),
             tableState: getInitialTableDisplayStateEmpty(),
+            selectableColumns: [],
         };
     }
 
@@ -79,5 +82,6 @@ export function getInitViewState(displayName: string, data?: RelationData, showC
         ...baseState,
         chartState: getInitialChartViewState(data),
         tableState: getInitialTableDisplayState(data),
+        selectableColumns: schemaColumns ?? data.columns,
     };
 }

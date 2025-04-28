@@ -24,13 +24,23 @@ export function toEChartOptions(
 
     const {plot} = config;
 
+    // plot the data type of the first rows elements
+    if (data.rows.length === 0) {
+        throw new Error("No data available for plotting");
+    } else {
+        const firstRow = data.rows[0];
+        for (const element of firstRow) {
+            console.log(element, typeof element);
+        }
+    }
+
     const baseConfig = {
         title: {
             text: plot.title ? plot.title : '',
             left: 'center',
             top: 4, // You can also use '10px' or a number like 10
         },
-        tooltip: { trigger: 'axis' },
+        tooltip: {trigger: 'axis'},
         legend: {
             selectedMode: true,
             orient: 'horizontal',
@@ -116,7 +126,11 @@ export function toEChartOptions(
             ? GetColumn(cartesian.xAxis.columnId)
             : data.rows.map((_, i) => i);
 
-        const xAxis: any = {type: "category", data: xData};
+        const xAxis: any = {
+            type: 'category',
+            boundaryGap: false,
+            data: xData
+        };
         if (cartesian.xLabel) {
             xAxis.name = cartesian.xLabel
             xAxis.nameLocation = 'center';
@@ -199,7 +213,6 @@ export function toEChartOptions(
 }
 
 
-
 function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], data: RelationData) {
 
     if (plotUsesGroup(plot)) {
@@ -236,7 +249,7 @@ function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], dat
 function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConfig, yAxisCount: number) {
     const dec = axis.decoration;
 
-    if (plot.type === 'radar' ){
+    if (plot.type === 'radar') {
         values = [
             {
                 value: values

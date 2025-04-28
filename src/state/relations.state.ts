@@ -395,6 +395,8 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 updateRelationDataWithParams: async (relationId, query) => {
+
+                    console.log('updateRelationDataWithParams', relationId, query);
                     const {relations} = get(); // Get the current state
 
                     const relation = relations[relationId]; // Retrieve the specific relation
@@ -408,6 +410,7 @@ export const useRelationsState = createWithEqualityFn(
 
                     const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
                     const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
+                    console.log('updateRelationDataWithParams (executed)', executedRelationState);
                     // update state with new data and completed state
                     set((state) => ({
                         relations: {
@@ -449,7 +452,7 @@ export const useRelationsState = createWithEqualityFn(
                     return get().relations[relationId].viewState;
                 },
                 updateRelationViewState: (relationId: string, partialUpdate: DeepPartial<RelationViewState>, path?: string[]) => {
-
+                    console.log('updateRelationViewState', relationId, partialUpdate);
                     const currentViewState = deepClone(get().relations[relationId].viewState);
                     let newEditorElements = get().editorElements;
 
@@ -467,6 +470,7 @@ export const useRelationsState = createWithEqualityFn(
                         newEditorElements = copyAndApplyTreeActions(newEditorElements, actions);
                     }
                     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
+                    console.log('updateRelationViewState', currentViewState);
                     set((state) => ({
                         relations: {
                             ...state.relations,

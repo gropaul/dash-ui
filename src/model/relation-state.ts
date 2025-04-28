@@ -1,4 +1,10 @@
-import {getRelationIdFromSource, getRelationNameFromSource, Relation, RelationSource} from "@/model/relation";
+import {
+    getRelationIdFromSource,
+    getRelationNameFromSource,
+    Relation,
+    RelationData,
+    RelationSource
+} from "@/model/relation";
 import {
     getInitViewState,
     RelationViewState,
@@ -24,7 +30,7 @@ export function getInitialParams(): ViewQueryParameters {
 //! Is called when the user changes the code and reruns the query -> Reset some view parameters
 export function getUpdatedParams(oldParams: ViewQueryParameters): ViewQueryParameters {
 
-
+    console.log('getUpdatedParams', oldParams);
     if (oldParams.type === 'table') {
         return {
             ...oldParams,
@@ -38,7 +44,7 @@ export function getUpdatedParams(oldParams: ViewQueryParameters): ViewQueryParam
         return {
             ...oldParams,
             type: 'chart',
-            chart: {}
+            chart: oldParams.chart,
         };
     } else {
         throw new Error(`Unknown view type: ${oldParams.type}`);
@@ -128,7 +134,7 @@ export async function getViewFromSource(connectionId: string, source: RelationSo
 
     return {
         ...relationWithQuery,
-        viewState: getInitViewState(name, relationWithQuery.data, showCode),
+        viewState: getInitViewState(name, relationWithQuery.data, [], showCode),
     };
 }
 
@@ -233,7 +239,7 @@ export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSub
         const schemaQuery = `
             SELECT *
             FROM ${finalQueryAsSubQuery}
-            LIMIT 0;
+            LIMIT 1;
         `;
 
         return [`
@@ -386,7 +392,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
         }
     }
 
-    let viewData;
+    let viewData: RelationData;
     let countData;
 
     if (viewQuery) {
@@ -402,13 +408,17 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
         };
     }
 
+    let schemaColumns = [];
     if (schemaQuery) {
         try {
             const schemaData = await ConnectionsService.getInstance().executeQuery(schemaQuery);
-            // todo: Where to put this?
+            schemaColumns = schemaData.columns;
+
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }
+    } else {
+        schemaColumns = viewData.columns;
     }
 
     if (countQuery) {
@@ -430,9 +440,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     const end = performance.now();
     const duration = (end - start) / 1000;
 
-    console.log(`Query executed in ${duration} seconds: ${viewQuery}`);
-    console.log(`Data: `, viewData);
-
+    input.viewState.selectableColumns = schemaColumns;
     // update the view state with the new data
     return {
         ...input,
