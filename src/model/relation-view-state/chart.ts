@@ -507,7 +507,7 @@ export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationD
 
     if (missingColumns.length > 0) {
 
-        console.log(`Missing columns: ${missingColumns.join(', ')}, available columns: ${relationData.columns.map(column => column.id).join(', ')}`)
+        console.warn(`Missing columns: ${missingColumns.join(', ')}, available columns: ${relationData.columns.map(column => column.id).join(', ')}`)
         return {
             type: 'missing-data',
             message: `Missing data columns: ${missingColumns.join(', ')}`

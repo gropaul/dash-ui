@@ -24,16 +24,6 @@ export function toEChartOptions(
 
     const {plot} = config;
 
-    // plot the data type of the first rows elements
-    if (data.rows.length === 0) {
-        throw new Error("No data available for plotting");
-    } else {
-        const firstRow = data.rows[0];
-        for (const element of firstRow) {
-            console.log(element, typeof element);
-        }
-    }
-
     const baseConfig = {
         title: {
             text: plot.title ? plot.title : '',

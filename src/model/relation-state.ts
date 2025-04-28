@@ -30,7 +30,6 @@ export function getInitialParams(): ViewQueryParameters {
 //! Is called when the user changes the code and reruns the query -> Reset some view parameters
 export function getUpdatedParams(oldParams: ViewQueryParameters): ViewQueryParameters {
 
-    console.log('getUpdatedParams', oldParams);
     if (oldParams.type === 'table') {
         return {
             ...oldParams,

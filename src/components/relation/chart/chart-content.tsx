@@ -20,7 +20,6 @@ export function ChartContent({data, config, hideTitleIfEmpty = false, embedded =
 
     const heightClass = embedded ? '24rem' : '100%';
 
-    console.log('EChartsOption', option);
     return (
         <div className="h-full w-full flex flex-col items-center relative">
             <ReactECharts notMerge={true} option={option} style={{height: heightClass, width: '100%'}} lazyUpdate={true}/>

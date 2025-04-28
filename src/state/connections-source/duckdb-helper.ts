@@ -67,7 +67,6 @@ export async function attachDatabase(path: string, executeQuery: (query: string)
     }
 
     const query = `ATTACH '${path}';`;
-    console.log('Attaching query', query);
     await executeQuery(query);
 }
 

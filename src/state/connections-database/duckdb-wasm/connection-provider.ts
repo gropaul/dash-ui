@@ -16,8 +16,6 @@ export async function clearOPFS(): Promise<void> {
     const dbHandle = await rootHandle.removeEntry(DUCKDB_WASM_BASE_TABLE_PATH);
     const walHandle = await rootHandle.removeEntry(walPath);
 
-    console.log('Removed database files:', dbHandle, walHandle);
-
 }
 
 /**
@@ -105,7 +103,6 @@ export class WasmProvider {
             this.con = null;
         }
         if (this.db) {
-            console.log('Destroying DuckDB instance');
             await this.db.dropFile('attached.duckdb');
 
             await this.db.terminate();
