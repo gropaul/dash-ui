@@ -116,8 +116,28 @@ export function toEChartOptions(
             ? GetColumn(cartesian.xAxis.columnId)
             : data.rows.map((_, i) => i);
 
+        // Determine xAxis type based on configuration or column type
+        let xAxisType = cartesian.xAxisType;
+        if (!xAxisType && cartesian.xAxis) {
+            // Auto-determine type based on column type
+            const xColumn = data.columns.find(col => col.id === cartesian.xAxis?.columnId);
+            if (xColumn) {
+                if (xColumn.type === 'Timestamp') {
+                    xAxisType = 'time';
+                } else if (xColumn.type === 'Integer' || xColumn.type === 'Float') {
+                    xAxisType = 'value';
+                } else {
+                    xAxisType = 'category';
+                }
+            } else {
+                xAxisType = 'category'; // Default if column not found
+            }
+        } else if (!xAxisType) {
+            xAxisType = 'category'; // Default if no column selected
+        }
+
         const xAxis: any = {
-            type: 'category',
+            type: xAxisType,
             boundaryGap: false,
             data: xData
         };

@@ -86,8 +86,8 @@ export function ValueElement({column, element, stringElement}: ValueElementProps
         return (
             <RecursiveJsonViewer json={element}/>
         );
-    } else { // @ts-ignore
-        if (column.type === "Date64") {
+    } else {
+        if (column.type === "Timestamp") {
             return <span>{element.toLocaleString()}</span>;
         }
     }

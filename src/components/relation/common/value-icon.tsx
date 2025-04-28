@@ -3,40 +3,13 @@ import React from "react";
 
 // @ts-ignore
 import {DataType} from "apache-arrow";
+import {ValueType} from "@/model/value-type";
 // Adapt this type to match all the strings you expect (from your own system + arrow).
-export type ValueType =
-    | 'Integer'
-    | 'Int'
-    | 'Int8'
-    | 'Int16'
-    | 'Int32'
-    | 'Int64'
-    | 'UInt8'
-    | 'UInt16'
-    | 'UInt32'
-    | 'UInt64'
-    | 'Float'
-    | 'Float16'
-    | 'Float32'
-    | 'Float64'
-    | 'String'
-    | 'Utf8'
-    | 'Boolean'
-    | 'Bool'
-    | 'Timestamp'
-    | 'Date64'
-    | 'List'
-    | 'FixedSizeList'
-    | 'Map'
-    | 'Struct'
-    | 'RecordBatch'
-    | 'Unknown';
-// Add
 
 export function normalizeArrowType(type: any): ValueType {
 
     if (DataType.isDate(type)) {
-        return 'Date64';
+        return 'Timestamp';
     }
 
     // if normalized contains list, set it to 'list'

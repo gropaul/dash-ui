@@ -2,7 +2,7 @@ import {Label} from "@/components/ui/label";
 import {H5, Muted, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {CirclePlus, Info, Lock} from "lucide-react";
-import {AxisConfig, AxisRange, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
+import {AxisConfig, AxisRange, getInitialAxisDecoration, XAxisType} from "@/model/relation-view-state/chart";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 import {Column} from "@/model/column";
 import {Input} from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/compon
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 import {plotUsesGroup} from "@/components/relation/chart/echart-utils";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 
 export function ConfigViewCartesian(props: ChartConfigProps) {
@@ -127,6 +128,20 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     plot: {
                         cartesian: {
                             xLabelRotation: parseString(angle),
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateXAxisType(type: string | undefined) {
+        props.updateRelationViewState(relationId, {
+            chartState: {
+                chart: {
+                    plot: {
+                        cartesian: {
+                            xAxisType: type as any,
                         }
                     }
                 }
@@ -337,6 +352,21 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     value={config.chart.plot.cartesian?.xLabelRotation ?? ''}
                     onChange={(e) => updateXTickAngle(e.target.value)}
                 />
+                <Label className={'h-3'}><Muted>Axis Type</Muted></Label>
+                <Select
+                    value={config.chart.plot.cartesian?.xAxisType ?? 'auto'}
+                    onValueChange={(value) => updateXAxisType(value === 'auto' ? undefined : value)}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Auto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="auto">Auto</SelectItem>
+                        <SelectItem value="category">Category</SelectItem>
+                        <SelectItem value="time">Time</SelectItem>
+                        <SelectItem value="value">Value</SelectItem>
+                    </SelectContent>
+                </Select>
                 {
                     showStackedBars && <div className={'flex flex-row gap-2 items-center'}>
                         <Muted>Stacked Bars</Muted>

@@ -320,6 +320,8 @@ export function transformRange(range: AxisRange): [number | string, number | str
 }
 
 // plot types: bar, line, area, scatter, radar
+export type XAxisType = 'time' | 'value' | 'category';
+
 export interface CartesianPlotConfig {
     xAxis?: AxisConfig;
     yAxes?: AxisConfig[]; // can have multiple y axes over the same x axis
@@ -330,6 +332,8 @@ export interface CartesianPlotConfig {
 
     xLabelRotation?: number;
     yLabelRotation?: number;
+
+    xAxisType?: XAxisType; // type of the x-axis, if undefined it will be determined automatically
 
     xRange: AxisRange;
     yRange: AxisRange;
