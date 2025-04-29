@@ -44,6 +44,7 @@ export function getInitialDataElement(): RelationBlockData {
         viewState: getInitViewState(
             'New Data Element',
             undefined,
+            [],
             true
         ),
         executionState: {

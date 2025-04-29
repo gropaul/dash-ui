@@ -14,7 +14,7 @@ import {
     Text,
     ToggleLeft
 } from "lucide-react";
-import {ValueIcon, ValueType} from "@/components/relation/common/value-icon";
+import {ValueIcon} from "@/components/relation/common/value-icon";
 
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-wasm-motherduck' | 'duckdb-over-http';

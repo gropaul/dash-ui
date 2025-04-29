@@ -4,7 +4,8 @@ import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection"
 import {DatabaseConnectionType} from "@/state/connections-database/configs";
 import {mountFilesOnWasm} from "@/state/connections-database/duckdb-wasm/utils";
 import {WasmProvider} from "@/state/connections-database/duckdb-wasm/connection-provider";
-import {normalizeArrowType, ValueType} from "@/components/relation/common/value-icon";
+import {normalizeArrowType} from "@/components/relation/common/value-icon";
+import {ValueType} from "@/model/value-type";
 
 export interface DuckDBWasmConfig {
     name: string;
@@ -83,8 +84,6 @@ export class DuckDBWasm implements DatabaseConnection {
 function convertArrowValue(value: any, normalized_type: ValueType, type: any): any {
     // field.type tells you if it's a struct, list, etc.
     // Recursively navigate
-
-
     if (normalized_type.includes('Struct')) {
 
         const json_value = value.toJSON();
