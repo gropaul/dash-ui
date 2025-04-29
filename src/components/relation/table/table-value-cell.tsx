@@ -93,6 +93,6 @@ export function ValueElement({column, element, stringElement}: ValueElementProps
     }
 
     return (
-        <span>{stringElement} {column.type}</span>
+        <span>{stringElement}</span>
     );
 }
