@@ -6,7 +6,6 @@ import {getDuckDBInternalDatabase} from "@/state/connections-source/duckdb-inter
 import {getDuckDBLocalFilesystem} from "@/state/connections-source/duckdb-local-filesystem";
 import {DBConnectionSpec} from "@/state/connections-database/configs";
 import {createJSONStorage, persist} from "zustand/middleware";
-import {useRelationsHydrationState} from "@/state/relations.state";
 
 
 export interface DatabaseConnectionZustand {

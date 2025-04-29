@@ -3,12 +3,7 @@ import {Switch} from "@/components/ui/switch";
 import {Input} from "@/components/ui/input";
 import {ColorSubMenu} from "@/components/relation/chart/chart-config/color-sub-menu";
 import React from "react";
-import {
-    DEFAULT_DOTS_DECORATION,
-    DotsDecoration,
-    DotsShape,
-    ScatterAxisDecoration
-} from "@/model/relation-view-state/chart";
+import {DEFAULT_DOTS_DECORATION, DotsDecoration, DotsShape} from "@/model/relation-view-state/chart";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 

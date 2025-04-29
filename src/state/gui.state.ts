@@ -1,5 +1,4 @@
 import {Model} from "flexlayout-react";
-import create from "zustand";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {
     addDashboardToLayout,

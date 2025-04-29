@@ -1,10 +1,12 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {
-    executeQueryOfRelationState, getInitialParams,
+    executeQueryOfRelationState,
+    getInitialParams,
     getViewFromSource,
     RelationState,
     setRelationLoading,
-    updateRelationQueryForParams, ViewQueryParameters,
+    updateRelationQueryForParams,
+    ViewQueryParameters,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
 import {DataSourceGroup} from "@/model/data-source-connection";

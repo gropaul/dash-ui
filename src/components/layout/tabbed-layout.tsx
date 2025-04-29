@@ -14,8 +14,6 @@ import {NavigationBar, NavigationBarContent} from "@/components/layout/navigatio
 import {cn} from "@/lib/utils";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
-import {ConnectionViewDialog} from "@/components/connections/connection-view-dialog";
-import {useDatabaseConState} from "@/state/connections-database.state";
 
 
 export function TabbedLayout() {

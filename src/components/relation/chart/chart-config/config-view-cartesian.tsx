@@ -1,8 +1,8 @@
 import {Label} from "@/components/ui/label";
 import {H5, Muted, Small} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
-import {CirclePlus, Info, Lock} from "lucide-react";
-import {AxisConfig, AxisRange, getInitialAxisDecoration, XAxisType} from "@/model/relation-view-state/chart";
+import {CirclePlus, Lock} from "lucide-react";
+import {AxisConfig, AxisRange, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
 import {Column} from "@/model/column";
 import {Input} from "@/components/ui/input";

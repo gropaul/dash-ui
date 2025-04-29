@@ -1,16 +1,9 @@
 import React from "react";
 
 // shadcn/ui (or your own components)
-import {
-    AxisDecoration,
-    PlotType,
-} from "@/model/relation-view-state/chart";
+import {AxisDecoration, PlotType,} from "@/model/relation-view-state/chart";
 
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
 import {DecorationFormPlotLine} from "@/components/relation/chart/chart-config/decoration-form-plot-line";
 import {DecorationFormPlotArea} from "@/components/relation/chart/chart-config/decoration-form-plot-area";
 import {DecorationFormPlotScatter} from "@/components/relation/chart/chart-config/decoration-form-plot-scatter";

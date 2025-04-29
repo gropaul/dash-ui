@@ -4,7 +4,6 @@ import React from "react";
 import {DecorationMenuProps} from "@/components/relation/chart/chart-config/data-axis-decoration-menu";
 import {DecorationFormStroke} from "@/components/relation/chart/chart-config/decoration-form-stroke";
 import {DecorationFormDots} from "@/components/relation/chart/chart-config/decoration-form-dots";
-import {ContextMenuLabel} from "@/components/ui/context-menu";
 
 
 export function DecorationFormPlotLine({decoration, setDecoration}: DecorationMenuProps) {

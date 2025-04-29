@@ -8,13 +8,7 @@ import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {AvailableTabs, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {useDatabaseConState} from "@/state/connections-database.state";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle
-} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];

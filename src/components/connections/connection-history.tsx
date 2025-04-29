@@ -7,7 +7,6 @@ import {DuckDBOverHttpConfig} from "@/state/connections-database/duckdb-over-htt
 import {Eye, EyeOff, Trash2} from "lucide-react";
 
 
-
 export function ObscurableString(props: { value: string }) {
     const [show, setShow] = useState(false);
     return (

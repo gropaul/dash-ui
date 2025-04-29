@@ -4,7 +4,6 @@ import {
     Calendar,
     Database,
     File,
-    FileWarning,
     Folder,
     Hash,
     LayoutDashboard,

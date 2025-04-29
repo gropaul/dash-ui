@@ -3,7 +3,6 @@ import {Input} from "@/components/ui/input";
 import React from "react";
 import {ColorSubMenu} from "@/components/relation/chart/chart-config/color-sub-menu";
 import {DEFAULT_STROKE_DECORATION, StrokeDecoration} from "@/model/relation-view-state/chart";
-import {ContextMenuLabel} from "@/components/ui/context-menu";
 
 interface DecorationFormStrokeProps {
     stroke: StrokeDecoration,

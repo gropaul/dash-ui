@@ -1,10 +1,10 @@
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {
     executeQueryOfRelationState,
-    TableViewQueryParameters,
     RelationState,
     setRelationLoading,
-    updateRelationQueryForParams, ViewQueryParameters
+    updateRelationQueryForParams,
+    ViewQueryParameters
 } from "@/model/relation-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";

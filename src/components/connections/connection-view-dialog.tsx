@@ -3,13 +3,7 @@ import {ConnectionConfig} from "@/components/connections/connection-config";
 import {ConnectionHistory} from "@/components/connections/connection-history";
 import {toast} from "sonner";
 import {useEffect, useState} from "react";
-import {
-    connectionToSpec,
-    DBConnectionSpec,
-    getDefaultSpec,
-    specToConnection
-} from "@/state/connections-database/configs";
-import {useDatabaseConState} from "@/state/connections-database.state";
+import {connectionToSpec, DBConnectionSpec, getDefaultSpec} from "@/state/connections-database/configs";
 import {ConnectionsService} from "@/state/connections-service";
 
 

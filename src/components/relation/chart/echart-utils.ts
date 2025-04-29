@@ -1,10 +1,4 @@
-import {
-    AxisConfig,
-    AxisDecoration,
-    ChartConfig,
-    getInitialAxisDecoration,
-    PlotConfig
-} from "@/model/relation-view-state/chart";
+import {AxisConfig, ChartConfig, getInitialAxisDecoration, PlotConfig} from "@/model/relation-view-state/chart";
 import {RelationData} from "@/model/relation";
 import {EChartsOption} from "echarts-for-react/src/types";
 

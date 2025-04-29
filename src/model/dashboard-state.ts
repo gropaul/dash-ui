@@ -1,4 +1,4 @@
-import {getUpdatedParams, getQueryFromParamsUnchecked, getInitialParams} from "@/model/relation-state";
+import {getInitialParams, getQueryFromParamsUnchecked} from "@/model/relation-state";
 import {getInitialTabViewBaseState, getInitViewState, TabViewBaseState} from "@/model/relation-view-state";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {getRandomId} from "@/platform/id-utils";

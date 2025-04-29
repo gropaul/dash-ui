@@ -1,11 +1,6 @@
-
-import {RelationSource} from "@/model/relation";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
-import {useRelationsState} from "@/state/relations.state";
 import {DuckDBWasm} from "@/state/connections-database/duckdb-wasm";
 import {FileFormat} from "@/state/connections-source/duckdb-helper";
 import {WasmProvider} from "@/state/connections-database/duckdb-wasm/connection-provider";
-
 
 
 export async function mountFilesOnWasm(files: File[], duckDBWasm: DuckDBWasm) {

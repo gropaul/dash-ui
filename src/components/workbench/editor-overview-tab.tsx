@@ -1,7 +1,6 @@
 'use client';
 
 import React, {useEffect, useState} from "react";
-import {H5} from "@/components/ui/typography";
 import {useRelationsState} from "@/state/relations.state";
 import {Button} from "@/components/ui/button";
 import {Folder, LayoutDashboard, Plus, Sheet} from "lucide-react";
@@ -25,7 +24,6 @@ import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
 import {StateStorageInfo} from "@/model/database-connection";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
 import {ConnectionsService} from "@/state/connections-service";
-import {Badge} from "@/components/ui/badge";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
 

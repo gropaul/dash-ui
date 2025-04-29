@@ -6,11 +6,10 @@ import {ConnectionsService} from "@/state/connections-service";
 import {RelationSource} from "@/model/relation";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {getImportQuery, inferFileTableName} from "@/state/connections-database/duckdb-wasm/utils";
-import {CloudUpload, CheckCircle, AlertCircle, XCircle} from "lucide-react";
-import {motion, AnimatePresence} from "framer-motion";
+import {AlertCircle, CheckCircle, CloudUpload, XCircle} from "lucide-react";
+import {AnimatePresence, motion} from "framer-motion";
 import {useGUIState} from "@/state/gui.state";
 import {FileFormat} from "@/state/connections-source/duckdb-helper";
-import {DataSourceGroup} from "@/model/data-source-connection";
 import {useSourceConState} from "@/state/connections-source.state";
 
 interface Props {

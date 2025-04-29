@@ -4,6 +4,7 @@ import React from "react";
 // @ts-ignore
 import {DataType} from "apache-arrow";
 import {ValueType} from "@/model/value-type";
+
 // Adapt this type to match all the strings you expect (from your own system + arrow).
 
 export function normalizeArrowType(type: any): ValueType {
