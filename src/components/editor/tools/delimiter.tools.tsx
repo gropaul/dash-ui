@@ -128,7 +128,6 @@ export default class Delimiter implements BlockTool {
             title: 'Divider',
         };
     }
-
     /**
      * Delimiter onPaste configuration
      *

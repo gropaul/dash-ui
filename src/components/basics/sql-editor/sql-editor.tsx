@@ -17,6 +17,7 @@ export type SupportedLanguages = "sql" | "plaintext";
 export type ButtonPosition = "panel" | "overlay";
 
 export interface CodeFenceProps {
+    embedded: boolean;
     language: SupportedLanguages;
     displayCode: string;
     rounded?: boolean;
@@ -49,6 +50,7 @@ export function SqlEditor(
         onRun,
         onCodeChange,
         rounded = false,
+        embedded = false,
         executionState = {state: 'success'},
         showLineNumbers = false,
         showCopyButton = false,
@@ -115,6 +117,7 @@ export function SqlEditor(
         <div className="flex flex-col h-full w-full relative">
             {buttonPosition === "panel" && (
                 <EditorButtonPanel
+                    embedded={embedded}
                     showLayoutButton={showLayoutButton}
                     currentLayout={currentLayout}
                     onLayoutChange={onLayoutChange}

@@ -1,5 +1,6 @@
 import {Table} from "@/components/relation/table/table";
 import {Chart} from "@/components/relation/chart/chart";
+import {Select} from "@/components/relation/select/select";
 import {RelationViewProps} from "@/components/relation/relation-view";
 
 const DATA_QUERY = "SELECT\n" +
@@ -20,14 +21,13 @@ export function RelationViewContent(props: RelationViewProps) {
         return (
             <Table {...props}/>
         );
-    // } else if (selectedView === 'map') {
-    //     return (
-    //         <Map relationId={relationId} data={data}/>
-    //     );
-
     } else if (selectedView === 'chart') {
         return (
             <Chart {...props}/>
+        );
+    } else if (selectedView === 'select') {
+        return (
+            <Select {...props}/>
         );
 
     } else {

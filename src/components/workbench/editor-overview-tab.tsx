@@ -17,7 +17,7 @@ import {DEFAULT_STATE_STORAGE_DESTINATION, MAIN_CONNECTION_ID} from "@/platform/
 import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import {DashboardState} from "@/model/dashboard-state";
-import {RELATION_BLOCK_TYPE, RelationBlockData} from "@/components/editor/tools/relation.tool";
+import {RELATION_BLOCK_TYPE_TABLE, RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {useEditorStore} from "@/state/editor.state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
@@ -308,7 +308,7 @@ ${relationNames.join(', ')}`;
                 blocks: [
                     ...(dashboard.elementState?.blocks || []),
                     {
-                        type: RELATION_BLOCK_TYPE,
+                        type: RELATION_BLOCK_TYPE_TABLE,
                         data: newElementData,
                         id: getRandomId()
                     }
@@ -322,7 +322,7 @@ ${relationNames.join(', ')}`;
         if (editorState.hasEditor(dashboardId)) {
             const editor = editorState.getEditor(dashboardId);
             const nBlocks = editor.blocks.getBlocksCount();
-            editor.blocks.insert(RELATION_BLOCK_TYPE, newElementData, undefined, nBlocks);
+            editor.blocks.insert(RELATION_BLOCK_TYPE_TABLE, newElementData, undefined, nBlocks);
         } else {
             // we can use this here as we are not adding, deleting or renaming a dashboard
             setDashboardStateUnsafe(dashboard.id, newState);

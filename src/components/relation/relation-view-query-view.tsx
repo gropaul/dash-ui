@@ -36,6 +36,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     return (
         <div className={"w-full h-full overflow-hidden"}>
             <SqlEditor
+                embedded={embedded}
                 alwaysConsumeMouseWheel={!embedded}
                 buttonPosition={'panel'}
                 showLineNumbers={true}

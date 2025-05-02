@@ -439,7 +439,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     const end = performance.now();
     const duration = (end - start) / 1000;
 
-    input.viewState.selectableColumns = schemaColumns;
+    input.viewState.schema = schemaColumns;
     // update the view state with the new data
     return {
         ...input,

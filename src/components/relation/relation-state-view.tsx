@@ -36,14 +36,14 @@ export function RelationStateView(props: RelationViewProps) {
         });
     }
     const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage * 100 : 0;
-    const showCode = codeFenceState.show;
+    const showQuery = codeFenceState.show;
     const embedded = props.embedded ?? false;
 
     return (
         <>
             {!embedded && (
                 <WindowSplitter
-                    child1Active={showCode}
+                    child1Active={showQuery}
                     child2Active={true}
                     ratio={codePercentage / 100}
                     onChange={(ratio) => setCodeFenceState(relationId, ratio)}
@@ -56,7 +56,7 @@ export function RelationStateView(props: RelationViewProps) {
             {
                 embedded && (
                     <div className={"w-full h-fit bg-inherit flex flex-col"}>
-                        {showCode && <Sizable
+                        {showQuery && <Sizable
                             width={'full'}
                             height={codeHeight}
                             onHeightChange={setCodeHeight}

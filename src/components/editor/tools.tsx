@@ -15,28 +15,36 @@ import Undo from "editorjs-undo";
 import Table from "@editorjs/table";
 import List from "@editorjs/list";
 import Header from "@editorjs/header";
+import SelectBlockTool, {SELECT_BLOCK_TYPE} from "@/components/editor/tools/select.tool";
 
 export const EDITOR_JS_TOOLS = {
     [RELATION_BLOCK_TYPE]: {
-    class: RelationBlockTool,
+        class: RelationBlockTool,
         inlineToolbar: true,
         config: {
-        placeholder: "Add a new relation",
+            placeholder: "Add a new relation",
+        },
+        shortcut: "CMD+SHIFT+R",
     },
-    shortcut: "CMD+SHIFT+R",
-},
+    [SELECT_BLOCK_TYPE]: {
+        class: SelectBlockTool,
+        inlineToolbar: true,
+        config: {
+            placeholder: "Add a new relation",
+        }
+    },
     header: {
         class: Header as any,
-            inlineToolbar: ["marker", "link"],
-            config: {
+        inlineToolbar: ["marker", "link"],
+        config: {
             placeholder: "Header",
         },
         shortcut: "CMD+SHIFT+H",
     },
     list: {
         class: List as any,
-            inlineToolbar: true,
-            shortcut: "CMD+SHIFT+L",
+        inlineToolbar: true,
+        shortcut: "CMD+SHIFT+L",
     },
     // quote: {
     //     class: Quote,
@@ -48,24 +56,24 @@ export const EDITOR_JS_TOOLS = {
     //     shortcut: "CMD+SHIFT+O",
     // },
     warning: Warning,
-        marker: {
-    class: Marker,
+    marker: {
+        class: Marker,
         shortcut: "CMD+SHIFT+M",
-},
+    },
     // code: {
     //     class: CodeTool,
     //         shortcut: "CMD+SHIFT+C",
     // },
     delimiter: Delimiter,
-        inlineCode: {
-    class: InlineCode,
+    inlineCode: {
+        class: InlineCode,
         shortcut: "CMD+SHIFT+C",
-},
+    },
     linkTool: LinkTool,
-        embed: Embed,
+    embed: Embed,
     table: {
-    class: Table as any,
+        class: Table as any,
         inlineToolbar: true,
         shortcut: "CMD+ALT+T",
-},
+    },
 };

@@ -3,11 +3,19 @@ import {createRoot, Root} from 'react-dom/client';
 import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
-import {RelationState, ViewQueryParameters} from '@/model/relation-state';
+import {
+    getInitialParams,
+    getQueryFromParamsUnchecked,
+    RelationState,
+    ViewQueryParameters
+} from '@/model/relation-state';
 import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/components/dashboard/dashboard-data-view';
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
-import {RelationViewType} from "@/model/relation-view-state";
+import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
+import {getRandomId} from "@/platform/id-utils";
+import {Relation, RelationSourceQuery} from "@/model/relation";
+import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 
 export const RELATION_BLOCK_TYPE = 'relation';
 
@@ -26,10 +34,10 @@ export interface RelationBlockData extends RelationState {
  * 1. Manage local state
  * 2. Update the tool's data reference whenever changes occur
  */
-function RelationComponent({
-                               initialData,
-                               onDataChange,
-                           }: {
+export function RelationComponent({
+                                      initialData,
+                                      onDataChange,
+                                  }: {
     initialData: RelationBlockData,
     onDataChange: (data: RelationBlockData) => void,
 }) {
@@ -73,7 +81,6 @@ export default class RelationBlockTool implements BlockTool {
             icon: ICON_TABLE,
         };
     }
-
 
 
     public static isRelationBlockData(data: any): data is RelationBlockData {
@@ -135,7 +142,7 @@ export default class RelationBlockTool implements BlockTool {
             }
         }
         const currentPrams = this.data.query.viewParameters;
-        const newParams : ViewQueryParameters= {
+        const newParams: ViewQueryParameters = {
             ...currentPrams,
             type: viewType,
         }

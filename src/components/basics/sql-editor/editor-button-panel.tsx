@@ -4,8 +4,10 @@ import {CopyButton} from "@/components/basics/input/copy-button";
 import {getRunButtonContent} from "@/components/basics/sql-editor/run-button-content";
 import {Columns2, Rows2} from "lucide-react";
 import {Layout} from "@/model/relation-view-state";
+import {cn} from "@/lib/utils";
 
 export interface CodeFenceButtonProps {
+    embedded: boolean;
     showCopyButton: boolean;
     copyCode: string;
 
@@ -22,9 +24,11 @@ export interface CodeFenceButtonProps {
 
 export function EditorButtonPanel(props: CodeFenceButtonProps) {
 
+    const yPadding = props.embedded ? 'pb-2 pt-0.5' : 'py-2'
+
     return (
         <>
-            <div className="flex h-10 flex-row w-full gap-3 items-center border-b border-border pr-4 py-2">
+            <div className={cn("flex flex-row w-full gap-3 items-center border-b border-border pr-4", yPadding)}>
                 {props.showRunButton && (
                     <button
                         onClick={props.onRun}

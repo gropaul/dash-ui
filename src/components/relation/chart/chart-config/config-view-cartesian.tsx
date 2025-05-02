@@ -228,7 +228,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
 
     }
 
-    const columns = props.relationState?.viewState.selectableColumns ?? ([] as Column[]);
+    const columns = props.relationState?.viewState.schema ?? ([] as Column[]);
 
     const yAxis = config.chart.plot.cartesian.yAxes;
 
