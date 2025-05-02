@@ -71,7 +71,7 @@ export function toEChartOptions(
         const labelIdx = GetColumnIdx(labelAxis.columnId);
         const radiusIdx = GetColumnIdx(radiusAxis.columnId);
         const dec = radiusAxis.decoration.pie;
-
+        //
         const seriesData = data.rows.map(row => ({
             name: row[labelIdx],
             value: row[radiusIdx],
@@ -132,14 +132,13 @@ export function toEChartOptions(
 
         const xAxis: any = {
             type: xAxisType,
-            boundaryGap: false,
+            boundaryGap: plot.type === "bar", // true for bar charts, false for others (boundary between first value and y-axis)
             data: xData
         };
         if (cartesian.xLabel) {
             xAxis.name = cartesian.xLabel
             xAxis.nameLocation = 'center';
             xAxis.nameGap = 30;
-
         }
         if (cartesian.xRange.start !== undefined) {
             xAxis.min = cartesian.xRange.start;
@@ -159,7 +158,9 @@ export function toEChartOptions(
         }
 
         const yAxis: any = {type: "value"};
-        if (cartesian.yLabel) yAxis.name = cartesian.yLabel;
+        if (cartesian.yLabel) {
+            yAxis.name = cartesian.yLabel;
+        }
         if (cartesian.yRange.start !== undefined) {
             yAxis.min = cartesian.yRange.start;
         } else {
@@ -172,7 +173,7 @@ export function toEChartOptions(
         }
         if (cartesian?.yLabelRotation) {
             yAxis.axisLabel = {
-                interval: 0,
+                align: 'left',
                 rotate: cartesian.yLabelRotation,
             }
         }
