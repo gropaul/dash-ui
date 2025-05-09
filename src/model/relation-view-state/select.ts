@@ -3,7 +3,9 @@ import {RelationData} from "@/model/relation";
 
 
 export interface SelectViewState {
+    name?: string;
     placeholder?: string;
+    showConfig?: boolean;
 }
 
 export function getInitialSelectViewState(relationData: RelationData): SelectViewState {
@@ -14,4 +16,3 @@ export function getInitialSelectViewStateEmpty(): SelectViewState {
     return {
     };
 }
-

@@ -26,6 +26,16 @@ export const ICON_EYE_CLOSE = '<svg xmlns="http://www.w3.org/2000/svg" width="24
 export const ICON_CAPTIONS_OFF = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-captions-off icon-smaller"><path d="M10.5 5H19a2 2 0 0 1 2 2v8.5"/><path d="M17 11h-.5"/><path d="M19 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2"/><path d="m2 2 20 20"/><path d="M7 11h4"/><path d="M7 15h2.5"/></svg>';
 export const ICON_CAPTIONS = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-captions icon-smaller"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>';
 
+export const ICON_SETTING = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  class="lucide lucide-settings-icon lucide-settings">
+  <g transform="scale(0.85) translate(2 2)">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </g>
+</svg>`.trim();
+
 export interface RelationBlockData extends RelationState {
 }
 
@@ -133,6 +143,19 @@ export default class RelationBlockTool implements BlockTool {
         this.render();
     }
 
+    public async rerunQuery() {
+        console.log("rerun query");
+        const currentPrams = this.data.query.viewParameters;
+        const newParams: ViewQueryParameters = {
+            ...currentPrams,
+        }
+
+        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, (updatedData) => {
+            this.data = updatedData;
+            this.render();
+        });
+    }
+
     public async setViewType(viewType: RelationViewType) {
         this.data = {
             ...this.data,
@@ -213,7 +236,7 @@ export default class RelationBlockTool implements BlockTool {
             })),
             ...(selectedView === 'chart') ? [{
                 title: chartSettingsText,
-                icon: chartSettingsVisible ? ICON_CAPTIONS_OFF : ICON_CAPTIONS,
+                icon: chartSettingsVisible ? ICON_CAPTIONS_OFF : ICON_SETTING,
                 closeOnActivate: true,
                 onActivate: () => {
                     this.showChartSettings(!chartSettingsVisible);

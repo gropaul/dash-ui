@@ -1,6 +1,6 @@
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
-import {ImageDown, Pencil, PencilOff} from "lucide-react";
+import {ImageDown, Pencil, PencilOff, Settings} from "lucide-react";
 import {MyChartProps} from "@/components/relation/chart/chart-content";
 import {ConfigViewState} from "@/model/relation-view-state/chart";
 import {DeepPartial} from "@/platform/object-utils";
@@ -35,14 +35,17 @@ export function ChartContentOverlay(props: ChartContentOverlayProps) {
         <div className={cn("absolute right-2 top-2 flex gap-2", props.className)}>
             {/* Toggle Chart Settings Button */}
             <Button variant="ghost" size="icon" onClick={updateShowConfig}>
-                {showChartSettings ? <PencilOff size={16} /> : <Pencil size={16} />}
+                {props.embedded ?
+                    <Settings size={16}/>
+                    :
+                    showChartSettings ? <PencilOff size={16}/> : <Pencil size={16}/>}
             </Button>
 
             {/* Export Chart Dropdown Button */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
-                        <ImageDown className="h-4 w-4" />
+                        <ImageDown className="h-4 w-4"/>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>

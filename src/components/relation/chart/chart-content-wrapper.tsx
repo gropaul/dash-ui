@@ -37,7 +37,8 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
             }
             {/* Overlay Button panel so that it is not exportable */}
             {showOverlay && <ChartContentOverlay
-                className={isEmbedded ? 'text-muted-foreground top-0 right-2 group-hover:opacity-100 opacity-0 transition-opacity duration-200' : ''}
+                embedded={props.embedded}
+                className={isEmbedded ? ' top-0 right-2 group-hover:opacity-100 opacity-0 transition-opacity duration-200' : ''}
                 hasError={plotDisplayError != undefined}
                 data={data}
                 config={config.chart}

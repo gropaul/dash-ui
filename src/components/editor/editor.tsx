@@ -27,37 +27,52 @@ export default function Editor(props: EditorProps) {
 
     const {readOnly = false, onToggleReadOnly} = props;
     const editorRef = useRef<EditorJS | null>(null);
-    const { setEditor, removeEditor } = useEditorStore(); // Zustand action to set editorRef
+    const {setEditor, removeEditor} = useEditorStore(); // Zustand action to set editorRef
 
     useEffect(() => {
-        // Cleanup any existing instance
+        // Clean up any existing instance
         if (editorRef.current) {
             return;
         }
 
         const editor = new EditorJS({
-            holder: props.id,
-            placeholder: "Start writting here..",
-            readOnly: false,
-            onReady: () => {
-                new Undo({editor})
-                new DragDrop(editor);
-                setEditor(props.id, editor);
-            },
-            onChange: (api, event) => {
-                const events = Array.isArray(event) ? event : [event];
-                props.onBlockChangeEvent?.(events);
+                holder: props.id,
+                placeholder: "Start writting here..",
+                readOnly: false,
+                onReady: () => {
+                    new Undo({editor})
+                    new DragDrop(editor);
+                    setEditor(props.id, editor);
 
-                editor.save().then((data) => {
-                    props.onSaved?.(data);
-                });
-            },
-            tools: EDITOR_JS_TOOLS,
-            data: props.initialData,
+                    const relationBlocks = props.initialData?.blocks.filter(block => block.type === 'relation') || [];
+                    for (const relationBlock of relationBlocks) {
+                        const block = editor.blocks.getById(relationBlock.id!);
+                        if (block) {
+                            // render the block every 5s
+                            for (let i = 0; i < 10; i++) {
+                                setTimeout(() => {
+                                    block.call('rerunQuery');
+                                    console.log(`Rendering block ${relationBlock.id}...`);
+                                }, i * 5000);
+                            }
+                        }
+                    }
+                },
+                onChange: (api, event) => {
+                    const events = Array.isArray(event) ? event : [event];
+                    props.onBlockChangeEvent?.(events);
+
+                    editor.save().then((data) => {
+                        props.onSaved?.(data);
+                    });
+                },
+                tools: EDITOR_JS_TOOLS,
+                data: props.initialData,
             }
         );
-
         editorRef.current = editor;
+
+
 
         //add a return function handle cleanup
         return () => {
@@ -66,6 +81,8 @@ export default function Editor(props: EditorProps) {
                 removeEditor(props.id);
             }
         };
+
+
     }, [readOnly]);
 
     return (

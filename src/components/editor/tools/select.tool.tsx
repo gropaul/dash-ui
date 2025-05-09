@@ -1,21 +1,14 @@
 // RelationBlockTool.tsx
 import {createRoot, Root} from 'react-dom/client';
 import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 
-import {
-    getInitialParams,
-    getQueryFromParamsUnchecked,
-    RelationState,
-    ViewQueryParameters
-} from '@/model/relation-state';
-import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/components/dashboard/dashboard-data-view';
-import {getInitialDataElement} from "@/model/dashboard-state";
+import {getInitialParams, getQueryFromParamsUnchecked} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
-import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
+import {getInitViewState} from "@/model/relation-view-state";
 import {
     ICON_EYE_CLOSE,
-    ICON_EYE_OPEN,
+    ICON_EYE_OPEN, ICON_SETTING,
     RelationBlockData,
     RelationComponent
 } from "@/components/editor/tools/relation.tool";
@@ -94,6 +87,20 @@ export default class SelectBlockTool implements BlockTool {
         this.render();
     }
 
+    public setShowConfig(show: boolean) {
+        this.data = {
+            ...this.data,
+            viewState: {
+                ...this.data.viewState,
+                selectState: {
+                    ...this.data.viewState.selectState,
+                    showConfig: show,
+                }
+            }
+        }
+        this.render();
+    }
+
     public static isRelationBlockData(data: any): data is RelationBlockData {
         return data && typeof data === 'object' && 'viewState' in data;
     }
@@ -135,6 +142,10 @@ export default class SelectBlockTool implements BlockTool {
         const codeVisibility = this.data.viewState.codeFenceState.show;
         const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
 
+
+        const showConfig = this.data.viewState.selectState.showConfig ?? false;
+        const showConfigTest = showConfig ? 'Hide Config' : 'Show Config';
+
         return [
             {
                 title: codeText,
@@ -144,6 +155,14 @@ export default class SelectBlockTool implements BlockTool {
                     this.setShowCodeFence(!codeVisibility);
                 },
             },
+            {
+                title: showConfigTest,
+                closeOnActivate: true,
+                icon: ICON_SETTING,
+                onActivate: () => {
+                    this.setShowConfig(!showConfig);
+                }
+            }
         ]
     }
 

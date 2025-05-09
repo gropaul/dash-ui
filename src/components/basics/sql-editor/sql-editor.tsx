@@ -158,6 +158,7 @@ export function SqlEditor(
             />
             {buttonPosition === "overlay" && (
                 <EditorButtonOverlay
+                    embedded={embedded}
                     showCopyButton={showCopyButton}
                     copyCode={copyCode}
                     showRunButton={showRunButton}
