@@ -4,6 +4,8 @@ import React from "react";
 import {DecorationMenuProps} from "@/components/relation/chart/chart-config/data-axis-decoration-menu";
 import {DecorationFormStroke} from "@/components/relation/chart/chart-config/decoration-form-stroke";
 import {DecorationFormDots} from "@/components/relation/chart/chart-config/decoration-form-dots";
+import {Switch} from "@/components/ui/switch";
+import {Label} from "@/components/ui/label";
 
 
 export function DecorationFormPlotLine({decoration, setDecoration}: DecorationMenuProps) {
@@ -21,6 +23,16 @@ export function DecorationFormPlotLine({decoration, setDecoration}: DecorationMe
         });
     };
 
+    const updateSmooth = (smooth: boolean) => {
+        setDecoration({
+            ...decoration,
+            line: {
+                ...line,
+                smooth: smooth,
+            },
+        });
+    };
+
     const updateDots = (partial: Partial<DotsDecoration>) => {
         setDecoration({
             ...decoration,
@@ -35,12 +47,19 @@ export function DecorationFormPlotLine({decoration, setDecoration}: DecorationMe
 
     return (
         <>
-
             {/* Stroke Settings */}
             <DecorationFormStroke
                 stroke={line.stroke}
                 updateStroke={updateStroke}
             />
+
+            <div className="px-2 py-1.5 flex items-center justify-between w-full">
+                <Label>Smooth Line</Label>
+                <Switch
+                    checked={line.smooth}
+                    onCheckedChange={updateSmooth}
+                />
+            </div>
 
             <Separator className="my-2"/>
 

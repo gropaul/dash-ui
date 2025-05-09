@@ -57,16 +57,18 @@ export interface AxisDecoration {
 /* -------------------------------------------------------------------------- */
 
 
+export type LineStyle = 'solid' | 'dashed' | 'dotted';
+
 export interface StrokeDecoration {
     width?: number;
     color: string;
-    dashArray?: string;
+    lineStyle?: LineStyle;
 }
 
 export const DEFAULT_STROKE_DECORATION: StrokeDecoration = {
     width: 2,
     color: '#000000',
-    dashArray: 'none',
+    lineStyle: 'solid',
 }
 
 export type DotsShape = 'circle' | 'square' | 'triangle' | 'diamond';
@@ -89,6 +91,7 @@ export const DEFAULT_DOTS_DECORATION: DotsDecoration = {
 
 export interface LineAxisDecoration {
     stroke: StrokeDecoration,
+    smooth: boolean,
 }
 
 /* -------------------------------------------------------------------------- */
@@ -235,8 +238,9 @@ export function getInitialAxisDecoration(yIndex: number): AxisDecoration {
             stroke: {
                 color: base_color,
                 width: 2,
-                dashArray: 'none',
-            }
+                lineStyle: 'solid',
+            },
+            smooth: false
         },
         // takes stroke and dots from the line decoration
         area: {

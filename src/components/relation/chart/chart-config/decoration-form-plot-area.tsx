@@ -4,6 +4,8 @@ import {DotsDecoration, FillDecoration, LineAxisDecoration} from "@/model/relati
 import {DecorationFormStroke} from "@/components/relation/chart/chart-config/decoration-form-stroke";
 import {Separator} from "@/components/ui/separator";
 import {DecorationFormFill} from "@/components/relation/chart/chart-config/decoration-form-fill";
+import {Switch} from "@/components/ui/switch";
+import {Label} from "@/components/ui/label";
 
 
 export function DecorationFormPlotArea({decoration, setDecoration}: DecorationMenuProps) {
@@ -47,12 +49,30 @@ export function DecorationFormPlotArea({decoration, setDecoration}: DecorationMe
         });
     };
 
+    const updateSmooth = (smooth: boolean) => {
+        setDecoration({
+            ...decoration,
+            line: {
+                ...decoration.line,
+                smooth: smooth,
+            },
+        });
+    };
+
     return (
         <>
             <DecorationFormStroke
                 stroke={line.stroke}
                 updateStroke={updateAreaStroke}
             />
+
+            <div className="px-2 py-1.5 flex items-center justify-between w-full">
+                <Label>Smooth Line</Label>
+                <Switch
+                    checked={line.smooth}
+                    onCheckedChange={updateSmooth}
+                />
+            </div>
 
             <Separator className="my-2"/>
 

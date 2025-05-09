@@ -307,8 +307,11 @@ function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConf
             base.lineStyle = {
                 color: dec.color,
                 width: dec.line.stroke.width,
-                type: dec.line.stroke.dashArray,
+                type: dec.line.stroke.lineStyle || 'solid',
             };
+            if (plot.type === "line" || plot.type === "area") {
+                base.smooth = dec.line.smooth;
+            }
             base.symbol = dec.scatter.dots.visible || plot.type === 'scatter' ? dec.scatter.dots.shape : "none";
             base.symbolSize = dec.scatter.dots.radius;
             base.itemStyle = {

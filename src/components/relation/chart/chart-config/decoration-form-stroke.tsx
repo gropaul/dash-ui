@@ -2,7 +2,8 @@ import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import React from "react";
 import {ColorSubMenu} from "@/components/relation/chart/chart-config/color-sub-menu";
-import {DEFAULT_STROKE_DECORATION, StrokeDecoration} from "@/model/relation-view-state/chart";
+import {DEFAULT_STROKE_DECORATION, LineStyle, StrokeDecoration} from "@/model/relation-view-state/chart";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 interface DecorationFormStrokeProps {
     stroke: StrokeDecoration,
@@ -34,14 +35,20 @@ export function DecorationFormStroke(props: DecorationFormStrokeProps) {
         </div>
 
         <div className="px-2 py-1.5 flex items-center justify-between w-full">
-            <Label>Stroke Dasharray</Label>
-            <Input
-                className="max-w-[80px]"
-                type="text"
-                placeholder="e.g. 5,5"
-                value={props.stroke.dashArray ? props.stroke.dashArray : ''}
-                onChange={(e) => updatePartial({dashArray: e.target.value})}
-            />
+            <Label>Line Style</Label>
+            <Select
+                value={props.stroke.lineStyle || 'solid'}
+                onValueChange={(value: LineStyle) => updatePartial({lineStyle: value})}
+            >
+                <SelectTrigger className="max-w-[120px]">
+                    <SelectValue placeholder="Select style" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="solid">Solid</SelectItem>
+                    <SelectItem value="dashed">Dashed</SelectItem>
+                    <SelectItem value="dotted">Dotted</SelectItem>
+                </SelectContent>
+            </Select>
         </div>
 
         <ColorSubMenu
