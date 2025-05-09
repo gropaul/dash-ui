@@ -1,5 +1,3 @@
-
-
 // RelationBlockTool.tsx
 import {createRoot, Root} from 'react-dom/client';
 import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
@@ -15,7 +13,12 @@ import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/compone
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
-import {RelationBlockData, RelationComponent} from "@/components/editor/tools/relation.tool";
+import {
+    ICON_EYE_CLOSE,
+    ICON_EYE_OPEN,
+    RelationBlockData,
+    RelationComponent
+} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
@@ -77,7 +80,19 @@ export default class SelectBlockTool implements BlockTool {
         };
     }
 
-
+    public setShowCodeFence(show: boolean) {
+        this.data = {
+            ...this.data,
+            viewState: {
+                ...this.data.viewState,
+                codeFenceState: {
+                    ...this.data.viewState.codeFenceState,
+                    show,
+                }
+            }
+        }
+        this.render();
+    }
 
     public static isRelationBlockData(data: any): data is RelationBlockData {
         return data && typeof data === 'object' && 'viewState' in data;
@@ -116,7 +131,20 @@ export default class SelectBlockTool implements BlockTool {
 
 
     public renderSettings(): HTMLElement | MenuConfig {
-        return [];
+
+        const codeVisibility = this.data.viewState.codeFenceState.show;
+        const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
+
+        return [
+            {
+                title: codeText,
+                closeOnActivate: true,
+                icon: codeVisibility ? ICON_EYE_CLOSE : ICON_EYE_OPEN,
+                onActivate: () => {
+                    this.setShowCodeFence(!codeVisibility);
+                },
+            },
+        ]
     }
 
     public save(): RelationBlockData {

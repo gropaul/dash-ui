@@ -26,6 +26,7 @@ export function toEChartOptions(
         },
         tooltip: {trigger: 'axis'},
         legend: {
+            type: 'scroll',
             selectedMode: true,
             orient: 'horizontal',
             top: 28, // Adjust so it's below the title

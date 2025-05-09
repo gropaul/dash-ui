@@ -1,12 +1,10 @@
-'use client';
+'use client'
+import Draggable from 'react-draggable';
 
-import React from "react";
-import {H1} from "@/components/ui/typography";
-
-export default function Test() {
+export default function Page() {
     return (
-        <>
-            <H1> Hoi! </H1>
-        </>
+        <Draggable>
+            <div>I can be dragged around!</div>
+        </Draggable>
     );
 }
