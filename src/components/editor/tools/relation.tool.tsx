@@ -16,8 +16,9 @@ import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+import {GetDependenciesParams, InputConsumerTool, InputDependency, InputValue} from "@/components/editor/inputs/models";
 
-export const RELATION_BLOCK_TYPE = 'relation';
+export const RELATION_BLOCK_NAME = 'relation';
 
 export const ICON_TABLE = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sheet icon-smaller"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/><line x1="15" x2="15" y1="9" y2="21"/></svg>';
 export const ICON_CHART = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-spline icon-smaller"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16c.5-2 1.5-7 4-7 2 0 2 3 4 3 2.5 0 4.5-5 5-7"/></svg>';
@@ -73,9 +74,9 @@ export function RelationComponent({
     );
 }
 
-export default class RelationBlockTool implements BlockTool {
+export default class RelationBlockTool implements BlockTool, InputConsumerTool {
     private readonly api: API;
-    private data: RelationBlockData;
+    public data: RelationBlockData;
     private readOnly: boolean;
     private wrapper: HTMLElement | null = null;
     private reactRoot: Root | null = null;
@@ -92,7 +93,6 @@ export default class RelationBlockTool implements BlockTool {
         };
     }
 
-
     public static isRelationBlockData(data: any): data is RelationBlockData {
         return data && typeof data === 'object' && 'viewState' in data;
     }
@@ -105,6 +105,43 @@ export default class RelationBlockTool implements BlockTool {
         } else {
             this.data = getInitialDataElement();
         }
+    }
+
+    findInputDependenciesInRelationTool(blockId: string): InputDependency[] {
+        const query = this.data.query.baseQuery;
+        // e.g. "SELECT * FROM table WHERE id = {{inputName}}"
+        const regex = /{{(.*?)}}/g;
+        const matches = query.match(regex);
+        if (!matches) {
+            return [];
+        }
+
+        const dependencies: InputDependency[] = [];
+        for (const match of matches) {
+            const inputName = match.replace(/{{|}}/g, "").trim();
+            dependencies.push({
+                blockId: blockId,
+                inputName: inputName,
+                callFunction: async (inputValue: InputValue) => {
+                    this.setInputValue(inputName, inputValue);
+                }
+            });
+        }
+        return dependencies;
+    }
+
+    public getDependencies(params: GetDependenciesParams) {
+        const deps = this.findInputDependenciesInRelationTool(params.blockId);
+        params.callback(deps);
+    }
+
+    public setInputValue(inputName: string, inputValue: InputValue) {
+        // if no inputStore, create it
+        if (!this.data.query.viewParameters.inputStore) {
+            this.data.query.viewParameters.inputStore = {};
+        }
+        this.data.query.viewParameters.inputStore[inputName] = inputValue;
+        this.rerunQuery();
     }
 
     public render(): HTMLElement {
@@ -143,17 +180,19 @@ export default class RelationBlockTool implements BlockTool {
         this.render();
     }
 
+    updateAndRender(newData: RelationBlockData) {
+        this.data = newData;
+        this.render();
+    }
+
     public async rerunQuery() {
-        console.log("rerun query");
+
         const currentPrams = this.data.query.viewParameters;
         const newParams: ViewQueryParameters = {
             ...currentPrams,
         }
 
-        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, (updatedData) => {
-            this.data = updatedData;
-            this.render();
-        });
+        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, this.updateAndRender.bind(this));
     }
 
     public async setViewType(viewType: RelationViewType) {
@@ -191,7 +230,6 @@ export default class RelationBlockTool implements BlockTool {
             }
         }
         this.render();
-
     }
 
 

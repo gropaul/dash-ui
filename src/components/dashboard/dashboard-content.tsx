@@ -3,6 +3,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {OutputData} from "@editorjs/editorjs";
 
 import dynamic from "next/dynamic";
+import {registerInputs} from "@/components/editor/inputs/register-inputs";
 
 const Editor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 
@@ -32,6 +33,7 @@ export function DashboardContent(props: DashboardContentProps) {
                 id={dashboard.id}
                 initialData={dashboard.elementState}
                 onSaved={onSaved}
+                onReady={registerInputs}
             />
         </div>
     );

@@ -15,8 +15,15 @@ import {
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+import {
+    GetSourcesParams,
+    InputNotifyFunction,
+    InputProducerTool,
+    InputSource,
+    InputValue
+} from "@/components/editor/inputs/models";
 
-export const SELECT_BLOCK_TYPE = 'select';
+export const SELECT_BLOCK_NAME = 'select';
 
 const ICON_SELECT = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-arrow-down-icon lucide-square-arrow-down"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v8"/><path d="m8 12 4 4 4-4"/></svg>'
 
@@ -54,12 +61,15 @@ export function getInitialSelectDataElement(): RelationBlockData {
 }
 
 
-export default class SelectBlockTool implements BlockTool {
+export default class SelectBlockTool implements BlockTool, InputProducerTool{
     private readonly api: API;
     private data: RelationBlockData;
     private readOnly: boolean;
     private wrapper: HTMLElement | null = null;
     private reactRoot: Root | null = null;
+
+    private currentSelectValue?: string;
+    private selectNotifyFunction?: InputNotifyFunction
 
     static get isReadOnlySupported() {
         return true;
@@ -115,6 +125,31 @@ export default class SelectBlockTool implements BlockTool {
         }
     }
 
+    getSources(params: GetSourcesParams): void {
+        const source: InputSource = {
+            inputName: this.data.viewState.selectState.name,
+        }
+        this.selectNotifyFunction = params.notifyOnChange;
+        params.callback([source]);
+    }
+
+    onSelectChanged(value?: string) {
+        if (this.selectNotifyFunction){
+            this.selectNotifyFunction(this.data.viewState.selectState.name, {
+                value: value
+            })
+        }
+    }
+
+    onDataChange(updatedData: RelationBlockData) {
+        this.data = updatedData;
+
+        if (this.data.viewState.selectState.value !== this.currentSelectValue) {
+            this.currentSelectValue = this.data.viewState.selectState.value;
+            this.onSelectChanged(this.currentSelectValue);
+        }
+    }
+
     public render(): HTMLElement {
         if (!this.wrapper) {
             // Create your wrapper the first time
@@ -127,15 +162,12 @@ export default class SelectBlockTool implements BlockTool {
         this.reactRoot!.render(
             <RelationComponent
                 initialData={this.data}
-                onDataChange={(updatedData: RelationBlockData) => {
-                    this.data = updatedData;
-                }}
+                onDataChange={this.onDataChange.bind(this)}
             />
         );
 
         return this.wrapper;
     }
-
 
     public renderSettings(): HTMLElement | MenuConfig {
 

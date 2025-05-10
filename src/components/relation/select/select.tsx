@@ -24,12 +24,12 @@ import {SelectViewState} from "@/model/relation-view-state/select"
 
 export function Select(props: RelationViewProps) {
     const [open, setOpen] = React.useState(false)
-    const [value, setValue] = React.useState("")
 
     const relationId = props.relationState.id
     const viewState = props.relationState
     const showConfig = viewState.viewState.selectState.showConfig || false
     const placeholder = viewState.viewState.selectState.placeholder || "Select..."
+    const value = viewState.viewState.selectState.value;
     const name = viewState.name || ""
 
     const setShowConfig = (show: boolean) => {
@@ -40,10 +40,19 @@ export function Select(props: RelationViewProps) {
         })
     }
 
+    const setValue = (value: string) => {
+        props.updateRelationViewState(relationId, {
+            selectState: {
+                value: value,
+            }
+        })
+    }
+
     const items = props.relationState.data?.rows.map(row => ({
         value: row[0],
         label: row[0]
     })) || []
+
 
     return (
         <div className='pt-0.5 pb-0.5 flex flex-row gap-2 items-center justify-start group'>

@@ -20,6 +20,7 @@ interface EditorProps {
     onBlockChangeEvent?: (events: BlockMutationEvent[]) => void;
     initialData?: OutputData;
     onSaved?: (data: OutputData) => void;
+    onReady?: (editor: EditorJS) => void;
     onToggleReadOnly?: (val: boolean) => void;
 }
 
@@ -37,25 +38,14 @@ export default function Editor(props: EditorProps) {
 
         const editor = new EditorJS({
                 holder: props.id,
-                placeholder: "Start writting here..",
+                placeholder: "Start writing here..",
                 readOnly: false,
                 onReady: () => {
                     new Undo({editor})
                     new DragDrop(editor);
                     setEditor(props.id, editor);
-
-                    const relationBlocks = props.initialData?.blocks.filter(block => block.type === 'relation') || [];
-                    for (const relationBlock of relationBlocks) {
-                        const block = editor.blocks.getById(relationBlock.id!);
-                        if (block) {
-                            // render the block every 5s
-                            for (let i = 0; i < 10; i++) {
-                                setTimeout(() => {
-                                    block.call('rerunQuery');
-                                    console.log(`Rendering block ${relationBlock.id}...`);
-                                }, i * 5000);
-                            }
-                        }
+                    if (props.onReady) {
+                        props.onReady(editor);
                     }
                 },
                 onChange: (api, event) => {

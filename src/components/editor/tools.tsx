@@ -1,4 +1,4 @@
-import RelationBlockTool, {RELATION_BLOCK_TYPE} from "@/components/editor/tools/relation.tool";
+import RelationBlockTool, {RELATION_BLOCK_NAME} from "@/components/editor/tools/relation.tool";
 import Warning from "@editorjs/warning";
 import Delimiter from "@/components/editor/tools/delimiter.tools";
 import InlineCode from "@editorjs/inline-code";
@@ -15,10 +15,10 @@ import Undo from "editorjs-undo";
 import Table from "@editorjs/table";
 import List from "@editorjs/list";
 import Header from "@editorjs/header";
-import SelectBlockTool, {SELECT_BLOCK_TYPE} from "@/components/editor/tools/select.tool";
+import SelectBlockTool, {SELECT_BLOCK_NAME} from "@/components/editor/tools/select.tool";
 
 export const EDITOR_JS_TOOLS = {
-    [RELATION_BLOCK_TYPE]: {
+    [RELATION_BLOCK_NAME]: {
         class: RelationBlockTool,
         inlineToolbar: true,
         config: {
@@ -26,7 +26,7 @@ export const EDITOR_JS_TOOLS = {
         },
         shortcut: "CMD+SHIFT+R",
     },
-    [SELECT_BLOCK_TYPE]: {
+    [SELECT_BLOCK_NAME]: {
         class: SelectBlockTool,
         inlineToolbar: true,
         config: {
