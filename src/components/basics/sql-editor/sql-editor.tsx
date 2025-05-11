@@ -11,6 +11,8 @@ import {useTheme} from "next-themes";
 import "@/styles/editor-monaco.css";
 import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
 import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
+import {registerInputCompletion} from "@/components/basics/sql-editor/regsiter-input-completion";
+import {configureMonaco} from "@/components/basics/sql-editor/register-autocomplete";
 
 export type SupportedLanguages = "sql" | "plaintext";
 
@@ -40,17 +42,14 @@ export interface CodeFenceProps {
     onCodeChange?: (code: string) => void;
     height?: string;
     width?: string;
-    inputParams?: Record<string, any>
 }
 
 export function SqlEditor(
     {
-        language,
         displayCode,
         copyCode,
         onRun,
         onCodeChange,
-        rounded = false,
         embedded = false,
         executionState = {state: 'success'},
         showLineNumbers = false,
@@ -64,7 +63,6 @@ export function SqlEditor(
         alwaysConsumeMouseWheel = false,
         showLayoutButton = false,
         currentLayout = 'column',
-        inputParams = {'TEST': 'VALUE'},
         onLayoutChange,
     }: CodeFenceProps) {
 
@@ -109,7 +107,9 @@ export function SqlEditor(
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
         monaco.editor.setTheme(editorTheme);
 
+
         registerHotkeys(monaco, onRun);
+        registerInputCompletion(editor, monaco);
         registerFormatter(monaco);
         setEditor(editor);
     }
@@ -135,6 +135,7 @@ export function SqlEditor(
             <Editor
                 height={height}
                 width={width}
+                defaultLanguage={'sql'}
                 language={'sql'}
                 value={displayCode}
                 options={{

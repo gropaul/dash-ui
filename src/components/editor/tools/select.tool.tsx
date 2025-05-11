@@ -19,7 +19,7 @@ import {
     InputProducerTool,
     RegisterInputManagerParams
 } from "@/components/editor/inputs/models";
-import {InputValueChangeParams, InputManager} from "@/components/editor/inputs/register-inputs";
+import {InputManager, InputValueChangeParams} from "@/components/editor/inputs/input-manager";
 
 export const SELECT_BLOCK_NAME = 'select';
 
