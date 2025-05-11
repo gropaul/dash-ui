@@ -2,9 +2,11 @@ import {DefaultRelationZustandActions, useRelationsState} from "@/state/relation
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {getUpdatedParams, RelationState} from "@/model/relation-state";
 import {getSeparatedStatements} from "@/platform/sql-utils";
+import {InputManager} from "@/components/editor/inputs/input-manager";
 
 interface RelationViewQueryProps extends DefaultRelationZustandActions{
     relationState: RelationState,
+    inputManager?: InputManager;
     embedded?: boolean;
 }
 
@@ -36,6 +38,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     return (
         <div className={"w-full h-full overflow-hidden"}>
             <SqlEditor
+                inputManager={props.inputManager}
                 embedded={embedded}
                 alwaysConsumeMouseWheel={!embedded}
                 buttonPosition={'panel'}

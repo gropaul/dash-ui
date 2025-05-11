@@ -1,11 +1,12 @@
-import { Monaco } from "@monaco-editor/react";
+import {Monaco} from "@monaco-editor/react";
+import {InputManager} from "@/components/editor/inputs/input-manager";
 
-export function registerInputCompletion(editor: any, monaco: Monaco) {
-    const envVars = {
-        "ENV_VAR_1": "value1",
-        "ENV_VAR_2": "value2",
-        "ENV_VAR_3": "value3"
-    };
+export function registerInputCompletion(editor: any, monaco: Monaco, inputManager?: InputManager) {
+
+    if (!inputManager) {
+        console.warn("Input manager is not provided. Skipping input completion registration.");
+        return;
+    }
 
     editor.onDidChangeModelContent(() => {
         const position = editor.getPosition();
@@ -41,8 +42,9 @@ export function registerInputCompletion(editor: any, monaco: Monaco) {
                 startColumn: position.column,
                 endColumn: position.column
             };
-
-            const suggestions = Object.keys(envVars).map((key) => ({
+            const vars = inputManager.getAvailableInputs();
+            console.log(vars);
+            const suggestions = Object.keys(vars).map((key) => ({
                 label: key,
                 kind: monaco.languages.CompletionItemKind.Variable,
                 insertText: hasClosingBraces ? key : `${key}}}`,

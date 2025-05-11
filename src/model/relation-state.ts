@@ -7,7 +7,6 @@ import {
 } from "@/model/relation";
 import {
     getInitViewState,
-    InputStore,
     RelationViewState,
     RelationViewType,
     updateRelationViewState
@@ -15,6 +14,7 @@ import {
 import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections-service";
+import {InputManager} from "@/components/editor/inputs/input-manager";
 
 export function getInitialParams(): ViewQueryParameters {
     return {
@@ -25,7 +25,6 @@ export function getInitialParams(): ViewQueryParameters {
             sorting: {},
         },
         chart: {},
-        inputStore: {},
     };
 }
 
@@ -57,7 +56,6 @@ export interface ViewQueryParameters {
     type: RelationViewType;
     table: TableViewQueryParameters;
     chart: ChartTableQueryParameters;
-    inputStore: InputStore;
 }
 
 export interface TableViewQueryParameters {
@@ -126,7 +124,7 @@ export async function getViewFromSource(connectionId: string, source: RelationSo
     try {
         queryData = await getQueryFromParams(relation, viewParams, relationBaseQuery);
     } catch (e) {
-        const relationWithQuery: RelationWithQuery =  {
+        const relationWithQuery: RelationWithQuery = {
             ...relation,
             query: {
                 baseQuery: relationBaseQuery,
@@ -200,13 +198,7 @@ interface BuildQuery {
     // optionally return any other intermediate results if needed
 };
 
-const setVariablesInQuery = (query: string, inputStore: InputStore): string => {
-    // all forms with `{{variable}}` are replaced with the value of the variable
-    // in the inputStore, if it exists, else throw an error
-    // backwards compatibility: if inputStore is empty, return the query as is
-    if (!inputStore || Object.keys(inputStore).length === 0) {
-        return query;
-    }
+const setVariablesInQuery = (query: string, manger?: InputManager): string => {
 
     // find all matches of {{variable}}
     const regex = /{{([^}]+)}}/g;
@@ -218,11 +210,13 @@ const setVariablesInQuery = (query: string, inputStore: InputStore): string => {
     // replace all matches with the value of the variable in the inputStore
     let newQuery = query;
     for (const match of matches) {
-        const variable = match.replace(/{{|}}/g, '');
-        const value = inputStore[variable];
-        if (value === undefined) {
-            throw new Error(`Input variable ${variable} not found in inputStore`);
+
+        if (!manger) {
+            throw new Error('Input manager is not defined');
         }
+
+        const variable = match.replace(/{{|}}/g, '');
+        const value = manger.getInputValue(variable);
         newQuery = newQuery.replace(match, value.value);
     }
     return newQuery;
@@ -232,9 +226,10 @@ const setVariablesInQuery = (query: string, inputStore: InputStore): string => {
 function buildQueries(
     _relation: Relation,
     query: ViewQueryParameters,
-    baseSQL: string
+    baseSQL: string,
+    inputManager?: InputManager
 ): BuildQuery {
-    const sqlWithVariables = setVariablesInQuery(baseSQL, query.inputStore);
+    const sqlWithVariables = setVariablesInQuery(baseSQL, inputManager);
     const baseQueries = cleanAndSplitSQL(sqlWithVariables);
 
     const initialQueries = baseQueries.slice(0, -1);
@@ -291,8 +286,7 @@ export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSub
         // in this case, we need the base table to get the schema
         const schemaQuery = `
             SELECT *
-            FROM ${finalQueryAsSubQuery}
-            LIMIT 1;
+            FROM ${finalQueryAsSubQuery} LIMIT 1;
         `;
 
         return [`
@@ -328,7 +322,8 @@ export function buildTableQuery(viewParams: ViewQueryParameters, finalQueryAsSub
 export async function getQueryFromParams(
     relation: Relation,
     query: ViewQueryParameters,
-    baseSQL: string
+    baseSQL: string,
+    inputManager?: InputManager
 ): Promise<QueryData> {
     // Build the queries first
     const {
@@ -339,7 +334,7 @@ export async function getQueryFromParams(
         baseQuery,
         viewParameters,
         schemaQuery,
-    } = buildQueries(relation, query, baseSQL);
+    } = buildQueries(relation, query, baseSQL, inputManager);
 
     // Then do your async check:
     const executable = await ConnectionsService.getInstance().checkIfQueryIsExecutable(
@@ -395,9 +390,9 @@ export function setRelationLoading(relation: RelationState): RelationState {
     };
 }
 
-export async function updateRelationQueryForParams(relation: RelationState, newParams: ViewQueryParameters, state?: TaskExecutionState): Promise<RelationState> {
+export async function updateRelationQueryForParams(relation: RelationState, newParams: ViewQueryParameters, state?: TaskExecutionState, inputManger?: InputManager): Promise<RelationState> {
     const baseQuery = relation.query.baseQuery;
-    const query = await getQueryFromParams(relation, newParams, baseQuery);
+    const query = await getQueryFromParams(relation, newParams, baseQuery, inputManger);
 
     return {
         ...relation,

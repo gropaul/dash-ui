@@ -1,26 +1,29 @@
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {
     executeQueryOfRelationState,
-    RelationState, returnEmptyErrorState,
+    RelationState,
+    returnEmptyErrorState,
     setRelationLoading,
     updateRelationQueryForParams,
     ViewQueryParameters
 } from "@/model/relation-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
+import {InputManager} from "@/components/editor/inputs/input-manager";
 
 export interface DashboardDataViewProps {
     relation: RelationState;
+    inputManager: InputManager;
     onRelationUpdate: (relation: RelationState) => void;
 }
 
-export async function updateRelationDataWithParamsSkeleton(_relationId: string, query: ViewQueryParameters, relation: RelationState, onRelationUpdate: (relation: RelationState) => void) {
+export async function updateRelationDataWithParamsSkeleton(_relationId: string, query: ViewQueryParameters, relation: RelationState, onRelationUpdate: (relation: RelationState) => void, inputManager?: InputManager) {
 
     const loadingRelationState = setRelationLoading(relation); // Set it loading
     onRelationUpdate(loadingRelationState);
 
     try {
-        const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
+        const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query, undefined, inputManager); // Update the relation state
         const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
         // update state with new data and completed state
         onRelationUpdate(executedRelationState);
@@ -34,7 +37,7 @@ export async function updateRelationDataWithParamsSkeleton(_relationId: string, 
 export function DashboardDataView(props: DashboardDataViewProps) {
 
     function updateRelationDataWithParams(_relationId: string, query: ViewQueryParameters) {
-        return updateRelationDataWithParamsSkeleton(_relationId, query, props.relation, props.onRelationUpdate)
+        return updateRelationDataWithParamsSkeleton(_relationId, query, props.relation, props.onRelationUpdate, props.inputManager)
     }
 
     function updateRelationBaseQuery(_relationId: string, baseQuery: string) {
@@ -70,6 +73,7 @@ export function DashboardDataView(props: DashboardDataViewProps) {
     return <RelationStateView
         embedded
         relationState={props.relation}
+        inputManager={props.inputManager}
         updateRelationDataWithParams={updateRelationDataWithParams}
         updateRelationBaseQuery={updateRelationBaseQuery}
         updateRelationViewState={updateRelationViewState}

@@ -12,7 +12,7 @@ import "@/styles/editor-monaco.css";
 import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
 import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
 import {registerInputCompletion} from "@/components/basics/sql-editor/regsiter-input-completion";
-import {configureMonaco} from "@/components/basics/sql-editor/register-autocomplete";
+import {InputManager} from "@/components/editor/inputs/input-manager";
 
 export type SupportedLanguages = "sql" | "plaintext";
 
@@ -28,6 +28,7 @@ export interface CodeFenceProps {
     showCopyButton?: boolean;
     buttonPosition?: ButtonPosition;
     alwaysConsumeMouseWheel?: boolean;
+    inputManager?: InputManager;
 
     executionState?: TaskExecutionState;
     showRunButton?: boolean;
@@ -64,6 +65,7 @@ export function SqlEditor(
         showLayoutButton = false,
         currentLayout = 'column',
         onLayoutChange,
+        inputManager,
     }: CodeFenceProps) {
 
     copyCode = copyCode || displayCode;
@@ -107,9 +109,8 @@ export function SqlEditor(
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
         monaco.editor.setTheme(editorTheme);
 
-
         registerHotkeys(monaco, onRun);
-        registerInputCompletion(editor, monaco);
+        registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
         setEditor(editor);
     }

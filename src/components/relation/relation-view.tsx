@@ -5,9 +5,11 @@ import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
+import {InputManager} from "@/components/editor/inputs/input-manager";
 
 export interface RelationViewProps extends DefaultRelationZustandActions{
     relationState: RelationState;
+    inputManager?: InputManager;
     embedded?: boolean;
 }
 

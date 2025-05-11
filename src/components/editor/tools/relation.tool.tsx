@@ -3,19 +3,15 @@ import {createRoot, Root} from 'react-dom/client';
 import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
-import {
-    getInitialParams,
-    getQueryFromParamsUnchecked,
-    RelationState,
-    ViewQueryParameters
-} from '@/model/relation-state';
+import {RelationState, ViewQueryParameters} from '@/model/relation-state';
 import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/components/dashboard/dashboard-data-view';
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
-import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
+import {RelationViewType} from "@/model/relation-view-state";
 
-import {RegisterInputManagerParams, InputConsumerTool, InputDependency, InputValue} from "@/components/editor/inputs/models";
+import {InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {InputManager} from "@/components/editor/inputs/input-manager";
+import {getRandomId} from "@/platform/id-utils";
 
 export const RELATION_BLOCK_NAME = 'relation';
 
@@ -44,14 +40,16 @@ export interface RelationBlockData extends RelationState {
  * 1. Manage local state
  * 2. Update the tool's data reference whenever changes occur
  */
-export function RelationComponent({
-                                      initialData,
-                                      onDataChange,
-                                  }: {
+
+export interface RelationComponentProps {
     initialData: RelationBlockData,
     onDataChange: (data: RelationBlockData) => void,
-}) {
+    inputManager: InputManager;
+}
 
+export function RelationComponent(props: RelationComponentProps) {
+
+    const {initialData, onDataChange, inputManager} = props;
     // Keep a React state that holds the data needed for your component
     const [localData, setLocalData] = useState<RelationBlockData>(initialData);
 
@@ -59,6 +57,8 @@ export function RelationComponent({
     useEffect(() => {
         setLocalData(initialData);
     }, [initialData]);
+
+    console.log("RelationComponent InputManager", inputManager);
 
     function handleUpdate(newData: RelationBlockData) {
         setLocalData(newData);
@@ -69,18 +69,20 @@ export function RelationComponent({
         <DashboardDataView
             onRelationUpdate={handleUpdate}
             relation={localData}
+            inputManager={inputManager}
         />
     );
 }
 
-export default class RelationBlockTool implements BlockTool, InputConsumerTool {
+export default class RelationBlockTool implements BlockTool {
     private readonly api: API;
     public data: RelationBlockData;
     private readOnly: boolean;
     private wrapper: HTMLElement | null = null;
     private reactRoot: Root | null = null;
 
-    private inputManager?: InputManager;
+    private inputBlockId: string;
+    private inputManager: InputManager;
 
     static get isReadOnlySupported() {
         return true;
@@ -98,13 +100,28 @@ export default class RelationBlockTool implements BlockTool, InputConsumerTool {
         return data && typeof data === 'object' && 'viewState' in data;
     }
 
-    constructor({data, api, readOnly}: BlockToolConstructorOptions<RelationBlockData>) {
+    constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
         this.api = api;
         this.readOnly = !!readOnly;
+
         if (RelationBlockTool.isRelationBlockData(data)) {
             this.data = data;
         } else {
             this.data = getInitialDataElement();
+        }
+
+        // assert if no input manager is passed
+        if (!config.getInputManager) {
+            throw new Error('GetInputManager function is required');
+        }
+        this.inputManager = config.getInputManager(RELATION_BLOCK_NAME);
+        this.inputBlockId = getRandomId(32);
+        console.log("RelationBlockTool InputManager", this.inputManager);
+        if (this.inputManager) {
+            const deps = this.findInputDependenciesInRelationTool(this.inputBlockId);
+            for (const dep of deps) {
+                this.inputManager.registerInputDependency(dep);
+            }
         }
     }
 
@@ -131,24 +148,7 @@ export default class RelationBlockTool implements BlockTool, InputConsumerTool {
         return dependencies;
     }
 
-    public registerInputManager(params: RegisterInputManagerParams) {
-        const deps = this.findInputDependenciesInRelationTool(params.blockId);
-        this.inputManager = params.inputManager;
-        // assert inputManager is not null
-        if (!this.inputManager) {
-            throw new Error('Input manager is not initialized');
-        }
-        for (const dep of deps) {
-            this.inputManager.registerInputDependency(dep);
-        }
-    }
-
     public setInputValue(inputName: string, inputValue: InputValue) {
-        // if no inputStore, create it
-        if (!this.data.query.viewParameters.inputStore) {
-            this.data.query.viewParameters.inputStore = {};
-        }
-        this.data.query.viewParameters.inputStore[inputName] = inputValue;
         this.rerunQuery();
     }
 
@@ -163,6 +163,7 @@ export default class RelationBlockTool implements BlockTool, InputConsumerTool {
         // Re-render the React component into the (existing) root
         this.reactRoot!.render(
             <RelationComponent
+                inputManager={this.inputManager}
                 initialData={this.data}
                 onDataChange={(updatedData: RelationBlockData) => {
                     this.data = updatedData;
@@ -200,7 +201,7 @@ export default class RelationBlockTool implements BlockTool, InputConsumerTool {
             ...currentPrams,
         }
 
-        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, this.updateAndRender.bind(this));
+        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, this.updateAndRender.bind(this), this.inputManager);
     }
 
     public async setViewType(viewType: RelationViewType) {
@@ -217,10 +218,7 @@ export default class RelationBlockTool implements BlockTool, InputConsumerTool {
             type: viewType,
         }
 
-        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, (updatedData) => {
-            this.data = updatedData;
-            this.render();
-        });
+        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, this.updateAndRender.bind(this), this.inputManager);
     }
 
     public showChartSettings(show: boolean) {

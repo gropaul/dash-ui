@@ -42,6 +42,7 @@ export class InputManager {
     }
 
     registerInputSource(source: InputSource) {
+        console.log("Registering input source: ", source);
         // check if the source already exists
         const index = this.sources.findIndex((s) => s.blockId === source.blockId && s.inputName === source.inputName);
         if (index === -1) {
@@ -57,8 +58,10 @@ export class InputManager {
         if (index !== -1) {
             this.sources[index] = newSource;
         } else {
-            throw new Error(`Source not found: ${old.blockId} ${old.inputName}`);
+            throw new Error(`Source not found: ${old.blockId} ${old.inputName}, available: ${this.sources.map(s => `${s.blockId} ${s.inputName}`)}`);
         }
+
+        console.log("Updated input source: ", this.sources);
     }
 
     removeInputSource(source: InputSource) {
@@ -77,8 +80,17 @@ export class InputManager {
     }
 
     onInputValueChange(params: InputValueChangeParams) {
+        console.log("onInputValueChange", params);
+        // set the new value for the source
+        const source = this.sources.find((s) => s.blockId === params.blockId && s.inputName === params.inputName);
+        if (source) {
+            source.inputValue = params.inputValue;
+        } else {
+            throw new Error(`Input source not found: ${params.blockId} ${params.inputName}`);
+        }
         for (const dependency of this.dependencies) {
             if (dependency.inputName === params.inputName) {
+                console.log("Calling dependency", dependency);
                 dependency.callFunction(params.inputValue);
             }
         }
@@ -94,5 +106,22 @@ export class InputManager {
                 }
             }
         }
+    }
+
+    getInputValue(inputName: string): InputValue {
+        const source = this.sources.find((s) => s.inputName === inputName);
+        if (source) {
+            return source.inputValue;
+        } else {
+            throw new Error(`Input source not found: ${inputName}`);
+        }
+    }
+
+    getAvailableInputs(): Record<string, string> {
+        const inputs: Record<string, string> = {};
+        for (const source of this.sources) {
+            inputs[source.inputName] = source.inputValue.value;
+        }
+        return inputs;
     }
 }

@@ -8,17 +8,15 @@ import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState} from "@/model/relation-view-state";
 import {
     ICON_EYE_CLOSE,
-    ICON_EYE_OPEN, ICON_SETTING,
+    ICON_EYE_OPEN,
+    ICON_SETTING,
     RelationBlockData,
     RelationComponent
 } from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {
-    InputProducerTool,
-    RegisterInputManagerParams
-} from "@/components/editor/inputs/models";
+import {InputSource} from "@/components/editor/inputs/models";
 import {InputManager, InputValueChangeParams} from "@/components/editor/inputs/input-manager";
 
 export const SELECT_BLOCK_NAME = 'select';
@@ -58,8 +56,7 @@ export function getInitialSelectDataElement(): RelationBlockData {
     }
 }
 
-
-export default class SelectBlockTool implements BlockTool, InputProducerTool {
+export default class SelectBlockTool implements BlockTool {
     private readonly api: API;
     private data: RelationBlockData;
     private readOnly: boolean;
@@ -67,8 +64,9 @@ export default class SelectBlockTool implements BlockTool, InputProducerTool {
     private reactRoot: Root | null = null;
 
     private currentSelectValue?: string;
-    private blockId?: string;
-    private inputManager?: InputManager;
+    private currentSelectName: string;
+    private inputBlockId: string;
+    private inputManager: InputManager;
 
     static get isReadOnlySupported() {
         return true;
@@ -114,33 +112,67 @@ export default class SelectBlockTool implements BlockTool, InputProducerTool {
         return data && typeof data === 'object' && 'viewState' in data;
     }
 
-    constructor({data, api, readOnly}: BlockToolConstructorOptions<RelationBlockData>) {
+    constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
         this.api = api;
         this.readOnly = readOnly;
+
         if (SelectBlockTool.isRelationBlockData(data)) {
             this.data = data;
         } else {
             this.data = getInitialSelectDataElement();
         }
-    }
 
-    registerInputManager(params: RegisterInputManagerParams) {
-        this.inputManager = params.inputManager;
-        this.blockId = params.blockId;
+        // assert if no input manager is passed
+        if (!config.getInputManager) {
+            throw new Error('GetInputManager function is required');
+        }
+        this.inputManager = config.getInputManager(SELECT_BLOCK_NAME);
+        this.inputBlockId = getRandomId(32);
 
+        if (this.inputManager){
+            const inputSource: InputSource = {
+                blockId: this.inputBlockId,
+                inputName: this.data.viewState.selectState.name,
+                inputValue: {
+                    value: this.currentSelectValue
+                }
+            }
+            console.log('SelectBlockTool inputSource', inputSource);
+            this.inputManager?.registerInputSource(inputSource)
+        }
+
+        this.currentSelectValue = this.data.viewState.selectState.value;
+        this.currentSelectName = this.data.viewState.selectState.name;
     }
 
     onSelectChanged(value?: string) {
-        if (this.inputManager && this.blockId) {
-            const params: InputValueChangeParams = {
-                blockId: this.blockId,
-                inputName: this.data.viewState.selectState.name,
-                inputValue: {
-                    value: value
-                }
+        const params: InputValueChangeParams = {
+            blockId: this.inputBlockId,
+            inputName: this.data.viewState.selectState.name,
+            inputValue: {
+                value: value
             }
-            this.inputManager.onInputValueChange(params);
         }
+        this.inputManager.onInputValueChange(params);
+
+    }
+
+    onSelectNameChanged(name: string, oldName: string) {
+        const oldInputSource = {
+            blockId: this.inputBlockId!,
+            inputName: oldName,
+            inputValue: {
+                value: this.currentSelectValue
+            }
+        }
+        const newInputSource = {
+            blockId: this.inputBlockId!,
+            inputName: name,
+            inputValue: {
+                value: this.currentSelectValue
+            }
+        }
+        this.inputManager.updateInputSource(oldInputSource, newInputSource);
     }
 
     onDataChange(updatedData: RelationBlockData) {
@@ -149,6 +181,12 @@ export default class SelectBlockTool implements BlockTool, InputProducerTool {
         if (this.data.viewState.selectState.value !== this.currentSelectValue) {
             this.currentSelectValue = this.data.viewState.selectState.value;
             this.onSelectChanged(this.currentSelectValue);
+        }
+        if (this.data.viewState.selectState.name !== this.currentSelectName && this.currentSelectName) {
+            const oldName = this.currentSelectName;
+            const newName = this.data.viewState.selectState.name;
+            this.onSelectNameChanged(newName, oldName);
+            this.currentSelectName = this.data.viewState.selectState.name;
         }
     }
 
@@ -163,6 +201,7 @@ export default class SelectBlockTool implements BlockTool, InputProducerTool {
         // Re-render the React component into the (existing) root
         this.reactRoot!.render(
             <RelationComponent
+                inputManager={this.inputManager}
                 initialData={this.data}
                 onDataChange={this.onDataChange.bind(this)}
             />

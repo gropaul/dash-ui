@@ -9,10 +9,9 @@ import Undo from "editorjs-undo";
 
 import "@/styles/editor-js.css";
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
-import {EDITOR_JS_TOOLS} from "@/components/editor/tools";
-import {useEditorStore, Editor as EditorStore} from "@/state/editor.state";
+import {getEditorJSTools} from "@/components/editor/tools";
+import {Editor as EditorStore, useEditorStore} from "@/state/editor.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {registerInputs} from "@/components/editor/inputs/register-inputs";
 
 
 // Props interface (TypeScript)
@@ -38,21 +37,32 @@ export default function Editor(props: EditorProps) {
             return;
         }
 
+        const inputManager = new InputManager();
+        const blockNamesLoaded = new Set<string>();
+        const getInputManager = (blockName: string) => {
+            // only return the input manager if the block name is not already loaded
+            // as the first call is by some internal editorjs function
+            if (blockNamesLoaded.has(blockName)) {
+                return inputManager;
+            } else {
+                blockNamesLoaded.add(blockName);
+                return null;
+            }
+        }
+        console.log("inputManager useEffect", inputManager);
         const editor = new EditorJS({
                 holder: props.id,
                 placeholder: "Start writing here..",
                 readOnly: false,
+
                 onReady: () => {
                     new Undo({editor})
                     new DragDrop(editor);
-                    const inputManager = new InputManager();
                     const editorStore: EditorStore = {
                         editor: editor,
                         manager: inputManager,
                     }
                     setEditor(props.id, editorStore);
-                    registerInputs(editorStore);
-
                     if (props.onReady) {
                         props.onReady(editor);
                     }
@@ -69,7 +79,8 @@ export default function Editor(props: EditorProps) {
                         props.onSaved?.(data);
                     });
                 },
-                tools: EDITOR_JS_TOOLS,
+
+                tools: getEditorJSTools(getInputManager),
                 data: props.initialData,
             }
         );

@@ -16,7 +16,6 @@ import {
     getInitialSelectViewStateEmpty,
     SelectViewState
 } from "@/model/relation-view-state/select";
-import {InputValue} from "@/components/editor/inputs/models";
 
 //
 
@@ -43,7 +42,6 @@ export interface RelationViewBaseState extends TabViewBaseState {
     selectedView: RelationViewType;
 }
 
-export type InputStore = {[key: string]: InputValue};
 export interface RelationViewState extends RelationViewBaseState {
     tableState: TableViewState
     chartState: ChartViewState

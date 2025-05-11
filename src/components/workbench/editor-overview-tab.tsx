@@ -321,8 +321,8 @@ ${relationNames.join(', ')}`;
         // of there is a ref, update the editor
         if (editorState.hasEditor(dashboardId)) {
             const editor = editorState.getEditor(dashboardId);
-            const nBlocks = editor.blocks.getBlocksCount();
-            editor.blocks.insert(RELATION_BLOCK_NAME, newElementData, undefined, nBlocks);
+            const nBlocks = editor.editor.blocks.getBlocksCount();
+            editor.editor.blocks.insert(RELATION_BLOCK_NAME, newElementData, undefined, nBlocks);
         } else {
             // we can use this here as we are not adding, deleting or renaming a dashboard
             setDashboardStateUnsafe(dashboard.id, newState);

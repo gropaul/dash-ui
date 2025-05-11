@@ -64,7 +64,7 @@ export function RelationStateView(props: RelationViewProps) {
                             allowResizeX
                             resizableElements={['barBottom']}
                         >
-                            <RelationViewQueryView {...props} embedded={props.embedded}/>
+                            <RelationViewQueryView {...props} embedded={props.embedded} inputManager={props.inputManager}/>
                         </Sizable>}
                         <ContentWrapper {...props}/>
                     </div>
