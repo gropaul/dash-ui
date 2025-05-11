@@ -3,7 +3,7 @@ import {
     executeQueryOfRelationState,
     getInitialParams,
     getViewFromSource,
-    RelationState,
+    RelationState, returnEmptyErrorState,
     setRelationLoading,
     updateRelationQueryForParams,
     ViewQueryParameters,
@@ -409,15 +409,28 @@ export const useRelationsState = createWithEqualityFn(
                         },
                     }));
 
-                    const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
-                    const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
-                    // update state with new data and completed state
-                    set((state) => ({
-                        relations: {
-                            ...state.relations,
-                            [relationId]: executedRelationState,
-                        },
-                    }));
+
+
+                    try {
+                        const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
+                        const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
+                        // update state with new data and completed state
+                        set((state) => ({
+                            relations: {
+                                ...state.relations,
+                                [relationId]: executedRelationState,
+                            },
+                        }));
+                    } catch (e) {
+                        // if error update with error state
+                        const errorState = returnEmptyErrorState(loadingRelationState, e)
+                        set((state) => ({
+                            relations: {
+                                ...state.relations,
+                                [relationId]: errorState,
+                            },
+                        }));
+                    }
                 },
 
                 updateRelationBaseQuery: (relationId: string, baseQuery: string) => {

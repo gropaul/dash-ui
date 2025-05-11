@@ -1,7 +1,7 @@
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {
     executeQueryOfRelationState,
-    RelationState,
+    RelationState, returnEmptyErrorState,
     setRelationLoading,
     updateRelationQueryForParams,
     ViewQueryParameters
@@ -19,10 +19,16 @@ export async function updateRelationDataWithParamsSkeleton(_relationId: string, 
     const loadingRelationState = setRelationLoading(relation); // Set it loading
     onRelationUpdate(loadingRelationState);
 
-    const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
-    const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
-    // update state with new data and completed state
-    onRelationUpdate(executedRelationState);
+    try {
+        const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
+        const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
+        // update state with new data and completed state
+        onRelationUpdate(executedRelationState);
+    } catch (e) {
+        // if error update with error state
+        const errorState = returnEmptyErrorState(loadingRelationState, e)
+        onRelationUpdate(errorState);
+    }
 }
 
 export function DashboardDataView(props: DashboardDataViewProps) {

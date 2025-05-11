@@ -6,7 +6,8 @@ import {
     RelationSource
 } from "@/model/relation";
 import {
-    getInitViewState, InputStore,
+    getInitViewState,
+    InputStore,
     RelationViewState,
     RelationViewType,
     updateRelationViewState
@@ -121,8 +122,31 @@ export async function getViewFromSource(connectionId: string, source: RelationSo
     }
 
     const relationBaseQuery = getBaseQueryFromSource(source);
-
-    const queryData = await getQueryFromParams(relation, viewParams, relationBaseQuery);
+    let queryData: QueryData;
+    try {
+        queryData = await getQueryFromParams(relation, viewParams, relationBaseQuery);
+    } catch (e) {
+        const relationWithQuery: RelationWithQuery =  {
+            ...relation,
+            query: {
+                baseQuery: relationBaseQuery,
+                initialQueries: [],
+                schemaQuery: undefined,
+                countQuery: undefined,
+                viewParameters: viewParams,
+                viewQuery: relationBaseQuery
+            },
+            executionState: {
+                state: 'error',
+                error: getErrorMessage(e),
+            },
+            lastExecutionMetaData: undefined,
+        }
+        return {
+            ...relationWithQuery,
+            viewState: getInitViewState(name, undefined, undefined, true),
+        };
+    }
 
     const relationWithQuery: RelationWithQuery = {
         ...relation,
@@ -197,7 +221,7 @@ const setVariablesInQuery = (query: string, inputStore: InputStore): string => {
         const variable = match.replace(/{{|}}/g, '');
         const value = inputStore[variable];
         if (value === undefined) {
-            throw new Error(`Variable ${variable} not found in inputStore`);
+            throw new Error(`Input variable ${variable} not found in inputStore`);
         }
         newQuery = newQuery.replace(match, value.value);
     }
@@ -383,7 +407,7 @@ export async function updateRelationQueryForParams(relation: RelationState, newP
 
 }
 
-function returnEmptyErrorState(relation: RelationState, error: unknown): RelationState {
+export function returnEmptyErrorState(relation: RelationState, error: unknown): RelationState {
     return {
         ...relation,
         data: undefined,
