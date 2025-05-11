@@ -16,12 +16,10 @@ import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {
-    GetSourcesParams,
-    InputNotifyFunction,
     InputProducerTool,
-    InputSource,
-    InputValue
+    RegisterInputManagerParams
 } from "@/components/editor/inputs/models";
+import {InputChangeParams, InputManager} from "@/components/editor/inputs/register-inputs";
 
 export const SELECT_BLOCK_NAME = 'select';
 
@@ -61,7 +59,7 @@ export function getInitialSelectDataElement(): RelationBlockData {
 }
 
 
-export default class SelectBlockTool implements BlockTool, InputProducerTool{
+export default class SelectBlockTool implements BlockTool, InputProducerTool {
     private readonly api: API;
     private data: RelationBlockData;
     private readOnly: boolean;
@@ -69,7 +67,8 @@ export default class SelectBlockTool implements BlockTool, InputProducerTool{
     private reactRoot: Root | null = null;
 
     private currentSelectValue?: string;
-    private selectNotifyFunction?: InputNotifyFunction
+    private blockId?: string;
+    private inputManager?: InputManager;
 
     static get isReadOnlySupported() {
         return true;
@@ -125,19 +124,22 @@ export default class SelectBlockTool implements BlockTool, InputProducerTool{
         }
     }
 
-    getSources(params: GetSourcesParams): void {
-        const source: InputSource = {
-            inputName: this.data.viewState.selectState.name,
-        }
-        this.selectNotifyFunction = params.notifyOnChange;
-        params.callback([source]);
+    registerInputManager(params: RegisterInputManagerParams) {
+        this.inputManager = params.inputManager;
+        this.blockId = params.blockId;
+
     }
 
     onSelectChanged(value?: string) {
-        if (this.selectNotifyFunction){
-            this.selectNotifyFunction(this.data.viewState.selectState.name, {
-                value: value
-            })
+        if (this.inputManager && this.blockId) {
+            const params: InputChangeParams = {
+                blockId: this.blockId,
+                inputName: this.data.viewState.selectState.name,
+                inputValue: {
+                    value: value
+                }
+            }
+            this.inputManager.onInputChange(params);
         }
     }
 

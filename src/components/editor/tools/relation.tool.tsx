@@ -16,7 +16,8 @@ import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {GetDependenciesParams, InputConsumerTool, InputDependency, InputValue} from "@/components/editor/inputs/models";
+import {RegisterInputManagerParams, InputConsumerTool, InputDependency, InputValue} from "@/components/editor/inputs/models";
+import {InputManager} from "@/components/editor/inputs/register-inputs";
 
 export const RELATION_BLOCK_NAME = 'relation';
 
@@ -81,6 +82,8 @@ export default class RelationBlockTool implements BlockTool, InputConsumerTool {
     private wrapper: HTMLElement | null = null;
     private reactRoot: Root | null = null;
 
+    private inputManager?: InputManager;
+
     static get isReadOnlySupported() {
         return true;
     }
@@ -130,9 +133,12 @@ export default class RelationBlockTool implements BlockTool, InputConsumerTool {
         return dependencies;
     }
 
-    public getDependencies(params: GetDependenciesParams) {
+    public registerInputManager(params: RegisterInputManagerParams) {
         const deps = this.findInputDependenciesInRelationTool(params.blockId);
-        params.callback(deps);
+        this.inputManager = params.inputManager;
+        for (const dep of deps) {
+            this.inputManager.registerInputDependency(dep);
+        }
     }
 
     public setInputValue(inputName: string, inputValue: InputValue) {

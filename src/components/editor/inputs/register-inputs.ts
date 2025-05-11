@@ -1,49 +1,50 @@
 import EditorJS from "@editorjs/editorjs";
 import {RELATION_BLOCK_NAME, RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tools/select.tool";
-import {GetDependenciesParams, GetSourcesParams, InputDependency, InputValue} from "@/components/editor/inputs/models";
+import {RegisterInputManagerParams, InputDependency, InputValue} from "@/components/editor/inputs/models";
 
+export interface InputChangeParams {
+    blockId: string;
+    inputName: string;
+    inputValue: InputValue;
+}
 
-function findInputDependencies(editor: EditorJS){
+export class InputManager {
+    dependencies: InputDependency[] = [];
 
-    const blocks = editor.blocks.getBlocksCount();
-    let dependencies: InputDependency[] = [];
-
-    function setDependencies(newDependencies: InputDependency[]) {
-        dependencies.push(...newDependencies);
-        console.log("Dependencies: ", dependencies);
+    registerInputDependency(dependency: InputDependency) {
+        this.dependencies.push(dependency);
     }
 
-    function onInputChange(inputName: string, inputValue: InputValue) {
-        for (const dependency of dependencies) {
-            if (dependency.inputName === inputName) {
-                dependency.callFunction(inputValue);
+    onInputChange(params: InputChangeParams) {
+        for (const dependency of this.dependencies) {
+            if (dependency.inputName === params.inputName) {
+                dependency.callFunction(params.inputValue);
             }
         }
     }
+}
+
+function CreateInputManager(editor: EditorJS){
+
+    const inputManager = new InputManager();
+    const blocks = editor.blocks.getBlocksCount();
 
     for (let i = 0; i < blocks; i++) {
         const block = editor.blocks.getBlockByIndex(i);
         if (block && block.name === RELATION_BLOCK_NAME) {
-            const params: GetDependenciesParams = {
+            const params: RegisterInputManagerParams = {
                 blockId: block.id,
-                callback: setDependencies,
+                inputManager: inputManager,
             }
-            block.call('getDependencies', params );
+            block.call('registerInputManager', params );
         } else if (block && block.name === SELECT_BLOCK_NAME) {
-            const params: GetSourcesParams = {
+            const params: RegisterInputManagerParams = {
                 blockId: block.id,
-                callback: (sources) => {
-                    console.log("Sources for block: ", sources);
-                },
-                notifyOnChange: onInputChange,
+                inputManager: inputManager,
             }
-            block.call('getSources', params);
+            block.call('registerInputManager', params);
         }
-    }
-
-    for (const dependency of dependencies) {
-        console.log("Dependency: ", dependency);
     }
 }
 
@@ -59,7 +60,7 @@ function findInputs(editor: EditorJS) {
 }
 
 export function registerInputs(editor: EditorJS) {
-    findInputDependencies(editor);
+    CreateInputManager(editor);
 
 
     // for (const relationBlock of relationBlocks) {

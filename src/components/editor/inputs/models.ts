@@ -1,3 +1,5 @@
+import {InputManager} from "@/components/editor/inputs/register-inputs";
+
 export interface InputValue {
     value: any;
 }
@@ -9,16 +11,15 @@ export interface InputDependency {
     callFunction: (inputValue: InputValue) => Promise<any>;
 }
 
-export interface GetDependenciesParams {
+export interface RegisterInputManagerParams {
     blockId: string;
-    callback: (dependencies: InputDependency[]) => void;
+    inputManager: InputManager;
 }
 
 //! Interface for all input consumer tools
 export interface InputConsumerTool {
     //! Get all dependencies for this input consumer via a callback function
-    getDependencies: (params: GetDependenciesParams) => void;
-    setInputValue: (inputName: string, inputValue: InputValue) => void;
+    registerInputManager: (params: RegisterInputManagerParams) => void;
 }
 
 export interface InputSource {
@@ -27,12 +28,7 @@ export interface InputSource {
 
 export type InputNotifyFunction = (inputName: string, inputValue: InputValue) => void;
 
-export interface GetSourcesParams {
-    blockId: string;
-    callback: (sources: InputSource[]) => void;
-    notifyOnChange: InputNotifyFunction
-}
 
 export interface InputProducerTool {
-    getSources: (params: GetSourcesParams) => void;
+    registerInputManager: (params: RegisterInputManagerParams) => void;
 }
