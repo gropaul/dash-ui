@@ -10,7 +10,9 @@ import Undo from "editorjs-undo";
 import "@/styles/editor-js.css";
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
 import {EDITOR_JS_TOOLS} from "@/components/editor/tools";
-import {useEditorStore} from "@/state/editor.state";
+import {useEditorStore, Editor as EditorStore} from "@/state/editor.state";
+import {InputManager} from "@/components/editor/inputs/input-manager";
+import {registerInputs} from "@/components/editor/inputs/register-inputs";
 
 
 // Props interface (TypeScript)
@@ -43,15 +45,26 @@ export default function Editor(props: EditorProps) {
                 onReady: () => {
                     new Undo({editor})
                     new DragDrop(editor);
-                    setEditor(props.id, editor);
+                    const inputManager = new InputManager();
+                    const editorStore: EditorStore = {
+                        editor: editor,
+                        manager: inputManager,
+                    }
+                    setEditor(props.id, editorStore);
+                    registerInputs(editorStore);
+
                     if (props.onReady) {
                         props.onReady(editor);
                     }
                 },
                 onChange: (api, event) => {
                     const events = Array.isArray(event) ? event : [event];
-                    props.onBlockChangeEvent?.(events);
 
+                    const editorStore = useEditorStore().getEditor(props.id);
+                    if (editorStore) {
+                        editorStore.manager.onBlockChangeEvent(events);
+                    }
+                    props.onBlockChangeEvent?.(events);
                     editor.save().then((data) => {
                         props.onSaved?.(data);
                     });
@@ -61,8 +74,6 @@ export default function Editor(props: EditorProps) {
             }
         );
         editorRef.current = editor;
-
-
 
         //add a return function handle cleanup
         return () => {

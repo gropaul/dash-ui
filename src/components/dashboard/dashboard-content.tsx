@@ -4,6 +4,7 @@ import {OutputData} from "@editorjs/editorjs";
 
 import dynamic from "next/dynamic";
 import {registerInputs} from "@/components/editor/inputs/register-inputs";
+import {useEffect} from "react";
 
 const Editor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 
@@ -16,7 +17,6 @@ export function DashboardContent(props: DashboardContentProps) {
 
     const dashboard = props.dashboard;
     const setDashboardStateUnsafe = useRelationsState((state) => state.setDashboardStateUnsafe);
-
     function onSaved(outputData: OutputData) {
         const currentDashboard = useRelationsState.getState().getDashboardState(dashboard.id);
         setDashboardStateUnsafe(dashboard.id, {
@@ -33,7 +33,6 @@ export function DashboardContent(props: DashboardContentProps) {
                 id={dashboard.id}
                 initialData={dashboard.elementState}
                 onSaved={onSaved}
-                onReady={registerInputs}
             />
         </div>
     );

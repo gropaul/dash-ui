@@ -19,7 +19,7 @@ import {
     InputProducerTool,
     RegisterInputManagerParams
 } from "@/components/editor/inputs/models";
-import {InputChangeParams, InputManager} from "@/components/editor/inputs/register-inputs";
+import {InputValueChangeParams, InputManager} from "@/components/editor/inputs/register-inputs";
 
 export const SELECT_BLOCK_NAME = 'select';
 
@@ -132,14 +132,14 @@ export default class SelectBlockTool implements BlockTool, InputProducerTool {
 
     onSelectChanged(value?: string) {
         if (this.inputManager && this.blockId) {
-            const params: InputChangeParams = {
+            const params: InputValueChangeParams = {
                 blockId: this.blockId,
                 inputName: this.data.viewState.selectState.name,
                 inputValue: {
                     value: value
                 }
             }
-            this.inputManager.onInputChange(params);
+            this.inputManager.onInputValueChange(params);
         }
     }
 

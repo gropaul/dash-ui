@@ -1,13 +1,19 @@
 import EditorJS from '@editorjs/editorjs';
+import {InputManager} from "@/components/editor/inputs/input-manager";
 
 // we need long living instances of the editor, so we need a singleton as updating the
 // zustand store will cause a copy of the state to be created and the editor to be re-initialized
+
+export interface Editor {
+    editor: EditorJS;
+    manager: InputManager
+}
 
 export class EditorsService {
     // singleton instance
     private static instance: EditorsService;
 
-    editors: { [key: string]: EditorJS };
+    editors: { [key: string]: Editor };
 
     private constructor() {
         this.editors = {};
@@ -28,7 +34,7 @@ export class EditorsService {
         return this.editors[id];
     }
 
-    setEditor(id: string, editor: EditorJS) {
+    setEditor(id: string, editor: Editor) {
         this.editors[id] = editor;
     }
 
@@ -39,9 +45,9 @@ export class EditorsService {
 }
 
 interface EditorState {
-    setEditor: (id: string, editor: EditorJS) => void;
+    setEditor: (id: string, editor: Editor) => void;
     removeEditor: (id: string) => void;
-    getEditor: (id: string) => EditorJS;
+    getEditor: (id: string) => Editor;
     hasEditor: (id: string) => boolean;
 }
 

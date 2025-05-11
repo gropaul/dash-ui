@@ -13,11 +13,9 @@ import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/compone
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
-import {getRandomId} from "@/platform/id-utils";
-import {Relation, RelationSourceQuery} from "@/model/relation";
-import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
+
 import {RegisterInputManagerParams, InputConsumerTool, InputDependency, InputValue} from "@/components/editor/inputs/models";
-import {InputManager} from "@/components/editor/inputs/register-inputs";
+import {InputManager} from "@/components/editor/inputs/input-manager";
 
 export const RELATION_BLOCK_NAME = 'relation';
 
@@ -136,6 +134,10 @@ export default class RelationBlockTool implements BlockTool, InputConsumerTool {
     public registerInputManager(params: RegisterInputManagerParams) {
         const deps = this.findInputDependenciesInRelationTool(params.blockId);
         this.inputManager = params.inputManager;
+        // assert inputManager is not null
+        if (!this.inputManager) {
+            throw new Error('Input manager is not initialized');
+        }
         for (const dep of deps) {
             this.inputManager.registerInputDependency(dep);
         }

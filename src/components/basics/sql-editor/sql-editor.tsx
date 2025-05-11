@@ -40,6 +40,7 @@ export interface CodeFenceProps {
     onCodeChange?: (code: string) => void;
     height?: string;
     width?: string;
+    inputParams?: Record<string, any>
 }
 
 export function SqlEditor(
@@ -61,9 +62,9 @@ export function SqlEditor(
         height = "auto",
         width = "auto",
         alwaysConsumeMouseWheel = false,
-
         showLayoutButton = false,
         currentLayout = 'column',
+        inputParams = {'TEST': 'VALUE'},
         onLayoutChange,
     }: CodeFenceProps) {
 

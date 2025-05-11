@@ -11,6 +11,12 @@ export interface InputDependency {
     callFunction: (inputValue: InputValue) => Promise<any>;
 }
 
+export interface InputSource {
+    blockId: string;
+    inputName: string;
+    inputValue: InputValue;
+}
+
 export interface RegisterInputManagerParams {
     blockId: string;
     inputManager: InputManager;
