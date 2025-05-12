@@ -10,7 +10,7 @@ import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {RelationViewType} from "@/model/relation-view-state";
 
 import {InputDependency, InputValue} from "@/components/editor/inputs/models";
-import {InputManager} from "@/components/editor/inputs/input-manager";
+import {InputManager, InteractiveBlock, StringReturnFunction} from "@/components/editor/inputs/input-manager";
 import {getRandomId} from "@/platform/id-utils";
 
 export const RELATION_BLOCK_NAME = 'relation';
@@ -74,14 +74,14 @@ export function RelationComponent(props: RelationComponentProps) {
     );
 }
 
-export default class RelationBlockTool implements BlockTool {
+export default class RelationBlockTool implements BlockTool, InteractiveBlock {
     private readonly api: API;
     public data: RelationBlockData;
     private readOnly: boolean;
     private wrapper: HTMLElement | null = null;
     private reactRoot: Root | null = null;
 
-    private inputBlockId: string;
+    interactiveId: string;
     private inputManager: InputManager;
 
     static get isReadOnlySupported() {
@@ -100,6 +100,10 @@ export default class RelationBlockTool implements BlockTool {
         return data && typeof data === 'object' && 'viewState' in data;
     }
 
+    getInteractiveId(returnFunction: StringReturnFunction): void {
+        returnFunction(this.interactiveId);
+    }
+
     constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
         this.api = api;
         this.readOnly = !!readOnly;
@@ -115,10 +119,10 @@ export default class RelationBlockTool implements BlockTool {
             throw new Error('GetInputManager function is required');
         }
         this.inputManager = config.getInputManager(RELATION_BLOCK_NAME);
-        this.inputBlockId = getRandomId(32);
+        this.interactiveId = getRandomId(32);
         console.log("RelationBlockTool InputManager", this.inputManager);
         if (this.inputManager) {
-            const deps = this.findInputDependenciesInRelationTool(this.inputBlockId);
+            const deps = this.findInputDependenciesInRelationTool(this.interactiveId);
             for (const dep of deps) {
                 this.inputManager.registerInputDependency(dep);
             }

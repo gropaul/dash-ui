@@ -4,7 +4,7 @@ import {RELATION_BLOCK_NAME} from "@/components/editor/tools/relation.tool";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tools/select.tool";
 
 export interface InputValueChangeParams {
-    blockId: string;
+    interactiveId: string;
     inputName: string;
     inputValue: InputValue;
 }
@@ -13,6 +13,29 @@ const INTERACTIVE_BLOCKS = [
     RELATION_BLOCK_NAME,
     SELECT_BLOCK_NAME,
 ];
+
+export type StringReturnFunction = (id: string) => string;
+
+export interface InteractiveBlock {
+    interactiveId: string;
+    getInteractiveId: (returnFunction: StringReturnFunction) => void;
+}
+
+export const INPUT_EVENTS = {
+    SELECT: {
+        CHANGE: 'select-change',
+    },
+    RELATION: {
+        ROW_CHANGE: 'relation-row-change',
+    },
+} as const;
+
+type ExtractValues<T> = T extends string
+    ? T
+    : T extends Record<string, unknown>
+        ? ExtractValues<T[keyof T]>
+        : never;
+export type InputEventType = ExtractValues<typeof INPUT_EVENTS>;
 
 export function isInteractiveBlock(blockName: string) {
     return INTERACTIVE_BLOCKS.includes(blockName);
@@ -52,7 +75,6 @@ export class InputManager {
     }
 
     registerInputSource(source: InputSource) {
-        console.log("Registering input source: ", source);
         // check if the source already exists
         const index = this.sources.findIndex((s) => s.blockId === source.blockId && s.inputName === source.inputName);
         if (index === -1) {
@@ -72,8 +94,6 @@ export class InputManager {
         } else {
             throw new Error(`Source not found: ${old.blockId} ${old.inputName}, available: ${this.sources.map(s => `${s.blockId} ${s.inputName}`)}`);
         }
-
-        console.log("Updated input source: ", this.sources);
     }
 
     removeInputSource(source: InputSource) {
@@ -92,29 +112,37 @@ export class InputManager {
     }
 
     onInputValueChange(params: InputValueChangeParams) {
-        console.log("onInputValueChange", params);
         // set the new value for the source
-        const source = this.sources.find((s) => s.blockId === params.blockId && s.inputName === params.inputName);
+        const source = this.sources.find((s) => s.blockId === params.interactiveId && s.inputName === params.inputName);
         if (source) {
             source.inputValue = params.inputValue;
         } else {
-            throw new Error(`Input source not found: ${params.blockId} ${params.inputName}`);
+            throw new Error(`Input source not found: ${params.interactiveId} ${params.inputName}`);
         }
         for (const dependency of this.dependencies) {
             if (dependency.inputName === params.inputName) {
-                console.log("Calling dependency", dependency);
                 dependency.callFunction(params.inputValue);
             }
         }
     }
 
-    onBlockChangeEvent(events: BlockMutationEvent[])  {
+    onBlockChangeEvent(events: BlockMutationEvent[]) {
         // check if it is a block-removed event
         for (const event of events) {
             if (event.type === 'block-removed') {
                 const blockName = event.detail.target.name;
-                if (isInteractiveBlock(blockName)){
-                    this.onBlockRemove(event.detail.target.id);
+                if (isInteractiveBlock(blockName)) {
+                    let interactiveId
+                    let getStringFunction = (id: string) => {
+                        interactiveId = id;
+                    };
+                    event.detail.target.call("getInteractiveId", getStringFunction);
+                    // assert if interactiveId is not set
+                    if (!interactiveId) {
+                        throw new Error("InteractiveId is not set");
+                    }
+
+                    this.onBlockRemove(interactiveId);
                 }
             }
         }

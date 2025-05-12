@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { SelectViewState } from "@/model/relation-view-state/select"
+import { Copy } from "lucide-react"
+import {toast} from "sonner";
 
 interface SelectConfigDialogProps extends RelationViewProps {
     isOpen: boolean;
@@ -22,6 +24,14 @@ export function SelectConfigDialog(props: SelectConfigDialogProps) {
         });
     }
 
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast.info("Copied to clipboard", {
+            duration: 2000,
+        });
+    };
+
+    const exampleQuery = `SELECT '{{${selectState.name}}}';`;
     return (
         <Dialog
             open={props.isOpen}
@@ -34,7 +44,7 @@ export function SelectConfigDialog(props: SelectConfigDialogProps) {
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
-                            Name
+                            Variable Name
                         </Label>
                         <Input
                             id="name"
@@ -53,6 +63,40 @@ export function SelectConfigDialog(props: SelectConfigDialogProps) {
                             onChange={(e) => updateSelectViewState({ placeholder: e.target.value })}
                             className="col-span-3"
                         />
+                    </div>
+
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="current-value" className="text-right">
+                            Current Value
+                        </Label>
+                        <Input
+                            id="current-value"
+                            value={selectState.value || "No value selected"}
+                            className="col-span-3"
+                            disabled
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="usage-example" className="text-right">
+                            Usage Example
+                        </Label>
+                        <div className="col-span-3 relative">
+                            <Input
+                                id="usage-example"
+                                value={exampleQuery}
+                                className="font-mono"
+                                disabled
+                            />
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                                onClick={() => copyToClipboard(exampleQuery)}
+                            >
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </DialogContent>
