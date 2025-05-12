@@ -49,8 +49,8 @@ export function Select(props: RelationViewProps) {
     }
 
     const items = props.relationState.data?.rows.map(row => ({
-        value: row[0],
-        label: row[0]
+        value: row[0].toString(),
+        label: row[0].toString(),
     })) || []
 
 

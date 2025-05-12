@@ -3,34 +3,26 @@ import {createRoot, Root} from 'react-dom/client';
 import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
-import {RelationState, ViewQueryParameters} from '@/model/relation-state';
+import {getVariablesUsedByQuery, RelationState, ViewQueryParameters} from '@/model/relation-state';
 import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/components/dashboard/dashboard-data-view';
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {RelationViewType} from "@/model/relation-view-state";
 
-import {InputDependency, InputValue} from "@/components/editor/inputs/models";
+import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {InputManager, InteractiveBlock, StringReturnFunction} from "@/components/editor/inputs/input-manager";
 import {getRandomId} from "@/platform/id-utils";
+import {
+    ICON_TABLE,
+    ICON_CHART,
+    ICON_EYE_OPEN,
+    ICON_EYE_CLOSE,
+    ICON_CAPTIONS_OFF,
+    ICON_CAPTIONS,
+    ICON_SETTING
+} from "@/components/editor/tools/icons";
 
 export const RELATION_BLOCK_NAME = 'relation';
-
-export const ICON_TABLE = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sheet icon-smaller"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/><line x1="15" x2="15" y1="9" y2="21"/></svg>';
-export const ICON_CHART = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-spline icon-smaller"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16c.5-2 1.5-7 4-7 2 0 2 3 4 3 2.5 0 4.5-5 5-7"/></svg>';
-export const ICON_EYE_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye icon-smaller"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
-export const ICON_EYE_CLOSE = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-closed icon-smaller"><path d="m15 18-.722-3.25"/><path d="M2 8a10.645 10.645 0 0 0 20 0"/><path d="m20 15-1.726-2.05"/><path d="m4 15 1.726-2.05"/><path d="m9 18 .722-3.25"/></svg>';
-export const ICON_CAPTIONS_OFF = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-captions-off icon-smaller"><path d="M10.5 5H19a2 2 0 0 1 2 2v8.5"/><path d="M17 11h-.5"/><path d="M19 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2"/><path d="m2 2 20 20"/><path d="M7 11h4"/><path d="M7 15h2.5"/></svg>';
-export const ICON_CAPTIONS = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-captions icon-smaller"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>';
-
-export const ICON_SETTING = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-settings-icon lucide-settings">
-  <g transform="scale(0.85) translate(2 2)">
-    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-    <circle cx="12" cy="12" r="3"/>
-  </g>
-</svg>`.trim();
 
 export interface RelationBlockData extends RelationState {
 }
@@ -58,8 +50,6 @@ export function RelationComponent(props: RelationComponentProps) {
         setLocalData(initialData);
     }, [initialData]);
 
-    console.log("RelationComponent InputManager", inputManager);
-
     function handleUpdate(newData: RelationBlockData) {
         setLocalData(newData);
         onDataChange(newData); // sync back to the block tool
@@ -82,7 +72,8 @@ export default class RelationBlockTool implements BlockTool, InteractiveBlock {
     private reactRoot: Root | null = null;
 
     interactiveId: string;
-    private inputManager: InputManager;
+    private readonly inputManager: InputManager;
+    private currentInputDependencies: InputDependency[];
 
     static get isReadOnlySupported() {
         return true;
@@ -121,35 +112,53 @@ export default class RelationBlockTool implements BlockTool, InteractiveBlock {
         this.inputManager = config.getInputManager(RELATION_BLOCK_NAME);
         this.interactiveId = getRandomId(32);
         console.log("RelationBlockTool InputManager", this.inputManager);
+        this.currentInputDependencies = [];
         if (this.inputManager) {
-            const deps = this.findInputDependenciesInRelationTool(this.interactiveId);
-            for (const dep of deps) {
-                this.inputManager.registerInputDependency(dep);
-            }
+            this.getAndUpdateInputDependencies();
         }
     }
 
-    findInputDependenciesInRelationTool(blockId: string): InputDependency[] {
-        const query = this.data.query.baseQuery;
-        // e.g. "SELECT * FROM table WHERE id = {{inputName}}"
-        const regex = /{{(.*?)}}/g;
-        const matches = query.match(regex);
-        if (!matches) {
-            return [];
-        }
+    getAndUpdateInputDependencies(): void {
 
-        const dependencies: InputDependency[] = [];
-        for (const match of matches) {
-            const inputName = match.replace(/{{|}}/g, "").trim();
-            dependencies.push({
-                blockId: blockId,
+        // Remove old dependencies
+        const query = this.data.query.baseQuery;
+        const inputVariableNames = getVariablesUsedByQuery(query);
+        const currentDependencies = [];
+        for (const inputName of inputVariableNames) {
+            const dependency = {
+                blockId: this.interactiveId,
                 inputName: inputName,
                 callFunction: async (inputValue: InputValue) => {
                     this.setInputValue(inputName, inputValue);
                 }
-            });
+            };
+            currentDependencies.push(dependency);
         }
-        return dependencies;
+
+        for (const oldDependency of this.currentInputDependencies) {
+            const found = currentDependencies.find((newDependency) => {
+                return dependenciesAreEqual(oldDependency, newDependency);
+            });
+            if (!found) {
+                this.inputManager.removeInputDependency(oldDependency);
+            }
+        }
+
+        // all new dependencies that are not in the old dependencies, add them
+        for (const newDependency of currentDependencies) {
+            const found = this.currentInputDependencies.find((oldDependency) => {
+                return dependenciesAreEqual(oldDependency, newDependency);
+            });
+            if (!found) {
+                this.inputManager.registerInputDependency(newDependency);
+            }
+        }
+        this.currentInputDependencies = currentDependencies;
+    }
+
+    onDataChanged(value: RelationBlockData) {
+        this.data = value;
+        this.getAndUpdateInputDependencies();
     }
 
     public setInputValue(inputName: string, inputValue: InputValue) {
@@ -169,9 +178,7 @@ export default class RelationBlockTool implements BlockTool, InteractiveBlock {
             <RelationComponent
                 inputManager={this.inputManager}
                 initialData={this.data}
-                onDataChange={(updatedData: RelationBlockData) => {
-                    this.data = updatedData;
-                }}
+                onDataChange={this.onDataChanged.bind(this)}
             />
         );
 

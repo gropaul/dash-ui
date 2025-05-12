@@ -196,7 +196,19 @@ interface BuildQuery {
     baseQuery: string;
     viewParameters: ViewQueryParameters;
     // optionally return any other intermediate results if needed
-};
+}
+
+export const getVariablesUsedByQuery = (query: string): string[] => {
+    // find all matches of {{variable}}
+    const regex = /{{([^}]+)}}/g;
+    const matches = query.match(regex);
+    if (!matches) {
+        return [];
+    }
+
+    // remove the {{ and }} from the matches
+    return matches.map(match => match.replace(/{{|}}/g, '').trim());
+}
 
 const setVariablesInQuery = (query: string, manger?: InputManager): string => {
 

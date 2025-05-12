@@ -9,6 +9,16 @@ export interface InputDependency {
     callFunction: (inputValue: InputValue) => Promise<any>;
 }
 
+export function dependenciesAreEqual(
+    dependency1: InputDependency,
+    dependency2: InputDependency
+): boolean {
+    return (
+        dependency1.blockId === dependency2.blockId &&
+        dependency1.inputName === dependency2.inputName
+    );
+}
+
 export interface InputSource {
     blockId: string;
     inputName: string;
