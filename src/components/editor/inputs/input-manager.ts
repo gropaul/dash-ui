@@ -2,6 +2,7 @@ import {InputDependency, InputSource, InputValue} from "@/components/editor/inpu
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tools/relation.tool";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tools/select.tool";
+import {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tools/text-search.tool";
 
 export interface InputValueChangeParams {
     interactiveId: string;
@@ -12,6 +13,7 @@ export interface InputValueChangeParams {
 const INTERACTIVE_BLOCKS = [
     RELATION_BLOCK_NAME,
     SELECT_BLOCK_NAME,
+    TEXT_SEARCH_BLOCK_NAME,
 ];
 
 export type StringReturnFunction = (id: string) => string;
@@ -27,6 +29,9 @@ export const INPUT_EVENTS = {
     },
     RELATION: {
         ROW_CHANGE: 'relation-row-change',
+    },
+    TEXT_SEARCH: {
+        CHANGE: 'text-search-change',
     },
 } as const;
 
