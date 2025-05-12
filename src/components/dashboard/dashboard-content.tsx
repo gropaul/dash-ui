@@ -3,8 +3,6 @@ import {useRelationsState} from "@/state/relations.state";
 import {OutputData} from "@editorjs/editorjs";
 
 import dynamic from "next/dynamic";
-import {registerInputs} from "@/components/editor/inputs/register-inputs";
-import {useEffect} from "react";
 
 const Editor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 

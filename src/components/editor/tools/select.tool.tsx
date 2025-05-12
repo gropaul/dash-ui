@@ -122,6 +122,9 @@ export default class SelectBlockTool implements BlockTool {
             this.data = getInitialSelectDataElement();
         }
 
+        this.currentSelectValue = this.data.viewState.selectState.value;
+        this.currentSelectName = this.data.viewState.selectState.name;
+
         // assert if no input manager is passed
         if (!config.getInputManager) {
             throw new Error('GetInputManager function is required');
@@ -141,8 +144,6 @@ export default class SelectBlockTool implements BlockTool {
             this.inputManager?.registerInputSource(inputSource)
         }
 
-        this.currentSelectValue = this.data.viewState.selectState.value;
-        this.currentSelectName = this.data.viewState.selectState.name;
     }
 
     onSelectChanged(value?: string) {

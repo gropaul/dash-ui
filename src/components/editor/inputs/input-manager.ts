@@ -1,11 +1,21 @@
 import {InputDependency, InputSource, InputValue} from "@/components/editor/inputs/models";
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
-import {isInteractiveBlock} from "@/components/editor/inputs/register-inputs";
+import {RELATION_BLOCK_NAME} from "@/components/editor/tools/relation.tool";
+import {SELECT_BLOCK_NAME} from "@/components/editor/tools/select.tool";
 
 export interface InputValueChangeParams {
     blockId: string;
     inputName: string;
     inputValue: InputValue;
+}
+
+const INTERACTIVE_BLOCKS = [
+    RELATION_BLOCK_NAME,
+    SELECT_BLOCK_NAME,
+];
+
+export function isInteractiveBlock(blockName: string) {
+    return INTERACTIVE_BLOCKS.includes(blockName);
 }
 
 export class InputManager {
@@ -51,6 +61,8 @@ export class InputManager {
             // update the existing source
             this.sources[index] = source;
         }
+
+        // set the input value for the source
     }
 
     updateInputSource(old: InputSource, newSource: InputSource) {
