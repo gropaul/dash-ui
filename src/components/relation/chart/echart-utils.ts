@@ -36,7 +36,7 @@ export function toEChartOptions(
             left: '3%',
             right: '3%',
             bottom: '3%',
-            top: '15%'
+            top: plot.title ? '10%' : '5%',
         }
     }
 

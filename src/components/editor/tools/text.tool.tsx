@@ -4,8 +4,6 @@ import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editor
 import React, {useState, useEffect, ChangeEvent, useRef} from 'react';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {
-    ICON_EYE_CLOSE,
-    ICON_EYE_OPEN,
     ICON_SEARCH,
     ICON_SETTING,
 } from "@/components/editor/tools/icons";
@@ -18,7 +16,7 @@ import {
     StringReturnFunction
 } from "@/components/editor/inputs/input-manager";
 import { Input } from "@/components/ui/input";
-import { TextSearchConfigDialog } from "./text-search-config-dialog";
+import { TextConfigDialog } from "./text-config-dialog";
 import {Button} from "@/components/ui/button";
 import {Settings} from "lucide-react";
 
@@ -41,7 +39,7 @@ export function getInitialTextSearchData(): TextSearchBlockData {
     const randomId = getRandomId();
     return {
         id: randomId,
-        name: "Text Search",
+        name: "Text INPUT",
         textSearchState: {
             value: "",
             name: "search_" + randomId.substring(0, 8),
@@ -160,7 +158,7 @@ function TextSearchComponent(props: TextSearchComponentProps) {
                 </Button>
             </div>
 
-            <TextSearchConfigDialog
+            <TextConfigDialog
                 isOpen={isConfigOpen}
                 onOpenChange={handleConfigOpenChange}
                 textSearchState={localData.textSearchState}
@@ -189,7 +187,7 @@ export default class TextSearchBlockTool implements BlockTool, InteractiveBlock 
     // Editor.js config
     static get toolbox() {
         return {
-            title: 'Text Search',
+            title: 'Text Input',
             icon: ICON_SEARCH,
         };
     }

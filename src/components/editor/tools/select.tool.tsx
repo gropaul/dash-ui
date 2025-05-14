@@ -33,12 +33,13 @@ export const SELECT_BLOCK_NAME = 'select';
 export function getInitialSelectDataElement(): RelationBlockData {
 
     const randomId = getRandomId();
+
     const baseQuery = "SELECT 'Option ' || range from range(5);";
     const source: RelationSourceQuery = {
         type: "query",
         baseQuery: baseQuery,
         id: randomId,
-        name: "New Select Query"
+        name: "select_" + randomId.substring(0, 8),
     }
     const defaultQueryParams = getInitialParams();
     const relation: Relation = {

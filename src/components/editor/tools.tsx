@@ -13,7 +13,7 @@ import List from "@editorjs/list";
 import Header from "@editorjs/header";
 import SelectBlockTool, {SELECT_BLOCK_NAME} from "@/components/editor/tools/select.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import TextSearchBlockTool, {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tools/text-search.tool";
+import TextSearchBlockTool, {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tools/text.tool";
 
 
 export function getEditorJSTools(getInputManager: (blockName: string) => InputManager | null) {

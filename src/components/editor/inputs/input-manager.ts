@@ -2,7 +2,7 @@ import {InputDependency, InputSource, InputValue} from "@/components/editor/inpu
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tools/relation.tool";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tools/select.tool";
-import {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tools/text-search.tool";
+import {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tools/text.tool";
 
 export interface InputValueChangeParams {
     interactiveId: string;

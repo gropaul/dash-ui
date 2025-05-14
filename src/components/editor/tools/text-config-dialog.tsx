@@ -16,7 +16,7 @@ interface TextSearchConfigDialogProps {
     updateTextSearchState: (state: Partial<{ value?: string; name: string }>) => void;
 }
 
-export function TextSearchConfigDialog(props: TextSearchConfigDialogProps) {
+export function TextConfigDialog(props: TextSearchConfigDialogProps) {
     const { textSearchState, updateTextSearchState } = props;
 
     const copyToClipboard = (text: string) => {
@@ -26,7 +26,7 @@ export function TextSearchConfigDialog(props: TextSearchConfigDialogProps) {
         });
     };
 
-    const exampleQuery = `SELECT * FROM table WHERE column LIKE '%{{${textSearchState.name}}}%';`;
+    const exampleQuery = `SELECT '%{{${textSearchState.name}}}%';`;
     
     return (
         <Dialog
@@ -35,7 +35,7 @@ export function TextSearchConfigDialog(props: TextSearchConfigDialogProps) {
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Text Search Configuration</DialogTitle>
+                    <DialogTitle>Text Input Configuration</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
