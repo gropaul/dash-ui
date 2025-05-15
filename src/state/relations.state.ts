@@ -55,7 +55,7 @@ export interface DefaultRelationZustandActions {
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
-    importState: (state: RelationZustand) => void,
+    mergeState: (state: RelationZustand) => void,
     /* relation actions */
     getRelation: (relationId: string) => RelationState,
     addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
@@ -132,10 +132,24 @@ export const useRelationsState = createWithEqualityFn(
         (set, get) =>
             ({
                 ...INIT,
-                importState(state: RelationZustand) {
+                mergeState(state: RelationZustand) {
                     console.log("Importing state", state);
+                    const {relations, schemas, databases, dashboards, editorElements} = state;
 
+                    console.log("Importing state", relations);
+                    console.log("Importing state", schemas);
+                    console.log("Importing state", databases);
+                    console.log("Importing state", dashboards);
+                    console.log("Importing state", editorElements);
 
+                    set((oldState) => ({
+                        ...oldState,
+                        relations: {...oldState.relations, ...relations},
+                        schemas: {...oldState.schemas, ...schemas},
+                        databases: {...oldState.databases, ...databases},
+                        dashboards: {...oldState.dashboards, ...dashboards},
+                        editorElements: [...oldState.editorElements, ...editorElements],
+                    }));
                     console.log("Imported state", get());
                 },
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {

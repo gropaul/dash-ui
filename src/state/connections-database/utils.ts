@@ -25,10 +25,10 @@ export async function onDatabaseAttached(
 
         const json_value = JSON.parse(json_value_string);
         // this is a relationState json
-        const importedRelationZustand: RelationZustand = json_value as RelationZustand;
+        const importedRelationZustand: RelationZustand = json_value.state as RelationZustand;
 
         // insert the relationState into the zustand store
-        useRelationsState.getState().importState(importedRelationZustand);
+        useRelationsState.getState().mergeState(importedRelationZustand);
 
     }
 
