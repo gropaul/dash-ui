@@ -11,32 +11,31 @@ export function InitializeStorage() : PersistStorage<RelationZustandCombined> | 
             SwitchOnNewConnection(con);
         }
     });
-    return duckdbLocalStorage;
+    return localStorage;
 }
 
 export function SwitchOnNewConnection(con: DatabaseConnection) {
-    if (con.type === 'duckdb-over-http') {
-        switchToOverHttpStorage();
-    } else if (con.type === 'duckdb-wasm') {
-        switchToLocalStorage();
+    if (con.type === 'duckdb-over-http' || con.type === 'duckdb-wasm') {
+        switchToDuckDBStorage();
     }
+    throw new Error('Connection type not supported');
 
 }
 
-const switchToOverHttpStorage = () => {
+const switchToDuckDBStorage = () => {
     useRelationsState.persist.setOptions({
-        storage: duckdbOverHttpStorage,
+        storage: duckdbStorage,
     });
     useRelationsState.persist.rehydrate(); // Rehydrate the store with the new storage
 };
 
 const switchToLocalStorage = () => {
     useRelationsState.persist.setOptions({
-        storage: duckdbLocalStorage,
+        storage: localStorage,
     });
     useRelationsState.persist.rehydrate(); // Rehydrate the store with the new storage
 };
 
 
-export const duckdbOverHttpStorage: PersistStorage<RelationZustandCombined> | undefined = createJSONStorage(() => duckdbOverHttpStorageProvider);
-export const duckdbLocalStorage: PersistStorage<RelationZustandCombined> | undefined = duckdbLocalStorageProvider;
+export const duckdbStorage: PersistStorage<RelationZustandCombined> | undefined = createJSONStorage(() => duckdbOverHttpStorageProvider);
+export const localStorage: PersistStorage<RelationZustandCombined> | undefined = duckdbLocalStorageProvider;

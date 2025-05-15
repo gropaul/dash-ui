@@ -7,6 +7,12 @@ export interface RelationData {
     rows: Row[]
 }
 
+export function PrintRelationData(relation: RelationData): string {
+    const columnNames = relation.columns.map((column) => column.name).join(', ');
+    const rows = relation.rows.map((row) => row.join(', ')).join('\n');
+    return `Columns: ${columnNames}\nRows:\n${rows}`;
+}
+
 export type RelationType = 'table' | 'file' | 'query'
 
 export interface RelationSourceTable {

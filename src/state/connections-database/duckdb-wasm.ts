@@ -1,8 +1,8 @@
-import {RelationData} from "@/model/relation";
+import {PrintRelationData, RelationData} from "@/model/relation";
 import {DataSource} from "@/model/data-source-connection";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections-database/configs";
-import {mountFilesOnWasm} from "@/state/connections-database/duckdb-wasm/utils";
+import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections-database/duckdb-wasm/utils";
 import {WasmProvider} from "@/state/connections-database/duckdb-wasm/connection-provider";
 import {normalizeArrowType} from "@/components/relation/common/value-icon";
 import {ValueType} from "@/model/value-type";
@@ -45,6 +45,17 @@ export class DuckDBWasm implements DatabaseConnection {
         await con.query('CHECKPOINT;');
         const result = relationFromDuckDBArrowResult('result', this.id, arrowResult);
         return result;
+    }
+
+
+    async downloadDatabase(): Promise<void> {
+        const {db, con} = await WasmProvider.getInstance().getCurrentWasm();
+
+        const opfs_path = WasmProvider.getDatabasePath();
+
+        // download the opfs database
+
+        await downloadOPFSFile(opfs_path);
     }
 
     async mountFiles(files: File[]): Promise<void> {

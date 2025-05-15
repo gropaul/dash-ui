@@ -9,6 +9,7 @@ import {AvailableTabs, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {useDatabaseConState} from "@/state/connections-database.state";
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {ExportDatabaseButton} from "@/components/export/export-database-button";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -58,9 +59,14 @@ export function NavigationBar(props: NavigationBarProps) {
                 </ToggleGroupItem>
             </ToggleGroup>
             <div className={'flex-1'}/>
+
+            <ExportDatabaseButton />
+            <div className={'h-2'}/>
+
             <Button variant={'ghost'} size={'icon'} onClick={() => setInfoDialogOpen(true)}>
                 <Info />
             </Button>
+            <div className={'h-2'}/>
             <Button variant={'ghost'} size={'icon'} onClick={() => setConnectionSettingsOpen(true)}>
                 <Settings />
             </Button>

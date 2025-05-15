@@ -30,7 +30,6 @@ export interface SourceConnectionZustand {
 export const useSourceConState = createWithEqualityFn<SourceConnectionZustand>((set, get) => ({
     connections: {},
 
-
     addSourceConnection: async (connection, initialise, loadDataSources) => {
         set((state) => ({
             connections: {...state.connections, [connection.id]: connection},

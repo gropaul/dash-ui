@@ -122,6 +122,12 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
 }
 
 export function ClearOpfsButton() {
+
+    // if not debug mode, don't show this button
+    if(process.env.NODE_ENV !== 'development') {
+        return null;
+    }
+
     return (
         <Button onClick={clearOPFS}>Clear OPFS</Button>
     )

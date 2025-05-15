@@ -114,6 +114,10 @@ export class WasmProvider {
         this.initPromise = null;
     }
 
+    public static getDatabasePath(): string {
+        return `opfs://${DUCKDB_WASM_BASE_TABLE_PATH}`;
+    }
+
     public async getCurrentWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
         // If already initialized, just return the existing connection
         if (this.asyncDuckDBState === 'initialised' && this.con && this.db) {
@@ -183,7 +187,7 @@ export class WasmProvider {
 
         // Open a DB, adjusting config as necessary
         await db.open({
-            path: `opfs://${DUCKDB_WASM_BASE_TABLE_PATH}`,
+            path: WasmProvider.getDatabasePath(),
             accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
             query: {
                 castBigIntToDouble: true,
