@@ -20,7 +20,7 @@ export function toEChartOptions(
 
     const baseConfig = {
         title: {
-            text: plot.title ? plot.title : '',
+            text: plot.title ? plot.title : null,
             left: 'center',
             top: 4, // You can also use '10px' or a number like 10
         },
@@ -29,14 +29,14 @@ export function toEChartOptions(
             type: 'scroll',
             selectedMode: true,
             orient: 'horizontal',
-            top: 28, // Adjust so it's below the title
+            top: plot.title ? '32px' : '8px',
         },
         grid: {
             containLabel: true,
-            left: '3%',
-            right: '3%',
-            bottom: '3%',
-            top: plot.title ? '10%' : '5%',
+            left: '16px',
+            right: '16px',
+            bottom: '16px',
+            top: plot.title ? '72px' : '40px',
         }
     }
 

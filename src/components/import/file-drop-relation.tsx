@@ -11,6 +11,9 @@ import {AnimatePresence, motion} from "framer-motion";
 import {useGUIState} from "@/state/gui.state";
 import {FileFormat} from "@/state/connections-source/duckdb-helper";
 import {useSourceConState} from "@/state/connections-source.state";
+import {onDatabaseAttached} from "@/state/connections-database/utils";
+import {Button} from "@/components/ui/button";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 interface Props {
     className?: string;
@@ -18,8 +21,9 @@ interface Props {
 }
 
 interface FileUploadState {
-    state: 'idle' | 'hovering' | 'uploading' | 'done' | 'error';
+    state: 'idle' | 'hovering' | 'uploading' | 'done' | 'error' | 'format_selection' | 'database_import_selection';
     message?: string;
+    file?: File;
 }
 
 export function FileDropRelation({className, children}: Props) {
@@ -51,8 +55,24 @@ export function FileDropRelation({className, children}: Props) {
                 for (const file of files) {
                     const fileFormat = await inferFileTableName(file);
                     if (!fileFormat) {
-                        throw new Error(`Unsupported file format for ${file.name}`);
+                        setFileUploadState({
+                            state: 'format_selection',
+                            message: `Unsupported file format for ${file.name}. Please select a format:`,
+                            file: file
+                        });
+                        return; // Stop processing and wait for user input
                     }
+
+                    // If it's a database file, ask the user about import preferences
+                    if (fileFormat === 'database') {
+                        setFileUploadState({
+                            state: 'database_import_selection',
+                            message: `How would you like to import the database ${file.name}?`,
+                            file: file
+                        });
+                        return; // Stop processing and wait for user input
+                    }
+
                     const tableName = file.name.replace(/\.[^/.]+$/, '');
                     const query = await getImportQuery(file.name, tableName, fileFormat);
                     await connection.executeQuery(query);
@@ -72,6 +92,7 @@ export function FileDropRelation({className, children}: Props) {
 
                     if (tableFormat === 'database') {
                         showDatabase(connection.id, name);
+                        onDatabaseAttached(connection, name);
                     } else {
                         let source: RelationSource = {
                             type: 'table',
@@ -95,6 +116,112 @@ export function FileDropRelation({className, children}: Props) {
 
     const onErrorConfirm = () => setFileUploadState({state: 'idle'});
 
+    const onDatabaseImportSelect = async (importType: 'temporary' | 'permanent', file: File) => {
+        setFileUploadState({state: 'uploading', message: `Importing database ${importType === 'temporary' ? 'temporarily' : 'permanently'}...`});
+        try {
+            const service = ConnectionsService.getInstance();
+            if (service.hasDatabaseConnection()) {
+                const connection = service.getDatabaseConnection();
+
+                // Mount the file if it hasn't been mounted already
+                await connection.mountFiles([file]);
+
+                const tableName = file.name.replace(/\.[^/.]+$/, '');
+
+                if (importType === 'temporary') {
+                    // Temporary attachment - just attach the database
+                    const query = await getImportQuery(file.name, tableName, 'database');
+                    await connection.executeQuery(query);
+                } else {
+                    // Permanent import - copy all tables into the current database
+                    // This is just a skeleton - the actual implementation will be done later
+                    console.log('Permanent import of database', file.name);
+
+                    // Attach the database temporarily
+                    const query = await getImportQuery(file.name, tableName, 'database');
+                    await connection.executeQuery(query);
+
+                    // get current catalog
+                    const currentCatalogData = await connection.executeQuery(`SELECT current_catalog();`);
+                    const currentCatalog = currentCatalogData.rows[0][0];
+
+                    // Copy all tables from the attached database to the current database
+                    const copyQuery = `COPY FROM DATABASE ${tableName} TO ${currentCatalog};`;
+                    console.log('Copy query executed:', copyQuery);
+                    await connection.executeQuery(copyQuery);
+
+                    // Detach the database
+                    const detachQuery = `DETACH DATABASE ${tableName};`;
+                    await connection.executeQuery(detachQuery);
+                }
+
+                const refreshConnection = useSourceConState.getState().refreshConnection;
+                await refreshConnection(connection.id);
+
+                const showDatabase = useRelationsState.getState().showDatabase;
+                showDatabase(connection.id, tableName);
+                onDatabaseAttached(connection, tableName);
+
+                setFileUploadState({state: 'done', message: 'Database imported successfully!'});
+                toast.success('Database imported successfully!');
+            }
+        } catch (err: any) {
+            console.error('Database import failed', err);
+            setFileUploadState({state: 'error', message: err.message || 'Something went wrong'});
+            toast.error('Failed to import database');
+        }
+    };
+
+    const onFormatSelect = async (format: FileFormat, file: File) => {
+        // If database format is selected, show the database import selection dialog
+        if (format === 'database') {
+            setFileUploadState({
+                state: 'database_import_selection',
+                message: `How would you like to import the database ${file.name}?`,
+                file: file
+            });
+            return;
+        }
+
+        setFileUploadState({state: 'uploading', message: 'Importing files...'});
+        try {
+            const service = ConnectionsService.getInstance();
+            if (service.hasDatabaseConnection()) {
+                const connection = service.getDatabaseConnection();
+
+                // Mount the file if it hasn't been mounted already
+                await connection.mountFiles([file]);
+
+                // Process the file with the selected format
+                const tableName = file.name.replace(/\.[^/.]+$/, '');
+                const query = await getImportQuery(file.name, tableName, format);
+                await connection.executeQuery(query);
+
+                const refreshConnection = useSourceConState.getState().refreshConnection;
+                await refreshConnection(connection.id);
+
+                const showRelation = useRelationsState.getState().showRelationFromSource;
+                const catalog = await connection.executeQuery(`SELECT current_catalog();`);
+                const dbName = catalog.rows[0][0];
+
+                let source: RelationSource = {
+                    type: 'table',
+                    database: dbName,
+                    schema: 'main',
+                    tableName: tableName,
+                };
+                showRelation(connection.id, source, DEFAULT_RELATION_VIEW_PATH);
+
+                setFileUploadState({state: 'done', message: 'Imported successfully!'});
+                toast.success('File imported successfully!');
+            }
+        } catch (err: any) {
+            console.error('Import failed', err);
+            setFileUploadState({state: 'error', message: err.message || 'Something went wrong'});
+            toast.error('Failed to import file');
+        }
+    };
+
     return (
         <FileDrop
             className={className}
@@ -109,7 +236,12 @@ export function FileDropRelation({className, children}: Props) {
             }}
         >
             {children}
-            <Overlay state={fileUploadState} onErrorConfirm={onErrorConfirm}/>
+            <Overlay 
+                state={fileUploadState} 
+                onErrorConfirm={onErrorConfirm} 
+                onFormatSelect={onFormatSelect}
+                onDatabaseImportSelect={onDatabaseImportSelect}
+            />
         </FileDrop>
     );
 }
@@ -117,9 +249,11 @@ export function FileDropRelation({className, children}: Props) {
 interface OverlayProps {
     state: FileUploadState;
     onErrorConfirm: () => void;
+    onFormatSelect?: (format: FileFormat, file: File) => void;
+    onDatabaseImportSelect?: (importType: 'temporary' | 'permanent', file: File) => void;
 }
 
-const Overlay: React.FC<OverlayProps> = ({state, onErrorConfirm}) => (
+const Overlay: React.FC<OverlayProps> = ({state, onErrorConfirm, onFormatSelect, onDatabaseImportSelect}) => (
     <AnimatePresence>
         {state.state !== 'idle' && (
             <motion.div
@@ -159,13 +293,79 @@ const Overlay: React.FC<OverlayProps> = ({state, onErrorConfirm}) => (
                         <>
                             <AlertCircle className="w-12 h-12 text-red-500 mb-2"/>
                             <p className="text-red-600 mb-4">{state.message}</p>
-                            <button
+                            <Button
                                 onClick={onErrorConfirm}
-                                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none"
+                                variant="destructive"
                             >
-                                <XCircle className="w-5 h-5 mr-2"/>
+                                <XCircle className="w-5 h-5"/>
                                 OK
-                            </button>
+                            </Button>
+                        </>
+                    )}
+
+                    {state.state === 'format_selection' && state.file && onFormatSelect && (
+                        <>
+                            <AlertCircle className="w-12 h-12 text-yellow-500 mb-2"/>
+                            <p className="text-yellow-600 mb-4">{state.message}</p>
+                            <div className="flex flex-col items-center mb-4">
+                                <Select
+                                    onValueChange={(value) => onFormatSelect(value as FileFormat, state.file!)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a format" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="csv">CSV</SelectItem>
+                                        <SelectItem value="json">JSON</SelectItem>
+                                        <SelectItem value="parquet">Parquet</SelectItem>
+                                        <SelectItem value="xlsx">Excel</SelectItem>
+                                        <SelectItem value="database">Database</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Button
+                                    onClick={onErrorConfirm}
+                                    variant="secondary"
+                                >
+                                    <XCircle className="w-5 h-5"/>
+                                    Cancel
+                                </Button>
+                            </div>
+                        </>
+                    )}
+
+                    {state.state === 'database_import_selection' && state.file && onDatabaseImportSelect && (
+                        <>
+                            <AlertCircle className="w-12 h-12 text-blue-500 mb-2"/>
+                            <p className="text-blue-600 mb-4">{state.message}</p>
+                            <div className="flex flex-col items-center mb-4">
+                                <div className="flex space-x-4 mb-4">
+                                    <Button
+                                        onClick={() => onDatabaseImportSelect('temporary', state.file!)}
+                                        variant="default"
+                                        className="px-4"
+                                    >
+                                        Temporary Attachment
+                                    </Button>
+                                    <Button
+                                        onClick={() => onDatabaseImportSelect('permanent', state.file!)}
+                                        variant="default"
+                                        className="px-4"
+                                    >
+                                        Copy Into Browser
+                                    </Button>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-4 text-center">
+                                    Temporary attachment will lose data on reload. <br/>
+                                    Copy into browser will import all tables into the current database.
+                                </p>
+                                <Button
+                                    onClick={onErrorConfirm}
+                                    variant="secondary"
+                                >
+                                    <XCircle className="w-5 h-5"/>
+                                    Cancel
+                                </Button>
+                            </div>
                         </>
                     )}
                 </motion.div>

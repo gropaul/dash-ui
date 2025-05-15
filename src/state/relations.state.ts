@@ -55,7 +55,7 @@ export interface DefaultRelationZustandActions {
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
-
+    importState: (state: RelationZustand) => void,
     /* relation actions */
     getRelation: (relationId: string) => RelationState,
     addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
@@ -132,6 +132,12 @@ export const useRelationsState = createWithEqualityFn(
         (set, get) =>
             ({
                 ...INIT,
+                importState(state: RelationZustand) {
+                    console.log("Importing state", state);
+
+
+                    console.log("Imported state", get());
+                },
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
                     const randomId = `dashboard-${getRandomId()}`;
                     let local_dashboard: DashboardState | undefined = dashboard;

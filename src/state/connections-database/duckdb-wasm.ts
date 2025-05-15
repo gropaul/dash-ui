@@ -49,12 +49,8 @@ export class DuckDBWasm implements DatabaseConnection {
 
 
     async downloadDatabase(): Promise<void> {
-        const {db, con} = await WasmProvider.getInstance().getCurrentWasm();
-
         const opfs_path = WasmProvider.getDatabasePath();
-
         // download the opfs database
-
         await downloadOPFSFile(opfs_path);
     }
 

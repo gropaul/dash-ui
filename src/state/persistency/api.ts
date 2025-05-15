@@ -17,8 +17,10 @@ export function InitializeStorage() : PersistStorage<RelationZustandCombined> | 
 export function SwitchOnNewConnection(con: DatabaseConnection) {
     if (con.type === 'duckdb-over-http' || con.type === 'duckdb-wasm') {
         switchToDuckDBStorage();
+
+    } else {
+        throw new Error('Connection type not supported');
     }
-    throw new Error('Connection type not supported');
 
 }
 
