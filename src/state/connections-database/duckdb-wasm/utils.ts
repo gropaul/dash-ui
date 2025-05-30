@@ -69,18 +69,22 @@ export async function inferFileTableName(file: File): Promise<FileFormat | undef
     return undefined;
 }
 
-export async function getImportQuery(fileName: string, import_name: string, fileFormat: FileFormat): Promise<string> {
+// The schemaName is the name of the table to be created in DuckDB
+export async function getImportQuery(filePath: string, schemaName: string, fileFormat: FileFormat, readonly: boolean = false): Promise<string> {
     let query = '';
     if (fileFormat === 'csv') {
-        query = `CREATE TABLE "${import_name}" AS SELECT * FROM read_csv_auto('${fileName}')`;
+        query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_csv_auto('${filePath}')`;
     } else if (fileFormat === 'parquet') {
-        query = `CREATE TABLE "${import_name}" AS SELECT * FROM read_parquet('${fileName}')`;
+        query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_parquet('${filePath}')`;
     } else if (fileFormat === 'json') {
-        query = `CREATE TABLE "${import_name}" AS SELECT * FROM read_json('${fileName}')`;
+        query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_json('${filePath}')`;
     } else if (fileFormat === 'xlsx') {
-        query = `CREATE TABLE "${import_name}" AS SELECT * FROM read_excel('${fileName}')`;
+        query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_excel('${filePath}')`;
     } else if (fileFormat === 'database') {
-        query = `ATTACH '${fileName}' AS  "${import_name}"`;
+        query = `ATTACH '${filePath}' AS  "${schemaName}"`;
+        if (readonly) {
+            query += ' (READ_ONLY);';
+        }
     }
     return query;
 }

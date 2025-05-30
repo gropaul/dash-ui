@@ -66,7 +66,7 @@ export async function attachDatabase(path: string, executeQuery: (query: string)
         await executeQuery(loadQuery);
     }
 
-    const query = `ATTACH '${path}';`;
+    const query = `ATTACH IF NOT EXISTS '${path}';`;
     await executeQuery(query);
 }
 

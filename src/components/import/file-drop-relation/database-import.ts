@@ -28,18 +28,18 @@ export const handleDatabaseImport = async (
             // Mount the file if it hasn't been mounted already
             await connection.mountFiles([file]);
 
-            const tableName = file.name.replace(/\.[^/.]+$/, '');
+            const databaseName = file.name.replace(/\.[^/.]+$/, '');
 
             if (importType === 'temporary') {
                 // Temporary attachment - just attach the database
-                const query = await getImportQuery(file.name, tableName, 'database');
+                const query = await getImportQuery(file.name, databaseName, 'database');
                 await connection.executeQuery(query);
             } else {
                 // Permanent import - copy all tables into the current database
                 console.log('Permanent import of database', file.name);
 
                 // Attach the database temporarily
-                const query = await getImportQuery(file.name, tableName, 'database');
+                const query = await getImportQuery(file.name, databaseName, 'database');
                 await connection.executeQuery(query);
 
                 // get current catalog
@@ -47,12 +47,12 @@ export const handleDatabaseImport = async (
                 const currentCatalog = currentCatalogData.rows[0][0];
 
                 // Copy all tables from the attached database to the current database
-                const copyQuery = `COPY FROM DATABASE ${tableName} TO ${currentCatalog};`;
+                const copyQuery = `COPY FROM DATABASE ${databaseName} TO ${currentCatalog};`;
                 console.log('Copy query executed:', copyQuery);
                 await connection.executeQuery(copyQuery);
 
                 // Detach the database
-                const detachQuery = `DETACH DATABASE ${tableName};`;
+                const detachQuery = `DETACH DATABASE ${databaseName};`;
                 await connection.executeQuery(detachQuery);
             }
 
@@ -60,8 +60,8 @@ export const handleDatabaseImport = async (
             await refreshConnection(connection.id);
 
             const showDatabase = useRelationsState.getState().showDatabase;
-            showDatabase(connection.id, tableName);
-            const dashState = await getDashStateIfExits(connection, tableName);
+            showDatabase(connection.id, databaseName);
+            const dashState = await getDashStateIfExits(connection, databaseName);
             if (dashState) {
                 setFileUploadState({state: 'database_found_dash_state', message: 'Found Dashboards in imported Database', dashState: dashState});
             } else {

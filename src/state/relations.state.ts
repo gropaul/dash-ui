@@ -55,7 +55,7 @@ export interface DefaultRelationZustandActions {
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
-    mergeState: (state: RelationZustand) => void,
+    mergeState: (state: RelationZustand, openDashboards: boolean) => void,
     /* relation actions */
     getRelation: (relationId: string) => RelationState,
     addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
@@ -132,15 +132,8 @@ export const useRelationsState = createWithEqualityFn(
         (set, get) =>
             ({
                 ...INIT,
-                mergeState(state: RelationZustand) {
-                    console.log("Importing state", state);
+                mergeState(state: RelationZustand, openDashboards: boolean = false) {
                     const {relations, schemas, databases, dashboards, editorElements} = state;
-
-                    console.log("Importing state", relations);
-                    console.log("Importing state", schemas);
-                    console.log("Importing state", databases);
-                    console.log("Importing state", dashboards);
-                    console.log("Importing state", editorElements);
 
                     set((oldState) => ({
                         ...oldState,
@@ -150,7 +143,13 @@ export const useRelationsState = createWithEqualityFn(
                         dashboards: {...oldState.dashboards, ...dashboards},
                         editorElements: [...oldState.editorElements, ...editorElements],
                     }));
-                    console.log("Imported state", get());
+
+                    if (openDashboards) {
+                        // open all dashboards in the GUI
+                        Object.values(dashboards).forEach((dashboard) => {
+                            useGUIState.getState().addDashboardTab(dashboard);
+                        });
+                    }
                 },
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
                     const randomId = `dashboard-${getRandomId()}`;
