@@ -45,8 +45,14 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
         // get the current url params to configure the connection
         const urlParams = new URLSearchParams(window.location.search);
         let connection = await findWorkingConnection(urlParams, history);
-        // stay at the same page but remove the params from the url
-        router.replace(pathname, undefined);
+
+        // if there is a parameter k, it is a token for the connection. We have to remove
+        // it from the url params to avoid being displayed all the time
+        if (urlParams.has('k')) {
+            urlParams.delete('k');
+            const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+            router.replace(newUrl);
+         }
 
         if (!connection) {
             toast.error('No viable connection found');
@@ -54,7 +60,6 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
             return;
         }
 
-        // clear all params from the url by navigating to the base url using next.js router
         await setDatabaseConnection(connection);
 
         // show toast message that connection is initialised

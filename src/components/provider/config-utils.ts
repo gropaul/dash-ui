@@ -51,7 +51,16 @@ function parseConnectionParams(urlParams: URLSearchParams): DBConnectionSpec | u
                 type: 'duckdb-over-http',
                 config: httpconfig
             }
-
+        case 'wasm':
+            return {
+                type: 'duckdb-wasm',
+                config: {
+                    name: 'DuckDB WASM',
+                    url: urlParams.get('url') || undefined,
+                    useToken: false,
+                    token: undefined
+                }
+            }
         default:
             console.error('Unknown API:', api);
             return undefined;
