@@ -97,7 +97,7 @@ export function ConnectionHistory(props: ConnectionHistoryProps) {
     // repeat each element in the history array 10 times
     const enabled = historyLength > 0;
     return (
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="single" collapsible className="w-full border-t">
             <AccordionItem value="item-1">
                 <AccordionTrigger>
                     Connection History ({historyLength})

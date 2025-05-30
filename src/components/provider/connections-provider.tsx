@@ -9,7 +9,7 @@ import {toast} from "sonner";
 import {usePathname, useRouter} from 'next/navigation'
 import {showExampleQuery} from "@/components/provider/example-query";
 import {findWorkingConnection} from "@/components/provider/config-utils";
-import {ConnectionViewDialog} from "@/components/connections/connection-view-dialog";
+import {SettingsView} from "@/components/settings/settings-view";
 
 
 interface ConnectionsProviderProps {
@@ -80,13 +80,13 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
     return (
         <>
             {children}
-            <ConnectionViewDialog
+            <SettingsView
                 open={connectionSettingsOpen}
                 forceOpen={connectionsConfigForcedOpen}
                 onOpenChange={setConnectionSettingsOpen}
                 onSpecSave={onSaveSpec}
+                initialTab="connection"
             />
         </>
     );
 }
-

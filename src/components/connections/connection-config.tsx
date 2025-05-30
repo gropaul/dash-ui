@@ -264,7 +264,7 @@ export function ConnectionConfig({spec, onSpecChange, onSpecSave}: ConnectionCon
     }
 
     return (
-        <div className="max-w-xl w-full h-full">
+        <div className="w-full h-full">
             <div className="flex items-center flex-col justify-between h-full w-full">
                 <div className="min-w-full">
                     <Select value={spec.type} onValueChange={(v) => onTypeChange(v as DBConnectionType)}>

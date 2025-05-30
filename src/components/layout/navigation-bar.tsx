@@ -8,8 +8,8 @@ import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {AvailableTabs, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {useDatabaseConState} from "@/state/connections-database.state";
-import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
+import {SettingsView} from "@/components/settings/settings-view";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -20,8 +20,12 @@ export interface NavigationBarProps {
 export function NavigationBar(props: NavigationBarProps) {
 
     const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(props.initialSelectedTabs || ['connections', 'relations']);
-    const [infoDialogOpen, setInfoDialogOpen] = useState(false);
-    const setConnectionSettingsOpen = useDatabaseConState(state => state.setConnectionsConfigOpen);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [settingsTab, setSettingsTab] = useState<'about' | 'connection'>('about');
+    const [setConnectionSettingsOpen, connectionSettingsOpen] = useDatabaseConState(state => [
+        state.setConnectionsConfigOpen,
+        state.connectionsConfigOpen
+    ]);
     // Handle tab selection change
     const handleTabChange = (value: string[]) => {
         setSelectedTabs(value as AvailableTabs[]);
@@ -63,50 +67,33 @@ export function NavigationBar(props: NavigationBarProps) {
             <ExportDatabaseButton />
             <div className={'h-2'}/>
 
-            <Button variant={'ghost'} size={'icon'} onClick={() => setInfoDialogOpen(true)}>
+            <Button variant={'ghost'} size={'icon'} onClick={() => {
+                setSettingsTab('about');
+                setSettingsOpen(true);
+            }}>
                 <Info />
             </Button>
             <div className={'h-2'}/>
-            <Button variant={'ghost'} size={'icon'} onClick={() => setConnectionSettingsOpen(true)}>
+            <Button variant={'ghost'} size={'icon'} onClick={() => {
+                setSettingsTab('connection');
+                setSettingsOpen(true);
+            }}>
                 <Settings />
             </Button>
 
-            <Dialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center justify-center sm:justify-start">
-                            <Avatar className="h-10 w-10 mr-2">
-                                <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
-                            </Avatar>
-                            <span>About Explorer</span>
-                        </DialogTitle>
-                        <DialogDescription>
-                            <p className="py-2">
-                                Explorer is an open source project for exploring and visualizing data using DuckDB.
-                            </p>
-                            <p className="py-2">
-                                Visit our repository: <a 
-                                    href="https://github.com/gropaul/dash-ui"
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-blue-500 hover:underline"
-                                >
-                                    github.com/gropaul/dash-ui
-                                </a>
-                            </p>
-                            <div className="mt-4 p-3 bg-muted rounded-md">
-                                <div className="flex items-center mb-2">
-                                    <Star className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" />
-                                    <p className="text-sm">
-                                        If you find Dash helpful, please consider giving our repository a star on GitHub.
-                                        It helps us grow and improve the project!
-                                    </p>
-                                </div>
-                            </div>
-                        </DialogDescription>
-                    </DialogHeader>
-                </DialogContent>
-            </Dialog>
+            {/* Only show the settings view if the connection settings dialog is not open */}
+            {!connectionSettingsOpen && (
+                <SettingsView
+                    open={settingsOpen}
+                    onOpenChange={setSettingsOpen}
+                    initialTab={settingsTab}
+                    onSpecSave={(spec) => {
+                        // This will be handled by the ConnectionsProvider
+                        setConnectionSettingsOpen(true);
+                        setSettingsOpen(false);
+                    }}
+                />
+            )}
         </div>
     );
 }
