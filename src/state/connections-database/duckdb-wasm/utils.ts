@@ -69,8 +69,47 @@ export async function inferFileTableName(file: File): Promise<FileFormat | undef
     return undefined;
 }
 
+// Extracts and validates a file name from a path or URL
+export function sanitizeFileName(fileName: string): string {
+    try {
+        // If it's a URL, extract pathname
+        if (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(fileName)) {
+            const url = new URL(fileName);
+            fileName = url.pathname;
+        }
+
+        // Remove path segments — keep only the actual file name
+        fileName = fileName.split('/').pop() ?? '';
+        fileName = fileName.split('\\').pop() ?? '';
+
+        // Reject empty names or just dots
+        if (!fileName || /^[.]+$/.test(fileName)) {
+            throw new Error('Invalid or empty file name');
+        }
+
+        // Validate characters (only alphanumerics, dash, underscore, dot)
+        if (!/^[a-zA-Z0-9_.-]+$/.test(fileName)) {
+            throw new Error('File name contains invalid characters');
+        }
+
+        // Reject dangerous names (optional: extend for OS-specific reserved names)
+        if (fileName === '.' || fileName === '..') {
+            throw new Error('Invalid file name: cannot be "." or ".."');
+        }
+
+        return fileName;
+    } catch (e) {
+        throw new Error(`Invalid file name: ${(e as Error).message}`);
+    }
+}
+
+
 // The schemaName is the name of the table to be created in DuckDB
 export async function getImportQuery(filePath: string, schemaName: string, fileFormat: FileFormat, readonly: boolean = false): Promise<string> {
+
+    sanitizeFileName(filePath);
+    sanitizeFileName(schemaName);
+
     let query = '';
     if (fileFormat === 'csv') {
         query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_csv_auto('${filePath}')`;

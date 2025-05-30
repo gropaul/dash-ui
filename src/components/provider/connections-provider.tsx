@@ -76,7 +76,6 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
                 // remove the file extension from the file name (database.duckdb -> database)
                 const fileNameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
                 const query = await getImportQuery( decodedDatabaseUrl, fileNameWithoutExtension,'database', true);
-                console.log('Attach query', query);
                 await ConnectionsService.getInstance().getDatabaseConnection().executeQuery(query);
                 console.log('Attach query executed');
                 const dashState = await getDashStateIfExits(connection, fileNameWithoutExtension);
