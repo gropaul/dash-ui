@@ -2,7 +2,7 @@
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, LogLevel} from '@duckdb/duckdb-wasm';
 
-export const DUCKDB_WASM_BASE_TABLE_PATH = 'browser3.duckdb';
+export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
 
 
 export async function clearOPFS(): Promise<void> {

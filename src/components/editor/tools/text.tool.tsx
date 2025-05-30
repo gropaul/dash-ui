@@ -140,19 +140,19 @@ function TextSearchComponent(props: TextSearchComponentProps) {
 
     return (
         <div className="text-search-tool">
-            <div className="group pt-0.5 pb-0.5 flex flex-row items-center justify-between">
+            <div className="group pt-0.5 pb-0.5 relative">
                 <Input
                     type="text"
                     placeholder="Search..."
                     value={inputValue}
                     onChange={handleSearchChange}
-                    className="pr-8"
+                    className="w-full pr-8"
                 />
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsConfigOpen(true)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 absolute right-1 top-1/2 -translate-y-1/2"
                 >
                     <Settings className="h-4 w-4"/>
                 </Button>

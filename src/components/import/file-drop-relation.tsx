@@ -57,7 +57,7 @@ export function FileDropRelation({className, children}: Props) {
                     if (!fileFormat) {
                         setFileUploadState({
                             state: 'format_selection',
-                            message: `Unsupported file format for ${file.name}. Please select a format:`,
+                            message: `Unknown file format for file "${file.name}". Please select a format:`,
                             file: file
                         });
                         return; // Stop processing and wait for user input
@@ -117,7 +117,10 @@ export function FileDropRelation({className, children}: Props) {
     const onErrorConfirm = () => setFileUploadState({state: 'idle'});
 
     const onDatabaseImportSelect = async (importType: 'temporary' | 'permanent', file: File) => {
-        setFileUploadState({state: 'uploading', message: `Importing database ${importType === 'temporary' ? 'temporarily' : 'permanently'}...`});
+        setFileUploadState({
+            state: 'uploading',
+            message: `Importing database ${importType === 'temporary' ? 'temporarily' : 'permanently'}...`
+        });
         try {
             const service = ConnectionsService.getInstance();
             if (service.hasDatabaseConnection()) {
@@ -236,9 +239,9 @@ export function FileDropRelation({className, children}: Props) {
             }}
         >
             {children}
-            <Overlay 
-                state={fileUploadState} 
-                onErrorConfirm={onErrorConfirm} 
+            <Overlay
+                state={fileUploadState}
+                onErrorConfirm={onErrorConfirm}
                 onFormatSelect={onFormatSelect}
                 onDatabaseImportSelect={onDatabaseImportSelect}
             />
@@ -292,7 +295,7 @@ const Overlay: React.FC<OverlayProps> = ({state, onErrorConfirm, onFormatSelect,
                     {state.state === 'error' && (
                         <>
                             <AlertCircle className="w-12 h-12 text-red-500 mb-2"/>
-                            <p className="text-red-600 mb-4">{state.message}</p>
+                            <p className="text-red-600 mb-4 max-w-md">{state.message}</p>
                             <Button
                                 onClick={onErrorConfirm}
                                 variant="destructive"
@@ -305,14 +308,14 @@ const Overlay: React.FC<OverlayProps> = ({state, onErrorConfirm, onFormatSelect,
 
                     {state.state === 'format_selection' && state.file && onFormatSelect && (
                         <>
-                            <AlertCircle className="w-12 h-12 text-yellow-500 mb-2"/>
-                            <p className="text-yellow-600 mb-4">{state.message}</p>
+                            <AlertCircle className="w-12 h-12 text-muted-foreground mb-2"/>
+                            <p className="text-muted-foreground mb-4">{state.message}</p>
                             <div className="flex flex-col items-center mb-4">
                                 <Select
                                     onValueChange={(value) => onFormatSelect(value as FileFormat, state.file!)}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select a format" />
+                                        <SelectValue placeholder="Select a format"/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="csv">CSV</SelectItem>
@@ -322,9 +325,11 @@ const Overlay: React.FC<OverlayProps> = ({state, onErrorConfirm, onFormatSelect,
                                         <SelectItem value="database">Database</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                <div className="h-2"></div>
+
                                 <Button
                                     onClick={onErrorConfirm}
-                                    variant="secondary"
+                                    variant="outline"
                                 >
                                     <XCircle className="w-5 h-5"/>
                                     Cancel
@@ -335,38 +340,46 @@ const Overlay: React.FC<OverlayProps> = ({state, onErrorConfirm, onFormatSelect,
 
                     {state.state === 'database_import_selection' && state.file && onDatabaseImportSelect && (
                         <>
-                            <AlertCircle className="w-12 h-12 text-blue-500 mb-2"/>
-                            <p className="text-blue-600 mb-4">{state.message}</p>
-                            <div className="flex flex-col items-center mb-4">
-                                <div className="flex space-x-4 mb-4">
-                                    <Button
-                                        onClick={() => onDatabaseImportSelect('temporary', state.file!)}
-                                        variant="default"
-                                        className="px-4"
-                                    >
-                                        Temporary Attachment
-                                    </Button>
-                                    <Button
-                                        onClick={() => onDatabaseImportSelect('permanent', state.file!)}
-                                        variant="default"
-                                        className="px-4"
-                                    >
-                                        Copy Into Browser
-                                    </Button>
+                            <AlertCircle className="text-muted-foreground w-12 h-12  mb-2"/>
+                            <p className="text-muted-foreground mb-4">{state.message}</p>
+                            <div className="flex flex-col items-center space-y-4 mb-6">
+                                <div className="flex flex-col space-y-4 w-full max-w-md">
+                                    <div
+                                        className="flex flex-col items-center text-center border p-4 rounded-xl shadow-sm">
+                                        <Button
+                                            onClick={() => onDatabaseImportSelect('temporary', state.file!)}
+                                            variant="default"
+                                            className="px-4 mb-2"
+                                        >
+                                            Temporary Attachment
+                                        </Button>
+                                        <p className="text-sm text-gray-500">
+                                            The data will only be stored temporary. On reloading the page, the database
+                                            will be detached.
+                                        </p>
+                                    </div>
+                                    <div
+                                        className="flex flex-col items-center text-center border p-4 rounded-xl shadow-sm">
+                                        <Button
+                                            onClick={() => onDatabaseImportSelect('permanent', state.file!)}
+                                            variant="default"
+                                            className="px-4 mb-2"
+                                        >
+                                            Copy into Browser
+                                        </Button>
+                                        <p className="text-sm text-gray-500">
+                                            This will copy all tables from the database into the current browser
+                                            database. The database will be available on browser reload.
+                                        </p>
+                                    </div>
                                 </div>
-                                <p className="text-sm text-gray-500 mb-4 text-center">
-                                    Temporary attachment will lose data on reload. <br/>
-                                    Copy into browser will import all tables into the current database.
-                                </p>
-                                <Button
-                                    onClick={onErrorConfirm}
-                                    variant="secondary"
-                                >
-                                    <XCircle className="w-5 h-5"/>
+                                <Button onClick={onErrorConfirm} variant="outline">
+                                    <XCircle className="w-5 h-5 mr-2"/>
                                     Cancel
                                 </Button>
                             </div>
                         </>
+
                     )}
                 </motion.div>
             </motion.div>

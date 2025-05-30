@@ -29,7 +29,6 @@ export async function onDatabaseAttached(
 
         // insert the relationState into the zustand store
         useRelationsState.getState().mergeState(importedRelationZustand);
-
     }
 
 }
