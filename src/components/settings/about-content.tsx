@@ -7,7 +7,7 @@ export function AboutContent() {
         <div className="p-4">
             <h5 className="text-lg font-bold">About this tool</h5>
             <p className="mb-2">
-                Explorer is an open source project for exploring and visualizing data using DuckDB.
+                Dash is an open source project for exploring and visualizing data using DuckDB.
             </p>
             <p className="py-2">
                 Visit our repository: <a

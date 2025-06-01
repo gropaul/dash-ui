@@ -3,6 +3,8 @@ import {StorageDestination} from "@/model/database-connection";
 
 export const LOADING_TIMER_OFFSET = 150;
 
+export const DASH_DOMAIN = 'dash.builders'
+
 // connection ids
 export const DATABASE_CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';
 export const DATABASE_CONNECTION_ID_DUCKDB_LOCAL = 'duckdb-local';
