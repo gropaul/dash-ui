@@ -64,13 +64,19 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
             // if the url of the page is on the default dash domain, use a wasm connection
             if (window.location.hostname === DASH_DOMAIN) {
                 const spec = getDefaultSpec('duckdb-wasm');
-                connection = specToConnection(spec);
-                toast.info('No connection found. Using DuckDB WASM connection');
-            } else {
-                toast.error('No viable connection found');
-                setConnectionsForcedOpen(true);
-                return;
+                const wasmConnection = specToConnection(spec);
+                const result = await wasmConnection.initialise();
+                if (result.state === 'connected') {
+                    connection = wasmConnection;
+                    toast.info('No connection found. Using DuckDB WASM connection');
+                }
             }
+        }
+
+        if (!connection) {
+            toast.error('No viable connection found');
+            setConnectionsForcedOpen(true);
+            return;
         }
 
         await setDatabaseConnection(connection);
