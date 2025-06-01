@@ -39,6 +39,7 @@ import {useGUIState} from "@/state/gui.state";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
 import {useSourceConState} from "@/state/connections-source.state";
+import {maybeAttachDatabaseFromUrlParam} from "@/state/relations/attach-from-url-param";
 
 export interface RelationZustand {
     editorElements: EditorFolder[];
@@ -132,17 +133,44 @@ export const useRelationsState = createWithEqualityFn(
         (set, get) =>
             ({
                 ...INIT,
-                mergeState(state: RelationZustand, openDashboards: boolean = false) {
-                    const {relations, schemas, databases, dashboards, editorElements} = state;
-
-                    set((oldState) => ({
-                        ...oldState,
-                        relations: {...oldState.relations, ...relations},
-                        schemas: {...oldState.schemas, ...schemas},
-                        databases: {...oldState.databases, ...databases},
-                        dashboards: {...oldState.dashboards, ...dashboards},
-                        editorElements: [...oldState.editorElements, ...editorElements],
-                    }));
+                mergeState(newState: RelationZustand, openDashboards: boolean = false) {
+                    const {relations, schemas, databases, dashboards, editorElements} = newState;
+                    
+                    // Check for duplicates before merging
+                    set((oldState) => {
+                        const newRelations = {...relations};
+                        const newSchemas = {...schemas};
+                        const newDatabases = {...databases};
+                        const newDashboards = {...dashboards};
+                        const newElements = [...editorElements];
+                        
+                        // Remove any items that already exist in the current state
+                        Object.keys(relations).forEach(id => {
+                            if (oldState.relations[id]) delete newRelations[id];
+                        });
+                        Object.keys(schemas).forEach(id => {
+                            if (oldState.schemas[id]) delete newSchemas[id];
+                        });
+                        Object.keys(databases).forEach(id => {
+                            if (oldState.databases[id]) delete newDatabases[id];
+                        });
+                        Object.keys(dashboards).forEach(id => {
+                            if (oldState.dashboards[id]) delete newDashboards[id];
+                        });
+                        
+                        // Filter out editor elements that might already exist
+                        const existingElementIds = new Set(oldState.editorElements.map(el => el.id));
+                        const uniqueNewElements = newElements.filter(el => !existingElementIds.has(el.id));
+                        
+                        return {
+                            ...oldState,
+                            relations: {...oldState.relations, ...newRelations},
+                            schemas: {...oldState.schemas, ...newSchemas},
+                            databases: {...oldState.databases, ...newDatabases},
+                            dashboards: {...oldState.dashboards, ...newDashboards},
+                            editorElements: [...oldState.editorElements, ...uniqueNewElements],
+                        };
+                    });
 
                     if (openDashboards) {
                         // open all dashboards in the GUI
@@ -658,6 +686,8 @@ export const useRelationsState = createWithEqualityFn(
                     }
                     useGUIState.getState().keepTabsOfIds(ids);
                     useRelationsHydrationState.getState().setHydrated(true);
+                    maybeAttachDatabaseFromUrlParam();
+
                 }
 
                 return callback;

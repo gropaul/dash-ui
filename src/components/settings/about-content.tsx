@@ -6,7 +6,7 @@ export function AboutContent() {
     return (
         <div className="p-4">
             <h5 className="text-lg font-bold">About this tool</h5>
-            <p className="text-muted-foreground mb-2">
+            <p className="mb-2">
                 Explorer is an open source project for exploring and visualizing data using DuckDB.
             </p>
             <p className="py-2">

@@ -10,10 +10,6 @@ import {usePathname, useRouter} from 'next/navigation'
 import {showExampleQuery} from "@/components/provider/example-query";
 import {findWorkingConnection} from "@/components/provider/config-utils";
 import {SettingsView} from "@/components/settings/settings-view";
-import {decompressString} from "@/lib/string-compression";
-import {getDashStateIfExits} from "@/components/import/file-drop-relation/database-import";
-import {getImportQuery} from "@/state/connections-database/duckdb-wasm/utils";
-
 
 interface ConnectionsProviderProps {
     children: React.ReactElement | React.ReactElement[];
@@ -64,26 +60,6 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
         }
 
         await setDatabaseConnection(connection);
-
-        // if the url params have an attach value, load the value and parse it
-        if (urlParams.has('attach')) {
-            const attach = urlParams.get('attach');
-            if (attach) {
-
-                const decodedDatabaseUrl = decompressString(attach);
-                const fileName = decodedDatabaseUrl.split('/').pop() || 'database.duckdb';
-                console.log('Attach file', fileName, decodedDatabaseUrl);
-                // remove the file extension from the file name (database.duckdb -> database)
-                const fileNameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
-                const query = await getImportQuery( decodedDatabaseUrl, fileNameWithoutExtension,'database', true);
-                await ConnectionsService.getInstance().getDatabaseConnection().executeQuery(query);
-                console.log('Attach query executed');
-                const dashState = await getDashStateIfExits(connection, fileNameWithoutExtension);
-                if (dashState) {
-                    useRelationsState.getState().mergeState(dashState, true);
-                }
-            }
-        }
 
         // show toast message that connection is initialised
         const isDebug = process.env.NODE_ENV === 'development';
