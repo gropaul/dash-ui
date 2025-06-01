@@ -4,12 +4,18 @@ import React, {useEffect} from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {ConnectionsService} from "@/state/connections-service";
 import {useDatabaseConState, useDBConHydrationState} from "@/state/connections-database.state";
-import {connectionToString, DBConnectionSpec, specToConnection} from "@/state/connections-database/configs";
+import {
+    connectionToString,
+    DBConnectionSpec,
+    getDefaultSpec,
+    specToConnection
+} from "@/state/connections-database/configs";
 import {toast} from "sonner";
 import {usePathname, useRouter} from 'next/navigation'
 import {showExampleQuery} from "@/components/provider/example-query";
 import {findWorkingConnection} from "@/components/provider/config-utils";
 import {SettingsView} from "@/components/settings/settings-view";
+import {DASH_DOMAIN} from "@/platform/global-data";
 
 interface ConnectionsProviderProps {
     children: React.ReactElement | React.ReactElement[];
@@ -54,9 +60,17 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
          }
 
         if (!connection) {
-            toast.error('No viable connection found');
-            setConnectionsForcedOpen(true);
-            return;
+
+            // if the url of the page is on the default dash domain, use a wasm connection
+            if (window.location.hostname === DASH_DOMAIN) {
+                const spec = getDefaultSpec('duckdb-wasm');
+                connection = specToConnection(spec);
+                toast.info('No connection found. Using DuckDB WASM connection');
+            } else {
+                toast.error('No viable connection found');
+                setConnectionsForcedOpen(true);
+                return;
+            }
         }
 
         await setDatabaseConnection(connection);
