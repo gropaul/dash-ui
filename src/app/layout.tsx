@@ -5,6 +5,7 @@ import ConnectionsProvider from "@/components/provider/connections-provider";
 import {ThemeProvider} from "@/components/provider/theme-provider";
 import {cn} from "@/lib/utils";
 import {Toaster} from "sonner";
+import {Chat} from "@/components/chat/chat";
 
 export default function RootLayout({
                                        children,
@@ -34,6 +35,7 @@ export default function RootLayout({
                         <div className="flex flex-row h-screen w-screen">
                             {children}
                         </div>
+                        <Chat />
                     </ConnectionsProvider>
                 </ThemeProvider>
             </div>
