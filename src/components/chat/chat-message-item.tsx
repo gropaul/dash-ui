@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { LLMChatMessage } from "@/components/chat/model/ollama-service";
+import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 
 interface ChatMessageItemProps {
     message: LLMChatMessage;
@@ -30,7 +31,10 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
                 {role === "system" || role === "tool" ? (
                     <div className="mb-1 font-semibold uppercase text-xs">{role}</div>
                 ) : null}
-                {contentWithoutThinking}
+               <MarkdownRenderer
+                   markdown={contentWithoutThinking}
+                   codeStyle={{ fontSize: '0.85em' , backgroundColor: 'white', borderRadius: '4px' }}
+               />
             </div>
         </div>
     );

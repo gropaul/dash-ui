@@ -1,5 +1,6 @@
 import {Ollama} from 'ollama/browser';
 import {Message as OllamaMessage, Tool as OllamaTool} from "ollama";
+import {AddTwoNumbersTool, MultiplyTwoNumbersTool, QueryDatabaseTool} from "@/components/chat/model/tools";
 
 type LLMModel = 'qwen3:8b'
 type LLMChatRole = 'user' | 'assistant' | 'system' | 'tool';
@@ -51,86 +52,8 @@ export function GetNewChatSession(): ChatSession {
     };
 }
 
-function toolStringToMessage(toolString: string): LLMChatMessage {
-    return {
-        role: 'tool',
-        content: toolString,
-    };
-}
 
-const AddTwoNumbersTool: LLMTool = {
-    call: async (args: { [key: string]: any }): Promise<LLMChatMessage> => {
-        const a = args.a;
-        const b = args.b;
-        if (a === undefined || b === undefined) {
-            return toolStringToMessage('Error: Both arguments must be provided.');
-        }
-        console.log(`Adding numbers: ${a} + ${b}`);
-        console.log(`Type of a: ${typeof a}, Type of b: ${typeof b}`);
-        if (typeof a !== 'number' || typeof b !== 'number') {
-           return toolStringToMessage('Error: Both arguments must be numbers.');
-        }
-        const result = a + b;
-        return toolStringToMessage(`The result of adding ${a} and ${b} is ${result}.`);
-    },
-    type: 'function',
-    function: {
-        name: 'addNumbers',
-        description: 'Adds two numbers together.',
-        parameters: {
-            type: 'object',
-            properties: {
-                a: {
-                    type: 'number',
-                    description: 'The first number.',
-                },
-                b: {
-                    type: 'number',
-                    description: 'The second number.',
-                },
-            },
-            required: ['a', 'b'],
-        },
-    },
-}
-
-const MultiplyTwoNumbersTool: LLMTool = {
-    call: async (args: { [key: string]: any }): Promise<LLMChatMessage> => {
-        const a = args.a;
-        const b = args.b;
-        if (a === undefined || b === undefined) {
-            return toolStringToMessage('Error: Both arguments must be provided.');
-        }
-        console.log(`Multiplying numbers: ${a} * ${b}`);
-        console.log(`Type of a: ${typeof a}, Type of b: ${typeof b}`);
-        if (typeof a !== 'number' || typeof b !== 'number') {
-           return toolStringToMessage('Error: Both arguments must be numbers.');
-        }
-        const result = a * b;
-        return toolStringToMessage(`The result of multiplying ${a} and ${b} is ${result}.`);
-    },
-    type: 'function',
-    function: {
-        name: 'multiplyNumbers',
-        description: 'Multiplies two numbers together.',
-        parameters: {
-            type: 'object',
-            properties: {
-                a: {
-                    type: 'number',
-                    description: 'The first number.',
-                },
-                b: {
-                    type: 'number',
-                    description: 'The second number.',
-                },
-            },
-            required: ['a', 'b'],
-        },
-    },
-}
-
-interface LLMTool extends OllamaTool {
+export interface LLMTool extends OllamaTool {
     call: (args: { [key: string]: any }) => Promise<LLMChatMessage>;
 }
 
@@ -203,4 +126,4 @@ class OllamaService {
     }
 }
 
-export const ollamaService = new OllamaService('http://localhost:11434', 'qwen3:8b', [AddTwoNumbersTool, MultiplyTwoNumbersTool]);
+export const ollamaService = new OllamaService('http://localhost:11434', 'qwen3:8b', [QueryDatabaseTool]);

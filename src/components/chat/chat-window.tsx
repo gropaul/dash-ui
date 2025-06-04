@@ -70,7 +70,7 @@ export function ChatWindow({
     return (
         <div
             className={cn(
-                "fixed right-6 bottom-6 w-[30rem] max-h-[90vh] bg-background border rounded-lg shadow-lg z-50 flex flex-col",
+                "fixed right-6 bottom-6 w-[40rem] max-h-[90vh] bg-background border rounded-lg shadow-lg z-50 flex flex-col",
                 "animate-in slide-in-from-right duration-300",
                 className
             )}

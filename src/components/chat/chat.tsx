@@ -18,6 +18,7 @@ export function Chat({className}: ChatProps) {
     const [serviceState, setServiceState] = useState<ServiceState>(GetInitialState())
 
     function guiCallback(state: ServiceState) {
+        state.session.messages = [...state.session.messages]
         setServiceState(state);
     }
 
