@@ -1,8 +1,12 @@
 import React, {useState, useEffect} from "react";
 import {ChatButton} from "./chat-button";
 import {ChatWindow} from "./chat-window";
-import {ChatMessage, ChatSession} from "./chat-service";
-import {openAIChatService} from "./openai-chat-service";
+import {
+    GetNewChatSession,
+    ServiceState,
+    LLMChatMessage,
+    ollamaService, GetInitialState
+} from "@/components/chat/model/ollama-service";
 
 interface ChatProps {
     className?: string;
@@ -10,65 +14,19 @@ interface ChatProps {
 
 export function Chat({className}: ChatProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
-    const [inputValue, setInputValue] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
-    // Initialize or load existing session
-    useEffect(() => {
-        const initializeChat = async () => {
-            // In a real implementation, you might load the last session from localStorage
-            // or from a backend API
-            const sessions = await openAIChatService.getSessions();
-            if (sessions.length > 0) {
-                const latestSession = sessions.sort((a, b) =>
-                    b.updatedAt.getTime() - a.updatedAt.getTime()
-                )[0];
-                setCurrentSession(latestSession);
-                setMessages(latestSession.messages);
-            } else {
-                // Create a new session if no existing sessions are found
-                const newSession = {
-                    id: crypto.randomUUID(),
-                    messages: [],
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                };
-                setCurrentSession(newSession);
-                setMessages([]);
-            }
-        };
+    const [serviceState, setServiceState] = useState<ServiceState>(GetInitialState())
 
-        initializeChat();
-    }, []);
+    function guiCallback(state: ServiceState) {
+        setServiceState(state);
+    }
 
     const handleSendMessage = async (content: string) => {
-        if (!content.trim()) return;
-
-        setIsLoading(true);
-        setInputValue("");
-
-        const session = openAIChatService.addUserMessage(content, {
-            sessionId: currentSession?.id,
-        });
-        setCurrentSession(session);
-        setMessages([...session.messages]);
-
-
-        try {
-            // Make a single call to the OpenAI API
-            const session = await openAIChatService.inferAssistantMessage({
-                sessionId: currentSession?.id,
-            });
-
-            setMessages([...session.messages]);
-        } catch (error) {
-            console.error("Failed to send message:", error);
-            // Handle error (e.g., show a toast notification)
-        } finally {
-            setIsLoading(false);
+        const message: LLMChatMessage = {
+            role: 'user',
+            content: content,
         }
+        await ollamaService.sendMessages(serviceState.session, [message], guiCallback)
     };
 
     return (
@@ -80,11 +38,9 @@ export function Chat({className}: ChatProps) {
             <ChatWindow
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
-                messages={messages}
+                messages={serviceState.session.messages}
                 onSendMessage={handleSendMessage}
-                inputValue={inputValue}
-                setInputValue={setInputValue}
-                isLoading={isLoading}
+                isLoading={serviceState.state === 'inferring' || serviceState.state === 'calling_tool'}
             />
         </>
     );

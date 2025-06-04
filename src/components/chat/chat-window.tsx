@@ -2,17 +2,15 @@ import React, { useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ChatMessage } from "./chat-service";
 import { ChatMessageItem } from "./chat-message-item";
+import {LLMChatMessage} from "@/components/chat/model/ollama-service";
 
 interface ChatWindowProps {
     isOpen: boolean;
     onClose: () => void;
     className?: string;
-    messages: ChatMessage[];
+    messages: LLMChatMessage[];
     onSendMessage: (content: string) => void;
-    inputValue: string;
-    setInputValue: (value: string) => void;
     isLoading?: boolean;
 }
 
@@ -22,12 +20,11 @@ export function ChatWindow({
                                className,
                                messages,
                                onSendMessage,
-                               inputValue,
-                               setInputValue,
                                isLoading = false,
                            }: ChatWindowProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const [inputValue, setInputValue] = React.useState("");
     const atBottomRef = useRef(true); // ← tracks live “at-bottom” state
 
     /* ───────────── track user scroll position ───────────── */
@@ -59,10 +56,13 @@ export function ChatWindow({
         }
     }, [messages]);
 
-    /* ───────────── send handler ───────────── */
     const handleSendMessage = (content: string) => {
+        // don't do anything if loading
+        if (isLoading || !content.trim()) return;
+
         onSendMessage(content);
-        setTimeout(() => textareaRef.current?.focus(), 0);
+        setInputValue(""); // Clear input after sending
+        // setTimeout(() => textareaRef.current?.focus(), 10);
     };
 
     if (!isOpen) return null;
@@ -91,8 +91,8 @@ export function ChatWindow({
             >
                 {messages.length ? (
                     <div className="space-y-4">
-                        {messages.map((m) => (
-                            <ChatMessageItem key={m.id} message={m} />
+                        {messages.map((m, index) => (
+                            <ChatMessageItem key={index} message={m} />
                         ))}
                     </div>
                 ) : (
@@ -111,14 +111,12 @@ export function ChatWindow({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message…"
               className="w-full px-3 py-2 pr-8 text-sm bg-muted/30 rounded-[20px] focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-y-auto min-h-[38px] max-h-[86px] custom-scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent"
-              disabled={isLoading}
               rows={1}
               onKeyDown={(e) => {
                   if (
                       e.key === "Enter" &&
                       !e.shiftKey &&
-                      inputValue.trim() &&
-                      !isLoading
+                      inputValue.trim()
                   ) {
                       e.preventDefault();
                       handleSendMessage(inputValue);
