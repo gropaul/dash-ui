@@ -1,5 +1,6 @@
 import {LLMChatMessage, LLMTool} from "@/components/chat/model/ollama-service";
 import {ConnectionsService} from "@/state/connections-service";
+import {SQLTollDescription} from "@/components/chat/model/promts";
 
 function toolStringToMessage(toolString: string): LLMChatMessage {
     return {
@@ -103,7 +104,7 @@ export const QueryDatabaseTool: LLMTool = {
     type: 'function',
     function: {
         name: 'queryDatabase',
-        description: 'Executes a SQL query against duckdb, a postgreSQL-compatible database. Schema information is in the information_schema.tables (columns: table_name, table_schema, ...)  and information_schema.columns ( column_name, data_type, table_name, ...)',
+        description: SQLTollDescription,
         parameters: {
             type: 'object',
             properties: {

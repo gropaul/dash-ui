@@ -1,15 +1,22 @@
 import {Ollama} from 'ollama/browser';
 import {Message as OllamaMessage, Tool as OllamaTool} from "ollama";
 import {AddTwoNumbersTool, MultiplyTwoNumbersTool, QueryDatabaseTool} from "@/components/chat/model/tools";
+import {DataEngAssistantPrompt} from "@/components/chat/model/promts";
 
 type LLMModel = 'qwen3:8b'
 type LLMChatRole = 'user' | 'assistant' | 'system' | 'tool';
+
+
+export interface ToolCall {
+    name: string;
+    arguments: { [key: string]: any };
+}
 
 // Reduced OllamaMessage type for simplicity in storage and display
 export interface LLMChatMessage {
     role: LLMChatRole;
     content: string;
-    toolCalls?: string[];
+    toolCalls?: ToolCall[]; // Optional tool calls
 }
 
 export interface ServiceState {
@@ -31,7 +38,10 @@ function ollamaMessageToChatMessage(message: OllamaMessage): LLMChatMessage {
     return {
         role: message.role as LLMChatRole,
         content: message.content,
-        toolCalls: message.tool_calls ? message.tool_calls.map(tc => tc.function.name) : undefined,
+        toolCalls: message.tool_calls?.map(toolCall => ({
+            name: toolCall.function.name,
+            arguments: toolCall.function.arguments || {}
+        })) || [],
     };
 }
 
@@ -43,12 +53,18 @@ function chatMessageToOllamaMessage(message: LLMChatMessage): OllamaMessage {
 }
 
 export interface ChatSession {
+    initialPrompt?: string; // Optional initial prompt for the session
     messages: LLMChatMessage[];
 }
 
-export function GetNewChatSession(): ChatSession {
+type ChatSessionType = 'sql-assistant'
+
+export function GetNewChatSession(type: ChatSessionType = 'sql-assistant'): ChatSession {
+
+    const initialPrompt = type === 'sql-assistant' ? DataEngAssistantPrompt : undefined;
     return {
-        messages: []
+        initialPrompt: initialPrompt,
+        messages: initialPrompt ? [{ role: 'system', content: initialPrompt }] : [],
     };
 }
 

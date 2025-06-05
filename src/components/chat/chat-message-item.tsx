@@ -35,6 +35,24 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
                    markdown={contentWithoutThinking}
                    codeStyle={{ fontSize: '0.85em' , backgroundColor: 'white', borderRadius: '4px' }}
                />
+                {message.toolCalls && message.toolCalls.length > 0 && (
+                    <div className="mt-2">
+                        <div className="text-xs text-gray-500">Tool Calls:</div>
+                        <ul className="list-disc pl-5">
+                            {message.toolCalls.map((call, index) => (
+                                <li key={index} className="text-sm">
+                                    <strong>{call.name}:</strong> {
+                                    Object.entries(call.arguments).map(([key, value]) => (
+                                        <span key={key} className="block">
+                                            <span className="font-semibold">{key}:</span> {JSON.stringify(value)}
+                                        </span>
+                                    ))
+                                }
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
         </div>
     );

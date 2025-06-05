@@ -2,7 +2,6 @@ import React, {useState, useEffect} from "react";
 import {ChatButton} from "./chat-button";
 import {ChatWindow} from "./chat-window";
 import {
-    GetNewChatSession,
     ServiceState,
     LLMChatMessage,
     ollamaService, GetInitialState
