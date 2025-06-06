@@ -1,5 +1,7 @@
 import {convertToCoreMessages, LanguageModel, Message, streamText, StreamTextResult, Tool as VercelTool,} from 'ai';
 import {createOpenAI} from '@ai-sdk/openai';
+import { createOllama } from 'ollama-ai-provider';
+
 import {DataEngAssistantPrompt} from "@/components/chat/model/promts";
 import {AddChartToDashboard, AddMarkdownToDashboard, QueryDatabaseTool} from "@/components/chat/model/tools";
 
@@ -62,12 +64,17 @@ const openai = createOpenAI({
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, // your OpenAI API key
 });
 
-const gpt4 = openai('gpt-4.1');
+const ollama = createOllama({
+    baseURL: 'http://localhost:11434/api',
+});
 
-const qwen3 = openai('q5');
+const gpt4 = openai('gpt-4.1');
+const qwen3 = ollama('qwen3:8b', {
+    simulateStreaming: true
+})
 
 export const aiService = new LlmService(
-    gpt4,
+    qwen3,
     {
         'queryDatabase': QueryDatabaseTool,
         'addChartToDashboard': AddChartToDashboard,
