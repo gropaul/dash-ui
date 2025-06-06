@@ -62,10 +62,12 @@ const openai = createOpenAI({
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, // your OpenAI API key
 });
 
-const model = openai('gpt-4.1');
+const gpt4 = openai('gpt-4.1');
+
+const qwen3 = openai('q5');
 
 export const aiService = new LlmService(
-    model,
+    gpt4,
     {
         'queryDatabase': QueryDatabaseTool,
         'addChartToDashboard': AddChartToDashboard,

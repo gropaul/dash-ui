@@ -35,7 +35,6 @@ export default function RootLayout({
                         <div className="flex flex-row h-screen w-screen">
                             {children}
                         </div>
-                        <Chat />
                     </ConnectionsProvider>
                 </ThemeProvider>
             </div>

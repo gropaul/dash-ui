@@ -1,5 +1,4 @@
 import React, {useState} from "react";
-import {ChatButton} from "./chat-button";
 import {ChatWindow} from "./chat-window";
 import {GetInitialState, ServiceState, aiService} from "@/components/chat/model/llm-service";
 import {appendResponseMessages, Message} from "ai";
@@ -10,8 +9,6 @@ interface ChatProps {
 }
 
 export function Chat({className}: ChatProps) {
-    const [isOpen, setIsOpen] = useState(false);
-
     const [serviceState, setServiceState] = useState<ServiceState>(GetInitialState())
 
     function guiCallback(state: ServiceState) {
@@ -32,6 +29,16 @@ export function Chat({className}: ChatProps) {
 
         serviceState.session.messages.push(messages);
 
+        // set loading state
+        setServiceState({
+            ...serviceState,
+            state: 'inferring',
+            session: {
+                ...serviceState.session,
+                messages: [...serviceState.session.messages]
+            }
+        });
+
         const result = aiService.streamText(serviceState.session.messages);
         for await (const part of result.fullStream) {
             console.log(part);
@@ -47,24 +54,15 @@ export function Chat({className}: ChatProps) {
                 messages: newMessages
             }
         });
-
-        console.log('NEw messages', newMessages);
-
     };
 
     return (
-        <>
-            {!isOpen && (
-                <ChatButton onClick={() => setIsOpen(true)} className={className}/>
-            )}
-
+        <div className={`h-full w-full`}>
             <ChatWindow
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
                 state={serviceState}
                 onSendMessage={handleSendMessage}
                 isLoading={serviceState.state === 'inferring' || serviceState.state === 'calling_tool'}
             />
-        </>
+        </div>
     );
 }

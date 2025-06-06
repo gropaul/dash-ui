@@ -15,7 +15,7 @@ import {DashboardState} from "@/model/dashboard-state";
 import {DataSourceGroup} from "@/model/data-source-connection";
 import {createWithEqualityFn} from "zustand/traditional";
 
-export type AvailableTabs = 'connections' | 'relations';
+export type AvailableTabs = 'connections' | 'relations' | 'chat'
 
 export interface GUIZustand {
     selectedTabId: string | undefined;
@@ -96,7 +96,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             setRelationFileDropEnabled: (enabled: boolean) => {
                 set({relationFileDropEnabled: enabled});
             },
-            selectedSidebarTabs: ['connections', 'relations'],
+            selectedSidebarTabs: ['relations', 'chat'],
 
             setSideBarTabsSizeRatio: (ratio: number) => {
                 set({sideBarTabsSizeRatio: ratio});

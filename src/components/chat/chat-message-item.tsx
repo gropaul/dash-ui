@@ -17,6 +17,11 @@ const roleStyles = {
 export function ChatMessageItem({message}: ChatMessageItemProps) {
     const {role} = message;
 
+    // if not debug mode and role is system, return null;
+    if (process.env.NODE_ENV !== 'development' && role === 'system') {
+        return null;
+    }
+
     return (
         <div className="w-full my-2 flex">
             <div

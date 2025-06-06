@@ -1,14 +1,14 @@
 import React, { useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Send } from "lucide-react";
+import {Database, Plus, Send} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatMessageItem } from "./chat-message-item";
 import {ServiceState} from "@/components/chat/model/llm-service";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {clearOPFS} from "@/state/connections-database/duckdb-wasm/connection-provider";
 
 
 interface ChatWindowProps {
-    isOpen: boolean;
-    onClose: () => void;
     className?: string;
     state: ServiceState
     onSendMessage: (content: string) => void;
@@ -16,8 +16,6 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({
-                               isOpen,
-                               onClose,
                                className,
                                state,
                                onSendMessage,
@@ -67,22 +65,26 @@ export function ChatWindow({
         // setTimeout(() => textareaRef.current?.focus(), 10);
     };
 
-    if (!isOpen) return null;
-
     return (
         <div
             className={cn(
-                "fixed right-6 bottom-6 w-[40rem] max-h-[90vh] bg-background border rounded-lg shadow-lg z-50 flex flex-col",
-                "animate-in slide-in-from-right duration-300",
+                "h-full w-full bg-background flex flex-col",
                 className
             )}
         >
-            {/* Header */}
-            <div className="flex items-center justify-between py-1 px-3 border-b">
-                <div className="text-primary font-bold">Chat Assistant</div>
-                <Button variant="ghost" size="icon" onClick={onClose} className="h-4 w-4">
-                    <X />
-                </Button>
+            <div className="pl-4 pt-2.5 pr-3 pb-2 flex flex-row items-center justify-between overflow-hidden">
+                <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">
+                    Chat Assistant
+                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant={'ghost'} size={'icon'} className={'h-8 w-8'}>
+                            <Plus size={16}/>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {/* Messages */}

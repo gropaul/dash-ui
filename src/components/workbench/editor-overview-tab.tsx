@@ -357,7 +357,7 @@ ${relationNames.join(', ')}`;
     return (
         <div className="h-full w-full flex flex-col">
             {/* Header Section */}
-            <div className="p-4 pt-3 pb-2 pr-3 flex flex-row items-center justify-between  overflow-hidden">
+            <div className="p-4 pt-2.5 pb-2 pr-3 flex flex-row items-center justify-between  overflow-hidden">
                 <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">Editor {
                     storageInfo?.databaseReadonly || storageInfo?.databaseStatus == 'temporary'? <>
                         <div className="w-1"/>

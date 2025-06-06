@@ -1,7 +1,7 @@
 import React, {Fragment, useState} from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
-import {Database, Folder, Info, Settings, Star} from "lucide-react";
+import {Database, Folder, Info, Settings, Star, Wand2} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
@@ -10,6 +10,7 @@ import {Button} from "@/components/ui/button";
 import {useDatabaseConState} from "@/state/connections-database.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {SettingsView} from "@/components/settings/settings-view";
+import {Chat} from "@/components/chat/chat";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -49,17 +50,26 @@ export function NavigationBar(props: NavigationBarProps) {
                 <ToggleGroupItem
                     size={'lg'}
                     className={'mb-2'}
-                    value="connections"
-                    aria-label="Toggle Connection"
-                >
-                    <Database className="h-10 w-10"/>
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                    size={'lg'}
                     value="relations"
                     aria-label="Toggle Relations"
                 >
                     <Folder className="h-10 w-10"/>
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                    size={'lg'}
+                    className={'mb-2'}
+                    value="chat"
+                    aria-label="Toggle Chat"
+                >
+                    <Wand2 className="h-10 w-10"/>
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                    size={'lg'}
+                    className={'mb-2'}
+                    value="connections"
+                    aria-label="Toggle Connection"
+                >
+                    <Database className="h-10 w-10"/>
                 </ToggleGroupItem>
             </ToggleGroup>
             <div className={'flex-1'}/>
@@ -114,10 +124,10 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
                 return <ConnectionsOverviewTab/>;
             case 'relations':
                 return <EditorOverviewTab/>;
+            case 'chat':
+                return <Chat/>;
         }
     }
-
-
 
     return (
         <div className={'flex-1 h-screen overflow-auto'}>
@@ -127,7 +137,7 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
                         {index > 0 && <ResizableHandle />}
                         <ResizablePanel
                             style={{ overflow: 'auto' }}
-                            minSize={30}
+                            minSize={20}
                             onResize={size => setSideBarTabsRatio(size)}
                             defaultSize={index === 1 ? sideBarTabsRatio : 100 - sideBarTabsRatio}
                         >

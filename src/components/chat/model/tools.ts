@@ -177,6 +177,7 @@ export const AddMarkdownToDashboard = tool({
 
             for (const block of blocks) {
                 const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
+                console.log('Adding block to dashboard index:', currentNumberOfBlocks, 'block:', block);
                 editor.editor.blocks.insert(block.type, block.data, {}, currentNumberOfBlocks);
             }
 
@@ -236,6 +237,7 @@ export const AddChartToDashboard = tool({
             }
 
             const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
+            console.log('Adding chart to dashboard with data index:', currentNumberOfBlocks, 'data:', data);
             editor.editor.blocks.insert(RELATION_BLOCK_NAME, data, DEFAULT_CONFIG, currentNumberOfBlocks);
 
             return `Chart was added successfully to the dashboard.`;

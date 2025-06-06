@@ -55,7 +55,7 @@ export function ConnectionsOverviewTab() {
     return (
         <div className="h-full w-full flex flex-col">
             {/* Header Section */}
-            <div className="pl-4 pt-3 pr-3 pb-2 flex flex-row items-center justify-between overflow-hidden">
+            <div className="pl-4 pt-2.5 pr-3 pb-2 flex flex-row items-center justify-between overflow-hidden">
                 <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">Data Sources
                 </div>
                 <DropdownMenu>
