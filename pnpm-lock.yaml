@@ -185,6 +185,9 @@ importers:
       lucide-react:
         specifier: ^0.414.0
         version: 0.414.0(react@18.3.1)
+      marked:
+        specifier: ^15.0.12
+        version: 15.0.12
       next:
         specifier: 15.2.4
         version: 15.2.4(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -3351,6 +3354,11 @@ packages:
 
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
+
+  marked@15.0.12:
+    resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
+    engines: {node: '>= 18'}
+    hasBin: true
 
   material-colors@1.2.6:
     resolution: {integrity: sha512-6qE4B9deFBIa9YSpOc9O0Sgc43zTeVYbgDT5veRKSlB2+ZuHNoVVxA1L/ckMUayV9Ay9y7Z/SZCLcGteW9i7bg==}
@@ -8252,6 +8260,8 @@ snapshots:
       react: 18.3.1
 
   markdown-table@3.0.4: {}
+
+  marked@15.0.12: {}
 
   material-colors@1.2.6: {}
 

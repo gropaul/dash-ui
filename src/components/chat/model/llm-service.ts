@@ -1,7 +1,7 @@
 import {convertToCoreMessages, LanguageModel, Message, streamText, StreamTextResult, Tool as VercelTool,} from 'ai';
 import {createOpenAI} from '@ai-sdk/openai';
 import {DataEngAssistantPrompt} from "@/components/chat/model/promts";
-import {AddChartToDashboard, QueryDatabaseTool} from "@/components/chat/model/tools";
+import {AddChartToDashboard, AddMarkdownToDashboard, QueryDatabaseTool} from "@/components/chat/model/tools";
 
 export interface ChatSession {
     // initialPrompt?: UIMessage; // Optional initial prompt for the session
@@ -68,6 +68,7 @@ export const aiService = new LlmService(
     model,
     {
         'queryDatabase': QueryDatabaseTool,
-        'addChartToDashboard': AddChartToDashboard
+        'addChartToDashboard': AddChartToDashboard,
+        'addMarkdownToDashboard': AddMarkdownToDashboard
     }
 );

@@ -15,6 +15,11 @@ import SelectBlockTool, {SELECT_BLOCK_NAME} from "@/components/editor/tools/sele
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import TextSearchBlockTool, {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tools/text.tool";
 
+export const PARAGRAPH_BLOCK_NAME = "paragraph";
+export const HEADER_TOOL_NAME = "header";
+export const LIST_TOOL_NAME = "list";
+export const WARNING_TOOL_NAME = "warning";
+export const DELIMITER_TOOL_NAME = "delimiter";
 
 export function getEditorJSTools(getInputManager: (blockName: string) => InputManager | null) {
     const DEFAULT_CONFIG: any = {
@@ -40,7 +45,7 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
                 getInputManager: getInputManager,
             }
         },
-        header: {
+        [HEADER_TOOL_NAME] : {
             class: Header as any,
             inlineToolbar: ["marker", "link"],
             config: {
@@ -48,7 +53,7 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
             },
             shortcut: "CMD+SHIFT+H",
         },
-        list: {
+        [LIST_TOOL_NAME] : {
             class: List as any,
             inlineToolbar: true,
             shortcut: "CMD+SHIFT+L",
@@ -62,7 +67,7 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
         //     },
         //     shortcut: "CMD+SHIFT+O",
         // },
-        warning: Warning,
+        [WARNING_TOOL_NAME] : Warning,
         marker: {
             class: Marker,
             shortcut: "CMD+SHIFT+M",
@@ -71,7 +76,7 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
         //     class: CodeTool,
         //         shortcut: "CMD+SHIFT+C",
         // },
-        delimiter: Delimiter,
+        [DELIMITER_TOOL_NAME] : Delimiter,
         inlineCode: {
             class: InlineCode,
             shortcut: "CMD+SHIFT+C",

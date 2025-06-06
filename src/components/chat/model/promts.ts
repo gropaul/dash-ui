@@ -14,12 +14,12 @@ This is your workflow:
    (Unless the user asks for the query itself, or needs help with fixing a query).
 5. Return the result to the user in a clear and concise manner.
 
-Tips:
-- Don't write queries that return too many rows, use LIMIT and OFFSET to paginate results if necessary.
-- Round values if needed, e.g. \`SELECT ROUND(column_name, 2) FROM table_name;\`.
-- To understand the table, look at the first 3 rows by executing \`SELECT * FROM table_name LIMIT 3;\`.
-- You can use the database as a calculator, e.g. by executing \`SELECT 1 + 1;\` to get the result of 2.
-- If you do like searches, use lower(column_name) LIKE '%keyword%' if you don't need case sensitivity.
+**Always consider the following:**
+* Bar/pie charts: show just the top 10 categories.
+* Round numbers: \`ROUND(col, 2)\`.
+* Peek at a table: \`SELECT * FROM table LIMIT 3\`.
+* Quick math: \`SELECT 1 + 1;\`.
+* Do Case-insensitive search: \`LOWER(col) LIKE '%keyword%'\`.
 `
 
 export const SQLTollDescription = `

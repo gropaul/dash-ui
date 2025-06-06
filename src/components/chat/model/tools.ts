@@ -16,6 +16,7 @@ import {getInitViewState} from "@/model/relation-view-state";
 import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import z from 'zod';
 import {tool} from "ai";
+import {parseMarkdownToBlocks} from "@/components/editor/parse-markdown";
 
 
 export const QueryDatabaseTool = tool({
@@ -153,6 +154,36 @@ export function getChartViewState(args: AddChartToDashboardArgs): ChartViewState
         }
     }
 }
+
+export const AddMarkdownToDashboard = tool({
+    description: 'Adds a markdown element to the dashboard.',
+    parameters: z.object({
+        markdown: z.string().describe('The markdown content to add to the dashboard.')
+    }).describe('Parameters for adding markdown to the dashboard.'),
+    execute: async ({markdown}) => {
+        const guiState = useGUIState.getState();
+        const selectedTabId = guiState.selectedTabId;
+        if (!selectedTabId) {
+            return 'Error: No active tab found. The user must open a tab to add the markdown.';
+        } else {
+            const hasEditor = EditorsService.getInstance().hasEditor(selectedTabId);
+            if (!hasEditor) {
+                return 'Error: No editor found for the active tab. The user must open a tab to add the markdown.';
+            }
+
+            const editor = EditorsService.getInstance().getEditor(selectedTabId);
+
+            const blocks = parseMarkdownToBlocks(markdown)
+
+            for (const block of blocks) {
+                const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
+                editor.editor.blocks.insert(block.type, block.data, {}, currentNumberOfBlocks);
+            }
+
+            return `Markdown was added successfully to the dashboard.`;
+        }
+    }
+});
 
 
 export const AddChartToDashboard = tool({
