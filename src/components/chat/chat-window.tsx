@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { X, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatMessageItem } from "./chat-message-item";
-import {LLMChatMessage} from "@/components/chat/model/llm-service.model";
+import {ServiceState} from "@/components/chat/model/llm-service";
+
 
 interface ChatWindowProps {
     isOpen: boolean;
     onClose: () => void;
     className?: string;
-    messages: LLMChatMessage[];
+    state: ServiceState
     onSendMessage: (content: string) => void;
     isLoading?: boolean;
 }
@@ -18,10 +19,11 @@ export function ChatWindow({
                                isOpen,
                                onClose,
                                className,
-                               messages,
+                               state,
                                onSendMessage,
                                isLoading = false,
                            }: ChatWindowProps) {
+    const messages = state.session.messages;
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const [inputValue, setInputValue] = React.useState("");
@@ -54,7 +56,7 @@ export function ChatWindow({
                 c.scrollTo({ top: c.scrollHeight, behavior: "smooth" })
             );
         }
-    }, [messages]);
+    }, [state]);
 
     const handleSendMessage = (content: string) => {
         // don't do anything if loading

@@ -14,65 +14,35 @@ import {
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {getInitViewState} from "@/model/relation-view-state";
 import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
-import {LLMChatMessage, LLMTool, LLMToolCall} from "@/components/chat/model/llm-service.model";
-import {VercelTool} from "@/components/chat/model/llm-service-vercelai";
+import z from 'zod';
 import {tool} from "ai";
-import {z} from "zod";
 
 
-
-function toolStringToMessage(toolMessage: string, call: LLMToolCall): LLMChatMessage {
-    return {
-        role: 'tool',
-        toolResults: [
-            {
-                call_id: call.id,
-                name: call.name,
-                message: toolMessage,
-            }
-        ],
-    };
-}
-
-export const QueryDatabaseTool: LLMTool = {
-    call: async (call: LLMToolCall): Promise<LLMChatMessage> => {
-        const args = call.arguments;
-        const query = args.query;
+export const QueryDatabaseTool = tool({
+    description: SQLTollDescription,
+    parameters: z.object({
+        query: z.string().describe('The SQL query to execute.'),
+    }).describe('Parameters for the SQL query execution.'),
+    execute: async ({query}): Promise<string> => {
         if (!query) {
-            return toolStringToMessage('Error: Query must be provided.', call);
+            return 'Error: Query must be provided.';
         }
         const connection = ConnectionsService.getInstance();
         if (!connection.hasDatabaseConnection()) {
-            return toolStringToMessage('Error: No database connection available.', call);
+            return 'Error: No database connection available.';
         }
 
         const db = connection.getDatabaseConnection();
         try {
             const result = await db.executeQuery(query);
             const mdResult = RelationDataToMarkdown(result)
-            const messageContent = `Query executed successfully. Here are the results:\n\n${mdResult}`;
-            return toolStringToMessage(messageContent, call);
+            return `Query executed successfully. Here are the results:\n\n${mdResult}`;
         } catch (error: any) {
             console.error('Error executing query:', error);
-            return toolStringToMessage(`Error executing query: ${error.message}`, call);
+            return `Error executing query: ${error.message}`;
         }
     },
-    type: 'function',
-    function: {
-        name: 'queryDatabase',
-        description: SQLTollDescription,
-        parameters: {
-            type: 'object',
-            properties: {
-                query: {
-                    type: 'string',
-                    description: 'The SQL query to execute.',
-                },
-            },
-            required: ['query'],
-        },
-    },
-}
+});
 
 interface AddChartToDashboardArgs {
     title?: string;
@@ -149,9 +119,7 @@ export function getChartViewState(args: AddChartToDashboardArgs): ChartViewState
                         columnId: dequoteAxisLabel(yAxis),
                         decoration: getInitialAxisDecoration(index)
                     })),
-                    xRange: {
-
-                    },
+                    xRange: {},
                     yRange: {
                         start: args.yRangeMin === 'zero' ? 0 : undefined,
                     },
@@ -187,57 +155,28 @@ export function getChartViewState(args: AddChartToDashboardArgs): ChartViewState
 }
 
 
-export const AddChartToDashboard: LLMTool = {
-    call: async (call: LLMToolCall): Promise<LLMChatMessage> => {
-        const args: any = call.arguments;
+export const AddChartToDashboard = tool({
+
+    description: 'Adds an element to the dashboard.',
+    parameters: z.object({
+        sql: z.string().describe('The SQL query to execute for the chart.'),
+        chartType: z.enum(['bar', 'line', 'pie']).describe('The type of chart to create.'),
+        xAxis: z.string().describe('The column to use for the x-axis.'),
+        xLabelRotation: z.number().optional().describe('Rotation of x-axis labels. For long labels like names, user -30.'),
+        yRangeMin: z.enum(['min', 'zero']).optional().describe('For values like counts etc. that have a reference to zero, use "zero". For other values, use "min".'),
+        yAxes: z.array(z.string()).describe('The columns to use for the y-axes.'),
+        title: z.string().optional().describe('The title of the chart.')
+    }).describe('Parameters for adding a chart to the dashboard.'),
+    execute: async (args) => {
+        const { sql, chartType, xAxis, yAxes, title, xLabelRotation, yRangeMin } = args;
         const guiState = useGUIState.getState();
         const selectedTabId = guiState.selectedTabId;
         if (!selectedTabId) {
-            return toolStringToMessage('Error: No active tab found. The user must open a tab to add the chart.', call);
+            return 'Error: No active tab found. The user must open a tab to add the chart.';
         } else {
-            // try to parse the arguments
-            const sql = args.sql;
-            const chartType = args.chartType;
-            const xAxis = args.xAxis;
-            const yAxes = args.yAxes;
-            if (!sql) {
-                return toolStringToMessage('Error: SQL query must be provided.', call);
-            }
-            if (!chartType || !['bar', 'line', 'pie'].includes(chartType)) {
-                return toolStringToMessage('Error: Invalid chart type. Must be one of: bar, line, pie.', call);
-            }
-            if (!xAxis) {
-                return toolStringToMessage('Error: xAxis must be provided.', call);
-            }
-            if (!Array.isArray(yAxes) || yAxes.length === 0) {
-                return toolStringToMessage('Error: yAxes must be a non-empty array.', call);
-            }
-
-            // if pie chart, yAxes must be a single element
-            if (chartType === 'pie' && yAxes.length !== 1) {
-                return toolStringToMessage('Error: For pie charts, yAxes must contain exactly one element.', call);
-            }
-
-            // Check if the yRangeMin is provided and valid
-            const yRangeMin = args.yRangeMin;
-            if (yRangeMin && !['min', 'zero'].includes(yRangeMin)) {
-                return toolStringToMessage('Error: yRangeMin must be either "min" or "zero".', call);
-            }
-
-            // check for the title, but it is not required
-            const title = args.title;
-            if (title && typeof title !== 'string') {
-                return toolStringToMessage('Error: title must be a string if provided.', call);
-            }
-            
-            const xLabelRotation = args.xLabelRotation;
-            if (xLabelRotation && (typeof xLabelRotation !== 'number')) {
-                return toolStringToMessage('Error: xLabelRotation must be a number if provided.', call);
-            }
-
             const hasEditor = EditorsService.getInstance().hasEditor(selectedTabId);
             if (!hasEditor) {
-                return toolStringToMessage('Error: No editor found for the active tab. The user must open a tab to add the chart.', call);
+                return 'Error: No editor found for the active tab. The user must open a tab to add the chart.';
             }
 
             const editor = EditorsService.getInstance().getEditor(selectedTabId);
@@ -262,57 +201,13 @@ export const AddChartToDashboard: LLMTool = {
             // if there is an error in the data, return an error message
             if (data.executionState.state === 'error') {
                 const jsonString = JSON.stringify(data.executionState.error, null, 2);
-                return toolStringToMessage(`Error executing query: ${jsonString}`, call);
+                return `Error executing query: ${jsonString}`;
             }
 
             const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
             editor.editor.blocks.insert(RELATION_BLOCK_NAME, data, DEFAULT_CONFIG, currentNumberOfBlocks);
 
-            return toolStringToMessage(`Chart was added successfully to the dashboard.`, call);
+            return `Chart was added successfully to the dashboard.`;
         }
-    },
-    type: 'function',
-    function: {
-        name: 'addChartToDashboard',
-        description: 'Adds an element to the dashboard.',
-        parameters: {
-            type: 'object',
-            properties: {
-                sql: {
-                    type: 'string',
-                    description: 'The SQL query to execute for the chart.',
-                },
-                chartType: {
-                    type: 'string',
-                    enum: ['bar', 'line', 'pie'],
-                    description: 'The type of chart to create.',
-                },
-                xAxis: {
-                    type: 'string',
-                    description: 'The column to use for the x-axis.',
-                },
-                xLabelRotation: {
-                    type: 'integer',
-                    description: 'Rotation of x-axis labels. For long labels like names, user -30.',
-                },
-                yRangeMin: {
-                    type: 'enum',
-                    enum: ['min', 'zero'],
-                    description: 'For values like counts etc. that have a reference to zero, use "zero". For other values, use "min".',
-                },
-                yAxes: {
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                    },
-                    description: 'The columns to use for the y-axes.',
-                },
-                title: {
-                    type: 'string',
-                    description: 'The title of the chart.',
-                }
-            },
-            required: ['sql', 'chartType', 'xAxis', 'yAxes', 'xLabelRotation', 'yRangeMin'],
-        },
-    },
-}
+    }
+});

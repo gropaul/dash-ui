@@ -1,10 +1,10 @@
 import React from "react";
 import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
-import {getMessageTextContent, LLMChatMessage} from "@/components/chat/model/llm-service.model";
+import {Message} from "ai";
 
 interface ChatMessageItemProps {
-    message: LLMChatMessage;
+    message: Message;
 }
 
 const roleStyles = {
@@ -14,19 +14,8 @@ const roleStyles = {
     tool: "bg-blue-100 text-blue-900 mx-auto text-sm",
 };
 
-export function ChatMessageItem({ message }: ChatMessageItemProps) {
-    const { role } = message;
-    const tag_name = 'think';
-
-    const content = getMessageTextContent(message);
-
-// Remove all <think>...</think> occurrences from the content
-    const contentWithoutThinking = content.replace(new RegExp(`<${tag_name}>[\\s\\S]*?<\\/${tag_name}>`, 'gi'), '').trim();
-
-// Get the content of the first <think>...</think> match (if any)
-    const thinkingTextMatch = content.match(new RegExp(`<${tag_name}>([\\s\\S]*?)<\\/${tag_name}>`, 'i'));
-    const thinkingContent = thinkingTextMatch ? thinkingTextMatch[1].trim() : null;
-
+export function ChatMessageItem({message}: ChatMessageItemProps) {
+    const {role} = message;
 
     return (
         <div className="w-full my-2 flex">
@@ -36,39 +25,55 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
                     roleStyles[role as keyof typeof roleStyles] ?? roleStyles["assistant"]
                 )}
             >
-                {role === "system" || role === "tool" ? (
+                {role === "system" ? (
                     <div className="mb-1 font-semibold uppercase text-xs">{role}</div>
                 ) : null}
-                {thinkingContent && (
-                    <div className="relative group text-xs text-gray-500 mb-1">
-                        <span className="italic cursor-help">Thinking...</span>
-                        <div className="absolute left-0 bottom-full mb-1 hidden group-hover:block bg-gray-100 text-gray-800 text-xs p-2 rounded shadow max-w-sm z-10">
-                            {thinkingContent}
-                        </div>
-                    </div>
-                )}
 
-               <MarkdownRenderer
-                   markdown={contentWithoutThinking}
-                   codeStyle={{ fontSize: '0.85em' , backgroundColor: 'white', borderRadius: '4px' }}
-               />
-                {message.role == 'assistant' && message.toolCalls && message.toolCalls.length > 0 && (
-                    <div className="mt-2">
-                        <div className="text-xs text-gray-500">Tool Calls:</div>
-                        <ul className="list-disc pl-5">
-                            {message.toolCalls.map((call, index) => (
-                                <li key={index} className="text-sm">
-                                    <strong>{call.name}:</strong> {
-                                    Object.entries(call.arguments).map(([key, value]) => (
-                                        <span key={key} className="block">
-                                            <span className="font-semibold">{key}:</span> {JSON.stringify(value)}
-                                        </span>
-                                    ))
-                                }
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                {message.parts && message.parts.length > 0 && (
+                    <>
+                        {message.parts.map((part, index) => {
+                            switch (part.type) {
+                                case 'tool-invocation':
+                                    return (
+                                        <div key={index}>
+                                            <div className="text-sm ">
+                                                <div className={'font-semibold'}>Tool
+                                                    Call: {part.toolInvocation.toolName}</div>
+                                                <div
+                                                    className="text-xs text-gray-500">Arguments: {JSON.stringify(part.toolInvocation.args)}</div>
+                                            </div>
+                                            {part.toolInvocation.state == 'result' && (
+                                                <MarkdownRenderer key={index} markdown={part.toolInvocation.result || ''}/>
+                                            )}
+                                        </div>
+                                    );
+                                case 'text':
+                                    return (
+                                        <MarkdownRenderer
+                                            key={index}
+                                            markdown={part.text}
+                                            codeStyle={{
+                                                fontSize: '0.85em',
+                                                backgroundColor: 'white',
+                                                borderRadius: '4px'
+                                            }}
+                                        />
+                                    );
+                                case 'reasoning':
+                                    return (
+                                        <div className="relative group text-xs text-gray-500 mb-1" key={index}>
+                                            <span className="italic cursor-help">Thinking...</span>
+                                            <div
+                                                className="absolute left-0 bottom-full mb-1 hidden group-hover:block bg-gray-100 text-gray-800 text-xs p-2 rounded shadow max-w-sm z-10">
+                                                {part.reasoning}
+                                            </div>
+                                        </div>
+                                    )
+                                default:
+                                    return null;
+                            }
+                        })}
+                    </>
                 )}
             </div>
         </div>

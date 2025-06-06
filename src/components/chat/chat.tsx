@@ -1,10 +1,8 @@
-import React, {useState, useEffect} from "react";
+import React, {useState} from "react";
 import {ChatButton} from "./chat-button";
 import {ChatWindow} from "./chat-window";
-import {GetInitialState, LLMChatMessage, ServiceState} from "@/components/chat/model/llm-service.model";
-import {ollamaService} from "@/components/chat/model/llm-service-ollama";
-import {SendMessageArguments} from "@/components/chat/model/llm-service";
-import {vercelaiService} from "@/components/chat/model/llm-service-vercelai";
+import {GetInitialState, ServiceState, aiService} from "@/components/chat/model/llm-service";
+import {appendResponseMessages, Message} from "ai";
 
 
 interface ChatProps {
@@ -22,20 +20,36 @@ export function Chat({className}: ChatProps) {
     }
 
     const handleSendMessage = async (content: string) => {
-        const message: LLMChatMessage = {
+        const messages: Message = {
+            id: crypto.randomUUID().toString(),
             role: 'user',
-            content: content,
+            content: '',
+            parts: [{
+                text: content,
+                type: 'text',
+            }],
         }
 
-        const args: SendMessageArguments = {
-            session: serviceState.session,
-            newMessages: [message],
-            options: {
-                callback: guiCallback
+        serviceState.session.messages.push(messages);
+
+        const result = aiService.streamText(serviceState.session.messages);
+        for await (const part of result.fullStream) {
+            console.log(part);
+        }
+        const response = await result.response;
+        const newMessages= appendResponseMessages({
+            messages: serviceState.session.messages,
+            responseMessages: response.messages,
+        });
+        setServiceState({
+            ...serviceState, session: {
+                ...serviceState.session,
+                messages: newMessages
             }
-        }
+        });
 
-        await vercelaiService.sendMessages(args);
+        console.log('NEw messages', newMessages);
+
     };
 
     return (
@@ -47,7 +61,7 @@ export function Chat({className}: ChatProps) {
             <ChatWindow
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
-                messages={serviceState.session.messages}
+                state={serviceState}
                 onSendMessage={handleSendMessage}
                 isLoading={serviceState.state === 'inferring' || serviceState.state === 'calling_tool'}
             />
