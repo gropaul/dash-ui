@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { X, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatMessageItem } from "./chat-message-item";
-import {LLMChatMessage} from "@/components/chat/model/ollama-service";
+import {LLMChatMessage} from "@/components/chat/model/llm-service.model";
 
 interface ChatWindowProps {
     isOpen: boolean;

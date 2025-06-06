@@ -47,7 +47,7 @@ export interface GUIZustandActions {
 
     isTabOpen(tabId: string): boolean;
 
-    setSelectedTabId(tabId: string): void;
+    setSelectedTabId(tabId?: string): void;
 
     addRelationTab(relation: RelationState): void;
 
@@ -110,7 +110,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                 set({mainBarSizeRatio: ratio});
             },
 
-            setSelectedTabId: (tabId: string) => {
+            setSelectedTabId: (tabId?: string) => {
                 set({selectedTabId: tabId});
             },
 
@@ -122,6 +122,9 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             removeTab: (tabId: string) => {
                 const model = get().layoutModel;
                 removeTab(model, tabId);
+                if (get().selectedTabId === tabId) {
+                    get().setSelectedTabId(undefined);
+                }
                 get().persistState();
             },
 
@@ -159,26 +162,31 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             focusTab: (tabId: string) => {
                 const model = get().layoutModel;
                 focusTab(model, tabId);
+                get().setSelectedTabId(tabId);
                 get().persistState();
             },
 
             addRelationTab: (relation: RelationState) => {
                 addRelationToLayout(get().layoutModel, relation);
+                get().setSelectedTabId(relation.id);
                 get().persistState();
             },
 
             addDashboardTab: (dashboard: DashboardState) => {
                 addDashboardToLayout(get().layoutModel, dashboard);
+                get().setSelectedTabId(dashboard.id);
                 get().persistState();
             },
 
             addSchemaTab: (id: string, schema: DataSourceGroup) => {
                 addSchemaToLayout(get().layoutModel, id, schema);
+                get().setSelectedTabId(id);
                 get().persistState();
             },
 
             addDatabaseTab: (id: string, database: DataSourceGroup) => {
                 addDatabaseToLayout(get().layoutModel, id, database);
+                get().setSelectedTabId(id);
                 get().persistState();
             },
 

@@ -38,7 +38,7 @@ export function onLayoutModelChange(action: Action): Action | undefined {
     if (action.type === "FlexLayout_DeleteTab") {
         state.closeTab(action.data.node);
     } else if (action.type === "FlexLayout_SelectTab") {
-        guiState.setSelectedTabId(action.data.tabNode.id);
+        guiState.setSelectedTabId(action.data.tabNode);
     } else {
         // trigger persistence of the layout but
         guiState.persistState();

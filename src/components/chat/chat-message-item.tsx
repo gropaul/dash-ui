@@ -1,7 +1,7 @@
 import React from "react";
-import { cn } from "@/lib/utils";
-import { LLMChatMessage } from "@/components/chat/model/ollama-service";
+import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
+import {getMessageTextContent, LLMChatMessage} from "@/components/chat/model/llm-service.model";
 
 interface ChatMessageItemProps {
     message: LLMChatMessage;
@@ -15,10 +15,18 @@ const roleStyles = {
 };
 
 export function ChatMessageItem({ message }: ChatMessageItemProps) {
-    const { role, content } = message;
+    const { role } = message;
+    const tag_name = 'think';
 
-    // remove the <think> and </think> tags from the content
-    const contentWithoutThinking = content.replace(/<think>.*?<\/think>/gs, "Thinking ... ").trim();
+    const content = getMessageTextContent(message);
+
+// Remove all <think>...</think> occurrences from the content
+    const contentWithoutThinking = content.replace(new RegExp(`<${tag_name}>[\\s\\S]*?<\\/${tag_name}>`, 'gi'), '').trim();
+
+// Get the content of the first <think>...</think> match (if any)
+    const thinkingTextMatch = content.match(new RegExp(`<${tag_name}>([\\s\\S]*?)<\\/${tag_name}>`, 'i'));
+    const thinkingContent = thinkingTextMatch ? thinkingTextMatch[1].trim() : null;
+
 
     return (
         <div className="w-full my-2 flex">
@@ -31,11 +39,20 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
                 {role === "system" || role === "tool" ? (
                     <div className="mb-1 font-semibold uppercase text-xs">{role}</div>
                 ) : null}
+                {thinkingContent && (
+                    <div className="relative group text-xs text-gray-500 mb-1">
+                        <span className="italic cursor-help">Thinking...</span>
+                        <div className="absolute left-0 bottom-full mb-1 hidden group-hover:block bg-gray-100 text-gray-800 text-xs p-2 rounded shadow max-w-sm z-10">
+                            {thinkingContent}
+                        </div>
+                    </div>
+                )}
+
                <MarkdownRenderer
                    markdown={contentWithoutThinking}
                    codeStyle={{ fontSize: '0.85em' , backgroundColor: 'white', borderRadius: '4px' }}
                />
-                {message.toolCalls && message.toolCalls.length > 0 && (
+                {message.role == 'assistant' && message.toolCalls && message.toolCalls.length > 0 && (
                     <div className="mt-2">
                         <div className="text-xs text-gray-500">Tool Calls:</div>
                         <ul className="list-disc pl-5">

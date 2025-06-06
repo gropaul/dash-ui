@@ -1,11 +1,11 @@
 import React, {useState, useEffect} from "react";
 import {ChatButton} from "./chat-button";
 import {ChatWindow} from "./chat-window";
-import {
-    ServiceState,
-    LLMChatMessage,
-    ollamaService, GetInitialState
-} from "@/components/chat/model/ollama-service";
+import {GetInitialState, LLMChatMessage, ServiceState} from "@/components/chat/model/llm-service.model";
+import {ollamaService} from "@/components/chat/model/llm-service-ollama";
+import {SendMessageArguments} from "@/components/chat/model/llm-service";
+import {vercelaiService} from "@/components/chat/model/llm-service-vercelai";
+
 
 interface ChatProps {
     className?: string;
@@ -26,7 +26,16 @@ export function Chat({className}: ChatProps) {
             role: 'user',
             content: content,
         }
-        await ollamaService.sendMessages(serviceState.session, [message], guiCallback)
+
+        const args: SendMessageArguments = {
+            session: serviceState.session,
+            newMessages: [message],
+            options: {
+                callback: guiCallback
+            }
+        }
+
+        await vercelaiService.sendMessages(args);
     };
 
     return (

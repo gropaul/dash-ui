@@ -17,24 +17,21 @@ import TextSearchBlockTool, {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/t
 
 
 export function getEditorJSTools(getInputManager: (blockName: string) => InputManager | null) {
-
+    const DEFAULT_CONFIG: any = {
+            placeholder: "Add a new relation",
+            getInputManager: getInputManager,
+        }
     return {
         [RELATION_BLOCK_NAME]: {
             class: RelationBlockTool,
             inlineToolbar: true,
-            config: {
-                placeholder: "Add a new relation",
-                getInputManager: getInputManager,
-            },
             shortcut: "CMD+SHIFT+R",
+            config: DEFAULT_CONFIG,
         },
         [SELECT_BLOCK_NAME]: {
             class: SelectBlockTool,
             inlineToolbar: true,
-            config: {
-                placeholder: "Add a new relation",
-                getInputManager: getInputManager,
-            }
+            config: DEFAULT_CONFIG,
         },
         [TEXT_SEARCH_BLOCK_NAME]: {
             class: TextSearchBlockTool,

@@ -12,7 +12,24 @@ export const SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM = 'filesystem';
 export const MAIN_CONNECTION_ID = DATABASE_CONNECTION_ID_DUCKDB_LOCAL;
 
 
-export const DEFAULT_COLORS = ["#ea5545", "#f46a9b", "#edbf33", "#ede15b", "#bdcf32", "#87bc45", "#27aeef", "#b33dc6"]
+export const DEFAULT_COLORS = [
+    "#ea5545",
+    "#edbf33",
+    "#ede15b",
+    "#bdcf32",
+    "#87bc45",
+    "#27aeef",
+    "#b33dc6",
+    "#f46a9b",
+]
+
+export interface LLMSettings {
+    maxMessagesToPrompt: number; // maximum number of messages to prompt the LLM with
+}
+
+export const DEFAULT_LLM_SETTINGS: LLMSettings = {
+    maxMessagesToPrompt: 8, // always + 1 if there is a system prompt
+}
 
 export const DEFAULT_RELATION_VIEW_PATH =[]
 

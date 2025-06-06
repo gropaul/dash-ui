@@ -7,6 +7,13 @@ export interface RelationData {
     rows: Row[]
 }
 
+export function RelationDataToMarkdown(relation: RelationData): string {
+    const columnNames = relation.columns.map((column) => column.name).join(' | ');
+    const separator = relation.columns.map(() => '---').join(' | ');
+    const rows = relation.rows.map((row) => row.map((value) => String(value)).join(' | ')).join('\n');
+    return `| ${columnNames} |\n| ${separator} |\n| ${rows} |`;
+}
+
 export function PrintRelationData(relation: RelationData): string {
     const columnNames = relation.columns.map((column) => column.name).join(', ');
     const rows = relation.rows.map((row) => row.join(', ')).join('\n');

@@ -224,7 +224,6 @@ export function getInitialAxisDecoration(yIndex: number): AxisDecoration {
     const base_color = DEFAULT_COLORS[yIndex % DEFAULT_COLORS.length]
     return {
         color: base_color,
-
         scatter: {
             dots: {
                 shape: 'circle',
