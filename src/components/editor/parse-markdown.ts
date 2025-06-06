@@ -18,20 +18,39 @@ export interface EditorJSBlock {
 }
 
 export function parseMarkdownToBlocks(markdown: string): EditorJSBlock[] {
-    const tokens = marked.lexer(markdown);
+
+    const markdownFormated = formatInlineMarkdownToHTML(markdown);
+    console.log("markdownFormated", markdownFormated);
+    const tokens = marked.lexer(markdownFormated);
     const blocks: EditorJSBlock[] = [];
 
-    /**
-     * Helper to push a paragraph in a single place so we do not repeat ourselves.
-     */
+    // bold in markdown: **text**
+    // bold in editorjs:  <b>text</b>
+
+    // code in markdown: `text`
+    // code in editorjs: <code>Netherlands</code>
+
+    // italic in markdown: *text*
+    // italic in editorjs: <i>text</i>
+
+    function formatInlineMarkdownToHTML(text: string): string {
+        return text
+            .replace(/~~(.*?)~~/g, "<s>$1</s>")         // strikethrough
+            .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")     // bold
+            .replace(/\*(.*?)\*/g, "<i>$1</i>")         // italic
+            .replace(/`([^`\n]+)`/g, "<code class=\"inline-code\">$1</code>") // inline code
+            .replace(/\\([*_~`])/g, "$1");              // allow escaping
+    }
+
     const appendParagraph = (text: string) => {
-        if (!text.trim()) return; // skip empty lines
+        if (!text.trim()) return;
         blocks.push({
             id: uuidv4(),
             type: PARAGRAPH_BLOCK_NAME,
-            data: { text }
+            data: { text: text }
         });
     };
+
 
     for (const token of tokens) {
         switch (token.type) {
