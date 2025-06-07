@@ -14,7 +14,7 @@ import {NavigationBar, NavigationBarContent} from "@/components/layout/navigatio
 import {cn} from "@/lib/utils";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
-import {Chat} from "@/components/chat/chat";
+import {ChatTab} from "@/components/chat/chat-tab";
 
 
 export function TabbedLayout() {

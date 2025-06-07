@@ -10,7 +10,7 @@ import {Button} from "@/components/ui/button";
 import {useDatabaseConState} from "@/state/connections-database.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {SettingsView} from "@/components/settings/settings-view";
-import {Chat} from "@/components/chat/chat";
+import {ChatTab} from "@/components/chat/chat-tab";
 
 export interface NavigationBarProps {
     initialSelectedTabs?: AvailableTabs[];
@@ -125,7 +125,7 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
             case 'relations':
                 return <EditorOverviewTab/>;
             case 'chat':
-                return <Chat/>;
+                return <ChatTab/>;
         }
     }
 

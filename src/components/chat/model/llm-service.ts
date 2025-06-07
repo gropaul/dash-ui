@@ -7,13 +7,10 @@ import {AddChartToDashboard, AddMarkdownToDashboard, QueryDatabaseTool} from "@/
 
 export interface ChatSession {
     // initialPrompt?: UIMessage; // Optional initial prompt for the session
+    id: string; // Unique identifier for the session
+    name: string; // Optional name for the session
+    dateCreated: Date; // Date when the session was created
     messages: Message[];
-}
-
-export interface ServiceState {
-    state: 'done' | 'inferring' | 'calling_tool';
-    toolName?: string;
-    session: ChatSession;
 }
 
 export function GetNewChatSession(): ChatSession {
@@ -28,14 +25,10 @@ export function GetNewChatSession(): ChatSession {
         }],
     };
     return {
+        id: crypto.randomUUID().toString(),
+        name: 'Chat of ' + new Date().toLocaleDateString(),
+        dateCreated: new Date(),
         messages: [initialPrompt]
-    };
-}
-
-export function GetInitialState(): ServiceState {
-    return {
-        state: 'done',
-        session: GetNewChatSession(),
     };
 }
 
@@ -68,7 +61,9 @@ const ollama = createOllama({
     baseURL: 'http://localhost:11434/api',
 });
 
-const gpt4 = openai('gpt-4.1');
+// see https://platform.openai.com/docs/pricing
+
+const gpt4 = openai('gpt-4.1-nano');
 const qwen3 = ollama('qwen3:8b', {
     simulateStreaming: true
 })

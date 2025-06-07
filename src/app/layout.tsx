@@ -5,7 +5,7 @@ import ConnectionsProvider from "@/components/provider/connections-provider";
 import {ThemeProvider} from "@/components/provider/theme-provider";
 import {cn} from "@/lib/utils";
 import {Toaster} from "sonner";
-import {Chat} from "@/components/chat/chat";
+import {ChatTab} from "@/components/chat/chat-tab";
 
 export default function RootLayout({
                                        children,

@@ -3,25 +3,27 @@ import { Button } from "@/components/ui/button";
 import {Database, Plus, Send} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatMessageItem } from "./chat-message-item";
-import {ServiceState} from "@/components/chat/model/llm-service";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
-import {clearOPFS} from "@/state/connections-database/duckdb-wasm/connection-provider";
+import {Message} from "ai";
+import {useChatState} from "@/state/chat.state";
 
 
 interface ChatWindowProps {
     className?: string;
-    state: ServiceState
+    sessionId?: string;
     onSendMessage: (content: string) => void;
     isLoading?: boolean;
 }
 
 export function ChatWindow({
                                className,
-                               state,
+                               sessionId,
                                onSendMessage,
                                isLoading = false,
                            }: ChatWindowProps) {
-    const messages = state.session.messages;
+
+    const messages = useChatState((state) => state.getMessages(sessionId));
+
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const [inputValue, setInputValue] = React.useState("");
@@ -54,7 +56,7 @@ export function ChatWindow({
                 c.scrollTo({ top: c.scrollHeight, behavior: "smooth" })
             );
         }
-    }, [state]);
+    }, [messages]);
 
     const handleSendMessage = (content: string) => {
         // don't do anything if loading
