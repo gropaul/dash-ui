@@ -11,6 +11,7 @@ import React from "react";
 import {ToolInvocationUIPart} from "@ai-sdk/ui-utils";
 import {parentRoleStyles, roleStyles, RoleType} from "@/components/chat/chat-message-item";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
+import {JsonViewer} from "@/components/ui/json-viewer";
 
 export interface ToolIconProps {
     toolName: ToolName;
@@ -64,6 +65,12 @@ export function ToolInvocationPart({part, role}: ToolInvocationPartProps) {
                             </div>
                         </AccordionTrigger>
                         <AccordionContent className="p-2 flex flex-col gap-4 text-balance">
+                            {part.toolInvocation.args && (
+                                <JsonViewer
+                                    json={part.toolInvocation.args}
+                                    className="w-full"
+                                />
+                            )}
                             {part.toolInvocation.state === "result" && (
                                 <MarkdownRenderer markdown={part.toolInvocation.result || ""}/>
                             )}
