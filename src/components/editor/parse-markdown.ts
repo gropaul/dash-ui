@@ -33,14 +33,18 @@ export function parseMarkdownToBlocks(markdown: string): EditorJSBlock[] {
     // italic in markdown: *text*
     // italic in editorjs: <i>text</i>
 
+    // links in markdown: [text](url)
+    // links in editorjs: <a href="url" target="_blank" rel="noopener noreferrer">text</a>
     function formatInlineMarkdownToHTML(text: string): string {
         return text
-            .replace(/~~(.*?)~~/g, "<s>$1</s>")         // strikethrough
-            .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")     // bold
-            .replace(/\*(.*?)\*/g, "<i>$1</i>")         // italic
-            .replace(/`([^`\n]+)`/g, "<code class=\"inline-code\">$1</code>") // inline code
-            .replace(/\\([*_~`])/g, "$1");              // allow escaping
+            .replace(/\\([\\*_~`\[\]()])/g, "$1") // Escaped markdown characters
+            .replace(/`([^`\n]+?)`/g, '<code class="inline-code">$1</code>') // inline code
+            .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>") // bold
+            .replace(/\*(?!\*)(.+?)\*/g, "<i>$1</i>") // italic, not bold
+            .replace(/~~(.+?)~~/g, "<s>$1</s>") // strikethrough
+            .replace(/\[([^\]]+)]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'); // links
     }
+
 
     const appendParagraph = (text: string) => {
         if (!text.trim()) return;

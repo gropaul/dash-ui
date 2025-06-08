@@ -37,7 +37,7 @@ export const QueryDatabaseTool = tool({
         try {
             const result = await db.executeQuery(query);
             const mdResult = RelationDataToMarkdown(result)
-            return `Query executed successfully. Here are the results:\n\n${mdResult}`;
+            return `Query executed successfully. Here are the results:\n${mdResult}`;
         } catch (error: any) {
             console.error('Error executing query:', error);
             return `Error executing query: ${error.message}`;

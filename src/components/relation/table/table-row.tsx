@@ -5,7 +5,7 @@ import {Sometype_Mono} from "next/font/google";
 import {Column} from "@/model/column";
 import {TableViewState} from "@/model/relation-view-state/table";
 
-const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
+export const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 
 export interface RowViewProps {
     tableState: TableViewState;

@@ -82,7 +82,7 @@ export type ToolName = typeof TOOL_NAME_EXECUTE_QUERY | typeof TOOL_NAME_ADD_CHA
 
 
 export const aiService = new LlmService(
-    gpt4Nano,
+    gpt4,
     {
         [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: AddChartToDashboard,
         [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: AddMarkdownToDashboard,

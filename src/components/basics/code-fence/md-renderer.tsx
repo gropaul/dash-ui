@@ -6,6 +6,8 @@ import remarkGfm from 'remark-gfm'
 import rehypeKatex from 'rehype-katex';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { Copy, Check } from 'lucide-react';
+import {fontMono} from "@/components/relation/table/table-row";
+import {cn} from "@/lib/utils";
 
 export interface MarkdownRendererProps {
     markdown: string;
@@ -97,26 +99,29 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
                 },
                 table({ node, ...props }: any) {
                     return (
-                        <div className="overflow-auto my-4 text-xs">
-                            <table className="min-w-full border-collapse border border-gray-300 rounded" {...props} />
+                        <div className="overflow-auto mt-2 text-[13px] text-muted-foreground">
+                            <table className={cn("min-w-full border-collapse rounded-md")} {...props} />
                         </div>
                     );
                 },
                 thead({ node, ...props }: any) {
-                    return <thead className="bg-gray-100" {...props} />;
+                    return <thead className="text-muted-foreground" {...props} />;
                 },
                 tbody({ node, ...props }: any) {
-                    return <tbody {...props} />;
+                    return <tbody className={fontMono.className} {...props} />;
                 },
                 tr({ node, ...props }: any) {
-                    return <tr className="border-b border-gray-300 hover:bg-gray-50" {...props} />;
+                    return <tr className=" hover:bg-primary/5 border-b transition-colors" {...props} />;
                 },
                 th({ node, ...props }: any) {
-                    return <th className="border border-gray-300 px-4 py-2 text-left font-semibold" {...props} />;
+                    return (
+                        <th className="px-2 py-1 text-left font-semibold text-foreground" {...props} />
+                    );
                 },
                 td({ node, ...props }: any) {
-                    return <td className="border border-gray-300 px-4 py-2" {...props} />;
+                    return <td className="px-2 py-1 text-foreground" {...props} />;
                 },
+
             }}
         />
     );
