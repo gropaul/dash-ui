@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {Database, Plus, Send} from "lucide-react";
+import {Database, History, Plus, Send, Timer} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatMessageItem } from "./chat-message-item";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
@@ -78,15 +78,9 @@ export function ChatWindow({
                 <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">
                     Chat Assistant
                 </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant={'ghost'} size={'icon'} className={'h-8 w-8'}>
-                            <Plus size={16}/>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                    <Button variant={'ghost'} size={'icon'} className={'h-8 w-8'}>
+                        <History size={16}/>
+                    </Button>
             </div>
 
             {/* Messages */}
@@ -96,7 +90,7 @@ export function ChatWindow({
                 className="flex-1 min-h-0 overflow-y-auto p-3 custom-scrollbar scroll-smooth"
             >
                 {messages.length ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4 flex flex-col w-full ">
                         {messages.map((m, index) => (
                             <ChatMessageItem key={index} message={m} />
                         ))}

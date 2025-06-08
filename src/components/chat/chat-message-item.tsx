@@ -2,84 +2,94 @@ import React from "react";
 import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 import {Message} from "ai";
+import {ReasoningUIPart, TextUIPart, ToolInvocationUIPart} from "@ai-sdk/ui-utils";
+import {ToolInvocationPart} from "@/components/chat/chat-message-item-tool";
 
 interface ChatMessageItemProps {
     message: Message;
 }
 
-const roleStyles = {
-    user: "bg-primary text-primary-foreground ml-auto text-right",
-    assistant: "bg-muted text-muted-foreground mr-auto text-left",
-    system: "bg-gray-200 text-gray-800 italic mx-auto text-center",
-    tool: "bg-blue-100 text-blue-900 mx-auto text-sm",
+export type RoleType = 'system' | 'user' | 'assistant' | 'data' | 'tool';
+
+const commonParentStyle = "flex w-full";
+export const parentRoleStyles = {
+    user: `${commonParentStyle} justify-end`,
+    assistant: `${commonParentStyle} justify-start`,
+    system: `${commonParentStyle} justify-center`,
+    tool: `${commonParentStyle} justify-center`,
 };
+
+const commonRoleStyle = "text-sm rounded-lg w-fit break-words";
+export const roleStyles = {
+    user: `${commonRoleStyle} bg-primary text-primary-foreground ml-auto text-right rounded-br-none max-w-[75%]`,
+    assistant: `${commonRoleStyle} bg-muted text-muted-foreground mr-auto text-left rounded-bl-none max-w-[100%]`,
+    system: `${commonRoleStyle} bg-gray-200 text-gray-800 italic mx-auto text-center max-w-[100%]`,
+    tool: `${commonRoleStyle} w-full`,
+};
+
 
 export function ChatMessageItem({message}: ChatMessageItemProps) {
     const {role} = message;
-
-    // if not debug mode and role is system, return null;
-    if (process.env.NODE_ENV !== 'development' && role === 'system') {
-        return null;
-    }
+    if (process.env.NODE_ENV !== "development" && role === "system") return null;
+    if (!message.parts?.length) return null;
 
     return (
-        <div className="w-full my-2 flex">
-            <div
-                className={cn(
-                    "p-3 rounded-lg text-sm break-words max-w-[80%]",
-                    roleStyles[role as keyof typeof roleStyles] ?? roleStyles["assistant"]
-                )}
-            >
-                {role === "system" ? (
-                    <div className="mb-1 font-semibold uppercase text-xs">{role}</div>
-                ) : null}
+        <>
+            {message.parts.map((part, index) => {
+                switch (part.type) {
+                    case "tool-invocation":
+                        return <ToolInvocationPart key={index} part={part} role={'tool'}/>;
+                    case "text":
+                        return <TextPart key={index} part={part} role={role}/>;
+                    case "reasoning":
+                        return <ReasoningPart key={index} part={part} role={role}/>;
+                    default:
+                        return null;
+                }
+            })}
+        </>
+    );
+}
 
-                {message.parts && message.parts.length > 0 && (
-                    <>
-                        {message.parts.map((part, index) => {
-                            switch (part.type) {
-                                case 'tool-invocation':
-                                    return (
-                                        <div key={index}>
-                                            <div className="text-sm ">
-                                                <div className={'font-semibold'}>Tool
-                                                    Call: {part.toolInvocation.toolName}</div>
-                                                <div
-                                                    className="text-xs text-gray-500">Arguments: {JSON.stringify(part.toolInvocation.args)}</div>
-                                            </div>
-                                            {part.toolInvocation.state == 'result' && (
-                                                <MarkdownRenderer key={index} markdown={part.toolInvocation.result || ''}/>
-                                            )}
-                                        </div>
-                                    );
-                                case 'text':
-                                    return (
-                                        <MarkdownRenderer
-                                            key={index}
-                                            markdown={part.text}
-                                            codeStyle={{
-                                                fontSize: '0.85em',
-                                                backgroundColor: 'white',
-                                                borderRadius: '4px'
-                                            }}
-                                        />
-                                    );
-                                case 'reasoning':
-                                    return (
-                                        <div className="relative group text-xs text-gray-500 mb-1" key={index}>
-                                            <span className="italic cursor-help">Thinking...</span>
-                                            <div
-                                                className="absolute left-0 bottom-full mb-1 hidden group-hover:block bg-gray-100 text-gray-800 text-xs p-2 rounded shadow max-w-sm z-10">
-                                                {part.reasoning}
-                                            </div>
-                                        </div>
-                                    )
-                                default:
-                                    return null;
-                            }
-                        })}
-                    </>
-                )}
+interface TextPartProps {
+    part: TextUIPart;
+    role: RoleType;
+}
+
+function TextPart({part, role}: TextPartProps) {
+    return (
+        <div className={cn("w-full", parentRoleStyles[role as keyof typeof parentRoleStyles])}>
+            <div className={cn("p-2 rounded-lg", roleStyles[role as keyof typeof roleStyles])}>
+                <MarkdownRenderer
+                    markdown={part.text}
+                    codeStyle={{
+                        fontSize: "0.85em",
+                        backgroundColor: "white",
+                        borderRadius: "4px",
+                    }}
+                />
+            </div>
+        </div>
+    );
+}
+
+interface ReasoningPartProps {
+    part: ReasoningUIPart;
+    role: RoleType;
+}
+
+function ReasoningPart({part, role}: ReasoningPartProps) {
+    return (
+        <div className={cn("w-full", parentRoleStyles[role as keyof typeof parentRoleStyles])}>
+            <div className={cn("p-2 rounded-lg", roleStyles[role as keyof typeof roleStyles])}>
+                <MarkdownRenderer
+                    markdown={part.reasoning}
+                    codeStyle={{
+                        fontSize: "0.85em",
+                        backgroundColor: "white",
+                        borderRadius: "4px",
+                    }}
+                />
             </div>
         </div>
     );

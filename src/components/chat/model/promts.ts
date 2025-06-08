@@ -24,7 +24,7 @@ This is your workflow:
 
 export const SQLTollDescription = `
 Executes a SQL query against duckdb, a postgreSQL-compatible database. 
-Schema information is in the information_schema.tables (columns: table_name, ...), 
+Schema information is in the information_schema.tables (columns: table_name, ..., Tables can be in all schemas, not just public!), 
 information_schema.columns ( column_name, data_type, table_name, ...), 
 functions in duckdb_functions() (columns: function_name, description, function_type, ...).
 Example find function: 

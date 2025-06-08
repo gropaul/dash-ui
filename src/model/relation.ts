@@ -8,6 +8,9 @@ export interface RelationData {
 }
 
 export function RelationDataToMarkdown(relation: RelationData): string {
+    if (relation.rows.length === 0) {
+        return 'Empty relation, Columns: ' + relation.columns.map((column) => column.name).join(', ');
+    }
     const columnNames = relation.columns.map((column) => column.name).join(' | ');
     const separator = relation.columns.map(() => '---').join(' | ');
     const rows = relation.rows.map((row) => row.map((value) => String(value)).join(' | ')).join('\n');

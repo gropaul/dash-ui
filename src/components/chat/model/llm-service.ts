@@ -63,16 +63,25 @@ const ollama = createOllama({
 
 // see https://platform.openai.com/docs/pricing
 
-const gpt4 = openai('gpt-4.1-nano');
+const gpt4 = openai('gpt-4.1');
+const gpt4Nano = openai('gpt-4.1-nano');
 const qwen3 = ollama('qwen3:8b', {
     simulateStreaming: true
 })
 
+export const TOOL_NAME_EXECUTE_QUERY = 'executeQuery';
+export const TOOL_NAME_ADD_CHART_TO_DASHBOARD = 'addChartToDashboard';
+export const TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD = 'addMarkdownToDashboard';
+
+// type that must contain one of the tool names
+export type ToolName = typeof TOOL_NAME_EXECUTE_QUERY | typeof TOOL_NAME_ADD_CHART_TO_DASHBOARD | typeof TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD;
+
+
 export const aiService = new LlmService(
-    qwen3,
+    gpt4Nano,
     {
-        'queryDatabase': QueryDatabaseTool,
-        'addChartToDashboard': AddChartToDashboard,
-        'addMarkdownToDashboard': AddMarkdownToDashboard
+        [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: AddChartToDashboard,
+        [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: AddMarkdownToDashboard,
+        [TOOL_NAME_EXECUTE_QUERY]: QueryDatabaseTool,
     }
 );
