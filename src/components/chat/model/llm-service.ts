@@ -44,6 +44,8 @@ class LlmService {
     }
 
     streamText(messages: Message[]): StreamTextResult<any, any> {
+
+        console.log('streamText called with messages:', messages);
         return streamText({
             model: this.defaultModel,
             messages: convertToCoreMessages(messages),

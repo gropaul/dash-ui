@@ -13,6 +13,7 @@ export function ChatContentMessages({
                                 sessionId,
                                 onSendMessage,
                                 isLoading = false,
+                                showSystemMessage = true,
                             }: ChatWindowProps) {
 
     const messages = useChatState((state) => state.getMessages(sessionId));
@@ -71,7 +72,7 @@ export function ChatContentMessages({
             {messages.length ? (
                 <div className="space-y-4 flex flex-col w-full ">
                     {messages.map((m, index) => (
-                        <ChatMessageItem key={index} message={m}/>
+                        <ChatMessageItem showSystemMessage={showSystemMessage} key={index} message={m}/>
                     ))}
                 </div>
             ) : (

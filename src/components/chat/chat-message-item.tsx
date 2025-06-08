@@ -7,6 +7,7 @@ import {ToolInvocationPart} from "@/components/chat/chat-message-item-tool";
 
 interface ChatMessageItemProps {
     message: Message;
+    showSystemMessage?: boolean;
 }
 
 export type RoleType = 'system' | 'user' | 'assistant' | 'data' | 'tool';
@@ -28,9 +29,14 @@ export const roleStyles = {
 };
 
 
-export function ChatMessageItem({message}: ChatMessageItemProps) {
+export function ChatMessageItem({message, showSystemMessage}: ChatMessageItemProps) {
     const {role} = message;
-    if (process.env.NODE_ENV !== "development" && role === "system") return null;
+
+    const isDev = process.env.NODE_ENV === "development";
+    const isSystemMessage = role === "system";
+
+    // only render system messages if showSystemMessage is true or in development mode
+    if (isSystemMessage && !showSystemMessage) return null;
     if (!message.parts?.length) return null;
 
     return (
@@ -44,7 +50,10 @@ export function ChatMessageItem({message}: ChatMessageItemProps) {
                     case "reasoning":
                         return <ReasoningPart key={index} part={part} role={role}/>;
                     default:
-                        return null;
+                        return null; // or handle unsupported part types
+                        return  <div key={index} className={cn("p-2 bg-red-100 text-red-800 rounded-lg")}>
+                            Unsupported part type: {part.type}
+                        </div>;
                 }
             })}
         </>

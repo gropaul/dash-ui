@@ -1,8 +1,17 @@
 import React, {useState} from "react";
 import {ChatContentWrapper} from "./chat-content-wrapper";
 import {aiService} from "@/components/chat/model/llm-service";
-import {appendResponseMessages, Message} from "ai";
+import {appendResponseMessages, Message, ToolResultPart} from "ai";
 import {useChatState} from "@/state/chat.state";
+import {
+    FileUIPart,
+    ReasoningUIPart,
+    SourceUIPart,
+    StepStartUIPart,
+    TextUIPart,
+    ToolInvocationUIPart
+} from "@ai-sdk/ui-utils";
+import {deepClone} from "@/platform/object-utils";
 
 
 interface ChatProps {
@@ -24,6 +33,8 @@ function getInitialChatTabState(): ChatTabState {
 export function ChatTab({className}: ChatProps) {
 
     const setMessages = useChatState().setMessages;
+    const addMessages = useChatState().addMessages;
+    const updateLastMessage = useChatState().updateLastMessage;
     const [state, setState] = useState<ChatTabState>(getInitialChatTabState());
 
     const onHistoricSessionSelect = (sessionId?: string) => {
@@ -32,8 +43,6 @@ export function ChatTab({className}: ChatProps) {
             session_id: sessionId,
             state: 'done',
         });
-
-        console.log(`Selected session: ${sessionId}`);
     }
 
     const handleSendMessage = async (content: string) => {
@@ -49,9 +58,9 @@ export function ChatTab({className}: ChatProps) {
             }],
         }
 
-        const newMessages = [...messages, userMessage];
+        const messageWithUserMessage = [...messages, userMessage];
 
-        const sessionId = setMessages(newMessages, state.session_id);
+        const sessionId = setMessages(messageWithUserMessage, state.session_id);
         state.session_id = sessionId;
 
         setState({
@@ -60,9 +69,124 @@ export function ChatTab({className}: ChatProps) {
             state: 'inferring',
         });
 
-        const result = aiService.streamText(newMessages);
-        for await (const part of result.fullStream) {
-            console.log(part);
+        type MessagePart =
+            TextUIPart
+            | ReasoningUIPart
+            | ToolInvocationUIPart
+            | SourceUIPart
+            | FileUIPart
+            | StepStartUIPart;
+
+        const result = aiService.streamText(messageWithUserMessage);
+        let currentMessage: Message;
+        let currentMessageParts: MessagePart[] = [];
+        let currentMessagePart: MessagePart | undefined = undefined;
+
+        const messageWithUserMessageAndAnswers = [...messageWithUserMessage];
+
+        function createNewEmptyMessage(id: string) {
+            currentMessage = {
+                id: id,
+                role: 'assistant',
+                content: '',
+                parts: currentMessageParts,
+            };
+            if (!state.session_id) {
+                throw new Error('Session ID is not defined');
+            }
+            addMessages([currentMessage], state.session_id);
+        }
+
+        function finishCurrentMessage() {
+
+            // if the currentMessage is not defined, throw an error
+            if (!currentMessage) {
+                throw new Error('Step finish without step start');
+            }
+
+            // if the currentMessagePart is defined, add it to the currentMessageParts
+            if (currentMessagePart) {
+                currentMessageParts.push(currentMessagePart);
+            }
+
+            // if state.session_id is not defined, throw an error
+            if (!state.session_id) {
+                throw new Error('Session ID is not defined');
+            }
+
+            currentMessage.parts = currentMessageParts;
+
+            updateLastMessage(currentMessage, state.session_id);
+            currentMessageParts = [];
+            currentMessagePart = undefined;
+        }
+
+        function updateGUIWithUnfinishedLastPart() {
+            // if currentMessage is not defined, throw an error
+            if (!currentMessage) {
+                throw new Error('Current message is not defined');
+            }
+
+            // current message part may not be undefined, but it is not finished yet
+            if (currentMessagePart == undefined) {
+                throw new Error('Current message part is undefined');
+            }
+
+            // state.session_id must be defined at this point
+            if (!state.session_id) {
+                throw new Error('Session ID is not defined');
+            }
+
+            // update clone parts with the unfinished part
+            const currentMessageClone = deepClone(currentMessage);
+            currentMessageClone.parts = [...currentMessageParts, currentMessagePart];
+
+            updateLastMessage(currentMessageClone, state.session_id);
+        }
+
+        for await (const streamPart of result.fullStream) {
+            console.log('Stream part received:', streamPart);
+            switch (streamPart.type) {
+                case 'step-start':
+                    createNewEmptyMessage(streamPart.messageId);
+                    break;
+                // case 'tool-call':
+                //     const toolCallPart: ToolInvocationUIPart = {
+                //         type: 'tool-invocation',
+                //         toolInvocation: {
+                //             state: 'call',
+                //             ...streamPart,
+                //         }
+                //     }
+                //     currentMessageParts.push(toolCallPart);
+                //     break;
+                case 'tool-result':
+                    let toolResultPart: ToolInvocationUIPart = {
+                        type: 'tool-invocation',
+                        toolInvocation: {
+                            state: 'result',
+                            ...streamPart,
+                        }
+                    };
+                    currentMessageParts.push(toolResultPart);
+                    break;
+                case 'step-finish':
+                    finishCurrentMessage();
+                    break;
+                case 'text-delta':
+                    // if the currentMessagePart is undefined, create a new one
+                    if (!currentMessagePart) {
+                        currentMessagePart = {
+                            type: 'text',
+                            text: '',
+                        };
+                    } else if (currentMessagePart.type !== 'text') {
+                        throw new Error('Text delta received but current message part is not text');
+                    }
+                    currentMessagePart.text += streamPart.textDelta;
+                    updateGUIWithUnfinishedLastPart()
+                    break
+            }
         }
 
         setState({
@@ -70,11 +194,15 @@ export function ChatTab({className}: ChatProps) {
             state: 'done',
         });
 
+        // safety: if anything went wrong during streaming, this will overwrite it
         const response = await result.response;
+        console.log('Final response received:', response.messages);
         const newMessagesInferred = appendResponseMessages({
-            messages: newMessages,
+            messages: messageWithUserMessageAndAnswers,
             responseMessages: response.messages,
         });
+
+        console.log('New messages inferred:', newMessagesInferred);
 
         setMessages(newMessagesInferred, state.session_id);
     };
@@ -82,6 +210,7 @@ export function ChatTab({className}: ChatProps) {
     return (
         <div className={`h-full w-full`}>
             <ChatContentWrapper
+                showSystemMessage={false}
                 onSessionSelect={onHistoricSessionSelect}
                 sessionId={state.session_id}
                 onSendMessage={handleSendMessage}
