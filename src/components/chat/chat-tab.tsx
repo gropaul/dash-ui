@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {ChatWindow} from "./chat-window";
+import {ChatContentWrapper} from "./chat-content-wrapper";
 import {aiService} from "@/components/chat/model/llm-service";
 import {appendResponseMessages, Message} from "ai";
 import {useChatState} from "@/state/chat.state";
@@ -25,6 +25,16 @@ export function ChatTab({className}: ChatProps) {
 
     const setMessages = useChatState().setMessages;
     const [state, setState] = useState<ChatTabState>(getInitialChatTabState());
+
+    const onHistoricSessionSelect = (sessionId?: string) => {
+        setState({
+            ...state,
+            session_id: sessionId,
+            state: 'done',
+        });
+
+        console.log(`Selected session: ${sessionId}`);
+    }
 
     const handleSendMessage = async (content: string) => {
         const messages = useChatState.getState().getMessages(state.session_id);
@@ -71,7 +81,8 @@ export function ChatTab({className}: ChatProps) {
 
     return (
         <div className={`h-full w-full`}>
-            <ChatWindow
+            <ChatContentWrapper
+                onSessionSelect={onHistoricSessionSelect}
                 sessionId={state.session_id}
                 onSendMessage={handleSendMessage}
                 isLoading={state.state === 'inferring' || state.state === 'calling_tool'}

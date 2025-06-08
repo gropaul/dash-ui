@@ -11,6 +11,7 @@ export interface ChatZustand {
 export interface ChatZustandActions {
     createSession: () => ChatSession;
     updateSession: (sessionId: string, session: ChatSession) => void;
+    deleteSession: (sessionId: string) => void;
     getSession: (sessionId: string) => ChatSession | undefined;
     getMessages: (sessionId?: string) => Message[]; // If sessionId is not provided, return empty array
     setMessages: (messages: Message[], sessionId?: string) => string;
@@ -77,6 +78,15 @@ export const useChatState = create<ChatZustand & ChatZustandActions>()(
 
             },
             getSession: (sessionId) => get().sessions[sessionId],
+            deleteSession: (sessionId) => {
+                set((state) => {
+                    const newSessions = {...state.sessions};
+                    delete newSessions[sessionId];
+                    return {
+                        sessions: newSessions,
+                    };
+                });
+            },
         }),
         {
             name: 'chat-sessions',

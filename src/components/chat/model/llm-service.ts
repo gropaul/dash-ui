@@ -9,7 +9,7 @@ export interface ChatSession {
     // initialPrompt?: UIMessage; // Optional initial prompt for the session
     id: string; // Unique identifier for the session
     name: string; // Optional name for the session
-    dateCreated: Date; // Date when the session was created
+    dateTimeCreated: string; // Date and time when the session was created, formatted as iSO string
     messages: Message[];
 }
 
@@ -24,10 +24,12 @@ export function GetNewChatSession(): ChatSession {
             type: 'text',
         }],
     };
+    const now = new Date();
+    const dateTimeCreated = now.toISOString();
     return {
         id: crypto.randomUUID().toString(),
         name: 'Chat of ' + new Date().toLocaleDateString(),
-        dateCreated: new Date(),
+        dateTimeCreated: dateTimeCreated,
         messages: [initialPrompt]
     };
 }
