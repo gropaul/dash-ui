@@ -83,14 +83,14 @@ export function ChatContentMessages({
         </div>
 
         {/* Input */}
-        <div className="p-3 border-t">
+        <div className="px-2 pb-1 pt-2 border-t border-border/70">
             <div className="relative">
               <textarea
                   ref={textareaRef}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Type your message…"
-                  className="w-full px-3 py-2 pr-8 text-sm bg-muted/30 rounded-[20px] focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-y-auto min-h-[38px] max-h-[86px] custom-scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent"
+                  className="w-full px-3 py-2 pr-8 text-sm bg-muted/50 rounded-[20px] focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-y-auto min-h-[38px] max-h-[86px] custom-scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent"
                   rows={1}
                   onKeyDown={(e) => {
                       if (

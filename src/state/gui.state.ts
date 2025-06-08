@@ -21,7 +21,7 @@ export interface GUIZustand {
     selectedTabId: string | undefined;
     layoutModel: Model;
     mainBarSizeRatio: number;
-    sideBarTabsSizeRatio: number;
+    sideBarTabsSizeRatios: number[];
     selectedSidebarTabs: AvailableTabs[];
     number: number;
 }
@@ -32,7 +32,7 @@ export interface GUIZustandActions {
     setModel: (model: Model) => void;
 
     setMainBarSizeRatio: (ratio: number) => void;
-    setSideBarTabsSizeRatio: (ratio: number) => void;
+    setSideBarTabsSizeRatios: (ratio: number[]) => void;
 
     setSelectedSidebarTabs: (tabs: AvailableTabs[]) => void;
 
@@ -90,16 +90,16 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             selectedTabId: undefined,
             number: 0,
             mainBarSizeRatio: 25,
-            sideBarTabsSizeRatio: 70,
+            selectedSidebarTabs: ['relations', 'chat'],
+            sideBarTabsSizeRatios: [70],
             relationFileDropEnabled: true,
 
             setRelationFileDropEnabled: (enabled: boolean) => {
                 set({relationFileDropEnabled: enabled});
             },
-            selectedSidebarTabs: ['relations', 'chat'],
 
-            setSideBarTabsSizeRatio: (ratio: number) => {
-                set({sideBarTabsSizeRatio: ratio});
+            setSideBarTabsSizeRatios: (ratios: number[]) => {
+                set({sideBarTabsSizeRatios: ratios});
             },
 
             setSelectedSidebarTabs: (tabs: AvailableTabs[]) => {

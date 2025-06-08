@@ -113,33 +113,53 @@ interface NavigationBarContentProps {
     selectedTabs: AvailableTabs[];
 }
 
-export function NavigationBarContent(props: NavigationBarContentProps) {
+interface NavigationBarContentProps {
+    selectedTabs: AvailableTabs[];
+}
 
-    const sideBarTabsRatio = useGUIState(state => state.sideBarTabsSizeRatio);
-    const setSideBarTabsRatio = useGUIState(state => state.setSideBarTabsSizeRatio);
+
+export function NavigationBarContent(props: NavigationBarContentProps) {
+    const sideBarTabsRatios = useGUIState(state => state.sideBarTabsSizeRatios);
+    const setSideBarTabsRatios = useGUIState(state => state.setSideBarTabsSizeRatios);
+
+    const sortedTabs = props.selectedTabs;
+
+    // Ensure ratios array has correct length
+    React.useEffect(() => {
+        if (!Array.isArray(sideBarTabsRatios) || sideBarTabsRatios.length !== sortedTabs.length) {
+            const defaultRatio = Math.floor(100 / sortedTabs.length);
+            setSideBarTabsRatios(Array(sortedTabs.length).fill(defaultRatio));
+        }
+    }, [sortedTabs.length]);
 
     function renderTabContent(tab: AvailableTabs) {
         switch (tab) {
             case 'connections':
-                return <ConnectionsOverviewTab/>;
+                return <ConnectionsOverviewTab />;
             case 'relations':
-                return <EditorOverviewTab/>;
+                return <EditorOverviewTab />;
             case 'chat':
-                return <ChatTab/>;
+                return <ChatTab />;
         }
     }
 
+    function handleResize(index: number, size: number) {
+        const updated = [...sideBarTabsRatios];
+        updated[index] = size;
+        setSideBarTabsRatios(updated);
+    }
+
     return (
-        <div className={'flex-1 h-screen overflow-auto'}>
-            <ResizablePanelGroup direction={'vertical'}>
-                {props.selectedTabs.toSorted().reverse().map((tab, index) => (
+        <div className="flex-1 h-screen overflow-auto">
+            <ResizablePanelGroup direction="vertical">
+                {sortedTabs.map((tab, index) => (
                     <Fragment key={`panel-group-${tab}`}>
                         {index > 0 && <ResizableHandle />}
                         <ResizablePanel
                             style={{ overflow: 'auto' }}
                             minSize={20}
-                            onResize={size => setSideBarTabsRatio(size)}
-                            defaultSize={index === 1 ? sideBarTabsRatio : 100 - sideBarTabsRatio}
+                            onResize={(size) => handleResize(index, size)}
+                            defaultSize={sideBarTabsRatios[index] ?? Math.floor(100 / sortedTabs.length)}
                         >
                             {renderTabContent(tab)}
                         </ResizablePanel>
@@ -147,5 +167,5 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
                 ))}
             </ResizablePanelGroup>
         </div>
-    )
+    );
 }
