@@ -45,17 +45,17 @@ export const QueryDatabaseTool = tool({
     },
 });
 
-interface AddChartToDashboardArgs {
+interface AddedDataViewToTableArgs {
     title?: string;
     sql: string;
-    chartType: 'bar' | 'line' | 'pie';
+    chartType: 'bar' | 'line' | 'pie' | 'scatter' | 'area';
     xAxis: string;
     xLabelRotation?: number;
     yAxes: string[];
     yRangeMin?: 'min' | 'zero';
 }
 
-export async function getRelationBlockData(args: AddChartToDashboardArgs): Promise<RelationBlockData> {
+export async function getRelationBlockData(args: AddedDataViewToTableArgs): Promise<RelationBlockData> {
 
     const randomId = getRandomId();
     const baseQuery = args.sql;
@@ -97,7 +97,7 @@ export async function getRelationBlockData(args: AddChartToDashboardArgs): Promi
 
 }
 
-export function getChartViewState(args: AddChartToDashboardArgs): ChartViewState {
+export function getChartViewState(args: AddedDataViewToTableArgs): ChartViewState {
 
     function dequoteAxisLabel(label: string): string {
         return label.replace(/"/g, '');
@@ -185,6 +185,14 @@ export const AddMarkdownToDashboard = tool({
         }
     }
 });
+
+export const AddInputToDashboard = tool({
+    description: 'Adds an input element to the dashboard. The input can be used in other queries for interactivity. Usage example: `SELECT * FROM table WHERE column = {{input_id}}`.',
+    parameters: z.object({
+        input_id: z.string().describe('The id of the input element.'),
+        inputType: z.enum(['text-select', 'text-field']).describe('Type of the input element: "text-select" for a select input, "text-field" for a text input.'),
+    }).describe('Parameters for adding an input to the dashboard.'),
+})
 
 
 export const AddChartToDashboard = tool({
