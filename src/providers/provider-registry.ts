@@ -1,6 +1,7 @@
 import {LanguageModelProviderInterface} from './language-model-provider.interface';
 import {OpenAIProvider} from './openai-provider';
 import {OllamaProvider} from './ollama-provider';
+import {DeepseekProvider} from './deepseek-provider';
 
 /**
  * Registry for language model providers
@@ -14,6 +15,7 @@ export class ProviderRegistry {
         // Register default providers
         this.registerProvider(new OpenAIProvider());
         this.registerProvider(new OllamaProvider());
+        this.registerProvider(new DeepseekProvider());
     }
 
     /**
