@@ -20,7 +20,8 @@ export interface ChatWindowProps {
     onSendMessage: (content: string) => void;
     isLoading?: boolean;
     showSystemMessage?: boolean;
-
+    error?: string;
+    onHideError: () => void;
 }
 
 export function ChatContentWrapper(props: ChatWindowProps) {

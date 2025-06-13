@@ -87,7 +87,7 @@ export function LanguageModelContent() {
                                 initialFormData={initialFormData}
                                 formDefinition={formDefinition}
                                 onSubmit={(formData) => handleProviderSubmit(providerId, formData)}
-                                submitButtonLabel={`Save ${provider.getDisplayName()} Settings`}
+                                submitButtonLabel={`Check and Save ${provider.getDisplayName()} Settings`}
                             />
                         </TabsContent>
                     );

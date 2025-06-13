@@ -1,7 +1,7 @@
 import React from 'react';
 import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
-import {Database, Folder, LayoutDashboard, Network, Sheet} from 'lucide-react';
+import {Database, Folder, LayoutDashboard, MessageSquare, Network, Sheet} from 'lucide-react';
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
 import {SchemaTab} from "@/components/schema/schema-tab";

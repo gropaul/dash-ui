@@ -1,20 +1,23 @@
 import React, {useRef, useEffect, useCallback} from "react";
 import {Button} from "@/components/ui/button";
-import {Database, History, Plus, Send, Timer} from "lucide-react";
+import {AlertCircle, Database, History, Plus, PopcornIcon, Send, Timer, X} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {ChatMessageItem} from "./chat-message-item";
 
 import {useChatState} from "@/state/chat.state";
 import {ChatWindowProps} from "@/components/chat/chat-content-wrapper";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 
 
 export function ChatContentMessages({
-                                className,
-                                sessionId,
-                                onSendMessage,
-                                isLoading = false,
-                                showSystemMessage = true,
-                            }: ChatWindowProps) {
+                                        className,
+                                        sessionId,
+                                        onSendMessage,
+                                        isLoading = false,
+                                        showSystemMessage = true,
+                                        error,
+                                        onHideError,
+                                    }: ChatWindowProps) {
 
     const messages = useChatState((state) => state.getMessages(sessionId));
 
@@ -63,28 +66,52 @@ export function ChatContentMessages({
 
     return (
         <>
-        {/* Messages */}
-        <div
-            ref={messagesContainerRef}
-            onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto p-3 custom-scrollbar scroll-smooth"
-        >
-            {messages.length ? (
-                <div className="space-y-4 flex flex-col w-full ">
-                    {messages.map((m, index) => (
-                        <ChatMessageItem showSystemMessage={showSystemMessage} key={index} message={m}/>
-                    ))}
-                </div>
-            ) : (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                    How can I help you today?
+            {/* Error Alert */}
+            {error && (
+                <div className="w-full px-3">
+                    <Alert variant="destructive">
+                        <AlertTitle>
+                            <div className="flex items-start justify-between w-full">
+                                  <span>
+                                    {error}, please check your provider settings.
+                                  </span>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 rounded-full"
+                                    onClick={onHideError}
+                                >
+                                    <X className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                        </AlertTitle>
+                    </Alert>
+
                 </div>
             )}
-        </div>
 
-        {/* Input */}
-        <div className="px-2 pb-1 pt-2 border-t border-border/70">
-            <div className="relative">
+            {/* Messages */}
+            <div
+                ref={messagesContainerRef}
+                onScroll={handleScroll}
+                className="flex-1 min-h-0 overflow-y-auto p-3 custom-scrollbar scroll-smooth"
+            >
+                {messages.length ? (
+                    <div className="space-y-4 flex flex-col w-full ">
+                        {messages.map((m, index) => (
+                            <ChatMessageItem showSystemMessage={showSystemMessage} key={index} message={m}/>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                        How can I help you today?
+                    </div>
+                )}
+            </div>
+
+            {/* Input */}
+            <div className="px-2 pb-1 pt-2 border-t border-border/70">
+                <div className="relative">
               <textarea
                   ref={textareaRef}
                   value={inputValue}
@@ -104,23 +131,23 @@ export function ChatContentMessages({
                   }}
               />
 
-                <Button
-                    size="icon"
-                    className="absolute right-1 bottom-3 h-7 w-7 rounded-full"
-                    disabled={!inputValue.trim() || isLoading}
-                    onClick={() =>
-                        inputValue.trim() && !isLoading && handleSendMessage(inputValue)
-                    }
-                >
-                    {isLoading ? (
-                        <div
-                            className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"/>
-                    ) : (
-                        <Send className="h-3 w-3"/>
-                    )}
-                </Button>
+                    <Button
+                        size="icon"
+                        className="absolute right-1 bottom-3 h-7 w-7 rounded-full"
+                        disabled={!inputValue.trim() || isLoading}
+                        onClick={() =>
+                            inputValue.trim() && !isLoading && handleSendMessage(inputValue)
+                        }
+                    >
+                        {isLoading ? (
+                            <div
+                                className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"/>
+                        ) : (
+                            <Send className="h-3 w-3"/>
+                        )}
+                    </Button>
+                </div>
             </div>
-        </div>
-    </>
+        </>
     );
 }
