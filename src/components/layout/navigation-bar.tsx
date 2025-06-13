@@ -125,7 +125,9 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
             <ResizablePanelGroup direction="vertical">
                 {allTabs.map((tab, index) => (
                     <Fragment key={`panel-group-${tab}`}>
-                        {index > 0 && <ResizableHandle />}
+                        {index > 0 && false && <ResizableHandle
+                            style={{ display: props.selectedTabs.includes(tab) ? 'block' : 'none' }}
+                        />}
                         <ResizablePanel
                             style={{
                                 overflow: 'auto',
