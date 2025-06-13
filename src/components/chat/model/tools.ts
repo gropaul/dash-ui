@@ -2,7 +2,7 @@ import {ConnectionsService} from "@/state/connections-service";
 import {SQLTollDescription} from "@/components/chat/model/promts";
 import {EditorsService} from "@/state/editor.state";
 import {useGUIState} from "@/state/gui.state";
-import {RELATION_BLOCK_NAME, RelationBlockData} from "@/components/editor/tools/relation.tool";
+import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
 import {
@@ -17,6 +17,7 @@ import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-st
 import z from 'zod';
 import {tool} from "ai";
 import {parseMarkdownToBlocks} from "@/components/editor/parse-markdown";
+import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 
 
 export const QueryDatabaseTool = tool({

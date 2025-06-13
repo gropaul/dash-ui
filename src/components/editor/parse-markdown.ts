@@ -1,12 +1,11 @@
-import { marked } from "marked";
-import { v4 as uuidv4 } from "uuid";
+import {marked} from "marked";
+import {v4 as uuidv4} from "uuid";
 import {
     DELIMITER_TOOL_NAME,
     HEADER_TOOL_NAME,
     LIST_TOOL_NAME,
-    PARAGRAPH_BLOCK_NAME,
-    WARNING_TOOL_NAME
-} from "@/components/editor/tools";
+    PARAGRAPH_BLOCK_NAME, WARNING_TOOL_NAME
+} from "@/components/editor/tool-names";
 
 export interface EditorJSBlock {
     /** Unique id for EditorJS */
@@ -18,9 +17,7 @@ export interface EditorJSBlock {
 }
 
 export function parseMarkdownToBlocks(markdown: string): EditorJSBlock[] {
-
     const markdownFormated = formatInlineMarkdownToHTML(markdown);
-    console.log("markdownFormated", markdownFormated);
     const tokens = marked.lexer(markdownFormated);
     const blocks: EditorJSBlock[] = [];
 
@@ -47,14 +44,13 @@ export function parseMarkdownToBlocks(markdown: string): EditorJSBlock[] {
 
 
     const appendParagraph = (text: string) => {
-        if (!text.trim()) return;
+        if (!text.trim()) return; // skip empty lines
         blocks.push({
             id: uuidv4(),
             type: PARAGRAPH_BLOCK_NAME,
             data: { text: text }
         });
     };
-
 
     for (const token of tokens) {
         switch (token.type) {

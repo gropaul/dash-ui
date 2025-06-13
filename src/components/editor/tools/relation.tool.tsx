@@ -21,8 +21,7 @@ import {
     ICON_CAPTIONS,
     ICON_SETTING
 } from "@/components/editor/tools/icons";
-
-export const RELATION_BLOCK_NAME = 'relation';
+import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 
 export interface RelationBlockData extends RelationState {
 }

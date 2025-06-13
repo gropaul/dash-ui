@@ -19,8 +19,8 @@ import { Input } from "@/components/ui/input";
 import { TextConfigDialog } from "./text-config-dialog";
 import {Button} from "@/components/ui/button";
 import {Settings} from "lucide-react";
+import {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tool-names";
 
-export const TEXT_SEARCH_BLOCK_NAME = 'text-search';
 
 export interface TextSearchBlockData {
     id: string;

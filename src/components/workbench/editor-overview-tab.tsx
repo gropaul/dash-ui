@@ -17,7 +17,7 @@ import {DEFAULT_STATE_STORAGE_DESTINATION, MAIN_CONNECTION_ID} from "@/platform/
 import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import {DashboardState} from "@/model/dashboard-state";
-import {RELATION_BLOCK_NAME, RelationBlockData} from "@/components/editor/tools/relation.tool";
+import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {useEditorStore} from "@/state/editor.state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
@@ -25,6 +25,7 @@ import {StateStorageInfo} from "@/model/database-connection";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
 import {ConnectionsService} from "@/state/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 
 
 interface RenameState {

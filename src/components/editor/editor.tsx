@@ -9,9 +9,9 @@ import Undo from "editorjs-undo";
 
 import "@/styles/editor-js.css";
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
-import {getEditorJSTools} from "@/components/editor/tools";
 import {Editor as EditorStore, useEditorStore} from "@/state/editor.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
+import {getEditorJSTools} from "@/components/editor/tools";
 
 
 // Props interface (TypeScript)

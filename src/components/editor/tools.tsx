@@ -1,4 +1,4 @@
-import RelationBlockTool, {RELATION_BLOCK_NAME} from "@/components/editor/tools/relation.tool";
+import RelationBlockTool from "@/components/editor/tools/relation.tool";
 import Warning from "@editorjs/warning";
 import Delimiter from "@/components/editor/tools/delimiter.tools";
 import InlineCode from "@editorjs/inline-code";
@@ -11,15 +11,18 @@ import Marker from "@editorjs/marker";
 import Table from "@editorjs/table";
 import List from "@editorjs/list";
 import Header from "@editorjs/header";
-import SelectBlockTool, {SELECT_BLOCK_NAME} from "@/components/editor/tools/select.tool";
+import SelectBlockTool from "@/components/editor/tools/select.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import TextSearchBlockTool, {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tools/text.tool";
+import TextSearchBlockTool from "@/components/editor/tools/text.tool";
+import {
+    DELIMITER_TOOL_NAME,
+    HEADER_TOOL_NAME,
+    LIST_TOOL_NAME, RELATION_BLOCK_NAME,
+    SELECT_BLOCK_NAME, TEXT_SEARCH_BLOCK_NAME,
+    WARNING_TOOL_NAME
+} from "@/components/editor/tool-names";
 
-export const PARAGRAPH_BLOCK_NAME = "paragraph";
-export const HEADER_TOOL_NAME = "header";
-export const LIST_TOOL_NAME = "list";
-export const WARNING_TOOL_NAME = "warning";
-export const DELIMITER_TOOL_NAME = "delimiter";
+
 
 export function getEditorJSTools(getInputManager: (blockName: string) => InputManager | null) {
     const DEFAULT_CONFIG: any = {

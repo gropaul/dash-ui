@@ -26,8 +26,7 @@ import {
     InteractiveBlock,
     StringReturnFunction
 } from "@/components/editor/inputs/input-manager";
-
-export const SELECT_BLOCK_NAME = 'select';
+import {SELECT_BLOCK_NAME} from "@/components/editor/tool-names";
 
 
 export function getInitialSelectDataElement(): RelationBlockData {
