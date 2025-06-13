@@ -5,14 +5,14 @@ import {Database, Folder, Info, Settings, Star, Wand2} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {AvailableTabs, SettingsTab, useGUIState} from "@/state/gui.state";
+import {AvailableTab, SettingsTab, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {ChatTab} from "@/components/chat/chat-tab";
 
 export interface NavigationBarProps {
-    selectedTabs: AvailableTabs[];
-    setSelectedTabs: (selectedTabs: AvailableTabs[]) => void;
+    selectedTabs: AvailableTab[];
+    setSelectedTabs: (selectedTabs: AvailableTab[]) => void;
 }
 
 
@@ -21,7 +21,7 @@ export function NavigationBar(props: NavigationBarProps) {
     const openSettingsTab = useGUIState(state => state.openSettingsTab);
     // Handle tab selection change
     const handleTabChange = (value: string) => {
-        props.setSelectedTabs([value as AvailableTabs]);
+        props.setSelectedTabs([value as AvailableTab]);
     };
 
     return (
@@ -83,7 +83,7 @@ export function NavigationBar(props: NavigationBarProps) {
 
 
 interface NavigationBarContentProps {
-    selectedTabs: AvailableTabs[];
+    selectedTabs: AvailableTab[];
 }
 
 
@@ -101,7 +101,7 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
         }
     }, [sortedTabs.length]);
 
-    function renderTabContent(tab: AvailableTabs) {
+    function renderTabContent(tab: AvailableTab) {
         switch (tab) {
             case 'connections':
                 return <ConnectionsOverviewTab />;
@@ -118,14 +118,19 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
         setSideBarTabsRatios(updated);
     }
 
+    const allTabs = ['connections', 'relations', 'chat'] as const;
+
     return (
         <div className="flex-1 h-screen overflow-auto">
             <ResizablePanelGroup direction="vertical">
-                {sortedTabs.map((tab, index) => (
+                {allTabs.map((tab, index) => (
                     <Fragment key={`panel-group-${tab}`}>
                         {index > 0 && <ResizableHandle />}
                         <ResizablePanel
-                            style={{ overflow: 'auto' }}
+                            style={{
+                                overflow: 'auto',
+                                display: props.selectedTabs.includes(tab) ? 'block' : 'none'
+                            }}
                             minSize={20}
                             onResize={(size) => handleResize(index, size)}
                             defaultSize={sideBarTabsRatios[index] ?? Math.floor(100 / sortedTabs.length)}

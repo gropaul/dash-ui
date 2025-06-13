@@ -15,7 +15,7 @@ import {DashboardState} from "@/model/dashboard-state";
 import {DataSourceGroup} from "@/model/data-source-connection";
 import {createWithEqualityFn} from "zustand/traditional";
 
-export type AvailableTabs = 'connections' | 'relations' | 'chat'
+export type AvailableTab = 'connections' | 'relations' | 'chat'
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model'
 
 export interface GUIZustand {
@@ -23,7 +23,7 @@ export interface GUIZustand {
     layoutModel: Model;
     mainBarSizeRatio: number;
     sideBarTabsSizeRatios: number[];
-    selectedSidebarTabs: AvailableTabs[];
+    selectedSidebarTabs: AvailableTab[];
     number: number;
     settingsOpen: boolean;
     settingsTab: SettingsTab;
@@ -37,7 +37,7 @@ export interface GUIZustandActions {
     setMainBarSizeRatio: (ratio: number) => void;
     setSideBarTabsSizeRatios: (ratio: number[]) => void;
 
-    setSelectedSidebarTabs: (tabs: AvailableTabs[]) => void;
+    setSelectedSidebarTabs: (tabs: AvailableTab[]) => void;
 
     relationFileDropEnabled: boolean;
     setRelationFileDropEnabled: (enabled: boolean) => void;
@@ -123,7 +123,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                 set({sideBarTabsSizeRatios: ratios});
             },
 
-            setSelectedSidebarTabs: (tabs: AvailableTabs[]) => {
+            setSelectedSidebarTabs: (tabs: AvailableTab[]) => {
                 set({selectedSidebarTabs: tabs});
             },
 
