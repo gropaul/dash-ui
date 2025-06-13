@@ -52,7 +52,7 @@ class LlmService {
             model: model,
             messages: convertToCoreMessages(messages),
             tools: this.tools,
-            maxSteps: 10,
+            maxSteps: 8,
         })
     }
 }
