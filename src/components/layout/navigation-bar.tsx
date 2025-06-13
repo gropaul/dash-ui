@@ -1,15 +1,13 @@
-import React, {Fragment, useState} from "react";
+import React, {Fragment} from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
 import {Database, Folder, Info, Settings, Star, Wand2} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {AvailableTabs, useGUIState} from "@/state/gui.state";
+import {AvailableTabs, SettingsTab, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
-import {useDatabaseConState} from "@/state/connections-database.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
-import {SettingsView} from "@/components/settings/settings-view";
 import {ChatTab} from "@/components/chat/chat-tab";
 
 export interface NavigationBarProps {
@@ -21,12 +19,7 @@ export interface NavigationBarProps {
 export function NavigationBar(props: NavigationBarProps) {
 
     const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(props.initialSelectedTabs || ['connections', 'relations']);
-    const [settingsOpen, setSettingsOpen] = useState(false);
-    const [settingsTab, setSettingsTab] = useState<'about' | 'connection'>('about');
-    const [setConnectionSettingsOpen, connectionSettingsOpen] = useDatabaseConState(state => [
-        state.setConnectionsConfigOpen,
-        state.connectionsConfigOpen
-    ]);
+    const openSettingsTab = useGUIState(state => state.openSettingsTab);
     // Handle tab selection change
     const handleTabChange = (value: string[]) => {
         setSelectedTabs(value as AvailableTabs[]);
@@ -78,40 +71,20 @@ export function NavigationBar(props: NavigationBarProps) {
             <div className={'h-2'}/>
 
             <Button variant={'ghost'} size={'icon'} onClick={() => {
-                setSettingsTab('about');
-                setSettingsOpen(true);
+                openSettingsTab('about');
             }}>
                 <Info />
             </Button>
             <div className={'h-2'}/>
             <Button variant={'ghost'} size={'icon'} onClick={() => {
-                setSettingsTab('connection');
-                setSettingsOpen(true);
+                openSettingsTab('connection');
             }}>
                 <Settings />
             </Button>
-
-            {/* Only show the settings view if the connection settings dialog is not open */}
-            {!connectionSettingsOpen && (
-                <SettingsView
-                    open={settingsOpen}
-                    onOpenChange={setSettingsOpen}
-                    initialTab={settingsTab}
-                    onSpecSave={(spec) => {
-                        // This will be handled by the ConnectionsProvider
-                        setConnectionSettingsOpen(true);
-                        setSettingsOpen(false);
-                    }}
-                />
-            )}
         </div>
     );
 }
 
-
-interface NavigationBarContentProps {
-    selectedTabs: AvailableTabs[];
-}
 
 interface NavigationBarContentProps {
     selectedTabs: AvailableTabs[];

@@ -52,9 +52,9 @@ export function LanguageModelContent() {
 
     return (
         <div className="p-4">
-            <h5 className="text-lg font-bold">Language Model Settings</h5>
+            <h5 className="text-lg font-bold">Assistant Settings</h5>
             <p className="text-muted-foreground mb-2">
-                Configure the language model providers used for chat interactions.
+                You can bring your own language model to Dash. Select a provider below to configure it.
             </p>
 
             <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as LanguageModelProvider)}>

@@ -6,7 +6,7 @@ import {ConnectionsService} from "@/state/connections-service";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";
-import {Database, Info, Share2, MessageSquare} from "lucide-react";
+import {Database, Info, Share2, MessageSquare, Wand2} from "lucide-react";
 import {ShareContent} from "@/components/settings/share-content";
 import {LanguageModelContent} from "@/components/settings/language-model-content";
 
@@ -80,8 +80,8 @@ export function SettingsView(props: SettingsViewProps) {
         },
         {
             id: 'language-model',
-            label: 'Language Models',
-            icon: <MessageSquare className="h-4 w-4 mr-1 sm:mr-2"/>,
+            label: 'Assistant',
+            icon: <Wand2 className="h-4 w-4 mr-1 sm:mr-2"/>,
             content: <LanguageModelContent />
         },
         {

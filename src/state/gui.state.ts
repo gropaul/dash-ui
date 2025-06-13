@@ -16,6 +16,7 @@ import {DataSourceGroup} from "@/model/data-source-connection";
 import {createWithEqualityFn} from "zustand/traditional";
 
 export type AvailableTabs = 'connections' | 'relations' | 'chat'
+export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model'
 
 export interface GUIZustand {
     selectedTabId: string | undefined;
@@ -24,6 +25,8 @@ export interface GUIZustand {
     sideBarTabsSizeRatios: number[];
     selectedSidebarTabs: AvailableTabs[];
     number: number;
+    settingsOpen: boolean;
+    settingsTab: SettingsTab;
 }
 
 
@@ -38,6 +41,10 @@ export interface GUIZustandActions {
 
     relationFileDropEnabled: boolean;
     setRelationFileDropEnabled: (enabled: boolean) => void;
+
+    setSettingsOpen: (open: boolean) => void;
+    setSettingsTab: (tab: SettingsTab) => void;
+    openSettingsTab: (tab: SettingsTab) => void;
 
     removeTab(tabId: string): void;
 
@@ -93,9 +100,23 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             selectedSidebarTabs: ['relations', 'chat'],
             sideBarTabsSizeRatios: [70],
             relationFileDropEnabled: true,
+            settingsOpen: false,
+            settingsTab: 'about',
 
             setRelationFileDropEnabled: (enabled: boolean) => {
                 set({relationFileDropEnabled: enabled});
+            },
+
+            setSettingsOpen: (open: boolean) => {
+                set({settingsOpen: open});
+            },
+
+            setSettingsTab: (tab: SettingsTab) => {
+                set({settingsTab: tab});
+            },
+
+            openSettingsTab: (tab: SettingsTab) => {
+                set({settingsOpen: true, settingsTab: tab});
             },
 
             setSideBarTabsSizeRatios: (ratios: number[]) => {
@@ -211,5 +232,3 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
         }
     )
 );
-
-

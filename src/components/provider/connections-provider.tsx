@@ -16,6 +16,7 @@ import {showExampleQuery} from "@/components/provider/example-query";
 import {findWorkingConnection} from "@/components/provider/config-utils";
 import {SettingsView} from "@/components/settings/settings-view";
 import {DASH_DOMAIN} from "@/platform/global-data";
+import {useGUIState} from "@/state/gui.state";
 
 interface ConnectionsProviderProps {
     children: React.ReactElement | React.ReactElement[];
@@ -26,10 +27,15 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
 
     const {setDatabaseConnection, history} = useDatabaseConState();
     const hydrated = useDBConHydrationState(state => state.hydrated);
-    const [connectionSettingsOpen, connectionsConfigForcedOpen, setConnectionSettingsOpen, setConnectionsForcedOpen] = useDatabaseConState(state => [
-        state.connectionsConfigOpen,
+    const [connectionsConfigForcedOpen, setConnectionsForcedOpen] = useDatabaseConState(state => [
         state.connectionsConfigForcedOpen,
-        state.setConnectionsConfigOpen, state.setConnectionsConfigForcedOpen
+        state.setConnectionsConfigForcedOpen
+    ]);
+    const [settingsOpen, settingsTab, setSettingsOpen, setSettingsTab] = useGUIState(state => [
+        state.settingsOpen,
+        state.settingsTab,
+        state.setSettingsOpen,
+        state.setSettingsTab
     ]);
     const router = useRouter()
     const pathname = usePathname()
@@ -41,6 +47,7 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
         if (status.state === 'connected') {
             await setDatabaseConnection(connection);
             setConnectionsForcedOpen(false);
+            setSettingsOpen(false);
         } else {
             toast.error('Failed to connect to database');
         }
@@ -105,11 +112,11 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
         <>
             {children}
             <SettingsView
-                open={connectionSettingsOpen}
+                open={settingsOpen}
                 forceOpen={connectionsConfigForcedOpen}
-                onOpenChange={setConnectionSettingsOpen}
+                onOpenChange={setSettingsOpen}
                 onSpecSave={onSaveSpec}
-                initialTab="connection"
+                initialTab={settingsTab}
             />
         </>
     );
