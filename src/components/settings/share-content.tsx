@@ -99,7 +99,7 @@ export function ShareContent() {
             <h5 className="font-semibold mt-4">2. Create Share Link for public DuckDB File</h5>
             <p className="text-muted-foreground mb-2 mt-1">
                 If the DuckDB file containing your dashboard is available online, you can create a shareable link
-                that others can use to access the file.
+                that others can use to access the dashboard via dash.
             </p>
 
             <div className="mt-4 p-4 border rounded-md">

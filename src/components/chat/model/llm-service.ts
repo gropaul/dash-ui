@@ -4,6 +4,7 @@ import { createOllama } from 'ollama-ai-provider';
 
 import {DataEngAssistantPrompt} from "@/components/chat/model/promts";
 import {AddChartToDashboard, AddMarkdownToDashboard, QueryDatabaseTool} from "@/components/chat/model/tools";
+import { useLanguageModelState } from "@/state/language-model.state";
 
 export interface ChatSession {
     // initialPrompt?: UIMessage; // Optional initial prompt for the session
@@ -35,19 +36,20 @@ export function GetNewChatSession(): ChatSession {
 }
 
 class LlmService {
-    private readonly defaultModel: LanguageModel;
     private readonly tools: Record<string, VercelTool>;
 
-    constructor(model: LanguageModel, tools: Record<string, VercelTool>) {
-        this.defaultModel = model;
+    constructor(tools: Record<string, VercelTool>) {
         this.tools = tools;
     }
 
     streamText(messages: Message[]): StreamTextResult<any, any> {
-
         console.log('streamText called with messages:', messages);
+
+        // Get the current language model from state
+        const model = useLanguageModelState.getState().getLanguageModel();
+
         return streamText({
-            model: this.defaultModel,
+            model: model,
             messages: convertToCoreMessages(messages),
             tools: this.tools,
             maxSteps: 10,
@@ -55,23 +57,8 @@ class LlmService {
     }
 }
 
-const openai = createOpenAI({
-    // custom settings, e.g.
-    compatibility: 'strict', // strict mode, enable when using the OpenAI API
-    apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, // your OpenAI API key
-});
-
-const ollama = createOllama({
-    baseURL: 'http://localhost:11434/api',
-});
-
-// see https://platform.openai.com/docs/pricing
-
-const gpt4 = openai('gpt-4.1');
-const gpt4Nano = openai('gpt-4.1-nano');
-const qwen3 = ollama('qwen3:8b', {
-    simulateStreaming: true
-})
+// Note: We no longer need to create hardcoded models here
+// The models are now configured through the language model settings
 
 export const TOOL_NAME_EXECUTE_QUERY = 'executeQuery';
 export const TOOL_NAME_ADD_CHART_TO_DASHBOARD = 'addChartToDashboard';
@@ -82,7 +69,6 @@ export type ToolName = typeof TOOL_NAME_EXECUTE_QUERY | typeof TOOL_NAME_ADD_CHA
 
 
 export const aiService = new LlmService(
-    gpt4,
     {
         [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: AddChartToDashboard,
         [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: AddMarkdownToDashboard,

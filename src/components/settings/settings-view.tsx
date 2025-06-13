@@ -6,11 +6,12 @@ import {ConnectionsService} from "@/state/connections-service";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";
-import {Database, Info, Share2} from "lucide-react";
+import {Database, Info, Share2, MessageSquare} from "lucide-react";
 import {ShareContent} from "@/components/settings/share-content";
+import {LanguageModelContent} from "@/components/settings/language-model-content";
 
 // Define the tab types
-export type SettingsTab = 'about' | 'connection' | 'sharing';
+export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model';
 
 // Interface for tab definition to make it extensible
 export interface SettingsTabDefinition {
@@ -76,6 +77,12 @@ export function SettingsView(props: SettingsViewProps) {
                 onSpecChange={setCurrentSpec}
                 onSpecSave={props.onSpecSave}
             />
+        },
+        {
+            id: 'language-model',
+            label: 'Language Models',
+            icon: <MessageSquare className="h-4 w-4 mr-1 sm:mr-2"/>,
+            content: <LanguageModelContent />
         },
         {
             id: 'sharing',

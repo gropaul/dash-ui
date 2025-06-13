@@ -5,6 +5,7 @@ import {Input} from "@/components/ui/input";
 import {Checkbox} from "@/components/ui/checkbox";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {cn} from "@/lib/utils";
+import {ValidationStatus} from "@/providers";
 
 export interface FormDefinition {
     fields: FormField[];
@@ -58,6 +59,7 @@ export interface CustomFormProps {
     onCancel?: () => void,
     formWrapper?: React.FC<{ children: React.ReactElement }>
     className?: string
+    validateSubmit?: (formData: { [key: string]: any }) => Promise<ValidationStatus>;
 }
 
 export const FormFields: FC<{
@@ -65,6 +67,7 @@ export const FormFields: FC<{
         [key: string]: any
     }, handleChange: (key: string, value: any) => void, errors: { [key: string]: string | undefined }
 }> = ({errors, handleChange, formData, formDefinition}) => {
+
     return <div className="space-y-4">
         {formDefinition.fields.map((field) => {
             const isVisible = field.shouldBeVisible ? field.shouldBeVisible(formData) : true;
@@ -158,8 +161,12 @@ export function CustomForm({
                                initialFormData,
                                buttonBarLeading,
                                formWrapper,
-                               className
+                               className,
+                               validateSubmit
                            }: CustomFormProps) {
+
+    const [isValidating, setIsValidating] = useState(false);
+
     const [formData, setFormData] = useState<{ [key: string]: any }>(
         formDefinition.fields.reduce((acc, field) => {
             acc[field.key] = initialFormData[field.key] || '';
@@ -211,8 +218,24 @@ export function CustomForm({
         return undefined;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (validateSubmit) {
+            setIsValidating(true);
+            const validationStatus = await validateSubmit(formData);
+            setIsValidating(false);
+
+            if (validationStatus.status === 'error') {
+                setErrors({submit: validationStatus.message || 'Validation failed'});
+                return;
+            } else if (validationStatus.status === 'warning') {
+                setErrors({submit: validationStatus.message || 'Validation warning'});
+            } else {
+                setErrors({});
+            }
+        }
+
         const hasErrors = checkErrors();
         if (!hasErrors) {
             onSubmit(formData);
@@ -227,26 +250,49 @@ export function CustomForm({
                     children: (
                         <FormFields formDefinition={formDefinition} formData={formData} handleChange={handleChange}
                                     errors={errors}/>)
-                }) : (<FormFields formDefinition={formDefinition} formData={formData} handleChange={handleChange}
-                                  errors={errors}/>)
+                }) : (
+                    <div className={'pb-4'}>
+                        <FormFields formDefinition={formDefinition} formData={formData} handleChange={handleChange}
+                                    errors={errors}/>
+                    </div>
+                )
             }
             <div
-                className={`flex items-center space-x-2 ${
+                className={`flex items-start space-x-2 ${
                     onCancel ? 'justify-between' : 'justify-end'
                 }`}
             >
                 <div>{buttonBarLeading}</div>
-                <div className="flex-1"/>
+                <div className="flex-1 "/>
+                {/* Show Submit error if there is one */}
+                {errors.submit && (
+                    <p className="text-sm text-red-600 mb-2">{errors.submit}</p>
+                )}
                 <div>
+                    {/* Cancel and Submit buttons */}
                     {onCancel && (
                         <Button variant="secondary" onClick={onCancel}>
                             Cancel
                         </Button>
                     )}
-                    <Button type="submit">{submitButtonLabel}</Button>
+                    <Button type="submit" disabled={isValidating}>
+                        <div className="relative flex justify-center items-center w-full">
+                            {/* Label - visible when not validating */}
+                            <span className={cn(isValidating ? "invisible" : "visible")}>
+                              {submitButtonLabel}
+                            </span>
+
+                            {/* Spinner - centered absolutely, visible when validating */}
+                            {isValidating && (
+                                <div
+                                    className="absolute h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"/>
+                            )}
+                        </div>
+                    </Button>
+
+
                 </div>
             </div>
-
         </form>
     );
 }

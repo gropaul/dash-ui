@@ -235,16 +235,17 @@ export interface ConnectionConfigProps {
     onSpecSave?: (spec: DBConnectionSpec) => void;
 }
 
+export const FormWrapper: FC<{ children: ReactElement }> = ({children}) => (
+    <div className="rounded-md border-separate border p-4 mb-4">
+        {children}
+    </div>
+)
 
 export function ConnectionConfig({spec, onSpecChange, onSpecSave}: ConnectionConfigProps) {
 
     const selectedFromDefinition = FROM_DEFINITIONS[spec.type];
 
-    const FormWrapper: FC<{ children: ReactElement }> = ({children}) => (
-        <div className="rounded-md border-separate border p-4 mb-4">
-            {children}
-        </div>
-    )
+
 
     function onTypeChange(type: DBConnectionType) {
         onSpecChange(getDefaultSpec(type));
