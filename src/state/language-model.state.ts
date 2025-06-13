@@ -76,6 +76,25 @@ export const useLanguageModelState = create<LanguageModelState & LanguageModelAc
         {
             name: 'language-model-settings',
             storage: createJSONStorage(() => localStorage),
+            onRehydrateStorage: (state) => {
+                return (restoredState, error) => {
+                    if (error) {
+                        console.error('Error rehydrating language model state:', error);
+                        return;
+                    }
+
+                    if (restoredState) {
+                        // Update provider registry with the loaded configurations
+                        const registry = getProviderRegistry();
+                        Object.entries(restoredState.providerConfigs).forEach(([providerId, config]) => {
+                            const provider = registry.getProvider(providerId);
+                            if (provider) {
+                                provider.updateConfig(config);
+                            }
+                        });
+                    }
+                };
+            },
         }
     )
 );
