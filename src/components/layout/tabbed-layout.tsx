@@ -1,7 +1,7 @@
 import React from 'react';
 import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
-import {Database, Folder, LayoutDashboard, MessageSquare, Network, Sheet} from 'lucide-react';
+import {Database, Folder, LayoutDashboard, Network, Sheet} from 'lucide-react';
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
 import {SchemaTab} from "@/components/schema/schema-tab";
@@ -31,8 +31,8 @@ export function TabbedLayout() {
         <div className="relative h-full w-full">
             <div className="flex flex-row h-full">
                 <NavigationBar
-                    initialSelectedTabs={selectedTabs}
-                    onSelectedTabsChanged={setSelectedTabs}
+                    selectedTabs={selectedTabs}
+                    setSelectedTabs={setSelectedTabs}
                 />
                 <ResizablePanelGroup
                     className={'flex-1 h-full'}

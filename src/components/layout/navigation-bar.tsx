@@ -11,21 +11,17 @@ import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {ChatTab} from "@/components/chat/chat-tab";
 
 export interface NavigationBarProps {
-    initialSelectedTabs?: AvailableTabs[];
-    onSelectedTabsChanged?: (selectedTabs: AvailableTabs[]) => void;
+    selectedTabs: AvailableTabs[];
+    setSelectedTabs: (selectedTabs: AvailableTabs[]) => void;
 }
 
 
 export function NavigationBar(props: NavigationBarProps) {
 
-    const [selectedTabs, setSelectedTabs] = React.useState<AvailableTabs[]>(props.initialSelectedTabs || ['connections', 'relations']);
     const openSettingsTab = useGUIState(state => state.openSettingsTab);
     // Handle tab selection change
-    const handleTabChange = (value: string[]) => {
-        setSelectedTabs(value as AvailableTabs[]);
-        if (props.onSelectedTabsChanged) {
-            props.onSelectedTabsChanged(value as AvailableTabs[]);
-        }
+    const handleTabChange = (value: string) => {
+        props.setSelectedTabs([value as AvailableTabs]);
     };
 
     return (
@@ -35,9 +31,9 @@ export function NavigationBar(props: NavigationBarProps) {
             </Avatar>
 
             <ToggleGroup
-                type="multiple"
+                type="single"
                 className={'flex flex-col mt-4'}
-                value={selectedTabs}
+                value={props.selectedTabs[0]}
                 onValueChange={handleTabChange}
             >
                 <ToggleGroupItem
