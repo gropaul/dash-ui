@@ -96,17 +96,19 @@ export function ChatContentMessages({
                 onScroll={handleScroll}
                 className="flex-1 min-h-0 overflow-y-auto p-3 custom-scrollbar scroll-smooth"
             >
-                {messages.length ? (
-                    <div className="space-y-4 flex flex-col w-full ">
-                        {messages.map((m, index) => (
-                            <ChatMessageItem showSystemMessage={showSystemMessage} key={index} message={m}/>
-                        ))}
+                <div className="space-y-4 flex flex-col w-full ">
+                    <div className="text-sm text-center space-y-2">
+                        <div className="text-muted-foreground">
+                            How can I help you today?
+                        </div>
+                        <div className="text-amber-500 dark:text-amber-400 text-xs max-w-md mx-auto">
+                            Warning: While using the assistant, your messages and data can be shared with the provider!
+                        </div>
                     </div>
-                ) : (
-                    <div className="text-sm text-muted-foreground text-center py-4">
-                        How can I help you today?
-                    </div>
-                )}
+                    {messages.map((m, index) => (
+                        <ChatMessageItem showSystemMessage={showSystemMessage} key={index} message={m}/>
+                    ))}
+                </div>
             </div>
 
             {/* Input */}
