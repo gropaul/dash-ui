@@ -18,11 +18,17 @@ import {ChatTab} from "@/components/chat/chat-tab";
 
 
 export function TabbedLayout() {
-     const layoutModel = useGUIState(state => state.layoutModel);
+    const layoutModel = useGUIState(state => state.layoutModel);
     const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
 
-    const hasTabs = selectedTabs.length > 0;
+    let hasNonEmptyTabs = false;
+    for (const tab of selectedTabs) {
+        if (tab as any !== '') {
+            hasNonEmptyTabs = true;
+            break;
+        }
+    }
 
     const panelRatio = useGUIState(state => state.mainBarSizeRatio);
     const setPanelRatio = useGUIState(state => state.setMainBarSizeRatio);
@@ -42,13 +48,15 @@ export function TabbedLayout() {
                         defaultSize={panelRatio}
                         onResize={setPanelRatio}
                         minSize={8}
-                        className={cn(hasTabs ? '' : 'hidden', '')}
+                        style={{
+                            display: hasNonEmptyTabs ? 'block' : 'none',
+                        }}
                     >
-                        {hasTabs && <NavigationBarContent selectedTabs={selectedTabs}/>}
+                        {<NavigationBarContent selectedTabs={selectedTabs}/>}
                     </ResizablePanel>
-                    <ResizableHandle className={hasTabs ? '' : 'hidden'}/>
+                    <ResizableHandle className={hasNonEmptyTabs ? '' : 'hidden'}/>
                     <ResizablePanel
-                        defaultSize={hasTabs ? (100 - panelRatio) : 100}
+                        defaultSize={hasNonEmptyTabs ? (100 - panelRatio) : 100}
                         minSize={40}
                         className={'relative'}
                     >
