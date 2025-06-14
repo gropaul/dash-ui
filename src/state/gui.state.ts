@@ -14,9 +14,22 @@ import {RelationState} from "@/model/relation-state";
 import {DashboardState} from "@/model/dashboard-state";
 import {DataSourceGroup} from "@/model/data-source-connection";
 import {createWithEqualityFn} from "zustand/traditional";
+import {ForceOpenReason} from "@/components/settings/settings-view";
 
 export type AvailableTab = 'connections' | 'relations' | 'chat'
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model'
+
+export interface SettingsGUIZustand {
+    isOpen: boolean;
+    currentTab: SettingsTab;
+    forceOpenReasons: ForceOpenReason[];
+}
+
+const INITIAL_SETTINGS_STATE: SettingsGUIZustand = {
+    isOpen: false,
+    currentTab: 'about',
+    forceOpenReasons: [],
+}
 
 export interface GUIZustand {
     selectedTabId: string | undefined;
@@ -25,8 +38,7 @@ export interface GUIZustand {
     sideBarTabsSizeRatios: number[];
     selectedSidebarTabs: AvailableTab[];
     number: number;
-    settingsOpen: boolean;
-    settingsTab: SettingsTab;
+    settings: SettingsGUIZustand;
 }
 
 
@@ -43,8 +55,10 @@ export interface GUIZustandActions {
     setRelationFileDropEnabled: (enabled: boolean) => void;
 
     setSettingsOpen: (open: boolean) => void;
-    setSettingsTab: (tab: SettingsTab) => void;
+    addSettingForceOpenReason: (reason: ForceOpenReason) => void;
+    removeSettingForceOpenReason: (reason: ForceOpenReason) => void;
     openSettingsTab: (tab: SettingsTab) => void;
+
 
     removeTab(tabId: string): void;
 
@@ -97,26 +111,54 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             selectedTabId: undefined,
             number: 0,
             mainBarSizeRatio: 25,
-            selectedSidebarTabs: ['relations', 'chat'],
+            selectedSidebarTabs: ['relations'],
             sideBarTabsSizeRatios: [70],
             relationFileDropEnabled: true,
-            settingsOpen: false,
-            settingsTab: 'about',
+            settings: INITIAL_SETTINGS_STATE,
 
             setRelationFileDropEnabled: (enabled: boolean) => {
                 set({relationFileDropEnabled: enabled});
             },
 
             setSettingsOpen: (open: boolean) => {
-                set({settingsOpen: open});
+                set({
+                    settings: {
+                        ...get().settings,
+                        isOpen: open,
+                    }
+                });
             },
 
-            setSettingsTab: (tab: SettingsTab) => {
-                set({settingsTab: tab});
+            addSettingForceOpenReason: (reason: ForceOpenReason) => {
+                // if the reason is already present, do not add it again
+                const currentReasons = get().settings.forceOpenReasons;
+                if (!currentReasons.some(r => r.id === reason.id)) {
+                    set((state) => ({
+                        settings: {
+                            ...state.settings,
+                            isOpen: true,
+                            currentTab: reason.tab,
+                            forceOpenReasons: [...state.settings.forceOpenReasons, reason],
+                        }
+                    }));
+                }
             },
-
+            removeSettingForceOpenReason: (reason: ForceOpenReason) => {
+                set((state) => ({
+                    settings: {
+                        ...state.settings,
+                        forceOpenReasons: state.settings.forceOpenReasons.filter(r => r.id !== reason.id),
+                    }
+                }));
+            },
             openSettingsTab: (tab: SettingsTab) => {
-                set({settingsOpen: true, settingsTab: tab});
+                set({
+                    settings: {
+                        ...get().settings,
+                        isOpen: true,
+                        currentTab: tab,
+                    }
+                });
             },
 
             setSideBarTabsSizeRatios: (ratios: number[]) => {
@@ -155,7 +197,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                 // such tabs.
                 const model = get().layoutModel;
                 const nodesToRemove: string[] = [];
-                model.visitNodes( (node) => {
+                model.visitNodes((node) => {
                     // it is a potentially removable tab if the id starts with 'relation'/ 'dashboard' / 'schema' / 'database'
                     const nodeId = node.getId();
                     if (nodeId.startsWith('relation') || nodeId.startsWith('dashboard') || nodeId.startsWith('schema') || nodeId.startsWith('database')) {
@@ -166,7 +208,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                     return;
                 });
 
-                nodesToRemove.forEach( (nodeId) => {
+                nodesToRemove.forEach((nodeId) => {
                     console.warn('Removing tab because of the underlying data has been removed', nodeId);
                     removeTab(model, nodeId);
                 });

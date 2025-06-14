@@ -16,7 +16,7 @@ export function TableValueCell({tableState, column, element}: RowElementViewProp
     const wrapContent = columnViewState.wrapContent;
     const columnWidth = columnViewState.width + "px";
 
-    const stringElement = elementToString(element);
+    const stringElement = elementToString(element, column);
 
     return (
         <td
@@ -55,7 +55,7 @@ export function TableValueCell({tableState, column, element}: RowElementViewProp
 }
 
 
-function elementToString(element: any): string {
+function elementToString(element: any, column: Column): string {
     if (element === null || element === undefined) {
         return "NULL";
     }
@@ -63,6 +63,12 @@ function elementToString(element: any): string {
     // if object or array, return the json string
     if (typeof element === "object") {
         return JSON.stringify(element);
+    }
+
+    if (column.type === "Timestamp") {
+        // create date from timestamp number
+        const date = new Date(element);
+        return date.toLocaleString();
     }
 
     return element.toString();
@@ -88,7 +94,9 @@ export function ValueElement({column, element, stringElement}: ValueElementProps
         );
     } else {
         if (column.type === "Timestamp") {
-            return <span>{element.toLocaleString()}</span>;
+            // create date from timestamp number
+            const date = new Date(element);
+            return <span>{date.toLocaleString()}</span>;
         }
     }
 

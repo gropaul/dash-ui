@@ -5,12 +5,25 @@ import {ConnectionsService} from "@/state/connections-service";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";
-import {Database, Info, Share2, Wand2} from "lucide-react";
+import {AlertCircle, Database, Info, Share2, Wand2} from "lucide-react";
 import {ShareContent} from "@/components/settings/share-content";
 import {LanguageModelContent} from "@/components/settings/language-model-content";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
 // Define the tab types
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model';
+
+export interface ForceOpenReason {
+    tab: SettingsTab;
+    message: string;
+    id: string; // Unique identifier for the reason
+}
+
+export const NO_CONNECTION_FORCE_OPEN_REASON: ForceOpenReason = {
+    tab: 'connection',
+    message: 'No database connection available. Please configure a connection.',
+    id: 'no-connection'
+}
 
 // Interface for tab definition to make it extensible
 export interface SettingsTabDefinition {
@@ -22,7 +35,7 @@ export interface SettingsTabDefinition {
 
 export interface SettingsViewProps {
     open: boolean;
-    forceOpen?: boolean;
+    forceOpenReasons: ForceOpenReason[];
     onOpenChange: (open: boolean) => void;
     onSpecSave?: (spec: DBConnectionSpec) => void;
     initialTab?: SettingsTab;
@@ -56,10 +69,11 @@ export function SettingsView(props: SettingsViewProps) {
     }, [props.initialTab]);
 
     function onLocalOpenChange(open: boolean) {
-        if (props.forceOpen) {
-            toast.error('You have to configure a connection before you can continue');
+        const forceOpen = props.forceOpenReasons.length > 0;
+        if (forceOpen) {
+            toast.error(`Cannot close settings: ${props.forceOpenReasons.map(reason => reason.message).join(', ')}`);
         }
-        if (!open && !props.forceOpen) {
+        if (!open && !forceOpen) {
             props.onOpenChange(open);
         }
     }
@@ -81,7 +95,7 @@ export function SettingsView(props: SettingsViewProps) {
             id: 'language-model',
             label: 'Assistant',
             icon: <Wand2 className="h-4 w-4 mr-1 sm:mr-2"/>,
-            content: <LanguageModelContent />
+            content: <LanguageModelContent/>
         },
         {
             id: 'sharing',
@@ -97,36 +111,62 @@ export function SettingsView(props: SettingsViewProps) {
         },
     ];
 
-    return (
-        <Dialog open={props.open} onOpenChange={onLocalOpenChange}>
-            <DialogContent className="flex p-0 gap-0 w-full max-w-4xl h-[90vh] max-h-[600px] sm:h-[600px]">
-                {/* Sidebar */}
-                <div className="w-fit min-w-[160px] max-w-[224px] border-r p-4 bg-muted/30">
-                    <h5 className="text-lg font-bold">Settings</h5>
-                    <ul className="space-y-2 pt-2">
-                        {tabs.map((tab) => (
-                            <li key={tab.id}>
-                                <button
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center py-1 hover:bg-muted w-full text-muted-foreground rounded-sm transition-colors ${
-                                        activeTab === tab.id
-                                            ? 'text-primary font-semibold'
-                                            : ''
-                                    }`}
-                                >
-                                    {tab.icon}
-                                    {tab.label}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+    const tabForceOpenIcon = (tabId: SettingsTab) => {
+        const reasons = props.forceOpenReasons.filter(reason => reason.tab === tabId);
+        const message = reasons.map(reason => reason.message).join(', ');
+        if (reasons.length > 0) {
+            return (
+                <Tooltip>
+                    <TooltipTrigger>
+                        <AlertCircle className="pl-2 text-red-500">
+                        </AlertCircle>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <div className="max-w-xs">
+                            {message}
+                        </div>
+                    </TooltipContent>
+                </Tooltip>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto">
-                    {tabs.find(tab => tab.id === activeTab)?.content}
-                </div>
-            </DialogContent>
-        </Dialog>
+            );
+        }
+        return null;
+    }
+
+    return (
+        <TooltipProvider>
+            <Dialog open={props.open} onOpenChange={onLocalOpenChange}>
+                <DialogContent className="flex p-0 gap-0 w-full max-w-4xl h-[90vh] max-h-[600px] sm:h-[600px]">
+                    {/* Sidebar */}
+                    <div className="w-fit min-w-[180px] max-w-[254px] border-r p-4 bg-muted/30">
+                        <h5 className="text-lg font-bold">Settings</h5>
+                        <ul className="space-y-2 pt-2">
+                            {tabs.map((tab) => (
+                                <li key={tab.id}>
+                                    <button
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex items-center py-1 hover:bg-muted w-full text-muted-foreground rounded-sm transition-colors ${
+                                            activeTab === tab.id
+                                                ? 'text-primary font-semibold'
+                                                : ''
+                                        }`}
+                                    >
+                                        {tab.icon}
+                                        {tab.label}
+                                        {tabForceOpenIcon(tab.id)}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 overflow-y-auto">
+                        {tabs.find(tab => tab.id === activeTab)?.content}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+        </TooltipProvider>
     );
 }

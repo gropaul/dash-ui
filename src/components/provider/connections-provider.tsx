@@ -14,7 +14,7 @@ import {toast} from "sonner";
 import {usePathname, useRouter} from 'next/navigation'
 import {showExampleQuery} from "@/components/provider/example-query";
 import {findWorkingConnection} from "@/components/provider/config-utils";
-import {SettingsView} from "@/components/settings/settings-view";
+import {NO_CONNECTION_FORCE_OPEN_REASON, SettingsView} from "@/components/settings/settings-view";
 import {DASH_DOMAIN} from "@/platform/global-data";
 import {useGUIState} from "@/state/gui.state";
 
@@ -27,18 +27,15 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
 
     const {setDatabaseConnection, history} = useDatabaseConState();
     const hydrated = useDBConHydrationState(state => state.hydrated);
-    const [connectionsConfigForcedOpen, setConnectionsForcedOpen] = useDatabaseConState(state => [
-        state.connectionsConfigForcedOpen,
-        state.setConnectionsConfigForcedOpen
-    ]);
-    const [settingsOpen, settingsTab, setSettingsOpen, setSettingsTab] = useGUIState(state => [
-        state.settingsOpen,
-        state.settingsTab,
+    const [settingsOpen, settingsTab, setSettingsOpen, forceOpenReasons, addReason, removeReason] = useGUIState(state => [
+        state.settings.isOpen,
+        state.settings.currentTab,
         state.setSettingsOpen,
-        state.setSettingsTab
+        state.settings.forceOpenReasons,
+        state.addSettingForceOpenReason,
+        state.removeSettingForceOpenReason
     ]);
     const router = useRouter()
-    const pathname = usePathname()
 
     const onSaveSpec = async (spec: DBConnectionSpec) => {
         const connection = specToConnection(spec);
@@ -46,7 +43,7 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
         const status = await connection.checkConnectionState();
         if (status.state === 'connected') {
             await setDatabaseConnection(connection);
-            setConnectionsForcedOpen(false);
+            removeReason(NO_CONNECTION_FORCE_OPEN_REASON);
             setSettingsOpen(false);
         } else {
             toast.error('Failed to connect to database');
@@ -82,7 +79,7 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
 
         if (!connection) {
             toast.error('No viable connection found');
-            setConnectionsForcedOpen(true);
+            addReason(NO_CONNECTION_FORCE_OPEN_REASON);
             return;
         }
 
@@ -113,7 +110,7 @@ export default function ConnectionsProvider({children}: ConnectionsProviderProps
             {children}
             <SettingsView
                 open={settingsOpen}
-                forceOpen={connectionsConfigForcedOpen}
+                forceOpenReasons={forceOpenReasons}
                 onOpenChange={setSettingsOpen}
                 onSpecSave={onSaveSpec}
                 initialTab={settingsTab}
