@@ -37,8 +37,26 @@ export const QueryDatabaseTool = tool({
         const db = connection.getDatabaseConnection();
         try {
             const result = await db.executeQuery(query);
-            const mdResult = RelationDataToMarkdown(result)
-            return `Query executed successfully. Here are the results:\n${mdResult}`;
+
+            // Limit rows for very large result sets
+            if (result.rows.length > 200) {
+                const firstTenRows = result.rows.slice(0, 10);
+                const previewMarkdown = RelationDataToMarkdown({
+                    columns: result.columns,
+                    rows: firstTenRows
+                });
+                return `Result has ${result.rows.length} rows, only up to 200 rows is allowed for performant display. Use offset and limit to page. Showing first 10 only:\n${previewMarkdown}`;
+            }
+
+            const mdResult = RelationDataToMarkdown(result);
+
+            // Limit markdown size
+            if (mdResult.length > 5000) {
+                const preview = mdResult.slice(0, 200);
+                return `Result too large to display (>${mdResult.length} chars, ${result.rows.length} rows). Showing first 200 characters:\n${preview}`;
+            }
+
+            return `Query successful:\n${mdResult}`;
         } catch (error: any) {
             console.error('Error executing query:', error);
             return `Error executing query: ${error.message}`;
@@ -46,7 +64,7 @@ export const QueryDatabaseTool = tool({
     },
 });
 
-interface AddedDataViewToTableArgs {
+interface ChartViewDataArgs {
     title?: string;
     sql: string;
     chartType: 'bar' | 'line' | 'pie' | 'scatter' | 'area';
@@ -56,13 +74,11 @@ interface AddedDataViewToTableArgs {
     yRangeMin?: 'min' | 'zero';
 }
 
-export async function getRelationBlockData(args: AddedDataViewToTableArgs): Promise<RelationBlockData> {
-
+export async function getDefaultRelationBockData(sql: string): Promise<RelationBlockData> {
     const randomId = getRandomId();
-    const baseQuery = args.sql;
     const source: RelationSourceQuery = {
         type: "query",
-        baseQuery: baseQuery,
+        baseQuery: sql,
         id: randomId,
         name: "New Query"
     }
@@ -70,7 +86,7 @@ export async function getRelationBlockData(args: AddedDataViewToTableArgs): Prom
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }
-    const query = getQueryFromParamsUnchecked(relation, defaultQueryParams, baseQuery)
+    const query = getQueryFromParamsUnchecked(relation, defaultQueryParams, sql)
     const initalViewState = getInitViewState(
         'New Data Element',
         undefined,
@@ -82,8 +98,6 @@ export async function getRelationBlockData(args: AddedDataViewToTableArgs): Prom
         query: query,
         viewState: {
             ...initalViewState,
-            chartState: getChartViewState(args),
-            selectedView: 'chart',
         },
         executionState: {
             state: "not-started"
@@ -95,10 +109,20 @@ export async function getRelationBlockData(args: AddedDataViewToTableArgs): Prom
     return {
         ...executedRelationState,
     };
-
 }
 
-export function getChartViewState(args: AddedDataViewToTableArgs): ChartViewState {
+export async function getChartBlockData(args: ChartViewDataArgs): Promise<RelationBlockData> {
+
+    const chartViewState = getChartViewState(args)
+    const defaultData = await getDefaultRelationBockData(args.sql);
+
+    defaultData.viewState.selectedView = 'chart';
+    defaultData.viewState.chartState = chartViewState;
+
+    return defaultData;
+}
+
+export function getChartViewState(args: ChartViewDataArgs): ChartViewState {
 
     function dequoteAxisLabel(label: string): string {
         return label.replace(/"/g, '');
@@ -156,6 +180,20 @@ export function getChartViewState(args: AddedDataViewToTableArgs): ChartViewStat
     }
 }
 
+interface TableViewDataArgs {
+    sql: string;
+    showNumberOfRows: '5' | '10' | '50' | '100' | undefined;
+}
+
+export async function getTableBlockData(args: TableViewDataArgs): Promise<RelationBlockData> {
+    const defaultData = await getDefaultRelationBockData(args.sql);
+    defaultData.viewState.selectedView = 'table';
+    if (args.showNumberOfRows) {
+        defaultData.query.viewParameters.table.limit = parseInt(args.showNumberOfRows);
+    }
+    return defaultData;
+}
+
 export const AddMarkdownToDashboard = tool({
     description: 'Adds a markdown element to the dashboard.',
     parameters: z.object({
@@ -198,7 +236,7 @@ export const AddInputToDashboard = tool({
 
 export const AddChartToDashboard = tool({
 
-    description: 'Adds an element to the dashboard.',
+    description: 'Adds an chart element to the dashboard.',
     parameters: z.object({
         sql: z.string().describe('The SQL query to execute for the chart.'),
         chartType: z.enum(['bar', 'line', 'pie']).describe('The type of chart to create.'),
@@ -209,7 +247,7 @@ export const AddChartToDashboard = tool({
         title: z.string().optional().describe('The title of the chart.')
     }).describe('Parameters for adding a chart to the dashboard.'),
     execute: async (args) => {
-        const { sql, chartType, xAxis, yAxes, title, xLabelRotation, yRangeMin } = args;
+        const {sql, chartType, xAxis, yAxes, title, xLabelRotation, yRangeMin} = args;
         const guiState = useGUIState.getState();
         const selectedTabId = guiState.selectedTabId;
         if (!selectedTabId) {
@@ -229,7 +267,7 @@ export const AddChartToDashboard = tool({
                 }
             }
 
-            const data = await getRelationBlockData({
+            const data = await getChartBlockData({
                 title: title,
                 sql: sql,
                 chartType: chartType,
@@ -250,6 +288,55 @@ export const AddChartToDashboard = tool({
             editor.editor.blocks.insert(RELATION_BLOCK_NAME, data, DEFAULT_CONFIG, currentNumberOfBlocks);
 
             return `Chart was added successfully to the dashboard.`;
+        }
+    }
+});
+
+
+export const AddTableToDashboard = tool({
+
+    description: 'Adds a table element to the dashboard.',
+    parameters: z.object({
+        sql: z.string().describe('The SQL query to execute for the table content.'),
+        showNumberOfRows: z.enum(['5', '10', '50', '100']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
+    }).describe('Parameters for adding a chart to the dashboard.'),
+    execute: async (args) => {
+        const {sql, showNumberOfRows} = args;
+        const guiState = useGUIState.getState();
+        const selectedTabId = guiState.selectedTabId;
+        if (!selectedTabId) {
+            return 'Error: No active tab found. The user must open a tab to add the chart.';
+        } else {
+            const hasEditor = EditorsService.getInstance().hasEditor(selectedTabId);
+            if (!hasEditor) {
+                return 'Error: No editor found for the active tab. The user must open a tab to add the chart.';
+            }
+
+            const editor = EditorsService.getInstance().getEditor(selectedTabId);
+
+            const DEFAULT_CONFIG: any = {
+                placeholder: "Add a new relation",
+                getInputManager: (blockName: string) => {
+                    return null; // no input manager for this block
+                }
+            }
+
+            const data = await getTableBlockData({
+                sql: sql,
+                showNumberOfRows: showNumberOfRows
+            });
+
+            // if there is an error in the data, return an error message
+            if (data.executionState.state === 'error') {
+                const jsonString = JSON.stringify(data.executionState.error, null, 2);
+                return `Error executing query: ${jsonString}`;
+            }
+
+            const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
+            console.log('Adding table to dashboard with data index:', currentNumberOfBlocks, 'data:', data);
+            editor.editor.blocks.insert(RELATION_BLOCK_NAME, data, DEFAULT_CONFIG, currentNumberOfBlocks);
+
+            return `Table was added successfully to the dashboard.`;
         }
     }
 });
