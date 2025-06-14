@@ -7,6 +7,7 @@ import {ChatContentMessages} from "@/components/chat/chat-content-messages";
 import {Badge} from "@/components/ui/badge";
 import {useLanguageModelState} from "@/state/language-model.state";
 import {useGUIState} from "@/state/gui.state";
+import {getProviderRegistry} from "@/components/chat/providers";
 
 
 export interface ChatWindowProps {
@@ -27,8 +28,7 @@ export function ChatContentWrapper(props: ChatWindowProps) {
     const openSettingsTab = useGUIState(state => state.openSettingsTab);
 
     // Get provider registry to get display name
-    const providerRegistry = require('@/providers/provider-registry').getProviderRegistry();
-    const provider = providerRegistry.getProvider(activeProviderId);
+    const provider = getProviderRegistry().getProvider(activeProviderId);
     const providerName = provider ? provider.getDisplayName() : 'Unknown';
 
     function toggleHistory() {

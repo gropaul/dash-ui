@@ -4,8 +4,8 @@ import {LanguageModelProvider, useLanguageModelState} from "@/state/language-mod
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {toast} from "sonner";
 import {FormWrapper} from "@/components/connections/connection-config";
-import {getProviderRegistry} from "@/providers/provider-registry";
-import {ValidationStatus} from "@/providers";
+import {getProviderRegistry, ValidationStatus} from "@/components/chat/providers";
+
 
 export function LanguageModelContent() {
     const {

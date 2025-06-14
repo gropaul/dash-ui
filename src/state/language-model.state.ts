@@ -1,13 +1,11 @@
 import {create} from 'zustand';
 import {createJSONStorage, persist} from 'zustand/middleware';
 import {LanguageModel} from 'ai';
-import {getProviderRegistry, ProviderRegistry} from '@/providers/provider-registry';
-import {ValidationStatus} from "@/providers";
+import {getProviderRegistry, ProviderRegistry, ValidationStatus} from "@/components/chat/providers";
 
 // Re-export the provider types for backward compatibility
 export type LanguageModelProvider = string;
-export type { OpenAIConfig } from '@/providers/openai-provider';
-export type { OllamaConfig } from '@/providers/ollama-provider';
+
 
 export interface LanguageModelState {
     activeProviderId: LanguageModelProvider;

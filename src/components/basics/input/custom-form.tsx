@@ -5,7 +5,7 @@ import {Input} from "@/components/ui/input";
 import {Checkbox} from "@/components/ui/checkbox";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {cn} from "@/lib/utils";
-import {ValidationStatus} from "@/providers";
+import {ValidationStatus} from "@/components/chat/providers";
 
 export interface FormDefinition {
     fields: FormField[];
