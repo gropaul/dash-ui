@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm'
 
 import rehypeKatex from 'rehype-katex';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { Copy, Check } from 'lucide-react';
+import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
+import {Check, Copy} from 'lucide-react';
 import {fontMono} from "@/components/relation/table/table-row";
 import {cn} from "@/lib/utils";
 

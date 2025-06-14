@@ -2,7 +2,7 @@ import React from "react";
 import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 import {Message} from "ai";
-import {ReasoningUIPart, TextUIPart, ToolInvocationUIPart} from "@ai-sdk/ui-utils";
+import {ReasoningUIPart, TextUIPart} from "@ai-sdk/ui-utils";
 import {ToolInvocationPart} from "@/components/chat/chat-message-item-tool";
 
 interface ChatMessageItemProps {

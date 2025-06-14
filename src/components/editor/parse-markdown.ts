@@ -4,7 +4,8 @@ import {
     DELIMITER_TOOL_NAME,
     HEADER_TOOL_NAME,
     LIST_TOOL_NAME,
-    PARAGRAPH_BLOCK_NAME, WARNING_TOOL_NAME
+    PARAGRAPH_BLOCK_NAME,
+    WARNING_TOOL_NAME
 } from "@/components/editor/tool-names";
 
 export interface EditorJSBlock {

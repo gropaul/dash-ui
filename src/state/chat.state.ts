@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {persist, createJSONStorage} from 'zustand/middleware';
+import {createJSONStorage, persist} from 'zustand/middleware';
 import {ChatSession, GetNewChatSession} from "@/components/chat/model/llm-service";
 import {Message} from "ai";
 import {deepClone} from "@/platform/object-utils";

@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {ChatContentWrapper} from "./chat-content-wrapper";
 import {aiService} from "@/components/chat/model/llm-service";
-import {appendResponseMessages, Message, ToolResultPart} from "ai";
+import {appendResponseMessages, Message} from "ai";
 import {useChatState} from "@/state/chat.state";
 import {
     FileUIPart,

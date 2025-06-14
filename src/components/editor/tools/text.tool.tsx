@@ -1,22 +1,19 @@
 // TextSearchBlockTool.tsx
 import {createRoot, Root} from 'react-dom/client';
 import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
-import React, {useState, useEffect, ChangeEvent, useRef} from 'react';
+import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
-import {
-    ICON_SEARCH,
-    ICON_SETTING,
-} from "@/components/editor/tools/icons";
+import {ICON_SEARCH, ICON_SETTING,} from "@/components/editor/tools/icons";
 import {getRandomId} from "@/platform/id-utils";
-import {InputSource, InputValue} from "@/components/editor/inputs/models";
+import {InputSource} from "@/components/editor/inputs/models";
 import {
     InputManager,
     InputValueChangeParams,
     InteractiveBlock,
     StringReturnFunction
 } from "@/components/editor/inputs/input-manager";
-import { Input } from "@/components/ui/input";
-import { TextConfigDialog } from "./text-config-dialog";
+import {Input} from "@/components/ui/input";
+import {TextConfigDialog} from "./text-config-dialog";
 import {Button} from "@/components/ui/button";
 import {Settings} from "lucide-react";
 import {TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tool-names";

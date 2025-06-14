@@ -1,5 +1,4 @@
 import React from "react";
-import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {Star} from "lucide-react";
 
 export function AboutContent() {

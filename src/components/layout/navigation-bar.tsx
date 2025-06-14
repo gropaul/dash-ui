@@ -1,11 +1,11 @@
 import React, {Fragment} from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
-import {Database, Folder, Info, Settings, Star, Wand2} from "lucide-react";
+import {Database, Folder, Info, Settings, Wand2} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {AvailableTab, SettingsTab, useGUIState} from "@/state/gui.state";
+import {AvailableTab, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {ChatTab} from "@/components/chat/chat-tab";

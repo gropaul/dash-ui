@@ -1,11 +1,7 @@
-import React, {useRef, useEffect, useCallback, useState} from "react";
+import React from "react";
 import {Button} from "@/components/ui/button";
-import {Database, History, Plus, Send, Settings, Timer} from "lucide-react";
+import {History, Plus, Settings} from "lucide-react";
 import {cn} from "@/lib/utils";
-import {ChatMessageItem} from "./chat-message-item";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
-import {Message} from "ai";
-import {useChatState} from "@/state/chat.state";
 import {ChatContentHistory} from "@/components/chat/chat-content-history";
 import {ChatContentMessages} from "@/components/chat/chat-content-messages";
 import {Badge} from "@/components/ui/badge";

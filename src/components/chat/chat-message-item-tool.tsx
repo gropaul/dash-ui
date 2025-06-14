@@ -1,4 +1,4 @@
-import { BarChart3, FileText, DatabaseZap } from "lucide-react";
+import {BarChart3, DatabaseZap, FileText} from "lucide-react";
 import {
     TOOL_NAME_ADD_CHART_TO_DASHBOARD,
     TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD,

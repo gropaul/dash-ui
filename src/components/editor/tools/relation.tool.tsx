@@ -13,13 +13,12 @@ import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/ed
 import {InputManager, InteractiveBlock, StringReturnFunction} from "@/components/editor/inputs/input-manager";
 import {getRandomId} from "@/platform/id-utils";
 import {
-    ICON_TABLE,
-    ICON_CHART,
-    ICON_EYE_OPEN,
-    ICON_EYE_CLOSE,
     ICON_CAPTIONS_OFF,
-    ICON_CAPTIONS,
-    ICON_SETTING
+    ICON_CHART,
+    ICON_EYE_CLOSE,
+    ICON_EYE_OPEN,
+    ICON_SETTING,
+    ICON_TABLE
 } from "@/components/editor/tools/icons";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 

@@ -1,10 +1,10 @@
 import * as React from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Copy } from "lucide-react"
-import { toast } from "sonner";
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
+import {Button} from "@/components/ui/button"
+import {Label} from "@/components/ui/label"
+import {Input} from "@/components/ui/input"
+import {Copy} from "lucide-react"
+import {toast} from "sonner";
 
 interface TextSearchConfigDialogProps {
     isOpen: boolean;

@@ -1,12 +1,11 @@
-import React, {useRef, useEffect, useCallback} from "react";
+import React, {useCallback, useEffect, useRef} from "react";
 import {Button} from "@/components/ui/button";
-import {AlertCircle, Database, History, Plus, PopcornIcon, Send, Timer, X} from "lucide-react";
-import {cn} from "@/lib/utils";
+import {Send, X} from "lucide-react";
 import {ChatMessageItem} from "./chat-message-item";
 
 import {useChatState} from "@/state/chat.state";
 import {ChatWindowProps} from "@/components/chat/chat-content-wrapper";
-import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import {Alert, AlertTitle} from "@/components/ui/alert";
 
 
 export function ChatContentMessages({

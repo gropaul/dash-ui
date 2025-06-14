@@ -1,5 +1,5 @@
-import { LanguageModel } from 'ai';
-import { FormDefinition } from '@/components/basics/input/custom-form';
+import {LanguageModel} from 'ai';
+import {FormDefinition} from '@/components/basics/input/custom-form';
 
 
 export interface ValidationStatus {

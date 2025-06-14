@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { compressString } from "@/lib/string-compression";
+import React, {useState} from "react";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {toast} from "sonner";
+import {compressString} from "@/lib/string-compression";
 
 
 function parseGithubUrl(url: string): string {

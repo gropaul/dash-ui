@@ -1,4 +1,4 @@
-import { deflate, inflate } from 'pako';
+import {deflate, inflate} from 'pako';
 
 // Base64 encode Uint8Array
 function base64Encode(data: Uint8Array): string {

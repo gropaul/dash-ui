@@ -1,9 +1,10 @@
 import {toast} from "sonner";
 import {ConnectionsService} from "@/state/connections-service";
 import {useSourceConState} from "@/state/connections-source.state";
-import {useRelationsState} from "@/state/relations.state";
+import {RelationZustand, useRelationsState} from "@/state/relations.state";
 import {getImportQuery} from "@/state/connections-database/duckdb-wasm/utils";
 import {FileUploadState} from "./file-drop-overlay";
+import {DatabaseConnection} from "@/model/database-connection";
 
 /**
  * Handles the import of a database file
@@ -75,9 +76,6 @@ export const handleDatabaseImport = async (
         toast.error('Failed to import database');
     }
 };
-
-import {DatabaseConnection} from "@/model/database-connection";
-import {RelationZustand} from "@/state/relations.state";
 
 
 export async function getDashStateIfExits(

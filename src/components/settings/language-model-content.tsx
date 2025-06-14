@@ -1,6 +1,6 @@
-import React, {useState, useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {CustomForm} from "@/components/basics/input/custom-form";
-import {useLanguageModelState, LanguageModelProvider} from "@/state/language-model.state";
+import {LanguageModelProvider, useLanguageModelState} from "@/state/language-model.state";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {toast} from "sonner";
 import {FormWrapper} from "@/components/connections/connection-config";

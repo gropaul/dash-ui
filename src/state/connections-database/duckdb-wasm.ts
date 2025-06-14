@@ -1,4 +1,4 @@
-import {PrintRelationData, RelationData} from "@/model/relation";
+import {RelationData} from "@/model/relation";
 import {DataSource} from "@/model/data-source-connection";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections-database/configs";

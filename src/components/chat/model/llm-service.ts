@@ -1,10 +1,8 @@
-import {convertToCoreMessages, LanguageModel, Message, streamText, StreamTextResult, Tool as VercelTool,} from 'ai';
-import {createOpenAI} from '@ai-sdk/openai';
-import { createOllama } from 'ollama-ai-provider';
+import {convertToCoreMessages, Message, streamText, StreamTextResult, Tool as VercelTool,} from 'ai';
 
 import {DataEngAssistantPrompt} from "@/components/chat/model/promts";
 import {AddChartToDashboard, AddMarkdownToDashboard, QueryDatabaseTool} from "@/components/chat/model/tools";
-import { useLanguageModelState } from "@/state/language-model.state";
+import {useLanguageModelState} from "@/state/language-model.state";
 
 export interface ChatSession {
     // initialPrompt?: UIMessage; // Optional initial prompt for the session

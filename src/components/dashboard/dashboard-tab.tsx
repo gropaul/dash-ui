@@ -1,7 +1,6 @@
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
 import {DashboardContent} from "@/components/dashboard/dashboard-content";
-import {useEffect} from "react";
 
 
 export interface DashboardViewProps {

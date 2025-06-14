@@ -1,9 +1,7 @@
 import {create} from 'zustand';
-import {persist, createJSONStorage} from 'zustand/middleware';
+import {createJSONStorage, persist} from 'zustand/middleware';
 import {LanguageModel} from 'ai';
 import {getProviderRegistry, ProviderRegistry} from '@/providers/provider-registry';
-import { OpenAIProvider } from '@/providers/openai-provider';
-import { OllamaProvider } from '@/providers/ollama-provider';
 import {ValidationStatus} from "@/providers";
 
 // Re-export the provider types for backward compatibility

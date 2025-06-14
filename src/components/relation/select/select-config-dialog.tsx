@@ -1,11 +1,11 @@
 import * as React from "react"
-import { RelationViewProps } from "@/components/relation/relation-view"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { SelectViewState } from "@/model/relation-view-state/select"
-import { Copy } from "lucide-react"
+import {RelationViewProps} from "@/components/relation/relation-view"
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
+import {Button} from "@/components/ui/button"
+import {Label} from "@/components/ui/label"
+import {Input} from "@/components/ui/input"
+import {SelectViewState} from "@/model/relation-view-state/select"
+import {Copy} from "lucide-react"
 import {toast} from "sonner";
 
 interface SelectConfigDialogProps extends RelationViewProps {

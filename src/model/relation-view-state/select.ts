@@ -1,4 +1,3 @@
-import {TableViewState} from "@/model/relation-view-state/table";
 import {RelationData} from "@/model/relation";
 import {getRandomId} from "@/platform/id-utils";
 

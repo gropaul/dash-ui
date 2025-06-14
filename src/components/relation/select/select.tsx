@@ -5,22 +5,10 @@ import {Check, ChevronsUpDown, Settings} from "lucide-react"
 
 import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command"
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {RelationViewProps} from "@/components/relation/relation-view"
 import {SelectConfigDialog} from "@/components/relation/select/select-config-dialog"
-import {SelectViewState} from "@/model/relation-view-state/select"
 
 export function Select(props: RelationViewProps) {
     const [open, setOpen] = React.useState(false)

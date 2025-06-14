@@ -11,10 +11,8 @@ import {DashboardTab} from "@/components/dashboard/dashboard-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
-import {cn} from "@/lib/utils";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
-import {ChatTab} from "@/components/chat/chat-tab";
 
 
 export function TabbedLayout() {

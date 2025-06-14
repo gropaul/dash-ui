@@ -17,11 +17,12 @@ import TextSearchBlockTool from "@/components/editor/tools/text.tool";
 import {
     DELIMITER_TOOL_NAME,
     HEADER_TOOL_NAME,
-    LIST_TOOL_NAME, RELATION_BLOCK_NAME,
-    SELECT_BLOCK_NAME, TEXT_SEARCH_BLOCK_NAME,
+    LIST_TOOL_NAME,
+    RELATION_BLOCK_NAME,
+    SELECT_BLOCK_NAME,
+    TEXT_SEARCH_BLOCK_NAME,
     WARNING_TOOL_NAME
 } from "@/components/editor/tool-names";
-
 
 
 export function getEditorJSTools(getInputManager: (blockName: string) => InputManager | null) {

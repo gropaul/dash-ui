@@ -1,12 +1,11 @@
 import React, {useState} from "react";
 import {Dialog, DialogContent} from "@/components/ui/dialog";
-import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {connectionToSpec, DBConnectionSpec, getDefaultSpec} from "@/state/connections-database/configs";
 import {ConnectionsService} from "@/state/connections-service";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";
-import {Database, Info, Share2, MessageSquare, Wand2} from "lucide-react";
+import {Database, Info, Share2, Wand2} from "lucide-react";
 import {ShareContent} from "@/components/settings/share-content";
 import {LanguageModelContent} from "@/components/settings/language-model-content";
 
