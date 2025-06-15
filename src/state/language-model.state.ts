@@ -16,6 +16,7 @@ export interface LanguageModelActions {
     setActiveProvider: (providerId: LanguageModelProvider) => void;
     updateProviderConfig: (providerId: string, config: Record<string, any>) => void;
     getLanguageModel: () => LanguageModel;
+    getCurrentProviderStatus: () => Promise<ValidationStatus>;
     getProviderStatus: (providerId?: string) => Promise<ValidationStatus>;
 }
 
@@ -56,6 +57,9 @@ export const useLanguageModelState = create<LanguageModelState & LanguageModelAc
                 }
 
                 return provider.getModel();
+            },
+            getCurrentProviderStatus: async () => {
+                return get().getProviderStatus(get().activeProviderId);
             },
             getProviderStatus: async (providerId?: string) => {
                 const state = get();

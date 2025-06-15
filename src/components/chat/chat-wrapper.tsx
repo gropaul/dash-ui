@@ -1,13 +1,13 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {Button} from "@/components/ui/button";
-import {History, Plus, Settings} from "lucide-react";
+import {AlertCircle, History, Plus, Settings} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {ChatContentHistory} from "@/components/chat/chat-content-history";
 import {ChatContentMessages} from "@/components/chat/chat-content-messages";
 import {Badge} from "@/components/ui/badge";
 import {useLanguageModelState} from "@/state/language-model.state";
 import {useGUIState} from "@/state/gui.state";
-import {getProviderRegistry} from "@/components/chat/providers";
+import {getProviderRegistry, getValidationStatus, ValidationStatus} from "@/components/chat/providers";
 
 
 export interface ChatWindowProps {
@@ -21,11 +21,24 @@ export interface ChatWindowProps {
     onHideError: () => void;
 }
 
-export function ChatContentWrapper(props: ChatWindowProps) {
+export function ChatWrapper(props: ChatWindowProps) {
 
     const [showHistory, setShowHistory] = React.useState(false);
-    const {activeProviderId} = useLanguageModelState();
+    const {activeProviderId, providerConfigs} = useLanguageModelState();
+    const [currentProviderState, setCurrentProviderState] = React.useState<ValidationStatus>(getValidationStatus('ok'));
     const openSettingsTab = useGUIState(state => state.openSettingsTab);
+
+    // check the provider state if the providerConfigs/activeProviderId is changed
+    useEffect(() => {
+        const provider = getProviderRegistry().getProvider(activeProviderId);
+        if (!provider) {
+            console.error(`Provider with ID ${activeProviderId} not found.`);
+            return;
+        }
+        provider.getStatus().then((status) => {
+            setCurrentProviderState(status);
+        });
+    }, [activeProviderId, providerConfigs]);
 
     // Get provider registry to get display name
     const provider = getProviderRegistry().getProvider(activeProviderId);
@@ -68,8 +81,15 @@ export function ChatContentWrapper(props: ChatWindowProps) {
                         variant="secondary"
                         className="cursor-pointer ml-2"
                         onClick={goToSettings}
+                        title={currentProviderState.message}
                     >
                         {providerName}
+                        {currentProviderState.status === 'error' && (
+                            <AlertCircle
+                                size={14}
+                                className="inline-block ml-1 text-red-500 cursor-pointer"
+                            />
+                        )}
                     </Badge>
                 </div>
                 <div className="flex items-center space-x-2">

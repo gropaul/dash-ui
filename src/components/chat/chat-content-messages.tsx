@@ -4,7 +4,7 @@ import {Send, X} from "lucide-react";
 import {ChatMessageItem} from "./chat-message-item";
 
 import {useChatState} from "@/state/chat.state";
-import {ChatWindowProps} from "@/components/chat/chat-content-wrapper";
+import {ChatWindowProps} from "@/components/chat/chat-wrapper";
 import {Alert, AlertTitle} from "@/components/ui/alert";
 
 
@@ -72,7 +72,7 @@ export function ChatContentMessages({
                         <AlertTitle>
                             <div className="flex items-start justify-between w-full">
                                   <span>
-                                    {error}, please check your provider settings.
+                                    {error} Please check your provider settings.
                                   </span>
                                 <Button
                                     variant="ghost"
@@ -101,7 +101,7 @@ export function ChatContentMessages({
                             How can I help you today?
                         </div>
                         <div className="text-amber-500 dark:text-amber-400 text-xs max-w-md mx-auto">
-                            Warning: While using the assistant, your messages and data can be shared with the provider!
+                            Warning: While using the assistant, your messages and data can be shared with the provider! The agent can read, write and *delete* your data.
                         </div>
                     </div>
                     {messages.map((m, index) => (

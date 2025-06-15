@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {ChatContentWrapper} from "./chat-content-wrapper";
+import {ChatWrapper} from "./chat-wrapper";
 import {aiService} from "@/components/chat/model/llm-service";
 import {appendResponseMessages, Message} from "ai";
 import {useChatState} from "@/state/chat.state";
@@ -253,7 +253,7 @@ export function ChatTab({className}: ChatProps) {
 
     return (
         <div className={`h-full w-full`}>
-            <ChatContentWrapper
+            <ChatWrapper
                 showSystemMessage={false}
                 onSessionSelect={onHistoricSessionSelect}
                 sessionId={state.session_id}

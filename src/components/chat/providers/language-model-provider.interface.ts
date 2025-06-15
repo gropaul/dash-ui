@@ -7,6 +7,10 @@ export interface ValidationStatus {
     message?: string;
 }
 
+export function getValidationStatus(status: 'ok' | 'warning' | 'error', message?: string): ValidationStatus {
+    return { status, message };
+}
+
 /**
  * Interface for language model providers
  * This interface defines the common functionality that all language model providers must implement

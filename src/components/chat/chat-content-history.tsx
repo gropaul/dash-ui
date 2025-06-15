@@ -1,4 +1,4 @@
-import {ChatWindowProps} from "@/components/chat/chat-content-wrapper";
+import {ChatWindowProps} from "@/components/chat/chat-wrapper";
 import {useChatState} from "@/state/chat.state";
 import {Button} from "@/components/ui/button";
 import {Trash} from "lucide-react";
