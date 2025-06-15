@@ -1,8 +1,8 @@
-import {BarChart3, DatabaseZap, FileText} from "lucide-react";
+import {BarChart3, DatabaseZap, FileText, Sheet, Table, Table2} from "lucide-react";
 import {
     TOOL_NAME_ADD_CHART_TO_DASHBOARD,
     TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD,
-    TOOL_NAME_EXECUTE_QUERY,
+    TOOL_NAME_EXECUTE_QUERY, ToolDisplayNameMap,
     ToolName
 } from "@/components/chat/model/llm-service";
 import {cn} from "@/lib/utils";
@@ -23,6 +23,8 @@ export function ToolIcon({ toolName, className }: ToolIconProps) {
     switch (toolName) {
         case "addChartToDashboard":
             return <BarChart3 size={iconSize} className={className} />;
+        case "addTableToDashboard":
+            return <Sheet size={iconSize} className={className} />;
         case "addMarkdownToDashboard":
             return <FileText size={iconSize} className={className} />;
         case "executeQuery":
@@ -35,14 +37,6 @@ interface ToolInvocationPartProps {
     part: ToolInvocationUIPart;
     role: RoleType;
 }
-
-
-// map that takes and tool name the tool display name
-export const ToolDisplayNameMap: Record<string, string> = {
-    [TOOL_NAME_EXECUTE_QUERY]: 'Execute Query',
-    [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: 'Add Chart to Dashboard',
-    [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: 'Add Markdown to Dashboard',
-};
 
 
 export function ToolInvocationPart({part, role}: ToolInvocationPartProps) {

@@ -68,7 +68,11 @@ export const TOOL_NAME_ADD_CHART_TO_DASHBOARD = 'addChartToDashboard';
 export const TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD = 'addMarkdownToDashboard';
 export const TOOL_NAME_ADD_TABLE_TO_DASHBOARD = 'addTableToDashboard';
 // type that must contain one of the tool names
-export type ToolName = typeof TOOL_NAME_EXECUTE_QUERY | typeof TOOL_NAME_ADD_CHART_TO_DASHBOARD | typeof TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD;
+export type ToolName =
+    typeof TOOL_NAME_EXECUTE_QUERY |
+    typeof TOOL_NAME_ADD_CHART_TO_DASHBOARD |
+    typeof TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD |
+    typeof TOOL_NAME_ADD_TABLE_TO_DASHBOARD;
 
 
 export const aiService = new LlmService(
@@ -79,3 +83,11 @@ export const aiService = new LlmService(
         [TOOL_NAME_ADD_TABLE_TO_DASHBOARD]: AddTableToDashboard
     }
 );
+
+// map that takes and tool name the tool display name
+export const ToolDisplayNameMap: Record<string, string> = {
+    [TOOL_NAME_EXECUTE_QUERY]: 'Execute Query',
+    [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: 'Add Chart to Dashboard',
+    [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: 'Add Markdown to Dashboard',
+    [TOOL_NAME_ADD_TABLE_TO_DASHBOARD]: 'Add Table to Dashboard'
+};
