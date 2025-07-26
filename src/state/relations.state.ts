@@ -698,9 +698,9 @@ export const useRelationsState = createWithEqualityFn(
                     if (useRelationsHydrationState.getState().hasDuckDBStorage) {
                         useGUIState.getState().keepTabsOfIds(ids);
                         maybeAttachDatabaseFromUrlParam();
+                        useRelationsHydrationState.getState().setHydrated(true);
                     }
 
-                    useRelationsHydrationState.getState().setHydrated(true);
 
                 }
 
