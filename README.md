@@ -2,7 +2,7 @@
 
 Dash is an open-source data exploration and visualization tool built with DuckDB. It provides an intuitive interface for connecting to databases, importing data files, creating visualizations, and building interactive dashboards.
 
-Dash is available at [https://dash.builders/](https://dash.builders/)
+Dash is available at [https://dash.builders/](https://dash.builders/), also have a look at our [Demo](https://dash.builders/?api=wasm&attach=eJwNx8kNwCAMBMCKwv7pxoAFKFzyoaT8ZH7TzI5GQOgJtVvz5MqS9zJeFvKeqLIP-UAhbZd3TOoL_NI8g2HyT0PxfJf0AWbDHTs).
 
 ![Dash Logo](public/favicon/web-app-manifest-192x192.png)
 
