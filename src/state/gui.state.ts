@@ -192,6 +192,8 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             },
 
             keepTabsOfIds: (ids: string[]) => {
+
+                console.log('Keeping tabs of ids:', ids);
                 // is called for first application load. It could be the case that the local browser ui state
                 // still has tabs from which the contents have been removed. This method is called to remove
                 // such tabs.

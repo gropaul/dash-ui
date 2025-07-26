@@ -4,13 +4,14 @@ import React, {Fragment} from "react";
 import {useSourceConState} from "@/state/connections-source.state";
 import {ConnectionView} from "@/components/connections/connection-view";
 import {Button} from "@/components/ui/button";
-import {Database, Plus} from "lucide-react";
+import {Database, Plus, Upload} from "lucide-react";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {AttachDatabaseDialog, DialogResult} from "@/components/connections/attach-database-dialog";
 import {ConnectionsService} from "@/state/connections-service";
 import {attachDatabase} from "@/state/connections-source/duckdb-helper";
 import {clearOPFS} from "@/state/connections-database/duckdb-wasm/connection-provider";
 import {useGUIState} from "@/state/gui.state";
+import {handleFileDrop} from "@/components/import/file-drop-relation/file-import";
 
 const IS_DEBUG = process.env.NODE_ENV === 'development';
 
@@ -18,6 +19,7 @@ export function ConnectionsOverviewTab() {
     const connections = useSourceConState((state) => state.connections);
 
     const [isAttachDatabaseDialogOpen, setIsDatabaseDialogOpenInternal] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     function setAttachDatabaseDialogOpen(open: boolean) {
         setIsDatabaseDialogOpenInternal(open);
@@ -25,6 +27,27 @@ export function ConnectionsOverviewTab() {
     }
     function onAttachDatabaseClicked() {
         setAttachDatabaseDialogOpen(true);
+    }
+
+    function onUploadFilesClicked() {
+        // Trigger the hidden file input
+        fileInputRef.current?.click();
+    }
+
+    async function onFileInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            const fileArray = Array.from(files);
+            await handleFileDrop(fileArray, (state) => {
+                if (state.state === 'error') {
+                    toast.error(state.message || 'Failed to upload files');
+                } else if (state.state === 'done') {
+                    toast.success(state.message || 'Files uploaded successfully');
+                }
+            });
+            // Reset the file input
+            event.target.value = '';
+        }
     }
 
     async function onAttachDatabaseSubmit(result: DialogResult) {
@@ -69,6 +92,10 @@ export function ConnectionsOverviewTab() {
                             <Database size={16} className="mr-2"/>
                             <span>Attach Database</span>
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={onUploadFilesClicked}>
+                            <Upload size={16} className="mr-2"/>
+                            <span>Upload Files</span>
+                        </DropdownMenuItem>
                         {IS_DEBUG && <DropdownMenuItem onClick={clearOPFS}>
                             <Database size={16} className="mr-2"/>
                             <span>Clear WASM OPFS</span>
@@ -95,6 +122,13 @@ export function ConnectionsOverviewTab() {
                     onAttachDatabaseSubmit(result);
                     setAttachDatabaseDialogOpen(false);
                 }}
+            />
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={onFileInputChange}
+                className="hidden"
+                multiple
             />
         </div>
     );
