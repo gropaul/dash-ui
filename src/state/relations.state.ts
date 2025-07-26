@@ -111,13 +111,17 @@ export type RelationZustandCombined = RelationZustand & RelationZustandActions;
 
 interface RelationsHydrationState {
     hydrated: boolean;
+    hasDuckDBStorage: boolean;
     setHydrated: (hydrated: boolean) => void;
+    setHasDuckDBStorage: (hasDuckDBStorage: boolean) => void;
 }
 
 export const useRelationsHydrationState = createWithEqualityFn<RelationsHydrationState>(
     (set, get) => ({
         hydrated: false,
+        hasDuckDBStorage: false,
         setHydrated: (hydrated: boolean) => set({hydrated}),
+        setHasDuckDBStorage: (hasDuckDBStorage: boolean) => set({hasDuckDBStorage}),
     }),
 );
 
@@ -128,6 +132,11 @@ export const INIT: RelationZustand = {
     dashboards: {},
     editorElements: [],
 };
+
+interface RelationsStateStorageState {
+    isDuckDBStorage: boolean;
+    setIsDuckDBStorage: (isDuckDBStorage: boolean) => void;
+}
 
 export const useRelationsState = createWithEqualityFn(
     persist<RelationZustandCombined>(
@@ -685,11 +694,17 @@ export const useRelationsState = createWithEqualityFn(
                             ids.push(key);
                         }
                     }
-                    useGUIState.getState().keepTabsOfIds(ids);
+
+                    if (useRelationsHydrationState.getState().hasDuckDBStorage) {
+                        useGUIState.getState().keepTabsOfIds(ids);
+                        maybeAttachDatabaseFromUrlParam();
+                    }
+
                     useRelationsHydrationState.getState().setHydrated(true);
-                    maybeAttachDatabaseFromUrlParam();
 
                 }
+
+
 
                 return callback;
             })
