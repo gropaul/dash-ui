@@ -3,6 +3,9 @@ import {ConnectionsService} from "@/state/connections-service";
 import {DataSource, DataSourceConnection, DataSourceConnectionType} from "@/model/data-source-connection";
 import {loadDuckDBDataSources, onDuckDBDataSourceClick} from "@/state/connections-source/duckdb-helper";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
+import {TreeNode} from "@/components/basics/files/tree-utils";
+import {ReactNode} from "react";
+import ContextMenuFactory from "@/state/connections-source/duckdb-internal-databases/context-menu-factory";
 
 export async function getDuckDBInternalDatabase(con: DatabaseConnection): Promise<DataSourceConnection> {
     return new DuckdbInternalDatabases(con.id, {
@@ -59,9 +62,9 @@ export class DuckdbInternalDatabases implements DataSourceConnection {
         this.config = {...this.config, ...config};
     }
 
-    // dataSourceContextMenuFactory = (tree_id_path: string[], tree: TreeNode): ReactNode => {
-    //     // todo: implement
-    // }
+    dataSourceContextMenuFactory = (tree_id_path: string[], tree: TreeNode): ReactNode => {
+        return ContextMenuFactory({tree_id_path, tree, connection_id: this.id});
+    }
 
 }
 
