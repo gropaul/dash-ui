@@ -70,28 +70,49 @@ export async function attachDatabase(path: string, executeQuery: (query: string)
     await executeQuery(query);
 }
 
+function getType(duckDBType: string): string {
+    // The type of table. One of: BASE TABLE, LOCAL TEMPORARY, VIEW.
+    if (duckDBType === 'BASE TABLE') {
+        return 'relation';
+    } else if (duckDBType === 'LOCAL TEMPORARY') {
+        return 'relation';
+    } else if (duckDBType === 'VIEW') {
+        return 'view';
+    } else {
+        return 'unknown';
+    }
+}
+
 export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<{[database: string]: DataSource}> {
 // get all columns and tables
 
-    const query = `SELECT table_catalog, table_schema, table_name, column_name, data_type
-                   FROM information_schema.columns
-                   ORDER BY table_catalog, table_name, ordinal_position;`;
+    const query = `SELECT c.table_catalog, c.table_schema, c.table_name, t.table_type, c.column_name, c.data_type
+                   FROM information_schema.columns as c
+                   JOIN information_schema.tables as t ON
+                        t.table_name = c.table_name and 
+                        t.table_schema = c.table_schema and
+                        t.table_catalog = c.table_catalog
+                   ORDER BY c.table_catalog, c.table_name, c.ordinal_position;
+`;
 
     const rows = await executeQuery(query);
     // will have format [database_name: table_schema: table_name: {column_name, data_type}]
     const map: any = {}
-
+    const types: any = {};
     for (const row of rows.rows) {
-        const [database, table_schema, table_name, column_name, type] = row;
+        const [database, table_schema, table_name, table_type, column_name, type] = row;
         if (!map[database]) {
             map[database] = {};
+            types[database] = {};
         }
         if (!map[database][table_schema]) {
             map[database][table_schema] = {};
+            types[database][table_schema] = {};
         }
 
         if (!map[database][table_schema][table_name]) {
             map[database][table_schema][table_name] = [];
+            types[database][table_schema][table_name] = getType(table_type);
         }
 
         map[database][table_schema][table_name].push([column_name, type]);
@@ -105,11 +126,11 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
             const schema_tables: DataSourceElement[] = [];
             for (const table in map[database][table_schema]) {
                 const columns = map[database][table_schema][table];
-
+                const type = types[database][table_schema][table];
                 // add relation to schema
                 schema_tables.push({
                     id: table,
-                    type: 'relation',
+                    type: type,
                     name: table,
                     children: columns.map(([column, type]: [string, string]) => {
                         return {

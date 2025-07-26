@@ -3,8 +3,9 @@ import {CardView} from "@/components/basics/basic-view/card-view";
 import React from "react";
 import {RelationSourceTable} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
-import {Database, ExternalLink, Network} from "lucide-react";
+import {Database, ExternalLink, Network, Sheet} from "lucide-react";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
+import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 
 
 interface DatabaseSchemaViewProps {
@@ -57,7 +58,7 @@ export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
                         className="group flex items-center justify-between px-4 py-0.5 border-gray-100"
                     >
                         <div className="flex-1 flex items-center space-x-2 overflow-hidden pr-1">
-                            <Database size={16}/>
+                            {defaultIconFactory(table.type)}
                             <span
                                 className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
                                 title={table.name}
