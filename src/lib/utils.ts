@@ -4,3 +4,8 @@ import {twMerge} from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+export function quoteString(str: string): string {
+  // return "string"
+    return '"' + str + '"';
+}
