@@ -11,7 +11,7 @@ import {
     Network,
     Sheet,
     Text,
-    ToggleLeft, View
+    ToggleLeft, View, WorkflowIcon
 } from "lucide-react";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 
@@ -31,16 +31,23 @@ export const defaultIconFactory = (type: string): ReactNode => {
         case 'file':
             return <File size={iconSize} />
         case 'relation':
+        case 'relations':
             return <Sheet size={iconSize} />
         case 'view':
             return <View size={iconSize} />
         case 'folder':
             return <Folder size={iconSize} />
         case 'database':
+        case 'databases':
             return <Database size={iconSize} />
         case 'dashboard':
+        case 'dashboards':
             return <LayoutDashboard size={iconSize} />
+        case 'workflow':
+        case 'workflows':
+            return <WorkflowIcon size={iconSize} />
         case 'schema':
+        case 'schemas':
             return <Network size={iconSize} />
         case 'duckdb-wasm':
             return <Database size={iconSize} />

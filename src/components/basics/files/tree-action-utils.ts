@@ -1,19 +1,16 @@
 import {TreeAction, TreeActionAdd, TreeActionUpdate, TreeNode} from "@/components/basics/files/tree-utils";
-import {GetNewEditorDashboard, GetNewEditorFolder, GetNewEditorRelation} from "@/model/editor-folder";
+import {GetNewEditorEntity, GetNewEditorFolder} from "@/model/editor-folder";
+import {RelationZustandEntityType} from "@/state/relations/entity-functions";
 
 export function AddFolderActions(path: string[], parent?: TreeNode, name?: string): TreeAction[] {
-    return AddNodeActions(path, '', GetNewEditorFolder(name), parent);
+    return AddNodeActions(path, GetNewEditorFolder(name), parent);
 }
 
-export function AddRelationActions(path: string[], id: string, parent?: TreeNode, name?: string): TreeAction[] {
-   return AddNodeActions(path, id, GetNewEditorRelation(id, name), parent);
+export function AddEntityActions(path: string[], id: string, type: RelationZustandEntityType, name: string, parent?: TreeNode): TreeAction[] {
+   return AddNodeActions(path, GetNewEditorEntity(id, type, name), parent);
 }
 
-export function AddDashboardActions(path: string[], id: string, parent?: TreeNode, name?: string): TreeAction[] {
-    return AddNodeActions(path, '', GetNewEditorDashboard(id, name), parent);
-}
-
-export function AddNodeActions(path: string[], id: string, new_node: TreeNode, parent?: TreeNode): TreeAction[] {
+export function AddNodeActions(path: string[], new_node: TreeNode, parent?: TreeNode): TreeAction[] {
     const actions = []
     if (parent){
         const openAction: TreeActionUpdate = {
