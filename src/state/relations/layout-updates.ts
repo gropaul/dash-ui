@@ -75,6 +75,7 @@ export function addDashboardToLayout(model: Model, dashboard: DashboardState): v
 }
 
 export function addWorkflowToLayout(model: Model, workflow: WorkflowState): void {
+    console.log("Adding workflow to layout", workflow);
     addNodeToLayout(model, workflow.id, workflow.viewState.displayName, 'WorkflowComponent', { workflowId:  workflow.id });
 }
 

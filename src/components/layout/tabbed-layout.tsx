@@ -13,6 +13,7 @@ import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components
 import {NavigationBar, NavigationBarContent} from "@/components/layout/navigation-bar";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
+import {WorkflowTab} from "@/components/workflow/workflow-tab";
 
 
 export function TabbedLayout() {
@@ -99,6 +100,9 @@ const factory = (node: TabNode) => {
     }
     if (component === 'DashboardComponent') {
         return <DashboardTab dashboardId={node.getConfig().dashboardId}/>;
+    }
+    if (component === 'WorkflowComponent') {
+        return <WorkflowTab workflowId={node.getConfig().workflowId}/>;
     }
 
     return null;

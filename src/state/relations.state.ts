@@ -31,8 +31,7 @@ import {
     updateNode
 } from "@/components/basics/files/tree-utils";
 import {
-    AddDashboardActions,
-    AddRelationActions,
+    AddEntityActions,
     RemoveNodeAction,
     RenameNodeActions
 } from "@/components/basics/files/tree-action-utils";
@@ -42,6 +41,12 @@ import {InitializeStorage} from "@/state/persistency/api";
 import {useSourceConState} from "@/state/connections-source.state";
 import {maybeAttachDatabaseFromUrlParam} from "@/state/relations/attach-from-url-param";
 import {GetInitialWorkflowState, GetWorkflowId, WorkflowState} from "@/model/workflow-state";
+import {
+    deleteFromEntityCollection, GetEntityDisplayName,
+    GetEntityTypeDisplayName,
+    RelationZustandEntityType, SetEntityDisplayName
+} from "@/state/relations/entity-functions";
+
 
 export interface RelationZustand {
     editorElements: EditorFolder[];
@@ -59,13 +64,11 @@ export interface DefaultRelationZustandActions {
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
-    mergeState: (state: RelationZustand, openDashboards: boolean) => void
-    ,
+    mergeState: (state: RelationZustand, openDashboards: boolean) => void,
     /* relation actions */
     getRelation: (relationId: string) => RelationState,
     addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
     relationExists: (relationId: string) => boolean,
-    deleteRelation: (relationId: string, editorPath: string[]) => void,
     showRelation: (relation: RelationState, editorPath: string[]) => void,
     showRelationFromId: (relationId: string, editorPath: string[]) => void,
     showRelationFromSource: (connectionId: string, source: RelationSource, editorPath: string[]) => void,
@@ -90,8 +93,6 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     showDashboard: (dashboard: DashboardState, editorPath: string[]) => Promise<void>,
     showDashboardFromId: (dashboardId: string, editorPath: string[]) => void,
     addNewDashboard: (connectionId: string, editorPath: string[], dashboard?: DashboardState) => void,
-    deleteDashboard: (dashboardId: string, editorPath: string[]) => void,
-    updateDashboardViewState: (dashboardId: string, viewState: DeepPartial<DashboardViewState>, editorPath?: string[]) => void,
     getDashboardState: (dashboardId: string) => DashboardState,
     // **unsafe in terms of adding, renaming, and deleting dashboards**
     setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => void,
@@ -99,7 +100,12 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     /* workflow actions */
     addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => void,
     showWorkflow: (workflow: WorkflowState, editorPath: string[]) => void,
-    deleteWorkflow: (workflowId: string, editorPath: string[]) => void,
+    getWorkflowState: (workflowId: string) => WorkflowState,
+
+    /* entity actions */
+    deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
+    getEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string) => string,
+    setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => void,
 
     /* editor folder actions */
     updateEditorElements: (path: string[], newFolder: EditorFolder) => void,
@@ -154,7 +160,7 @@ export const useRelationsState = createWithEqualityFn(
                 ...INIT,
                 mergeState(newState: RelationZustand, openDashboards: boolean = false) {
                     const {relations, schemas, databases, dashboards, editorElements} = newState;
-                    
+
                     // Check for duplicates before merging
                     set((oldState) => {
                         const newRelations = {...relations};
@@ -162,7 +168,7 @@ export const useRelationsState = createWithEqualityFn(
                         const newDatabases = {...databases};
                         const newDashboards = {...dashboards};
                         const newElements = [...editorElements];
-                        
+
                         // Remove any items that already exist in the current state
                         Object.keys(relations).forEach(id => {
                             if (oldState.relations[id]) delete newRelations[id];
@@ -176,11 +182,11 @@ export const useRelationsState = createWithEqualityFn(
                         Object.keys(dashboards).forEach(id => {
                             if (oldState.dashboards[id]) delete newDashboards[id];
                         });
-                        
+
                         // Filter out editor elements that might already exist
                         const existingElementIds = new Set(oldState.editorElements.map(el => el.id));
                         const uniqueNewElements = newElements.filter(el => !existingElementIds.has(el.id));
-                        
+
                         return {
                             ...oldState,
                             relations: {...oldState.relations, ...newRelations},
@@ -203,6 +209,7 @@ export const useRelationsState = createWithEqualityFn(
                 addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => {
                     const local_workflow = workflow ?? GetInitialWorkflowState();
                     const local_editorPath = editorPath ?? [];
+                    console.log("Adding new workflow", local_workflow, local_editorPath);
                     get().showWorkflow(local_workflow, local_editorPath);
                 },
                 showWorkflow: (workflow: WorkflowState, editorPath: string[]) => {
@@ -221,10 +228,12 @@ export const useRelationsState = createWithEqualityFn(
                                 },
                             }));
                         }
+                        useGUIState.getState().addWorkflowTab(existingWorkflow);
+
                     } else {
                         // add to editor elements
                         const parent = findNodeInTrees(get().editorElements, editorPath);
-                        const actions = AddDashboardActions(editorPath, workflowStateId, parent, workflow.viewState.displayName);
+                        const actions = AddEntityActions(editorPath, workflowStateId, 'workflows', workflow.viewState.displayName, parent);
                         const newElements = copyAndApplyTreeActions(get().editorElements, actions);
 
                         set((state) => ({
@@ -234,23 +243,49 @@ export const useRelationsState = createWithEqualityFn(
                             },
                             editorElements: newElements,
                         }));
-                    }
-                    useGUIState.getState().addWorkflowTab(existingWorkflow);
-                },
-                deleteWorkflow: (workflowId: string, editorPath: string[]) => {
-                    const {workflows} = get();
-                    if (useGUIState.getState().isTabOpen(workflowId)) {
-                        useGUIState.getState().removeTab(workflowId);
-                    }
-                    const newWorkflows = {...workflows};
-                    delete newWorkflows[workflowId];
+                        useGUIState.getState().addWorkflowTab(workflow);
 
+                    }
+                },
+                getWorkflowState: (workflowId: string) => {
+                    const workflow = get().workflows[workflowId];
+                    if (!workflow) {
+                        throw new Error(`Workflow with id ${workflowId} not found`);
+                    }
+                    return workflow;
+                },
+
+                deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
+                    if (useGUIState.getState().isTabOpen(entityId)) {
+                        useGUIState.getState().removeTab(entityId);
+                    }
+                    const newCollection = deleteFromEntityCollection(get(), entityType, entityId);
                     const actions = RemoveNodeAction(editorPath);
                     const newElements = copyAndApplyTreeActions(get().editorElements, actions);
                     set({
-                        workflows: newWorkflows,
+                        [entityType]: newCollection,
                         editorElements: newElements,
                     });
+                },
+
+                getEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string): string => {
+                    return GetEntityDisplayName(entityId, entityType, get());
+                },
+
+                setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => {
+                    const newEntity = SetEntityDisplayName(entityId, entityType, displayName, get());
+                    useGUIState.getState().renameTab(entityId, displayName);
+
+                    const node = findNodeInTrees(get().editorElements, path);
+                    const actions = RenameNodeActions(path, displayName, node!);
+                    const newEditorElements = copyAndApplyTreeActions(get().editorElements, actions);
+                    set((state) => ({
+                        [entityType]: {
+                            ...state[entityType],
+                            [entityId]: newEntity,
+                        },
+                        editorElements: newEditorElements,
+                    }));
                 },
 
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
@@ -274,50 +309,6 @@ export const useRelationsState = createWithEqualityFn(
                         }
                     }
                     get().showDashboard(local_dashboard, editorPath);
-                },
-                deleteDashboard: (dashboardId: string, editorPath: string[]) => {
-                    const {dashboards} = get();
-                    if (useGUIState.getState().isTabOpen(dashboardId)) {
-                        useGUIState.getState().removeTab(dashboardId);
-                    }
-                    const newDashboards = {...dashboards};
-                    delete newDashboards[dashboardId];
-
-                    const actions = RemoveNodeAction(editorPath);
-                    const newElements = copyAndApplyTreeActions(get().editorElements, actions);
-                    set({
-                        dashboards: newDashboards,
-                        editorElements: newElements,
-                    });
-                },
-                updateDashboardViewState: (dashboardId: string, partialUpdate: DeepPartial<DashboardViewState>, path?: string[]) => {
-                    const currentViewState = deepClone(get().dashboards[dashboardId].viewState);
-                    let newEditorElements = get().editorElements;
-                    // check if displayName is updated, if so, update the tab title
-                    if (partialUpdate.displayName) {
-                        useGUIState.getState().renameTab(dashboardId, partialUpdate.displayName);
-                        // path must be provided if the displayName is updated
-                        if (!path) {
-                            throw new Error('Path must be provided if displayName is updated');
-                        }
-
-                        const node = findNodeInTrees(get().editorElements, path);
-                        const actions = RenameNodeActions(path, partialUpdate.displayName, node!);
-                        newEditorElements = copyAndApplyTreeActions(get().editorElements, actions);
-
-                    }
-                    safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
-                    set((state) => ({
-                        dashboards: {
-                            ...state.dashboards,
-                            [dashboardId]: {
-                                ...state.dashboards[dashboardId],
-                                viewState: currentViewState,
-                            },
-                        },
-                        editorElements: newEditorElements,
-                    }));
-
                 },
 
                 addNewRelation: async (connectionId: string, editorPath: string[], relation?: RelationState) => {
@@ -359,7 +350,7 @@ export const useRelationsState = createWithEqualityFn(
                     } else {
                         // add to editor elements
                         const parent = findNodeInTrees(get().editorElements, editorPath);
-                        const actions = AddDashboardActions(editorPath, dashboardStateId, parent, dashboard.viewState.displayName);
+                        const actions = AddEntityActions(editorPath, dashboardStateId, 'dashboards', dashboard.viewState.displayName, parent);
                         const newElements = copyAndApplyTreeActions(get().editorElements, actions);
 
                         set((state) => ({
@@ -462,7 +453,7 @@ export const useRelationsState = createWithEqualityFn(
                     } else {
 
                         const parent = findNodeParentInTrees(get().editorElements, editorPath);
-                        const actions = AddRelationActions(editorPath, relationId, parent, relation.viewState.displayName);
+                        const actions = AddEntityActions(editorPath, relationId, 'relations', relation.viewState.displayName, parent);
                         const newElements = copyAndApplyTreeActions(get().editorElements, actions);
                         set((state) => ({
                             relations: {
@@ -493,7 +484,8 @@ export const useRelationsState = createWithEqualityFn(
 
                         // as the relation did not exist yet, we also have to add a reference to the editor
                         const parent = findNodeInTrees(get().editorElements, editorPath);
-                        const actions = AddRelationActions(editorPath, relationId, parent, emptyRelationState.viewState.displayName);
+                        const actions = AddEntityActions(editorPath, relationId, 'relations', emptyRelationState.viewState.displayName, parent);
+
                         const newElements = copyAndApplyTreeActions(get().editorElements, actions);
                         // finally update the state
                         set((state) => ({
@@ -529,7 +521,6 @@ export const useRelationsState = createWithEqualityFn(
                             [relationId]: loadingRelationState,
                         },
                     }));
-
 
 
                     try {
@@ -624,23 +615,6 @@ export const useRelationsState = createWithEqualityFn(
                         };
                         get().updateRelationDataWithParams(relationId, newViewParameters);
                     }
-                },
-                deleteRelation: (relationId: string, editorPath: string[]) => {
-                    const {relations} = get();
-                    const newRelations = {...relations};
-                    delete newRelations[relationId];
-
-                    if (useGUIState.getState().isTabOpen(relationId)) {
-                        useGUIState.getState().removeTab(relationId);
-                    }
-
-                    const actions = RemoveNodeAction(editorPath);
-                    const newElements = copyAndApplyTreeActions(get().editorElements, actions);
-
-                    set({
-                        relations: newRelations,
-                        editorElements: newElements,
-                    });
                 },
                 closeTab: (tabId: string) => {
                     const {schemas, databases, relations, dashboards} = get();
@@ -767,7 +741,6 @@ export const useRelationsState = createWithEqualityFn(
 
 
                 }
-
 
 
                 return callback;

@@ -26,6 +26,7 @@ import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
 import {ConnectionsService} from "@/state/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
+import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/relations/entity-functions";
 
 
 interface RenameState {
@@ -63,15 +64,11 @@ export function EditorOverviewTab() {
     const editorElements = useRelationsState((state) => state.editorElements);
 
     const showRelationFromId = useRelationsState((state) => state.showRelationFromId);
-    const deleteRelation = useRelationsState((state) => state.deleteRelation);
-    const updateRelationViewState = useRelationsState((state) => state.updateRelationViewState);
     const addNewRelation = useRelationsState((state) => state.addNewRelation);
 
-    const updateDashboardViewState = useRelationsState((state) => state.updateDashboardViewState);
     const showDashboardFromId = useRelationsState((state) => state.showDashboardFromId);
     const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
     const setDashboardStateUnsafe = useRelationsState((state) => state.setDashboardStateUnsafe);
-    const deleteDashboard = useRelationsState((state) => state.deleteDashboard);
 
     const updateEditorElements = useRelationsState((state) => state.updateEditorElements);
     const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
@@ -80,6 +77,9 @@ export function EditorOverviewTab() {
 
     const addNewWorkflow = useRelationsState((state) => state.addNewWorkflow);
 
+    const deleteEntity = useRelationsState((state) => state.deleteEntity);
+    const getEntityDisplayName = useRelationsState((state) => state.getEntityDisplayName);
+    const setEntityDisplayName = useRelationsState((state) => state.setEntityDisplayName);
 
     useEffect(() => {
         let cancelled = false;
@@ -136,15 +136,16 @@ export function EditorOverviewTab() {
         let displayName = tree.name;
         let title = 'Rename';
         let description = 'Enter a new name';
-        if (tree.type === 'relation') {
-            displayName = tree.name;
-            title = 'Rename Data View';
-            description = 'Enter a new name for the data view.';
-        } else if (tree.type === 'dashboard') {
-            displayName = tree.name;
-            title = 'Rename Dashboard';
-            description = 'Enter a new name for the dashboard.';
-        } else if (tree.type === 'folder') {
+
+
+        const type = tree.type;
+
+        if (IsEntityType(type)) {
+            const typeDisplayName = GetEntityTypeDisplayName(type);
+            displayName = getEntityDisplayName( type, tree.id,);
+            title = `Rename ${typeDisplayName}`;
+            description = `Enter a new name for the ${typeDisplayName.toLowerCase()} "${displayName}".`;
+        } else if (type === 'folder') {
             displayName = tree.name;
             title = 'Rename Folder';
             description = 'Enter a new name for the folder.';
@@ -161,15 +162,15 @@ export function EditorOverviewTab() {
     }
 
     function onRenameConfirmed(newName: string) {
-        if (renameState.currentNode?.type === 'relation') {
-            updateRelationViewState(renameState.currentNode.id, {
-                displayName: newName
-            }, renameState.path!);
-        } else if (renameState.currentNode?.type === 'dashboard') {
-            updateDashboardViewState(renameState.currentNode.id, {
-                displayName: newName
-            }, renameState.path!);
-        } else if (renameState.currentNode?.type === 'folder') {
+        if (!renameState.currentNode) {
+            return;
+        }
+
+        const type = renameState.currentNode.type;
+        if (IsEntityType(type)) {
+
+            setEntityDisplayName(type, renameState.currentNode.id,  newName, renameState.path!);
+        } else if (type === 'folder') {
             const newFolder = {
                 ...renameState.currentNode,
                 name: newName
@@ -186,29 +187,24 @@ export function EditorOverviewTab() {
             currentNode: tree,
         }
 
-        if (tree.type === 'relation') {
-            const relation = relations[tree.id];
+
+        const type = tree.type;
+
+        if (IsEntityType(type)) {
+            const typeDisplayName = GetEntityTypeDisplayName(type);
+            const displayName = getEntityDisplayName( type, tree.id,);
             setDeleteState({
                 ...baseState,
-                title: 'Delete Data View',
-                description: `Are you sure you want to delete the data view "${relation.viewState.displayName}"? This action cannot be undone.`
+                title: 'Delete ' + typeDisplayName + ' ?',
+                description: `Are you sure you want to delete the ${typeDisplayName.toLowerCase()} "${displayName}"? This action cannot be undone.`
             });
-            return;
-        } else if (tree.type === 'dashboard') {
-            const dashboard = dashboards[tree.id];
-            setDeleteState({
-                ...baseState,
-                title: 'Delete Dashboard',
-                description: `Are you sure you want to delete the dashboard "${dashboard.viewState.displayName}"? This action cannot be undone.`
-            });
-            return;
         } else if (tree.type === 'folder') {
             const dashboardNames: string[] = [];
             const relationNames: string[] = [];
             IterateAll([tree], (node) => {
-                if (node.type === 'dashboard') {
+                if (node.type === 'dashboards') {
                     dashboardNames.push(node.name);
-                } else if (node.type === 'relation') {
+                } else if (node.type === 'relations') {
                     relationNames.push(node.name);
                 }
             });
@@ -225,12 +221,11 @@ ${relationNames.join(', ')}`;
     }
 
     function onDeleteConfirmed() {
-        if (deleteState.currentNode?.type === 'relation') {
-            deleteRelation(deleteState.currentNode.id, deleteState.path!);
-        } else if (deleteState.currentNode?.type === 'dashboard') {
-            deleteDashboard(deleteState.currentNode.id, deleteState.path!);
-        } else if (deleteState.currentNode?.type === 'folder') {
+
+        if (deleteState.currentNode?.type === 'folder') {
             removeEditorElement(deleteState.path!);
+        } else {
+            deleteEntity(deleteState.currentNode?.type as RelationZustandEntityType, deleteState.currentNode!.id, deleteState.path!);
         }
     }
 
