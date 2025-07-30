@@ -5,6 +5,7 @@ import {RelationState} from "@/model/relation-state";
 import {DataSourceGroup} from "@/model/data-source-connection";
 import {DashboardState} from "@/model/dashboard-state";
 import {useGUIState} from "@/state/gui.state";
+import {WorkflowState} from "@/model/workflow-state";
 
 // Layout Initialization
 export function getInitialLayoutModel(): Model {
@@ -71,6 +72,10 @@ export function addDatabaseToLayout(model: Model, databaseId: string, database: 
 export function addDashboardToLayout(model: Model, dashboard: DashboardState): void {
     const dashboardId = dashboard.id;
     addNodeToLayout(model, dashboardId, dashboard.viewState.displayName, 'DashboardComponent', { dashboardId });
+}
+
+export function addWorkflowToLayout(model: Model, workflow: WorkflowState): void {
+    addNodeToLayout(model, workflow.id, workflow.viewState.displayName, 'WorkflowComponent', { workflowId:  workflow.id });
 }
 
 export function addSchemaToLayout(model: Model, schemaId: string, schema: DataSourceGroup): void {

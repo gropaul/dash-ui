@@ -3,7 +3,7 @@
 import React, {useEffect, useState} from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {Button} from "@/components/ui/button";
-import {Folder, LayoutDashboard, Plus, Sheet} from "lucide-react";
+import {Folder, LayoutDashboard, Plus, Sheet, Workflow} from "lucide-react";
 import {TreeExplorer} from "@/components/basics/files/tree-explorer";
 import {IterateAll, TreeActionUpdate, TreeNode} from "@/components/basics/files/tree-utils";
 import {RenameDialog} from "@/components/workbench/rename-dialog";
@@ -77,6 +77,9 @@ export function EditorOverviewTab() {
     const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
     const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
+
+    const addNewWorkflow = useRelationsState((state) => state.addNewWorkflow);
+
 
     useEffect(() => {
         let cancelled = false;
@@ -398,6 +401,10 @@ ${relationNames.join(', ')}`;
                         <DropdownMenuItem onClick={() => addNewDashboard(MAIN_CONNECTION_ID, [], undefined)}>
                             <LayoutDashboard size={16} className="mr-2"/>
                             <span>New Dashboard</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => addNewWorkflow()}>
+                            <Workflow size={16} className="mr-2"/>
+                            <span>New Workflow</span>
                         </DropdownMenuItem>
                         { /* only in development */}
                         {process.env.NODE_ENV === 'development' && (

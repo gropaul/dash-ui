@@ -41,6 +41,7 @@ import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
 import {useSourceConState} from "@/state/connections-source.state";
 import {maybeAttachDatabaseFromUrlParam} from "@/state/relations/attach-from-url-param";
+import {GetInitialWorkflowState, GetWorkflowId, WorkflowState} from "@/model/workflow-state";
 
 export interface RelationZustand {
     editorElements: EditorFolder[];
@@ -48,6 +49,7 @@ export interface RelationZustand {
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
     dashboards: { [key: string]: DashboardState };
+    workflows: { [key: string]: WorkflowState };
 }
 
 export interface DefaultRelationZustandActions {
@@ -57,7 +59,8 @@ export interface DefaultRelationZustandActions {
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
-    mergeState: (state: RelationZustand, openDashboards: boolean) => void,
+    mergeState: (state: RelationZustand, openDashboards: boolean) => void
+    ,
     /* relation actions */
     getRelation: (relationId: string) => RelationState,
     addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
@@ -92,6 +95,11 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     getDashboardState: (dashboardId: string) => DashboardState,
     // **unsafe in terms of adding, renaming, and deleting dashboards**
     setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => void,
+
+    /* workflow actions */
+    addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => void,
+    showWorkflow: (workflow: WorkflowState, editorPath: string[]) => void,
+    deleteWorkflow: (workflowId: string, editorPath: string[]) => void,
 
     /* editor folder actions */
     updateEditorElements: (path: string[], newFolder: EditorFolder) => void,
@@ -130,6 +138,7 @@ export const INIT: RelationZustand = {
     schemas: {},
     databases: {},
     dashboards: {},
+    workflows: {},
     editorElements: [],
 };
 
@@ -189,10 +198,65 @@ export const useRelationsState = createWithEqualityFn(
                         });
                     }
                 },
+
+
+                addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => {
+                    const local_workflow = workflow ?? GetInitialWorkflowState();
+                    const local_editorPath = editorPath ?? [];
+                    get().showWorkflow(local_workflow, local_editorPath);
+                },
+                showWorkflow: (workflow: WorkflowState, editorPath: string[]) => {
+                    const {workflows} = get(); // Get the current state
+                    const workflowStateId = workflow.id; // Use the dashboard ID as the state ID
+                    const existingWorkflow = workflows[workflowStateId]; // Retrieve the database
+                    if (existingWorkflow) {
+                        if (useGUIState.getState().isTabOpen(workflowStateId)) {
+                            useGUIState.getState().focusTab(workflowStateId);
+                        } else {
+                            const newWorkflow = deepClone(existingWorkflow);
+                            set((state) => ({
+                                workflows: {
+                                    ...state.workflows,
+                                    [workflowStateId]: newWorkflow,
+                                },
+                            }));
+                        }
+                    } else {
+                        // add to editor elements
+                        const parent = findNodeInTrees(get().editorElements, editorPath);
+                        const actions = AddDashboardActions(editorPath, workflowStateId, parent, workflow.viewState.displayName);
+                        const newElements = copyAndApplyTreeActions(get().editorElements, actions);
+
+                        set((state) => ({
+                            workflows: {
+                                ...state.workflows,
+                                [workflowStateId]: workflow,
+                            },
+                            editorElements: newElements,
+                        }));
+                    }
+                    useGUIState.getState().addWorkflowTab(existingWorkflow);
+                },
+                deleteWorkflow: (workflowId: string, editorPath: string[]) => {
+                    const {workflows} = get();
+                    if (useGUIState.getState().isTabOpen(workflowId)) {
+                        useGUIState.getState().removeTab(workflowId);
+                    }
+                    const newWorkflows = {...workflows};
+                    delete newWorkflows[workflowId];
+
+                    const actions = RemoveNodeAction(editorPath);
+                    const newElements = copyAndApplyTreeActions(get().editorElements, actions);
+                    set({
+                        workflows: newWorkflows,
+                        editorElements: newElements,
+                    });
+                },
+
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
-                    const randomId = `dashboard-${getRandomId()}`;
                     let local_dashboard: DashboardState | undefined = dashboard;
                     if (!local_dashboard) {
+                        const randomId = `dashboard-${getRandomId()}`;
                         local_dashboard = {
                             id: randomId,
                             name: "New Dashboard",

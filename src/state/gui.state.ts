@@ -4,7 +4,7 @@ import {
     addDashboardToLayout,
     addDatabaseToLayout,
     addRelationToLayout,
-    addSchemaToLayout,
+    addSchemaToLayout, addWorkflowToLayout,
     focusTab,
     getInitialLayoutModel,
     removeTab,
@@ -15,6 +15,7 @@ import {DashboardState} from "@/model/dashboard-state";
 import {DataSourceGroup} from "@/model/data-source-connection";
 import {createWithEqualityFn} from "zustand/traditional";
 import {ForceOpenReason} from "@/components/settings/settings-view";
+import {WorkflowState} from "@/model/workflow-state";
 
 export type AvailableTab = 'connections' | 'relations' | 'chat'
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model'
@@ -73,6 +74,8 @@ export interface GUIZustandActions {
     addRelationTab(relation: RelationState): void;
 
     addDashboardTab(dashboard: DashboardState): void;
+
+    addWorkflowTab: (workflow: WorkflowState) => void;
 
     addSchemaTab(id: string, schema: DataSourceGroup): void;
 
@@ -240,6 +243,12 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             addDashboardTab: (dashboard: DashboardState) => {
                 addDashboardToLayout(get().layoutModel, dashboard);
                 get().setSelectedTabId(dashboard.id);
+                get().persistState();
+            },
+
+            addWorkflowTab: (workflow: WorkflowState) => {
+                addWorkflowToLayout(get().layoutModel, workflow);
+                get().setSelectedTabId(workflow.id);
                 get().persistState();
             },
 
