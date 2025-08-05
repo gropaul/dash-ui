@@ -7,12 +7,12 @@ import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command"
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
-import {Column} from "@/model/column";
 import {Muted} from "@/components/ui/typography";
 import {AxisConfig, AxisDecoration, getInitialAxisDecoration, PlotType} from "@/model/relation-view-state/chart";
 import {Separator} from "@/components/ui/separator";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {DataAxisDecorationMenu} from "@/components/relation/chart/chart-config/data-axis-decoration-menu";
+import {Column} from "@/model/data-source-connection";
 
 export type AxisType = "x" | "y" | 'pie-label' | 'pie-radius' | 'group'
 

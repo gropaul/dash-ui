@@ -25,7 +25,7 @@ export function DatabaseTab(props: DatabaseViewProps) {
                     <DatabaseSchemaView
                         key={index}
                         connectionId={database.connectionId}
-                        databaseId={props.databaseId}
+                        databaseId={database.databaseId}
                         databaseName={database.name}
                         schema={schema as DataSourceGroup}
                     />

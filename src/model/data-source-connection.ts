@@ -1,12 +1,13 @@
 import {TreeNode} from "@/components/basics/files/tree-utils";
-import {Column} from "@/model/column";
 import {TreeContextMenuFactory} from "@/components/basics/files/tree-explorer";
 import {ConnectionStatus} from "@/model/database-connection";
+import {ValueType} from "@/model/value-type";
 
 export type DataSourceConnectionType = 'duckdb-internal-databases' | 'duckdb-local-filesystem';
 export type DataSourceType = 'file' | 'relation';
 export type DataGroupType = 'folder' | 'database' | 'schema';
 
+export type Column = TreeNode<Column, ValueType>;
 export type DataSourceElement = TreeNode<Column, DataSourceType>
 export type DataSourceGroup = TreeNode<DataSource, DataGroupType>;
 export type DataSource = DataSourceElement | DataSourceGroup;

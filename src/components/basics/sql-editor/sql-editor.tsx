@@ -109,6 +109,12 @@ export function SqlEditor(
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
         monaco.editor.setTheme(editorTheme);
 
+        // Add command to handle Enter key to prevent it from propagating to parent component
+        editor.addCommand(monaco.KeyCode.Enter, () => {
+            // Insert a new line at the current position
+            editor.trigger('keyboard', 'type', { text: '\n' });
+        });
+
         registerHotkeys(monaco, onRun);
         registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
@@ -174,5 +180,3 @@ export function SqlEditor(
 
     );
 }
-
-

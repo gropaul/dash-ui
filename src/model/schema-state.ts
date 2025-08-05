@@ -3,6 +3,7 @@ import {DataSourceGroup} from "@/model/data-source-connection";
 
 export interface SchemaState extends DataSourceGroup {
     databaseId: string;
+    schemaId: string;
     connectionId: string;
 }
 

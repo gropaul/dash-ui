@@ -6,7 +6,42 @@ import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 import {ConnectionsService} from "@/state/connections-service";
 import {removeSemicolon} from "@/platform/sql-utils";
+import {useSourceConState} from "@/state/connections-source.state";
+import {DatabaseState, getDatabaseId} from "@/model/database-state";
+import {getSchemaId, SchemaState} from "@/model/schema-state";
 
+
+export function GetDatabaseState(connectionId: string, databaseId: string): DatabaseState {
+    const sourceConnection = useSourceConState.getState().getSourceConnection(connectionId);
+    const databaseSource = sourceConnection?.dataSources[databaseId]!;
+    const databaseTabId = getDatabaseId(connectionId, databaseId); // Generate the database ID
+
+    if (!databaseSource) {
+        throw new Error(`Database ${databaseId} not found`);
+    }
+    return {
+        ...databaseSource as any,
+        id: databaseTabId,
+        databaseId: databaseId,
+        connectionId,
+    };
+}
+
+export function GetSchemaState(
+        connectionId: string,
+        databaseId: string,
+        schema: DataSourceGroup
+): SchemaState {
+    const schemaId = getSchemaId(connectionId, databaseId, schema); // Generate the schema ID
+
+    return {
+        ...schema,
+        connectionId,
+        databaseId: databaseId,
+        schemaId: schema.id,
+        id: schemaId,
+    };
+}
 
 export async function onDuckDBDataSourceClick(
     connection: DataSourceConnection,
@@ -14,29 +49,21 @@ export async function onDuckDBDataSourceClick(
     dataSources: { [key: string]: DataSource },
 ) {
 
-
     // if path has one element, it’s a database
     if (id_path.length === 1) {
-        const showDatabase = useRelationsState.getState().showDatabase;
-
         const database = findNodeInTrees(Object.values(dataSources), id_path);
         if (database) {
-            const connectionId = connection.id;
-            await showDatabase(connectionId, database.id);
+            const state = GetDatabaseState(connection.id, database.id);
+            return useRelationsState.getState().showEntity('databases', state, [])
         }
     }
 
-    // if path has two elements, it’s a schema
+    // if the path has two elements, it’s a schema
     else if (id_path.length === 2) {
-
-        const showSchema = useRelationsState.getState().showSchema;
-
-        const [databaseName, _schemaName] = id_path;
-
-        const schema = findNodeInTrees(Object.values(dataSources), id_path);
+        const schema = findNodeInTrees(Object.values(dataSources), id_path)  as DataSourceGroup;
         if (schema) {
-            const connectionId = connection.id;
-            await showSchema(connectionId, databaseName, schema as DataSourceGroup);
+            const state = GetSchemaState(connection.id, id_path[0], schema);
+            return useRelationsState.getState().showEntity('schemas', state, []);
         }
     }
 
@@ -83,17 +110,19 @@ function getType(duckDBType: string): string {
     }
 }
 
-export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<{[database: string]: DataSource}> {
+export async function loadDuckDBDataSources(executeQuery: (query: string) => Promise<RelationData>): Promise<{
+    [database: string]: DataSource
+}> {
 // get all columns and tables
 
     const query = `SELECT c.table_catalog, c.table_schema, c.table_name, t.table_type, c.column_name, c.data_type
                    FROM information_schema.columns as c
-                   JOIN information_schema.tables as t ON
-                        t.table_name = c.table_name and 
-                        t.table_schema = c.table_schema and
-                        t.table_catalog = c.table_catalog
+                            JOIN information_schema.tables as t ON
+                       t.table_name = c.table_name and
+                       t.table_schema = c.table_schema and
+                       t.table_catalog = c.table_catalog
                    ORDER BY c.table_catalog, c.table_name, c.ordinal_position;
-`;
+    `;
 
     const rows = await executeQuery(query);
     // will have format [database_name: table_schema: table_name: {column_name, data_type}]

@@ -1,4 +1,4 @@
-import {Column} from "@/model/column";
+import {Column} from "@/model/data-source-connection";
 
 export type Row = any[]
 

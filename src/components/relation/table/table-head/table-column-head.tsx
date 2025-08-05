@@ -1,5 +1,5 @@
 import React from 'react';
-import {Column} from "@/model/column";
+import {Column} from "@/model/data-source-connection";
 import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {ColumnSorting, getNextColumnSorting, ViewQueryParameters} from "@/model/relation-state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";

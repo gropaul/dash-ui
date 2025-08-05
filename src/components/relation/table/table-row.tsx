@@ -2,7 +2,7 @@ import {Row} from "@/model/relation";
 import {TableValueCell} from "@/components/relation/table/table-value-cell";
 
 import {Sometype_Mono} from "next/font/google";
-import {Column} from "@/model/column";
+import {Column} from "@/model/data-source-connection";
 import {TableViewState} from "@/model/relation-view-state/table";
 
 export const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});

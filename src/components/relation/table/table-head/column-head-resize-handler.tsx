@@ -1,8 +1,9 @@
 import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
-import {Column} from "@/model/column";
+
 import React, {useRef} from "react";
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
+import {Column} from "@/model/data-source-connection";
 
 interface ColumnHeadResizeHandleProps {
     relationId: string;

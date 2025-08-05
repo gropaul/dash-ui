@@ -10,7 +10,7 @@ import {
     getInitialChartViewState,
     getInitialChartViewStateEmpty
 } from "@/model/relation-view-state/chart";
-import {Column} from "@/model/column";
+import {Column} from "@/model/data-source-connection";
 import {
     getInitialSelectViewState,
     getInitialSelectViewStateEmpty,

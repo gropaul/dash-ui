@@ -6,6 +6,12 @@ import {DataSourceGroup} from "@/model/data-source-connection";
 import {DashboardState} from "@/model/dashboard-state";
 import {useGUIState} from "@/state/gui.state";
 import {WorkflowState} from "@/model/workflow-state";
+import {
+    GetEntityDisplayName,
+    GetEntityTypeDisplayName,
+    RelationZustandEntity,
+    RelationZustandEntityType
+} from "@/state/relations/entity-functions";
 
 // Layout Initialization
 export function getInitialLayoutModel(): Model {
@@ -60,27 +66,36 @@ export function focusTab(model: Model, tabId: string): void {
     model.doAction(Actions.selectTab(tabId));
 }
 
+type Components = 'RelationComponent' | 'DatabaseComponent' | 'DashboardComponent' | 'WorkflowComponent' | 'SchemaComponent';
 
-export function addRelationToLayout(model: Model, relation: RelationState): void {
-    addNodeToLayout(model, relation.id, relation.viewState.displayName, 'RelationComponent', { relationId: relation.id });
+const RELATION_COMPONENT_MAP: Record<RelationZustandEntityType, Components> = {
+    'relations': 'RelationComponent',
+    'schemas': 'SchemaComponent',
+    'databases': 'DatabaseComponent',
+    'dashboards': 'DashboardComponent',
+    'workflows': 'WorkflowComponent',
 }
 
-export function addDatabaseToLayout(model: Model, databaseId: string, database: DataSourceGroup): void {
-    addNodeToLayout(model, databaseId, database.name, 'DatabaseComponent', { databaseId });
+const RELATION_ID_NAME: Record<RelationZustandEntityType, string> = {
+    'relations': 'relationId',
+    'schemas': 'schemaId',
+    'databases': 'databaseId',
+    'dashboards': 'dashboardId',
+    'workflows': 'workflowId',
 }
 
-export function addDashboardToLayout(model: Model, dashboard: DashboardState): void {
-    const dashboardId = dashboard.id;
-    addNodeToLayout(model, dashboardId, dashboard.viewState.displayName, 'DashboardComponent', { dashboardId });
-}
+export function addEntityToLayout(model: Model, entityType: RelationZustandEntityType, entity: RelationZustandEntity): string {
 
-export function addWorkflowToLayout(model: Model, workflow: WorkflowState): void {
-    console.log("Adding workflow to layout", workflow);
-    addNodeToLayout(model, workflow.id, workflow.viewState.displayName, 'WorkflowComponent', { workflowId:  workflow.id });
-}
+    const component = RELATION_COMPONENT_MAP[entityType];
+    const displayName = GetEntityDisplayName(entity);
+    const nodeId = entity.id
+    const nodeName = displayName || 'Unnamed Entity';
 
-export function addSchemaToLayout(model: Model, schemaId: string, schema: DataSourceGroup): void {
-    addNodeToLayout(model, schemaId, schema.name, 'SchemaComponent', { schemaId });
+    const idKey = RELATION_ID_NAME[entityType];
+
+    addNodeToLayout(model, nodeId, nodeName, component, { [idKey]: nodeId });
+
+    return nodeId;
 }
 
 export function addNodeToLayout(

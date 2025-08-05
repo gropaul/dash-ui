@@ -4,7 +4,7 @@ import {ColumnSelector} from "@/components/relation/chart/chart-config/column-se
 import {CirclePlus, Lock} from "lucide-react";
 import {AxisConfig, AxisRange, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {ChartConfigProps} from "@/components/relation/chart/chart-config-view";
-import {Column} from "@/model/column";
+
 import {Input} from "@/components/ui/input";
 import {Separator} from "@/components/ui/separator";
 import {Switch} from "@/components/ui/switch";
@@ -15,6 +15,7 @@ import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 import {plotUsesGroup} from "@/components/relation/chart/echart-utils";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Column} from "@/model/data-source-connection";
 
 
 export function ConfigViewCartesian(props: ChartConfigProps) {

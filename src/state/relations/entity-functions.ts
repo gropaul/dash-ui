@@ -5,6 +5,8 @@ import {DatabaseState} from "@/model/database-state";
 import {SchemaState} from "@/model/schema-state";
 import {DashboardState} from "@/model/dashboard-state";
 import {deepClone} from "@/platform/object-utils";
+import {copyAndApplyTreeActions, findNodeInTrees, TreeNode} from "@/components/basics/files/tree-utils";
+import {AddEntityActions} from "@/components/basics/files/tree-action-utils";
 
 export type RelationZustandEntityType = 'relations' | 'schemas' | 'databases' | 'dashboards' | 'workflows';
 
@@ -24,6 +26,14 @@ export type RelationZustandEntityCollections =
 
 export function IsEntityType(entityType: string): entityType is RelationZustandEntityType {
     return ['relations', 'schemas', 'databases', 'dashboards', 'workflows'].includes(entityType);
+}
+
+const AddFolderForEntityType: Record<RelationZustandEntityType, boolean> = {
+    relations: true,
+    schemas: false,
+    databases: false,
+    dashboards: true,
+    workflows: true
 }
 
 export function GetEntityTypeDisplayName(entityType: RelationZustandEntityType): string {
@@ -52,9 +62,19 @@ export function getEntityCollection(
     return state[entityType];
 }
 
-export function GetEntityDisplayName(id: string, entityType: RelationZustandEntityType, state: RelationZustand): string {
+export function GetEntityDisplayNameById(id: string, entityType: RelationZustandEntityType, state: RelationZustand): string {
     const collection = state[entityType];
     const entity = collection[id];
+
+    if (!entity) {
+        throw new Error(`Entity with id ${id} not found in ${entityType} collection`);
+    }
+
+    return GetEntityDisplayName(entity);
+}
+
+
+export function GetEntityDisplayName(entity: RelationZustandEntity): string {
 
     // check if they have a field viewState
     if (entity && 'viewState' in entity && entity.viewState) {
@@ -63,7 +83,55 @@ export function GetEntityDisplayName(id: string, entityType: RelationZustandEnti
         return entity.name;
     }
 
-    throw new Error(`Entity with id ${id} not found in ${entityType} collection`);
+    throw new Error(`Entity does not have a display name field`);
+
+}
+
+interface AddReturnFalse {
+    added: false;
+}
+
+interface AddReturnTrue {
+    added: true;
+    updatedCollection: RelationZustandEntityCollections;
+    updatedElements: TreeNode[];
+}
+
+export function AddIfNotExists(entity: RelationZustandEntity, entityType: RelationZustandEntityType, state: RelationZustand, editorPath: string[]): AddReturnFalse | AddReturnTrue {
+    let collection = getEntityCollection(state, entityType);
+    const id = entity.id;
+    if (!collection[id]) {
+        const displayName = GetEntityDisplayName(entity);
+        const addElement = AddFolderForEntityType[entityType];
+        let newElements;
+        if (addElement) {
+            const parent = findNodeInTrees(state.editorElements, editorPath);
+            const actions = AddEntityActions(editorPath, id, entityType, displayName, parent);
+            newElements = copyAndApplyTreeActions(state.editorElements, actions);
+
+        } else {
+            newElements = state.editorElements
+        }
+        const newCollection: RelationZustandEntityCollections = {
+            ...collection,
+            [id]: entity
+        } as RelationZustandEntityCollections;
+
+        return {
+            added: true,
+            updatedCollection: newCollection,
+            updatedElements: newElements
+        }
+
+    } else {
+        return {
+            added: false
+        }
+    }
+}
+
+export function GetEntityId(entity: RelationZustandEntity): string {
+    return entity.id;
 }
 
 export function SetEntityDisplayName(id: string, entityType: RelationZustandEntityType, displayName: string, state: RelationZustand): RelationZustandEntity {

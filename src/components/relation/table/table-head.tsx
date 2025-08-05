@@ -1,7 +1,7 @@
 import {TableColumnHead} from "@/components/relation/table/table-head/table-column-head";
 import React from "react";
 import {ColumnHeadDropDownMenuContent} from "@/components/relation/table/table-head/dropdown-menu-content";
-import {Column} from "@/model/column";
+import {Column} from "@/model/data-source-connection";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 

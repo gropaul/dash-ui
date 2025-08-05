@@ -42,8 +42,9 @@ import {useSourceConState} from "@/state/connections-source.state";
 import {maybeAttachDatabaseFromUrlParam} from "@/state/relations/attach-from-url-param";
 import {GetInitialWorkflowState, GetWorkflowId, WorkflowState} from "@/model/workflow-state";
 import {
-    deleteFromEntityCollection, GetEntityDisplayName,
-    GetEntityTypeDisplayName,
+    AddIfNotExists,
+    deleteFromEntityCollection, getEntityCollection, GetEntityDisplayNameById, GetEntityId,
+    GetEntityTypeDisplayName, RelationZustandEntity,
     RelationZustandEntityType, SetEntityDisplayName
 } from "@/state/relations/entity-functions";
 
@@ -69,8 +70,6 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     getRelation: (relationId: string) => RelationState,
     addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
     relationExists: (relationId: string) => boolean,
-    showRelation: (relation: RelationState, editorPath: string[]) => void,
-    showRelationFromId: (relationId: string, editorPath: string[]) => void,
     showRelationFromSource: (connectionId: string, source: RelationSource, editorPath: string[]) => void,
 
     /* relation data actions */
@@ -82,16 +81,12 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     getRelationViewState: (relationId: string) => RelationViewState,
 
     /* schema actions */
-    showSchema: (connectionId: string, databaseId: string, schema: DataSourceGroup) => Promise<void>,
     getSchemaState: (schemaId: string) => SchemaState,
 
     /* database actions */
-    showDatabase: (connectionId: string, databaseId: string) => Promise<void>,
     getDatabaseState: (databaseId: string) => DatabaseState,
 
     /* dashboard actions */
-    showDashboard: (dashboard: DashboardState, editorPath: string[]) => Promise<void>,
-    showDashboardFromId: (dashboardId: string, editorPath: string[]) => void,
     addNewDashboard: (connectionId: string, editorPath: string[], dashboard?: DashboardState) => void,
     getDashboardState: (dashboardId: string) => DashboardState,
     // **unsafe in terms of adding, renaming, and deleting dashboards**
@@ -99,13 +94,14 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
     /* workflow actions */
     addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => void,
-    showWorkflow: (workflow: WorkflowState, editorPath: string[]) => void,
     getWorkflowState: (workflowId: string) => WorkflowState,
 
     /* entity actions */
     deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
     getEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string) => string,
     setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => void,
+    showEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, path: string[]) : void,
+    showEntityFromId: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
 
     /* editor folder actions */
     updateEditorElements: (path: string[], newFolder: EditorFolder) => void,
@@ -200,52 +196,15 @@ export const useRelationsState = createWithEqualityFn(
                     if (openDashboards) {
                         // open all dashboards in the GUI
                         Object.values(dashboards).forEach((dashboard) => {
-                            useGUIState.getState().addDashboardTab(dashboard);
+                            useGUIState.getState().addEntityTab('dashboards', dashboard);
                         });
                     }
                 },
 
-
                 addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => {
                     const local_workflow = workflow ?? GetInitialWorkflowState();
                     const local_editorPath = editorPath ?? [];
-                    console.log("Adding new workflow", local_workflow, local_editorPath);
-                    get().showWorkflow(local_workflow, local_editorPath);
-                },
-                showWorkflow: (workflow: WorkflowState, editorPath: string[]) => {
-                    const {workflows} = get(); // Get the current state
-                    const workflowStateId = workflow.id; // Use the dashboard ID as the state ID
-                    const existingWorkflow = workflows[workflowStateId]; // Retrieve the database
-                    if (existingWorkflow) {
-                        if (useGUIState.getState().isTabOpen(workflowStateId)) {
-                            useGUIState.getState().focusTab(workflowStateId);
-                        } else {
-                            const newWorkflow = deepClone(existingWorkflow);
-                            set((state) => ({
-                                workflows: {
-                                    ...state.workflows,
-                                    [workflowStateId]: newWorkflow,
-                                },
-                            }));
-                        }
-                        useGUIState.getState().addWorkflowTab(existingWorkflow);
-
-                    } else {
-                        // add to editor elements
-                        const parent = findNodeInTrees(get().editorElements, editorPath);
-                        const actions = AddEntityActions(editorPath, workflowStateId, 'workflows', workflow.viewState.displayName, parent);
-                        const newElements = copyAndApplyTreeActions(get().editorElements, actions);
-
-                        set((state) => ({
-                            workflows: {
-                                ...state.workflows,
-                                [workflowStateId]: workflow,
-                            },
-                            editorElements: newElements,
-                        }));
-                        useGUIState.getState().addWorkflowTab(workflow);
-
-                    }
+                    get().showEntity('workflows', local_workflow, local_editorPath);
                 },
                 getWorkflowState: (workflowId: string) => {
                     const workflow = get().workflows[workflowId];
@@ -269,7 +228,7 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 getEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string): string => {
-                    return GetEntityDisplayName(entityId, entityType, get());
+                    return GetEntityDisplayNameById(entityId, entityType, get());
                 },
 
                 setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => {
@@ -286,6 +245,34 @@ export const useRelationsState = createWithEqualityFn(
                         },
                         editorElements: newEditorElements,
                     }));
+                },
+
+                showEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, editorPath: string[] = []) {
+
+
+                    const addResult = AddIfNotExists(entity, entityType, get(), editorPath);
+                    const entityId = GetEntityId(entity);
+                    if (addResult.added) {
+                        set((state) => ({
+                            [entityType]: addResult.updatedCollection,
+                            editorElements: addResult.updatedElements,
+                        }));
+                    }
+
+                    if (useGUIState.getState().isTabOpen(entityId)) {
+                        useGUIState.getState().focusTab(entityId);
+                    } else {
+                        useGUIState.getState().addEntityTab(entityType, entity);
+                    }
+                },
+
+                showEntityFromId: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
+                    const collection = getEntityCollection(get(), entityType);
+                    const entity = collection[entityId];
+                    if (!entity) {
+                        throw new Error(`Entity with id ${entityId} not found in ${entityType} collection`);
+                    }
+                    get().showEntity(entityType, entity, editorPath);
                 },
 
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
@@ -308,7 +295,7 @@ export const useRelationsState = createWithEqualityFn(
                             }
                         }
                     }
-                    get().showDashboard(local_dashboard, editorPath);
+                    get().showEntity('dashboards', local_dashboard, editorPath);
                 },
 
                 addNewRelation: async (connectionId: string, editorPath: string[], relation?: RelationState) => {
@@ -323,46 +310,10 @@ export const useRelationsState = createWithEqualityFn(
                         get().showRelationFromSource(connectionId, local_source, editorPath);
                     } else {
                         // make sure that this relation is not already in the state
-                        get().showRelation(relation, editorPath);
+                        get().showEntity('relations', relation, editorPath);
                     }
                 },
-                showDashboardFromId: (dashboardId: string, editorPath: string[]) => {
-                    const dashboard = get().dashboards[dashboardId];
-                    get().showDashboard(dashboard, editorPath);
-                },
-                showDashboard: async (dashboard: DashboardState, editorPath: string[]) => {
-                    const {dashboards} = get(); // Get the current state
-                    const dashboardStateId = dashboard.id; // Use the dashboard ID as the state ID
-                    const existingDashboard = dashboards[dashboardStateId]; // Retrieve the database
-                    if (existingDashboard) {
-                        if (useGUIState.getState().isTabOpen(dashboardStateId)) {
-                            useGUIState.getState().focusTab(dashboardStateId);
-                        } else {
-                            const newDashboard = deepClone(existingDashboard);
-                            set((state) => ({
-                                dashboards: {
-                                    ...state.dashboards,
-                                    [dashboardStateId]: newDashboard,
-                                },
-                            }));
-                            useGUIState.getState().addDashboardTab(dashboard);
-                        }
-                    } else {
-                        // add to editor elements
-                        const parent = findNodeInTrees(get().editorElements, editorPath);
-                        const actions = AddEntityActions(editorPath, dashboardStateId, 'dashboards', dashboard.viewState.displayName, parent);
-                        const newElements = copyAndApplyTreeActions(get().editorElements, actions);
 
-                        set((state) => ({
-                            dashboards: {
-                                ...state.dashboards,
-                                [dashboardStateId]: dashboard,
-                            },
-                            editorElements: newElements,
-                        }));
-                        useGUIState.getState().addDashboardTab(dashboard);
-                    }
-                },
                 setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => {
                     set((state) => ({
                         dashboards: {
@@ -370,55 +321,6 @@ export const useRelationsState = createWithEqualityFn(
                             [dashboardId]: dashboard,
                         },
                     }));
-                },
-                showSchema: async (connectionId: string, databaseId: string, schema: DataSourceGroup) => {
-                    const {schemas} = get(); // Get the current state
-                    const schemaId = getSchemaId(connectionId, databaseId, schema); // Generate the schema ID
-                    const existingSchema = schemas[schemaId]; // Retrieve the schema
-                    if (existingSchema) {
-                        useGUIState.getState().focusTab(schemaId);
-                    } else {
-                        set((state) => ({
-                            schemas: {
-                                ...state.schemas,
-                                [schemaId]: {
-                                    ...schema,
-                                    connectionId,
-                                    databaseId,
-                                }
-                            },
-                        }));
-                        useGUIState.getState().addSchemaTab(schemaId, schema);
-                    }
-                },
-                showDatabase: async (connectionId: string, databaseId: string) => {
-                    const {databases} = get(); // Get the current state
-                    const databaseTabId = getDatabaseId(connectionId, databaseId); // Generate the database ID
-                    const existingDatabase = databases[databaseId]; // Retrieve the database
-                    if (existingDatabase) {
-                        useGUIState.getState().focusTab(databaseTabId);
-                    } else {
-                        const sourceConnection = useSourceConState.getState().getSourceConnection(connectionId);
-                        const databaseSource = sourceConnection?.dataSources[databaseId]!;
-                        if (!databaseSource) {
-                            throw new Error(`Database ${databaseId} not found`);
-                        }
-                        const database: DatabaseState = {
-                            ...databaseSource as any,
-                            databaseId: databaseTabId,
-                            connectionId,
-                        }
-                        set((state) => ({
-                            databases: {
-                                ...state.databases,
-                                [databaseTabId]: {
-                                    ...database,
-                                    connectionId,
-                                }
-                            },
-                        }));
-                        useGUIState.getState().addDatabaseTab(databaseTabId, database);
-                    }
                 },
                 getDashboardState: (dashboardId: string) => {
                     return get().dashboards[dashboardId];
@@ -433,42 +335,6 @@ export const useRelationsState = createWithEqualityFn(
                 relationExists: (relationId: string) => get().relations[relationId] !== undefined,
                 getRelation: (relationId: string) => get().relations[relationId],
 
-                showRelation(relation: RelationState, editorPath: string[]) {
-                    const relationId = getRelationIdFromSource(relation.connectionId, relation.source)
-                    const {relations} = get(); // Get the current state
-                    const existingRelation = relations[relationId]; // Retrieve the relation
-                    if (existingRelation) {
-                        if (useGUIState.getState().isTabOpen(relationId)) {
-                            useGUIState.getState().focusTab(relationId);
-                        } else {
-                            const newRelation = deepClone(existingRelation);
-                            set((state) => ({
-                                relations: {
-                                    ...state.relations,
-                                    [relationId]: newRelation,
-                                },
-                            }));
-                            useGUIState.getState().addRelationTab(relation);
-                        }
-                    } else {
-
-                        const parent = findNodeParentInTrees(get().editorElements, editorPath);
-                        const actions = AddEntityActions(editorPath, relationId, 'relations', relation.viewState.displayName, parent);
-                        const newElements = copyAndApplyTreeActions(get().editorElements, actions);
-                        set((state) => ({
-                            relations: {
-                                ...state.relations,
-                                [relationId]: relation,
-                            },
-                            editorElements: newElements,
-                        }));
-                        useGUIState.getState().addRelationTab(relation);
-                    }
-                },
-                showRelationFromId: (relationId: string, editorPath: string[]) => {
-                    const relation = get().relations[relationId];
-                    get().showRelation(relation, editorPath);
-                },
                 showRelationFromSource: async (connectionId: string, source: RelationSource, editorPath: string[]) => {
 
                     const relationId = getRelationIdFromSource(connectionId, source);
@@ -476,7 +342,7 @@ export const useRelationsState = createWithEqualityFn(
                     // check if relation already exists
                     const existingRelation = get().relations[relationId];
                     if (existingRelation) {
-                        get().showRelation(existingRelation, editorPath);
+                        get().showEntity('relations', existingRelation, editorPath);
                     } else {
                         // update state with empty (loading) relation
                         const defaultQueryParams = getInitialParams();
@@ -496,7 +362,7 @@ export const useRelationsState = createWithEqualityFn(
                             editorElements: newElements,
                         }));
 
-                        useGUIState.getState().addRelationTab(emptyRelationState);
+                        useGUIState.getState().addEntityTab('relations', emptyRelationState);
 
                         // execute query
                         const executedRelationState = await executeQueryOfRelationState(emptyRelationState);

@@ -6,6 +6,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {Database, ExternalLink, Network, Sheet} from "lucide-react";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
+import {GetSchemaState} from "@/state/connections-source/duckdb-helper";
 
 
 interface DatabaseSchemaViewProps {
@@ -18,10 +19,11 @@ interface DatabaseSchemaViewProps {
 export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
 
     const showRelation = useRelationsState((state) => state.showRelationFromSource);
-    const showSchema = useRelationsState((state) => state.showSchema);
+    const showEntity = useRelationsState((state) => state.showEntity);
 
     function onShowSchema() {
-        showSchema(props.connectionId, props.databaseName, props.schema);
+        const schemaState = GetSchemaState(props.connectionId, props.databaseId, props.schema);
+        showEntity('schemas', schemaState, []);
     }
 
     function onShowRelation(tableName: string) {

@@ -112,7 +112,6 @@ export const handleFileDrop = async (
             await refreshConnection(connection.id);
 
             const showRelation = useRelationsState.getState().showRelationFromSource;
-            const showDatabase = useRelationsState.getState().showDatabase;
             const catalog = await connection.executeQuery(`SELECT current_catalog();`);
             const dbName = catalog.rows[0][0];
             tableNames.forEach((name, index) => {

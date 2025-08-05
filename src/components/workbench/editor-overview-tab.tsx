@@ -63,10 +63,8 @@ export function EditorOverviewTab() {
     const dashboards = useRelationsState((state) => state.dashboards);
     const editorElements = useRelationsState((state) => state.editorElements);
 
-    const showRelationFromId = useRelationsState((state) => state.showRelationFromId);
     const addNewRelation = useRelationsState((state) => state.addNewRelation);
 
-    const showDashboardFromId = useRelationsState((state) => state.showDashboardFromId);
     const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
     const setDashboardStateUnsafe = useRelationsState((state) => state.setDashboardStateUnsafe);
 
@@ -80,6 +78,7 @@ export function EditorOverviewTab() {
     const deleteEntity = useRelationsState((state) => state.deleteEntity);
     const getEntityDisplayName = useRelationsState((state) => state.getEntityDisplayName);
     const setEntityDisplayName = useRelationsState((state) => state.setEntityDisplayName);
+    const showEntityFromId = useRelationsState((state) => state.showEntityFromId);
 
     useEffect(() => {
         let cancelled = false;
@@ -122,13 +121,16 @@ export function EditorOverviewTab() {
     }
 
     function onTreeElementClick(path: string[], node: TreeNode, event: React.MouseEvent) {
-        // if shift is pressed, do not change the selection
+        // if shift is pressed, we want to add elements to the selection not
+        // open the element
         if (!event.shiftKey) {
-            if (node.type === 'relation') {
-                showRelationFromId(node.id, path);
-            } else if (node.type === 'dashboard') {
-                showDashboardFromId(node.id, path);
+            // assert that node.type is an entity type
+            if (IsEntityType(node.type)) {
+                showEntityFromId(node.type, node.id, path);
+            } else {
+                throw new Error(`Unknown node type: ${node.type}`);
             }
+
         }
     }
 

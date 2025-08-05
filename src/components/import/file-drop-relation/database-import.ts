@@ -5,6 +5,7 @@ import {RelationZustand, useRelationsState} from "@/state/relations.state";
 import {getImportQuery} from "@/state/connections-database/duckdb-wasm/utils";
 import {FileUploadState} from "./file-drop-overlay";
 import {DatabaseConnection} from "@/model/database-connection";
+import {GetDatabaseState} from "@/state/connections-source/duckdb-helper";
 
 /**
  * Handles the import of a database file
@@ -60,8 +61,9 @@ export const handleDatabaseImport = async (
             const refreshConnection = useSourceConState.getState().refreshConnection;
             await refreshConnection(connection.id);
 
-            const showDatabase = useRelationsState.getState().showDatabase;
-            showDatabase(connection.id, databaseName);
+            const databaseState = GetDatabaseState(connection.id, databaseName);
+            useRelationsState.getState().showEntity('databases', databaseState, []);
+
             const dashState = await getDashStateIfExits(connection, databaseName);
             if (dashState) {
                 setFileUploadState({state: 'database_found_dash_state', message: 'Found Dashboards in imported Database', dashState: dashState});

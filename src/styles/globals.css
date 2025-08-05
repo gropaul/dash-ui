@@ -61,6 +61,8 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --node-shadow: 0 10px 25px -5px hsl(217 91% 60% / 0.15), 0 4px 6px -2px hsl(217 91% 60% / 0.05);
+    --node-glow: 0 0 0 1px hsl(var(--primary) / 0.1), 0 10px 25px -5px hsl(var(--primary) / 0.25);
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -88,6 +90,8 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --node-shadow: 0 10px 25px -5px hsl(217 91% 60% / 0.25), 0 4px 6px -2px hsl(217 91% 60% / 0.1);
+    --node-glow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 10px 25px -5px hsl(var(--primary) / 0.4);
   }
 }
 

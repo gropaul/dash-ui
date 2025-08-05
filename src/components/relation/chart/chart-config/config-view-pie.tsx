@@ -3,7 +3,7 @@ import {Label} from "@/components/ui/label";
 import {Muted} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {AxisConfig, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
-import {Column} from "@/model/column";
+import {Column} from "@/model/data-source-connection";
 
 
 export function ConfigViewPie(props: ChartConfigProps) {

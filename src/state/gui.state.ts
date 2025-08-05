@@ -1,21 +1,15 @@
 import {Model} from "flexlayout-react";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {
-    addDashboardToLayout,
-    addDatabaseToLayout,
-    addRelationToLayout,
-    addSchemaToLayout, addWorkflowToLayout,
+    addEntityToLayout,
     focusTab,
     getInitialLayoutModel,
     removeTab,
     renameTab,
 } from "@/state/relations/layout-updates";
-import {RelationState} from "@/model/relation-state";
-import {DashboardState} from "@/model/dashboard-state";
-import {DataSourceGroup} from "@/model/data-source-connection";
 import {createWithEqualityFn} from "zustand/traditional";
 import {ForceOpenReason} from "@/components/settings/settings-view";
-import {WorkflowState} from "@/model/workflow-state";
+import {RelationZustandEntity, RelationZustandEntityType} from "@/state/relations/entity-functions";
 
 export type AvailableTab = 'connections' | 'relations' | 'chat'
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model'
@@ -71,21 +65,11 @@ export interface GUIZustandActions {
 
     setSelectedTabId(tabId?: string): void;
 
-    addRelationTab(relation: RelationState): void;
-
-    addDashboardTab(dashboard: DashboardState): void;
-
-    addWorkflowTab: (workflow: WorkflowState) => void;
-
-    addSchemaTab(id: string, schema: DataSourceGroup): void;
-
-    addDatabaseTab(id: string, database: DataSourceGroup): void;
+    addEntityTab: (entityType: RelationZustandEntityType, entity: RelationZustandEntity) => void;
 
     keepTabsOfIds(ids: string[]): void;
 
     persistState(): void;
-
-    increment(): void;
 
 }
 
@@ -234,40 +218,12 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                 get().persistState();
             },
 
-            addRelationTab: (relation: RelationState) => {
-                addRelationToLayout(get().layoutModel, relation);
-                get().setSelectedTabId(relation.id);
+            addEntityTab: (entityType: RelationZustandEntityType, entity: RelationZustandEntity) => {
+                addEntityToLayout(get().layoutModel, entityType, entity);
+                get().setSelectedTabId(entity.id);
                 get().persistState();
             },
 
-            addDashboardTab: (dashboard: DashboardState) => {
-                addDashboardToLayout(get().layoutModel, dashboard);
-                get().setSelectedTabId(dashboard.id);
-                get().persistState();
-            },
-
-            addWorkflowTab: (workflow: WorkflowState) => {
-                addWorkflowToLayout(get().layoutModel, workflow);
-                get().setSelectedTabId(workflow.id);
-                get().persistState();
-            },
-
-            addSchemaTab: (id: string, schema: DataSourceGroup) => {
-                addSchemaToLayout(get().layoutModel, id, schema);
-                get().setSelectedTabId(id);
-                get().persistState();
-            },
-
-            addDatabaseTab: (id: string, database: DataSourceGroup) => {
-                addDatabaseToLayout(get().layoutModel, id, database);
-                get().setSelectedTabId(id);
-                get().persistState();
-            },
-
-
-            increment: () => {
-                set((state) => ({number: state.number + 1}));
-            },
 
             isTabOpen(tabId: string): boolean {
                 const model = get().layoutModel;

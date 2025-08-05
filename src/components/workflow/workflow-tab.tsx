@@ -1,6 +1,7 @@
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
 import {DashboardContent} from "@/components/dashboard/dashboard-content";
+import {FlowView} from "@/components/workflow/flow-view";
 
 
 export interface WorkflowTabProps {
@@ -20,6 +21,7 @@ export function WorkflowTab(props: WorkflowTabProps) {
             <div className="flex-1 overflow-auto relative">
                 {workflow.viewState.displayName}
             </div>
+            <FlowView />
         </div>
     )
 }
