@@ -22,7 +22,7 @@ export function SchemaRelationView(props: SchemaRelationViewProps) {
         const relationSourceTable: RelationSourceTable = {
             type: 'table',
             database: props.schema.databaseId,
-            schema: props.schema.id,
+            schema: props.schema.schemaId,
             tableName: props.table.name,
         }
 

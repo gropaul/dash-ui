@@ -401,7 +401,7 @@ ${relationNames.join(', ')}`;
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => addNewWorkflow()}>
                             <Workflow size={16} className="mr-2"/>
-                            <span>New Workflow</span>
+                            <span>New Workflow (dev)</span>
                         </DropdownMenuItem>
                         { /* only in development */}
                         {process.env.NODE_ENV === 'development' && (
