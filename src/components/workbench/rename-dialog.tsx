@@ -20,12 +20,9 @@ interface RenameDialogProps {
     currentName: string;
 }
 
-
 export function RenameDialog(props: RenameDialogProps) {
-
     const [newName, setNewName] = React.useState(props.currentName);
 
-    // listen for changes in the currentName prop
     React.useEffect(() => {
         setNewName(props.currentName);
     }, [props.currentName]);
@@ -33,6 +30,11 @@ export function RenameDialog(props: RenameDialogProps) {
     function handleRename() {
         props.onRename(newName);
         props.onOpenChange(false);
+    }
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault(); // Prevents default form submission behavior
+        handleRename();
     }
 
     return (
@@ -43,23 +45,26 @@ export function RenameDialog(props: RenameDialogProps) {
                     {props.description && <DialogDescription>{props.description}</DialogDescription>}
                 </DialogHeader>
 
-                <div className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
                         placeholder="Enter new name"
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                     />
-                </div>
-                <DialogFooter>
-                    <Button variant="secondary" onClick={() => props.onOpenChange(false)}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleRename}>
-                        Confirm
-                    </Button>
-                </DialogFooter>
+                    <DialogFooter>
+                        <Button
+                            variant="secondary"
+                            type="button"
+                            onClick={() => props.onOpenChange(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit">
+                            Confirm
+                        </Button>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     );
-
 }

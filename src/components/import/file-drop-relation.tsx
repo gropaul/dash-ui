@@ -48,7 +48,7 @@ export function FileDropRelation({className, children}: Props) {
         if (importDashboards) {
             // Import dashboards using the mergeState function
             const mergeState = useRelationsState.getState().mergeState;
-            mergeState(dashState, false);
+            mergeState(dashState, true);
             setFileUploadState({state: 'done', message: 'Dashboards & Database imported successfully!'});
         } else {
             // Skip dashboard import

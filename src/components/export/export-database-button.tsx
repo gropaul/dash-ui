@@ -3,25 +3,40 @@ import {Download,} from "lucide-react";
 import React, {useEffect} from "react";
 import {ConnectionsService} from "@/state/connections-service";
 import {DuckDBWasm} from "@/state/connections-database/duckdb-wasm";
+import {DatabaseConnection} from "@/model/database-connection";
 
+
+function shouldShowExportButton(connection?: DatabaseConnection): boolean {
+    console.log('ExportDatabaseButton: onDatabaseConnectionChange', connection);
+    if (connection) {
+        return connection.type === 'duckdb-wasm-motherduck' || connection.type === 'duckdb-wasm';
+    } else {
+        return false;
+    }
+}
 
 export function ExportDatabaseButton() {
+
+
 
     const [showButton, setShowButton] = React.useState(false);
     useEffect(() => {
         ConnectionsService.getInstance().onDatabaseConnectionChange(
             (connection) => {
-                if (connection) {
-                    if (connection.type === 'duckdb-wasm-motherduck' || connection.type === 'duckdb-wasm') {
-                        setShowButton(true);
-                    } else {
-                        setShowButton(false);
-                    }
-                } else {
-                    setShowButton(false);
-                }
+                const shouldShow = shouldShowExportButton(connection);
+                setShowButton(shouldShow);
             }
         )
+        // initial check
+        const service = ConnectionsService.getInstance();
+        if (service.hasDatabaseConnection()) {
+            const connection = service.getDatabaseConnection();
+            const shouldShow = shouldShowExportButton(connection);
+            setShowButton(shouldShow);
+        } else {
+            setShowButton(false);
+        }
+
     }, []);
 
     if (!showButton) {

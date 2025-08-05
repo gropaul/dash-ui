@@ -36,6 +36,7 @@ export class ConnectionsService {
     }
 
     private notifyDatabaseConnectionChange() {
+        console.log('Notifying database connection change, there are ', this.databaseConnectionCallbacks.size, 'callbacks registered.');
         for (const callback of this.databaseConnectionCallbacks) {
             callback(this.database_connection);
         }
@@ -47,6 +48,7 @@ export class ConnectionsService {
 
     setDatabaseConnection(connection: DatabaseConnection) {
         this.database_connection = connection;
+        console.log('Database connection set:', connection);
         this.notifyDatabaseConnectionChange();
     }
 
