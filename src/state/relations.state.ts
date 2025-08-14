@@ -10,13 +10,12 @@ import {
     ViewQueryParameters,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
-import {DataSourceGroup} from "@/model/data-source-connection";
-import {getSchemaId, SchemaState} from "@/model/schema-state";
-import {DatabaseState, getDatabaseId} from "@/model/database-state";
+import {SchemaState} from "@/model/schema-state";
+import {DatabaseState} from "@/model/database-state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
-import {DashboardState, DashboardViewState, getInitDashboardViewState} from "@/model/dashboard-state";
+import {DashboardState, getInitDashboardViewState} from "@/model/dashboard-state";
 import {getRandomId} from "@/platform/id-utils";
 import {EditorFolder} from "@/model/editor-folder";
 import {
@@ -24,28 +23,26 @@ import {
     applyTreeActions,
     copyAndApplyTreeActions,
     findNodeInTrees,
-    findNodeParentInTrees,
     IterateAll,
     removeNode,
     TreeAction,
     updateNode
 } from "@/components/basics/files/tree-utils";
-import {
-    AddEntityActions,
-    RemoveNodeAction,
-    RenameNodeActions
-} from "@/components/basics/files/tree-action-utils";
+import {AddEntityActions, RemoveNodeAction, RenameNodeActions} from "@/components/basics/files/tree-action-utils";
 import {useGUIState} from "@/state/gui.state";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
-import {useSourceConState} from "@/state/connections-source.state";
 import {maybeAttachDatabaseFromUrlParam} from "@/state/relations/attach-from-url-param";
-import {GetInitialWorkflowState, GetWorkflowId, WorkflowState} from "@/model/workflow-state";
+import {GetInitialWorkflowState, WorkflowState} from "@/model/workflow-state";
 import {
     AddIfNotExists,
-    deleteFromEntityCollection, getEntityCollection, GetEntityDisplayNameById, GetEntityId,
-    GetEntityTypeDisplayName, RelationZustandEntity,
-    RelationZustandEntityType, SetEntityDisplayName
+    deleteFromEntityCollection,
+    getEntityCollection,
+    GetEntityDisplayNameById,
+    GetEntityId,
+    RelationZustandEntity,
+    RelationZustandEntityType,
+    SetEntityDisplayName
 } from "@/state/relations/entity-functions";
 
 

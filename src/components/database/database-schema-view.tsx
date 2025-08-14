@@ -3,7 +3,7 @@ import {CardView} from "@/components/basics/basic-view/card-view";
 import React from "react";
 import {RelationSourceTable} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
-import {Database, ExternalLink, Network, Sheet} from "lucide-react";
+import {ExternalLink, Network} from "lucide-react";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {GetSchemaState} from "@/state/connections-source/duckdb-helper";

@@ -11,7 +11,7 @@ import {
     specToConnection
 } from "@/state/connections-database/configs";
 import {toast} from "sonner";
-import {usePathname, useRouter} from 'next/navigation'
+import {useRouter} from 'next/navigation'
 import {showExampleQuery} from "@/components/provider/example-query";
 import {findWorkingConnection} from "@/components/provider/config-utils";
 import {NO_CONNECTION_FORCE_OPEN_REASON, SettingsView} from "@/components/settings/settings-view";

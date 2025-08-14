@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react';
-import {ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Background, Controls} from '@xyflow/react';
+import {useCallback, useState} from 'react';
+import {addEdge, applyEdgeChanges, applyNodeChanges, Background, Controls, ReactFlow} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {FromNode} from "@/components/workflow/nodes/from";
 import {WhereNode} from "@/components/workflow/nodes/where";

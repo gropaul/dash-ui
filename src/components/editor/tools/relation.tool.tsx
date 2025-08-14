@@ -1,17 +1,13 @@
 // RelationBlockTool.tsx
-import {createRoot} from 'react-dom/client';
 import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
-import {getVariablesUsedByQuery, RelationState, ViewQueryParameters} from '@/model/relation-state';
+import {RelationState, ViewQueryParameters} from '@/model/relation-state';
 import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/components/dashboard/dashboard-data-view';
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {RelationViewType} from "@/model/relation-view-state";
-
-import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {getRandomId} from "@/platform/id-utils";
 import {
     ICON_CAPTIONS_OFF,
     ICON_CHART,

@@ -1,6 +1,5 @@
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
-import {DashboardContent} from "@/components/dashboard/dashboard-content";
 import {FlowView} from "@/components/workflow/flow-view";
 
 

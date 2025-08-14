@@ -11,7 +11,9 @@ import {
     Network,
     Sheet,
     Text,
-    ToggleLeft, View, WorkflowIcon
+    ToggleLeft,
+    View,
+    WorkflowIcon
 } from "lucide-react";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 

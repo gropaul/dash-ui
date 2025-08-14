@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { NodeType } from "@/components/workflow/flow-view";
+import {ReactNode} from "react";
+import {NodeType} from "@/components/workflow/flow-view";
 
 export interface NodeBodyProps {
     type: NodeType;

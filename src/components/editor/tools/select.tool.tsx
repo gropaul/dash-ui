@@ -1,12 +1,11 @@
 // SelectBlockTool.tsx
 import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
-import React from 'react';
 
 import {getInitialParams, getQueryFromParamsUnchecked} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState} from "@/model/relation-view-state";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_SELECT, ICON_SETTING,} from "@/components/editor/tools/icons";
-import {RelationBlockData, RelationComponent} from "@/components/editor/tools/relation.tool";
+import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";

@@ -1,10 +1,5 @@
-import {BarChart3, DatabaseZap, FileText, Sheet, Table, Table2} from "lucide-react";
-import {
-    TOOL_NAME_ADD_CHART_TO_DASHBOARD,
-    TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD,
-    TOOL_NAME_EXECUTE_QUERY, ToolDisplayNameMap,
-    ToolName
-} from "@/components/chat/model/llm-service";
+import {BarChart3, DatabaseZap, FileText, Sheet} from "lucide-react";
+import {ToolDisplayNameMap, ToolName} from "@/components/chat/model/llm-service";
 import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 import React from "react";

@@ -1,11 +1,10 @@
 // BaseBlockTool.tsx
 import {createRoot, Root} from 'react-dom/client';
-import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
+import type {API, BlockTool} from '@editorjs/editorjs';
 import React from 'react';
 import {InputManager, InteractiveBlock, StringReturnFunction} from "@/components/editor/inputs/input-manager";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationBlockData, RelationComponent} from "@/components/editor/tools/relation.tool";
-import {ICON_TABLE} from "@/components/editor/tools/icons";
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {updateRelationDataWithParamsSkeleton} from "@/components/dashboard/dashboard-data-view";

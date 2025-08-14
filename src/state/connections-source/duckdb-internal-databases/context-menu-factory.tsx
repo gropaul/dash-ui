@@ -1,10 +1,9 @@
 import {ReactNode} from "react";
 import {ContextMenuItem, ContextMenuSeparator} from "@/components/ui/context-menu";
 import {TreeNode} from "@/components/basics/files/tree-utils";
-import {Copy, Delete, Edit2, Trash} from 'lucide-react';
+import {Copy, Edit2, Trash} from 'lucide-react';
 import {ConnectionsService} from "@/state/connections-service";
 import {quoteString} from "@/lib/utils";
-import {useRelationsState} from "@/state/relations.state";
 import {useSourceConState} from "@/state/connections-source.state";
 
 interface ContextMenuFactoryProps {

@@ -1,9 +1,5 @@
-import {useCallback, useState} from "react";
-
-
 import {Handle, Node, NodeProps, Position} from '@xyflow/react';
 import {NodeBody} from "@/components/workflow/nodes/base";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 
 type NodeWhereProps = {
