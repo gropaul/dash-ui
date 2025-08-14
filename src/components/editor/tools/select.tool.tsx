@@ -19,6 +19,7 @@ import {
     StringReturnFunction
 } from "@/components/editor/inputs/input-manager";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tool-names";
+import {isRelationBlockData} from "@/components/editor/tools/utils";
 
 
 export function getInitialSelectDataElement(): RelationBlockData {
@@ -106,9 +107,6 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
         this.render();
     }
 
-    public static isRelationBlockData(data: any): data is RelationBlockData {
-        return data && typeof data === 'object' && 'viewState' in data;
-    }
 
     getInteractiveId(returnFunction: StringReturnFunction): void {
         returnFunction(this.interactiveId);
@@ -118,7 +116,7 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
         this.api = api;
         this.readOnly = readOnly;
 
-        if (SelectBlockTool.isRelationBlockData(data)) {
+        if (isRelationBlockData(data)) {
             this.data = data;
         } else {
             this.data = getInitialSelectDataElement();

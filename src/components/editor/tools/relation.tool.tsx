@@ -21,6 +21,7 @@ import {
     ICON_TABLE
 } from "@/components/editor/tools/icons";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
+import {isRelationBlockData} from "@/components/editor/tools/utils";
 
 export interface RelationBlockData extends RelationState {
 }
@@ -85,10 +86,6 @@ export default class RelationBlockTool implements BlockTool, InteractiveBlock {
         };
     }
 
-    public static isRelationBlockData(data: any): data is RelationBlockData {
-        return data && typeof data === 'object' && 'viewState' in data;
-    }
-
     getInteractiveId(returnFunction: StringReturnFunction): void {
         returnFunction(this.interactiveId);
     }
@@ -97,7 +94,7 @@ export default class RelationBlockTool implements BlockTool, InteractiveBlock {
         this.api = api;
         this.readOnly = !!readOnly;
 
-        if (RelationBlockTool.isRelationBlockData(data)) {
+        if (isRelationBlockData(data)) {
             this.data = data;
         } else {
             this.data = getInitialDataElement();

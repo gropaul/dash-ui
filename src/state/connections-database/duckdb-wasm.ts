@@ -43,8 +43,7 @@ export class DuckDBWasm implements DatabaseConnection {
         const arrowResult = await con!.query(query);
         // checkpoint the database
         await con.query('CHECKPOINT;');
-        const result = relationFromDuckDBArrowResult('result', this.id, arrowResult);
-        return result;
+        return relationFromDuckDBArrowResult('result', this.id, arrowResult);
     }
 
 
