@@ -1,6 +1,5 @@
-// RelationBlockTool.tsx
-import {createRoot, Root} from 'react-dom/client';
-import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
+// SelectBlockTool.tsx
+import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React from 'react';
 
 import {getInitialParams, getQueryFromParamsUnchecked} from '@/model/relation-state';
@@ -12,14 +11,10 @@ import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {InputSource} from "@/components/editor/inputs/models";
-import {
-    InputManager,
-    InputValueChangeParams,
-    InteractiveBlock,
-    StringReturnFunction
-} from "@/components/editor/inputs/input-manager";
+import {InputValueChangeParams} from "@/components/editor/inputs/input-manager";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
+import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
 
 
 export function getInitialSelectDataElement(): RelationBlockData {
@@ -55,21 +50,10 @@ export function getInitialSelectDataElement(): RelationBlockData {
     }
 }
 
-export default class SelectBlockTool implements BlockTool, InteractiveBlock {
-    private readonly api: API;
-    private data: RelationBlockData;
-    private readOnly: boolean;
-    private wrapper: HTMLElement | null = null;
-    private reactRoot: Root | null = null;
+export default class SelectBlockTool extends BaseRelationBlockTool {
 
     private currentSelectValue?: string;
     private currentSelectName: string;
-    interactiveId: string;
-    private inputManager: InputManager;
-
-    static get isReadOnlySupported() {
-        return true;
-    }
 
     // Editor.js config
     static get toolbox() {
@@ -77,20 +61,6 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
             title: 'Select Input',
             icon: ICON_SELECT,
         };
-    }
-
-    public setShowCodeFence(show: boolean) {
-        this.data = {
-            ...this.data,
-            viewState: {
-                ...this.data.viewState,
-                codeFenceState: {
-                    ...this.data.viewState.codeFenceState,
-                    show,
-                }
-            }
-        }
-        this.render();
     }
 
     public setShowConfig(show: boolean) {
@@ -107,14 +77,8 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
         this.render();
     }
 
-
-    getInteractiveId(returnFunction: StringReturnFunction): void {
-        returnFunction(this.interactiveId);
-    }
-
     constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
-        this.api = api;
-        this.readOnly = readOnly;
+        super({data, api, readOnly, config}, SELECT_BLOCK_NAME);
 
         if (isRelationBlockData(data)) {
             this.data = data;
@@ -124,13 +88,6 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
 
         this.currentSelectValue = this.data.viewState.selectState.value;
         this.currentSelectName = this.data.viewState.selectState.name;
-
-        // assert if no input manager is passed
-        if (!config.getInputManager) {
-            throw new Error('GetInputManager function is required');
-        }
-        this.inputManager = config.getInputManager(SELECT_BLOCK_NAME);
-        this.interactiveId = getRandomId(32);
 
         if (this.inputManager){
             const inputSource: InputSource = {
@@ -143,7 +100,6 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
             console.log('SelectBlockTool inputSource', inputSource);
             this.inputManager?.registerInputSource(inputSource)
         }
-
     }
 
     onSelectChanged(value?: string) {
@@ -155,7 +111,6 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
             }
         }
         this.inputManager.onInputValueChange(params);
-
     }
 
     onSelectNameChanged(name: string, oldName: string) {
@@ -176,9 +131,8 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
         this.inputManager.updateInputSource(oldInputSource, newInputSource);
     }
 
-    onDataChange(updatedData: RelationBlockData) {
-        this.data = updatedData;
-
+    public onDataChanged(updatedData: RelationBlockData): void {
+        super.onDataChanged(updatedData);
         if (this.data.viewState.selectState.value !== this.currentSelectValue) {
             this.currentSelectValue = this.data.viewState.selectState.value;
             this.onSelectChanged(this.currentSelectValue);
@@ -191,25 +145,6 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
         }
     }
 
-    public render(): HTMLElement {
-        if (!this.wrapper) {
-            // Create your wrapper the first time
-            this.wrapper = document.createElement('div');
-            this.wrapper.style.backgroundColor = 'inherit';
-            this.reactRoot = createRoot(this.wrapper);
-        }
-
-        // Re-render the React component into the (existing) root
-        this.reactRoot!.render(
-            <RelationComponent
-                inputManager={this.inputManager}
-                initialData={this.data}
-                onDataChange={this.onDataChange.bind(this)}
-            />
-        );
-
-        return this.wrapper;
-    }
 
     public renderSettings(): HTMLElement | MenuConfig {
 
@@ -240,14 +175,5 @@ export default class SelectBlockTool implements BlockTool, InteractiveBlock {
         ]
     }
 
-    public save(): RelationBlockData {
-        // Return the final data
-        return this.data;
-    }
-
-    public destroy() {
-        if (this.reactRoot) {
-            this.reactRoot.unmount();
-        }
-    }
+    // save and destroy methods are inherited from BaseBlockTool
 }

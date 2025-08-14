@@ -1,6 +1,6 @@
 // RelationBlockTool.tsx
-import {createRoot, Root} from 'react-dom/client';
-import type {API, BlockTool, BlockToolConstructorOptions} from '@editorjs/editorjs';
+import {createRoot} from 'react-dom/client';
+import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
 import {getVariablesUsedByQuery, RelationState, ViewQueryParameters} from '@/model/relation-state';
@@ -10,7 +10,7 @@ import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {RelationViewType} from "@/model/relation-view-state";
 
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
-import {InputManager, InteractiveBlock, StringReturnFunction} from "@/components/editor/inputs/input-manager";
+import {InputManager} from "@/components/editor/inputs/input-manager";
 import {getRandomId} from "@/platform/id-utils";
 import {
     ICON_CAPTIONS_OFF,
@@ -22,6 +22,7 @@ import {
 } from "@/components/editor/tools/icons";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
+import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
 
 export interface RelationBlockData extends RelationState {
 }
@@ -63,20 +64,7 @@ export function RelationComponent(props: RelationComponentProps) {
     );
 }
 
-export default class RelationBlockTool implements BlockTool, InteractiveBlock {
-    private readonly api: API;
-    public data: RelationBlockData;
-    private readOnly: boolean;
-    private wrapper: HTMLElement | null = null;
-    private reactRoot: Root | null = null;
-
-    interactiveId: string;
-    private readonly inputManager: InputManager;
-    private currentInputDependencies: InputDependency[];
-
-    static get isReadOnlySupported() {
-        return true;
-    }
+export default class RelationBlockTool extends BaseRelationBlockTool {
 
     // Editor.js config
     static get toolbox() {
@@ -86,128 +74,14 @@ export default class RelationBlockTool implements BlockTool, InteractiveBlock {
         };
     }
 
-    getInteractiveId(returnFunction: StringReturnFunction): void {
-        returnFunction(this.interactiveId);
-    }
-
     constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
-        this.api = api;
-        this.readOnly = !!readOnly;
+        super({data, api, readOnly, config}, RELATION_BLOCK_NAME);
 
         if (isRelationBlockData(data)) {
             this.data = data;
         } else {
             this.data = getInitialDataElement();
         }
-
-        // assert if no input manager is passed
-        if (!config.getInputManager) {
-            throw new Error('GetInputManager function is required');
-        }
-        this.inputManager = config.getInputManager(RELATION_BLOCK_NAME);
-        this.interactiveId = getRandomId(32);
-        console.log("RelationBlockTool InputManager", this.inputManager);
-        this.currentInputDependencies = [];
-        if (this.inputManager) {
-            this.getAndUpdateInputDependencies();
-        }
-    }
-
-    getAndUpdateInputDependencies(): void {
-
-        // Remove old dependencies
-        const query = this.data.query.baseQuery;
-        const inputVariableNames = getVariablesUsedByQuery(query);
-        const currentDependencies = [];
-        for (const inputName of inputVariableNames) {
-            const dependency = {
-                blockId: this.interactiveId,
-                inputName: inputName,
-                callFunction: async (inputValue: InputValue) => {
-                    this.setInputValue(inputName, inputValue);
-                }
-            };
-            currentDependencies.push(dependency);
-        }
-
-        for (const oldDependency of this.currentInputDependencies) {
-            const found = currentDependencies.find((newDependency) => {
-                return dependenciesAreEqual(oldDependency, newDependency);
-            });
-            if (!found) {
-                this.inputManager.removeInputDependency(oldDependency);
-            }
-        }
-
-        // all new dependencies that are not in the old dependencies, add them
-        for (const newDependency of currentDependencies) {
-            const found = this.currentInputDependencies.find((oldDependency) => {
-                return dependenciesAreEqual(oldDependency, newDependency);
-            });
-            if (!found) {
-                this.inputManager.registerInputDependency(newDependency);
-            }
-        }
-        this.currentInputDependencies = currentDependencies;
-    }
-
-    onDataChanged(value: RelationBlockData) {
-        this.data = value;
-        this.getAndUpdateInputDependencies();
-    }
-
-    public setInputValue(inputName: string, inputValue: InputValue) {
-        this.rerunQuery();
-    }
-
-    public render(): HTMLElement {
-        if (!this.wrapper) {
-            // Create your wrapper the first time
-            this.wrapper = document.createElement('div');
-            this.wrapper.style.backgroundColor = 'inherit';
-            this.reactRoot = createRoot(this.wrapper);
-        }
-
-        // Re-render the React component into the (existing) root
-        this.reactRoot!.render(
-            <RelationComponent
-                inputManager={this.inputManager}
-                initialData={this.data}
-                onDataChange={this.onDataChanged.bind(this)}
-            />
-        );
-
-        return this.wrapper;
-    }
-
-
-    public setShowCodeFence(show: boolean) {
-        this.data = {
-            ...this.data,
-            viewState: {
-                ...this.data.viewState,
-                codeFenceState: {
-                    ...this.data.viewState.codeFenceState,
-                    show,
-                }
-            }
-        }
-        this.render();
-    }
-
-    updateAndRender(newData: RelationBlockData) {
-        this.data = newData;
-        this.render();
-    }
-
-    public async rerunQuery() {
-
-        const currentPrams = this.data.query.viewParameters;
-        const newParams: ViewQueryParameters = {
-            ...currentPrams,
-        }
-
-        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, this.updateAndRender.bind(this), this.inputManager);
     }
 
     public async setViewType(viewType: RelationViewType) {
@@ -295,14 +169,5 @@ export default class RelationBlockTool implements BlockTool, InteractiveBlock {
         ]
     }
 
-    public save(): RelationBlockData {
-        // Return the final data
-        return this.data;
-    }
-
-    public destroy() {
-        if (this.reactRoot) {
-            this.reactRoot.unmount();
-        }
-    }
+    // save and destroy methods are inherited from BaseBlockTool
 }
