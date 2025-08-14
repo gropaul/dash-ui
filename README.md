@@ -68,7 +68,7 @@ pnpm start
 
 ## DuckDB Extension
 
-There is a DuckDB extension for Dash available at [https://github.com/NiclasHaderer/dash](https://github.com/NiclasHaderer/dash)
+There is a DuckDB extension for Dash available [here](https://github.com/gropaul/dash).
 
 ## Contributing
 
