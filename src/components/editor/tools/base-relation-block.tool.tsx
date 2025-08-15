@@ -38,7 +38,6 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         this.api = api;
         this.readOnly = readOnly;
 
-        // Initialize data in the subclass
         this.data = data;
 
         // assert if no input manager is passed

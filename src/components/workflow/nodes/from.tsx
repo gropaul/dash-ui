@@ -47,7 +47,7 @@ export function FromNode(props: NodeProps<FromNode>) {
                 onValueChange={setTableName}
             >
                 <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a table" />
+                    <SelectValue placeholder="TextSelect a table" />
                 </SelectTrigger>
                 <SelectContent>
                     {availableTables.map((table) => (

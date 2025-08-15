@@ -4,7 +4,7 @@ import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
 import {getInitialParams, getQueryFromParamsUnchecked} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState} from "@/model/relation-view-state";
-import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_SELECT, ICON_SETTING,} from "@/components/editor/tools/icons";
+import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_SEARCH, ICON_SELECT, ICON_SETTING,} from "@/components/editor/tools/icons";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
@@ -14,13 +14,22 @@ import {InputValueChangeParams} from "@/components/editor/inputs/input-manager";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
+import {InputType} from "@/model/relation-view-state/select";
 
 
-export function getInitialSelectDataElement(): RelationBlockData {
+export function getInitialSelectDataElement(inputType: InputType): RelationBlockData {
+
+
+    let baseQuery = '';
+    if (inputType === 'select') {
+        baseQuery = "SELECT 'Option ' || range from range(5); -- E.g. SELECT DISTINCT type FROM table";
+    } else if (inputType === 'fulltext') {
+        baseQuery = "SELECT 'Suggestion' LIMIT 0; -- No data initially";
+    }
 
     const randomId = getRandomId();
 
-    const baseQuery = "SELECT 'Option ' || range from range(5);";
+
     const source: RelationSourceQuery = {
         type: "query",
         baseQuery: baseQuery,
@@ -38,6 +47,9 @@ export function getInitialSelectDataElement(): RelationBlockData {
         [],
         true
     );
+
+    initialViewState.inputTextState.inputType = inputType;
+
     initialViewState.selectedView = 'select';
     return {
         ...relation,
@@ -49,26 +61,18 @@ export function getInitialSelectDataElement(): RelationBlockData {
     }
 }
 
-export default class SelectBlockTool extends BaseRelationBlockTool {
+export class TextInputBlockTool extends BaseRelationBlockTool {
 
     private currentSelectValue?: string;
     private currentSelectName: string;
-
-    // Editor.js config
-    static get toolbox() {
-        return {
-            title: 'Select Input',
-            icon: ICON_SELECT,
-        };
-    }
 
     public setShowConfig(show: boolean) {
         this.data = {
             ...this.data,
             viewState: {
                 ...this.data.viewState,
-                selectState: {
-                    ...this.data.viewState.selectState,
+                inputTextState: {
+                    ...this.data.viewState.inputTextState,
                     showConfig: show,
                 }
             }
@@ -77,21 +81,22 @@ export default class SelectBlockTool extends BaseRelationBlockTool {
     }
 
     constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
-        super({data, api, readOnly, config}, SELECT_BLOCK_NAME);
 
-        if (isRelationBlockData(data)) {
-            this.data = data;
-        } else {
-            this.data = getInitialSelectDataElement();
+        if (!isRelationBlockData(data)) {
+            data = getInitialSelectDataElement(config.type);
         }
 
-        this.currentSelectValue = this.data.viewState.selectState.value;
-        this.currentSelectName = this.data.viewState.selectState.name;
+        super({data, api, readOnly, config}, SELECT_BLOCK_NAME);
+
+
+
+        this.currentSelectValue = this.data.viewState.inputTextState.value;
+        this.currentSelectName = this.data.viewState.inputTextState.name;
 
         if (this.inputManager){
             const inputSource: InputSource = {
                 blockId: this.interactiveId,
-                inputName: this.data.viewState.selectState.name,
+                inputName: this.data.viewState.inputTextState.name,
                 inputValue: {
                     value: this.currentSelectValue
                 }
@@ -101,10 +106,10 @@ export default class SelectBlockTool extends BaseRelationBlockTool {
         }
     }
 
-    onSelectChanged(value?: string) {
+    onValueChanged(value?: string) {
         const params: InputValueChangeParams = {
             interactiveId: this.interactiveId,
-            inputName: this.data.viewState.selectState.name,
+            inputName: this.data.viewState.inputTextState.name,
             inputValue: {
                 value: value
             }
@@ -112,7 +117,7 @@ export default class SelectBlockTool extends BaseRelationBlockTool {
         this.inputManager.onInputValueChange(params);
     }
 
-    onSelectNameChanged(name: string, oldName: string) {
+    onInputNameChanged(name: string, oldName: string) {
         const oldInputSource = {
             blockId: this.interactiveId!,
             inputName: oldName,
@@ -132,15 +137,15 @@ export default class SelectBlockTool extends BaseRelationBlockTool {
 
     public onDataChanged(updatedData: RelationBlockData): void {
         super.onDataChanged(updatedData);
-        if (this.data.viewState.selectState.value !== this.currentSelectValue) {
-            this.currentSelectValue = this.data.viewState.selectState.value;
-            this.onSelectChanged(this.currentSelectValue);
+        if (this.data.viewState.inputTextState.value !== this.currentSelectValue) {
+            this.currentSelectValue = this.data.viewState.inputTextState.value;
+            this.onValueChanged(this.currentSelectValue);
         }
-        if (this.data.viewState.selectState.name !== this.currentSelectName && this.currentSelectName) {
+        if (this.data.viewState.inputTextState.name !== this.currentSelectName && this.currentSelectName) {
             const oldName = this.currentSelectName;
-            const newName = this.data.viewState.selectState.name;
-            this.onSelectNameChanged(newName, oldName);
-            this.currentSelectName = this.data.viewState.selectState.name;
+            const newName = this.data.viewState.inputTextState.name;
+            this.onInputNameChanged(newName, oldName);
+            this.currentSelectName = this.data.viewState.inputTextState.name;
         }
     }
 
@@ -151,7 +156,7 @@ export default class SelectBlockTool extends BaseRelationBlockTool {
         const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
 
 
-        const showConfig = this.data.viewState.selectState.showConfig ?? false;
+        const showConfig = this.data.viewState.inputTextState.showConfig ?? false;
         const showConfigTest = showConfig ? 'Hide Config' : 'Show Config';
 
         return [
@@ -176,3 +181,27 @@ export default class SelectBlockTool extends BaseRelationBlockTool {
 
     // save and destroy methods are inherited from BaseBlockTool
 }
+
+export class SelectTextInputBlockTool extends TextInputBlockTool {
+    // Editor.js config
+    static get toolbox() {
+        return {
+            title: 'Select Input',
+            icon: ICON_SELECT,
+        };
+    }
+}
+
+
+export class FullTextInputBlockTool extends TextInputBlockTool {
+    // Editor.js config
+    static get toolbox() {
+        return {
+            title: 'Fulltext Input',
+            icon: ICON_SEARCH,
+        };
+    }
+}
+
+
+

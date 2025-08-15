@@ -11,9 +11,8 @@ import Marker from "@editorjs/marker";
 import Table from "@editorjs/table";
 import List from "@editorjs/list";
 import Header from "@editorjs/header";
-import SelectBlockTool from "@/components/editor/tools/select.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import TextSearchBlockTool from "@/components/editor/tools/text.tool";
+
 import {
     DELIMITER_TOOL_NAME,
     HEADER_TOOL_NAME,
@@ -23,6 +22,8 @@ import {
     TEXT_SEARCH_BLOCK_NAME,
     WARNING_TOOL_NAME
 } from "@/components/editor/tool-names";
+import {InputType} from "@/model/relation-view-state/select";
+import {FullTextInputBlockTool, SelectTextInputBlockTool} from "@/components/editor/tools/text.input.tool";
 
 
 export function getEditorJSTools(getInputManager: (blockName: string) => InputManager | null) {
@@ -38,15 +39,19 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
             config: DEFAULT_CONFIG,
         },
         [SELECT_BLOCK_NAME]: {
-            class: SelectBlockTool,
-            inlineToolbar: true,
-            config: DEFAULT_CONFIG,
-        },
-        [TEXT_SEARCH_BLOCK_NAME]: {
-            class: TextSearchBlockTool,
+            class: SelectTextInputBlockTool,
             inlineToolbar: true,
             config: {
-                getInputManager: getInputManager,
+                ...DEFAULT_CONFIG,
+                type: "select" as InputType,
+            }
+        },
+        [TEXT_SEARCH_BLOCK_NAME]: {
+            class: FullTextInputBlockTool,
+            inlineToolbar: true,
+            config: {
+                ...DEFAULT_CONFIG,
+                type: "fulltext" as InputType,
             }
         },
         [HEADER_TOOL_NAME] : {

@@ -47,7 +47,7 @@ export function DecorationFormDots(props: DecorationFormDotsProps) {
                         }
                     >
                         <SelectTrigger className="max-w-[120px]">
-                            <SelectValue placeholder="Select shape"/>
+                            <SelectValue placeholder="TextSelect shape"/>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="circle">Circle</SelectItem>

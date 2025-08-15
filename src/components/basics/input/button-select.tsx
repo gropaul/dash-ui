@@ -24,7 +24,7 @@ export function ButtonSelect({ options, onChange, defaultValue, title, className
                 className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={handleChange}
                 defaultValue={defaultValue}
-                title="Select View"
+                title="TextSelect View"
             >
                 {options.map((option) => (
                     <option key={option.value} value={option.value}>

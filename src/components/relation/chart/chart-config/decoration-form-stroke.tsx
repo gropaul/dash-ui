@@ -41,7 +41,7 @@ export function DecorationFormStroke(props: DecorationFormStrokeProps) {
                 onValueChange={(value: LineStyle) => updatePartial({lineStyle: value})}
             >
                 <SelectTrigger className="max-w-[120px]">
-                    <SelectValue placeholder="Select style" />
+                    <SelectValue placeholder="TextSelect style" />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="solid">Solid</SelectItem>

@@ -98,7 +98,7 @@ export function RelationViewPageController(props: RelationViewProps) {
         <div className="flex flex-row items-center space-x-1 text-primary font-normal">
             <Select onValueChange={handlePageSizeChange} defaultValue={pageSize.toString()}>
                 <SelectTrigger className={'text-primary border-0 focus:outline-none w-32 h-6 font-normal shadow-none'}>
-                    <SelectValue placeholder="Select a size"/>
+                    <SelectValue placeholder="TextSelect a size"/>
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>

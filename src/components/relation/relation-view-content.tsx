@@ -1,7 +1,8 @@
 import {Table} from "@/components/relation/table/table";
 import {Chart} from "@/components/relation/chart/chart";
-import {Select} from "@/components/relation/select/select";
+import {TextSelect} from "@/components/relation/text-input/text-select";
 import {RelationViewProps} from "@/components/relation/relation-view";
+import {TextField} from "@/components/relation/text-input/text-field";
 
 const DATA_QUERY = "SELECT\n" +
     "     TO_JSON(LIST(geo_lng)) AS lng_list_json,\n" +
@@ -26,13 +27,20 @@ export function RelationViewContent(props: RelationViewProps) {
             <Chart {...props}/>
         );
     } else if (selectedView === 'select') {
-        return (
-            <Select {...props}/>
-        );
+        switch (props.relationState.viewState.inputTextState.inputType) {
+            case 'select':
+                return (
+                    <TextSelect {...props} />
+                );
+            case 'fulltext':
+                return (
+                    <TextField {...props} />
+                );
+        }
 
     } else {
         return (
-            <div>Unknown view</div>
+            <div>Unknown view type: {selectedView}</div>
         );
     }
 }

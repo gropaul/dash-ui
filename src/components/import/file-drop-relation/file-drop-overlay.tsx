@@ -80,7 +80,7 @@ export const FileDropOverlay: React.FC<OverlayProps> = ({state, onErrorConfirm, 
                                     onValueChange={(value) => onFormatSelect(value as FileFormat, state.file!)}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select a format"/>
+                                        <SelectValue placeholder="TextSelect a format"/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="csv">CSV</SelectItem>

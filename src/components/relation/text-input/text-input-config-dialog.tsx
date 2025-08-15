@@ -4,7 +4,7 @@ import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"
 import {Input} from "@/components/ui/input"
-import {SelectViewState} from "@/model/relation-view-state/select"
+import {InputTextViewState} from "@/model/relation-view-state/select"
 import {Copy} from "lucide-react"
 import {toast} from "sonner";
 
@@ -13,14 +13,14 @@ interface SelectConfigDialogProps extends RelationViewProps {
     onOpenChange: (isOpen: boolean) => void;
 }
 
-export function SelectConfigDialog(props: SelectConfigDialogProps) {
+export function TextInputConfigDialog(props: SelectConfigDialogProps) {
     const { relationState, updateRelationViewState } = props;
-    const selectState = relationState.viewState.selectState;
+    const selectState = relationState.viewState.inputTextState;
     const relationId = relationState.id;
 
-    function updateSelectViewState(selectState: Partial<SelectViewState>){
+    function updateSelectViewState(selectState: Partial<InputTextViewState>){
         props.updateRelationViewState(relationId, {
-            selectState: selectState,
+            inputTextState: selectState,
         });
     }
 

@@ -8,21 +8,21 @@ import {Button} from "@/components/ui/button"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command"
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {RelationViewProps} from "@/components/relation/relation-view"
-import {SelectConfigDialog} from "@/components/relation/select/select-config-dialog"
+import {TextInputConfigDialog} from "@/components/relation/text-input/text-input-config-dialog"
 
-export function Select(props: RelationViewProps) {
+export function TextSelect(props: RelationViewProps) {
     const [open, setOpen] = React.useState(false)
 
     const relationId = props.relationState.id
     const viewState = props.relationState
-    const showConfig = viewState.viewState.selectState.showConfig || false
-    const placeholder = viewState.viewState.selectState.placeholder || "Select..."
-    const value = viewState.viewState.selectState.value;
+    const showConfig = viewState.viewState.inputTextState.showConfig || false
+    const placeholder = viewState.viewState.inputTextState.placeholder || "Select..."
+    const value = viewState.viewState.inputTextState.value;
     const name = viewState.name || ""
 
     const setShowConfig = (show: boolean) => {
         props.updateRelationViewState(relationId, {
-            selectState: {
+            inputTextState: {
                 showConfig: show,
             }
         })
@@ -30,7 +30,7 @@ export function Select(props: RelationViewProps) {
 
     const setValue = (value: string) => {
         props.updateRelationViewState(relationId, {
-            selectState: {
+            inputTextState: {
                 value: value,
             }
         })
@@ -95,7 +95,7 @@ export function Select(props: RelationViewProps) {
             >
                 <Settings className="h-4 w-4"/>
             </Button>
-            <SelectConfigDialog
+            <TextInputConfigDialog
                 isOpen={showConfig}
                 onOpenChange={setShowConfig}
                 {...props}

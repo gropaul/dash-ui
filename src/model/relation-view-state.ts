@@ -14,7 +14,7 @@ import {Column} from "@/model/data-source-connection";
 import {
     getInitialSelectViewState,
     getInitialSelectViewStateEmpty,
-    SelectViewState
+    InputTextViewState
 } from "@/model/relation-view-state/select";
 
 //
@@ -45,7 +45,7 @@ export interface RelationViewBaseState extends TabViewBaseState {
 export interface RelationViewState extends RelationViewBaseState {
     tableState: TableViewState
     chartState: ChartViewState
-    selectState: SelectViewState
+    inputTextState: InputTextViewState
     schema: Column[];
 }
 
@@ -80,7 +80,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
             ...baseState,
             chartState: getInitialChartViewStateEmpty(),
             tableState: getInitialTableDisplayStateEmpty(),
-            selectState: getInitialSelectViewStateEmpty(),
+            inputTextState: getInitialSelectViewStateEmpty(),
             schema: [],
         };
     }
@@ -89,7 +89,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
         ...baseState,
         chartState: getInitialChartViewState(data),
         tableState: getInitialTableDisplayState(data),
-        selectState: getInitialSelectViewState(data),
+        inputTextState: getInitialSelectViewState(data),
         schema: schemaColumns ?? data.columns,
     };
 }
