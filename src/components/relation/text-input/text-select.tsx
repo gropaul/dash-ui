@@ -18,7 +18,6 @@ export function TextSelect(props: RelationViewProps) {
     const showConfig = viewState.viewState.inputTextState.showConfig || false
     const placeholder = viewState.viewState.inputTextState.placeholder || "Select..."
     const value = viewState.viewState.inputTextState.value;
-    const name = viewState.name || ""
 
     const setShowConfig = (show: boolean) => {
         props.updateRelationViewState(relationId, {

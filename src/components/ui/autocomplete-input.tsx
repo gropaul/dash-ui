@@ -155,7 +155,7 @@ export default function SearchAutocomplete({
                     className="w-full pr-9"
                 />
                 <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-                    {loading ? <>Loading ...</> : <Search className="h-5 w-5 text-muted-foreground" />}
+                    {loading ? <>Loading ...</> : <Search className="h-4 w-4 text-muted-foreground" />}
                 </div>
 
                 {/* If you render a dropdown/panel, anchor it here */}

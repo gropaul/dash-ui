@@ -88,8 +88,6 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
 
         super({data, api, readOnly, config}, SELECT_BLOCK_NAME);
 
-
-
         this.currentSelectValue = this.data.viewState.inputTextState.value;
         this.currentSelectName = this.data.viewState.inputTextState.name;
 

@@ -39,7 +39,7 @@ export function TextInputConfigDialog(props: SelectConfigDialogProps) {
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Select Configuration</DialogTitle>
+                    <DialogTitle>Input Options</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
