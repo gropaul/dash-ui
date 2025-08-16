@@ -190,7 +190,7 @@ export const useRelationsState = createWithEqualityFn(
                     if (openDashboards) {
                         // open all dashboards in the GUI
                         Object.values(dashboards).forEach((dashboard) => {
-                            useGUIState.getState().addEntityTab('dashboards', dashboard);
+                            this.showEntity('dashboards', dashboard, []);
                         });
                     }
                 },
