@@ -20,6 +20,7 @@ export type InitStep =
     'loading-relations-from-connection' |
     'updating-gui-state' |
     'loading-last-used-relations' |
+    'attaching-database-from-url-param' |
     'complete'
 
 export function getStepLabel(step: InitStep): string {
@@ -38,6 +39,8 @@ export function getStepLabel(step: InitStep): string {
             return 'Updating Interface';
         case 'loading-last-used-relations':
             return 'Loading data for display elements';
+        case 'attaching-database-from-url-param':
+            return 'Loading database from URL';
         case 'complete':
             return 'Initialization complete';
     }
@@ -137,11 +140,13 @@ export const useInitState = createWithEqualityFn<InitZustand>((set, get) => ({
         get().setStep('loading-last-used-relations');
         await useRelationDataState.getState().loadLastUsed();
 
+        get().setStep('attaching-database-from-url-param');
+        await maybeAttachDatabaseFromUrlParam();
+
         // we are done!
         get().setStep('complete');
 
         // some final steps that need no sync at this point
-        await maybeAttachDatabaseFromUrlParam();
         await showExampleQuery()
     }
 }));

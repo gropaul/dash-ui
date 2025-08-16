@@ -19,13 +19,50 @@ export async function maybeAttachDatabaseFromUrlParam(): Promise<void> {
             const fileName = decodedDatabaseUrl.split('/').pop() || 'database.duckdb';
             // remove the file extension from the file name (database.duckdb -> database)
             const fileNameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
-            const query = await getImportQuery( decodedDatabaseUrl, fileNameWithoutExtension,'database', true);
+            const query = await getImportQuery(decodedDatabaseUrl, fileNameWithoutExtension, 'database', true);
             await ConnectionsService.getInstance().getDatabaseConnection().executeQuery(query);
+
+            // copy cached relations from the attached database to the current relations state
+            await copyCacheFromAttachedDB(fileNameWithoutExtension);
+
             const dashState = await getDashStateIfExits(connection, fileNameWithoutExtension);
             if (dashState) {
                 useRelationsState.getState().mergeState(dashState, true);
             }
+
+
             toast.success(`Database ${fileName} attached successfully.`);
         }
     }
+}
+
+
+export async function copyCacheFromAttachedDB(database_name: string): Promise<void> {
+    const query = `
+        SELECT table_catalog, table_schema, table_name
+        FROM information_schema.tables
+        WHERE table_catalog = '${database_name}'
+          AND table_schema = 'dash'
+          AND table_name LIKE 'cache-%';
+    `;
+
+    const connection = ConnectionsService.getInstance().getDatabaseConnection();
+    const tables = await connection.executeQuery(query);
+
+    if (connection.storageInfo.state !== 'loaded') {
+        throw new Error('Storage info is not loaded');
+    }
+
+    const destDatabaseName = connection.storageInfo.destination.databaseName;
+    const destSchemaName = connection.storageInfo.destination.schemaName;
+
+    for (const table of tables.rows) {
+        const targetName = `"${table[0]}"."${table[1]}"."${table[2]}"`;
+        const destName = `"${destDatabaseName}"."${destSchemaName}"."${table[2]}"`;
+        const CTASQuery = `CREATE TABLE IF NOT EXISTS ${destName} AS (FROM ${targetName});`;
+        await connection.executeQuery(CTASQuery);
+    }
+
+
+
 }
