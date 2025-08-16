@@ -77,6 +77,10 @@ export class ConnectionsService {
         }
     }
 
+    clearSourceConnections() {
+        this.source_connections = {};
+    }
+
     async executeQuery(query: string) {
         if (!this.database_connection) {
             throw new Error('No active database connection');

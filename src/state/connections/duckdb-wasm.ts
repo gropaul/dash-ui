@@ -11,7 +11,7 @@ import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections/duckdb-was
 import {WasmProvider} from "@/state/connections/duckdb-wasm/connection-provider";
 import {normalizeArrowType} from "@/components/relation/common/value-icon";
 import {ValueType} from "@/model/value-type";
-import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
+import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 
 export interface DuckDBWasmConfig {
@@ -74,7 +74,9 @@ export class DuckDBWasm implements DatabaseConnection {
         try {
             const versionResult = await this.executeQuery("select version();");
             const version = versionResult.rows[0][0] as string;
-            this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this);
+            console.log('DuckDB WASM version: ', version);
+            this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this.executeQuery.bind(this));
+            console.log('DuckDB WASM storage info: ', this.storageInfo);
             this.connectionStatus = {state: 'connected', message: `Connected to DuckDB WASM. Version: ${version}`};
         } catch (e: any) {
             const message = e.message;

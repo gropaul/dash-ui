@@ -6,6 +6,7 @@ import {RelationState} from "@/model/relation-state";
 import {Model} from "flexlayout-react";
 import {LRUList} from "@/platform/lru";
 import {create} from "zustand";
+import {N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
 
 
 export interface CacheResult {
@@ -32,7 +33,6 @@ export interface RelationDataZustandState {
 
 export type RelationZustandCombined = RelationDataZustandState & RelationDataZustandActions;
 
-const N_DATA_TO_LOAD = 1;
 
 interface CacheState {
     cache: LRUList<string>;
@@ -43,13 +43,13 @@ interface CacheState {
 export const useCacheStore = create<CacheState>()(
     persist(
         (set, get) => ({
-            cache: new LRUList<string>(N_DATA_TO_LOAD),
+            cache: new LRUList<string>(N_RELATIONS_DATA_TO_LOAD),
             use: (item) => {
                 const cache = get().cache;
                 cache.use(item);
                 set({cache});
             },
-            clear: () => set({cache: new LRUList<string>(N_DATA_TO_LOAD)}),
+            clear: () => set({cache: new LRUList<string>(N_RELATIONS_DATA_TO_LOAD)}),
         }),
         {
             name: 'cache-store',
@@ -59,7 +59,7 @@ export const useCacheStore = create<CacheState>()(
             // rehydrate into an LRUList when loading from storage
             merge: (persisted, current) => {
                 const data = persisted as { cache?: string[] };
-                const lru = new LRUList<string>(N_DATA_TO_LOAD);
+                const lru = new LRUList<string>(N_RELATIONS_DATA_TO_LOAD);
                 if (data.cache) {
                     for (const v of data.cache) {
                         lru.use(v);

@@ -63,17 +63,19 @@ export const useDatabaseConState = createWithEqualityFn<DatabaseConnectionZustan
                 if (index !== -1) {
                     history_copy.splice(index, 1);
                 }
-                // if there are more than 10 elements, remove the last one
+                // if there are more than 10 elements, remove from the head of the array
                 if (history_copy.length > 10) {
-                    history_copy.pop();
+                    history_copy.shift();
                 }
 
-                // add the new element at the beginning
-                history_copy.unshift(new_element);
-                set({history: history_copy});
+                // add the new element at the end of the array
+                history_copy.push(new_element);
 
-                // add sources
+                set({history: history_copy});
+                // add sources, but clear the previous ones
                 const sourceState = useDataSourcesState.getState();
+                sourceState.clearSourceConnections();
+
                 // add the duckdb internal databases as data sources
                 const duckdbInternalDatabases = await getDuckDBInternalDatabase(connection);
                 await sourceState.addSourceConnection(duckdbInternalDatabases, true, true);
@@ -83,7 +85,6 @@ export const useDatabaseConState = createWithEqualityFn<DatabaseConnectionZustan
                     const fileSystemOverDuckdb = await getDuckDBLocalFilesystem();
                     await sourceState.addSourceConnection(fileSystemOverDuckdb, true, true);
                 }
-
             },
             deleteConnectionFromHistory: (index) => {
                 const history_copy = [...get().history];

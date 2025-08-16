@@ -89,6 +89,7 @@ export async function getConnectionFromHistory(history: DBConnectionSpec[]): Pro
         return undefined;
     }
 
+    // iterate over the history in reverse order to find the most recent working connection
     for (let i = history.length - 1; i >= 0; i--) {
         const connection = specToConnection(history[i]);
         const state = await connection.initialise();

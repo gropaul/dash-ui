@@ -22,11 +22,33 @@ export type InitStep =
     'loading-last-used-relations' |
     'complete'
 
+export function getStepLabel(step: InitStep): string {
+    switch (step) {
+        case 'loading-stored-connections-configs':
+            return 'Loading stored connections configs';
+        case 'loaded-stored-connections-configs':
+            return 'Loaded stored connections configs';
+        case 'selecting-connection':
+            return 'Selecting connection';
+        case 'connection-connected-successfully':
+            return 'Database connected successfully';
+        case 'loading-relations-from-connection':
+            return 'Loading display elements from database';
+        case 'updating-gui-state':
+            return 'Updating Interface';
+        case 'loading-last-used-relations':
+            return 'Loading data for display elements';
+        case 'complete':
+            return 'Initialization complete';
+    }
+}
+
 
 export interface InitZustand {
     currentStep: InitStep;
     initializationComplete: () => boolean;
     setStep: (step: InitStep) => void;
+    getCurrentStepLabel: () => string;
     onConnectionConfigLoaded: (config: DatabaseConnectionZustandState) => void;
     onConnectionSpecSelected: (spec: DBConnectionSpec) => void;
     onWorkingConnectionSelected: (connection: DatabaseConnection) => void;
@@ -38,6 +60,10 @@ export const useInitState = createWithEqualityFn<InitZustand>((set, get) => ({
 
     initializationComplete: () => {
         return get().currentStep === 'complete';
+    },
+
+    getCurrentStepLabel: () => {
+        return getStepLabel(get().currentStep);
     },
 
     setStep: (step: InitStep) => {
@@ -66,6 +92,8 @@ export const useInitState = createWithEqualityFn<InitZustand>((set, get) => ({
     // Step 1.1. The user selected a connection spec. Check if it is working
     onConnectionSpecSelected: async (spec: DBConnectionSpec) => {
         const connection = specToConnection(spec);
+        console.log('onConnectionSpecSelected', spec);
+        console.log('Starting connection initialization', connection)
         await connection.initialise();
         const status = await connection.checkConnectionState();
         if (status.state === 'connected') {

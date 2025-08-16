@@ -31,6 +31,8 @@ export const DEFAULT_LLM_SETTINGS: LLMSettings = {
     maxMessagesToPrompt: 8, // always + 1 if there is a system prompt
 }
 
+export const N_RELATIONS_DATA_TO_LOAD = 1;
+
 export const DEFAULT_RELATION_VIEW_PATH =[]
 
 export const DEFAULT_STATE_SCHEMA_NAME = 'dash';

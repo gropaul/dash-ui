@@ -3,7 +3,7 @@
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {TabbedLayout} from "@/components/layout/tabbed-layout";
 import React, {useEffect, useState} from "react";
-import {StorageDuckAPI} from "@/state/persistency/duckdb-over-http";
+import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
 import {AlertDialog} from "@radix-ui/react-alert-dialog";
 import {
     AlertDialogAction,
@@ -21,6 +21,7 @@ export default function Home() {
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
 
     const initComplete = useInitState(state => state.initializationComplete());
+    const label = useInitState(state => state.getCurrentStepLabel());
 
     useEffect(() => {
         StorageDuckAPI.getInstance().then((duckdb) => {
@@ -44,6 +45,7 @@ export default function Home() {
                 </Avatar>
 
                 <div className={'text-muted-foreground'}> Loading...</div>
+                <div className={'text-muted-foreground'}>{label}</div>
             </div>
 
         </div>;

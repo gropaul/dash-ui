@@ -19,10 +19,10 @@ function getMaterializedViewFromQuery(id: string, query: string, readonly: boole
     return `CREATE OR REPLACE ${tmpPhrase} ${tableName} AS (${query});`;
 }
 
-export function loadCache(id: string): Promise<RelationData | undefined> {
+export async function loadCache(id: string): Promise<RelationData | undefined> {
     try {
         const viewName = GetFullViewName(id);
-        return ConnectionsService.getInstance().executeQuery(`SELECT * FROM ${viewName};`);
+        return await ConnectionsService.getInstance().executeQuery(`SELECT * FROM ${viewName};`);
     } catch (error) {
         return Promise.resolve(undefined);
     }

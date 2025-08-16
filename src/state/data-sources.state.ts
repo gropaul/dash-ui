@@ -7,6 +7,7 @@ import {ConnectionStatus} from "@/model/database-connection";
 export interface DataSourcesZustand {
     connections: { [key: string]: DataSourceConnection };
     // default autoInitialise is true
+    clearSourceConnections: () => void;
     addSourceConnection: (connection: DataSourceConnection, initialise: boolean, loadDataSources: boolean) => Promise<ConnectionStatus | undefined>;
     initialiseSourceConnection: (connectionId: string) => Promise<ConnectionStatus>;
     getSourceConnection: (connectionId: string) => DataSourceConnection | undefined;
@@ -29,6 +30,11 @@ export interface DataSourcesZustand {
 
 export const useDataSourcesState = createWithEqualityFn<DataSourcesZustand>((set, get) => ({
     connections: {},
+
+    clearSourceConnections: () => {
+        set({connections: {}});
+        ConnectionsService.getInstance().clearSourceConnections();
+    },
 
     addSourceConnection: async (connection, initialise, loadDataSources) => {
         set((state) => ({

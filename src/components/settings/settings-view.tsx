@@ -61,7 +61,7 @@ export function SettingsView(props: SettingsViewProps) {
         }
     }, [props.open]);
 
-    // Update active tab when initialTab prop changes
+    // Update the active tab when initialTab prop changes
     React.useEffect(() => {
         if (props.initialTab) {
             setActiveTab(props.initialTab);

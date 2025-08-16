@@ -1,6 +1,6 @@
 import {createJSONStorage, PersistStorage} from "zustand/middleware";
-import {duckdbOverHttpStorageProvider} from "@/state/persistency/duckdb-over-http";
-import {duckdbLocalStorageProvider} from "@/state/persistency/duckdb-local";
+import {duckdbOverHttpStorageProvider} from "@/state/persistency/duckdb-storage";
+import {duckdbLocalStorageProvider} from "@/state/persistency/local-json";
 import {RelationZustandCombined, useRelationsHydrationState, useRelationsState} from "@/state/relations.state";
 import {DatabaseConnection} from "@/model/database-connection";
 

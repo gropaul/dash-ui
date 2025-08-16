@@ -22,7 +22,7 @@ import {useEditorStore} from "@/state/editor.state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
 import {DefaultStateStorageInfo, StateStorageInfo} from "@/model/database-connection";
-import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
+import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
@@ -87,9 +87,8 @@ export function EditorOverviewTab() {
             while (!cancelled) {
                 const service = ConnectionsService.getInstance();
                 if (service.hasDatabaseConnection()) {
-                    const info = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, service.getDatabaseConnection());
                     if (!cancelled) {
-                        setStorageInfo(info);
+                        setStorageInfo(service.getDatabaseConnection().storageInfo);
                     }
                     break; // Exit the loop once info is fetched
                 }
