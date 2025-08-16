@@ -1,7 +1,7 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {
     executeQueryOfRelationState,
-    getInitialParams,
+    getInitialParamsTable,
     getViewFromSource,
     RelationState,
     returnEmptyErrorState,
@@ -32,7 +32,6 @@ import {AddEntityActions, RemoveNodeAction, RenameNodeActions} from "@/component
 import {useGUIState} from "@/state/gui.state";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
-import {maybeAttachDatabaseFromUrlParam} from "@/state/relations/attach-from-url-param";
 import {GetInitialWorkflowState, WorkflowState} from "@/model/workflow-state";
 import {
     AddIfNotExists,
@@ -44,6 +43,8 @@ import {
     RelationZustandEntityType,
     SetEntityDisplayName
 } from "@/state/relations/entity-functions";
+import {useInitState} from "@/state/init.state";
+import {useRelationDataState} from "@/state/relations-data.state";
 
 
 export interface RelationZustand {
@@ -117,17 +118,13 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 export type RelationZustandCombined = RelationZustand & RelationZustandActions;
 
 interface RelationsHydrationState {
-    hydrated: boolean;
     hasDuckDBStorage: boolean;
-    setHydrated: (hydrated: boolean) => void;
     setHasDuckDBStorage: (hasDuckDBStorage: boolean) => void;
 }
 
 export const useRelationsHydrationState = createWithEqualityFn<RelationsHydrationState>(
     (set, get) => ({
-        hydrated: false,
         hasDuckDBStorage: false,
-        setHydrated: (hydrated: boolean) => set({hydrated}),
         setHasDuckDBStorage: (hasDuckDBStorage: boolean) => set({hasDuckDBStorage}),
     }),
 );
@@ -214,6 +211,11 @@ export const useRelationsState = createWithEqualityFn(
                 deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
                     if (useGUIState.getState().isTabOpen(entityId)) {
                         useGUIState.getState().removeTab(entityId);
+                    }
+
+                    // if it is a relation we have to delete the cache as well
+                    if (entityType === 'relations') {
+                        useRelationDataState.getState().deleteData(entityId);
                     }
                     const newCollection = deleteFromEntityCollection(get(), entityType, entityId);
                     const actions = RemoveNodeAction(editorPath);
@@ -342,7 +344,7 @@ export const useRelationsState = createWithEqualityFn(
                         get().showEntity('relations', existingRelation, editorPath);
                     } else {
                         // update state with empty (loading) relation
-                        const defaultQueryParams = getInitialParams();
+                        const defaultQueryParams = getInitialParamsTable();
                         const emptyRelationState = await getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
 
                         // as the relation did not exist yet, we also have to add a reference to the editor
@@ -557,52 +559,44 @@ export const useRelationsState = createWithEqualityFn(
         {
             name: DEFAULT_STATE_STORAGE_DESTINATION.tableName!,
             storage: InitializeStorage(),
-            partialize: (state) => {
-                const newState = {...state};
-                // @ts-ignore
-                delete newState.layoutModel;
-                return newState;
-            },
             onRehydrateStorage: (state => {
                 function callback(state: any, error: any) {
                     if (state === undefined) {
-                        // if state is undefined, remove all tabs
+                        // if the state is undefined, remove all tabs
                         useGUIState.getState().keepTabsOfIds([]);
-                        useRelationsHydrationState.getState().setHydrated(true);
                         return INIT;
                     }
 
-                    // get the list of all possible open tabs
-                    const ids = [];
-                    // check if key is in the state
-                    if (state.relations) {
-                        for (const key in state.relations) {
-                            ids.push(key);
-                        }
-                    }
-                    if (state.schemas) {
-                        for (const key in state.schemas) {
-                            ids.push(key);
-                        }
-                    }
-                    if (state.databases) {
-                        for (const key in state.databases) {
-                            ids.push(key);
-                        }
-                    }
-                    if (state.dashboards) {
-                        for (const key in state.dashboards) {
-                            ids.push(key);
-                        }
-                    }
-
                     if (useRelationsHydrationState.getState().hasDuckDBStorage) {
-                        useGUIState.getState().keepTabsOfIds(ids);
-                        maybeAttachDatabaseFromUrlParam();
-                        useRelationsHydrationState.getState().setHydrated(true);
+
+                        // get the list of all possible open tabs
+                        const ids = [];
+                        // check if key is in the state
+                        if (state.relations) {
+                            for (const key in state.relations) {
+                                ids.push(key);
+                            }
+                        }
+                        if (state.schemas) {
+                            for (const key in state.schemas) {
+                                ids.push(key);
+                            }
+                        }
+                        if (state.databases) {
+                            for (const key in state.databases) {
+                                ids.push(key);
+                            }
+                        }
+                        if (state.dashboards) {
+                            for (const key in state.dashboards) {
+                                ids.push(key);
+                            }
+                        }
+
+                        useInitState.getState().onRelationStateLoadedFromConnection(ids)
+
+
                     }
-
-
                 }
 
 

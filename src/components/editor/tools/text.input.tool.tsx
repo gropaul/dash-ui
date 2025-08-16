@@ -1,7 +1,7 @@
 // SelectBlockTool.tsx
 import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
 
-import {getInitialParams, getQueryFromParamsUnchecked} from '@/model/relation-state';
+import {getInitialParamsTable, getInitialParamsTextInput, getQueryFromParamsUnchecked} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState} from "@/model/relation-view-state";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_SEARCH, ICON_SELECT, ICON_SETTING,} from "@/components/editor/tools/icons";
@@ -29,14 +29,13 @@ export function getInitialSelectDataElement(inputType: InputType): RelationBlock
 
     const randomId = getRandomId();
 
-
     const source: RelationSourceQuery = {
         type: "query",
         baseQuery: baseQuery,
         id: randomId,
         name: "select_" + randomId.substring(0, 8),
     }
-    const defaultQueryParams = getInitialParams();
+    const defaultQueryParams = getInitialParamsTextInput();
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }
@@ -99,7 +98,6 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
                     value: this.currentSelectValue
                 }
             }
-            console.log('SelectBlockTool inputSource', inputSource);
             this.inputManager?.registerInputSource(inputSource)
         }
     }

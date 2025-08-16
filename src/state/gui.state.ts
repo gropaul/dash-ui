@@ -51,7 +51,7 @@ export interface GUIZustandActions {
 
     setSettingsOpen: (open: boolean) => void;
     addSettingForceOpenReason: (reason: ForceOpenReason) => void;
-    removeSettingForceOpenReason: (reason: ForceOpenReason) => void;
+    removeSettingForceOpenReason: (reason: ForceOpenReason, closeSettingsIfLast?: boolean) => void;
     openSettingsTab: (tab: SettingsTab) => void;
 
 
@@ -130,11 +130,18 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                     }));
                 }
             },
-            removeSettingForceOpenReason: (reason: ForceOpenReason) => {
+            removeSettingForceOpenReason: (reason: ForceOpenReason, closeSettingsIfLast: boolean = false) => {
+                const newReasons = [...get().settings.forceOpenReasons].filter(r => r.id !== reason.id);
+                let settingsOpen = get().settings.isOpen;
+                if (newReasons.length === 0 && closeSettingsIfLast && settingsOpen) {
+                    settingsOpen = false;
+                }
+
                 set((state) => ({
                     settings: {
                         ...state.settings,
-                        forceOpenReasons: state.settings.forceOpenReasons.filter(r => r.id !== reason.id),
+                        forceOpenReasons: newReasons,
+                        isOpen: settingsOpen,
                     }
                 }));
             },
@@ -180,7 +187,6 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
 
             keepTabsOfIds: (ids: string[]) => {
 
-                console.log('Keeping tabs of ids:', ids);
                 // is called for first application load. It could be the case that the local browser ui state
                 // still has tabs from which the contents have been removed. This method is called to remove
                 // such tabs.

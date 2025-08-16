@@ -3,6 +3,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {OutputData} from "@editorjs/editorjs";
 
 import dynamic from "next/dynamic";
+import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
 
 const Editor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 
@@ -23,6 +24,10 @@ export function DashboardContent(props: DashboardContentProps) {
         });
     }
 
+    function onBlockChangeEvent(events: BlockMutationEvent[]) {
+
+    }
+
     return (
         <div
             className="p-4 pl-1 overflow-auto w-full h-full bg-inherit flex flex-col items-center justify-start"
@@ -30,6 +35,7 @@ export function DashboardContent(props: DashboardContentProps) {
             <Editor
                 id={dashboard.id}
                 initialData={dashboard.elementState}
+                onBlockChangeEvent={onBlockChangeEvent}
                 onSaved={onSaved}
             />
         </div>

@@ -1,6 +1,7 @@
 import {InputDependency, InputSource, InputValue} from "@/components/editor/inputs/models";
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
 import {RELATION_BLOCK_NAME, SELECT_BLOCK_NAME, TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tool-names";
+import {useRelationDataState} from "@/state/relations-data.state";
 
 export interface InputValueChangeParams {
     interactiveId: string;
@@ -19,6 +20,7 @@ export type StringReturnFunction = (id: string) => string;
 export interface InteractiveBlock {
     interactiveId: string;
     getInteractiveId: (returnFunction: StringReturnFunction) => void;
+    getRelationId?: (returnFunction: StringReturnFunction) => void;
 }
 
 export const INPUT_EVENTS = {
@@ -135,11 +137,24 @@ export class InputManager {
             if (event.type === 'block-removed') {
                 const blockName = event.detail.target.name;
                 if (isInteractiveBlock(blockName)) {
+
+                    let relationId
+                    let getRelationIdFun = (id: string) => {
+                        relationId = id;
+                    }
+                    event.detail.target.call("getRelationId", getRelationIdFun);
+
+                    if (!relationId) {
+                        throw new Error("RelationId is not set");
+                    }
+                    useRelationDataState.getState().deleteData(relationId);
+
+
                     let interactiveId
-                    let getStringFunction = (id: string) => {
+                    let getInteractiveIdFun = (id: string) => {
                         interactiveId = id;
                     };
-                    event.detail.target.call("getInteractiveId", getStringFunction);
+                    event.detail.target.call("getInteractiveId", getInteractiveIdFun);
                     // assert if interactiveId is not set
                     if (!interactiveId) {
                         throw new Error("InteractiveId is not set");

@@ -13,14 +13,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import {useRelationsHydrationState} from "@/state/relations.state";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
+import {useInitState} from "@/state/init.state";
 
 
 export default function Home() {
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
 
-    const relationsHydrated = useRelationsHydrationState((state) => state.hydrated);
+    const initComplete = useInitState(state => state.initializationComplete());
 
     useEffect(() => {
         StorageDuckAPI.getInstance().then((duckdb) => {
@@ -34,7 +34,7 @@ export default function Home() {
         window.location.reload();
     }
 
-    if (!relationsHydrated) {
+    if (!initComplete) {
         return <div className="h-screen w-screen flex items-center justify-center">
             <div className="flex flex-col items-center justify-center space-y-2">
                 <Avatar

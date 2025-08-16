@@ -13,7 +13,6 @@ interface RowElementViewProps {
 
 export function TableValueCell({tableState, column, element}: RowElementViewProps) {
     const columnViewState = tableState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
-    const wrapContent = columnViewState.wrapContent;
     const columnWidth = columnViewState.width + "px";
 
     const stringElement = elementToString(element, column);

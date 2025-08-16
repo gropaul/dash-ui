@@ -6,7 +6,7 @@ import {CanDisplayPlot} from "@/model/relation-view-state/chart";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {useRef} from "react";
 import {ChartContentOverlay} from "@/components/relation/chart/chart-content/chart-content-overlay";
-import {useRelationData, useRelationDataState} from "@/state/relations-data.state";
+import {useRelationData} from "@/state/relations-data.state";
 
 export interface ChartContentWrapperProps extends RelationViewProps {
     showOverlay?: boolean;

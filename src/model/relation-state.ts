@@ -15,14 +15,26 @@ import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {useRelationData, useRelationDataState} from "@/state/relations-data.state";
+import {useRelationDataState} from "@/state/relations-data.state";
 
-export function getInitialParams(): ViewQueryParameters {
+export function getInitialParamsTable(): ViewQueryParameters {
     return {
         type: 'table',
         table: {
             offset: 0,
-            limit: 100,
+            limit: 20,
+            sorting: {},
+        },
+        chart: {},
+    };
+}
+
+export function getInitialParamsTextInput(): ViewQueryParameters {
+    return {
+        type: 'table',
+        table: {
+            offset: 0,
+            limit: 1000, // for text inputs, we want to show more results
             sorting: {},
         },
         chart: {},

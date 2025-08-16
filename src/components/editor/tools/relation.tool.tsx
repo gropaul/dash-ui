@@ -19,6 +19,7 @@ import {
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
+import {getInitialSelectDataElement} from "@/components/editor/tools/text.input.tool";
 
 export interface RelationBlockData extends RelationState {
 }
@@ -71,13 +72,12 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
     }
 
     constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
+        if (!isRelationBlockData(data)) {
+            data = getInitialDataElement();
+        }
+
         super({data, api, readOnly, config}, RELATION_BLOCK_NAME);
 
-        if (isRelationBlockData(data)) {
-            this.data = data;
-        } else {
-            this.data = getInitialDataElement();
-        }
     }
 
     public async setViewType(viewType: RelationViewType) {

@@ -4,14 +4,16 @@ import {TableHead} from "@/components/relation/table/table-head";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {cn} from "@/lib/utils";
 import {useRelationData} from "@/state/relations-data.state";
+import {RelationData} from "@/model/relation";
 
 export interface RelationViewTableContentProps extends RelationViewProps {
     columnViewIndices: number[];
+    data: RelationData;
 }
 
 export function TableContent(props: RelationViewTableContentProps) {
 
-    const data = useRelationData(props.relationState)!;
+    const data = props.data;
     const columnViewIndices = props.columnViewIndices;
     const styleMarginRight = props.embedded ? 'mr-0' : 'mr-32';
     return (

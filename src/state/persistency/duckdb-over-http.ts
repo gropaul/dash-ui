@@ -3,9 +3,9 @@ import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
 import {
-    DatabaseConnection, DefaultStateStorageInfo,
+    DatabaseConnection,
+    DefaultStateStorageInfo,
     StateStorageInfo,
-    StateStorageInfoLoaded,
     StorageDestination
 } from "@/model/database-connection";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";

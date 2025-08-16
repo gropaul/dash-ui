@@ -3,41 +3,28 @@ import {duckdbOverHttpStorageProvider} from "@/state/persistency/duckdb-over-htt
 import {duckdbLocalStorageProvider} from "@/state/persistency/duckdb-local";
 import {RelationZustandCombined, useRelationsHydrationState, useRelationsState} from "@/state/relations.state";
 import {DatabaseConnection} from "@/model/database-connection";
-import {ConnectionsService} from "@/state/connections/connections-service";
 
 export function InitializeStorage() : PersistStorage<RelationZustandCombined> | undefined{
-    ConnectionsService.getInstance().onDatabaseConnectionChange((con) => {
-        if (con) {
-            SwitchOnNewConnection(con);
-        }
-    });
     return localStorage;
 }
 
-export function SwitchOnNewConnection(con: DatabaseConnection) {
+// This will be called from the Init State as soon as there is a (new) working database connection
+export function loadRelationStateFromConnections(con: DatabaseConnection) {
     if (con.type === 'duckdb-over-http' || con.type === 'duckdb-wasm') {
-        switchToDuckDBStorage();
+        rehydrateWithDuckDBStorage();
     } else {
         throw new Error('Connection type not supported');
     }
 
 }
 
-const switchToDuckDBStorage = () => {
-
+const rehydrateWithDuckDBStorage = () => {
     useRelationsState.persist.setOptions({
         storage: duckdbStorage,
     });
     useRelationsHydrationState.getState().setHasDuckDBStorage(true);
     useRelationsState.persist.rehydrate(); // Rehydrate the store with the new storage
-};
-
-const switchToLocalStorage = () => {
-    useRelationsState.persist.setOptions({
-        storage: localStorage,
-    });
-    useRelationsHydrationState.getState().setHasDuckDBStorage(false);
-    useRelationsState.persist.rehydrate(); // Rehydrate the store with the new storage
+    console.log('Switched to DuckDB storage');
 };
 
 

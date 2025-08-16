@@ -18,18 +18,13 @@ import {useRelationData} from "@/state/relations-data.state";
 
 
 interface ColumnHeadDropDownMenuContentProps extends ColumnHeadProps {
-
+    columnNames: string[];
 
 }
 
 export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuContentProps) {
 
-    const data = useRelationData(props.relationState);
-    let columnNames: string[] = []
-    if (data) {
-        columnNames = data.columns.map((column) => column.name);
-    }
-
+    const columnNames = props.columnNames;
     function onCopyName() {
         navigator.clipboard.writeText(props.column.name);
     }

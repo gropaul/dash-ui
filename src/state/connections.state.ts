@@ -6,10 +6,9 @@ import {getDuckDBInternalDatabase} from "@/state/data-source/duckdb-internal-dat
 import {getDuckDBLocalFilesystem} from "@/state/data-source/duckdb-local-filesystem";
 import {DBConnectionSpec} from "@/state/connections/configs";
 import {createJSONStorage, persist} from "zustand/middleware";
+import {useInitState} from "@/state/init.state";
 
-
-export interface DatabaseConnectionZustand {
-    history: DBConnectionSpec[];
+export interface DatabaseConnectionZustandActions {
     connectionsConfigOpen: boolean;
     connectionsConfigForcedOpen: boolean;
     setConnectionsConfigOpen: (open: boolean) => void;
@@ -18,18 +17,11 @@ export interface DatabaseConnectionZustand {
     deleteConnectionFromHistory: (index: number) => void;
 }
 
-
-interface DBConHydrationState {
-    hydrated: boolean;
-    setHydrated: (hydrated: boolean) => void;
+export interface DatabaseConnectionZustandState {
+    history: DBConnectionSpec[];
 }
 
-export const useDBConHydrationState = createWithEqualityFn<DBConHydrationState>(
-    (set, get) => ({
-        hydrated: false,
-        setHydrated: (hydrated: boolean) => set({hydrated}),
-    }),
-);
+export type DatabaseConnectionZustand = DatabaseConnectionZustandState & DatabaseConnectionZustandActions;
 
 const storage = createJSONStorage(() => localStorage, {
     reviver: (key, value) => {
@@ -102,8 +94,16 @@ export const useDatabaseConState = createWithEqualityFn<DatabaseConnectionZustan
             },
         }),
         {
-            onRehydrateStorage: (state) => {
-                useDBConHydrationState.getState().setHydrated(true);
+            onRehydrateStorage: (_unhydrated_state) => {
+
+                // callback that is called when the state is rehydrated
+                return (hydrated_state, error) => {
+                    if (error || !hydrated_state) {
+                        console.log('an error happened during hydration', error)
+                    } else {
+                        useInitState.getState().onConnectionConfigLoaded(hydrated_state);
+                    }
+                }
             },
             name: "database-connection",
             storage: storage,

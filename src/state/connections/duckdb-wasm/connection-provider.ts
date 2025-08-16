@@ -173,7 +173,7 @@ export class WasmProvider {
 
         // (Optional) Provide a console logger
         const IS_DEBUG = process.env.NODE_ENV === 'development';
-        const logLevel = IS_DEBUG ? LogLevel.DEBUG : LogLevel.ERROR;
+        const logLevel = IS_DEBUG ? LogLevel.ERROR : LogLevel.ERROR;
         const logger = new duckdb.ConsoleLogger(logLevel);
 
         // Create the DuckDB instance

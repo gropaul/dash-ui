@@ -47,13 +47,15 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         this.inputManager = config.getInputManager(blockName);
         this.interactiveId = getRandomId(32);
 
-        console.log("RelationBlockTool InputManager", this.inputManager);
         this.currentInputDependencies = [];
         if (this.inputManager) {
             this.getAndUpdateInputDependencies();
         }
     }
 
+    getRelationId(returnFunction: StringReturnFunction): void {
+        returnFunction(this.data.id);
+    }
     getInteractiveId(returnFunction: StringReturnFunction): void {
         returnFunction(this.interactiveId);
     }
@@ -80,6 +82,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
 
     getAndUpdateInputDependencies(): void {
 
+        // console.log("Updating input dependencies for block", this.interactiveId, this.data)
         // Remove old dependencies
         const query = this.data.query.baseQuery;
         const inputVariableNames = getVariablesUsedByQuery(query);
@@ -145,8 +148,6 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
 
         return this.wrapper;
     }
-
-
 
     protected renderComponent(): void {
         // Re-render the React component into the (existing) root

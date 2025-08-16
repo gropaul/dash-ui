@@ -19,9 +19,13 @@ function getMaterializedViewFromQuery(id: string, query: string, readonly: boole
     return `CREATE OR REPLACE ${tmpPhrase} ${tableName} AS (${query});`;
 }
 
-export function loadCache(id: string): Promise<RelationData> {
-    const viewName = GetFullViewName(id);
-    return ConnectionsService.getInstance().executeQuery(`SELECT * FROM ${viewName};`);
+export function loadCache(id: string): Promise<RelationData | undefined> {
+    try {
+        const viewName = GetFullViewName(id);
+        return ConnectionsService.getInstance().executeQuery(`SELECT * FROM ${viewName};`);
+    } catch (error) {
+        return Promise.resolve(undefined);
+    }
 }
 
 export async function deleteCache(id: string): Promise<RelationData> {
@@ -47,7 +51,11 @@ export async function updateCache(id: string, query: string): Promise<CacheResul
         await connectionsService.executeQuery(materializedViewQuery);
 
         const cacheData = await loadCache(id);
-        console.log('Cache updated successfully for relation:', id);
+
+        if (!cacheData) {
+            throw new Error('Failed to load cache data after creating materialized view.');
+        }
+
         return {
             data: cacheData,
             wasCached: true

@@ -1,8 +1,11 @@
 import {RelationData} from "@/model/relation";
-import {persist} from "zustand/middleware";
+import {createJSONStorage, persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {deleteCache, loadCache, updateCache} from "@/state/relations-data/functions";
 import {RelationState} from "@/model/relation-state";
+import {Model} from "flexlayout-react";
+import {LRUList} from "@/platform/lru";
+import {create} from "zustand";
 
 
 export interface CacheResult {
@@ -14,11 +17,13 @@ export interface RelationDataZustandActions {
     getData: (relationId: string) => RelationData | undefined;
     getDataForRelation: (relationState: RelationState) => RelationData | undefined;
     updateData: (relationId: string, data: RelationData) => RelationData;
-    updateDataFromCache: (relationId: string) => Promise<RelationData>;
+    updateDataFromCache: (relationId: string) => Promise<RelationData | undefined>;
     updateDataFromQuery: (relationId: string, query: string) => Promise<CacheResult>;
 
     deleteData: (relationId: string) => void;
 
+    recordUse: (relationId: string) => void;
+    loadLastUsed: () => Promise<void>;
 }
 
 export interface RelationDataZustandState {
@@ -26,6 +31,45 @@ export interface RelationDataZustandState {
 }
 
 export type RelationZustandCombined = RelationDataZustandState & RelationDataZustandActions;
+
+const N_DATA_TO_LOAD = 1;
+
+interface CacheState {
+    cache: LRUList<string>;
+    use: (item: string) => void;
+    clear: () => void;
+}
+
+export const useCacheStore = create<CacheState>()(
+    persist(
+        (set, get) => ({
+            cache: new LRUList<string>(N_DATA_TO_LOAD),
+            use: (item) => {
+                const cache = get().cache;
+                cache.use(item);
+                set({cache});
+            },
+            clear: () => set({cache: new LRUList<string>(N_DATA_TO_LOAD)}),
+        }),
+        {
+            name: 'cache-store',
+            partialize: (state) => ({
+                cache: state.cache.getElements()
+            }),
+            // rehydrate into an LRUList when loading from storage
+            merge: (persisted, current) => {
+                const data = persisted as { cache?: string[] };
+                const lru = new LRUList<string>(N_DATA_TO_LOAD);
+                if (data.cache) {
+                    for (const v of data.cache) {
+                        lru.use(v);
+                    }
+                }
+                return {...current, cache: lru};
+            },
+        }
+    )
+);
 
 export function getInitialRelationDataZustandState(): RelationDataZustandState {
     return {
@@ -36,67 +80,79 @@ export function getInitialRelationDataZustandState(): RelationDataZustandState {
 export function useRelationData(relationState: RelationState) {
     return useRelationDataState((state) => state.getDataForRelation(relationState));
 }
-export const useRelationDataState = createWithEqualityFn(
-    persist<RelationZustandCombined>(
-        (set, get) => ({
-            ...getInitialRelationDataZustandState(),
 
-            getData: (relationId: string) => {
-                const relationData = get().data[relationId];
-                if (!relationData) {
-                    return undefined;
-                }
-                return relationData;
-            },
+export const useRelationDataState = create<RelationZustandCombined>(
+    (set, get) => ({
+        ...getInitialRelationDataZustandState(),
 
-            getDataForRelation: (relationState: RelationState) => {
-                return get().getData(relationState.id);
-            },
-
-            updateData: (relationId: string, data: RelationData) => {
-                set((state) => ({
-                    data: {
-                        ...state.data,
-                        [relationId]: data
-                    }
-                }));
-                return data;
-            },
-
-            updateDataFromCache: async (relationId: string) =>  {
-                const data = await loadCache(relationId)
-                return get().updateData(relationId, data);
-            },
-
-            updateDataFromQuery: async (relationId: string, query: string) => {
-                const result = await updateCache(relationId, query);
-                get().updateData( relationId, result.data);
-                return result;
-            },
-
-            deleteData: async (relationId: string) => {
-                await deleteCache(relationId);
-                set((state) => {
-                    const newData = {...state.data};
-                    delete newData[relationId];
-                    return {data: newData};
-                });
-            },
-        }),
-        {
-            name: 'relation-data-storage', // unique name for the storage
-            onRehydrateStorage: (state) => {
-                console.log('hydration starts')
-
-                // optional
-                return (state, error) => {
-                    if (error) {
-                        console.log('an error happened during hydration', error)
-                    } else {
-                        console.log('hydration finished')
-                    }
-                }
-            },
+        recordUse: (relationId: string) => {
+            useCacheStore.getState().use(relationId);
         },
-    ),
-)
+
+        getData: (relationId: string) => {
+            const relationData = get().data[relationId];
+            get().recordUse(relationId);
+            if (!relationData) { // try to load from the cache
+                get().updateDataFromCache(relationId);
+            }
+            return relationData;
+        },
+
+        getDataForRelation: (relationState: RelationState) => {
+            return get().getData(relationState.id);
+        },
+
+        updateData: (relationId: string, data: RelationData) => {
+            set((state) => ({
+                data: {
+                    ...state.data,
+                    [relationId]: data
+                }
+            }));
+            get().recordUse(relationId);
+            return data;
+        },
+
+        updateDataFromCache: async (relationId: string) => {
+            const data = await loadCache(relationId)
+            if (!data) {
+                console.error(`No cached data found for relationId: ${relationId}`);
+                return undefined;
+            }
+            return get().updateData(relationId, data);
+        },
+
+        updateDataFromQuery: async (relationId: string, query: string) => {
+            const result = await updateCache(relationId, query);
+            get().updateData(relationId, result.data);
+            return result;
+        },
+
+        deleteData: async (relationId: string) => {
+
+            // throw an error if the relationId is not in the state
+            if (!get().data[relationId]) {
+                throw new Error(`Relation data with id ${relationId} does not exist in the state`);
+            }
+
+            await deleteCache(relationId);
+            set((state) => {
+                const newData = {...state.data};
+                delete newData[relationId];
+                return {data: newData};
+            });
+        },
+        loadLastUsed: async () => {
+            const ids_to_hydrate = useCacheStore.getState().cache.getElements();
+            for (const relationId of ids_to_hydrate) {
+                if (!get().data[relationId]) {
+                    await get().updateDataFromCache(relationId);
+                }
+            }
+            console.log('Loaded last used relations:', ids_to_hydrate, 'from cache:', get().data);
+        }
+    })
+);
+
+
+

@@ -7,7 +7,7 @@ import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
 import {
     executeQueryOfRelationState,
-    getInitialParams,
+    getInitialParamsTable,
     getQueryFromParamsUnchecked,
     RelationState
 } from "@/model/relation-state";
@@ -82,7 +82,7 @@ export async function getDefaultRelationBockData(sql: string): Promise<RelationB
         id: randomId,
         name: "New Query"
     }
-    const defaultQueryParams = getInitialParams();
+    const defaultQueryParams = getInitialParamsTable();
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }

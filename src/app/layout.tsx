@@ -1,7 +1,7 @@
 'use client';
 
 import "../styles/globals.css";
-import ConnectionsProvider from "@/components/provider/connections-provider";
+import SettingsProvider from "@/components/provider/settings-provider";
 import {ThemeProvider} from "@/components/provider/theme-provider";
 import {cn} from "@/lib/utils";
 import {Toaster} from "sonner";
@@ -30,11 +30,11 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <ConnectionsProvider>
+                    <SettingsProvider>
                         <div className="flex flex-row h-screen w-screen">
                             {children}
                         </div>
-                    </ConnectionsProvider>
+                    </SettingsProvider>
                 </ThemeProvider>
             </div>
             <Toaster/>
