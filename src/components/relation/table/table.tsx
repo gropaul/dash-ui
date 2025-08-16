@@ -7,9 +7,10 @@ import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-s
 import {TableColumnDragOverlay} from "@/components/relation/table/table-column-drag-overlay";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {cn} from "@/lib/utils";
+import {useRelationData} from "@/state/relations-data.state";
 
 export function Table(props: RelationViewProps) {
-    const relationData = props.relationState.data;
+    const data = useRelationData(props.relationState);
     const columnsOrder = props.relationState.viewState.tableState.columnsOrder;
 
     const [dragStartOrder, setDragStartOrder] = useState<string[]>([]);
@@ -25,7 +26,7 @@ export function Table(props: RelationViewProps) {
 
 
     // if there is no data, return null
-    if (!relationData) {
+    if (!data) {
         return null;
     }
 
@@ -79,7 +80,7 @@ export function Table(props: RelationViewProps) {
         }
     }
 
-    const columnViewIndices = getTableColumnViewIndices(props.relationState.viewState.tableState, relationData);
+    const columnViewIndices = getTableColumnViewIndices(props.relationState.viewState.tableState, data);
 
     const isEmbedded = props.embedded ?? false;
     // will the whole height of the screen when not embedded, todo: maybe make max height configurable

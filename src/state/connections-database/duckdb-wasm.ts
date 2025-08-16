@@ -1,14 +1,22 @@
 import {RelationData} from "@/model/relation";
 import {DataSource} from "@/model/data-source-connection";
-import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
+import {
+    ConnectionStatus,
+    DatabaseConnection,
+    DefaultStateStorageInfo,
+    StateStorageInfo
+} from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections-database/configs";
 import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections-database/duckdb-wasm/utils";
 import {WasmProvider} from "@/state/connections-database/duckdb-wasm/connection-provider";
 import {normalizeArrowType} from "@/components/relation/common/value-icon";
 import {ValueType} from "@/model/value-type";
+import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
+import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 
 export interface DuckDBWasmConfig {
     name: string;
+
     [key: string]: string | number | boolean | undefined; // index signature
 }
 
@@ -17,6 +25,7 @@ export class DuckDBWasm implements DatabaseConnection {
     id: string;
     type: DatabaseConnectionType;
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
+    storageInfo: StateStorageInfo = DefaultStateStorageInfo()
 
     dataSources: DataSource[];
     config: DuckDBWasmConfig;
@@ -28,6 +37,7 @@ export class DuckDBWasm implements DatabaseConnection {
         this.dataSources = [];
         this.config = config;
     }
+
 
     // close the duckdb connection on destroy
     async destroy(): Promise<void> {
@@ -64,6 +74,7 @@ export class DuckDBWasm implements DatabaseConnection {
         try {
             const versionResult = await this.executeQuery("select version();");
             const version = versionResult.rows[0][0] as string;
+            this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this);
             this.connectionStatus = {state: 'connected', message: `Connected to DuckDB WASM. Version: ${version}`};
         } catch (e: any) {
             const message = e.message;

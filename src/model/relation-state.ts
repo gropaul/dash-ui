@@ -15,6 +15,7 @@ import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
+import {useRelationData, useRelationDataState} from "@/state/relations-data.state";
 
 export function getInitialParams(): ViewQueryParameters {
     return {
@@ -116,7 +117,6 @@ export async function getViewFromSource(connectionId: string, source: RelationSo
         id: getRelationIdFromSource(connectionId, source),
         source: source,
         connectionId: connectionId,
-        data: undefined,
     }
 
     const relationBaseQuery = getBaseQueryFromSource(source);
@@ -157,7 +157,7 @@ export async function getViewFromSource(connectionId: string, source: RelationSo
 
     return {
         ...relationWithQuery,
-        viewState: getInitViewState(name, relationWithQuery.data, [], showCode),
+        viewState: getInitViewState(name, undefined, [], showCode), // we will execute the query later
     };
 }
 
@@ -417,7 +417,6 @@ export async function updateRelationQueryForParams(relation: RelationState, newP
 export function returnEmptyErrorState(relation: RelationState, error: unknown): RelationState {
     return {
         ...relation,
-        data: undefined,
         viewState: {
             ...relation.viewState,
             codeFenceState: {
@@ -457,7 +456,8 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
 
     if (viewQuery) {
         try {
-            viewData = await ConnectionsService.getInstance().executeQuery(viewQuery);
+            const cacheResult = await useRelationDataState.getState().updateDataFromQuery(input.id, viewQuery);
+            viewData = cacheResult.data;
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }
@@ -466,6 +466,8 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
             columns: [],
             rows: [],
         };
+
+        useRelationDataState.getState().updateData(input.id, viewData);
     }
 
     let schemaColumns = [];
@@ -504,7 +506,6 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     // update the view state with the new data
     return {
         ...input,
-        data: viewData,
         executionState: {
             state: 'success',
         },

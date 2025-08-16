@@ -1,14 +1,14 @@
-import {ChangeEvent, KeyboardEvent, useEffect, useRef, useState} from "react";
-import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Settings} from "lucide-react";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {TextInputConfigDialog} from "@/components/relation/text-input/text-input-config-dialog";
 import SearchAutocomplete, {Suggestion} from "@/components/ui/autocomplete-input";
+import {useRelationData} from "@/state/relations-data.state";
 
 
 export function TextField(props: RelationViewProps) {
     const relationId = props.relationState.id;
+    const data = useRelationData(props.relationState);
     const textSearchState = props.relationState.viewState.inputTextState;
 
     const updateRelationValue = (s: Suggestion) => {
@@ -26,7 +26,7 @@ export function TextField(props: RelationViewProps) {
         });
     };
 
-    const suggestions = props.relationState.data?.rows.map(row => ({
+    const suggestions = data?.rows.map(row => ({
         label: row[0].toString(),
         id: row[0].toString(),
     })) || []

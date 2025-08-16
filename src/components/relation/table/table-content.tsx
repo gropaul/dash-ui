@@ -3,6 +3,7 @@ import React from "react";
 import {TableHead} from "@/components/relation/table/table-head";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {cn} from "@/lib/utils";
+import {useRelationData} from "@/state/relations-data.state";
 
 export interface RelationViewTableContentProps extends RelationViewProps {
     columnViewIndices: number[];
@@ -10,7 +11,7 @@ export interface RelationViewTableContentProps extends RelationViewProps {
 
 export function TableContent(props: RelationViewTableContentProps) {
 
-    const relationData = props.relationState.data!;
+    const data = useRelationData(props.relationState)!;
     const columnViewIndices = props.columnViewIndices;
     const styleMarginRight = props.embedded ? 'mr-0' : 'mr-32';
     return (
@@ -23,13 +24,13 @@ export function TableContent(props: RelationViewTableContentProps) {
         >
             <TableHead {...props} />
             <tbody className={'bg-inherit'}>
-            {relationData.rows.map((row, index) => (
+            {data.rows.map((row, index) => (
                 <TableRow
                     key={index}
                     tableState={props.relationState.viewState.tableState}
                     rowIndex={index}
                     row={row}
-                    columns={relationData.columns}
+                    columns={data.columns}
                     offset={props.relationState.lastExecutionMetaData?.lastResultOffset || 0}
                     columnViewIndices={columnViewIndices}
                 />

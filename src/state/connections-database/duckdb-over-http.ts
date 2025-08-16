@@ -1,9 +1,16 @@
 import {RelationData} from "@/model/relation";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import {QueryResponse} from "@/model/query-response";
-import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
+import {
+    ConnectionStatus,
+    DatabaseConnection,
+    DefaultStateStorageInfo,
+    StateStorageInfo
+} from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections-database/configs";
 import {toast} from "sonner";
+import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
+import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 
 export interface DuckDBOverHttpConfig {
     name: string;
@@ -21,6 +28,8 @@ export class DuckDBOverHttp implements DatabaseConnection {
     id: string;
     type: DatabaseConnectionType;
     config: DuckDBOverHttpConfig;
+    storageInfo: StateStorageInfo = DefaultStateStorageInfo()
+
 
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
 
@@ -90,6 +99,7 @@ export class DuckDBOverHttp implements DatabaseConnection {
         const version = await this.sendPing();
         if (version) {
             this.connectionStatus = {state: 'connected', version: version, message: `Connected to ${this.config.url}, version: ${version}`};
+            this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this);
         } else {
             this.connectionStatus = {state: 'error', message: `Failed to ping ${this.config.url}`, version: undefined};
         }

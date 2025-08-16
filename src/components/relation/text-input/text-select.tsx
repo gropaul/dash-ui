@@ -9,10 +9,12 @@ import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandL
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {RelationViewProps} from "@/components/relation/relation-view"
 import {TextInputConfigDialog} from "@/components/relation/text-input/text-input-config-dialog"
+import {useRelationData} from "@/state/relations-data.state";
 
 export function TextSelect(props: RelationViewProps) {
     const [open, setOpen] = React.useState(false)
 
+    const data = useRelationData(props.relationState);
     const relationId = props.relationState.id
     const viewState = props.relationState
     const showConfig = viewState.viewState.inputTextState.showConfig || false
@@ -35,7 +37,7 @@ export function TextSelect(props: RelationViewProps) {
         })
     }
 
-    const items = props.relationState.data?.rows.map(row => ({
+    const items = data?.rows.map(row => ({
         value: row[0].toString(),
         label: row[0].toString(),
     })) || []

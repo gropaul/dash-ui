@@ -4,10 +4,12 @@ import {cn} from "@/lib/utils";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {ChartConfigDialog} from "@/components/relation/chart/chart-config-dialog";
 import {ChartContentWrapper} from "@/components/relation/chart/chart-content-wrapper";
+import {useRelationData} from "@/state/relations-data.state";
 
 export function Chart(props: RelationViewProps) {
 
     const relationId = props.relationState.id;
+    const data = useRelationData(props.relationState);
 
     function updateConfigRatio(ratio: number) {
         props.updateRelationViewState(relationId, {
@@ -19,7 +21,7 @@ export function Chart(props: RelationViewProps) {
         });
     }
 
-    if (props.relationState.data === undefined) {
+    if (data === undefined) {
         return null;
     }
     const config = props.relationState.viewState.chartState;

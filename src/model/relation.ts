@@ -52,7 +52,6 @@ export interface Relation {
     connectionId: string,
     source: RelationSource,
     id: string,
-    data?: RelationData, // can be undefined if query still running
 }
 
 export function getPathFromRelation(source: RelationSource, connectionId: string): string[] {

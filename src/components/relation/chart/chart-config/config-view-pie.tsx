@@ -4,6 +4,7 @@ import {Muted} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {AxisConfig, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {Column} from "@/model/data-source-connection";
+import {useRelationData} from "@/state/relations-data.state";
 
 
 export function ConfigViewPie(props: ChartConfigProps) {
@@ -18,7 +19,8 @@ export function ConfigViewPie(props: ChartConfigProps) {
 
 export function ChartColumnSelector(props: ChartConfigProps) {
 
-    const columns = props.relationState?.data?.columns ?? ([] as Column[]);
+    const data = useRelationData(props.relationState);
+    const columns = data?.columns ?? ([] as Column[]);
     const relationId = props.relationState.id;
     const config = props.relationState.viewState.chartState;
 

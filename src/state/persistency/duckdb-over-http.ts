@@ -2,7 +2,12 @@ import {ConnectionsService} from "@/state/connections-service";
 import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
-import {DatabaseConnection, StateStorageInfo, StorageDestination} from "@/model/database-connection";
+import {
+    DatabaseConnection, DefaultStateStorageInfo,
+    StateStorageInfo,
+    StateStorageInfoLoaded,
+    StorageDestination
+} from "@/model/database-connection";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 
 
@@ -24,6 +29,7 @@ export async function GetStateStorageStatus(destination: StorageDestination, con
     destination.databaseName = current_database_result.rows[0][2];
 
     return {
+        state: 'loaded',
         tableStatus: 'found',
         databaseStatus: persistent ? 'permanent' : 'temporary',
         databaseReadonly: readonly,
@@ -39,8 +45,8 @@ interface QueueInput {
 
 export class StorageDuckAPI {
 
-    activeStorageInfo: StateStorageInfo | null = null;
-    createdTables: string[] = [];    // singleton instance
+    activeStorageInfo: StateStorageInfo = DefaultStateStorageInfo()
+    createdTables: string[] = [];
     private static instance: StorageDuckAPI;
 
     lastVersionCode: number | null = null;
@@ -63,9 +69,8 @@ export class StorageDuckAPI {
         while (!ConnectionsService.getInstance().hasDatabaseConnection()) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-
-
-        if (this.activeStorageInfo === null) {
+        
+        if (this.activeStorageInfo.state === 'uninitialized') {
             this.activeStorageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, ConnectionsService.getInstance().getDatabaseConnection());
         }
 
@@ -75,7 +80,7 @@ export class StorageDuckAPI {
     async createTableIfNotExists(storageDestination: StorageDestination) {
 
         // if we are in readonly mode, do not create the table
-        if (this.activeStorageInfo!.databaseReadonly) {
+        if (this.activeStorageInfo.state === 'loaded' && this.activeStorageInfo.databaseReadonly) {
             return;
         }
 
@@ -164,7 +169,7 @@ export class StorageDuckAPI {
     async setItem(storageDestination: StorageDestination, value: string): Promise<void> {
 
         // not allowed to write in readonly mode
-        if (this.activeStorageInfo!.databaseReadonly) {
+        if (this.activeStorageInfo.state === 'loaded' && this.activeStorageInfo.databaseReadonly) {
             return;
         }
 

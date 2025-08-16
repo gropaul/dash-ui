@@ -14,6 +14,7 @@ import {Check, Copy, EyeOff} from "lucide-react";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 import {cn} from "@/lib/utils";
 import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon";
+import {useRelationData} from "@/state/relations-data.state";
 
 
 interface ColumnHeadDropDownMenuContentProps extends ColumnHeadProps {
@@ -23,9 +24,10 @@ interface ColumnHeadDropDownMenuContentProps extends ColumnHeadProps {
 
 export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuContentProps) {
 
+    const data = useRelationData(props.relationState);
     let columnNames: string[] = []
-    if (props.relationState.data) {
-        columnNames = props.relationState.data.columns.map((column) => column.name);
+    if (data) {
+        columnNames = data.columns.map((column) => column.name);
     }
 
     function onCopyName() {

@@ -21,7 +21,7 @@ import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {useEditorStore} from "@/state/editor.state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
-import {StateStorageInfo} from "@/model/database-connection";
+import {DefaultStateStorageInfo, StateStorageInfo} from "@/model/database-connection";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
 import {ConnectionsService} from "@/state/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
@@ -53,7 +53,7 @@ export interface DashboardCommandState {
 
 export function EditorOverviewTab() {
 
-    const [storageInfo, setStorageInfo] = useState<StateStorageInfo | null>(null);
+    const [storageInfo, setStorageInfo] = useState<StateStorageInfo>(DefaultStateStorageInfo());
     const [renameState, setRenameState] = useState<RenameState>({isOpen: false});
     const [deleteState, setDeleteState] = useState<DeleteState>({isOpen: false});
     const [selectedNodeIds, setSelectedNodeIds] = useState<string[][]>([]);
@@ -360,7 +360,7 @@ ${relationNames.join(', ')}`;
             {/* Header Section */}
             <div className="p-4 pt-2.5 pb-2 pr-3 flex flex-row items-center justify-between  overflow-hidden">
                 <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">Editor {
-                    storageInfo?.databaseReadonly || storageInfo?.databaseStatus == 'temporary'? <>
+                    storageInfo.state === 'loaded' && storageInfo.databaseStatus == 'temporary'? <>
                         <div className="w-1"/>
                         <TooltipProvider>
                             <Tooltip>

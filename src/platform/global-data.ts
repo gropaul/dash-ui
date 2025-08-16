@@ -33,7 +33,9 @@ export const DEFAULT_LLM_SETTINGS: LLMSettings = {
 
 export const DEFAULT_RELATION_VIEW_PATH =[]
 
+export const DEFAULT_STATE_SCHEMA_NAME = 'dash';
+
 export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
     tableName: 'relationState',
-    schemaName: 'dash',
+    schemaName: DEFAULT_STATE_SCHEMA_NAME,
 }

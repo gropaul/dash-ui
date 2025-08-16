@@ -4,11 +4,13 @@ import {ColumnHeadDropDownMenuContent} from "@/components/relation/table/table-h
 import {Column} from "@/model/data-source-connection";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
+import {useRelationData} from "@/state/relations-data.state";
 
 export function TableHead(props: RelationViewTableContentProps) {
 
-    const relationData = props.relationState.data!;
-    const [column, setColumn] = React.useState<Column>(relationData.columns[0]);
+    const data = useRelationData(props.relationState)!;
+
+    const [column, setColumn] = React.useState<Column>(data.columns[0]);
     const [menuOpen, setMenuOpen] = React.useState(false);
     const [position, setPosition] = React.useState({ x: 0, y: 0 });
 
@@ -40,7 +42,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                     <DropdownMenuTrigger asChild key={index}>
                         <TableColumnHead
                             {...props}
-                            column={relationData.columns[index]}
+                            column={data.columns[index]}
                             onColumnMenuClick={(column, event) => onColumnMenuClick(column, event)}
                         />
                     </DropdownMenuTrigger>
