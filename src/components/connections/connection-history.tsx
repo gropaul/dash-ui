@@ -1,9 +1,9 @@
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
-import {useDatabaseConState} from "@/state/connections-database.state";
-import {DBConnectionSpec, specToConnection, typeToLabel} from "@/state/connections-database/configs";
+import {useDatabaseConState} from "@/state/connections.state";
+import {DBConnectionSpec, specToConnection, typeToLabel} from "@/state/connections/configs";
 import {DatabaseConnection} from "@/model/database-connection";
 import {useEffect, useState} from "react";
-import {DuckDBOverHttpConfig} from "@/state/connections-database/duckdb-over-http";
+import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 import {Eye, EyeOff, Trash2} from "lucide-react";
 
 

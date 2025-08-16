@@ -2,14 +2,14 @@
 
 import React, {useEffect} from "react";
 import {useRelationsState} from "@/state/relations.state";
-import {ConnectionsService} from "@/state/connections-service";
-import {useDatabaseConState, useDBConHydrationState} from "@/state/connections-database.state";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {useDatabaseConState, useDBConHydrationState} from "@/state/connections.state";
 import {
     connectionToString,
     DBConnectionSpec,
     getDefaultSpec,
     specToConnection
-} from "@/state/connections-database/configs";
+} from "@/state/connections/configs";
 import {toast} from "sonner";
 import {useRouter} from 'next/navigation'
 import {showExampleQuery} from "@/components/provider/example-query";

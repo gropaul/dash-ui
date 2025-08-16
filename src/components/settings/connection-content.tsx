@@ -1,7 +1,7 @@
 import React from "react";
 import {ConnectionConfig} from "@/components/connections/connection-config";
 import {ConnectionHistory} from "@/components/connections/connection-history";
-import {DBConnectionSpec} from "@/state/connections-database/configs";
+import {DBConnectionSpec} from "@/state/connections/configs";
 
 interface ConnectionContentProps {
   currentSpec: DBConnectionSpec;

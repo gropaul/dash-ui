@@ -1,5 +1,5 @@
 import {RelationData} from "@/model/relation";
-import {DatabaseConnectionType} from "@/state/connections-database/configs";
+import {DatabaseConnectionType} from "@/state/connections/configs";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 

@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {Dialog, DialogContent} from "@/components/ui/dialog";
-import {connectionToSpec, DBConnectionSpec, getDefaultSpec} from "@/state/connections-database/configs";
-import {ConnectionsService} from "@/state/connections-service";
+import {connectionToSpec, DBConnectionSpec, getDefaultSpec} from "@/state/connections/configs";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";

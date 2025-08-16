@@ -1,22 +1,22 @@
 'use client';
 import {toast} from "sonner";
 import React, {Fragment} from "react";
-import {useSourceConState} from "@/state/connections-source.state";
+import {useDataSourcesState} from "@/state/data-sources.state";
 import {ConnectionView} from "@/components/connections/connection-view";
 import {Button} from "@/components/ui/button";
 import {Database, Plus, Upload} from "lucide-react";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {AttachDatabaseDialog, DialogResult} from "@/components/connections/attach-database-dialog";
-import {ConnectionsService} from "@/state/connections-service";
-import {attachDatabase} from "@/state/connections-source/duckdb-helper";
-import {clearOPFS} from "@/state/connections-database/duckdb-wasm/connection-provider";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {attachDatabase} from "@/state/data-source/duckdb-helper";
+import {clearOPFS} from "@/state/connections/duckdb-wasm/connection-provider";
 import {useGUIState} from "@/state/gui.state";
 import {handleFileDrop} from "@/components/import/file-drop-relation/file-import";
 
 const IS_DEBUG = process.env.NODE_ENV === 'development';
 
 export function ConnectionsOverviewTab() {
-    const connections = useSourceConState((state) => state.connections);
+    const connections = useDataSourcesState((state) => state.connections);
 
     const [isAttachDatabaseDialogOpen, setIsDatabaseDialogOpenInternal] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);

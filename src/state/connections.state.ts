@@ -1,10 +1,10 @@
 import {DatabaseConnection} from "@/model/database-connection";
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {createWithEqualityFn} from "zustand/traditional";
-import {useSourceConState} from "@/state/connections-source.state";
-import {getDuckDBInternalDatabase} from "@/state/connections-source/duckdb-internal-databases";
-import {getDuckDBLocalFilesystem} from "@/state/connections-source/duckdb-local-filesystem";
-import {DBConnectionSpec} from "@/state/connections-database/configs";
+import {useDataSourcesState} from "@/state/data-sources.state";
+import {getDuckDBInternalDatabase} from "@/state/data-source/duckdb-internal-databases";
+import {getDuckDBLocalFilesystem} from "@/state/data-source/duckdb-local-filesystem";
+import {DBConnectionSpec} from "@/state/connections/configs";
 import {createJSONStorage, persist} from "zustand/middleware";
 
 
@@ -81,7 +81,7 @@ export const useDatabaseConState = createWithEqualityFn<DatabaseConnectionZustan
                 set({history: history_copy});
 
                 // add sources
-                const sourceState = useSourceConState.getState();
+                const sourceState = useDataSourcesState.getState();
                 // add the duckdb internal databases as data sources
                 const duckdbInternalDatabases = await getDuckDBInternalDatabase(connection);
                 await sourceState.addSourceConnection(duckdbInternalDatabases, true, true);

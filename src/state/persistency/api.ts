@@ -3,7 +3,7 @@ import {duckdbOverHttpStorageProvider} from "@/state/persistency/duckdb-over-htt
 import {duckdbLocalStorageProvider} from "@/state/persistency/duckdb-local";
 import {RelationZustandCombined, useRelationsHydrationState, useRelationsState} from "@/state/relations.state";
 import {DatabaseConnection} from "@/model/database-connection";
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 
 export function InitializeStorage() : PersistStorage<RelationZustandCombined> | undefined{
     ConnectionsService.getInstance().onDatabaseConnectionChange((con) => {

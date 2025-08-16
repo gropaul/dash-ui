@@ -6,7 +6,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {ExternalLink, Network} from "lucide-react";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
-import {GetSchemaState} from "@/state/connections-source/duckdb-helper";
+import {GetSchemaState} from "@/state/data-source/duckdb-helper";
 
 
 interface DatabaseSchemaViewProps {

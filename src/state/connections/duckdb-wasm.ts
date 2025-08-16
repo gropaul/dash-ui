@@ -6,9 +6,9 @@ import {
     DefaultStateStorageInfo,
     StateStorageInfo
 } from "@/model/database-connection";
-import {DatabaseConnectionType} from "@/state/connections-database/configs";
-import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections-database/duckdb-wasm/utils";
-import {WasmProvider} from "@/state/connections-database/duckdb-wasm/connection-provider";
+import {DatabaseConnectionType} from "@/state/connections/configs";
+import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections/duckdb-wasm/utils";
+import {WasmProvider} from "@/state/connections/duckdb-wasm/connection-provider";
 import {normalizeArrowType} from "@/components/relation/common/value-icon";
 import {ValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";

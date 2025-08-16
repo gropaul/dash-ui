@@ -4,15 +4,15 @@ import {useRelationsState} from "@/state/relations.state";
 import {DataSource, DataSourceConnection, DataSourceElement, DataSourceGroup} from "@/model/data-source-connection";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {removeSemicolon} from "@/platform/sql-utils";
-import {useSourceConState} from "@/state/connections-source.state";
+import {useDataSourcesState} from "@/state/data-sources.state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 
 
 export function GetDatabaseState(connectionId: string, databaseId: string): DatabaseState {
-    const sourceConnection = useSourceConState.getState().getSourceConnection(connectionId);
+    const sourceConnection = useDataSourcesState.getState().getSourceConnection(connectionId);
     const databaseSource = sourceConnection?.dataSources[databaseId]!;
     const databaseTabId = getDatabaseId(connectionId, databaseId); // Generate the database ID
 

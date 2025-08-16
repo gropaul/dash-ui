@@ -1,5 +1,5 @@
-import {DuckDBOverHttp, DuckDBOverHttpConfig} from "@/state/connections-database/duckdb-over-http";
-import {DuckDBWasm, DuckDBWasmConfig} from "@/state/connections-database/duckdb-wasm";
+import {DuckDBOverHttp, DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
+import {DuckDBWasm, DuckDBWasmConfig} from "@/state/connections/duckdb-wasm";
 import {DatabaseConnection} from "@/model/database-connection";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL, DATABASE_CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
 

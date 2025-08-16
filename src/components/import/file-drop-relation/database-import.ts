@@ -1,11 +1,11 @@
 import {toast} from "sonner";
-import {ConnectionsService} from "@/state/connections-service";
-import {useSourceConState} from "@/state/connections-source.state";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {useDataSourcesState} from "@/state/data-sources.state";
 import {RelationZustand, useRelationsState} from "@/state/relations.state";
-import {getImportQuery} from "@/state/connections-database/duckdb-wasm/utils";
+import {getImportQuery} from "@/state/connections/duckdb-wasm/utils";
 import {FileUploadState} from "./file-drop-overlay";
 import {DatabaseConnection} from "@/model/database-connection";
-import {GetDatabaseState} from "@/state/connections-source/duckdb-helper";
+import {GetDatabaseState} from "@/state/data-source/duckdb-helper";
 
 /**
  * Handles the import of a database file
@@ -58,7 +58,7 @@ export const handleDatabaseImport = async (
                 await connection.executeQuery(detachQuery);
             }
 
-            const refreshConnection = useSourceConState.getState().refreshConnection;
+            const refreshConnection = useDataSourcesState.getState().refreshConnection;
             await refreshConnection(connection.id);
 
             const databaseState = GetDatabaseState(connection.id, databaseName);

@@ -1,4 +1,4 @@
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";

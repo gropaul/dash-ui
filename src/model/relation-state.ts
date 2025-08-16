@@ -13,7 +13,7 @@ import {
 } from "@/model/relation-view-state";
 import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationData, useRelationDataState} from "@/state/relations-data.state";
 

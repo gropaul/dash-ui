@@ -7,7 +7,7 @@ import {
     DefaultStateStorageInfo,
     StateStorageInfo
 } from "@/model/database-connection";
-import {DatabaseConnectionType} from "@/state/connections-database/configs";
+import {DatabaseConnectionType} from "@/state/connections/configs";
 import {toast} from "sonner";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-over-http";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";

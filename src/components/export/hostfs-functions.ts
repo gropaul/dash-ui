@@ -1,4 +1,4 @@
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 
 
 export type DirectoryItemType = 'file' | 'directory';

@@ -1,5 +1,5 @@
 import {RelationData} from "@/model/relation";
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {DEFAULT_STATE_SCHEMA_NAME} from "@/platform/global-data";
 import {CacheResult} from "@/state/relations-data.state";
 

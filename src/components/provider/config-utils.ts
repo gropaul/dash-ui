@@ -1,5 +1,5 @@
-import {DBConnectionSpec, specToConnection} from "@/state/connections-database/configs";
-import {DuckDBOverHttpConfig} from "@/state/connections-database/duckdb-over-http";
+import {DBConnectionSpec, specToConnection} from "@/state/connections/configs";
+import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 import {DatabaseConnection} from "@/model/database-connection";
 
 

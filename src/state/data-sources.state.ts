@@ -1,10 +1,10 @@
 import {createWithEqualityFn} from "zustand/traditional";
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 import {DataConnectionConfig, DataSource, DataSourceConnection, DataSourceGroup} from "@/model/data-source-connection";
 import {ConnectionStatus} from "@/model/database-connection";
 
-export interface SourceConnectionZustand {
+export interface DataSourcesZustand {
     connections: { [key: string]: DataSourceConnection };
     // default autoInitialise is true
     addSourceConnection: (connection: DataSourceConnection, initialise: boolean, loadDataSources: boolean) => Promise<ConnectionStatus | undefined>;
@@ -27,7 +27,7 @@ export interface SourceConnectionZustand {
     refreshConnection: (connectionId: string) => Promise<void>;
 }
 
-export const useSourceConState = createWithEqualityFn<SourceConnectionZustand>((set, get) => ({
+export const useDataSourcesState = createWithEqualityFn<DataSourcesZustand>((set, get) => ({
     connections: {},
 
     addSourceConnection: async (connection, initialise, loadDataSources) => {

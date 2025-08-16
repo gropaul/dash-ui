@@ -3,7 +3,7 @@ import {AnimatePresence, motion} from "framer-motion";
 import {AlertCircle, CheckCircle, CloudUpload, XCircle} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {FileFormat} from "@/state/connections-source/duckdb-helper";
+import {FileFormat} from "@/state/data-source/duckdb-helper";
 import {RelationZustand} from "@/state/relations.state";
 
 export interface FileUploadState {

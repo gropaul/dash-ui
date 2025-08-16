@@ -1,9 +1,9 @@
 import {TreeExplorer} from "@/components/basics/files/tree-explorer";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import React from "react";
-import {useSourceConState} from "@/state/connections-source.state";
+import {useDataSourcesState} from "@/state/data-sources.state";
 import {RefreshCw} from "lucide-react";
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {DataSourceConnection} from "@/model/data-source-connection";
 import {Button} from "@/components/ui/button";
 
@@ -13,8 +13,8 @@ export interface ConnectionViewProps {
 
 export function ConnectionView(props: ConnectionViewProps) {
 
-    const refreshConnection = useSourceConState((state) => state.refreshConnection);
-    const loadChildrenForDataSource = useSourceConState((state) => state.loadChildrenForDataSource);
+    const refreshConnection = useDataSourcesState((state) => state.refreshConnection);
+    const loadChildrenForDataSource = useDataSourcesState((state) => state.loadChildrenForDataSource);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
         ConnectionsService.getInstance().getSourceConnection(connection_id).onDataSourceClick(id_path);
@@ -66,7 +66,7 @@ interface ConnectionStateIconProps {
 }
 
 function ConnectionStateIcon(props: ConnectionStateIconProps) {
-    const connectionsState = useSourceConState(state => state.getConnectionState(props.connectionId));
+    const connectionsState = useDataSourcesState(state => state.getConnectionState(props.connectionId));
     const message = connectionsState.message;
     if (connectionsState.state === "connected") {
         return <span className="text-green-500">●</span>

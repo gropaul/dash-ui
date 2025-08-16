@@ -2,9 +2,9 @@ import {ReactNode} from "react";
 import {ContextMenuItem, ContextMenuSeparator} from "@/components/ui/context-menu";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {Copy, Edit2, Trash} from 'lucide-react';
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {quoteString} from "@/lib/utils";
-import {useSourceConState} from "@/state/connections-source.state";
+import {useDataSourcesState} from "@/state/data-sources.state";
 
 interface ContextMenuFactoryProps {
     tree_id_path: string[];
@@ -62,7 +62,7 @@ export default function ContextMenuFactory(props: ContextMenuFactoryProps): Reac
                     const query = `
                         ALTER ${elementType.toUpperCase()} ${tableName} RENAME TO ${quotedNewName};`
                     await ConnectionsService.getInstance().executeQuery(query);
-                    await useSourceConState.getState().loadAllDataSources(props.connection_id);
+                    await useDataSourcesState.getState().loadAllDataSources(props.connection_id);
                 }
                 break;
             }
@@ -75,7 +75,7 @@ export default function ContextMenuFactory(props: ContextMenuFactoryProps): Reac
                     const query = `
                         ALTER TABLE ${tableName} RENAME COLUMN ${name} TO ${quotedNewName};`
                     await ConnectionsService.getInstance().executeQuery(query);
-                    await useSourceConState.getState().loadAllDataSources(props.connection_id);
+                    await useDataSourcesState.getState().loadAllDataSources(props.connection_id);
                 }
                 break;
             }
@@ -93,13 +93,13 @@ export default function ContextMenuFactory(props: ContextMenuFactoryProps): Reac
             const tableName = props.tree_id_path.slice(0, 3).map(quoteString).join('.');
             const query = `ALTER TABLE ${tableName} DROP COLUMN ${columnName};`;
             await ConnectionsService.getInstance().executeQuery(query);
-            await useSourceConState.getState().loadAllDataSources(props.connection_id);
+            await useDataSourcesState.getState().loadAllDataSources(props.connection_id);
 
         } else {
             const tableName = getElementName();
             const query = `DROP ${elementType.toUpperCase()} ${tableName};`;
             await ConnectionsService.getInstance().executeQuery(query);
-            await useSourceConState.getState().loadAllDataSources(props.connection_id);
+            await useDataSourcesState.getState().loadAllDataSources(props.connection_id);
         }
     }
 

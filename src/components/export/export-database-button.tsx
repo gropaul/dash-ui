@@ -1,8 +1,8 @@
 import {Button} from "@/components/ui/button";
 import {Download,} from "lucide-react";
 import React, {useEffect} from "react";
-import {ConnectionsService} from "@/state/connections-service";
-import {DuckDBWasm} from "@/state/connections-database/duckdb-wasm";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {DatabaseConnection} from "@/model/database-connection";
 
 

@@ -1,7 +1,7 @@
 import React from "react";
 import {FileDrop} from "@/components/basics/input/file-drop";
 import {useGUIState} from "@/state/gui.state";
-import {FileFormat} from "@/state/connections-source/duckdb-helper";
+import {FileFormat} from "@/state/data-source/duckdb-helper";
 import {FileDropOverlay, FileUploadState} from "@/components/import/file-drop-relation/file-drop-overlay";
 import {handleFileDrop, handleFileImport} from "@/components/import/file-drop-relation/file-import";
 import {handleDatabaseImport} from "@/components/import/file-drop-relation/database-import";

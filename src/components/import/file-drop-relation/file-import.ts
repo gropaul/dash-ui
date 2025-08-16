@@ -1,11 +1,11 @@
 import {toast} from "sonner";
-import {ConnectionsService} from "@/state/connections-service";
-import {useSourceConState} from "@/state/connections-source.state";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {useDataSourcesState} from "@/state/data-sources.state";
 import {useRelationsState} from "@/state/relations.state";
-import {getImportQuery, inferFileTableName} from "@/state/connections-database/duckdb-wasm/utils";
+import {getImportQuery, inferFileTableName} from "@/state/connections/duckdb-wasm/utils";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {RelationSource} from "@/model/relation";
-import {FileFormat} from "@/state/connections-source/duckdb-helper";
+import {FileFormat} from "@/state/data-source/duckdb-helper";
 import {FileUploadState} from "./file-drop-overlay";
 
 export const handleFileImport = async (
@@ -37,7 +37,7 @@ export const handleFileImport = async (
             const query = await getImportQuery(file.name, tableName, format);
             await connection.executeQuery(query);
 
-            const refreshConnection = useSourceConState.getState().refreshConnection;
+            const refreshConnection = useDataSourcesState.getState().refreshConnection;
             await refreshConnection(connection.id);
 
             const showRelation = useRelationsState.getState().showRelationFromSource;
@@ -108,7 +108,7 @@ export const handleFileDrop = async (
                 tableFormats.push(fileFormat);
             }
 
-            const refreshConnection = useSourceConState.getState().refreshConnection;
+            const refreshConnection = useDataSourcesState.getState().refreshConnection;
             await refreshConnection(connection.id);
 
             const showRelation = useRelationsState.getState().showRelationFromSource;

@@ -3,8 +3,8 @@ import {ConnectionConfig} from "@/components/connections/connection-config";
 import {ConnectionHistory} from "@/components/connections/connection-history";
 import {toast} from "sonner";
 import {useEffect, useState} from "react";
-import {connectionToSpec, DBConnectionSpec, getDefaultSpec} from "@/state/connections-database/configs";
-import {ConnectionsService} from "@/state/connections-service";
+import {connectionToSpec, DBConnectionSpec, getDefaultSpec} from "@/state/connections/configs";
+import {ConnectionsService} from "@/state/connections/connections-service";
 
 
 export interface ConnectionViewDialogProps {

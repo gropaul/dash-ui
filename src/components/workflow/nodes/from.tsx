@@ -4,7 +4,7 @@ import {useState} from "react";
 import {Handle, Node, NodeProps, Position} from '@xyflow/react';
 import {NodeBody} from "@/components/workflow/nodes/base";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {Column, DataSource} from "@/model/data-source-connection";
 
 

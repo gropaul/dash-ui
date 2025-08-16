@@ -2,7 +2,7 @@ import {ReactNode} from "react";
 import {ContextMenuItem} from "@/components/ui/context-menu";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {Copy} from 'lucide-react';
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 
 interface ContextMenuFactoryProps {
     tree_id_path: string[];

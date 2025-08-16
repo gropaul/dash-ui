@@ -1,4 +1,4 @@
-import {ConnectionsService} from "@/state/connections-service";
+import {ConnectionsService} from "@/state/connections/connections-service";
 import {SQLTollDescription} from "@/components/chat/model/promts";
 import {EditorsService} from "@/state/editor.state";
 import {useGUIState} from "@/state/gui.state";

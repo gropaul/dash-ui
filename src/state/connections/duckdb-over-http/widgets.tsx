@@ -1,5 +1,5 @@
 import {FormFieldCustomProps} from "@/components/basics/input/custom-form";
-import {DuckDBOverHttpConfig} from "@/state/connections-database/duckdb-over-http";
+import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 import {CodeFence} from "@/components/basics/code-fence/code-fence";
 
 

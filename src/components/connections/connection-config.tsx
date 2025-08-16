@@ -2,14 +2,14 @@ import React, {FC, ReactElement, useEffect, useRef, useState} from "react";
 import {CustomForm, FormDefinition} from "@/components/basics/input/custom-form";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {validateUrl} from "@/platform/string-validation";
-import {ConnectionStringField} from "@/state/connections-database/duckdb-over-http/widgets";
-import {DBConnectionSpec, getDefaultSpec, specToConnection, typeToLabel} from "@/state/connections-database/configs";
+import {ConnectionStringField} from "@/state/connections/duckdb-over-http/widgets";
+import {DBConnectionSpec, getDefaultSpec, specToConnection, typeToLabel} from "@/state/connections/configs";
 import {DBConnectionType} from "@/components/basics/files/icon-factories";
 import {Button} from "@/components/ui/button";
 import {Check, Info, LoaderCircle, RefreshCcw} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {deepEqual} from "@/platform/object-utils";
-import {clearOPFS} from "@/state/connections-database/duckdb-wasm/connection-provider";
+import {clearOPFS} from "@/state/connections/duckdb-wasm/connection-provider";
 
 
 const DUCKDB_WASM_DESCRIPTION =

@@ -11,7 +11,7 @@ import {Button} from "@/components/ui/button";
 import {Download} from "lucide-react";
 import {FilepathDialog} from "@/components/export/filepath-dialog";
 import {useState} from "react";
-import {exportQueryToFile, FileFormat} from "@/state/connections-source/duckdb-helper";
+import {exportQueryToFile, FileFormat} from "@/state/data-source/duckdb-helper";
 import {useRelationsState} from "@/state/relations.state";
 import {toast} from "sonner";
 
