@@ -2,7 +2,6 @@ import {findWorkingConnection} from "@/components/provider/config-utils";
 import {DASH_DOMAIN} from "@/platform/global-data";
 import {DBConnectionSpec, getDefaultSpec, specToConnection} from "@/state/connections/configs";
 import {toast} from "sonner";
-import {router} from "next/client";
 import {DatabaseConnection} from "@/model/database-connection";
 
 
@@ -17,7 +16,7 @@ export async function tryInitializingConnectionFromHistory(history: DBConnection
     if (urlParams.has('k')) {
         urlParams.delete('k');
         const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-        await router.replace(newUrl);
+        window.history.replaceState({}, "", newUrl);
     }
 
     if (!connection) {

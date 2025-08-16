@@ -12,7 +12,7 @@ import {
     ICON_CAPTIONS_OFF,
     ICON_CHART,
     ICON_EYE_CLOSE,
-    ICON_EYE_OPEN,
+    ICON_EYE_OPEN, ICON_RUN,
     ICON_SETTING,
     ICON_TABLE
 } from "@/components/editor/tools/icons";
@@ -117,9 +117,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
 
     public renderSettings(): HTMLElement | MenuConfig {
 
-        const codeVisibility = this.data.viewState.codeFenceState.show;
-        const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
-
+        const superSettings = super.renderSettings();
         const chartSettingsVisible = this.data.viewState.chartState.view.showConfig;
         const chartSettingsText = chartSettingsVisible ? 'Hide Chart Settings' : 'Show Chart Settings';
 
@@ -138,14 +136,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
         const remainingViews = viewOptions.filter(v => v.type !== selectedView);
 
         return [
-            {
-                title: codeText,
-                closeOnActivate: true,
-                icon: codeVisibility ? ICON_EYE_CLOSE : ICON_EYE_OPEN,
-                onActivate: () => {
-                    this.setShowCodeFence(!codeVisibility);
-                },
-            },
+            ...superSettings,
             ...remainingViews.map(v => ({
                 title: v.label,
                 icon: v.icon,

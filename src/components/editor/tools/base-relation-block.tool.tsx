@@ -8,6 +8,7 @@ import {RelationBlockData, RelationComponent} from "@/components/editor/tools/re
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {updateRelationDataWithParamsSkeleton} from "@/components/dashboard/dashboard-data-view";
+import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN, ICON_TABLE} from "@/components/editor/tools/icons";
 
 /**
  * Base class for block tools that share common functionality
@@ -30,11 +31,16 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
     }
 
     // Each subclass must implement its own toolbox configuration
-    static get toolbox(): {title: string, icon: string} {
+    static get toolbox(): { title: string, icon: string } {
         throw new Error('Toolbox configuration must be provided by subclass');
     }
 
-    protected constructor({data, api, readOnly, config}: {data: RelationBlockData, api: API, readOnly: boolean, config: any}, blockName: string) {
+    protected constructor({data, api, readOnly, config}: {
+        data: RelationBlockData,
+        api: API,
+        readOnly: boolean,
+        config: any
+    }, blockName: string) {
         this.api = api;
         this.readOnly = readOnly;
 
@@ -56,6 +62,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
     getRelationId(returnFunction: StringReturnFunction): void {
         returnFunction(this.data.id);
     }
+
     getInteractiveId(returnFunction: StringReturnFunction): void {
         returnFunction(this.interactiveId);
     }
@@ -170,7 +177,31 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
     }
 
     // Abstract method to be implemented by subclasses
-    public abstract renderSettings(): HTMLElement | any;
+    public renderSettings(): HTMLElement | any {
+
+
+        const codeVisibility = this.data.viewState.codeFenceState.show;
+        const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
+
+        return [
+            {
+                title: codeText,
+                closeOnActivate: true,
+                icon: codeVisibility ? ICON_EYE_CLOSE : ICON_EYE_OPEN,
+                onActivate: () => {
+                    this.setShowCodeFence(!codeVisibility);
+                },
+            },
+            {
+                title: 'Run Query',
+                icon: ICON_RUN,
+                closeOnActivate: true,
+                onActivate: () => {
+                    this.rerunQuery();
+                },
+            },
+        ]
+    }
 
     // Common save method
     public save(): RelationBlockData {

@@ -156,14 +156,7 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
         const showConfigTest = showConfig ? 'Hide Config' : 'Show Config';
 
         return [
-            {
-                title: codeText,
-                closeOnActivate: true,
-                icon: codeVisibility ? ICON_EYE_CLOSE : ICON_EYE_OPEN,
-                onActivate: () => {
-                    this.setShowCodeFence(!codeVisibility);
-                },
-            },
+            ...super.renderSettings(),
             {
                 title: showConfigTest,
                 closeOnActivate: true,
