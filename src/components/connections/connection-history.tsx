@@ -1,10 +1,10 @@
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
-import {useDatabaseConState} from "@/state/connections.state";
 import {DBConnectionSpec, specToConnection, typeToLabel} from "@/state/connections/configs";
 import {DatabaseConnection} from "@/model/database-connection";
 import {useEffect, useState} from "react";
 import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 import {Eye, EyeOff, Trash2} from "lucide-react";
+import {useInitState} from "@/state/init.state";
 
 
 export function ObscurableString(props: { value: string }) {
@@ -90,12 +90,10 @@ export interface ConnectionHistoryProps {
 
 
 export function ConnectionHistory(props: ConnectionHistoryProps) {
-    let history = useDatabaseConState(state => state.history);
-    const deleteConnectionFromHistory = useDatabaseConState(state => state.deleteConnectionFromHistory);
+    let history = useInitState(state => state.connectionHistory);
+    const deleteConnectionFromHistory = useInitState(state => state.removeConnectionFromHistory);
     const historyLength = history.length;
 
-    // repeat each element in the history array 10 times
-    const enabled = historyLength > 0;
     return (
         <Accordion type="single" collapsible className="w-full border-t">
             <AccordionItem value="item-1">

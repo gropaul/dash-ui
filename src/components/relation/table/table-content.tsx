@@ -16,6 +16,7 @@ export function TableContent(props: RelationViewTableContentProps) {
     const data = props.data;
     const columnViewIndices = props.columnViewIndices;
     const styleMarginRight = props.embedded ? 'mr-0' : 'mr-32';
+    const limitRows = props.relationState.query.viewParameters.table.limit
     return (
         <table
             className={cn("text-sm bg-inherit text-left rtl:text-right text-muted-foreground w-fit h-fit mr-32", styleMarginRight)}
@@ -26,7 +27,7 @@ export function TableContent(props: RelationViewTableContentProps) {
         >
             <TableHead {...props} />
             <tbody className={'bg-inherit'}>
-            {data.rows.map((row, index) => (
+            {data.rows.slice(0, limitRows).map((row, index) => (
                 <TableRow
                     key={index}
                     tableState={props.relationState.viewState.tableState}

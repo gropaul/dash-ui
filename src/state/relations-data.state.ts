@@ -40,7 +40,7 @@ interface CacheState {
     clear: () => void;
 }
 
-export const useCacheStore = create<CacheState>()(
+export const useCacheStore = createWithEqualityFn<CacheState>()(
     persist(
         (set, get) => ({
             cache: new LRUList<string>(N_RELATIONS_DATA_TO_LOAD),
@@ -81,7 +81,7 @@ export function useRelationData(relationState: RelationState) {
     return useRelationDataState((state) => state.getDataForRelation(relationState));
 }
 
-export const useRelationDataState = create<RelationZustandCombined>(
+export const useRelationDataState = createWithEqualityFn<RelationZustandCombined>(
     (set, get) => ({
         ...getInitialRelationDataZustandState(),
 

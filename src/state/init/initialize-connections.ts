@@ -3,6 +3,11 @@ import {DASH_DOMAIN} from "@/platform/global-data";
 import {DBConnectionSpec, getDefaultSpec, specToConnection} from "@/state/connections/configs";
 import {toast} from "sonner";
 import {DatabaseConnection} from "@/model/database-connection";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {useDataSourcesState} from "@/state/data-sources.state";
+import {getDuckDBInternalDatabase} from "@/state/data-source/duckdb-internal-databases";
+import {getDuckDBLocalFilesystem} from "@/state/data-source/duckdb-local-filesystem";
+import {useInitState} from "@/state/init.state";
 
 
 // there will be only a connection returned if it was also successfully initialized
@@ -34,4 +39,26 @@ export async function tryInitializingConnectionFromHistory(history: DBConnection
     }
 
     return connection;
+}
+
+
+export async function setDatabaseConnection(connection: DatabaseConnection): Promise<void> {
+
+    useInitState.getState().addConnectionToHistory(connection);
+
+    ConnectionsService.getInstance().setDatabaseConnection(connection);
+    // add sources, but clear the previous ones
+    const sourceState = useDataSourcesState.getState();
+    sourceState.clearSourceConnections();
+
+    // add the duckdb internal databases as data sources
+    const duckdbInternalDatabases = await getDuckDBInternalDatabase(connection);
+    await sourceState.addSourceConnection(duckdbInternalDatabases, true, true);
+
+    if (connection.type in ['duckdb-over-http']) {
+        // add the local file system over duckdb connection
+        const fileSystemOverDuckdb = await getDuckDBLocalFilesystem();
+        await sourceState.addSourceConnection(fileSystemOverDuckdb, true, true);
+    }
+
 }
