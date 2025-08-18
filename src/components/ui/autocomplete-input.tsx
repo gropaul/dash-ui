@@ -34,9 +34,8 @@ export default function SearchAutocomplete({
                                                debounceMs = 120,
                                                renderItem,
                                            }: SearchAutocompleteProps) {
-    const isControlled = typeof value === "string";
+
     const [internalValue, setInternalValue] = useState<string>(value ?? "");
-    const inputValue = isControlled ? (value as string) : internalValue;
 
     const [derivedSuggestions, setDerivedSuggestions] = useState<Suggestion[]>(suggestions);
     const [open, setOpen] = useState(false);
@@ -91,12 +90,12 @@ export default function SearchAutocomplete({
     }, []);
 
     useEffect(() => {
-        if (isControlled) setInternalValue(value as string);
-    }, [isControlled, value]);
+        setInternalValue(value ?? "");
+    }, [value]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
-        if (!isControlled) setInternalValue(term);
+        setInternalValue(term);
         handleInputChange(term);
     };
 
@@ -125,7 +124,7 @@ export default function SearchAutocomplete({
 
     const choose = (s: Suggestion) => {
         const text = typeof s === "string" ? s : s.label;
-        if (!isControlled) setInternalValue(text);
+        setInternalValue(text);
         setOpen(false);
         setActiveIndex(-1);
         onSelect?.(s);
@@ -135,7 +134,7 @@ export default function SearchAutocomplete({
         () => derivedSuggestions.slice(0, suggestionLimit || derivedSuggestions.length),
         [derivedSuggestions]
     );
-    const showPanel = open && inputValue.length >= minChars && rendered.length > 0;
+    const showPanel = open && internalValue.length >= minChars && rendered.length > 0;
 
     return (
         <div ref={containerRef} className={cn(className)}>
@@ -148,7 +147,7 @@ export default function SearchAutocomplete({
                 <Input
                     type="text"
                     placeholder={placeholder}
-                    value={inputValue}
+                    value={internalValue}
                     onChange={handleSearchChange}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
@@ -192,8 +191,8 @@ export default function SearchAutocomplete({
                                     onClick={() => choose(s)}
                                 >
                                     {renderItem
-                                        ? renderItem({ suggestion: s, term: inputValue, isActive })
-                                        : <Highlighted text={label} term={inputValue} />}
+                                        ? renderItem({ suggestion: s, term: internalValue, isActive })
+                                        : <Highlighted text={label} term={internalValue} />}
                                 </li>
                             );
                         })}

@@ -45,6 +45,7 @@ import {
 } from "@/state/relations/entity-functions";
 import {useInitState} from "@/state/init.state";
 import {useRelationDataState} from "@/state/relations-data.state";
+import {isInteractiveBlock} from "@/components/editor/inputs/input-manager";
 
 
 export interface RelationZustand {
@@ -216,6 +217,17 @@ export const useRelationsState = createWithEqualityFn(
                     // if it is a relation we have to delete the cache as well
                     if (entityType === 'relations') {
                         useRelationDataState.getState().deleteData(entityId);
+                    }
+                    // if it is a dashboard, we have to delete the blocks' cache as well
+                    if (entityType === 'dashboards') {
+                        const dashboard = get().dashboards[entityId];
+                        dashboard.elementState?.blocks.forEach((block) => {
+                            if (isInteractiveBlock(block.type)) {
+                                const relationId = block.data.id;
+                                useRelationDataState.getState().deleteData(relationId);
+                            }
+                        })
+                        console.log('Removing dashboard:', entityId, dashboard);
                     }
                     const newCollection = deleteFromEntityCollection(get(), entityType, entityId);
                     const actions = RemoveNodeAction(editorPath);
