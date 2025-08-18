@@ -14,7 +14,6 @@ import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-sta
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {updateRelationDataWithParamsSkeleton} from "@/components/dashboard/dashboard-data-view";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN, ICON_TABLE} from "@/components/editor/tools/icons";
-import {useRelationDataState} from "@/state/relations-data.state";
 
 /**
  * Base class for block tools that share common functionality

@@ -1,7 +1,7 @@
 import React from "react";
 import {CopyButton} from "@/components/basics/input/copy-button";
 import {CodeFenceButtonProps} from "@/components/basics/sql-editor/editor-button-panel";
-import {getRunButtonContent} from "@/components/basics/sql-editor/run-button-content";
+import {RunButton} from "@/components/basics/sql-editor/run-button-content";
 
 
 export function EditorButtonOverlay(props: CodeFenceButtonProps) {
@@ -19,7 +19,7 @@ export function EditorButtonOverlay(props: CodeFenceButtonProps) {
                     disabled={props.onRun == undefined}
                     className="absolute top-4 right-14 hover:text-black text-gray-900"
                 >
-                    {getRunButtonContent(props)}
+                    <RunButton {...props} />
                 </button>
             )}
         </div>
