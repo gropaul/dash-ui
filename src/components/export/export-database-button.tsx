@@ -7,7 +7,6 @@ import {DatabaseConnection} from "@/model/database-connection";
 
 
 function shouldShowExportButton(connection?: DatabaseConnection): boolean {
-    console.log('ExportDatabaseButton: onDatabaseConnectionChange', connection);
     if (connection) {
         return connection.type === 'duckdb-wasm-motherduck' || connection.type === 'duckdb-wasm';
     } else {

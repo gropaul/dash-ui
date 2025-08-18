@@ -85,7 +85,6 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
             get().setStep('loaded-stored-connections-configs');
             const history = get().connectionHistory;
             const connection = await tryInitializingConnectionFromHistory(history);
-            console.log('onConnectionConfigLoaded', connection, history);
             // if there is no connection, we need to show the connection config
             if (!connection) {
                 get().setStep('selecting-connection');
@@ -101,8 +100,6 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
         // Step 1.1. The user selected a connection spec. Check if it is working
         onConnectionSpecSelected: async (spec: DBConnectionSpec) => {
             const connection = specToConnection(spec);
-            console.log('onConnectionSpecSelected', spec);
-            console.log('Starting connection initialization', connection)
             await connection.initialise();
             const status = await connection.checkConnectionState();
             if (status.state === 'connected') {

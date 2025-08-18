@@ -157,7 +157,6 @@ export function ChatTab({className}: ChatProps) {
 
             try {
                 for await (const streamPart of result.fullStream) {
-                    console.log('Stream part received:', streamPart);
 
                     // Check for error in stream part
                     if (streamPart.type === 'error') {
@@ -224,13 +223,11 @@ export function ChatTab({className}: ChatProps) {
             try {
                 // safety: if anything went wrong during streaming, this will overwrite it
                 const response = await result.response;
-                console.log('Final response received:', response.messages);
                 const newMessagesInferred = appendResponseMessages({
                     messages: messageWithUserMessageAndAnswers,
                     responseMessages: response.messages,
                 });
 
-                console.log('New messages inferred:', newMessagesInferred);
 
                 setMessages(newMessagesInferred, state.session_id);
             } catch (responseError) {

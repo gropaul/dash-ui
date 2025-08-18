@@ -76,7 +76,6 @@ export class DuckDBWasm implements DatabaseConnection {
             const version = versionResult.rows[0][0] as string;
             console.log('DuckDB WASM version: ', version);
             this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this.executeQuery.bind(this));
-            console.log('DuckDB WASM storage info: ', this.storageInfo);
             this.connectionStatus = {state: 'connected', message: `Connected to DuckDB WASM. Version: ${version}`};
         } catch (e: any) {
             const message = e.message;

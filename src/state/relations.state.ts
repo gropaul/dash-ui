@@ -227,7 +227,6 @@ export const useRelationsState = createWithEqualityFn(
                                 useRelationDataState.getState().deleteData(relationId);
                             }
                         })
-                        console.log('Removing dashboard:', entityId, dashboard);
                     }
                     const newCollection = deleteFromEntityCollection(get(), entityType, entityId);
                     const actions = RemoveNodeAction(editorPath);
@@ -573,7 +572,6 @@ export const useRelationsState = createWithEqualityFn(
             storage: InitializeStorage(),
             onRehydrateStorage: (state => {
                 function callback(state: any, error: any) {
-                    console.log('Relations state rehydrated', state, error);
                     if (state === undefined) {
                         // if the state is undefined, remove all tabs
                         useGUIState.getState().keepTabsOfIds([]);
@@ -581,7 +579,6 @@ export const useRelationsState = createWithEqualityFn(
                     }
 
                     const hasDuckDBStorage = useRelationsHydrationState.getState().hasDuckDBStorage
-                    console.log('Has DuckDB Storage:', hasDuckDBStorage);
                     if (hasDuckDBStorage) {
 
                         // get the list of all possible open tabs

@@ -43,7 +43,6 @@ export function registerInputCompletion(editor: any, monaco: Monaco, inputManage
                 endColumn: position.column
             };
             const vars = inputManager.getAvailableInputs();
-            console.log(vars);
             const suggestions = Object.keys(vars).map((key) => ({
                 label: key,
                 kind: monaco.languages.CompletionItemKind.Variable,

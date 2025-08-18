@@ -106,8 +106,6 @@ export const useChatState = create<ChatZustand & ChatZustandActions>()(
                 if (!session) {
                     throw new Error(`Session with id ${sessionId} not found`);
                 }
-                console.log(`Adding messages to session ${sessionId}`, messages);
-                console.log(`Current messages in session ${sessionId}`, session.messages);
                 session.messages = [...session.messages, ...messages]; // Append new messages
                 get().setMessages(session.messages, sessionId); // Update the session in the store
             },

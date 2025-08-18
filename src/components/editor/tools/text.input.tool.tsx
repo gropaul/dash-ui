@@ -81,7 +81,6 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
 
     constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
 
-       console.log("TextInputBlockTool constructor", data, config, api);
         if (!isRelationBlockData(data)) {
             data = getInitialSelectDataElement(config.type);
         }

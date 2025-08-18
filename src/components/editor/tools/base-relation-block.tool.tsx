@@ -68,9 +68,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
 
                 // if there is a block with the same relation id than we need to update our relation id
                 if (otherRelationId === this.data.id) {
-                    console.log("Found block with same relation id", otherRelationId, block.name, block);
                     this.data.id = getRandomId();
-                    console.log("Updated relation id to", this.data.id);
                 }
             }
 
@@ -85,7 +83,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
 
         this.currentInputDependencies = [];
         if (this.inputManager) {
-            this.getAndUpdateInputDependencies();
+            this.getAndUpdateInputDependencies(this.data.query.baseQuery);
         }
     }
 
@@ -117,12 +115,11 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         this.rerunQuery();
     }
 
-    getAndUpdateInputDependencies(): void {
+    getAndUpdateInputDependencies(baseQuery: string): void {
 
         // console.log("Updating input dependencies for block", this.interactiveId, this.data)
         // Remove old dependencies
-        const query = this.data.query.baseQuery;
-        const inputVariableNames = getVariablesUsedByQuery(query);
+        const inputVariableNames = getVariablesUsedByQuery(baseQuery);
         const currentDependencies = [];
         for (const inputName of inputVariableNames) {
             const dependency = {
@@ -201,7 +198,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         // check if the sql is different and if yes register
         // the input source
         if (updatedData.query.baseQuery !== this.data.query.baseQuery) {
-            this.getAndUpdateInputDependencies();
+            this.getAndUpdateInputDependencies(updatedData.query.baseQuery);
         }
         this.data = updatedData;
     }

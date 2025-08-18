@@ -148,7 +148,6 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
                     await get().updateDataFromCache(relationId);
                 }
             }
-            console.log('Loaded last used relations:', ids_to_hydrate, 'from cache:', get().data);
         }
     })
 );

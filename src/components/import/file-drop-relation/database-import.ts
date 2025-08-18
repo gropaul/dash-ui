@@ -50,7 +50,6 @@ export const handleDatabaseImport = async (
 
                 // Copy all tables from the attached database to the current database
                 const copyQuery = `COPY FROM DATABASE ${databaseName} TO ${currentCatalog};`;
-                console.log('Copy query executed:', copyQuery);
                 await connection.executeQuery(copyQuery);
 
                 // Detach the database

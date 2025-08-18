@@ -63,10 +63,6 @@ export function RelationComponent(props: RelationComponentProps) {
 
 export default class RelationBlockTool extends BaseRelationBlockTool {
 
-    onPaste(event: PasteEvent) {
-        console.log('Paste event in RelationBlockTool', event);
-    }
-
     // Editor.js config
     static get toolbox() {
         return {

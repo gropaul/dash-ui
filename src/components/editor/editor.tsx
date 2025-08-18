@@ -49,7 +49,6 @@ export default function Editor(props: EditorProps) {
                 return null;
             }
         }
-        console.log("inputManager useEffect", inputManager);
         const editor = new EditorJS({
                 holder: props.id,
                 placeholder: "Start writing here..",
