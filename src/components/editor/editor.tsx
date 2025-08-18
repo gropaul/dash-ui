@@ -58,6 +58,7 @@ export default function Editor(props: EditorProps) {
                 onReady: () => {
                     new Undo({editor})
                     new DragDrop(editor);
+
                     const editorStore: EditorStore = {
                         editor: editor,
                         manager: inputManager,
@@ -79,6 +80,7 @@ export default function Editor(props: EditorProps) {
                         props.onSaved?.(data);
                     });
                 },
+
 
                 tools: getEditorJSTools(getInputManager),
                 data: props.initialData,

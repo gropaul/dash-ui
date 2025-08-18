@@ -316,6 +316,7 @@ export default class Header {
     /**
      * Paste handling: If user pastes an <h1>..<h6>, convert to our heading
      */
+
     public onPaste(event: PasteEvent): void {
         const {detail} = event;
 

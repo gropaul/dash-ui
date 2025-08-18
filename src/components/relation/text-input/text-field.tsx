@@ -1,14 +1,13 @@
 import {Button} from "@/components/ui/button";
 import {Settings} from "lucide-react";
-import {RelationViewProps} from "@/components/relation/relation-view";
 import {TextInputConfigDialog} from "@/components/relation/text-input/text-input-config-dialog";
 import SearchAutocomplete, {Suggestion} from "@/components/ui/autocomplete-input";
-import {useRelationData} from "@/state/relations-data.state";
+import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 
 
-export function TextField(props: RelationViewProps) {
+export function TextField(props: RelationViewContentProps) {
     const relationId = props.relationState.id;
-    const data = useRelationData(props.relationState);
+    const data = props.data;
     const textSearchState = props.relationState.viewState.inputTextState;
 
     const updateRelationValue = (s: Suggestion) => {

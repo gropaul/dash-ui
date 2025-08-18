@@ -1,11 +1,9 @@
 import {RelationData} from "@/model/relation";
-import {createJSONStorage, persist} from "zustand/middleware";
+import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {deleteCache, loadCache, updateCache} from "@/state/relations-data/functions";
 import {RelationState} from "@/model/relation-state";
-import {Model} from "flexlayout-react";
 import {LRUList} from "@/platform/lru";
-import {create} from "zustand";
 import {N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
 
 
@@ -90,12 +88,14 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
         },
 
         getData: (relationId: string) => {
-            const relationData = get().data[relationId];
+
             get().recordUse(relationId);
-            if (!relationData) { // try to load from the cache
+            if (relationId in get().data) {
+                return get().data[relationId];
+            }else{
                 get().updateDataFromCache(relationId);
+                return undefined;
             }
-            return relationData;
         },
 
         getDataForRelation: (relationState: RelationState) => {
@@ -116,7 +116,6 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
         updateDataFromCache: async (relationId: string) => {
             const data = await loadCache(relationId)
             if (!data) {
-                console.error(`No cached data found for relationId: ${relationId}`);
                 return undefined;
             }
             return get().updateData(relationId, data);

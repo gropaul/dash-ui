@@ -1,14 +1,20 @@
 // BaseBlockTool.tsx
 import {createRoot, Root} from 'react-dom/client';
-import type {API, BlockTool} from '@editorjs/editorjs';
+import type {API, BlockTool, PasteEvent} from '@editorjs/editorjs';
 import React from 'react';
-import {InputManager, InteractiveBlock, StringReturnFunction} from "@/components/editor/inputs/input-manager";
+import {
+    InputManager,
+    InteractiveBlock,
+    isInteractiveBlock,
+    StringReturnFunction
+} from "@/components/editor/inputs/input-manager";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationBlockData, RelationComponent} from "@/components/editor/tools/relation.tool";
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {updateRelationDataWithParamsSkeleton} from "@/components/dashboard/dashboard-data-view";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN, ICON_TABLE} from "@/components/editor/tools/icons";
+import {useRelationDataState} from "@/state/relations-data.state";
 
 /**
  * Base class for block tools that share common functionality
@@ -41,10 +47,34 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         readOnly: boolean,
         config: any
     }, blockName: string) {
+
         this.api = api;
         this.readOnly = readOnly;
 
         this.data = data;
+
+        const numberOfBlocks = this.api.blocks.getBlocksCount();
+        for (let i = 0; i < numberOfBlocks; i++) {
+            const block = this.api.blocks.getBlockByIndex(i);
+            if (!block) {
+                continue;
+            }
+            if (isInteractiveBlock(block.name)) {
+                let otherRelationId = '';
+                let getRelationIdFun = (id: string) => {
+                    otherRelationId = id;
+                }
+                block.call("getRelationId", getRelationIdFun);
+
+                // if there is a block with the same relation id than we need to update our relation id
+                if (otherRelationId === this.data.id) {
+                    console.log("Found block with same relation id", otherRelationId, block.name, block);
+                    this.data.id = getRandomId();
+                    console.log("Updated relation id to", this.data.id);
+                }
+            }
+
+        }
 
         // assert if no input manager is passed
         if (!config.getInputManager) {

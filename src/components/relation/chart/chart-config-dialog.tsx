@@ -3,11 +3,13 @@ import {Dialog, DialogContent,} from "@/components/ui/dialog";
 import {ChartContentWrapper} from "@/components/relation/chart/chart-content-wrapper";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {ChartConfigView} from "@/components/relation/chart/chart-config-view";
+import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 
 
-interface ChartConfigDialogProps extends RelationViewProps {
+interface ChartConfigDialogProps extends RelationViewContentProps {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
+
 }
 
 export function ChartConfigDialog(props: ChartConfigDialogProps) {
@@ -39,6 +41,7 @@ export function ChartConfigDialog(props: ChartConfigDialogProps) {
                         }}
                     >
                         <ChartConfigView
+                            data={props.data}
                             className={'pl-4 pr-[1px]'}
                             embedded={true}
                             relationState={props.relationState}

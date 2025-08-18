@@ -10,11 +10,13 @@ import {RelationState, ViewQueryParameters} from "@/model/relation-state";
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 import {cn} from "@/lib/utils";
+import {RelationData} from "@/model/relation";
 
 
 export interface ChartConfigProps {
     className?: string,
     relationState: RelationState,
+    data: RelationData,
     embedded?: boolean,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
     updateRelationDataWithParams: (relationId: string, query: ViewQueryParameters) => Promise<void>,

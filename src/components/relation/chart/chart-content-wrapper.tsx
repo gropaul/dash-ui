@@ -7,16 +7,17 @@ import {RelationViewProps} from "@/components/relation/relation-view";
 import {useRef} from "react";
 import {ChartContentOverlay} from "@/components/relation/chart/chart-content/chart-content-overlay";
 import {useRelationData} from "@/state/relations-data.state";
+import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 
-export interface ChartContentWrapperProps extends RelationViewProps {
+export interface ChartContentWrapperProps extends RelationViewContentProps {
     showOverlay?: boolean;
 }
 
 export function ChartContentWrapper(props: ChartContentWrapperProps) {
     const exportableRef = useRef<ExportableRef>(null);
+    const data = props.data;
 
     const config = props.relationState.viewState.chartState;
-    const data = useRelationData(props.relationState)!;
     const plotDisplayError = CanDisplayPlot(config.chart, data);
 
     const isEmbedded = props.embedded ?? false;

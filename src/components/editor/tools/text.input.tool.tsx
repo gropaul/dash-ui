@@ -1,5 +1,5 @@
 // SelectBlockTool.tsx
-import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
+import type {BlockToolConstructorOptions, PasteEvent} from '@editorjs/editorjs';
 
 import {getInitialParamsTable, getInitialParamsTextInput, getQueryFromParamsUnchecked} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
@@ -18,7 +18,6 @@ import {InputType} from "@/model/relation-view-state/select";
 
 
 export function getInitialSelectDataElement(inputType: InputType): RelationBlockData {
-
 
     let baseQuery = '';
     if (inputType === 'select') {
@@ -65,6 +64,7 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
     private currentSelectValue?: string;
     private currentSelectName: string;
 
+
     public setShowConfig(show: boolean) {
         this.data = {
             ...this.data,
@@ -81,6 +81,7 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
 
     constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
 
+       console.log("TextInputBlockTool constructor", data, config, api);
         if (!isRelationBlockData(data)) {
             data = getInitialSelectDataElement(config.type);
         }

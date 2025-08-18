@@ -1,15 +1,14 @@
 import {WindowSplitter} from "@/components/ui/window-splitter";
 import {ChartConfigView} from "@/components/relation/chart/chart-config-view";
 import {cn} from "@/lib/utils";
-import {RelationViewProps} from "@/components/relation/relation-view";
 import {ChartConfigDialog} from "@/components/relation/chart/chart-config-dialog";
 import {ChartContentWrapper} from "@/components/relation/chart/chart-content-wrapper";
-import {useRelationData} from "@/state/relations-data.state";
+import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 
-export function Chart(props: RelationViewProps) {
+export function Chart(props: RelationViewContentProps) {
 
     const relationId = props.relationState.id;
-    const data = useRelationData(props.relationState);
+    const data = props.data;
 
     function updateConfigRatio(ratio: number) {
         props.updateRelationViewState(relationId, {
@@ -21,9 +20,6 @@ export function Chart(props: RelationViewProps) {
         });
     }
 
-    if (data === undefined) {
-        return null;
-    }
     const config = props.relationState.viewState.chartState;
     const isEmbedded = props.embedded ?? false;
     const contentPaddingClass = isEmbedded ? 'p-0' : 'h-full p-2';
@@ -47,6 +43,7 @@ export function Chart(props: RelationViewProps) {
                             relationState={props.relationState}
                             updateRelationViewState={props.updateRelationViewState}
                             updateRelationDataWithParams={props.updateRelationDataWithParams}
+                            data={data}
                         />
                     </div> : <div/>}
                 </WindowSplitter>

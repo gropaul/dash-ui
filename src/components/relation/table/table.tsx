@@ -8,9 +8,12 @@ import {TableColumnDragOverlay} from "@/components/relation/table/table-column-d
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {cn} from "@/lib/utils";
 import {useRelationData} from "@/state/relations-data.state";
+import {RelationData} from "@/model/relation";
+import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 
-export function Table(props: RelationViewProps) {
-    const data = useRelationData(props.relationState);
+
+export function Table(props: RelationViewContentProps) {
+    const data = props.data;
     const columnsOrder = props.relationState.viewState.tableState.columnsOrder;
 
     const [dragStartOrder, setDragStartOrder] = useState<string[]>([]);

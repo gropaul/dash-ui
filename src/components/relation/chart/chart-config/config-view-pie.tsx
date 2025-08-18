@@ -18,8 +18,7 @@ export function ConfigViewPie(props: ChartConfigProps) {
 }
 
 export function ChartColumnSelector(props: ChartConfigProps) {
-
-    const data = useRelationData(props.relationState);
+    const data = props.data
     const columns = data?.columns ?? ([] as Column[]);
     const relationId = props.relationState.id;
     const config = props.relationState.viewState.chartState;

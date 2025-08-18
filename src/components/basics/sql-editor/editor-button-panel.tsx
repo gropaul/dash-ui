@@ -1,7 +1,7 @@
 import React from "react";
 import {TaskExecutionState} from "@/model/relation-state";
 import {CopyButton} from "@/components/basics/input/copy-button";
-import {getRunButtonContent} from "@/components/basics/sql-editor/run-button-content";
+import {RunButton} from "@/components/basics/sql-editor/run-button-content";
 import {Columns2, Rows2} from "lucide-react";
 import {Layout} from "@/model/relation-view-state";
 import {cn} from "@/lib/utils";
@@ -35,7 +35,7 @@ export function EditorButtonPanel(props: CodeFenceButtonProps) {
                         disabled={props.onRun == undefined}
                         className="hover:text-primary text-muted-foreground"
                     >
-                        {getRunButtonContent(props)}
+                        <RunButton {...props} />
                     </button>
                 )}
                 <div className="flex-1"/>
