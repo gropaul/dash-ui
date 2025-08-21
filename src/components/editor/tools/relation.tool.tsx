@@ -63,7 +63,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
     // Editor.js config
     static get toolbox() {
         return {
-            title: 'Data View',
+            title: 'Data Table',
             icon: ICON_TABLE,
         };
     }

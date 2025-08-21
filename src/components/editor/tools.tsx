@@ -35,7 +35,7 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
         }
     return {
         [RELATION_BLOCK_NAME]: {
-            class: RelationBlockTool,
+            class: RelationBlockTool as any,
             inlineToolbar: true,
             shortcut: "CMD+SHIFT+R",
             config: DEFAULT_CONFIG,
