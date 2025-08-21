@@ -14,6 +14,7 @@ import Header from "@editorjs/header";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 
 import {
+    CHART_BLOCK_NAME,
     DELIMITER_TOOL_NAME,
     HEADER_TOOL_NAME,
     LIST_TOOL_NAME,
@@ -24,6 +25,7 @@ import {
 } from "@/components/editor/tool-names";
 import {InputType} from "@/model/relation-view-state/select";
 import {FullTextInputBlockTool, SelectTextInputBlockTool} from "@/components/editor/tools/text.input.tool";
+import RelationChartBlockTool from "@/components/editor/tools/relation-chart.tool";
 
 
 export function getEditorJSTools(getInputManager: (blockName: string) => InputManager | null) {
@@ -36,6 +38,11 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
             class: RelationBlockTool,
             inlineToolbar: true,
             shortcut: "CMD+SHIFT+R",
+            config: DEFAULT_CONFIG,
+        },
+        [CHART_BLOCK_NAME]: {
+            class: RelationChartBlockTool,
+            inlineToolbar: true,
             config: DEFAULT_CONFIG,
         },
         [SELECT_BLOCK_NAME]: {

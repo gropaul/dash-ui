@@ -355,7 +355,7 @@ export const useRelationsState = createWithEqualityFn(
                         get().showEntity('relations', existingRelation, editorPath);
                     } else {
                         // update state with empty (loading) relation
-                        const defaultQueryParams = getInitialParamsTable();
+                        const defaultQueryParams = getInitialParamsTable('table');
                         const emptyRelationState = await getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
 
                         // as the relation did not exist yet, we also have to add a reference to the editor

@@ -1,5 +1,5 @@
 // RelationBlockTool.tsx
-import type {BlockToolConstructorOptions, PasteEvent} from '@editorjs/editorjs';
+import type {API, BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
 import {RelationState, ViewQueryParameters} from '@/model/relation-state';
@@ -11,15 +11,12 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {
     ICON_CAPTIONS_OFF,
     ICON_CHART,
-    ICON_EYE_CLOSE,
-    ICON_EYE_OPEN, ICON_RUN,
     ICON_SETTING,
     ICON_TABLE
 } from "@/components/editor/tools/icons";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
-import {getInitialSelectDataElement} from "@/components/editor/tools/text.input.tool";
 
 export interface RelationBlockData extends RelationState {
 }
@@ -71,13 +68,17 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
         };
     }
 
-    constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
+    protected constructor({data, api, readOnly, config}: {
+        data: RelationBlockData,
+        api: API,
+        readOnly: boolean,
+        config: any
+    }, blockName: string) {
+
         if (!isRelationBlockData(data)) {
-            data = getInitialDataElement();
+            data = getInitialDataElement('table');
         }
-
         super({data, api, readOnly, config}, RELATION_BLOCK_NAME);
-
     }
 
     public async setViewType(viewType: RelationViewType) {

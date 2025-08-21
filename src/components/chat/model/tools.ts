@@ -74,7 +74,7 @@ interface ChartViewDataArgs {
     yRangeMin?: 'min' | 'zero';
 }
 
-export async function getDefaultRelationBockData(sql: string): Promise<RelationBlockData> {
+export async function getDefaultRelationBockData(sql: string, ): Promise<RelationBlockData> {
     const randomId = getRandomId();
     const source: RelationSourceQuery = {
         type: "query",
@@ -82,7 +82,7 @@ export async function getDefaultRelationBockData(sql: string): Promise<RelationB
         id: randomId,
         name: "New Query"
     }
-    const defaultQueryParams = getInitialParamsTable();
+    const defaultQueryParams = getInitialParamsTable('table');
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }
