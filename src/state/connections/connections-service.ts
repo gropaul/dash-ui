@@ -4,6 +4,8 @@ import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection"
 
 type DatabaseConnectionCallback = (connection: DatabaseConnection | undefined) => void;
 
+type DatabaseConnectionState = 'ready' | 'sleeping'
+
 export class ConnectionsService {
     // singleton instance
     private static instance: ConnectionsService;
@@ -47,7 +49,6 @@ export class ConnectionsService {
 
     setDatabaseConnection(connection: DatabaseConnection) {
         this.database_connection = connection;
-        console.log('Database connection set:', connection);
         this.notifyDatabaseConnectionChange();
     }
 

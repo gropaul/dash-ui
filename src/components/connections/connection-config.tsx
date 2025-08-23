@@ -9,7 +9,7 @@ import {Button} from "@/components/ui/button";
 import {Check, Info, LoaderCircle, RefreshCcw} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {deepEqual} from "@/platform/object-utils";
-import {clearOPFS} from "@/state/connections/duckdb-wasm/connection-provider";
+import {clearOPFS} from "@/state/connections/duckdb-wasm/wasm-provider";
 
 
 const DUCKDB_WASM_DESCRIPTION =

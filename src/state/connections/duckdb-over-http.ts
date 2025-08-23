@@ -39,6 +39,10 @@ export class DuckDBOverHttp implements DatabaseConnection {
         this.type = 'duckdb-over-http';
     }
 
+    canHandleMultiTab(): boolean {
+        return true;
+    }
+
     destroy(): Promise<void> {
         // no need to destroy anything
         return Promise.resolve();

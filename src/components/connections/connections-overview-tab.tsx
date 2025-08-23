@@ -9,7 +9,7 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {AttachDatabaseDialog, DialogResult} from "@/components/connections/attach-database-dialog";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {attachDatabase} from "@/state/data-source/duckdb-helper";
-import {clearOPFS} from "@/state/connections/duckdb-wasm/connection-provider";
+import {clearOPFS} from "@/state/connections/duckdb-wasm/wasm-provider";
 import {useGUIState} from "@/state/gui.state";
 import {handleFileDrop} from "@/components/import/file-drop-relation/file-import";
 

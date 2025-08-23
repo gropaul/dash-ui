@@ -64,4 +64,6 @@ export interface DatabaseConnection {
     mountFiles: (files: File[]) => Promise<void>;
 
     destroy: () => Promise<void>;
+
+    canHandleMultiTab: () => boolean;
 }

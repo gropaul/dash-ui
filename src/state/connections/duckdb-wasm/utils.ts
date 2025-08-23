@@ -1,6 +1,6 @@
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {FileFormat} from "@/state/data-source/duckdb-helper";
-import {WasmProvider} from "@/state/connections/duckdb-wasm/connection-provider";
+import {WasmProvider} from "@/state/connections/duckdb-wasm/wasm-provider";
 
 
 export async function downloadOPFSFile(fileName: string): Promise<void> {

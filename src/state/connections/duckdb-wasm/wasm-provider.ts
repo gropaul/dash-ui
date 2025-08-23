@@ -1,6 +1,7 @@
 // Example imports – adjust to match your local setup
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, LogLevel} from '@duckdb/duckdb-wasm';
+import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
 
 export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
 
@@ -13,9 +14,8 @@ export async function clearOPFS(): Promise<void> {
     const walPath = `${DUCKDB_WASM_BASE_TABLE_PATH}.wal`;
 
     const rootHandle = await navigator.storage.getDirectory();
-    const dbHandle = await rootHandle.removeEntry(DUCKDB_WASM_BASE_TABLE_PATH);
-    const walHandle = await rootHandle.removeEntry(walPath);
-
+    await rootHandle.removeEntry(DUCKDB_WASM_BASE_TABLE_PATH);
+    await rootHandle.removeEntry(walPath);
 }
 
 /**
@@ -37,12 +37,11 @@ export function assertOPFSSupported(): void {
     }
 
     /* 2– Secure‑context check: HTTPS or localhost/127.0.0.1 */
-    const { hostname, protocol } = window.location;
+    const {hostname, protocol} = window.location;
     const isLocalhost =
         hostname === "localhost" ||
         hostname === "127.0.0.1" ||
         hostname.endsWith(".localhost");
-
 
 
     if (!window.isSecureContext && !isLocalhost && protocol !== "https:") {
@@ -67,12 +66,6 @@ export function assertOPFSSupported(): void {
 }
 
 
-export type WasmAccessMode = 'TEMPORARY' | 'PERSISTENT_READ' | 'PERSISTENT_WRITE'
-
-export interface WasmConfig {
-    db_path: string;
-}
-
 export class WasmProvider {
     private static instance: WasmProvider | null = null;
 
@@ -85,9 +78,13 @@ export class WasmProvider {
 
     // For handling concurrency (so repeated calls to getDuckDBWasm return the same promise while initializing)
     private initPromise: Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> | null = null;
+    private coordinator: Coordinator;
 
     private constructor() {
-        // Private to enforce singleton usage
+        if (typeof window === "undefined") {
+            throw new Error("WasmProvider must be created in the browser (not during SSR)");
+        }
+        this.coordinator = createConnectionCoordinator('duckdb-wasm', false);
     }
 
     public static getInstance(): WasmProvider {
@@ -103,15 +100,14 @@ export class WasmProvider {
             this.con = null;
         }
         if (this.db) {
-            await this.db.dropFile('attached.duckdb');
-
             await this.db.terminate();
-
             this.db = null;
         }
 
         this.asyncDuckDBState = 'uninitialised';
         this.initPromise = null;
+        console.log('DuckDB-Wasm instance destroyed.');
+        this.coordinator.releaseOwnership();
     }
 
     public static getDatabasePath(): string {
@@ -157,6 +153,25 @@ export class WasmProvider {
         // check if OPFS is supported
         assertOPFSSupported();
 
+        // Make sure no other tab is using the database connection
+        if (!(await this.coordinator.requestOwnership())) {
+            // someone else owns it; wait and retry
+            await this.coordinator.waitForRelease();
+            if (!(await this.coordinator.requestOwnership())) {
+                console.error('Failed to acquire ownership of the DuckDB-Wasm database after waiting for release.');
+            } else {
+                console.log('Acquired ownership of the DuckDB-Wasm database after waiting for release.');
+            }
+        }
+
+        // Register a handler to release ownership when asked for it
+        const unsubscribe = this.coordinator.subscribe(async (isOwner) => {
+            if (!isOwner && this.asyncDuckDBState === 'initialised') {
+                await this.destroy();
+                unsubscribe();
+            }
+        });
+
         // Grab available bundles
         const bundles: DuckDBBundles = duckdb.getJsDelivrBundles();
 
@@ -185,17 +200,22 @@ export class WasmProvider {
         // We no longer need the workerUrl, so revoke it
         URL.revokeObjectURL(workerUrl);
 
-        // Open a DB, adjusting config as necessary
-        await db.open({
-            path: WasmProvider.getDatabasePath(),
-            accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
-            query: {
-                castBigIntToDouble: true,
-                castTimestampToDate: true,
-                castDecimalToDouble: true,
-                castDurationToTime64: true,
-            },
-        });
+        try {
+            // Open a DB, adjusting config as necessary
+            await db.open({
+                path: WasmProvider.getDatabasePath(),
+                accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
+                query: {
+                    castBigIntToDouble: true,
+                    castTimestampToDate: true,
+                    castDecimalToDouble: true,
+                    castDurationToTime64: true,
+                },
+            });
+        } catch (e) {
+            console.error('Failed to open or create the database:', e);
+            throw e;
+        }
 
         // Finally, create a connection
         const connection = await db.connect();
@@ -206,7 +226,7 @@ export class WasmProvider {
         // console.log('Attached database');
 
         // check if we have write access
-        const result = await connection.query("CREATE OR REPLACE TABLE dash_write_test_table AS SELECT 1 as a;");
+        await connection.query("CREATE OR REPLACE TABLE dash_write_test_table AS SELECT 1 as a;");
         // drop the test table
         await connection.query("DROP TABLE dash_write_test_table;");
         return {db, con: connection};

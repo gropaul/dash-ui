@@ -8,7 +8,7 @@ import {
 } from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections/configs";
 import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections/duckdb-wasm/utils";
-import {WasmProvider} from "@/state/connections/duckdb-wasm/connection-provider";
+import {WasmProvider} from "@/state/connections/duckdb-wasm/wasm-provider";
 import {normalizeArrowType} from "@/components/relation/common/value-icon";
 import {ValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
@@ -19,6 +19,7 @@ export interface DuckDBWasmConfig {
 
     [key: string]: string | number | boolean | undefined; // index signature
 }
+
 
 export class DuckDBWasm implements DatabaseConnection {
 
@@ -38,10 +39,14 @@ export class DuckDBWasm implements DatabaseConnection {
         this.config = config;
     }
 
+    canHandleMultiTab(): boolean {
+        return false;
+    }
+
 
     // close the duckdb connection on destroy
     async destroy(): Promise<void> {
-
+        await WasmProvider.getInstance().destroy();
     }
 
     async initialise(): Promise<ConnectionStatus> {
@@ -80,6 +85,7 @@ export class DuckDBWasm implements DatabaseConnection {
         } catch (e: any) {
             const message = e.message;
             if (message.includes('createSyncAccessHandle')) {
+
                 this.connectionStatus = {
                     state: 'error',
                     message: 'Failed to open the local database. This is likely because it is already in use by another browser tab.'
