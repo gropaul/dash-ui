@@ -4,8 +4,6 @@ import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection"
 
 type DatabaseConnectionCallback = (connection: DatabaseConnection | undefined) => void;
 
-type DatabaseConnectionState = 'ready' | 'sleeping'
-
 export class ConnectionsService {
     // singleton instance
     private static instance: ConnectionsService;

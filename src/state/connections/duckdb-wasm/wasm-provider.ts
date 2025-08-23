@@ -84,7 +84,7 @@ export class WasmProvider {
         if (typeof window === "undefined") {
             throw new Error("WasmProvider must be created in the browser (not during SSR)");
         }
-        this.coordinator = createConnectionCoordinator('duckdb-wasm', false);
+        this.coordinator = createConnectionCoordinator('duckdb-wasm', true);
     }
 
     public static getInstance(): WasmProvider {
@@ -156,6 +156,8 @@ export class WasmProvider {
         // Make sure no other tab is using the database connection
         if (!(await this.coordinator.requestOwnership())) {
             // someone else owns it; wait and retry
+            this.coordinator.noteServerConflict('Another tab is using the database');
+
             await this.coordinator.waitForRelease();
             if (!(await this.coordinator.requestOwnership())) {
                 console.error('Failed to acquire ownership of the DuckDB-Wasm database after waiting for release.');
