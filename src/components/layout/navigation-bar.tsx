@@ -21,10 +21,6 @@ export function NavigationBar(props: NavigationBarProps) {
     const openSettingsTab = useGUIState(state => state.openSettingsTab);
     // Handle tab selection change
     const handleTabChange = (values: AvailableTab[]) => {
-        // there needs at least one tab selected
-        if (values.length === 0) {
-            return;
-        }
         props.setSelectedTabs(values);
     };
 

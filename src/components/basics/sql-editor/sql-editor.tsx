@@ -3,6 +3,7 @@
 import React from "react";
 import {EditorButtonOverlay} from "@/components/basics/sql-editor/editor-button-overlay";
 import Editor, {Monaco} from "@monaco-editor/react";
+
 import {TaskExecutionState} from "@/model/relation-state";
 import {EditorButtonPanel} from "@/components/basics/sql-editor/editor-button-panel";
 import {Layout} from "@/model/relation-view-state";
@@ -18,12 +19,13 @@ export type SupportedLanguages = "sql" | "plaintext";
 
 export type ButtonPosition = "panel" | "overlay";
 
-export interface CodeFenceProps {
+export interface SqlEditorProps {
     embedded: boolean;
     language: SupportedLanguages;
     displayCode: string;
     rounded?: boolean;
     copyCode?: string;
+    path?: string;
     showLineNumbers?: boolean;
     showCopyButton?: boolean;
     buttonPosition?: ButtonPosition;
@@ -66,12 +68,12 @@ export function SqlEditor(
         currentLayout = 'column',
         onLayoutChange,
         inputManager,
-    }: CodeFenceProps) {
+        path,
+    }: SqlEditorProps) {
 
     copyCode = copyCode || displayCode;
     const {resolvedTheme} = useTheme();
 
-    const [editor, setEditor] = React.useState<any>(null);
     const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
 
     function onLocalCodeChange(value: string | undefined) {
@@ -109,16 +111,9 @@ export function SqlEditor(
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
         monaco.editor.setTheme(editorTheme);
 
-        // Add command to handle Enter key to prevent it from propagating to parent component
-        editor.addCommand(monaco.KeyCode.Enter, () => {
-            // Insert a new line at the current position
-            editor.trigger('keyboard', 'type', { text: '\n' });
-        });
-
-        registerHotkeys(monaco, onRun);
+        registerHotkeys(editor, monaco, onRun);
         registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
-        setEditor(editor);
     }
 
     return (
@@ -145,6 +140,7 @@ export function SqlEditor(
                 defaultLanguage={'sql'}
                 language={'sql'}
                 value={displayCode}
+                path={path}
                 options={{
                     readOnly: readOnly,
                     minimap: {enabled: false},

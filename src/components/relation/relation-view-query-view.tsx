@@ -18,6 +18,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
 
     const relationId = props.relationState.id;
     async function onRunQuery() {
+        console.log("Running query for relation ", relationId);
         // we need to reset the view params as the could be columns removed now that had filters before!
         await props.updateRelationDataWithParams(relationId, getUpdatedParams(props.relationState.query.viewParameters));
     }
@@ -38,6 +39,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     return (
         <div className={"w-full h-full overflow-hidden"}>
             <SqlEditor
+                path={`relation-${relationId}`}
                 inputManager={props.inputManager}
                 embedded={embedded}
                 alwaysConsumeMouseWheel={!embedded}

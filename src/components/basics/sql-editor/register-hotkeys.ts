@@ -1,27 +1,15 @@
-import {Monaco} from "@monaco-editor/react";
+import {Monaco} from "@monaco-editor/react"; // for types and editor APIs
 import {createWithEqualityFn} from "zustand/traditional";
 
 
 // create a little zustand state to check if the editor is already registered
 
-interface HotkeyState {
-    editorExists: boolean;
-    setEditorExists: (exists: boolean) => void;
-}
 
-const useHotkeyState = createWithEqualityFn<HotkeyState>((set) => ({
-    editorExists: false,
-    setEditorExists: (exists: boolean) => set({editorExists: exists}),
-}));
-
-export function registerHotkeys(monaco: Monaco, runQuery?: () => void) {
-
-    const editorExists = useHotkeyState.getState().editorExists;
-    if (editorExists) {
-        return;
-    }
-
-    useHotkeyState.getState().setEditorExists(true);
+export function registerHotkeys(
+    editor: any,
+    monaco: Monaco,
+    runQuery?: () => void
+) {
 
     const executeAction =  {
         id: "run-code",
@@ -37,6 +25,19 @@ export function registerHotkeys(monaco: Monaco, runQuery?: () => void) {
             }
         },
     }
+    editor.addAction(executeAction);
 
-    monaco.editor.addEditorAction(executeAction);
+    const enterAction =  {
+        id: "insert-new-line",
+        label: "Insert New Line",
+        contextMenuOrder: 1,
+        contextMenuGroupId: "1_modification",
+        keybindings: [
+            monaco.KeyCode.Enter],
+        run: (ed: any) => {
+            ed.trigger('keyboard', 'type', { text: '\n' });
+        }
+    }
+    editor.addAction(enterAction);
+
 }

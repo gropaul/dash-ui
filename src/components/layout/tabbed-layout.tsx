@@ -21,13 +21,7 @@ export function TabbedLayout() {
     const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
 
-    let hasNonEmptyTabs = false;
-    for (const tab of selectedTabs) {
-        if (tab as any !== '') {
-            hasNonEmptyTabs = true;
-            break;
-        }
-    }
+    let hasNonEmptyTabs = selectedTabs.length > 0;
 
     const panelRatio = useGUIState(state => state.mainBarSizeRatio);
     const setPanelRatio = useGUIState(state => state.setMainBarSizeRatio);
