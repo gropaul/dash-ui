@@ -20,8 +20,12 @@ export function NavigationBar(props: NavigationBarProps) {
 
     const openSettingsTab = useGUIState(state => state.openSettingsTab);
     // Handle tab selection change
-    const handleTabChange = (value: string) => {
-        props.setSelectedTabs([value as AvailableTab]);
+    const handleTabChange = (values: AvailableTab[]) => {
+        // there needs at least one tab selected
+        if (values.length === 0) {
+            return;
+        }
+        props.setSelectedTabs(values);
     };
 
     return (
@@ -31,9 +35,9 @@ export function NavigationBar(props: NavigationBarProps) {
             </Avatar>
 
             <ToggleGroup
-                type="single"
+                type="multiple"
                 className={'flex flex-col mt-4'}
-                value={props.selectedTabs[0]}
+                value={props.selectedTabs}
                 onValueChange={handleTabChange}
             >
                 <ToggleGroupItem
@@ -86,20 +90,17 @@ interface NavigationBarContentProps {
     selectedTabs: AvailableTab[];
 }
 
-
 export function NavigationBarContent(props: NavigationBarContentProps) {
     const sideBarTabsRatios = useGUIState(state => state.sideBarTabsSizeRatios);
     const setSideBarTabsRatios = useGUIState(state => state.setSideBarTabsSizeRatios);
 
-    const sortedTabs = props.selectedTabs;
-
     // Ensure ratios array has correct length
     React.useEffect(() => {
-        if (!Array.isArray(sideBarTabsRatios) || sideBarTabsRatios.length !== sortedTabs.length) {
-            const defaultRatio = Math.floor(100 / sortedTabs.length);
-            setSideBarTabsRatios(Array(sortedTabs.length).fill(defaultRatio));
+        if (!Array.isArray(sideBarTabsRatios) || sideBarTabsRatios.length !== props.selectedTabs.length) {
+            const defaultRatio = Math.floor(100 / props.selectedTabs.length);
+            setSideBarTabsRatios(Array(props.selectedTabs.length).fill(defaultRatio));
         }
-    }, [sortedTabs.length]);
+    }, [props.selectedTabs.length]);
 
     function renderTabContent(tab: AvailableTab) {
         switch (tab) {
@@ -118,14 +119,14 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
         setSideBarTabsRatios(updated);
     }
 
-    const allTabs = ['connections', 'relations', 'chat'] as const;
+    const allTabs = ['relations', 'chat', 'connections'] as const;
 
     return (
         <div className="flex-1 h-screen overflow-auto">
             <ResizablePanelGroup direction="vertical">
                 {allTabs.map((tab, index) => (
                     <Fragment key={`panel-group-${tab}`}>
-                        {index > 0 && false && <ResizableHandle
+                        {index > 0 && true && <ResizableHandle
                             style={{ display: props.selectedTabs.includes(tab) ? 'block' : 'none' }}
                         />}
                         <ResizablePanel
@@ -133,9 +134,9 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
                                 overflow: 'auto',
                                 display: props.selectedTabs.includes(tab) ? 'block' : 'none'
                             }}
-                            minSize={20}
+                            minSize={15}
                             onResize={(size) => handleResize(index, size)}
-                            defaultSize={sideBarTabsRatios[index] ?? Math.floor(100 / sortedTabs.length)}
+                            defaultSize={sideBarTabsRatios[index] ?? Math.floor(100 / props.selectedTabs.length)}
                         >
                             {renderTabContent(tab)}
                         </ResizablePanel>
