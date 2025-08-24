@@ -2,6 +2,11 @@ import React from "react";
 import {Star} from "lucide-react";
 
 export function AboutContent() {
+
+    const baseVersion = process.env.NEXT_PUBLIC_BASE_VERSION ?? '0.0.0';
+    const buildVersion = process.env.NEXT_PUBLIC_BUILD_VERSION ?? '0';
+    const commitHash = process.env.NEXT_PUBLIC_COMMIT_HASH ?? 'unknown';
+
     return (
         <div className="p-4">
             <h5 className="text-lg font-bold">About this tool</h5>
@@ -26,6 +31,9 @@ export function AboutContent() {
                     </p>
                 </div>
             </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+                Version {baseVersion}+{buildVersion} ({commitHash})
+            </p>
         </div>
     );
 }

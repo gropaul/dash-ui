@@ -1,3 +1,14 @@
+import {execSync} from 'child_process';
+import fs from 'fs';
+
+// Read the base version from package.json
+const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+const baseVersion = packageJson.version;
+
+// Determine commit hash and a build version based on commit count
+const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+const buildVersion = execSync('git rev-list --count HEAD').toString().trim();
+
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
@@ -9,6 +20,11 @@ const nextConfig = {
 
     images: {
         unoptimized: true,
+    },
+    env: {
+        NEXT_PUBLIC_BASE_VERSION: baseVersion,
+        NEXT_PUBLIC_BUILD_VERSION: buildVersion,
+        NEXT_PUBLIC_COMMIT_HASH: commitHash,
     },
     async headers() {
         return [
