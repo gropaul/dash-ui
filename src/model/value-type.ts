@@ -55,6 +55,11 @@ export function duckDBTypeToValueType(duckDBType: string): ValueType {
         // Floating-Point Types
         case "float":
         case "float4":
+        case "float32":
+        case "float16":
+        case "float64":
+        case "real4":
+
         case "real":
         case "double":
         case "float8":
@@ -83,6 +88,7 @@ export function duckDBTypeToValueType(duckDBType: string): ValueType {
         case "binary":
         case "varbinary":
         case "uuid":
+        case "utf8":
             return 'String';
 
         // JSON Type

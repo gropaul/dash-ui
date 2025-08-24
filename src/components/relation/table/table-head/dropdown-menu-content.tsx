@@ -10,11 +10,11 @@ import {
     DropdownMenuSubContent,
     DropdownMenuSubTrigger
 } from "@/components/ui/dropdown-menu";
-import {Check, Copy, EyeOff} from "lucide-react";
+import {Check, Copy, EyeOff, Filter} from "lucide-react";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 import {cn} from "@/lib/utils";
 import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon";
-import {useRelationData} from "@/state/relations-data.state";
+import {ColumnFilterMenu} from "@/components/relation/table/table-head/column-filter-menu";
 
 
 interface ColumnHeadDropDownMenuContentProps extends ColumnHeadProps {
@@ -76,6 +76,20 @@ export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuConte
                 <Copy/>
                 <span>Copy Name</span>
             </DropdownMenuItem>
+        {/*</DropdownMenuGroup>*/}
+        {/*<DropdownMenuSeparator/>*/}
+        {/*<DropdownMenuGroup>*/}
+        {/*    <DropdownMenuSub>*/}
+        {/*        <DropdownMenuSubTrigger>*/}
+        {/*            <Filter className={"opacity-0"}/>*/}
+        {/*            <span>Filter</span>*/}
+        {/*        </DropdownMenuSubTrigger>*/}
+        {/*        <DropdownMenuPortal>*/}
+        {/*            <DropdownMenuSubContent>*/}
+        {/*                <ColumnFilterMenu {...props}/>*/}
+        {/*            </DropdownMenuSubContent>*/}
+        {/*        </DropdownMenuPortal>*/}
+        {/*    </DropdownMenuSub>*/}
         </DropdownMenuGroup>
         <DropdownMenuSeparator/>
         <DropdownMenuGroup>

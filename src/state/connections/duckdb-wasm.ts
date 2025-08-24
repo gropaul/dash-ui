@@ -10,7 +10,7 @@ import {DatabaseConnectionType} from "@/state/connections/configs";
 import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections/duckdb-wasm/utils";
 import {WasmProvider} from "@/state/connections/duckdb-wasm/wasm-provider";
 import {normalizeArrowType} from "@/components/relation/common/value-icon";
-import {ValueType} from "@/model/value-type";
+import {duckDBTypeToValueType, ValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 
@@ -167,7 +167,7 @@ export function relationFromDuckDBArrowResult(relationName: string, connectionId
         return columns.map((column) => jsonRow[column]);
     });
     const normalizedTypes = arrowResult.schema.fields.map((field: any) => {
-        return normalizeArrowType(field.type);
+        return duckDBTypeToValueType(normalizeArrowType(field.type));
     })
 
     const types = arrowResult.schema.fields.map((field: any) => {

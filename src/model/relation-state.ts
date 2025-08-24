@@ -24,6 +24,7 @@ export function getInitialParamsTable(type: RelationViewType): ViewQueryParamete
             offset: 0,
             limit: 20,
             sorting: {},
+            filters: {},
         },
         chart: {},
     };
@@ -36,6 +37,7 @@ export function getInitialParamsTextInput(): ViewQueryParameters {
             offset: 0,
             limit: 1000, // for text inputs, we want to show more results
             sorting: {},
+            filters: {},
         },
         chart: {},
     };
@@ -75,6 +77,7 @@ export interface TableViewQueryParameters {
     offset: number;
     limit: number;
     sorting: { [key: string]: ColumnSorting | undefined };
+    filters: { [key: string]: ColumnFilter | undefined };
 }
 
 export interface ChartTableQueryParameters {
@@ -109,6 +112,19 @@ export interface RelationState extends RelationWithQuery {
 }
 
 export type ColumnSorting = 'ASC' | 'DESC';
+
+export type ColumnFilterRange = {
+    type: 'range';
+    min?: number;
+    max?: number;
+};
+
+export type ColumnFilterValues = {
+    type: 'values';
+    values: any[];
+};
+
+export type ColumnFilter = ColumnFilterRange | ColumnFilterValues;
 
 export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | undefined {
     switch (current) {
@@ -271,9 +287,10 @@ function buildQueries(
     let schemaQuery = undefined;
     if (query.type === 'table') {
         viewQuery = buildTableQuery(query, finalQueryAsSubQuery);
+        const filterQuery = buildFilterWhereClause(query.table.filters, 'subquery');
         countQuery = `
             SELECT COUNT(*)
-            FROM ${finalQueryAsSubQuery} as subquery
+            FROM ${finalQueryAsSubQuery} as subquery ${filterQuery}
         `;
     } else if (query.type === 'chart') {
         const [lViewQuery, lSchemaQuery] = buildChartQuery(query, finalQueryAsSubQuery);
@@ -335,11 +352,42 @@ export function buildTableQuery(viewParams: ViewQueryParameters, finalQueryAsSub
         .join(', ');
 
     const orderByQuery = orderByColumns ? 'ORDER BY ' + orderByColumns : '';
+    const filterQuery = buildFilterWhereClause(tableViewParams.filters, 'subquery');
     return `
         SELECT *
-        FROM ${finalQueryAsSubQuery} ${orderByQuery} LIMIT ${limit}
+        FROM ${finalQueryAsSubQuery} as subquery ${filterQuery} ${orderByQuery} LIMIT ${limit}
         OFFSET ${offset};
     `;
+}
+
+function buildFilterWhereClause(filters?: { [key: string]: ColumnFilter | undefined }, alias?: string): string {
+    if (!filters) return '';
+    const conditions: string[] = [];
+    for (const [column, filter] of Object.entries(filters)) {
+        if (!filter) continue;
+        const colRef = alias ? `${alias}."${column}"` : `"${column}"`;
+        if (filter.type === 'range') {
+            if (filter.min !== undefined) {
+                conditions.push(`${colRef} >= ${filter.min}`);
+            }
+            if (filter.max !== undefined) {
+                conditions.push(`${colRef} <= ${filter.max}`);
+            }
+        } else if (filter.type === 'values') {
+            if (filter.values.length > 0) {
+                const vals = filter.values
+                    .map((v) =>
+                        typeof v === 'number'
+                            ? v
+                            : `'${String(v).replace(/'/g, "''")}'`
+                    )
+                    .join(', ');
+                conditions.push(`${colRef} IN (${vals})`);
+            }
+        }
+    }
+    if (conditions.length === 0) return '';
+    return 'WHERE ' + conditions.join(' AND ');
 }
 
 // 2. The async version that checks executability
