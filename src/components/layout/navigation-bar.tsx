@@ -47,35 +47,35 @@ export function NavigationBar(props: NavigationBarProps) {
                 <ToggleGroupItem
                     size={'lg'}
                     className={'mb-2'}
-                    value="chat"
-                    aria-label="Toggle Chat"
-                >
-                    <Wand2 className="h-10 w-10"/>
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                    size={'lg'}
-                    className={'mb-2'}
                     value="connections"
                     aria-label="Toggle Connection"
                 >
                     <Database className="h-10 w-10"/>
                 </ToggleGroupItem>
+                <ToggleGroupItem
+                    size={'lg'}
+                    className={'mb-2'}
+                    value="chat"
+                    aria-label="Toggle Chat"
+                >
+                    <Wand2 className="h-10 w-10"/>
+                </ToggleGroupItem>
             </ToggleGroup>
             <div className={'flex-1'}/>
 
-            <ExportDatabaseButton />
+            <ExportDatabaseButton/>
             <div className={'h-2'}/>
 
             <Button variant={'ghost'} size={'icon'} onClick={() => {
                 openSettingsTab('about');
             }}>
-                <Info />
+                <Info/>
             </Button>
             <div className={'h-2'}/>
             <Button variant={'ghost'} size={'icon'} onClick={() => {
                 openSettingsTab('connection');
             }}>
-                <Settings />
+                <Settings/>
             </Button>
         </div>
     );
@@ -101,11 +101,11 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
     function renderTabContent(tab: AvailableTab) {
         switch (tab) {
             case 'connections':
-                return <ConnectionsOverviewTab />;
+                return <ConnectionsOverviewTab/>;
             case 'relations':
-                return <EditorOverviewTab />;
+                return <EditorOverviewTab/>;
             case 'chat':
-                return <ChatTab />;
+                return <ChatTab/>;
         }
     }
 
@@ -115,7 +115,7 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
         setSideBarTabsRatios(updated);
     }
 
-    const allTabs = ['relations', 'chat', 'connections'] as const;
+    const allTabs = ['relations', 'connections', 'chat'] as const;
 
     return (
         <div className="flex-1 h-screen overflow-auto">
@@ -123,7 +123,7 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
                 {allTabs.map((tab, index) => (
                     <Fragment key={`panel-group-${tab}`}>
                         {index > 0 && true && <ResizableHandle
-                            style={{ display: props.selectedTabs.includes(tab) ? 'block' : 'none' }}
+                            style={{display: props.selectedTabs.includes(tab) ? 'block' : 'none'}}
                         />}
                         <ResizablePanel
                             style={{
