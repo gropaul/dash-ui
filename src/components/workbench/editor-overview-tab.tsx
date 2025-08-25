@@ -51,7 +51,11 @@ export interface DashboardCommandState {
     relation?: RelationState;
 }
 
-export function EditorOverviewTab() {
+interface EditorOverviewTabProps {
+    onEntityOpen?: () => void;
+}
+
+export function EditorOverviewTab(props: EditorOverviewTabProps = {}) {
 
     const [storageInfo, setStorageInfo] = useState<StateStorageInfo>(DefaultStateStorageInfo());
     const [renameState, setRenameState] = useState<RenameState>({isOpen: false});
@@ -126,6 +130,7 @@ export function EditorOverviewTab() {
             // assert that node.type is an entity type
             if (IsEntityType(node.type)) {
                 showEntityFromId(node.type, node.id, path);
+                props.onEntityOpen?.();
             } else {
                 throw new Error(`Unknown node type: ${node.type}`);
             }

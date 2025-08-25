@@ -1,7 +1,20 @@
+"use client";
+
 import React from 'react';
 import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
-import {Database, Folder, LayoutDashboard, Network, Sheet} from 'lucide-react';
+import {
+    Database,
+    Folder,
+    LayoutDashboard,
+    Network,
+    Sheet,
+    Menu,
+    Wand2,
+    Info,
+    Settings,
+    Download
+} from 'lucide-react';
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {onLayoutModelChange} from "@/state/relations/layout-updates";
 import {SchemaTab} from "@/components/schema/schema-tab";
@@ -14,17 +27,148 @@ import {NavigationBar, NavigationBarContent} from "@/components/layout/navigatio
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
 import {WorkflowTab} from "@/components/workflow/workflow-tab";
+import {ChatTab} from "@/components/chat/chat-tab";
+import {Avatar, AvatarImage} from "@/components/ui/avatar";
+import {Button} from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
+import {DatabaseConnection} from "@/model/database-connection";
 
 
 export function TabbedLayout() {
     const layoutModel = useGUIState(state => state.layoutModel);
     const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
+    const openSettingsTab = useGUIState(state => state.openSettingsTab);
 
     let hasNonEmptyTabs = selectedTabs.length > 0;
 
     const panelRatio = useGUIState(state => state.mainBarSizeRatio);
     const setPanelRatio = useGUIState(state => state.setMainBarSizeRatio);
+
+    const [isMobile, setIsMobile] = React.useState(false);
+    const [activeTab, setActiveTab] = React.useState<'workspace' | 'relations' | 'connections' | 'chat'>('workspace');
+    const [showExport, setShowExport] = React.useState(false);
+
+    React.useEffect(() => {
+        const media = window.matchMedia('(max-width: 768px)');
+        const handler = () => setIsMobile(media.matches);
+        handler();
+        media.addEventListener('change', handler);
+        return () => media.removeEventListener('change', handler);
+    }, []);
+
+    React.useEffect(() => {
+        function shouldShowExportButton(connection?: DatabaseConnection): boolean {
+            if (connection) {
+                return connection.type === 'duckdb-wasm-motherduck' || connection.type === 'duckdb-wasm';
+            } else {
+                return false;
+            }
+        }
+
+        const service = ConnectionsService.getInstance();
+        const update = (connection?: DatabaseConnection) => {
+            setShowExport(shouldShowExportButton(connection));
+        };
+        service.onDatabaseConnectionChange(update);
+        if (service.hasDatabaseConnection()) {
+            update(service.getDatabaseConnection());
+        }
+    }, []);
+
+    async function handleExportDatabase() {
+        const service = ConnectionsService.getInstance();
+        if (service.hasDatabaseConnection()) {
+            const connection = service.getDatabaseConnection();
+            const duckdb = connection as DuckDBWasm;
+            await duckdb.downloadDatabase();
+        }
+    }
+
+    if (isMobile) {
+        function renderActive() {
+            switch (activeTab) {
+                case 'connections':
+                    return <ConnectionsOverviewTab/>;
+                case 'relations':
+                    return <EditorOverviewTab onEntityOpen={() => setActiveTab('workspace')}/>;
+                case 'chat':
+                    return <ChatTab/>;
+                case 'workspace':
+                    return (
+                        <Layout
+                            font={{
+                                size: '14px'
+                            }}
+                            model={layoutModel}
+                            factory={factory}
+                            iconFactory={iconFactory}
+                            onAction={onLayoutModelChange}
+                            onModelChange={useGUIState.getState().persistState}
+                        />
+                    );
+                default:
+                    return null;
+            }
+        }
+
+        return (
+            <div className="flex h-full w-full flex-col">
+                <div className="flex h-14 w-full items-center justify-between border-b px-4">
+                    <Avatar>
+                        <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
+                    </Avatar>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant={'ghost'} size={'icon'}>
+                                <Menu/>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setActiveTab('workspace')}>
+                                <LayoutDashboard className="mr-2 h-4 w-4"/>Workspace
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveTab('relations')}>
+                                <Folder className="mr-2 h-4 w-4"/>Explorer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveTab('chat')}>
+                                <Wand2 className="mr-2 h-4 w-4"/>Chat
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveTab('connections')}>
+                                <Database className="mr-2 h-4 w-4"/>Connections
+                            </DropdownMenuItem>
+                            {showExport && (
+                                <>
+                                    <DropdownMenuSeparator/>
+                                    <DropdownMenuItem onClick={handleExportDatabase}>
+                                        <Download className="mr-2 h-4 w-4"/>Export Database
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                            <DropdownMenuSeparator/>
+                            <DropdownMenuItem onClick={() => openSettingsTab('about')}>
+                                <Info className="mr-2 h-4 w-4"/>About
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openSettingsTab('connection')}>
+                                <Settings className="mr-2 h-4 w-4"/>Settings
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                <div className="flex-1 overflow-auto">
+                    {renderActive()}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative h-full w-full">
