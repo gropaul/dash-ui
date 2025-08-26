@@ -46,7 +46,7 @@ export function MobileLayout(props: LayoutProps) {
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
     const hasSelectedTabs = selectedTabs.length > 0;
     return <div className="flex flex-col h-full w-full">
-        <div className="flex-1 min-h-0 w-full">
+        <div className="flex-1 min-h-0 w-full relative">
             {hasSelectedTabs ? (
                 <NavigationBarContent selectedTabs={selectedTabs}/>
             ) : (
@@ -64,7 +64,7 @@ export function MobileLayout(props: LayoutProps) {
         </div>
 
         {/* BOTTOM: reserve space */}
-        <div className="flex-none sticky bottom-0 left-0 right-0 z-10">
+        <div className="flex-none">
             <NavigationBarMobile
                 onBackButtonClick={() => setSelectedTabs([])}
                 selectedTabs={selectedTabs}
