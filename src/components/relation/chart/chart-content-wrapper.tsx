@@ -8,6 +8,8 @@ import {useRef} from "react";
 import {ChartContentOverlay} from "@/components/relation/chart/chart-content/chart-content-overlay";
 import {useRelationData} from "@/state/relations-data.state";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
+import {useIsMobile} from "@/hooks/use-is-mobile";
+import {cn} from "@/lib/utils";
 
 export interface ChartContentWrapperProps extends RelationViewContentProps {
     showOverlay?: boolean;
@@ -22,6 +24,10 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
 
     const isEmbedded = props.embedded ?? false;
     const showOverlay = props.showOverlay ?? true;
+
+    const isMobile = useIsMobile();
+
+    const groupHoverClass = isMobile ? '' : 'group-hover:opacity-100 opacity-0';
 
     return (
         <>
@@ -40,7 +46,7 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
             {/* Overlay Button panel so that it is not exportable */}
             {showOverlay && <ChartContentOverlay
                 embedded={props.embedded}
-                className={isEmbedded ? ' top-0 right-2 group-hover:opacity-100 opacity-0 transition-opacity duration-200' : ''}
+                className={cn(isEmbedded ? 'top-0 right-2 transition-opacity duration-200' : '', groupHoverClass)}
                 hasError={plotDisplayError != undefined}
                 data={data}
                 config={config.chart}

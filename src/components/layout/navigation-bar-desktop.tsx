@@ -16,7 +16,7 @@ export interface NavigationBarProps {
 }
 
 
-export function NavigationBar(props: NavigationBarProps) {
+export function NavigationBarDesktop(props: NavigationBarProps) {
 
     const openSettingsTab = useGUIState(state => state.openSettingsTab);
     // Handle tab selection change

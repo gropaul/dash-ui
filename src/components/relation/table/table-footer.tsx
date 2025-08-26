@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {ViewQueryParameters} from "@/model/relation-state";
+import {useIsMobile} from "@/hooks/use-is-mobile";
+import {cn} from "@/lib/utils";
 
 function formatNumber(num: number): string {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -22,11 +24,18 @@ export function TableFooter(props: RelationViewProps) {
 
     const startIndex = props.relationState.query.viewParameters.table.offset + 1;
     const endIndex = Math.min(props.relationState.query.viewParameters.table.offset + props.relationState.query.viewParameters.table.limit, lastResultCount);
-    const testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)} of ${formatNumber(lastResultCount)}`;
+    let testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)}`;
+
+    const isMobile = useIsMobile();
+    if (!isMobile){
+        testShowingRange += ` of ${formatNumber(lastResultCount)}`;
+    }
+
+    const wrapperClass = isMobile ? 'p-2 space-x-2 p-0.5' : 'p-2 space-x-4';
 
     return (
-        <div className="flex h-8 flex-row items-center p-2 border-t border-border text-sm text-primary space-x-4">
-            <div className="flex flex-row items-center space-x-4">
+        <div className={cn(wrapperClass,"flex h-8 flex-row items-center border-t border-border text-sm text-primary")}>
+            <div className="pl-1 flex flex-row items-center">
                 <RelationViewPageController {...props}/>
             </div>
             <div className="flex-grow"/>
@@ -94,11 +103,17 @@ export function RelationViewPageController(props: RelationViewProps) {
         {value: limit.toString(), label: `Show ${limit}`}
     ));
 
+    const isMobile = useIsMobile();
+
     return (
         <div className="flex flex-row items-center space-x-1 text-primary font-normal">
             <Select onValueChange={handlePageSizeChange} defaultValue={pageSize.toString()}>
-                <SelectTrigger className={'text-primary border-0 focus:outline-none w-32 h-6 font-normal shadow-none'}>
-                    <SelectValue placeholder="TextSelect a size"/>
+                <SelectTrigger className={'text-primary border-0 outline-none h-6 p-0 w-fit font-normal shadow-none'}>
+                    {isMobile ?
+                        <div className={'pr-1'}>Show {pageSize}</div>
+                        :
+                        <SelectValue placeholder={`Show ${pageSize}`}/>
+                    }
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>
@@ -111,7 +126,7 @@ export function RelationViewPageController(props: RelationViewProps) {
                 </SelectContent>
             </Select>
             <button
-                className={`transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-muted active:bg-muted-foreground'}`}
+                className={`pl-2 transition-all rounded ${isFirstPage ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-muted active:bg-muted-foreground'}`}
                 onClick={() => handleUpdateRange(minPageIndex)}
                 disabled={isFirstPage}
             >
