@@ -3,7 +3,7 @@
 import React from "react";
 
 
-import {SettingsView} from "@/components/settings/settings-view";
+import {SettingsDialog} from "@/components/settings/settings-dialog";
 import {useGUIState} from "@/state/gui.state";
 import {useInitState} from "@/state/init.state";
 
@@ -26,7 +26,7 @@ export default function SettingsProvider({children}: ConnectionsProviderProps) {
     return (
         <>
             {children}
-            <SettingsView
+            <SettingsDialog
                 open={settingsOpen}
                 forceOpenReasons={forceOpenReasons}
                 onOpenChange={setSettingsOpen}

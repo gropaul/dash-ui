@@ -48,6 +48,7 @@ export function MobileLayout(props: LayoutProps) {
 
     return <div className="flex flex-col h-full w-full">
         <NavigationBarMobile
+            onBackButtonClick={() => setSelectedTabs([])}
             selectedTabs={selectedTabs}
             setSelectedTabs={setSelectedTabs}
         />

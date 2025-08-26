@@ -8,7 +8,7 @@ import {
     renameTab,
 } from "@/state/relations/layout-updates";
 import {createWithEqualityFn} from "zustand/traditional";
-import {ForceOpenReason} from "@/components/settings/settings-view";
+import {ForceOpenReason} from "@/components/settings/settings-dialog";
 import {RelationZustandEntity, RelationZustandEntityType} from "@/state/relations/entity-functions";
 
 export type AvailableTab = 'connections' | 'relations' | 'chat'
@@ -16,7 +16,7 @@ export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model'
 
 export interface SettingsGUIZustand {
     isOpen: boolean;
-    currentTab: SettingsTab;
+    currentTab: SettingsTab | undefined;
     forceOpenReasons: ForceOpenReason[];
 }
 
@@ -52,7 +52,7 @@ export interface GUIZustandActions {
     setSettingsOpen: (open: boolean) => void;
     addSettingForceOpenReason: (reason: ForceOpenReason) => void;
     removeSettingForceOpenReason: (reason: ForceOpenReason, closeSettingsIfLast?: boolean) => void;
-    openSettingsTab: (tab: SettingsTab) => void;
+    openSettingsTab: (tab: SettingsTab | undefined) => void;
 
 
     removeTab(tabId: string): void;
@@ -145,7 +145,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                     }
                 }));
             },
-            openSettingsTab: (tab: SettingsTab) => {
+            openSettingsTab: (tab: SettingsTab | undefined) => {
                 set({
                     settings: {
                         ...get().settings,

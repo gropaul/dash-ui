@@ -188,43 +188,43 @@ export function ConnectionChecker({formData, type}: ConnectionCheckerProps) {
         // If you want to treat the refresh as a *brand-new* check, reset lastSpec
         lastSpec.current = {type, formData};
         triggerConnectionCheck();
-    };
+    }
 
     return (
-        <div className="flex text-sm items-center h-6 group transition-opacity duration-200 gap-2">
-
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="inline-flex items-center space-x-2 py-2">
-                            <span className="text-sm font-medium text-gray-700">
+        <div>
+            <div className="flex text-sm items-center h-6 group transition-opacity duration-200 gap-2">
+                <div className="inline-flex items-center space-x-2 py-2"
+                     style={{
+                         color: working === null ? '#888888' : working === true ? '#16a34a' : '#dc2626'
+                     }}
+                >
+                            <span className="text-sm font-medium">
                                 {working === null && 'Testing ...'}
                                 {working === true && 'Test successful'}
                                 {working === false && 'Test failed'}
                             </span>
-                            <div className="flex-shrink-0 text-gray-600">
-                                {working === null && <LoaderCircle size={16} className="animate-spin" />}
-                                {working === true && <Check size={16}/>}
-                                {working === false && <Info size={16}/>}
-                            </div>
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                        <p>{message}</p>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-
-
-            <Button
-                className="group-hover:opacity-100 opacity-0 transition-opacity duration-200"
-                style={{width: 24, height: 24}}
-                variant="ghost"
-                size="icon"
-                onClick={handleManualRefresh}
-            >
-                <RefreshCcw size={16}/>
-            </Button>
+                    <div className="flex-shrink-0 ">
+                        {working === null && <LoaderCircle size={16} className="animate-spin" />}
+                        {working === true && <Check size={16}/>}
+                        {working === false && <Info size={16}/>}
+                    </div>
+                    {}
+                </div>
+                <Button
+                    className="group-hover:opacity-100 opacity-0 transition-opacity duration-200"
+                    style={{width: 24, height: 24}}
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleManualRefresh}
+                >
+                    <RefreshCcw size={16}/>
+                </Button>
+            </div>
+            {message &&
+                <div className="text-xs text-muted-foreground mt-1">
+                    {message}
+                </div>
+            }
         </div>
     );
 }

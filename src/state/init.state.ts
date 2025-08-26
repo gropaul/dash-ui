@@ -2,7 +2,7 @@ import {createWithEqualityFn} from "zustand/traditional";
 import {toast} from "sonner";
 import {setDatabaseConnection, tryInitializingConnectionFromHistory} from "@/state/init/initialize-connections";
 import {useGUIState} from "@/state/gui.state";
-import {NO_CONNECTION_FORCE_OPEN_REASON} from "@/components/settings/settings-view";
+import {NO_CONNECTION_FORCE_OPEN_REASON} from "@/components/settings/settings-dialog";
 import {connectionToSpec, connectionToString, DBConnectionSpec, specToConnection} from "@/state/connections/configs";
 import {showExampleQuery} from "@/state/init/show-example-query";
 import {DatabaseConnection} from "@/model/database-connection";
