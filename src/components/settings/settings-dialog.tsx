@@ -12,6 +12,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/compon
 import {useIsMobile} from "@/hooks/use-is-mobile";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
+import {MobileAppBar} from "@/components/layout/mobile-app-bar";
 
 // Define the tab types
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model';
@@ -66,9 +67,7 @@ export function SettingsDialog(props: SettingsViewProps) {
 
     // Update the active tab when initialTab prop changes
     React.useEffect(() => {
-        if (props.initialTab) {
-            setActiveTab(props.initialTab);
-        }
+        setActiveTab(props.initialTab);
     }, [props.initialTab]);
 
     function onLocalOpenChange(open: boolean) {
@@ -118,20 +117,21 @@ export function SettingsDialog(props: SettingsViewProps) {
     const dialogClass = isMobile ? "w-full h-full m-0 rounded-none" : "w-full max-w-4xl h-[90vh] max-h-[600px]  sm:h-[600px]";
 
     return (
-        <TooltipProvider>
-            <Dialog open={props.open} onOpenChange={onLocalOpenChange}>
-                <DialogContent className={cn("flex p-0 gap-0", dialogClass)}>
-                    <SettingsContent
-                        tabs={tabs}
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                        onLocalOpenChange={onLocalOpenChange}
-                        {...props}
-                    />
-                </DialogContent>
-            </Dialog>
 
-        </TooltipProvider>
+        <Dialog open={props.open} onOpenChange={onLocalOpenChange}
+
+        >
+            <DialogContent  className={cn("flex p-0 gap-0", dialogClass)}>
+                <SettingsContent
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    onLocalOpenChange={onLocalOpenChange}
+                    {...props}
+                />
+            </DialogContent>
+        </Dialog>
+
     );
 }
 
@@ -151,7 +151,7 @@ function SettingsContent(props: SettingsContentProps) {
     const isMobile = useIsMobile();
     const actualActiveTab = isMobile ? activeTab : (activeTab || 'about');
 
-    if (isMobile){
+    if (isMobile) {
         if (!activeTab) {
             return <SettingsSideBar
                 activeTab={actualActiveTab}
@@ -163,7 +163,7 @@ function SettingsContent(props: SettingsContentProps) {
         } else {
             return <div className="flex-1 overflow-y-auto">
 
-                <SettingsAppBar
+                <MobileAppBar
                     onBackButtonClick={() => setActiveTab(undefined)}
                     label={tabs.find(tab => tab.id === activeTab)?.label || ''}
                 />
@@ -220,6 +220,7 @@ export function TabForceOpenIcon(props: TabForceOpenIconProps) {
     return null;
 
 }
+
 interface SettingsSideBarProps {
     activeTab: SettingsTab | undefined;
     setActiveTab: (tab: SettingsTab) => void;
@@ -239,7 +240,7 @@ export function SettingsSideBar(props: SettingsSideBarProps) {
     return <div className={cn(wrapperClass, "")}>
         {
             isMobile ?
-                <SettingsAppBar
+                <MobileAppBar
                     onBackButtonClick={() => props.onLocalOpenChange(false)}
                     label={'Settings'}
                 />
@@ -268,29 +269,4 @@ export function SettingsSideBar(props: SettingsSideBarProps) {
             ))}
         </ul>
     </div>
-}
-
-interface SettingsAppBarProps {
-    onBackButtonClick: () => void;
-    label: string;
-}
-
-
-function SettingsAppBar(props: SettingsAppBarProps) {
-    return (
-        <div className="w-full bg-background p-1.5 border-b border-separate flex flex-row items-center">
-            <Button
-                variant={'ghost'}
-                size={'icon'}
-                onClick={() => props.onBackButtonClick()}
-            >
-                {/* Back arrow icon */}
-                <ArrowLeft className="h-6 w-6"/>
-            </Button>
-            {/* Title of the active tab */}
-            <h5 className="font-bold inline align-middle">
-                {props.label}
-            </h5>
-        </div>
-    );
 }

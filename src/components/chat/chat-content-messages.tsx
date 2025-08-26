@@ -6,6 +6,7 @@ import {ChatMessageItem} from "./chat-message-item";
 import {useChatState} from "@/state/chat.state";
 import {ChatWindowProps} from "@/components/chat/chat-wrapper";
 import {Alert, AlertTitle} from "@/components/ui/alert";
+import {ChatInput} from "@/components/chat/chat-input";
 
 
 export function ChatContentMessages({
@@ -20,9 +21,7 @@ export function ChatContentMessages({
 
     const messages = useChatState((state) => state.getMessages(sessionId));
 
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const [inputValue, setInputValue] = React.useState("");
     const atBottomRef = useRef(true); // ← tracks live “at-bottom” state
 
     /* ───────────── track user scroll position ───────────── */
@@ -33,14 +32,6 @@ export function ChatContentMessages({
         atBottomRef.current =
             c.scrollHeight - c.scrollTop - c.clientHeight <= threshold;
     }, []);
-
-    /* ───────────── textarea autosize ───────────── */
-    useEffect(() => {
-        const t = textareaRef.current;
-        if (!t) return;
-        t.style.height = "auto";
-        t.style.height = `${Math.min(t.scrollHeight, 86)}px`;
-    }, [inputValue]);
 
     /* ───────────── auto-scroll on new messages ───────────── */
     useEffect(() => {
@@ -54,20 +45,11 @@ export function ChatContentMessages({
         }
     }, [messages]);
 
-    const handleSendMessage = (content: string) => {
-        // don't do anything if loading
-        if (isLoading || !content.trim()) return;
-
-        onSendMessage(content);
-        setInputValue(""); // Clear input after sending
-        // setTimeout(() => textareaRef.current?.focus(), 10);
-    };
-
     return (
-        <>
+        <div className={`flex flex-col h-full w-full ${className}`}>
             {/* Error Alert */}
             {error && (
-                <div className="w-full px-3">
+                <div className="flex-none w-full px-3">
                     <Alert variant="destructive">
                         <AlertTitle>
                             <div className="flex items-start justify-between w-full">
@@ -110,45 +92,12 @@ export function ChatContentMessages({
                 </div>
             </div>
 
-            {/* Input */}
-            <div className="px-2 pb-1 pt-2 border-t border-border/70">
-                <div className="relative">
-              <textarea
-                  ref={textareaRef}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type your message…"
-                  className="w-full px-3 py-2 pr-8 text-sm bg-muted/50 rounded-[20px] focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-y-auto min-h-[38px] max-h-[86px] custom-scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent"
-                  rows={1}
-                  onKeyDown={(e) => {
-                      if (
-                          e.key === "Enter" &&
-                          !e.shiftKey &&
-                          inputValue.trim()
-                      ) {
-                          e.preventDefault();
-                          handleSendMessage(inputValue);
-                      }
-                  }}
-              />
-
-                    <Button
-                        size="icon"
-                        className="absolute right-1 bottom-3 h-7 w-7 rounded-full"
-                        disabled={!inputValue.trim() || isLoading}
-                        onClick={() =>
-                            inputValue.trim() && !isLoading && handleSendMessage(inputValue)
-                        }
-                    >
-                        {isLoading ? (
-                            <div
-                                className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"/>
-                        ) : (
-                            <Send className="h-3 w-3"/>
-                        )}
-                    </Button>
-                </div>
-            </div>
-        </>
+            {/* Input Area */}
+            <ChatInput
+                className={'flex-none'}
+                onSendMessage={onSendMessage}
+                isLoading={isLoading}
+            />
+        </div>
     );
 }

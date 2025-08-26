@@ -42,27 +42,33 @@ interface LayoutProps {
 }
 
 export function MobileLayout(props: LayoutProps) {
-
     const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
-
+    const hasSelectedTabs = selectedTabs.length > 0;
     return <div className="flex flex-col h-full w-full">
-        <NavigationBarMobile
-            onBackButtonClick={() => setSelectedTabs([])}
-            selectedTabs={selectedTabs}
-            setSelectedTabs={setSelectedTabs}
-        />
+        <div className="flex-1 min-h-0 w-full">
+            {hasSelectedTabs ? (
+                <NavigationBarContent selectedTabs={selectedTabs}/>
+            ) : (
+                <div className="relative h-full w-full overflow-hidden min-w-0">
+                    <Layout
+                        font={{size: '14px'}}
+                        model={props.layoutModel}
+                        factory={factory}
+                        iconFactory={iconFactory}
+                        onAction={onLayoutModelChange}
+                        onModelChange={useGUIState.getState().persistState}
+                    />
+                </div>
+            )}
+        </div>
 
-        <div className="flex-1 w-full relative">
-            <Layout
-                font={{
-                    size: '14px'
-                }}
-                model={props.layoutModel}
-                factory={factory}
-                iconFactory={iconFactory}
-                onAction={onLayoutModelChange}
-                onModelChange={useGUIState.getState().persistState}
+        {/* BOTTOM: reserve space */}
+        <div className="flex-none sticky bottom-0 left-0 right-0 z-10">
+            <NavigationBarMobile
+                onBackButtonClick={() => setSelectedTabs([])}
+                selectedTabs={selectedTabs}
+                setSelectedTabs={setSelectedTabs}
             />
         </div>
     </div>

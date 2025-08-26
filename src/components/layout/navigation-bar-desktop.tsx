@@ -9,6 +9,7 @@ import {AvailableTab, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {ChatTab} from "@/components/chat/chat-tab";
+import {useIsMobile} from "@/hooks/use-is-mobile";
 
 export interface NavigationBarProps {
     selectedTabs: AvailableTab[];
@@ -117,22 +118,26 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
 
     const allTabs = ['relations', 'connections', 'chat'] as const;
 
+    const isMobile = useIsMobile();
+    // if is mobile, only show the first selected tab
+    const actualSelectedTabs = isMobile ? props.selectedTabs.slice(0, 1) : props.selectedTabs;
+
     return (
-        <div className="flex-1 h-screen overflow-auto">
+        <div className="flex-1 h-full overflow-auto">
             <ResizablePanelGroup direction="vertical">
                 {allTabs.map((tab, index) => (
                     <Fragment key={`panel-group-${tab}`}>
                         {index > 0 && true && <ResizableHandle
-                            style={{display: props.selectedTabs.includes(tab) ? 'block' : 'none'}}
+                            style={{display:actualSelectedTabs.includes(tab) ? 'block' : 'none'}}
                         />}
                         <ResizablePanel
                             style={{
                                 overflow: 'auto',
-                                display: props.selectedTabs.includes(tab) ? 'block' : 'none'
+                                display: actualSelectedTabs.includes(tab) ? 'block' : 'none'
                             }}
                             minSize={15}
                             onResize={(size) => handleResize(index, size)}
-                            defaultSize={sideBarTabsRatios[index] ?? Math.floor(100 / props.selectedTabs.length)}
+                            defaultSize={sideBarTabsRatios[index] ?? Math.floor(100 / actualSelectedTabs.length)}
                         >
                             {renderTabContent(tab)}
                         </ResizablePanel>
