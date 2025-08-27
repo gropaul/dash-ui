@@ -72,7 +72,7 @@ export function ChatWrapper(props: ChatWindowProps) {
                 props.className
             )}
         >
-            <div className="pl-4 pt-2.5 pr-3 pb-2 flex flex-row items-center justify-between overflow-hidden">
+            <div className="flex-none pl-4 pt-2.5 pr-3 pb-2 flex flex-row items-center justify-between">
                 <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">
                     <div>
                         {header}
@@ -112,11 +112,13 @@ export function ChatWrapper(props: ChatWindowProps) {
 
                 </div>
             </div>
-            {showHistory ?
-                <ChatContentHistory {...props} onSessionSelect={localSessionSelected}/>
-                :
-                <ChatContentMessages {...props}/>
-            }
+            <div className={"flex-1 overflow-y-auto"}>
+                {showHistory ?
+                    <ChatContentHistory {...props} onSessionSelect={localSessionSelected}/>
+                    :
+                    <ChatContentMessages {...props}/>
+                }
+            </div>
         </div>
     );
 }
