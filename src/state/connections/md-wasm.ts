@@ -13,40 +13,42 @@ import {normalizeArrowType} from "@/components/relation/common/value-icon";
 import {duckDBTypeToValueType, ValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
+import {MdWasmConfig, MdWasmProvider} from "@/state/connections/md-wasm/md-wasm-provider";
+import {resultToRelationData} from "@/state/connections/md-wasm/utils";
 
-export interface DuckDBWasmConfig {
+export interface MdWasmConnectionConfig extends MdWasmConfig {
     name: string;
-
     [key: string]: string | number | boolean | undefined; // index signature
 }
 
 
-export class DuckDBWasm implements DatabaseConnection {
+export class MdWasm implements DatabaseConnection {
 
     id: string;
     type: DatabaseConnectionType;
-    connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
+    connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'Connection not initialised'};
     storageInfo: StateStorageInfo = DefaultStateStorageInfo()
 
     dataSources: DataSource[];
-    config: DuckDBWasmConfig;
+    config: MdWasmConnectionConfig;
 
-    constructor(config: DuckDBWasmConfig, id: string) {
+    constructor(config: MdWasmConnectionConfig, id: string) {
         this.id = id;
 
         this.type = 'duckdb-wasm';
         this.dataSources = [];
         this.config = config;
+
+        MdWasmProvider.getInstance().setConfig(config);
     }
 
     canHandleMultiTab(): boolean {
-        return false;
+        return true;
     }
-
 
     // close the duckdb connection on destroy
     async destroy(): Promise<void> {
-        await DuckdbWasmProvider.getInstance().destroy();
+        await MdWasmProvider.getInstance().destroy();
     }
 
     async initialise(): Promise<ConnectionStatus> {
@@ -54,24 +56,12 @@ export class DuckDBWasm implements DatabaseConnection {
     }
 
     async executeQuery(query: string): Promise<RelationData> {
-        const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
-        const arrowResult = await con!.query(query);
-        // checkpoint the database
-        await con.query('CHECKPOINT;');
-        return relationFromDuckDBArrowResult('result', this.id, arrowResult);
-    }
-
-
-    async downloadDatabase(): Promise<void> {
-        const opfs_path = DuckdbWasmProvider.getDatabasePath();
-        // download the opfs database
-        await downloadOPFSFile(opfs_path);
+        const {con} = await MdWasmProvider.getInstance().getCurrentWasm();
+        const res = await con.evaluateQuery(query);
+        return resultToRelationData(res);
     }
 
     async mountFiles(files: File[]): Promise<void> {
-        await mountFilesOnWasm(files, this);
-        // await updateDataSources(duckDBWasm.id); todo
-
     }
 
     async checkConnectionState(): Promise<ConnectionStatus> {
@@ -81,7 +71,7 @@ export class DuckDBWasm implements DatabaseConnection {
             const version = versionResult.rows[0][0] as string;
             console.log('DuckDB WASM version: ', version);
             this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this.executeQuery.bind(this));
-            this.connectionStatus = {state: 'connected', message: `Connected to DuckDB WASM. Version: ${version}`};
+            this.connectionStatus = {state: 'connected', message: `Connected to Motherduck WASM. Version: ${version}`};
         } catch (e: any) {
             const message = e.message;
             if (message.includes('createSyncAccessHandle')) {
@@ -99,8 +89,9 @@ export class DuckDBWasm implements DatabaseConnection {
         return this.connectionStatus;
     }
 
-    updateConfig(config: Partial<DuckDBWasmConfig>): void {
+    updateConfig(config: Partial<MdWasmConnectionConfig>): void {
         this.config = {...this.config, ...config};
+        MdWasmProvider.getInstance().setConfig(this.config);
     }
 }
 

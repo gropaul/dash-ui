@@ -2,6 +2,8 @@ import {DuckDBOverHttp, DuckDBOverHttpConfig} from "@/state/connections/duckdb-o
 import {DuckDBWasm, DuckDBWasmConfig} from "@/state/connections/duckdb-wasm";
 import {DatabaseConnection} from "@/model/database-connection";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL, DATABASE_CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
+import {MdWasmProvider} from "@/state/connections/md-wasm/md-wasm-provider";
+import {MdWasm, MdWasmConnectionConfig} from "@/state/connections/md-wasm";
 
 export type DatabaseConnectionType =
     | "duckdb-over-http"
@@ -22,7 +24,7 @@ export function typeToLabel(type: DatabaseConnectionType): string {
 export type DatabaseConfigMap = {
     "duckdb-over-http": DuckDBOverHttpConfig;
     "duckdb-wasm": DuckDBWasmConfig;
-    "duckdb-wasm-motherduck": DuckDBWasmConfig;
+    "duckdb-wasm-motherduck": MdWasmConnectionConfig;
 };
 
 export interface DBConnectionSpec {
@@ -31,6 +33,7 @@ export interface DBConnectionSpec {
 }
 
 export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"): DBConnectionSpec {
+    console.log("getDefaultSpec", type);
     switch (type) {
         case "duckdb-over-http":
             return {
@@ -50,26 +53,30 @@ export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"
                 },
             };
         case "duckdb-wasm-motherduck":
+            console.log("getDefaultSpec motherduck");
             return {
                 type: "duckdb-wasm-motherduck",
                 config: {
                     name: "DuckDB WASM (Motherduck)",
+                    token: process.env.NEXT_PUBLIC_MD_API_KEY || "",
                 },
             }
     }
 }
 
 export function specToConnection(spec: DBConnectionSpec): DatabaseConnection {
+    console.log("specToConnection", spec);
     switch (spec.type) {
         case "duckdb-over-http":
             return new DuckDBOverHttp(spec.config as DuckDBOverHttpConfig, DATABASE_CONNECTION_ID_DUCKDB_LOCAL);
         case "duckdb-wasm":
             return new DuckDBWasm(spec.config as DuckDBWasmConfig, DATABASE_CONNECTION_ID_DUCKDB_WASM);
         case "duckdb-wasm-motherduck":
-            throw new Error("Not implemented");
-    }
+            // NEXT_PUBLIC_MD_API_KEY
+            MdWasmProvider.getInstance().setConfig({token: process.env.NEXT_PUBLIC_MD_API_KEY || ""});
+            return new MdWasm(spec.config as MdWasmConnectionConfig, DATABASE_CONNECTION_ID_DUCKDB_WASM);
+        }
 }
-
 export function connectionToString(connection: DatabaseConnection, withSecrets = false): string {
     return specToString(connectionToSpec(connection), withSecrets);
 }

@@ -8,7 +8,7 @@ export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
 
 export async function clearOPFS(): Promise<void> {
 
-    await WasmProvider.getInstance().destroy();
+    await DuckdbWasmProvider.getInstance().destroy();
 
     // clear main.duckdb and its wal
     const walPath = `${DUCKDB_WASM_BASE_TABLE_PATH}.wal`;
@@ -66,8 +66,8 @@ export function assertOPFSSupported(): void {
 }
 
 
-export class WasmProvider {
-    private static instance: WasmProvider | null = null;
+export class DuckdbWasmProvider {
+    private static instance: DuckdbWasmProvider | null = null;
 
     // Tracks our initialization state
     private asyncDuckDBState: 'uninitialised' | 'initialising' | 'initialised' = 'uninitialised';
@@ -87,11 +87,11 @@ export class WasmProvider {
         this.coordinator = createConnectionCoordinator('duckdb-wasm', true);
     }
 
-    public static getInstance(): WasmProvider {
-        if (!WasmProvider.instance) {
-            WasmProvider.instance = new WasmProvider();
+    public static getInstance(): DuckdbWasmProvider {
+        if (!DuckdbWasmProvider.instance) {
+            DuckdbWasmProvider.instance = new DuckdbWasmProvider();
         }
-        return WasmProvider.instance;
+        return DuckdbWasmProvider.instance;
     }
 
     public async destroy(): Promise<void> {
@@ -205,7 +205,7 @@ export class WasmProvider {
         try {
             // Open a DB, adjusting config as necessary
             await db.open({
-                path: WasmProvider.getDatabasePath(),
+                path: DuckdbWasmProvider.getDatabasePath(),
                 accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
                 query: {
                     castBigIntToDouble: true,

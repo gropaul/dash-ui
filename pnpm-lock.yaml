@@ -80,6 +80,9 @@ importers:
       '@monaco-editor/react':
         specifier: ^4.6.0
         version: 4.6.0(monaco-editor@0.52.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@motherduck/wasm-client':
+        specifier: ^0.6.6
+        version: 0.6.6(apache-arrow@17.0.0)
       '@next/env':
         specifier: ^15.0.3
         version: 15.1.6
@@ -760,6 +763,11 @@ packages:
       monaco-editor: '>= 0.25.0 < 1'
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+
+  '@motherduck/wasm-client@0.6.6':
+    resolution: {integrity: sha512-6tx9VVYFcuz4EDMmowmWUD2OrstnSe/3vcYptsiHiTa7meNNC3LBDr1z2g3KhC09TO9fgKpIekyH7OQxqZGPfQ==}
+    peerDependencies:
+      apache-arrow: ^17.0.0
 
   '@next/env@15.1.6':
     resolution: {integrity: sha512-d9AFQVPEYNr+aqokIiPLNK/MTyt3DWa/dpKveiAaVccUadFbhFEvY6FXYX2LJO2Hv7PHnLBu2oWwB4uBuHjr/w==}
@@ -5480,6 +5488,10 @@ snapshots:
       monaco-editor: 0.52.2
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+
+  '@motherduck/wasm-client@0.6.6(apache-arrow@17.0.0)':
+    dependencies:
+      apache-arrow: 17.0.0
 
   '@next/env@15.1.6': {}
 

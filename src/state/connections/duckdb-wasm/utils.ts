@@ -1,6 +1,6 @@
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {FileFormat} from "@/state/data-source/duckdb-helper";
-import {WasmProvider} from "@/state/connections/duckdb-wasm/wasm-provider";
+import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 
 
 export async function downloadOPFSFile(fileName: string): Promise<void> {
@@ -133,7 +133,7 @@ export async function registerWasmFiles(duckDBWasm: DuckDBWasm, files: File[]): 
     // read the file
     for (const file of files) {
         const fileBytes = new Uint8Array(await file.arrayBuffer());
-        const {db, con} = await WasmProvider.getInstance().getCurrentWasm();
+        const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
         await db.registerFileBuffer(file.name, fileBytes);
     }
 

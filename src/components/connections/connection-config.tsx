@@ -9,7 +9,7 @@ import {Button} from "@/components/ui/button";
 import {Check, Info, LoaderCircle, RefreshCcw} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {deepEqual} from "@/platform/object-utils";
-import {clearOPFS} from "@/state/connections/duckdb-wasm/wasm-provider";
+import {clearOPFS} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 
 
 const DUCKDB_WASM_DESCRIPTION =
@@ -111,12 +111,18 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
                 label: 'This configuration is still in development.',
                 key: 'warning'
             },
-            // {
-            //     type: 'password',
-            //     label: 'MotherDuck Token',
-            //     key: 'motherduckToken',
-            //     required: true
-            // }
+            {
+                type: 'password',
+                label: 'MotherDuck Token',
+                key: 'motherduckToken',
+            },
+            {
+                type: 'custom',
+                key: 'connectionCheck',
+                customField: {
+                    render: (data) => ConnectionChecker({formData: data.formData, type: 'duckdb-wasm-motherduck'})
+                },
+            },
         ]
     }
 }
@@ -245,9 +251,8 @@ export function ConnectionConfig({spec, onSpecChange, onSpecSave}: ConnectionCon
 
     const selectedFromDefinition = FROM_DEFINITIONS[spec.type];
 
-
-
     function onTypeChange(type: DBConnectionType) {
+        console.log("Type changed to", type);
         onSpecChange(getDefaultSpec(type));
     }
 
