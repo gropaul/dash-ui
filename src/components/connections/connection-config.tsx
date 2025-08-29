@@ -1,4 +1,4 @@
-import React, {FC, ReactElement, useEffect, useRef, useState} from "react";
+import React, {FC, ReactElement, useEffect, useMemo, useRef, useState} from "react";
 import {CustomForm, FormDefinition} from "@/components/basics/input/custom-form";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {validateUrl} from "@/platform/string-validation";
@@ -6,10 +6,10 @@ import {ConnectionStringField} from "@/state/connections/duckdb-over-http/widget
 import {DBConnectionSpec, getDefaultSpec, specToConnection, typeToLabel} from "@/state/connections/configs";
 import {DBConnectionType} from "@/components/basics/files/icon-factories";
 import {Button} from "@/components/ui/button";
-import {Check, Info, LoaderCircle, RefreshCcw} from "lucide-react";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import {Check, Info, LoaderCircle, RefreshCcw, AlertTriangle} from "lucide-react";
 import {deepEqual} from "@/platform/object-utils";
 import {clearOPFS} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
+import {debounce} from "@/lib/debounce";
 
 
 const DUCKDB_WASM_DESCRIPTION =
@@ -79,11 +79,6 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
                 key: 'description'
             },
             {
-                type: 'warning',
-                label: 'This configuration is still in development.',
-                key: 'warning'
-            },
-            {
                 type: 'custom',
                 key: 'resetOpfs',
                 customField: {
@@ -114,7 +109,7 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
             {
                 type: 'password',
                 label: 'MotherDuck Token',
-                key: 'motherduckToken',
+                key: 'token',
             },
             {
                 type: 'custom',
@@ -135,7 +130,19 @@ export function ClearOpfsButton() {
     }
 
     return (
-        <Button onClick={clearOPFS}>Clear OPFS</Button>
+        <>
+            <div className=" text-sm text-muted-foreground">
+                Sometimes, especially during development, the DuckDB WASM instance can get into a bad state. You can
+                erase all data stored in the browser by clicking the button below. All local databases will be lost.
+            </div>
+            <Button
+                onClick={clearOPFS}
+                variant="destructive"
+                size={"sm"}
+            >
+                Reset Database
+            </Button>
+        </>
     )
 }
 
@@ -143,97 +150,118 @@ export interface ConnectionCheckerProps {
     formData: any;
     type: DBConnectionType;
 }
-
 export function ConnectionChecker({formData, type}: ConnectionCheckerProps) {
     const [working, setWorking] = useState<boolean | null>(null);
     const [message, setMessage] = useState<string | undefined>(undefined);
 
-    // Remember the last used spec so we don't re-check unless it actually changes
+    // Persist across renders
+    const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastSpec = useRef<{ type: DBConnectionType; formData: any } | null>(null);
+    const runId = useRef(0); // prevents stale async results from updating state
 
-    // Runs on every render, but only triggers a connection check if there's a real change
     useEffect(() => {
         const specChanged =
             !lastSpec.current ||
             lastSpec.current.type !== type ||
             !deepEqual(lastSpec.current.formData, formData);
+
         if (specChanged) {
-            lastSpec.current = {type, formData};
-            triggerConnectionCheck();
+            lastSpec.current = { type, formData };
+            triggerConnectionCheckDebounced();
         }
     }, [type, formData]);
 
-    // We extract the logic for actually doing the check
+    // Clear any pending timer on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceTimer.current) {
+                clearTimeout(debounceTimer.current);
+                debounceTimer.current = null;
+            }
+            // In case a request is mid-flight, bump the runId so its result is ignored
+            runId.current++;
+        };
+    }, []);
+
+    function triggerConnectionCheckDebounced(delay = 500) {
+        if (debounceTimer.current) {
+            clearTimeout(debounceTimer.current);
+        }
+        debounceTimer.current = setTimeout(() => {
+            triggerConnectionCheck();
+        }, delay);
+    }
+
     async function triggerConnectionCheck() {
+        const thisRun = ++runId.current;
+
         // Immediately show "Testing..."
         setWorking(null);
         setMessage(undefined);
 
-        // Wait a bit so we don't spam the server with every tiny keystroke
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        const spec: DBConnectionSpec = { type, config: formData };
+        const con = specToConnection(spec);
 
-        const spec: DBConnectionSpec = {
-            type: type,
-            config: formData,
-        };
+        try {
+            const status = await con.initialise();
 
-        const con = specToConnection(spec)
-        const status = await con.initialise();
-        setWorking(status.state === "connected");
-        setMessage(status.message);
-
-        await con.destroy();
-
+            // Only apply if this is still the latest run
+            if (thisRun === runId.current) {
+                setWorking(status.state === "connected");
+                setMessage(status.message);
+            }
+        } finally {
+            await con.destroy();
+        }
     }
 
-    // The Refresh button calls the same function, ignoring the lastSpec check
     function handleManualRefresh(event: React.MouseEvent) {
         event.stopPropagation();
         event.preventDefault();
 
-        // If you want to treat the refresh as a *brand-new* check, reset lastSpec
-        lastSpec.current = {type, formData};
-        triggerConnectionCheck();
+        lastSpec.current = { type, formData };
+        triggerConnectionCheckDebounced();
     }
 
     return (
         <div>
             <div className="flex text-sm items-center h-6 group transition-opacity duration-200 gap-2">
-                <div className="inline-flex items-center space-x-2 py-2"
-                     style={{
-                         color: working === null ? '#888888' : working === true ? '#16a34a' : '#dc2626'
-                     }}
+                <div
+                    className="inline-flex items-center space-x-2 py-2"
+                    style={{
+                        color: working === null ? '#888888' : working === true ? '#16a34a' : '#dc2626'
+                    }}
                 >
-                            <span className="text-sm font-medium">
-                                {working === null && 'Testing ...'}
-                                {working === true && 'Test successful'}
-                                {working === false && 'Test failed'}
-                            </span>
+                    <span className="text-sm font-medium">
+                        {working === null && 'Testing ...'}
+                        {working === true && 'Test successful'}
+                        {working === false && 'Test failed'}
+                    </span>
                     <div className="flex-shrink-0 ">
                         {working === null && <LoaderCircle size={16} className="animate-spin" />}
-                        {working === true && <Check size={16}/>}
-                        {working === false && <Info size={16}/>}
+                        {working === true && <Check size={16} />}
+                        {working === false && <AlertTriangle className={'mb-1'} size={16} />}
                     </div>
-                    {}
                 </div>
                 <Button
                     className="group-hover:opacity-100 opacity-0 transition-opacity duration-200"
-                    style={{width: 24, height: 24}}
+                    style={{ width: 24, height: 24 }}
                     variant="ghost"
                     size="icon"
                     onClick={handleManualRefresh}
                 >
-                    <RefreshCcw size={16}/>
+                    <RefreshCcw size={16} />
                 </Button>
             </div>
-            {message &&
+            {message && (
                 <div className="text-xs text-muted-foreground mt-1">
                     {message}
                 </div>
-            }
+            )}
         </div>
     );
 }
+
 
 export interface ConnectionConfigProps {
     spec: DBConnectionSpec;

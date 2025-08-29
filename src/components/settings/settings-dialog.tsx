@@ -201,19 +201,23 @@ export function TabForceOpenIcon(props: TabForceOpenIconProps) {
     }
     const reasons = props.forceOpenReasons.filter(reason => reason.tab === props.tabId);
     const message = reasons.map(reason => reason.message).join(', ');
+
+
     if (reasons.length > 0) {
         return (
-            <Tooltip>
-                <TooltipTrigger>
-                    <AlertCircle className="pl-2 text-red-500">
-                    </AlertCircle>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <div className="max-w-xs">
-                        {message}
-                    </div>
-                </TooltipContent>
-            </Tooltip>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger>
+                        <AlertCircle className="pl-2 text-red-500">
+                        </AlertCircle>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <div className="max-w-xs">
+                            {message}
+                        </div>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
         );
     }

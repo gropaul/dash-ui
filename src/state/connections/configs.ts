@@ -73,7 +73,6 @@ export function specToConnection(spec: DBConnectionSpec): DatabaseConnection {
             return new DuckDBWasm(spec.config as DuckDBWasmConfig, DATABASE_CONNECTION_ID_DUCKDB_WASM);
         case "duckdb-wasm-motherduck":
             // NEXT_PUBLIC_MD_API_KEY
-            MdWasmProvider.getInstance().setConfig({token: process.env.NEXT_PUBLIC_MD_API_KEY || ""});
             return new MdWasm(spec.config as MdWasmConnectionConfig, DATABASE_CONNECTION_ID_DUCKDB_WASM);
         }
 }
