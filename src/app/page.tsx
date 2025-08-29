@@ -36,7 +36,7 @@ export default function Home() {
     }
 
     if (!initComplete) {
-        return <div className="h-screen w-full flex items-center justify-center">
+        return <div className="100dvh w-full flex items-center justify-center">
             <div className="flex flex-col items-center justify-center space-y-2">
                 <Avatar
                     className={'mt-2'}
@@ -53,7 +53,7 @@ export default function Home() {
 
     return (
         <>
-            <FileDropRelation className="h-screen w-full flex flex-col">
+            <FileDropRelation className="100dvh w-full flex flex-col">
                 <TabbedLayout/>
             </FileDropRelation>
             <AlertDialog
