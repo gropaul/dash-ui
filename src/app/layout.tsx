@@ -24,7 +24,7 @@ export default function RootLayout({
             )}
         >
         <main>
-            <div className="w-screen h-screen">
+            <div className="w-full min-h-[100dvh] supports-[height:100dvh]:min-h-dvh">
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"
@@ -33,7 +33,7 @@ export default function RootLayout({
                 >
                     <ResponsiveModeProvider>
                         <SettingsProvider>
-                            <div className="flex flex-row h-screen w-screen">
+                            <div className="flex flex-row min-h-[100dvh] supports-[height:100dvh]:min-h-dvh w-full">
                                 {children}
                             </div>
                         </SettingsProvider>
