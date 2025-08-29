@@ -4,6 +4,7 @@ import {RelationViewHeaderBorder} from "@/components/basics/basic-view/view-head
 import {H5} from "@/components/ui/typography";
 import {ViewPathBreadcrumb} from "@/components/basics/basic-view/view-path-breadcrumb";
 import {EditableTextBase} from "@/components/basics/input/editable-text-base";
+import {useIsMobile} from "@/components/provider/responsive-node-provider";
 
 export interface ViewHeaderProps {
     title: string;
@@ -29,6 +30,8 @@ export function ViewHeader({
                                onSubtitleChange,
                            }: ViewHeaderProps) {
 
+    const isMobile = useIsMobile();
+
     return (
         <>
             <div className="flex flex-row items-center justify-between w-full h-[48px] pl-4 pr-2">
@@ -39,7 +42,7 @@ export function ViewHeader({
                         <EditableTextBase text={title} onTextChange={onTitleChange} />
                     </H5>
 
-                    <ViewPathBreadcrumb path={path} onClick={onPathClick} />
+                    { !isMobile && <ViewPathBreadcrumb path={path} onClick={onPathClick} /> }
 
                     {subtitle && (
                         <EditableTextBase text={subtitle} onTextChange={onSubtitleChange} />

@@ -1,8 +1,8 @@
 import {ReactNode} from "react";
-import {ContextMenuItem} from "@/components/ui/context-menu";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {Copy} from 'lucide-react';
 import {ConnectionsService} from "@/state/connections/connections-service";
+import {ResponsiveMenuItem} from "@/components/basics/responsive-menu/responsive-menu";
 
 interface ContextMenuFactoryProps {
     tree_id_path: string[];
@@ -50,19 +50,19 @@ export default function ContextMenuFactory(props: ContextMenuFactoryProps): Reac
 
     return (
         <>
-            <ContextMenuItem onClick={onCopyName}>
+            <ResponsiveMenuItem onClick={onCopyName}>
                 <Copy size={16} style={{marginRight: 8}}/>
                 Copy Name
-            </ContextMenuItem>
-            <ContextMenuItem onClick={onCopyPath}>
+            </ResponsiveMenuItem>
+            <ResponsiveMenuItem onClick={onCopyPath}>
                 <Copy size={16} style={{opacity: 0, marginRight: 8}}/>
                 Copy Path
-            </ContextMenuItem>
+            </ResponsiveMenuItem>
             {props.tree.type === 'file' && (
-                <ContextMenuItem onClick={onCopyContent}>
+                <ResponsiveMenuItem onClick={onCopyContent}>
                     <Copy size={16} style={{opacity: 0,  marginRight: 8}}/>
                     Copy Content
-                </ContextMenuItem>
+                </ResponsiveMenuItem>
             )}
             {props.tree.type === 'file' && (
                 <>

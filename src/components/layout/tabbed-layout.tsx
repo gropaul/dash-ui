@@ -14,7 +14,7 @@ import {NavigationBarDesktop, NavigationBarContent} from "@/components/layout/na
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
 import {WorkflowTab} from "@/components/workflow/workflow-tab";
-import {useIsMobile} from "@/hooks/use-is-mobile";
+import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {NavigationBarMobile} from "@/components/layout/navigation-bar-mobile";
 
 

@@ -5,6 +5,7 @@ import SettingsProvider from "@/components/provider/settings-provider";
 import {ThemeProvider} from "@/components/provider/theme-provider";
 import {cn} from "@/lib/utils";
 import {Toaster} from "sonner";
+import {ResponsiveModeProvider} from "@/components/provider/responsive-node-provider";
 
 export default function RootLayout({
                                        children,
@@ -30,11 +31,13 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <SettingsProvider>
-                        <div className="flex flex-row h-screen w-screen">
-                            {children}
-                        </div>
-                    </SettingsProvider>
+                    <ResponsiveModeProvider>
+                        <SettingsProvider>
+                            <div className="flex flex-row h-screen w-screen">
+                                {children}
+                            </div>
+                        </SettingsProvider>
+                    </ResponsiveModeProvider>
                 </ThemeProvider>
             </div>
             <Toaster/>

@@ -4,8 +4,7 @@ import {ChartContentWrapper} from "@/components/relation/chart/chart-content-wra
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {ChartConfigView} from "@/components/relation/chart/chart-config-view";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
-import {useIsMobile} from "@/hooks/use-is-mobile";
-import {ScrollArea} from "@/components/ui/scroll-area";
+import {useIsMobile} from "@/components/provider/responsive-node-provider";
 
 
 interface ChartConfigDialogProps extends RelationViewContentProps {

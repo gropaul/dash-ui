@@ -5,6 +5,7 @@ import {Copy, Edit2, Trash} from 'lucide-react';
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {quoteString} from "@/lib/utils";
 import {useDataSourcesState} from "@/state/data-sources.state";
+import {ResponsiveMenuItem, ResponsiveMenuSeparator} from "@/components/basics/responsive-menu/responsive-menu";
 
 interface ContextMenuFactoryProps {
     tree_id_path: string[];
@@ -131,24 +132,24 @@ export default function ContextMenuFactory(props: ContextMenuFactoryProps): Reac
     return (
         <>
             {ELEMENTS_FOR_COPY_NAME.includes(elementType) && (
-                <ContextMenuItem onClick={onCopyName}>
+                <ResponsiveMenuItem onClick={onCopyName}>
                     <Copy size={16} style={{marginRight: 8}}/>
                     Copy Name
-                </ContextMenuItem>
+                </ResponsiveMenuItem>
             )}
             {ELEMENTS_FOR_RENAME.includes(elementType) && (
-                <ContextMenuItem onClick={renameElement}>
+                <ResponsiveMenuItem onClick={renameElement}>
                     <Edit2 size={16} style={{marginRight: 8}}/>
                     Rename {elementType.charAt(0).toUpperCase() + elementType.slice(1)}
-                </ContextMenuItem>
+                </ResponsiveMenuItem>
             )}
             {ELEMENTS_FOR_DELETE.includes(elementType) && (
                 <>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem onClick={deleteElement} className="text-red-500">
+                    <ResponsiveMenuSeparator />
+                    <ResponsiveMenuItem onClick={deleteElement} className="text-red-500">
                         <Trash size={16} style={{marginRight: 8}}/>
                         <span>Delete {elementType.charAt(0).toUpperCase() + elementType.slice(1)}</span>
-                    </ContextMenuItem>
+                    </ResponsiveMenuItem>
                 </>
             )}
             {/* Add more actions as needed */}

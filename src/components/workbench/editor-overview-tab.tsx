@@ -233,7 +233,7 @@ ${relationNames.join(', ')}`;
     function onDuplicate(path: string[], tree: TreeNode) {
         const parentPath = path.slice(0, path.length - 1);
 
-        if (tree.type === 'relation') {
+        if (tree.type === 'relations') {
             const relation = relations[tree.id];
             const newSource: RelationSource = {
                 type: 'query',
@@ -253,7 +253,7 @@ ${relationNames.join(', ')}`;
             }
             // add the relation to the parent path
             addNewRelation(MAIN_CONNECTION_ID, parentPath, newRelation);
-        } else if (tree.type === 'dashboard') {
+        } else if (tree.type === 'dashboards') {
             const dashboard = dashboards[tree.id];
             const newDashboard = {
                 ...dashboard,
@@ -269,7 +269,7 @@ ${relationNames.join(', ')}`;
     }
 
     function onAddToDashboard(path: string[], tree: TreeNode) {
-        if (tree.type === 'relation') {
+        if (tree.type === 'relations') {
             const relation = relations[tree.id];
             setDashboardCommand({
                 open: true,

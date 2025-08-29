@@ -9,7 +9,7 @@ import {AlertCircle, ArrowLeft, Database, Info, Share2, Wand2} from "lucide-reac
 import {ShareContent} from "@/components/settings/share-content";
 import {LanguageModelContent} from "@/components/settings/language-model-content";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
-import {useIsMobile} from "@/hooks/use-is-mobile";
+import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 import {MobileAppBar} from "@/components/layout/mobile-app-bar";

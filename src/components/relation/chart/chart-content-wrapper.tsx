@@ -8,7 +8,7 @@ import {useRef} from "react";
 import {ChartContentOverlay} from "@/components/relation/chart/chart-content/chart-content-overlay";
 import {useRelationData} from "@/state/relations-data.state";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
-import {useIsMobile} from "@/hooks/use-is-mobile";
+import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 
 export interface ChartContentWrapperProps extends RelationViewContentProps {

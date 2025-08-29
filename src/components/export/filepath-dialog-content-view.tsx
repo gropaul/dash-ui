@@ -16,7 +16,10 @@ import {FilepathDialogProps} from "@/components/export/filepath-dialog";
 
 export interface FilepathDialogContentViewProps extends FilepathDialogProps {
     dialogTriggerRef: React.RefObject<HTMLButtonElement>;
+    basePath?: string;
+    onFilePathSelected?: (filePath: string) => void;
 }
+//todo: this needs to be done
 
 export interface FilepathDisplayContent extends DirectoryDisplayContent {
     filePath: string;
@@ -29,7 +32,7 @@ export function FilepathDialogContentView(props: FilepathDialogContentViewProps)
     async function setContentOfPath(path: string, filePath?: string) {
         const newContent = await getDirectoryContent(path, 'lastModified');
 
-        const fileName = 'export.' + props.fileFormat;
+        const fileName = 'export.' + props.state.fileFormat;
         const filePathNotNull = filePath ?? concatPaths(path, fileName);
         setDirectoryContent({
             dirPath: path,

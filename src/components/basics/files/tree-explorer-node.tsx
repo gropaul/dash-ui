@@ -1,10 +1,14 @@
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import React, {useState} from "react";
-import {ContextMenu, ContextMenuContent, ContextMenuTrigger} from "@/components/ui/context-menu";
 import {cn} from "@/lib/utils";
 import {ChevronDown, ChevronRight} from "lucide-react";
 import {SelectionMode, TreeContextMenuFactory} from "@/components/basics/files/tree-explorer";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
+import {
+    ResponsiveMenu,
+    ResponsiveMenuContent,
+    ResponsiveMenuTrigger
+} from "@/components/basics/responsive-menu/responsive-menu";
 
 export interface TreeExplorerNodeProps {
     tree: TreeNode;
@@ -107,8 +111,8 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
     return (
         <>
             {/* Node content */}
-            <ContextMenu>
-                <ContextMenuTrigger disabled={!props.contextMenuFactory}>
+            <ResponsiveMenu>
+                <ResponsiveMenuTrigger disabled={!props.contextMenuFactory} className={'w-full'}>
                     {/* Node content */}
                     <div
                         className={cn('')}
@@ -147,12 +151,12 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                             </div>
                         </div>
                     </div>
-                </ContextMenuTrigger>
-                <ContextMenuContent className={'min-w-40'}>
+                </ResponsiveMenuTrigger>
+                <ResponsiveMenuContent className={'min-w-40'}>
                     {props.contextMenuFactory && props.contextMenuFactory(current_tree_id_path, props.tree)}
-                </ContextMenuContent>
+                </ResponsiveMenuContent>
 
-            </ContextMenu>
+            </ResponsiveMenu>
             {isExpanded && (
                 childrenLoaded ?
                     <>

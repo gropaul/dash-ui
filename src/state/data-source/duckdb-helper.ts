@@ -121,6 +121,7 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
                        t.table_name = c.table_name and
                        t.table_schema = c.table_schema and
                        t.table_catalog = c.table_catalog
+                   WHERE c.table_schema NOT IN ('dash')
                    ORDER BY c.table_catalog, c.table_name, c.ordinal_position;
     `;
 

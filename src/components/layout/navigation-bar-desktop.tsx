@@ -9,7 +9,7 @@ import {AvailableTab, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {ChatTab} from "@/components/chat/chat-tab";
-import {useIsMobile} from "@/hooks/use-is-mobile";
+import {useIsMobile} from "@/components/provider/responsive-node-provider";
 
 export interface NavigationBarProps {
     selectedTabs: AvailableTab[];

@@ -53,7 +53,7 @@ export function removeTab(model: Model, tabId: string): void {
 }
 
 export function renameTab(model: Model, tabId: string, newName: string): void {
-    model.doAction(Actions.renameTab(tabId, newName));
+    model.doAction(Actions.renameTab(tabId, truncateString(newName)));
 }
 
 // Tab Manipulation
@@ -79,12 +79,17 @@ const RELATION_ID_NAME: Record<RelationZustandEntityType, string> = {
     'workflows': 'workflowId',
 }
 
+export function truncateString(str: string, maxLength: number = 30): string {
+    if (str.length <= maxLength) return str;
+    return str.substring(0, maxLength - 3) + '...';
+}
+
 export function addEntityToLayout(model: Model, entityType: RelationZustandEntityType, entity: RelationZustandEntity): string {
 
     const component = RELATION_COMPONENT_MAP[entityType];
     const displayName = GetEntityDisplayName(entity);
     const nodeId = entity.id
-    const nodeName = displayName || 'Unnamed Entity';
+    const nodeName = truncateString( displayName || 'Unnamed Entity')
 
     const idKey = RELATION_ID_NAME[entityType];
 

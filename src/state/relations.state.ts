@@ -533,12 +533,12 @@ export const useRelationsState = createWithEqualityFn(
                     if (!elementToRemove) throw new Error('Element to remove not found');
 
                     IterateAll([elementToRemove], (node, id_path) => {
-                        if (node.type === 'dashboard') {
+                        if (node.type === 'dashboards') {
                             if (useGUIState.getState().isTabOpen(node.id)) {
                                 useGUIState.getState().removeTab(node.id);
                             }
                             delete newDashboards[node.id];
-                        } else if (node.type === 'relation') {
+                        } else if (node.type === 'relations') {
                             if (useGUIState.getState().isTabOpen(node.id)) {
                                 useGUIState.getState().removeTab(node.id);
                             }

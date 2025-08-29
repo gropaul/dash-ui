@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {ViewQueryParameters} from "@/model/relation-state";
-import {useIsMobile} from "@/hooks/use-is-mobile";
+import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 
 function formatNumber(num: number): string {
