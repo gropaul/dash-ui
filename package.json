@@ -35,7 +35,6 @@
     "@editorjs/table": "^2.4.3",
     "@editorjs/warning": "^1.4.1",
     "@monaco-editor/react": "^4.6.0",
-    "@motherduck/wasm-client": "^0.6.6",
     "@next/env": "^15.0.3",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.5",
