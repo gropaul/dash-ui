@@ -572,13 +572,20 @@ export const useRelationsState = createWithEqualityFn(
             storage: InitializeStorage(),
             onRehydrateStorage: (state => {
                 function callback(state: any, error: any) {
-                    if (state === undefined) {
+                    console.log("Rehydration of relations state completed.", {state, error});
+                    if (error){
+                        console.error(error)
+                    }
+                    if (state === undefined ){
                         // if the state is undefined, remove all tabs
-                        useGUIState.getState().keepTabsOfIds([]);
+                        useInitState.getState().onRelationStateLoadedFromConnection([])
                         return INIT;
                     }
 
+
+
                     const hasDuckDBStorage = useRelationsHydrationState.getState().hasDuckDBStorage
+                    console.log('Has DuckDB Storage:', hasDuckDBStorage);
                     if (hasDuckDBStorage) {
 
                         // get the list of all possible open tabs
@@ -606,11 +613,8 @@ export const useRelationsState = createWithEqualityFn(
                         }
 
                         useInitState.getState().onRelationStateLoadedFromConnection(ids)
-
-
                     }
                 }
-
 
                 return callback;
             })

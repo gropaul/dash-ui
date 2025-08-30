@@ -95,8 +95,17 @@ export class StorageDuckAPI {
         const tableName = GetFullNameDestination(storageInfo.destination);
         // create table if not exists
         if (!this.createdTables.includes(tableName)) {
-            await this.executeQuery(`INSTALL json`); // load the json extension
-            await this.executeQuery(`LOAD json`); // load the json extension
+            try {
+                await this.executeQuery(`INSTALL json`); // load the json extension
+            } catch (e) {
+                console.warn('Unable to install json. As long is loading works, this is not a problem')
+            }
+
+            try {
+                await this.executeQuery(`LOAD json`); // load the json extension
+            } catch (e) {
+                console.error('Unable to load json exception. This means we can not store stuff')
+            }
 
             // create schema dash if not exists
             await this.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${storageInfo.destination.schemaName};`);
@@ -140,8 +149,7 @@ export class StorageDuckAPI {
         // only update if the version is still valid
         const storageInfo = await this.getActiveStorageInfo()
         const tableName = GetFullNameDestination(storageInfo.destination);
-        const data = await this.executeQuery(`SELECT version
-                                              FROM ${tableName};`);
+        const data = await this.executeQuery(`SELECT version FROM ${tableName};`);
         let versionCode: number | null = null;
         if (data.rows.length > 0) {
             versionCode = new Date(data.rows[0][0]).getTime();
@@ -165,7 +173,10 @@ export class StorageDuckAPI {
             return null;
         }
 
-        const jsonString = data.rows[0][0];
+        const json = data.rows[0][0];
+        // if this is not a string, we have to serialize it. WASM returns a string, while http returns json
+        const jsonString = typeof json === "string" ? json : JSON.stringify(json);
+
         const date = data.rows[0][1];
         const versionCode = new Date(date).getTime();
 
@@ -218,7 +229,6 @@ export class StorageDuckAPI {
         }
     }
 }
-
 
 
 export const duckdbOverHttpStorageProvider: StateStorage = {

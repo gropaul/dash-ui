@@ -1,5 +1,5 @@
 export interface QueryResponse {
-    meta: { name: string, type: string }[]
-    data: any[][]
+    columns: { name: string, type: string }[]
+    rows: any[][]
     stats: { rows: number }
 }
