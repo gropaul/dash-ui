@@ -20,7 +20,7 @@ export interface DecorationMenuProps {
 }
 
 export function DataAxisDecorationMenu(props: DecorationMenuProps) {
-    const {decoration, setDecoration} = props;
+    const {decoration} = props;
 
     return (
         <DropdownMenu>

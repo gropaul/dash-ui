@@ -386,7 +386,7 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 updateRelationDataWithParams: async (relationId, query) => {
-
+                    console.log('Updating relation data with params:', relationId, query);
                     const {relations} = get(); // Get the current state
 
                     const relation = relations[relationId]; // Retrieve the specific relation

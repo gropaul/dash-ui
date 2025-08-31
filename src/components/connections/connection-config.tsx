@@ -9,7 +9,6 @@ import {Button} from "@/components/ui/button";
 import {Check, Info, LoaderCircle, RefreshCcw, AlertTriangle} from "lucide-react";
 import {deepEqual} from "@/platform/object-utils";
 import {clearOPFS} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
-import {debounce} from "@/lib/debounce";
 
 
 const DUCKDB_WASM_DESCRIPTION =

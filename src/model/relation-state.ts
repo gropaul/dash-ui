@@ -314,31 +314,51 @@ function buildQueries(
 export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): [string, string?] {
     const chartViewParams = viewParams.chart;
 
-    const baseQuery = `
-        SELECT *
-        FROM ${finalQueryAsSubQuery};
-    `;
+    const schemaQuery = `SELECT * FROM ${finalQueryAsSubQuery} LIMIT 1;`;
 
     if (chartViewParams.groupBy && chartViewParams.xAxis && chartViewParams.yAxes?.length === 1) {
         const groupBy = chartViewParams.groupBy;
         const xAxis = chartViewParams.xAxis;
         const yAxis = chartViewParams.yAxes[0];
 
-        // in this case, we need the base table to get the schema
-        const schemaQuery = `
-            SELECT *
-            FROM ${finalQueryAsSubQuery} LIMIT 1;
+        const viewQuery = `
+            WITH data AS (
+                SELECT ${xAxis}, ${groupBy}, ${yAxis}
+                FROM ${finalQueryAsSubQuery}
+            ),
+            dash_row_number_ids AS (
+                SELECT range as dash_row_number_id FROM range((SELECT COUNT(*) FROM data))
+            ),
+            data_with_ids AS (
+                SELECT d.*, dash_row_number_ids.dash_row_number_id
+                FROM data d
+                POSITIONAL JOIN dash_row_number_ids 
+            ), 
+            data_with_ids_pivot AS (
+                PIVOT data_with_ids
+                ON ${groupBy}
+                USING FIRST(${yAxis})
+                GROUP BY ${xAxis}
+                ORDER BY ${xAxis}
+            )
+            SELECT COLUMNS(c -> c NOT LIKE '%dash_row_number_id%') FROM data_with_ids_pivot;
         `;
+        return [viewQuery, schemaQuery];
+    } else if (chartViewParams.xAxis && chartViewParams.yAxes && chartViewParams.yAxes.length > 0) {
+        const xAxis = chartViewParams.xAxis;
+        const yAxes = chartViewParams.yAxes.join(', ');
 
-        return [`
-            WITH data AS (SELECT ${xAxis}, ${groupBy}, ${yAxis}
-                          FROM ${finalQueryAsSubQuery})
-                PIVOT data
-            ON ${groupBy}
-                USING FIRST (${yAxis});
-        `, schemaQuery];
+        const viewQuery = `
+            SELECT ${xAxis}, ${yAxes}
+            FROM ${finalQueryAsSubQuery}
+        `
+
+        return [viewQuery, schemaQuery];
+    } else {
+        console.warn('Chart query not fully configured, falling back to table view');
+        return [`SELECT * FROM ${finalQueryAsSubQuery}`, schemaQuery];
     }
-    return [baseQuery, undefined];
+
 }
 
 export function buildTableQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): string {
@@ -409,9 +429,9 @@ export async function getQueryFromParams(
     } = buildQueries(relation, query, baseSQL, inputManager);
 
     // Then do your async check:
-    const executable = await ConnectionsService.getInstance().checkIfQueryIsExecutable(
-        viewQuery
-    );
+    const executable = await ConnectionsService
+        .getInstance()
+        .checkIfQueryIsExecutable(viewQuery);
 
     // If not executable, fallback
     return {

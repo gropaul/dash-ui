@@ -182,27 +182,46 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         });
     }
 
+    function arraysEqual(a?: string[], b?: string[]): boolean {
+        if (a === b) return true; // covers both null and same reference
+        if (!a || !b) return false; // one is null, the other not
+        if (a.length !== b.length) return false;
+        return a.every((v, i) => v === b[i]);
+    }
+
+
     async function updateDataForGroupBy(update: DeepPartial<RelationViewState>) {
+
+        const oldXAxs = props.relationState.query.viewParameters.chart.xAxis;
+        const oldYAxisIds = props.relationState.query.viewParameters.chart.yAxes;
+        const oldGroupBy = props.relationState.query.viewParameters.chart.groupBy
 
         const copy = deepClone(update);
         const updated = safeDeepUpdate( props.relationState.viewState, copy);
 
-        const xAxisId = updated.chartState?.chart?.plot?.cartesian?.xAxis?.columnId;
-        const yAxisId = updated.chartState?.chart?.plot?.cartesian?.yAxes?.[0]?.columnId;
-        const groupById = updated.chartState?.chart?.plot?.cartesian?.groupBy?.columnId;
+        const newXAxis = updated.chartState?.chart?.plot?.cartesian?.xAxis?.columnId;
+        const newYAxes = updated.chartState?.chart?.plot?.cartesian?.yAxes?.map((x) => x.columnId);
+        const newGroupBy = updated.chartState?.chart?.plot?.cartesian?.groupBy?.columnId;
 
-        const xAxisChanged = props.relationState.query.viewParameters.chart.xAxis !== xAxisId;
-        const yAxisChanged = props.relationState.query.viewParameters.chart.yAxes?.[0] !== yAxisId;
-        const groupByChanged = props.relationState.query.viewParameters.chart.groupBy !== groupById;
+        console.log('There are some errors here')
+        const xAxisChanged = newXAxis !== oldXAxs;
+        const yAxisChanged = !arraysEqual(newYAxes, oldYAxisIds);
+        const groupByChanged = newGroupBy !== oldGroupBy;
+
+        console.log('update', update)
+        console.log('xAxisChanged', xAxisChanged, newXAxis, oldXAxs);
+        console.log('yAxisChanged', yAxisChanged, newYAxes, oldYAxisIds);
+        console.log('groupByChanged', groupByChanged);
 
         // Only update if the groupById is different and all data is ready
-        if ((xAxisChanged || yAxisChanged || groupByChanged) && xAxisId && yAxisId) {
+        if ((xAxisChanged || yAxisChanged || groupByChanged) && newXAxis && newYAxes ) {
+            console.log('updateRelationDataWithParams')
             await props.updateRelationDataWithParams(relationId, {
                 ...props.relationState.query.viewParameters,
                 chart: {
-                    xAxis: xAxisId,
-                    yAxes: [yAxisId],
-                    groupBy: groupById,
+                    xAxis: newXAxis,
+                    yAxes: [newYAxes[0]],
+                    groupBy: newGroupBy,
                 }
             })
         }
@@ -365,7 +384,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                         <SelectItem value="auto">Auto</SelectItem>
                         <SelectItem value="category">Category</SelectItem>
                         <SelectItem value="time">Time</SelectItem>
-                        <SelectItem value="value">Value</SelectItem>
+                        <SelectItem value="value">Numeric</SelectItem>
                     </SelectContent>
                 </Select>
                 {

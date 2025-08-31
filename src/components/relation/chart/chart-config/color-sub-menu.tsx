@@ -1,23 +1,14 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {ColorResult, SketchPicker} from "react-color";
 import {DEFAULT_COLORS} from "@/platform/global-data";
-
 import {Label} from "@/components/ui/label";
-
 import {
     DropdownMenuPortal,
     DropdownMenuSub,
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import {debounce} from "@/lib/debounce";
-
-interface ColorSubMenuProps {
-    label: string;
-    color: string; // global color
-    debounceMs?: number; // default 120ms
-    setColor: (color: ColorResult) => void;
-}
+import {throttleLatest} from "@/lib/throttle-latest";
 
 interface ColorSubMenuProps {
     label: string;
@@ -27,7 +18,7 @@ interface ColorSubMenuProps {
 }
 
 export function ColorSubMenu(props: ColorSubMenuProps) {
-    const {color: globalColor, setColor, debounceMs = 120} = props;
+    const { color: globalColor, setColor, debounceMs = props.debounceMs ?? 300 } = props;
 
     // local color state to update instantly
     const [localColor, setLocalColor] = useState(globalColor);
@@ -37,11 +28,18 @@ export function ColorSubMenu(props: ColorSubMenuProps) {
         setLocalColor(globalColor);
     }, [globalColor]);
 
-    // debounced setter for global updates
-    const debouncedSetColor = useMemo(
-        () => debounce(setColor, debounceMs),
-        [setColor, debounceMs]
-    );
+    // trailing throttle: emit at most once per interval with the latest value
+    const throttledSetColor = useMemo(() => {
+
+        return throttleLatest(setColor, debounceMs);
+    }, [setColor, debounceMs]);
+
+    // cancel pending flushes on unmount or when deps change
+    useEffect(() => {
+        return () => {
+            throttledSetColor.cancel?.();
+        };
+    }, [throttledSetColor]);
 
     return (
         <DropdownMenuSub>
@@ -57,16 +55,12 @@ export function ColorSubMenu(props: ColorSubMenuProps) {
             <DropdownMenuPortal>
                 <DropdownMenuSubContent>
                     <SketchPicker
-                        styles={{
-                            default: {
-                                picker: { boxShadow: "none", border: "none" },
-                            },
-                        }}
+                        styles={{ default: { picker: { boxShadow: "none", border: "none" } } }}
                         disableAlpha
                         color={localColor}
                         onChange={(color) => {
-                            setLocalColor(color.hex); // instant local update
-                            debouncedSetColor(color); // debounced global update
+                            setLocalColor(color.hex);     // instant local update
+                            throttledSetColor(color);     // at most one global update per interval (latest wins)
                         }}
                         presetColors={DEFAULT_COLORS}
                     />
