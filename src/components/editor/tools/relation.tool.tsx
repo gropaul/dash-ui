@@ -3,7 +3,7 @@ import type {API, BlockToolConstructorOptions} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
 import {RelationState, ViewQueryParameters} from '@/model/relation-state';
-import {DashboardDataView, updateRelationDataWithParamsSkeleton} from '@/components/dashboard/dashboard-data-view';
+import {DashboardDataView} from '@/components/dashboard/dashboard-data-view';
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {RelationViewType} from "@/model/relation-view-state";
@@ -17,6 +17,7 @@ import {
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
+import {updateRelationDataWithParams} from "@/state/relations/functions";
 
 export interface RelationBlockData extends RelationState {
 }
@@ -94,8 +95,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
             ...currentPrams,
             type: viewType,
         }
-
-        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, this.updateAndRender.bind(this), this.inputManager);
+        await updateRelationDataWithParams(this.data, newParams, this.updateAndRender.bind(this), this.inputManager);
     }
 
     public showChartSettings(show: boolean) {

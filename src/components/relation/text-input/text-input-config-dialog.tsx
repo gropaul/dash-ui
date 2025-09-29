@@ -14,14 +14,12 @@ interface SelectConfigDialogProps extends RelationViewProps {
 }
 
 export function TextInputConfigDialog(props: SelectConfigDialogProps) {
-    const { relationState, updateRelationViewState } = props;
+    const {relationState, updateRelationViewState} = props;
     const selectState = relationState.viewState.inputTextState;
     const relationId = relationState.id;
 
-    function updateSelectViewState(selectState: Partial<InputTextViewState>){
-        props.updateRelationViewState(relationId, {
-            inputTextState: selectState,
-        });
+    function updateSelectViewState(selectState: Partial<InputTextViewState>) {
+        props.updateRelationViewState({inputTextState: selectState});
     }
 
     const copyToClipboard = (text: string) => {
@@ -49,7 +47,7 @@ export function TextInputConfigDialog(props: SelectConfigDialogProps) {
                         <Input
                             id="name"
                             value={selectState.name}
-                            onChange={(e) => updateSelectViewState({ name: e.target.value })}
+                            onChange={(e) => updateSelectViewState({name: e.target.value})}
                             className="col-span-3"
                         />
                     </div>
@@ -60,7 +58,7 @@ export function TextInputConfigDialog(props: SelectConfigDialogProps) {
                         <Input
                             id="placeholder"
                             value={selectState.placeholder}
-                            onChange={(e) => updateSelectViewState({ placeholder: e.target.value })}
+                            onChange={(e) => updateSelectViewState({placeholder: e.target.value})}
                             className="col-span-3"
                         />
                     </div>
@@ -88,13 +86,13 @@ export function TextInputConfigDialog(props: SelectConfigDialogProps) {
                                 className="font-mono"
                                 disabled
                             />
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
+                            <Button
+                                variant="ghost"
+                                size="icon"
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2"
                                 onClick={() => copyToClipboard(exampleQuery)}
                             >
-                                <Copy className="h-4 w-4" />
+                                <Copy className="h-4 w-4"/>
                             </Button>
                         </div>
                     </div>

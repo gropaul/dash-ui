@@ -13,7 +13,7 @@ export interface ChartContentOverlayProps extends MyChartProps {
     view: ConfigViewState;
     relationId: string;
 
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void;
+    updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void;
     onExportAsSVG?: () => void;
     onExportAsPNG?: () => void;
 }
@@ -22,7 +22,7 @@ export function ChartContentOverlay(props: ChartContentOverlayProps) {
     const showChartSettings = props.view.showConfig;
 
     function updateShowConfig() {
-        props.updateRelationViewState(props.relationId, {
+        props.updateRelationViewState({
             chartState: {
                 view: {
                     showConfig: !showChartSettings,

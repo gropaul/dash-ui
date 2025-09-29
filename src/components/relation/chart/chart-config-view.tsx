@@ -12,15 +12,15 @@ import {RelationViewState} from "@/model/relation-view-state";
 import {cn} from "@/lib/utils";
 import {RelationData} from "@/model/relation";
 import {ScrollArea} from "@/components/ui/scroll-area";
+import {AdvancedRelationActions} from "@/state/relations/functions";
 
 
-export interface ChartConfigProps {
+export interface ChartConfigProps extends AdvancedRelationActions{
     className?: string,
     relationState: RelationState,
     data: RelationData,
     embedded?: boolean,
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
-    updateRelationDataWithParams: (relationId: string, query: ViewQueryParameters) => Promise<void>,
+
 
 }
 
@@ -30,7 +30,7 @@ export function ChartConfigView(props: ChartConfigProps) {
     const config = props.relationState.viewState.chartState;
 
     function updateTitle(title: string) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {
@@ -42,7 +42,7 @@ export function ChartConfigView(props: ChartConfigProps) {
     }
 
     function updatePlotType(type: PlotType) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState( {
             chartState: {
                 chart: {
                     plot: {

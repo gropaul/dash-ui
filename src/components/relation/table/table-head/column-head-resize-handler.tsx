@@ -4,12 +4,13 @@ import React, {useRef} from "react";
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 import {Column} from "@/model/data-source-connection";
+import {AdvancedRelationActions} from "@/state/relations/functions";
 
 interface ColumnHeadResizeHandleProps {
     relationId: string;
     displayState: TableViewState;
     column: Column;
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
+    updateRelationViewState: (viewState: DeepPartial<RelationViewState>, path?: string[]) => void,
 }
 
 export function ColumnHeadResizeHandle({relationId, displayState, column, updateRelationViewState}: ColumnHeadResizeHandleProps) {
@@ -29,7 +30,7 @@ export function ColumnHeadResizeHandle({relationId, displayState, column, update
 
             newStates[column.name].width = Math.max(widthRef.current + deltaX, 50); // Set a minimum width of 50px
 
-            updateRelationViewState(relationId, {
+            updateRelationViewState({
                 tableState: {
                     ...displayState,
                     columnStates: newStates,

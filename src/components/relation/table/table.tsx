@@ -34,10 +34,9 @@ export function Table(props: RelationViewContentProps) {
     }
 
     function setTableState(state: TableViewState) {
-        props.updateRelationViewState(
-            props.relationState.id, {
-                tableState: state,
-            });
+        props.updateRelationViewState({
+            tableState: state,
+        });
     }
 
     function handleDragStart(event: DragStartEvent) {

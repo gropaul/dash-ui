@@ -1,10 +1,10 @@
-import {DefaultRelationZustandActions, useRelationsState} from "@/state/relations.state";
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {getUpdatedParams, RelationState} from "@/model/relation-state";
 import {getSeparatedStatements} from "@/platform/sql-utils";
 import {InputManager} from "@/components/editor/inputs/input-manager";
+import {AdvancedRelationActions} from "@/state/relations/functions";
 
-interface RelationViewQueryProps extends DefaultRelationZustandActions{
+interface RelationViewQueryProps extends AdvancedRelationActions{
     relationState: RelationState,
     inputManager?: InputManager;
     embedded?: boolean;
@@ -20,7 +20,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     async function onRunQuery() {
         console.log("Running query for relation ", relationId);
         // we need to reset the view params as the could be columns removed now that had filters before!
-        await props.updateRelationDataWithParams(relationId, getUpdatedParams(props.relationState.query.viewParameters));
+        await props.updateRelationDataWithParams(getUpdatedParams(props.relationState.query.viewParameters));
     }
 
     function onCodeChange(code: string) {
@@ -65,7 +65,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
                 showLayoutButton={!embedded}
                 currentLayout={codeFenceState.layout}
                 onLayoutChange={(layout) => {
-                    useRelationsState.getState().updateRelationViewState(relationId, {
+                    props.updateRelationViewState( {
                         codeFenceState: {
                             layout: layout
                         }

@@ -45,12 +45,9 @@ export function ChartConfigDialog(props: ChartConfigDialogProps) {
 
                     >
                             <ChartConfigView
-                                data={props.data}
                                 className={'p-2 pt-2.5'}
+                                {...propsCopy}
                                 embedded={true}
-                                relationState={props.relationState}
-                                updateRelationViewState={props.updateRelationViewState}
-                                updateRelationDataWithParams={props.updateRelationDataWithParams}
                             />
                     </ResizablePanel>
                 </ResizablePanelGroup>

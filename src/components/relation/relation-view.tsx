@@ -6,20 +6,29 @@ import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
+import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/functions";
 
-export interface RelationViewProps extends DefaultRelationZustandActions{
+export interface RelationViewAPIProps extends DefaultRelationZustandActions{
     relationState: RelationState;
     inputManager?: InputManager;
     embedded?: boolean;
 }
 
-export function RelationView(props: RelationViewProps) {
+
+export interface RelationViewProps extends AdvancedRelationActions{
+    relationState: RelationState;
+    inputManager?: InputManager;
+    embedded?: boolean;
+}
+
+export function RelationView(inputProps: RelationViewAPIProps) {
+
+
     return (
         <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
-            <RelationViewHeader {...props}/>
-
+            <RelationViewHeader {...inputProps}/>
             <div className={`flex-1 bg-background overflow-auto`}>
-                <RelationStateView {...props}/>
+                <RelationStateView {...inputProps}/>
             </div>
         </div>
     );

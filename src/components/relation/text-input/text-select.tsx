@@ -23,7 +23,7 @@ export function TextSelect(props: RelationViewContentProps) {
     const value = viewState.viewState.inputTextState.value;
 
     const setShowConfig = (show: boolean) => {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState( {
             inputTextState: {
                 showConfig: show,
             }
@@ -31,7 +31,7 @@ export function TextSelect(props: RelationViewContentProps) {
     }
 
     const setValue = (value: string) => {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             inputTextState: {
                 value: value,
             }

@@ -7,11 +7,8 @@ import {RelationViewContentProps} from "@/components/relation/relation-view-cont
 
 export function Chart(props: RelationViewContentProps) {
 
-    const relationId = props.relationState.id;
-    const data = props.data;
-
     function updateConfigRatio(ratio: number) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState( {
             chartState: {
                 view: {
                     configPlotRatio: ratio,
@@ -38,19 +35,13 @@ export function Chart(props: RelationViewContentProps) {
                         <ChartContentWrapper {...props}/>
                     </div>
                     {!isEmbedded ? <div className={'px-4 py-3 w-full h-full overflow-y-auto'}>
-                        <ChartConfigView
-                            embedded={isEmbedded}
-                            relationState={props.relationState}
-                            updateRelationViewState={props.updateRelationViewState}
-                            updateRelationDataWithParams={props.updateRelationDataWithParams}
-                            data={data}
-                        />
+                        <ChartConfigView {...props} />
                     </div> : <div/>}
                 </WindowSplitter>
             </div>
             <ChartConfigDialog
                 isOpen={config.view.showConfig && isEmbedded}
-                onOpenChange={(open) => props.updateRelationViewState(relationId, {
+                onOpenChange={(open) => props.updateRelationViewState({
                     chartState: {
                         view: {
                             showConfig: open

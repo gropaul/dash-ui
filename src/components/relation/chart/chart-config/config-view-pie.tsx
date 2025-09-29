@@ -29,7 +29,7 @@ export function ChartColumnSelector(props: ChartConfigProps) {
         if (!axis.decoration) {
             axis.decoration = getInitialAxisDecoration(0)
         }
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {

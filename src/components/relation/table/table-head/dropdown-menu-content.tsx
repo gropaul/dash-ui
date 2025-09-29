@@ -35,7 +35,7 @@ export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuConte
         const newColumnsHidden = [...tableState.columnsHidden];
         newColumnsHidden.push(props.column.name);
 
-        props.updateRelationViewState(props.relationState.id, {
+        props.updateRelationViewState({
             tableState: {
                 ...tableState,
                 columnsHidden: newColumnsHidden
@@ -56,7 +56,7 @@ export function ColumnHeadDropDownMenuContent(props: ColumnHeadDropDownMenuConte
             }
         }
 
-        props.updateRelationViewState(props.relationState.id, {
+        props.updateRelationViewState({
             tableState: {
                 ...tableState,
                 columnsHidden: newColumnsHidden

@@ -75,7 +75,7 @@ export function RelationViewPageController(props: RelationViewProps) {
                 offset: offsetForPage,
             }
         }
-        props.updateRelationDataWithParams(relationState.id, updatedQueryParams);
+        props.updateRelationDataWithParams(updatedQueryParams);
     };
 
     const pageSize = relationState.query.viewParameters.table.limit;
@@ -91,7 +91,7 @@ export function RelationViewPageController(props: RelationViewProps) {
                 offset: 0,
             }
         }
-        props.updateRelationDataWithParams(relationState.id, updatedQueryParams);
+        props.updateRelationDataWithParams(updatedQueryParams);
     }
 
     const limitOptions = [5, 10, 20, 50, 100, 200];

@@ -30,7 +30,7 @@ export function RelationViewContent(props: RelationViewProps) {
 
     async function onRunQuery() {
         // we need to reset the view params as the could be columns removed now that had filters before!
-        await props.updateRelationDataWithParams(relationId, getUpdatedParams(props.relationState.query.viewParameters));
+        await props.updateRelationDataWithParams(getUpdatedParams(props.relationState.query.viewParameters));
     }
 
     if (!data) {

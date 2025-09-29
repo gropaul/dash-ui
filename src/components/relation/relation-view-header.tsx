@@ -21,17 +21,21 @@ import {
 import {Button} from "@/components/ui/button";
 import {useState} from "react";
 import {FilepathDialog, FilepathDialogState} from "@/components/export/filepath-dialog";
+import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
+import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/functions";
 
-export interface RelationViewHeaderProps {
-    relationState: RelationState;
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>) => void,
+export interface RelationViewHeaderProps extends RelationViewAPIProps{
     children?: React.ReactNode;
 }
 
-export function RelationViewHeader({relationState, updateRelationViewState}: RelationViewHeaderProps) {
+export function RelationViewHeader(props: RelationViewHeaderProps) {
 
-    const relationId = relationState.id;
-    const {source, connectionId, viewState} = relationState;
+    const relationId = props.relationState.id;
+    const {source, connectionId, viewState} = props.relationState;
+
+    const advancedActions = createAdvancedRelationActions(props)
+
+
 
     function onPathClick(element: string, index: number) {
         if (source.type === 'table') {
@@ -51,7 +55,7 @@ export function RelationViewHeader({relationState, updateRelationViewState}: Rel
 
     const codeFenceState = viewState.codeFenceState;
     function onShowCode() {
-        updateRelationViewState(relationId, {
+        advancedActions.updateRelationViewState( {
             codeFenceState: {
                 show: !codeFenceState.show,
             }
@@ -64,12 +68,12 @@ export function RelationViewHeader({relationState, updateRelationViewState}: Rel
         if (!selected) {
             return;
         }
-        updateRelationViewState(relationId, {
+        advancedActions.updateRelationViewState( {
             selectedView: selected as RelationViewType,
         });
     }
 
-    const lastExecutionDuration = relationState.lastExecutionMetaData?.lastExecutionDuration;
+    const lastExecutionDuration = props.relationState.lastExecutionMetaData?.lastExecutionDuration;
     const isMobile = useIsMobile();
 
     let durationString = '';
@@ -96,7 +100,7 @@ export function RelationViewHeader({relationState, updateRelationViewState}: Rel
                 path={path}
                 onPathClick={onPathClick}
                 subtitle={durationString}
-                state={relationState.executionState}
+                state={props.relationState.executionState}
                 actionButtons={
                     isMobile ?
                         <>

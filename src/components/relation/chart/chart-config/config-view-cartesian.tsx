@@ -44,11 +44,11 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         }
         await updateDataForGroupBy(newState);
 
-        props.updateRelationViewState(relationId, newState);
+        props.updateRelationViewState(newState);
     }
 
     function updateAxisRange(range: AxisRange, axis: 'xRange' | 'yRange') {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {
@@ -91,11 +91,11 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         }
 
         await updateDataForGroupBy(newState);
-        props.updateRelationViewState(relationId, newState);
+        props.updateRelationViewState(newState);
     }
 
     function updateXLabel(label: string) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {
@@ -109,7 +109,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     }
 
     function updateYLabel(label: string) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {
@@ -123,7 +123,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     }
 
     function updateXTickAngle(angle: string) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {
@@ -137,7 +137,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     }
 
     function updateXAxisType(type: string | undefined) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {
@@ -151,7 +151,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     }
 
     function updateYTickAngle(angle: string) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {
@@ -165,7 +165,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     }
 
     function updateBar(update: { stacked?: boolean }) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState({
             chartState: {
                 chart: {
                     plot: {
@@ -216,7 +216,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         // Only update if the groupById is different and all data is ready
         if ((xAxisChanged || yAxisChanged || groupByChanged) && newXAxis && newYAxes ) {
             console.log('updateRelationDataWithParams')
-            await props.updateRelationDataWithParams(relationId, {
+            await props.updateRelationDataWithParams({
                 ...props.relationState.query.viewParameters,
                 chart: {
                     xAxis: newXAxis,
@@ -242,7 +242,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             }
         }
 
-        props.updateRelationViewState(relationId, newState);
+        props.updateRelationViewState(newState);
         await updateDataForGroupBy(newState);
 
 

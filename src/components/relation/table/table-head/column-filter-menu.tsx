@@ -80,7 +80,7 @@ export function ColumnFilterMenu(props: ColumnHeadProps) {
                 filters: newFilters,
             },
         };
-        props.updateRelationDataWithParams(props.relationState.id, newParams);
+        props.updateRelationDataWithParams(newParams);
     }
 
     function clearFilter() {
@@ -94,7 +94,7 @@ export function ColumnFilterMenu(props: ColumnHeadProps) {
                 filters: remaining,
             },
         };
-        props.updateRelationDataWithParams(props.relationState.id, newParams);
+        props.updateRelationDataWithParams(newParams);
         setSelectedValues(new Set());
     }
 

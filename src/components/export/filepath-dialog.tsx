@@ -28,6 +28,10 @@ export function FilepathDialog(props: FilepathDialogProps) {
 
     async function onPathSelected(path: string) {
         const relation = useRelationsState.getState().getRelation(dialogState.relationId);
+        if (!relation) {
+            toast.error('Relation not found: ' + dialogState.relationId);
+            return;
+        }
         const query = relation.query.baseQuery;
 
         // Close the dialog

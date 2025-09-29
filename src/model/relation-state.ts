@@ -316,7 +316,9 @@ export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSub
 
     const schemaQuery = `SELECT * FROM ${finalQueryAsSubQuery} LIMIT 1;`;
 
+
     if (chartViewParams.groupBy && chartViewParams.xAxis && chartViewParams.yAxes?.length === 1) {
+        // build group by query
         const groupBy = chartViewParams.groupBy;
         const xAxis = chartViewParams.xAxis;
         const yAxis = chartViewParams.yAxes[0];
@@ -345,6 +347,7 @@ export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSub
         `;
         return [viewQuery, schemaQuery];
     } else if (chartViewParams.xAxis && chartViewParams.yAxes && chartViewParams.yAxes.length > 0) {
+        // simple select x and y axes
         const xAxis = chartViewParams.xAxis;
         const yAxes = chartViewParams.yAxes.join(', ');
 
@@ -482,14 +485,14 @@ export function setRelationLoading(relation: RelationState): RelationState {
     };
 }
 
-export async function updateRelationQueryForParams(relation: RelationState, newParams: ViewQueryParameters, state?: TaskExecutionState, inputManger?: InputManager): Promise<RelationState> {
+export async function updateRelationQueryForParams(relation: RelationState, newParams: ViewQueryParameters, inputManger?: InputManager): Promise<RelationState> {
     const baseQuery = relation.query.baseQuery;
     const query = await getQueryFromParams(relation, newParams, baseQuery, inputManger);
 
     return {
         ...relation,
         query: query,
-        executionState: state ?? relation.executionState,
+        executionState: relation.executionState,
     };
 
 }

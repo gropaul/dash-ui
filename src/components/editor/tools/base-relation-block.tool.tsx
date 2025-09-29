@@ -12,8 +12,8 @@ import {getRandomId} from "@/platform/id-utils";
 import {RelationBlockData, RelationComponent} from "@/components/editor/tools/relation.tool";
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
-import {updateRelationDataWithParamsSkeleton} from "@/components/dashboard/dashboard-data-view";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN, ICON_TABLE} from "@/components/editor/tools/icons";
+import {updateRelationDataWithParams} from "@/state/relations/functions";
 
 /**
  * Base class for block tools that share common functionality
@@ -106,7 +106,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
             ...currentPrams,
         }
 
-        await updateRelationDataWithParamsSkeleton(this.data.id, newParams, this.data, this.updateAndRender.bind(this), this.inputManager);
+        await updateRelationDataWithParams(this.data, newParams, this.updateAndRender.bind(this), this.inputManager);
     }
 
 

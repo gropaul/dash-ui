@@ -58,8 +58,6 @@ export interface RelationZustand {
 }
 
 export interface DefaultRelationZustandActions {
-    updateRelationDataWithParams: (relationId: string, query: ViewQueryParameters) => Promise<void>,
-    updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>, path?: string[]) => void,
     // the ID of a relation may never be updated!
     updateRelation: (newRelation: RelationState) => void,
 }
@@ -67,13 +65,12 @@ export interface DefaultRelationZustandActions {
 interface RelationZustandActions extends DefaultRelationZustandActions {
     mergeState: (state: RelationZustand, openDashboards: boolean) => void,
     /* relation actions */
-    getRelation: (relationId: string) => RelationState,
     addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
     relationExists: (relationId: string) => boolean,
     showRelationFromSource: (connectionId: string, source: RelationSource, editorPath: string[]) => void,
 
     /* relation data actions */
-    updateRelationDataWithParams: (relationId: string, query: ViewQueryParameters) => Promise<void>,
+    getRelation: (relationId: string) => RelationState | undefined,
 
     /* relation view state actions */
     setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
@@ -385,43 +382,8 @@ export const useRelationsState = createWithEqualityFn(
                     }
                 },
 
-                updateRelationDataWithParams: async (relationId, query) => {
-                    console.log('Updating relation data with params:', relationId, query);
-                    const {relations} = get(); // Get the current state
-
-                    const relation = relations[relationId]; // Retrieve the specific relation
-                    const loadingRelationState = setRelationLoading(relation); // Set it loading
-                    set((state) => ({
-                        relations: {
-                            ...state.relations,
-                            [relationId]: loadingRelationState,
-                        },
-                    }));
-
-
-                    try {
-                        const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query); // Update the relation state
-                        const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
-                        // update state with new data and completed state
-                        set((state) => ({
-                            relations: {
-                                ...state.relations,
-                                [relationId]: executedRelationState,
-                            },
-                        }));
-                    } catch (e) {
-                        // if error update with error state
-                        const errorState = returnEmptyErrorState(loadingRelationState, e)
-                        set((state) => ({
-                            relations: {
-                                ...state.relations,
-                                [relationId]: errorState,
-                            },
-                        }));
-                    }
-                },
-
                 updateRelation: (newRelation: RelationState) => {
+                    console.log("Updating relation in state:", newRelation.id, newRelation);
                     set((state) => ({
                         relations: {
                             ...state.relations,
@@ -446,44 +408,7 @@ export const useRelationsState = createWithEqualityFn(
                     return get().relations[relationId].viewState;
                 },
                 updateRelationViewState: (relationId: string, partialUpdate: DeepPartial<RelationViewState>, path?: string[]) => {
-                    const currentViewState = deepClone(get().relations[relationId].viewState);
-                    let newEditorElements = get().editorElements;
 
-                    // check if displayName is updated, if so, update the tab title
-                    if (partialUpdate.displayName) {
-                        useGUIState.getState().renameTab(relationId, partialUpdate.displayName);
-
-                        // path must be provided if the displayName is updated
-                        if (!path) {
-                            throw new Error('Path must be provided if displayName is updated');
-                        }
-
-                        const node = findNodeInTrees(newEditorElements, path);
-                        const actions = RenameNodeActions(path, partialUpdate.displayName, node!);
-                        newEditorElements = copyAndApplyTreeActions(newEditorElements, actions);
-                    }
-                    safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
-                    set((state) => ({
-                        relations: {
-                            ...state.relations,
-                            [relationId]: {
-                                ...state.relations[relationId],
-                                viewState: currentViewState,
-                            },
-                        },
-                        editorElements: newEditorElements,
-                    }));
-
-                    // if the view mode has been changed, update the query params
-                    if (partialUpdate.selectedView) {
-                        const relation = get().relations[relationId];
-                        const viewParameters = relation.query.viewParameters;
-                        const newViewParameters: ViewQueryParameters = {
-                            ...viewParameters,
-                            type: partialUpdate.selectedView
-                        };
-                        get().updateRelationDataWithParams(relationId, newViewParameters);
-                    }
                 },
                 closeTab: (tabId: string) => {
                     const {schemas, databases, relations, dashboards} = get();

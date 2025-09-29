@@ -57,7 +57,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
             }
         }
 
-        props.updateRelationDataWithParams(props.relationState.id, queryParams);
+        props.updateRelationDataWithParams(queryParams);
     }
 
     return (
@@ -97,6 +97,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
                 displayState={tableViewState}
                 column={column}
                 updateRelationViewState={props.updateRelationViewState}
+
             />
         </ColumnHeadWrapper>
     );

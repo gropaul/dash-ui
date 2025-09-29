@@ -1,11 +1,18 @@
 import {WindowSplitter} from "@/components/ui/window-splitter";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
-import {ContentWrapper, RelationViewProps} from "@/components/relation/relation-view";
+import {ContentWrapper, RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 import {Sizable} from "@/components/ui/sizable";
+import {createAdvancedRelationActions} from "@/state/relations/functions";
 
-export function RelationStateView(props: RelationViewProps) {
+export function RelationStateView(inputProps: RelationViewAPIProps) {
+
+    const advancedActions = createAdvancedRelationActions(inputProps)
+    const props: RelationViewProps = {
+        ...inputProps,
+        ...advancedActions,
+    }
 
     const executionState = props.relationState.executionState;
     const codeFenceState = props.relationState.viewState.codeFenceState;
@@ -28,7 +35,7 @@ export function RelationStateView(props: RelationViewProps) {
 
 
     function setCodeFenceState(relationId: string, sizePercentage: number) {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState( {
             codeFenceState: {
                 ...codeFenceState,
                 sizePercentage: sizePercentage,

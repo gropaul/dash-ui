@@ -14,13 +14,13 @@ export function TextField(props: RelationViewContentProps) {
 
         const label = typeof s === "string" ? s : s.label;
 
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState( {
             inputTextState: {value: label},
         });
     };
 
     const setShowConfig = (show: boolean) => {
-        props.updateRelationViewState(relationId, {
+        props.updateRelationViewState( {
             inputTextState: {showConfig: show},
         });
     };
