@@ -59,8 +59,9 @@ export interface RelationZustand {
 
 export interface DefaultRelationZustandActions {
     updateRelationDataWithParams: (relationId: string, query: ViewQueryParameters) => Promise<void>,
-    updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
     updateRelationViewState: (relationId: string, viewState: DeepPartial<RelationViewState>, path?: string[]) => void,
+    // the ID of a relation may never be updated!
+    updateRelation: (newRelation: RelationState) => void,
 }
 
 interface RelationZustandActions extends DefaultRelationZustandActions {
@@ -73,7 +74,6 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
     /* relation data actions */
     updateRelationDataWithParams: (relationId: string, query: ViewQueryParameters) => Promise<void>,
-    updateRelationBaseQuery: (relationId: string, baseQuery: string) => void,
 
     /* relation view state actions */
     setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
@@ -421,18 +421,11 @@ export const useRelationsState = createWithEqualityFn(
                     }
                 },
 
-                updateRelationBaseQuery: (relationId: string, baseQuery: string) => {
-
+                updateRelation: (newRelation: RelationState) => {
                     set((state) => ({
                         relations: {
                             ...state.relations,
-                            [relationId]: {
-                                ...state.relations[relationId],
-                                query: {
-                                    ...state.relations[relationId].query,
-                                    baseQuery: baseQuery,
-                                },
-                            },
+                            [newRelation.id]: newRelation,
                         },
                     }));
                 },

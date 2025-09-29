@@ -40,17 +40,6 @@ export function DashboardDataView(props: DashboardDataViewProps) {
         return updateRelationDataWithParamsSkeleton(_relationId, query, props.relation, props.onRelationUpdate, props.inputManager)
     }
 
-    function updateRelationBaseQuery(_relationId: string, baseQuery: string) {
-        props.onRelationUpdate({
-            ...props.relation,
-            query: {
-                ...props.relation.query,
-                baseQuery: baseQuery
-            }
-        })
-
-    }
-
     function updateRelationViewState(_relationId: string, viewState: DeepPartial<RelationViewState>) {
         const currentViewState = deepClone(props.relation.viewState);
         safeDeepUpdate(currentViewState, viewState);
@@ -75,7 +64,7 @@ export function DashboardDataView(props: DashboardDataViewProps) {
         relationState={props.relation}
         inputManager={props.inputManager}
         updateRelationDataWithParams={updateRelationDataWithParams}
-        updateRelationBaseQuery={updateRelationBaseQuery}
         updateRelationViewState={updateRelationViewState}
+        updateRelation={props.onRelationUpdate}
     />
 }

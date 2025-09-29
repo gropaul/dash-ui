@@ -24,7 +24,14 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
     }
 
     function onCodeChange(code: string) {
-        props.updateRelationBaseQuery(relationId, code);
+        props.updateRelation({
+                ...props.relationState,
+                query: {
+                    ...props.relationState.query,
+                    baseQuery: code,
+                },
+            }
+        );
     }
 
     if (!codeFenceState!.show) {
