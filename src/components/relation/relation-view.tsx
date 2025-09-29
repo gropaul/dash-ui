@@ -12,6 +12,7 @@ export interface RelationViewAPIProps extends DefaultRelationZustandActions{
     relationState: RelationState;
     inputManager?: InputManager;
     embedded?: boolean;
+    className?: string;
 }
 
 

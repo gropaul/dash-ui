@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef} from "react";
 import {Button} from "@/components/ui/button";
 import {Send, X} from "lucide-react";
-import {ChatMessageItem} from "./chat-message-item";
+import {ChatMessagePart} from "./chat-message-part";
 
 import {useChatState} from "@/state/chat.state";
 import {ChatWindowProps} from "@/components/chat/chat-wrapper";
@@ -87,7 +87,7 @@ export function ChatContentMessages({
                         </div>
                     </div>
                     {messages.map((m, index) => (
-                        <ChatMessageItem showSystemMessage={showSystemMessage} key={index} message={m}/>
+                        <ChatMessagePart showSystemMessage={showSystemMessage} key={index} message={m}/>
                     ))}
                 </div>
             </div>

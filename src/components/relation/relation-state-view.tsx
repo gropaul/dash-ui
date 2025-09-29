@@ -5,6 +5,7 @@ import {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 import {Sizable} from "@/components/ui/sizable";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
+import {cn} from "@/lib/utils";
 
 export function RelationStateView(inputProps: RelationViewAPIProps) {
 
@@ -62,7 +63,7 @@ export function RelationStateView(inputProps: RelationViewAPIProps) {
             )}
             {
                 embedded && (
-                    <div className={"w-full h-fit bg-inherit flex flex-col"}>
+                    <div className={cn("w-full h-fit bg-inherit flex flex-col", inputProps.className)}>
                         {showQuery && <Sizable
                             width={'full'}
                             height={codeHeight}

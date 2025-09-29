@@ -1,12 +1,20 @@
 import {BarChart3, DatabaseZap, FileText, Sheet} from "lucide-react";
-import {ToolDisplayNameMap, ToolName} from "@/components/chat/model/llm-service";
+import {
+    TOOL_NAME_ADD_CHART_TO_DASHBOARD,
+    TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD,
+    TOOL_NAME_ADD_TABLE_TO_DASHBOARD,
+    TOOL_NAME_EXECUTE_QUERY,
+    ToolDisplayNameMap,
+    ToolName
+} from "@/components/chat/model/llm-service";
 import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 import React from "react";
 import {ToolInvocationUIPart} from "@ai-sdk/ui-utils";
-import {parentRoleStyles, roleStyles, RoleType} from "@/components/chat/chat-message-item";
+import {parentRoleStyles, roleStyles, RoleType} from "@/components/chat/chat-message-part";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {JsonViewer} from "@/components/ui/json-viewer";
+import {RelationPart} from "@/components/chat/chat-message-part-tool-table";
 
 export interface ToolIconProps {
     toolName: ToolName;
@@ -16,16 +24,16 @@ export interface ToolIconProps {
 export function ToolIcon({ toolName, className }: ToolIconProps) {
     const iconSize = 14; // Default size for icons, can be adjusted
     switch (toolName) {
-        case "addChartToDashboard":
+        case TOOL_NAME_ADD_CHART_TO_DASHBOARD:
             return <BarChart3 size={iconSize} className={className} />;
-        case "addTableToDashboard":
+        case TOOL_NAME_ADD_TABLE_TO_DASHBOARD:
             return <Sheet size={iconSize} className={className} />;
-        case "addMarkdownToDashboard":
+        case TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD:
             return <FileText size={iconSize} className={className} />;
-        case "executeQuery":
+        case TOOL_NAME_EXECUTE_QUERY:
             return <DatabaseZap size={iconSize} className={className} />;
         default:
-            return null;
+            return <></>; // Return empty if no icon is found
     }
 }
 interface ToolInvocationPartProps {
@@ -37,6 +45,23 @@ interface ToolInvocationPartProps {
 export function ToolInvocationPart({part, role}: ToolInvocationPartProps) {
 
     const toolName = part.toolInvocation.toolName as ToolName;
+
+    if (toolName === 'showTable' || toolName === 'showChart') {
+
+        if (part.toolInvocation.state === 'result' && part.toolInvocation.result) {
+            if (typeof part.toolInvocation.result === 'string') {
+                return <></>
+                // return <div className={cn("p-2 bg-red-100 text-red-800 rounded-lg")}>
+                //     Error: {part.toolInvocation.result}
+                // </div>;
+            }
+            return <RelationPart initialState={part.toolInvocation.result} />;
+        } else {
+            return <div className={cn("p-2 bg-yellow-100 text-yellow-800 rounded-lg")}>
+                Still executing query...
+            </div>;
+        }
+    }
 
     return (
         <div className={cn("w-full", parentRoleStyles[role as keyof typeof parentRoleStyles])}>

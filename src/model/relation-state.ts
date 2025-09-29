@@ -17,7 +17,7 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationDataState} from "@/state/relations-data.state";
 
-export function getInitialParamsTable(type: RelationViewType): ViewQueryParameters {
+export function getInitialParams(type: RelationViewType): ViewQueryParameters {
     return {
         type: type,
         table: {

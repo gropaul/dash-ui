@@ -3,7 +3,7 @@ import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 import {Message} from "ai";
 import {ReasoningUIPart, TextUIPart} from "@ai-sdk/ui-utils";
-import {ToolInvocationPart} from "@/components/chat/chat-message-item-tool";
+import {ToolInvocationPart} from "@/components/chat/chat-message-part-tool";
 
 interface ChatMessageItemProps {
     message: Message;
@@ -29,7 +29,7 @@ export const roleStyles = {
 };
 
 
-export function ChatMessageItem({message, showSystemMessage}: ChatMessageItemProps) {
+export function ChatMessagePart({message, showSystemMessage}: ChatMessageItemProps) {
     const {role} = message;
 
     const isDev = process.env.NODE_ENV === "development";

@@ -107,14 +107,11 @@ export class ConnectionsService {
         const preparedSQL = removeSemicolon(sql)
         const explainQuery = `EXPLAIN ${preparedSQL}`
 
-        console.log('Checking if query is executable with EXPLAIN:', explainQuery);
 
         try {
             const _result = await this.executeQuery(explainQuery);
-            console.log('Query is executable');
             return true;
         } catch (e) {
-            console.warn('Query is not executable:', e);
             return false;
         }
     }

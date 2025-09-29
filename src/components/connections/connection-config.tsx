@@ -279,7 +279,6 @@ export function ConnectionConfig({spec, onSpecChange, onSpecSave}: ConnectionCon
     const selectedFromDefinition = FROM_DEFINITIONS[spec.type];
 
     function onTypeChange(type: DBConnectionType) {
-        console.log("Type changed to", type);
         onSpecChange(getDefaultSpec(type));
     }
 

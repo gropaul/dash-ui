@@ -59,8 +59,6 @@ export async function updateRelationViewState(relation: RelationState, partialUp
 }
 
 export async function updateRelationDataWithParams(relation: RelationState, query: ViewQueryParameters, update: updateRelationFunction, inputManager?: InputManager) {
-    console.log('Updating relation data with params:', relation.id, query);
-
 
     const loadingRelationState = setRelationLoading(relation); // Set it loading
     update(loadingRelationState);

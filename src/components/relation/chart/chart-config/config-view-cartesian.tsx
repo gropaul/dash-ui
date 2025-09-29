@@ -208,14 +208,8 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         const yAxisChanged = !arraysEqual(newYAxes, oldYAxisIds);
         const groupByChanged = newGroupBy !== oldGroupBy;
 
-        console.log('update', update)
-        console.log('xAxisChanged', xAxisChanged, newXAxis, oldXAxs);
-        console.log('yAxisChanged', yAxisChanged, newYAxes, oldYAxisIds);
-        console.log('groupByChanged', groupByChanged);
-
         // Only update if the groupById is different and all data is ready
         if ((xAxisChanged || yAxisChanged || groupByChanged) && newXAxis && newYAxes ) {
-            console.log('updateRelationDataWithParams')
             await props.updateRelationDataWithParams({
                 ...props.relationState.query.viewParameters,
                 chart: {

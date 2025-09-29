@@ -1,7 +1,7 @@
 // SelectBlockTool.tsx
 import type {BlockToolConstructorOptions, PasteEvent} from '@editorjs/editorjs';
 
-import {getInitialParamsTable, getInitialParamsTextInput, getQueryFromParamsUnchecked} from '@/model/relation-state';
+import {getInitialParams, getInitialParamsTextInput, getQueryFromParamsUnchecked} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState} from "@/model/relation-view-state";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_SEARCH, ICON_SELECT, ICON_SETTING,} from "@/components/editor/tools/icons";

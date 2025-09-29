@@ -7,12 +7,12 @@ import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
 import {
     executeQueryOfRelationState,
-    getInitialParamsTable,
+    getInitialParams,
     getQueryFromParamsUnchecked,
     RelationState
 } from "@/model/relation-state";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {getInitViewState} from "@/model/relation-view-state";
+import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
 import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import z from 'zod';
 import {tool} from "ai";
@@ -74,7 +74,7 @@ interface ChartViewDataArgs {
     yRangeMin?: 'min' | 'zero';
 }
 
-export async function getDefaultRelationBockData(sql: string, ): Promise<RelationBlockData> {
+export async function getDefaultRelationBockData(sql: string, viewType:  RelationViewType): Promise<RelationBlockData> {
     const randomId = getRandomId();
     const source: RelationSourceQuery = {
         type: "query",
@@ -82,7 +82,7 @@ export async function getDefaultRelationBockData(sql: string, ): Promise<Relatio
         id: randomId,
         name: "New Query"
     }
-    const defaultQueryParams = getInitialParamsTable('table');
+    const defaultQueryParams = getInitialParams(viewType);
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }
@@ -114,7 +114,7 @@ export async function getDefaultRelationBockData(sql: string, ): Promise<Relatio
 export async function getChartBlockData(args: ChartViewDataArgs): Promise<RelationBlockData> {
 
     const chartViewState = getChartViewState(args)
-    const defaultData = await getDefaultRelationBockData(args.sql);
+    const defaultData = await getDefaultRelationBockData(args.sql, 'chart');
 
     defaultData.viewState.selectedView = 'chart';
     defaultData.viewState.chartState = chartViewState;
@@ -186,7 +186,7 @@ interface TableViewDataArgs {
 }
 
 export async function getTableBlockData(args: TableViewDataArgs): Promise<RelationBlockData> {
-    const defaultData = await getDefaultRelationBockData(args.sql);
+    const defaultData = await getDefaultRelationBockData(args.sql, 'table');
     defaultData.viewState.selectedView = 'table';
     if (args.showNumberOfRows) {
         defaultData.query.viewParameters.table.limit = parseInt(args.showNumberOfRows);
@@ -291,12 +291,48 @@ export const AddChartToDashboard = tool({
 });
 
 
+
+export const ShowChart = tool({
+
+    description: 'Shows the result of a SQL query as a chart in the chat. Dont summarize the data again, the chart is shown directly.',
+    parameters: z.object({
+        sql: z.string().describe('The SQL query to execute for the chart.'),
+        chartType: z.enum(['bar', 'line', 'pie']).describe('The type of chart to create.'),
+        xAxis: z.string().describe('The column to use for the x-axis.'),
+        xLabelRotation: z.number().optional().describe('Rotation of x-axis labels. For long labels like names, user -30.'),
+        yRangeMin: z.enum(['min', 'zero']).optional().describe('For values like counts etc. that have a reference to zero, use "zero". For other values, use "min".'),
+        yAxes: z.array(z.string()).describe('The columns to use for the y-axes.'),
+        title: z.string().optional().describe('The title of the chart.')
+    }).describe('Parameters for adding a chart to the dashboard.'),
+    execute: async (args) => {
+        const {sql, chartType, xAxis, yAxes, title, xLabelRotation, yRangeMin} = args;
+
+        const data = await getChartBlockData({
+            title: title,
+            sql: sql,
+            chartType: chartType,
+            xAxis: xAxis,
+            xLabelRotation: xLabelRotation,
+            yAxes: yAxes,
+            yRangeMin: yRangeMin
+        });
+
+        // if there is an error in the data, return an error message
+        if (data.executionState.state === 'error') {
+            const jsonString = JSON.stringify(data.executionState.error, null, 2);
+            return `Error executing query: ${jsonString}`;
+        }
+        return data;
+    }
+});
+
+
 export const AddTableToDashboard = tool({
 
     description: 'Adds a table element to the dashboard.',
     parameters: z.object({
         sql: z.string().describe('The SQL query to execute for the table content.'),
-        showNumberOfRows: z.enum(['5', '10', '50', '100']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
+        showNumberOfRows: z.enum(['5', '10', '50']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
     }).describe('Parameters for adding a chart to the dashboard.'),
     execute: async (args) => {
         const {sql, showNumberOfRows} = args;
@@ -335,5 +371,33 @@ export const AddTableToDashboard = tool({
 
             return `Table was added successfully to the dashboard.`;
         }
+    }
+});
+
+
+
+export const ShowTable = tool({
+
+    description: 'Shows the result of a SQL query as a table in the chat. Dont summarize the data again, the table is shown directly.',
+    parameters: z.object({
+        sql: z.string().describe('The SQL query to execute for the table content.'),
+        showNumberOfRows: z.enum(['5', '10', '50']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
+    }).describe('Parameters for adding a chart to the dashboard.'),
+    execute: async (args) => {
+        const {sql, showNumberOfRows} = args;
+
+        const data = await getTableBlockData({
+            sql: sql,
+            showNumberOfRows: showNumberOfRows
+        });
+
+        // if there is an error in the data, return an error message
+        if (data.executionState.state === 'error') {
+            const jsonString = JSON.stringify(data.executionState.error, null, 2);
+            return `Error executing query: ${jsonString}`;
+        }
+
+        return data;
+
     }
 });

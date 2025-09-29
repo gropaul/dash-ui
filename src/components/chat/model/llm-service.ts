@@ -5,7 +5,7 @@ import {
     AddChartToDashboard,
     AddMarkdownToDashboard,
     AddTableToDashboard,
-    QueryDatabaseTool
+    QueryDatabaseTool, ShowChart, ShowTable
 } from "@/components/chat/model/tools";
 import {useLanguageModelState} from "@/state/language-model.state";
 
@@ -46,7 +46,6 @@ class LlmService {
     }
 
     streamText(messages: Message[]): StreamTextResult<any, any> {
-        console.log('streamText called with messages:', messages);
 
         // Get the current language model from state
         const model = useLanguageModelState.getState().getLanguageModel();
@@ -67,12 +66,17 @@ export const TOOL_NAME_EXECUTE_QUERY = 'executeQuery';
 export const TOOL_NAME_ADD_CHART_TO_DASHBOARD = 'addChartToDashboard';
 export const TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD = 'addMarkdownToDashboard';
 export const TOOL_NAME_ADD_TABLE_TO_DASHBOARD = 'addTableToDashboard';
+export const TOOL_NAME_SHOW_TABLE = 'showTable';
+export const TOOL_NAME_SHOW_CHART = 'showChart';
+
 // type that must contain one of the tool names
 export type ToolName =
     typeof TOOL_NAME_EXECUTE_QUERY |
     typeof TOOL_NAME_ADD_CHART_TO_DASHBOARD |
     typeof TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD |
-    typeof TOOL_NAME_ADD_TABLE_TO_DASHBOARD;
+    typeof TOOL_NAME_ADD_TABLE_TO_DASHBOARD |
+    typeof TOOL_NAME_SHOW_TABLE |
+    typeof TOOL_NAME_SHOW_CHART;
 
 
 export const aiService = new LlmService(
@@ -80,7 +84,11 @@ export const aiService = new LlmService(
         [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: AddChartToDashboard,
         [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: AddMarkdownToDashboard,
         [TOOL_NAME_EXECUTE_QUERY]: QueryDatabaseTool,
-        [TOOL_NAME_ADD_TABLE_TO_DASHBOARD]: AddTableToDashboard
+        [TOOL_NAME_ADD_TABLE_TO_DASHBOARD]: AddTableToDashboard,
+        [TOOL_NAME_SHOW_TABLE]: ShowTable,
+        [TOOL_NAME_SHOW_CHART]: ShowChart,
+
+
     }
 );
 
@@ -89,5 +97,7 @@ export const ToolDisplayNameMap: Record<string, string> = {
     [TOOL_NAME_EXECUTE_QUERY]: 'Execute Query',
     [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: 'Add Chart to Dashboard',
     [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: 'Add Markdown to Dashboard',
-    [TOOL_NAME_ADD_TABLE_TO_DASHBOARD]: 'Add Table to Dashboard'
+    [TOOL_NAME_ADD_TABLE_TO_DASHBOARD]: 'Add Table to Dashboard',
+    [TOOL_NAME_SHOW_TABLE]: 'Show Table',
+    [TOOL_NAME_SHOW_CHART]: 'Show Chart',
 };
