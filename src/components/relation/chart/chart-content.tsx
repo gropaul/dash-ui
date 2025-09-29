@@ -7,15 +7,20 @@ import React from 'react';
 import ReactECharts from 'echarts-for-react';
 import {EChartsOption} from "echarts-for-react/src/types";
 import {toEChartOptions} from "@/components/relation/chart/echart-utils";
+import {RelationState} from "@/model/relation-state";
+import {RelationViewState} from "@/model/relation-view-state";
 
 export interface MyChartProps {
     embedded?: boolean,
-    data: RelationData,
     hideTitleIfEmpty?: boolean,
-    config: ChartConfig
+    relationState: RelationState,
+    data: RelationData,
+
+
 }
 
-export function ChartContent({data, config, hideTitleIfEmpty = false, embedded = false}: MyChartProps) {
+export function ChartContent({relationState, data, hideTitleIfEmpty = false, embedded = false}: MyChartProps) {
+    const config = relationState.viewState.chartState.chart;
     const option: EChartsOption = toEChartOptions(config, data);
 
     const heightClass = embedded ? '24rem' : '100%';

@@ -19,7 +19,9 @@ This is your workflow:
 * Round numbers: \`ROUND(col, 2)\`.
 * Peek at a table: \`SELECT * FROM table LIMIT 3\`.
 * Quick math: \`SELECT 1 + 1;\`.
-* Do Case-insensitive search: \`LOWER(col) LIKE '%keyword%'\`.
+* Do Case-insensitive search: \`LOWER(col) LIKE '%keyword%'\`
+
+You should always asked twice if the user wants you to delete or write something. Never do this without explicit confirmation.
 `
 
 export const SQLTollDescription = `

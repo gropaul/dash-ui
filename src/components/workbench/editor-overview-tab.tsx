@@ -27,6 +27,7 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/relations/entity-functions";
+import {deepClone} from "@/platform/object-utils";
 
 
 interface RenameState {
@@ -51,6 +52,66 @@ export interface DashboardCommandState {
     relation?: RelationState;
 }
 
+export function onAddToDashboardSelected(relation_: RelationState, dashboard: DashboardState) {
+
+    const copy = deepClone(relation_);
+
+    // update relation ui
+    copy.viewState.codeFenceState.layout = 'row';
+    copy.viewState.codeFenceState.show = false;
+
+    // set new id (todo: we also need to copy the cache then!)
+    // copy.id = getRandomId();
+
+
+    const newElementData: RelationBlockData = {
+        ...copy,
+        viewState: {
+            ...copy.viewState,
+            chartState: {
+                ...copy.viewState.chartState,
+                view: {
+                    ...copy.viewState.chartState.view,
+                    showConfig: false,
+                }
+            },
+            codeFenceState: {
+                sizePercentage: 0.5,
+                layout: 'row',
+                show: false
+            }
+        }
+    }
+
+    const newState: DashboardState = {
+        ...dashboard,
+        elementState: {
+            blocks: [
+                ...(dashboard.elementState?.blocks || []),
+                {
+                    type: RELATION_BLOCK_NAME,
+                    data: newElementData,
+                    id: getRandomId()
+                }
+            ]
+        }
+    }
+
+    const editorState = useEditorStore();
+    const dashboardId = dashboard.id;
+    // of there is a ref, update the editor
+    if (editorState.hasEditor(dashboardId)) {
+        const editor = editorState.getEditor(dashboardId);
+        const nBlocks = editor.editor.blocks.getBlocksCount();
+        editor.editor.blocks.insert(RELATION_BLOCK_NAME, newElementData, undefined, nBlocks);
+    } else {
+        // we can use this here as we are not adding, deleting or renaming a dashboard
+        const setDashboardStateUnsafe = useRelationsState.getState().setDashboardStateUnsafe;
+        setDashboardStateUnsafe(dashboard.id, newState);
+    }
+    toast.success(`Added "${copy.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
+}
+
 export function EditorOverviewTab() {
 
     const [storageInfo, setStorageInfo] = useState<StateStorageInfo>(DefaultStateStorageInfo());
@@ -66,7 +127,6 @@ export function EditorOverviewTab() {
     const addNewRelation = useRelationsState((state) => state.addNewRelation);
 
     const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
-    const setDashboardStateUnsafe = useRelationsState((state) => state.setDashboardStateUnsafe);
 
     const updateEditorElements = useRelationsState((state) => state.updateEditorElements);
     const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
@@ -276,59 +336,6 @@ ${relationNames.join(', ')}`;
                 relation: relation
             });
         }
-    }
-
-    function onAddToDashboardSelected(relation: RelationState, dashboard: DashboardState) {
-        // update relation ui
-        relation.viewState.codeFenceState.layout = 'row';
-        relation.viewState.codeFenceState.show = false;
-
-        const newElementData: RelationBlockData = {
-            ...relation,
-            viewState: {
-                ...relation.viewState,
-                chartState: {
-                    ...relation.viewState.chartState,
-                    view: {
-                        ...relation.viewState.chartState.view,
-                        showConfig: false,
-                    }
-                },
-                codeFenceState: {
-                    sizePercentage: 0.5,
-                    layout: 'row',
-                    show: false
-                }
-            }
-        }
-
-        const newState: DashboardState = {
-            ...dashboard,
-            elementState: {
-                blocks: [
-                    ...(dashboard.elementState?.blocks || []),
-                    {
-                        type: RELATION_BLOCK_NAME,
-                        data: newElementData,
-                        id: getRandomId()
-                    }
-                ]
-            }
-        }
-
-        const editorState = useEditorStore();
-        const dashboardId = dashboard.id;
-        // of there is a ref, update the editor
-        if (editorState.hasEditor(dashboardId)) {
-            const editor = editorState.getEditor(dashboardId);
-            const nBlocks = editor.editor.blocks.getBlocksCount();
-            editor.editor.blocks.insert(RELATION_BLOCK_NAME, newElementData, undefined, nBlocks);
-        } else {
-            // we can use this here as we are not adding, deleting or renaming a dashboard
-            setDashboardStateUnsafe(dashboard.id, newState);
-        }
-        toast.success(`Added "${relation.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
-
     }
 
     function onAddNewRelation(path: string[], tree: TreeNode) {

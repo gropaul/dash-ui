@@ -6,9 +6,7 @@ import {CanDisplayPlot} from "@/model/relation-view-state/chart";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {useRef} from "react";
 import {ChartContentOverlay} from "@/components/relation/chart/chart-content/chart-content-overlay";
-import {useRelationData} from "@/state/relations-data.state";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
-import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 
 export interface ChartContentWrapperProps extends RelationViewContentProps {
@@ -25,10 +23,6 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
     const isEmbedded = props.embedded ?? false;
     const showOverlay = props.showOverlay ?? true;
 
-    const isMobile = useIsMobile();
-
-    const groupHoverClass = isMobile ? '' : 'group-hover:opacity-100 opacity-0';
-
     return (
         <>
             {plotDisplayError ?
@@ -39,17 +33,17 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
                         embedded={props.embedded}
                         hideTitleIfEmpty={props.embedded}
                         data={data}
-                        config={config.chart}
+                        relationState={props.relationState}
                     />
                 </Exportable>
             }
             {/* Overlay Button panel so that it is not exportable */}
             {showOverlay && <ChartContentOverlay
                 embedded={props.embedded}
-                className={cn(isEmbedded ? 'top-0 right-2 transition-opacity duration-200' : '', groupHoverClass)}
+                className={cn(isEmbedded ? 'top-0 right-2 transition-opacity duration-200' : '')}
                 hasError={plotDisplayError != undefined}
                 data={data}
-                config={config.chart}
+                relationState={props.relationState}
                 view={config.view}
                 relationId={props.relationState.id}
                 onExportAsSVG={exportableRef.current?.exportChartAsSVG}

@@ -1,11 +1,32 @@
-import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuPortal, DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
-import {ImageDown, Pencil, PencilOff, Settings} from "lucide-react";
+import {
+    ChevronDown,
+    ChevronRight,
+    DownloadIcon,
+    LayoutDashboard,
+    Settings,
+    X
+} from "lucide-react";
 import {MyChartProps} from "@/components/relation/chart/chart-content";
 import {ConfigViewState} from "@/model/relation-view-state/chart";
 import {DeepPartial} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 import {cn} from "@/lib/utils";
+import React, {useState} from "react";
+import {useIsMobile} from "@/components/provider/responsive-node-provider";
+import {DashboardCommand} from "@/components/workbench/dashboard-command";
+import {DashboardCommandState, onAddToDashboardSelected} from "@/components/workbench/editor-overview-tab";
+import {useRelationsState} from "@/state/relations.state";
 
 export interface ChartContentOverlayProps extends MyChartProps {
     className?: string;
@@ -21,6 +42,10 @@ export interface ChartContentOverlayProps extends MyChartProps {
 export function ChartContentOverlay(props: ChartContentOverlayProps) {
     const showChartSettings = props.view.showConfig;
 
+    const [dashboardCommand, setDashboardCommand] = useState<DashboardCommandState>({open: false});
+    const dashboards = useRelationsState((state) => state.dashboards);
+    const [open, setOpen] = React.useState(false);
+
     function updateShowConfig() {
         props.updateRelationViewState({
             chartState: {
@@ -31,28 +56,66 @@ export function ChartContentOverlay(props: ChartContentOverlayProps) {
         });
     }
 
-    return (
-        <div className={cn("absolute right-2 top-2 flex gap-2", props.className)}>
-            {/* Toggle Chart Settings Button */}
-            <Button variant="ghost" size="icon" onClick={updateShowConfig}>
-                {props.embedded ?
-                    <Settings size={16}/>
-                    :
-                    showChartSettings ? <PencilOff size={16}/> : <Pencil size={16}/>}
-            </Button>
+    const isMobile = useIsMobile();
+    const groupHoverClass = isMobile || open ? '' : 'group-hover:opacity-100 opacity-0';
 
-            {/* Export Chart Dropdown Button */}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <ImageDown className="h-4 w-4"/>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    <DropdownMenuItem onClick={props.onExportAsPNG}>Export as PNG</DropdownMenuItem>
-                    <DropdownMenuItem disabled onClick={props.onExportAsSVG}>Export as SVG</DropdownMenuItem>
+    return (
+        <>
+            <DropdownMenu
+                open={open}
+                onOpenChange={setOpen}
+            >
+                <div className={cn(
+                    "absolute group right-2 top-2 data-[state=open]:opacity-100",
+                    props.className, groupHoverClass)}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <ChevronDown className="h-4 w-4"/>
+                        </Button>
+                    </DropdownMenuTrigger>
+                </div>
+                <DropdownMenuContent className={"group"} align="end" sideOffset={4}>
+
+                    <DropdownMenuItem onClick={updateShowConfig}>
+                        {showChartSettings ? (
+                            <>
+                                <X className="mr-1 h-4 w-4"/>
+                                Hide Settings
+                            </>
+                        ) : (
+                            <>
+                                <Settings className="mr-1 h-4 w-4"/>
+                                Show Settings
+                            </>
+                        )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                            <DownloadIcon className="mr-1 h-4 w-4"/>
+                            Export as ...
+                            <ChevronRight className="ml-auto h-4 w-4"/>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem onClick={props.onExportAsPNG}>PNG</DropdownMenuItem>
+                                <DropdownMenuItem disabled onClick={props.onExportAsSVG}>SVG</DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator/>
+                    <DropdownMenuItem onClick={() => setDashboardCommand({open: true, relation: props.relationState})}>
+                        <LayoutDashboard size={16} className="mr-1"/>
+                        Add to Dashboard
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-        </div>
+            <DashboardCommand
+                dashboards={Object.values(dashboards)}
+                open={dashboardCommand.open}
+                setOpen={(open) => setDashboardCommand({...dashboardCommand, open})}
+                onDashboardSelected={(d) => onAddToDashboardSelected(dashboardCommand.relation!, d)}
+            />
+        </>
     );
 }
