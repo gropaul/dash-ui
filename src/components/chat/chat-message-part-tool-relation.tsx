@@ -13,7 +13,7 @@ export function RelationPart(props: ChatTablePartProps) {
     const [relationState, setRelationState] = React.useState<RelationState>(props.initialState);
     try {
         return (
-            <div className={"w-full h-full flex flex-col p-0 m-0  "}>
+            <div className={"w-full h-full flex flex-col p-0 m-0 bg-background "}>
                 <RelationStateView
                     // className={"border-primary border rounded-md"}
                     relationState={relationState}

@@ -14,7 +14,7 @@ import {ToolInvocationUIPart} from "@ai-sdk/ui-utils";
 import {parentRoleStyles, roleStyles, RoleType} from "@/components/chat/chat-message-part";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {JsonViewer} from "@/components/ui/json-viewer";
-import {RelationPart} from "@/components/chat/chat-message-part-tool-table";
+import {RelationPart} from "@/components/chat/chat-message-part-tool-relation";
 
 export interface ToolIconProps {
     toolName: ToolName;
