@@ -80,7 +80,6 @@ export class DuckDBOverHttp implements DatabaseConnection {
         }
 
         const json: QueryResponse = await response.json();
-        console.log(json);
         return {
             columns: json.columns.map((column: any) => ({
                 name: column.name,

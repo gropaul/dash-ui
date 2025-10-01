@@ -54,11 +54,15 @@ export async function setDatabaseConnection(connection: DatabaseConnection): Pro
     // add the duckdb internal databases as data sources
     const duckdbInternalDatabases = await getDuckDBInternalDatabase(connection);
     await sourceState.addSourceConnection(duckdbInternalDatabases, true, true);
+    if (['duckdb-over-http'].includes(connection.type)) {
 
-    if (connection.type in ['duckdb-over-http']) {
-        // add the local file system over duckdb connection
-        const fileSystemOverDuckdb = await getDuckDBLocalFilesystem();
-        await sourceState.addSourceConnection(fileSystemOverDuckdb, true, true);
+        // currently, hostfs is not working on duckdb 1.4
+        if (false){
+            // add the local file system over duckdb connection
+            const fileSystemOverDuckdb = await getDuckDBLocalFilesystem();
+            await sourceState.addSourceConnection(fileSystemOverDuckdb, true, true);
+        }
+
     }
 
 }

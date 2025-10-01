@@ -122,12 +122,14 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
     // if is mobile, only show the first selected tab
     const actualSelectedTabs = isMobile ? props.selectedTabs.slice(0, 1) : props.selectedTabs;
 
+    const selectedTabsSorted = allTabs.filter(tab => actualSelectedTabs.includes(tab));
+    const firstTab = selectedTabsSorted[0];
     return (
         <div className="flex-1 h-full overflow-auto">
             <ResizablePanelGroup direction="vertical">
                 {allTabs.map((tab, index) => (
                     <Fragment key={`panel-group-${tab}`}>
-                        {index > 0 && true && <ResizableHandle
+                        {tab != firstTab && true && <ResizableHandle
                             style={{display:actualSelectedTabs.includes(tab) ? 'block' : 'none'}}
                         />}
                         <ResizablePanel

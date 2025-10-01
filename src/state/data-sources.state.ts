@@ -152,6 +152,7 @@ export const useDataSourcesState = createWithEqualityFn<DataSourcesZustand>((set
 
         let dataSources: {[key: string]: DataSource} = {};
         try {
+
             dataSources = await connection.loadDataSources();
         } catch (e: any) {
             get().setConnectionError(connectionId, e);

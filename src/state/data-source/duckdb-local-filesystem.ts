@@ -18,7 +18,7 @@ import {getDuckDBCurrentPath} from "@/state/data-source/duckdb-helper";
 export async function getDuckDBLocalFilesystem(): Promise<DataSourceConnection> {
     return new DuckdbLocalFilesystem(SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM, {
         rootPath: undefined,
-        name: 'Filesystem',
+        name: 'File System',
         showHiddenFiles: false
     });
 }
@@ -55,12 +55,13 @@ export class DuckdbLocalFilesystem implements DataSourceConnection {
     async initialise(): Promise<ConnectionStatus> {
 
         // install hostfs from community extensions
+        console.log('Initialising DuckDB Local Filesystem connection');
         try {
             await this.executeQueryViaDatabaseConnection('INSTALL hostfs FROM community;');
             await this.executeQueryViaDatabaseConnection('LOAD hostfs;');
         } catch (e) {
             console.error('Error installing hostfs', e);
-            return Promise.resolve({state: 'error', message: 'Error installing hostfs'});
+            return Promise.resolve({state: 'error', message: 'Error installing hostFS'});
         }
         const [_rootName, rootPath] = await getDuckDBCurrentPath( this.executeQueryViaDatabaseConnection.bind(this));
         this.config.rootPath = rootPath;
