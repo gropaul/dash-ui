@@ -16,6 +16,7 @@ import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationDataState} from "@/state/relations-data.state";
+import {CHART_QUERY_LIMIT} from "@/platform/global-data";
 
 export function getInitialParams(type: RelationViewType): ViewQueryParameters {
     return {
@@ -311,6 +312,7 @@ function buildQueries(
     };
 }
 
+
 export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): [string, string?] {
     const chartViewParams = viewParams.chart;
 
@@ -343,7 +345,9 @@ export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSub
                 GROUP BY ${xAxis}
                 ORDER BY ${xAxis}
             )
-            SELECT COLUMNS(c -> c NOT LIKE '%dash_row_number_id%') FROM data_with_ids_pivot;
+            SELECT COLUMNS(c -> c NOT LIKE '%dash_row_number_id%') 
+            FROM data_with_ids_pivot
+            LIMIT ${CHART_QUERY_LIMIT};
         `;
         return [viewQuery, schemaQuery];
     } else if (chartViewParams.xAxis && chartViewParams.yAxes && chartViewParams.yAxes.length > 0) {
@@ -354,12 +358,13 @@ export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSub
         const viewQuery = `
             SELECT ${xAxis}, ${yAxes}
             FROM ${finalQueryAsSubQuery}
+             LIMIT ${CHART_QUERY_LIMIT};
         `
 
         return [viewQuery, schemaQuery];
     } else {
         console.warn('Chart query not fully configured, falling back to table view');
-        return [`SELECT * FROM ${finalQueryAsSubQuery}`, schemaQuery];
+        return [`SELECT * FROM ${finalQueryAsSubQuery} LIMIT ${CHART_QUERY_LIMIT};`, schemaQuery];
     }
 
 }

@@ -35,19 +35,29 @@ export function ViewHeader({
     return (
         <>
             <div className="flex flex-row items-center justify-between w-full h-[48px] pl-4 pr-2">
-                <div className="flex flex-row items-center flex-1 gap-4">
+                <div className="flex flex-row items-center flex-1 gap-4 overflow-hidden pr-2">
+                    {/* Title (shrinks, ellipsizes) */}
                     <H5
-                        className="text-primary overflow-hidden text-ellipsis whitespace-nowrap max-w-[60%]"
+                        className="text-primary overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0"
                     >
-                        <EditableTextBase text={title} onTextChange={onTitleChange} />
+                        {title}
                     </H5>
 
-                    { !isMobile && <ViewPathBreadcrumb path={path} onClick={onPathClick} /> }
+                    {/* Breadcrumb (also shrinks, ellipsizes) */}
+                    {!isMobile && (
+                        <div className="overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0">
+                            <ViewPathBreadcrumb path={path} onClick={onPathClick} />
+                        </div>
+                    )}
 
+                    {/* Subtitle (fixed width, always visible, never shrinks) */}
                     {subtitle && (
-                        <EditableTextBase text={subtitle} onTextChange={onSubtitleChange} />
+                        <div className="whitespace-nowrap flex-shrink-0">
+                            <EditableTextBase text={subtitle} onTextChange={onSubtitleChange} />
+                        </div>
                     )}
                 </div>
+
                 <div className="flex flex-row items-center space-x-2 justify-end h-full pt-2 pb-2">
                     {actionButtons}
                 </div>

@@ -1,6 +1,6 @@
 import {Layout} from "@/model/relation-view-state";
 import {RelationData} from "@/model/relation";
-import {DEFAULT_COLORS} from "@/platform/global-data";
+import {CHART_QUERY_LIMIT, DEFAULT_COLORS} from "@/platform/global-data";
 
 export type PlotType = 'bar' | 'area' | 'line' | 'scatter' | 'pie' | 'radar';
 export const AVAILABLE_PLOT_TYPES: PlotType[] = ["bar", "scatter", "line", "area", "pie", "radar"]
@@ -435,13 +435,15 @@ export function getTitleForType(type: PlotDisplayErrorType) {
             return 'Configuration not complete';
         case 'missing-data':
             return 'Missing data';
+        case 'too-much-data':
+            return 'Too much data';
     }
 
     throw new Error(`Unsupported error type: ${type}`);
 }
 
 
-export type PlotDisplayErrorType = 'config-not-complete' | 'missing-data'
+export type PlotDisplayErrorType = 'config-not-complete' | 'missing-data' | 'too-much-data';
 
 export interface PlotDisplayError {
     type: PlotDisplayErrorType;
@@ -450,6 +452,15 @@ export interface PlotDisplayError {
 
 export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationData): PlotDisplayError | undefined {
     const plotConfig = chartConfig.plot;
+
+    // if there is as much data as CHART_QUERY_LIMIT, then warn that not all data is shown
+    if (relationData.rows.length >= CHART_QUERY_LIMIT) {
+        return {
+            type: 'too-much-data',
+            message: `The query returned (more then) ${relationData.rows.length} rows, which is the maximum allowed. `
+        }
+    }
+
     switch (plotConfig.type) {
         case 'bar':
         case "radar":
