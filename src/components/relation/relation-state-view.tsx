@@ -1,13 +1,15 @@
 import {WindowSplitter} from "@/components/ui/window-splitter";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
 import {ContentWrapper, RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 import {Sizable} from "@/components/ui/sizable";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
 import {cn} from "@/lib/utils";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {Button} from "@/components/ui/button";
+import {Loader2, Pause, Play, XCircle} from "lucide-react";
+import {RelationState} from "@/model/relation-state";
 
 export function RelationStateView(inputProps: RelationViewAPIProps) {
 
@@ -35,6 +37,25 @@ export function RelationStateView(inputProps: RelationViewAPIProps) {
 
         return () => clearTimeout(timer);
     }, [executionState.state]);
+
+    async function cancelQuery() {
+        try {
+            const relation = props.relationState;
+            if (relation.executionState.state === "running") {
+                const copy: RelationState = {
+                    ...relation,
+                    executionState: {
+                        ...relation.executionState,
+                        state: "error",
+                        error: {message: "Error: Query aborted by user"}
+                    }
+                }
+                props.updateRelation(copy);
+            }
+            await ConnectionsService.getInstance().abortQuery()
+        } catch (e) {
+        }
+    }
 
 
     function setCodeFenceState(relationId: string, sizePercentage: number) {
@@ -87,14 +108,17 @@ export function RelationStateView(inputProps: RelationViewAPIProps) {
                         opacity: 0.8,
                     }}
                 >
-                    <div>
-                        Loading...
+                    <div className="flex items-center space-x-3 text-lg font-medium text-foreground">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span>Loading...</span>
                     </div>
                     <Button
-                        className="ml-4" variant="ghost" size="sm"
-                        onClick={() => ConnectionsService.getInstance().abortQuery()}
+                        className="mt-2 flex items-center"
+                        variant="ghost"
+                        size="icon"
+                        onClick={cancelQuery}
                     >
-                        Abort
+                        <Pause size={24}/>
                     </Button>
                 </div>
             )}
