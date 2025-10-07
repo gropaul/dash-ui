@@ -2,7 +2,9 @@
 
 import {StorageDestination} from "../model/database-connection";
 
-export const LOADING_TIMER_OFFSET = 150;
+export const LOADING_TIMER_OFFSET = 150; // how long the query needs to run before showing the loading spinner [ms]
+
+export const DEFAULT_QUERY_TIMEOUT = 60_000; // the default query timeout [ms]
 
 export const DASH_DOMAIN = 'dash.builders'
 

@@ -114,14 +114,15 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
     [database: string]: DataSource
 }> {
 // get all columns and tables
-
+    const isDebug = process.env.NODE_ENV === 'development';
+    const conditionFilterCache = isDebug ? `TRUE` : `c.table_schema NOT IN ('dash')`;
     const query = `SELECT c.table_catalog, c.table_schema, c.table_name, t.table_type, c.column_name, c.data_type
                    FROM information_schema.columns as c
                             JOIN information_schema.tables as t ON
                        t.table_name = c.table_name and
                        t.table_schema = c.table_schema and
                        t.table_catalog = c.table_catalog
-                   WHERE c.table_schema NOT IN ('dash')
+                   WHERE ${conditionFilterCache}
                    ORDER BY c.table_catalog, c.table_name, c.ordinal_position;
     `;
 

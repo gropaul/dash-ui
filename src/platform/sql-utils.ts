@@ -1,5 +1,6 @@
-
 'use strict';
+
+import {Parser} from 'node-sql-parser';
 
 const debug = require('debug')('sql-strip-comments');
 
@@ -49,22 +50,107 @@ export function minifySQL(sql: string) {
         return ' ';
     });
 
+
     return sql.trim();
 }
 
+export function splitSQL(sql: string, keepSemicolon: boolean = false): string[] {
+    const stmts: string[] = [];
+    let current = '';
 
+    enum State {
+        Normal,
+        SingleQuote,
+        DoubleQuote,
+        LineComment,
+        BlockComment,
+    }
 
-/**
- * Separates SQL statements by the semicolon delimiter.
- * @param sql The SQL string containing multiple statements.
- * @returns An array of individual SQL statements.
- */
-export function getSeparatedStatements(sql: string): string[] {
-    // Split by semicolon, trim whitespace, and filter out empty strings
-    return removeComments(sql)
-        .split(";")
-        .map((stmt) => stmt.trim())
-        .filter((stmt) => stmt.length > 0);
+    let state = State.Normal;
+
+    for (let i = 0; i < sql.length; i++) {
+        const ch = sql[i];
+        const next = sql[i + 1];
+
+        switch (state) {
+            case State.Normal: {
+                if (ch === "'") {
+                    state = State.SingleQuote;
+                    current += ch;
+                } else if (ch === '"') {
+                    state = State.DoubleQuote;
+                    current += ch;
+                } else if (ch === '-' && next === '-') {
+                    state = State.LineComment;
+                    current += ch;
+                } else if (ch === '/' && next === '*') {
+                    state = State.BlockComment;
+                    current += ch;
+                } else if (ch === ';') {
+                    // statement boundary
+                    if (keepSemicolon) {
+                        current += ch;
+                    }
+                    if (current.trim().length > 0) {
+                        stmts.push(current.trim());
+                        current = '';
+                    }
+                } else {
+                    current += ch;
+                }
+                break;
+            }
+
+            case State.SingleQuote: {
+                current += ch;
+                if (ch === "'" && next === "'") {
+                    // Escaped quote: '' → stay in string, consume both
+                    current += next;
+                    i++;
+                } else if (ch === "'") {
+                    // End of string
+                    state = State.Normal;
+                }
+                break;
+            }
+
+            case State.DoubleQuote: {
+                current += ch;
+                if (ch === '"' && next === '"') {
+                    // Escaped double-quote: "" → stay in identifier
+                    current += next;
+                    i++;
+                } else if (ch === '"') {
+                    state = State.Normal;
+                }
+                break;
+            }
+
+            case State.LineComment: {
+                current += ch;
+                if (ch === '\n') {
+                    state = State.Normal;
+                }
+                break;
+            }
+
+            case State.BlockComment: {
+                current += ch;
+                if (ch === '*' && next === '/') {
+                    current += next;
+                    i++;
+                    state = State.Normal;
+                }
+                break;
+            }
+        }
+    }
+
+    if (current.trim().length > 0) {
+        stmts.push(current.trim());
+    }
+
+    return stmts;
 }
 
 
@@ -73,17 +159,23 @@ export function addSemicolonIfNeeded(sql: string): string {
 }
 
 export function cleanAndSplitSQL(sql: string): string[] {
-    return getSeparatedStatements(sql).map(addSemicolonIfNeeded).map(minifySQL);
+    return splitSQL(sql).map(addSemicolonIfNeeded).map(minifySQL);
 }
 
-// remove the semicolon at the end of the statement if it exists
-export function removeSemicolon(sql: string){
-    const minifiedSQL = minifySQL(sql);
-    return minifiedSQL.trim().replace(/;$/, "");
+// remove the semicolon at the end of the statement if it exists. This assumes only one statement is given
+export function removeSemicolon(sql: string) {
+    const splitted = splitSQL(sql);
+    if (splitted.length === 0) {
+        return sql;
+    } else if (splitted.length > 1) {
+        throw new Error("The SQL command must be a single statement.");
+    } else {
+        return splitted[0];
+    }
 }
 
 export function turnQueryIntoSubquery(sql: string, alias?: string): string {
-    const statements = getSeparatedStatements(sql).map(minifySQL);
+    const statements = splitSQL(sql).map(minifySQL);
 
     // Ensure the SQL is a single statement
     if (statements.length !== 1) {
@@ -94,11 +186,8 @@ export function turnQueryIntoSubquery(sql: string, alias?: string): string {
     // Retrieve the cleaned single SQL statement
     const singleStatement = statements[0];
 
-    // remove the semicolon at the end of the statement
-    const cleanedStatement =removeSemicolon(singleStatement);
-
     if (!alias) {
-        return `(${cleanedStatement})`;
+        return `(${singleStatement})`;
     }
 
     // Validate the alias (simple validation for SQL-safe aliases)
@@ -106,6 +195,6 @@ export function turnQueryIntoSubquery(sql: string, alias?: string): string {
         throw new Error("Invalid alias name. Alias must be a valid SQL identifier.");
     }
     // Wrap the statement as a subquery
-    return `(${cleanedStatement}) AS ${alias}`;
+    return `(${singleStatement}) AS ${alias}`;
 
 }

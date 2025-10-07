@@ -39,6 +39,10 @@ export class DuckDBOverHttp implements DatabaseConnection {
         this.type = 'duckdb-over-http';
     }
 
+    async abortQuery(): Promise<void> {
+        throw new Error("Abort query is not supported for DuckDB Over HTTP");
+    }
+
     canHandleMultiTab(): boolean {
         return true;
     }

@@ -2,6 +2,7 @@ import {RelationData} from "@/model/relation";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DEFAULT_STATE_SCHEMA_NAME} from "@/platform/global-data";
 import {CacheResult} from "@/state/relations-data.state";
+import {removeSemicolon} from "@/platform/sql-utils";
 
 function GetFullViewName(id: string): string {
     const viewName = `cache-${id}`;
@@ -14,7 +15,7 @@ function getMaterializedViewFromQuery(id: string, query: string, readonly: boole
     const tableName = GetFullViewName(id);
 
     // remove the semicolon in the query if it exists (can be everywhere in the query)
-    query = query.trim().replace(/;/g, '');
+    query = removeSemicolon(query);
 
     return `CREATE OR REPLACE ${tmpPhrase} ${tableName} AS (${query});`;
 }
@@ -61,9 +62,16 @@ export async function updateCache(id: string, query: string): Promise<CacheResul
             wasCached: true
         };
     } catch (error) {
+        // only catch if it is a parsing error, otherwise rethrow
         // execute the query directly as we cannot cache it
+        const message = (error as Error).message;
+        const isParsingError = message.includes('Parser Error');
+
+        if (!isParsingError) {
+            throw error;
+        }
+
         const data = await connectionsService.executeQuery(query);
-        console.error('Failed to create materialized view, executing query directly:', error, query);
         return {
             data: data,
             wasCached: false

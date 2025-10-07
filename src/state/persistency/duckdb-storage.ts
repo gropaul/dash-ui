@@ -211,12 +211,14 @@ export class StorageDuckAPI {
         const tableName = GetFullNameDestination(storageDestination);
 
         if (this.isVersionValid(versionCode)) {
-            const query = `
+            const insertQuery = `
                 INSERT INTO ${tableName}
                 VALUES (0, '${value}', NOW()) ON CONFLICT DO
                 UPDATE SET value = EXCLUDED.value, version = NOW();
             `;
-            await this.executeQuery(query);
+
+            await this.executeQuery(insertQuery);
+            await this.executeQuery('CHECKPOINT');
 
             // get the current version, if null then error
             const newVersionCode = await this.loadVersionFromServer();

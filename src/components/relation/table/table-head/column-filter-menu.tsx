@@ -1,7 +1,7 @@
 import React from "react";
 import {ColumnHeadProps} from "@/components/relation/table/table-head/table-column-head";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {getSeparatedStatements, turnQueryIntoSubquery} from "@/platform/sql-utils";
+import {splitSQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Checkbox} from "@/components/ui/checkbox";
@@ -35,7 +35,7 @@ export function ColumnFilterMenu(props: ColumnHeadProps) {
     async function loadMeta() {
         try {
             const base = props.relationState.query.baseQuery;
-            const statements = getSeparatedStatements(base);
+            const statements = splitSQL(base);
             const finalQuery = statements[statements.length - 1];
             const subquery = turnQueryIntoSubquery(finalQuery, 'subq');
             const conn = ConnectionsService.getInstance();

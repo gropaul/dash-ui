@@ -13,6 +13,8 @@ import {normalizeArrowType} from "@/components/relation/common/value-icon";
 import {duckDBTypeToValueType, ValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
+import {AsyncQueue} from "@/platform/async-queue";
+import {splitSQL} from "@/platform/sql-utils";
 
 export interface DuckDBWasmConfig {
     name: string;
@@ -31,13 +33,22 @@ export class DuckDBWasm implements DatabaseConnection {
     dataSources: DataSource[];
     config: DuckDBWasmConfig;
 
+    queue: AsyncQueue<string, RelationData>;
+
     constructor(config: DuckDBWasmConfig, id: string) {
         this.id = id;
 
         this.type = 'duckdb-wasm';
         this.dataSources = [];
         this.config = config;
+
+        // to be able to use connection.send, we need to create a proper queue in order to avoid
+        // sending multiple queries at the same time
+        this.queue = new AsyncQueue<string, RelationData>((input) => this.executeQueryInternal(input));
     }
+
+
+
 
     canHandleMultiTab(): boolean {
         return false;
@@ -53,12 +64,33 @@ export class DuckDBWasm implements DatabaseConnection {
         return this.checkConnectionState();
     }
 
-    async executeQuery(query: string): Promise<RelationData> {
+    async abortQuery(): Promise<void> {
+        console.log("Aborting query");
+        await this.queue.cancelAll(Error("Query aborted by user"));
+        const {con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
+        await con.cancelSent()
+    }
+
+    async executeQuery(sql: string): Promise<RelationData> {
+        // we need to split the queries as we use sending to execute the queries which only allows
+        // one statement at a time
+        const queries = splitSQL(sql)
+        const lastQuery = queries.pop();
+        if (!lastQuery){
+            throw Error("SQL does not contain any query")
+        }
+        for (const query in queries){
+            this.queue.add(query) // no await as we don't want other queries to sneak in!
+        }
+        return this.queue.add(lastQuery);
+    }
+
+    async executeQueryInternal(query: string): Promise<RelationData> {
+        // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
         const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
-        const arrowResult = await con!.query(query);
-        // checkpoint the database
-        await con.query('CHECKPOINT;');
-        return relationFromDuckDBArrowResult('result', this.id, arrowResult);
+        const result = await con.send(query, true);
+        const data = await result.readAll();
+        return relationFromDuckDBArrowResult("result", this.id, data);
     }
 
 
@@ -113,7 +145,7 @@ function convertArrowValue(value: any, normalized_type: ValueType, type: any): a
         const json_value = value.toJSON();
 
         const keys = Object.keys(json_value);
-        let struct: {[key: string]: any} = {};
+        let struct: { [key: string]: any } = {};
         const struct_type_children = type.children;
         let index = 0;
         for (const key of keys) {
@@ -125,9 +157,8 @@ function convertArrowValue(value: any, normalized_type: ValueType, type: any): a
             index++;
         }
         return struct;
-    }
-    else if (normalized_type.includes('List')) {
-        const json_list =  value.toJSON();
+    } else if (normalized_type.includes('List')) {
+        const json_list = value.toJSON();
         const list_element_type = normalizeArrowType(value.type);
 
         let list = [];
@@ -148,29 +179,45 @@ function convertArrowValue(value: any, normalized_type: ValueType, type: any): a
     return value;
 }
 
-export function relationFromDuckDBArrowResult(relationName: string, connectionId: string, arrowResult: any): RelationData {
+export function relationFromDuckDBArrowResult(relationName: string, connectionId: string, input: any): RelationData {
 
-    // Convert arrow table to json
-    const json = arrowResult.toArray().map((row: any) => row.toJSON());
+    // if the arrow result is not a list, make it a list
+    let chunks: any[]
+    if (!Array.isArray(input)) {
+        chunks = [input]
+    }else {
+        chunks = input;
+    }
+
+
+    // Convert arrow tables to json
+    let json: any[] = [];
+    for (const chunk of chunks) {
+        const tableJson: any[] = chunk.toArray().map((row: any) => row.toJSON());
+
+        json = json.concat(tableJson);
+    }
+
     // if the json is empty, return an empty relation
-    if (json.length === 0) {
+    if (json.length === 0 ||  chunks.length === 0) {
         return {
             columns: [],
             rows: []
         };
     }
     const firstRow = json[0];
+    const firstChunk = chunks[0];
     const columns = Object.keys(firstRow);
 
     const rows = json.map((jsonRow: any) => {
         // the row is the list of values of the json map
         return columns.map((column) => jsonRow[column]);
     });
-    const normalizedTypes = arrowResult.schema.fields.map((field: any) => {
+    const normalizedTypes = firstChunk.schema.fields.map((field: any) => {
         return duckDBTypeToValueType(normalizeArrowType(field.type));
     })
 
-    const types = arrowResult.schema.fields.map((field: any) => {
+    const types = firstChunk.schema.fields.map((field: any) => {
         return field.type;
     });
 

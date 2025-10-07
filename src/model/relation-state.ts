@@ -279,7 +279,7 @@ function buildQueries(
         throw new Error('No final query found in base SQL');
     }
 
-    // Turn final query into a subquery
+    // Turn a final query into a subquery
     const finalQueryAsSubQuery = turnQueryIntoSubquery(finalQuery);
 
     // Build a count query
@@ -423,7 +423,8 @@ export async function getQueryFromParams(
     relation: Relation,
     query: ViewQueryParameters,
     baseSQL: string,
-    inputManager?: InputManager
+    inputManager?: InputManager,
+    check: boolean = true
 ): Promise<QueryData> {
     // Build the queries first
     const {

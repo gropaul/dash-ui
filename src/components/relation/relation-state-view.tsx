@@ -6,6 +6,8 @@ import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
 import {Sizable} from "@/components/ui/sizable";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
 import {cn} from "@/lib/utils";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {Button} from "@/components/ui/button";
 
 export function RelationStateView(inputProps: RelationViewAPIProps) {
 
@@ -80,12 +82,20 @@ export function RelationStateView(inputProps: RelationViewAPIProps) {
             }
             {isLoading && (
                 <div
-                    className="absolute top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-background transition-opacity duration-200"
+                    className="absolute top-0 left-0 w-full h-full z-50 flex flex-col items-center justify-center bg-background transition-opacity duration-200"
                     style={{
                         opacity: 0.8,
                     }}
                 >
-                    Loading...
+                    <div>
+                        Loading...
+                    </div>
+                    <Button
+                        className="ml-4" variant="ghost" size="sm"
+                        onClick={() => ConnectionsService.getInstance().abortQuery()}
+                    >
+                        Abort
+                    </Button>
                 </div>
             )}
         </>

@@ -55,6 +55,10 @@ export class MdWasm implements DatabaseConnection {
         return resultToRelationData(res);
     }
 
+    async abortQuery(): Promise<void> {
+        throw new Error("Abort query is not supported for DuckDB Over HTTP");
+    }
+
     async mountFiles(files: File[]): Promise<void> {
     }
 

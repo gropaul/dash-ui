@@ -14,7 +14,6 @@ import {Check, Copy, EyeOff, Filter} from "lucide-react";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 import {cn} from "@/lib/utils";
 import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon";
-import {ColumnFilterMenu} from "@/components/relation/table/table-head/column-filter-menu";
 
 
 interface ColumnHeadDropDownMenuContentProps extends ColumnHeadProps {

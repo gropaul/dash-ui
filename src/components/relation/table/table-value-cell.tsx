@@ -98,7 +98,6 @@ export function ValueElement({column, element, stringElement}: ValueElementProps
             return <span>{date.toLocaleString()}</span>;
         }
     }
-
     return (
         <span>{stringElement}</span>
     );
