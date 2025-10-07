@@ -12,9 +12,9 @@ import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-pr
 import {normalizeArrowType} from "@/components/relation/common/value-icon";
 import {duckDBTypeToValueType, ValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
-import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
+import {DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
 import {AsyncQueue} from "@/platform/async-queue";
-import {splitSQL} from "@/platform/sql-utils";
+import {enqueueStatements} from "@/state/connections/utils";
 
 export interface DuckDBWasmConfig {
     name: string;
@@ -66,23 +66,13 @@ export class DuckDBWasm implements DatabaseConnection {
 
     async abortQuery(): Promise<void> {
         console.log("Aborting query");
-        await this.queue.cancelAll(Error("Query aborted by user"));
+        await this.queue.cancelAll(Error(ERROR_MESSAGE_QUERY_ABORTED));
         const {con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
         await con.cancelSent()
     }
 
     async executeQuery(sql: string): Promise<RelationData> {
-        // we need to split the queries as we use sending to execute the queries which only allows
-        // one statement at a time
-        const queries = splitSQL(sql)
-        const lastQuery = queries.pop();
-        if (!lastQuery){
-            throw Error("SQL does not contain any query")
-        }
-        for (const query in queries){
-            this.queue.add(query) // no await as we don't want other queries to sneak in!
-        }
-        return this.queue.add(lastQuery);
+        return enqueueStatements(sql, this.queue);
     }
 
     async executeQueryInternal(query: string): Promise<RelationData> {

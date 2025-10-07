@@ -46,3 +46,5 @@ export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
     tableName: 'relationState',
     schemaName: DEFAULT_STATE_SCHEMA_NAME,
 }
+
+export const ERROR_MESSAGE_QUERY_ABORTED = 'Query aborted by user';
