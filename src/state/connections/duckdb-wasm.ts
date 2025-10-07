@@ -48,8 +48,6 @@ export class DuckDBWasm implements DatabaseConnection {
     }
 
 
-
-
     canHandleMultiTab(): boolean {
         return false;
     }
@@ -66,7 +64,7 @@ export class DuckDBWasm implements DatabaseConnection {
 
     async abortQuery(): Promise<void> {
         console.log("Aborting query");
-        await this.queue.cancelAll(Error(ERROR_MESSAGE_QUERY_ABORTED));
+        this.queue.cancelAll(ERROR_MESSAGE_QUERY_ABORTED);
         const {con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
         await con.cancelSent()
     }
@@ -76,11 +74,21 @@ export class DuckDBWasm implements DatabaseConnection {
     }
 
     async executeQueryInternal(query: string): Promise<RelationData> {
-        // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
-        const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
-        const result = await con.send(query, true);
-        const data = await result.readAll();
-        return relationFromDuckDBArrowResult("result", this.id, data);
+        try {
+            // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
+            const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
+            const result = await con.send(query, true);
+            const data = await result.readAll();
+            return relationFromDuckDBArrowResult("result", this.id, data);
+        } catch (e: any) {
+            // check if it is an error
+            if (e instanceof Error) {
+                if (e.message === '') {                // it is an abort error if there is an empty message
+                    throw new Error(ERROR_MESSAGE_QUERY_ABORTED);
+                }
+            }
+            throw e;
+        }
     }
 
 
@@ -175,7 +183,7 @@ export function relationFromDuckDBArrowResult(relationName: string, connectionId
     let chunks: any[]
     if (!Array.isArray(input)) {
         chunks = [input]
-    }else {
+    } else {
         chunks = input;
     }
 
@@ -189,7 +197,7 @@ export function relationFromDuckDBArrowResult(relationName: string, connectionId
     }
 
     // if the json is empty, return an empty relation
-    if (json.length === 0 ||  chunks.length === 0) {
+    if (json.length === 0 || chunks.length === 0) {
         return {
             columns: [],
             rows: []

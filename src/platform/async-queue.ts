@@ -34,13 +34,19 @@ export class AsyncQueue<InputType, ReturnType> {
      *
      * @private
      */
-    async cancelAll(error: any) {
-        while (this.queue.length > 0) {
-            const {reject} = this.queue.shift()!;
-            reject(error);
+    cancelAll(errorMessage: string): void {
+        const error = new Error(errorMessage);
+        for (const { reject } of this.queue) {
+            try {
+                reject(error);
+            } catch (_) {
+                // ignore to ensure all rejections proceed
+            }
         }
+        this.queue = [];
         this.processing = false;
     }
+
 
     private async processNext() {
         this.processing = true;

@@ -46,7 +46,7 @@ export class DuckDBOverHttp implements DatabaseConnection {
     }
 
     async abortQuery(): Promise<void> {
-        await this.queue.cancelAll(Error(ERROR_MESSAGE_QUERY_ABORTED));
+        this.queue.cancelAll(ERROR_MESSAGE_QUERY_ABORTED);
         await this.sendCancel();
 
     }
