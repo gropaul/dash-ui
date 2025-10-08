@@ -2,7 +2,7 @@ import {WindowSplitter} from "@/components/ui/window-splitter";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
 import {ContentWrapper, RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import React, {useEffect, useState} from "react";
-import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
+import {LOADING_TIMER_OFFSET_MS} from "@/platform/global-data";
 import {Sizable} from "@/components/ui/sizable";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
 import {cn} from "@/lib/utils";
@@ -30,7 +30,7 @@ export function RelationStateView(inputProps: RelationViewAPIProps) {
         let timer: number | undefined;
 
         if (executionState.state === "running") {
-            timer = setTimeout(() => setIsLoading(true), LOADING_TIMER_OFFSET) as unknown as number;
+            timer = setTimeout(() => setIsLoading(true), LOADING_TIMER_OFFSET_MS) as unknown as number;
         } else {
             setIsLoading(false);
         }

@@ -1,14 +1,14 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
-import {AsyncQueue} from "@/platform/async-queue";
+import {throttleLatest} from "@/lib/throttle-latest";
 import {
     DatabaseConnection,
     DefaultStateStorageInfo,
     StateStorageInfo, StateStorageInfoLoaded,
     StorageDestination
 } from "@/model/database-connection";
-import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
+import {DEFAULT_STATE_STORAGE_DESTINATION, STORAGE_THROTTLE_TIME_MS} from "@/platform/global-data";
 
 
 export function GetFullNameDestination(destination: StorageDestination) {
@@ -52,14 +52,16 @@ export class StorageDuckAPI {
     private static instance: StorageDuckAPI;
 
     lastVersionCode: number | null = null;
-    queue: AsyncQueue<QueueInput, void>;
+    throttledSetItem: ((input: QueueInput) => void) & { cancel: () => void };
 
     onForceReloadCallback: () => void = () => {
     };
 
     private constructor() {
-        // weird way of adding the function to ensure that the 'this' context is correct
-        this.queue = new AsyncQueue<QueueInput, void>((input) => this.setItemInternal(input));
+        // Use throttleLatest to save only the latest update every 3 seconds
+        this.throttledSetItem = throttleLatest((input: QueueInput) => {
+            this.setItemInternal(input);
+        }, STORAGE_THROTTLE_TIME_MS);
     }
 
     setOnForceReloadCallback(callback: () => void) {
@@ -194,7 +196,8 @@ export class StorageDuckAPI {
             return;
         }
 
-        return this.queue.add({storageInfo: storageInfo, value});
+        // Use throttledSetItem to save only the latest update every 3 seconds
+        this.throttledSetItem({storageInfo: storageInfo, value});
     }
 
     private async setItemInternal(input: QueueInput): Promise<void> {

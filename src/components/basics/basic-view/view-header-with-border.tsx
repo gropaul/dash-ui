@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {LOADING_TIMER_OFFSET} from "@/platform/global-data";
+import {LOADING_TIMER_OFFSET_MS} from "@/platform/global-data";
 import {TaskExecutionState} from "@/model/relation-state";
 
 
@@ -21,7 +21,7 @@ export function RelationViewHeaderBorder({state}: RelationViewHeaderBorderProps)
             // Set a delay before showing the animation
             timer = setTimeout(() => {
                 setShowLoading(true);
-            }, LOADING_TIMER_OFFSET);
+            }, LOADING_TIMER_OFFSET_MS);
         } else {
             // If the query state changes from running, reset the loading state
             setShowLoading(false);
