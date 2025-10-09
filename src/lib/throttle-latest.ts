@@ -1,30 +1,32 @@
-// "@/lib/throttleLatest.ts"
-export function throttleLatest<T extends unknown[]>(
-    fn: (...args: T) => void,
+export function throttleLatest<T extends unknown[], R>(
+    fn: (...args: T) => Promise<R> | R,
     wait: number
 ) {
     let timer: number | null = null;
     let latestArgs: T | null = null;
     let leadingCall = true;
+    let lastPromise: Promise<R> | null = null;
 
     const fire = () => {
         if (latestArgs) {
-            fn(...latestArgs);
+            lastPromise = Promise.resolve(fn(...latestArgs));
             latestArgs = null;
         }
         timer = null;
     };
 
-    const wrapped = (...args: T) => {
+    const wrapped = (...args: T): Promise<R> | void => {
         if (leadingCall) {
-            fn(...args); // fire immediately
+            lastPromise = Promise.resolve(fn(...args));
             leadingCall = false;
             timer = window.setTimeout(() => {
                 fire();
-                leadingCall = true; // reset so next call fires immediately again
+                leadingCall = true;
             }, wait);
+            return lastPromise;
         } else {
-            latestArgs = args; // save latest args for trailing fire
+            latestArgs = args;
+            return lastPromise ?? Promise.resolve() as Promise<R>;
         }
     };
 
@@ -37,5 +39,5 @@ export function throttleLatest<T extends unknown[]>(
         leadingCall = true;
     };
 
-    return wrapped as ((...args: T) => void) & { cancel: () => void };
+    return wrapped as ((...args: T) => Promise<R>) & { cancel: () => void };
 }

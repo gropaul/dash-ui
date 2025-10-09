@@ -23,23 +23,17 @@ export function ColorSubMenu(props: ColorSubMenuProps) {
     // local color state to update instantly
     const [localColor, setLocalColor] = useState(globalColor);
 
+    // create throttled updater (memoize, so it doesn’t recreate every render)
+    const throttledSetColor = useMemo(
+        () => throttleLatest(setColor, debounceMs),
+        [setColor, debounceMs]
+    );
+
     // keep the local state in sync if global changes from outside
     useEffect(() => {
         setLocalColor(globalColor);
     }, [globalColor]);
 
-    // trailing throttle: emit at most once per interval with the latest value
-    const throttledSetColor = useMemo(() => {
-
-        return throttleLatest(setColor, debounceMs);
-    }, [setColor, debounceMs]);
-
-    // cancel pending flushes on unmount or when deps change
-    useEffect(() => {
-        return () => {
-            throttledSetColor.cancel?.();
-        };
-    }, [throttledSetColor]);
 
     return (
         <DropdownMenuSub>

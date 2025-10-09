@@ -8,7 +8,11 @@ import {
     StateStorageInfo, StateStorageInfoLoaded,
     StorageDestination
 } from "@/model/database-connection";
-import {DEFAULT_STATE_STORAGE_DESTINATION, STORAGE_THROTTLE_TIME_MS} from "@/platform/global-data";
+import {
+    DASH_STORAGE_VERSION,
+    DEFAULT_STATE_STORAGE_DESTINATION,
+    STORAGE_THROTTLE_TIME_MS
+} from "@/platform/global-data";
 
 
 export function GetFullNameDestination(destination: StorageDestination) {
@@ -42,7 +46,6 @@ export async function GetStateStorageStatus(destination: StorageDestination, exe
 
 
 interface QueueInput {
-    storageInfo: StateStorageInfoLoaded,
     value: string
 }
 
@@ -52,16 +55,13 @@ export class StorageDuckAPI {
     private static instance: StorageDuckAPI;
 
     lastVersionCode: number | null = null;
-    throttledSetItem: ((input: QueueInput) => void) & { cancel: () => void };
+    throttledSetItem: (input: QueueInput) => Promise<void>;
 
     onForceReloadCallback: () => void = () => {
     };
 
     private constructor() {
-        // Use throttleLatest to save only the latest update every 3 seconds
-        this.throttledSetItem = throttleLatest((input: QueueInput) => {
-            this.setItemInternal(input);
-        }, STORAGE_THROTTLE_TIME_MS);
+        this.throttledSetItem = throttleLatest(this.setItemInternal.bind(this), STORAGE_THROTTLE_TIME_MS);
     }
 
     setOnForceReloadCallback(callback: () => void) {
@@ -87,7 +87,7 @@ export class StorageDuckAPI {
 
     }
 
-    async createTableIfNotExists(storageInfo: StateStorageInfoLoaded){
+    async createTableIfNotExists(storageInfo: StateStorageInfoLoaded) {
 
         // if we are in readonly mode, do not create the table
         if (storageInfo.databaseReadonly) {
@@ -111,17 +111,30 @@ export class StorageDuckAPI {
 
             // create schema dash if not exists
             await this.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${storageInfo.destination.schemaName};`);
-            const data = await this.executeQuery(`CREATE TABLE IF NOT EXISTS ${tableName}
-                                                  (
-                                                      id
-                                                      INT
-                                                      PRIMARY
-                                                      KEY,
-                                                      value
-                                                      JSON,
-                                                      version
-                                                      TIMESTAMP
-                                                  );`);
+
+            const createTableQuery = `CREATE TABLE IF NOT EXISTS ${tableName}
+                                      (
+                                          id
+                                          INT
+                                          PRIMARY
+                                          KEY,
+                                          value
+                                          JSON,
+                                          version
+                                          UINT64,
+                                          dash_storage_version
+                                          UINT64
+                                      );`
+
+            // if the table did not exist, we have to create an initial row
+            const data = await this.executeQuery(createTableQuery);
+
+            await this.executeQuery(`INSERT INTO ${tableName} (id, value, version, dash_storage_version)
+                                     SELECT 0, '{}', 0, ${DASH_STORAGE_VERSION}
+                                     WHERE NOT EXISTS(SELECT 1
+                                                      FROM ${tableName}
+                                                      WHERE id = 0);`);
+
 
             this.createdTables.push(tableName);
         }
@@ -151,10 +164,11 @@ export class StorageDuckAPI {
         // only update if the version is still valid
         const storageInfo = await this.getActiveStorageInfo()
         const tableName = GetFullNameDestination(storageInfo.destination);
-        const data = await this.executeQuery(`SELECT version FROM ${tableName};`);
-        let versionCode: number | null = null;
+        const data = await this.executeQuery(`SELECT version
+                                              FROM ${tableName};`);
+        let versionCode: number | null = 0;
         if (data.rows.length > 0) {
-            versionCode = new Date(data.rows[0][0]).getTime();
+            versionCode = data.rows[0][0] as number;
         }
         return versionCode;
     }
@@ -189,6 +203,12 @@ export class StorageDuckAPI {
     }
 
     async setItem(value: string): Promise<void> {
+        // Use throttledSetItem to save only the latest
+        return this.throttledSetItem({value});
+    }
+
+    private async setItemInternal(input: QueueInput): Promise<void> {
+
         const storageInfo = await this.getActiveStorageInfo();
 
         // not allowed to write in readonly mode
@@ -196,41 +216,49 @@ export class StorageDuckAPI {
             return;
         }
 
-        // Use throttledSetItem to save only the latest update every 3 seconds
-        this.throttledSetItem({storageInfo: storageInfo, value});
-    }
-
-    private async setItemInternal(input: QueueInput): Promise<void> {
-
-        let {storageInfo, value} = input;
+        let {value} = input;
         // escape single quotes in value
         value = value.replace(/'/g, "''");
 
         const storageDestination = storageInfo.destination;
         await this.createTableIfNotExists(storageInfo);
 
-        // check if the version is still valid
-        const versionCode = await this.loadVersionFromServer();
         const tableName = GetFullNameDestination(storageDestination);
 
-        if (this.isVersionValid(versionCode)) {
+        if (this.lastVersionCode === null) {
+            this.lastVersionCode = await this.loadVersionFromServer()
+        }
+
+        try {
             const insertQuery = `
-                INSERT INTO ${tableName}
-                VALUES (0, '${value}', NOW()) ON CONFLICT DO
-                UPDATE SET value = EXCLUDED.value, version = NOW();
+                WITH checkVersion AS (SELECT version,
+                                             version = ${this.lastVersionCode}                                                 AS is_valid,
+                                             if(is_valid, (version + 1) % 1_000_000,
+                                                error('Version conflict, the data has been modified by another tab or user.')) AS newVersion,
+                                             0                                                                                 as id,
+                                             '${value}' as value, '${DASH_STORAGE_VERSION}' as dash_storage_version
+                FROM ${tableName}
+                    )
+                INSERT
+                INTO ${tableName}
+                SELECT id, value, newVersion, dash_storage_version
+                FROM checkVersion ON CONFLICT DO
+                UPDATE SET
+                    value = EXCLUDED.value,
+                    version = EXCLUDED.version,
+                    dash_storage_version = EXCLUDED.dash_storage_version
+                    RETURNING version;
             `;
-
-            await this.executeQuery(insertQuery);
-            await this.executeQuery('CHECKPOINT');
-
-            // get the current version, if null then error
-            const newVersionCode = await this.loadVersionFromServer();
-            if (newVersionCode === null) {
-                throw new Error("Could not get version code, there should be one after the insert");
-            }
-            this.updateVersion(newVersionCode);
-        } else {
+            console.log("Executing storage query: ", insertQuery);
+            const result = await this.executeQuery(insertQuery);
+            const newVersion = new Date(result.rows[0][0]).getTime();
+            await this.executeQuery(`CHECKPOINT;`);
+            this.updateVersion(newVersion);
+        } catch (e) {
+            console.error("Storage: ", e);
             this.onForceReloadCallback()
+            throw e;
+
         }
     }
 }
@@ -252,6 +280,7 @@ export const duckdbOverHttpStorageProvider: StateStorage = {
         await provider.createTableIfNotExists(storageInfo);
 
         const tableName = GetFullNameDestination(storageInfo.destination);
-        await provider.executeQuery(`DELETE FROM ${tableName};`);
+        await provider.executeQuery(`DELETE
+                                     FROM ${tableName};`);
     },
 }
