@@ -11,7 +11,7 @@ import {
 import {
     DASH_STORAGE_VERSION,
     DEFAULT_STATE_STORAGE_DESTINATION,
-    STORAGE_THROTTLE_TIME_MS
+    STORAGE_THROTTLE_TIME_MS, VERSION_CONFLICT_ERROR
 } from "@/platform/global-data";
 
 
@@ -45,7 +45,7 @@ export async function GetStateStorageStatus(destination: StorageDestination, exe
 }
 
 
-interface QueueInput {
+interface Input {
     value: string
 }
 
@@ -55,7 +55,7 @@ export class StorageDuckAPI {
     private static instance: StorageDuckAPI;
 
     lastVersionCode: number | null = null;
-    throttledSetItem: (input: QueueInput) => Promise<void>;
+    throttledSetItem: (input: Input) => Promise<void>;
 
     onForceReloadCallback: () => void = () => {
     };
@@ -207,8 +207,9 @@ export class StorageDuckAPI {
         return this.throttledSetItem({value});
     }
 
-    private async setItemInternal(input: QueueInput): Promise<void> {
+    private async setItemInternal(input: Input): Promise<void> {
 
+        console.log("Setting item in storage with throttling. Value length: ", input.value.length, ". Last version: ", this.lastVersionCode);
         const storageInfo = await this.getActiveStorageInfo();
 
         // not allowed to write in readonly mode
@@ -229,12 +230,13 @@ export class StorageDuckAPI {
             this.lastVersionCode = await this.loadVersionFromServer()
         }
 
+
         try {
             const insertQuery = `
                 WITH checkVersion AS (SELECT version,
                                              version = ${this.lastVersionCode}                                                 AS is_valid,
                                              if(is_valid, (version + 1) % 1_000_000,
-                                                error('Version conflict, the data has been modified by another tab or user.')) AS newVersion,
+                                                error('${VERSION_CONFLICT_ERROR}')) AS newVersion,
                                              0                                                                                 as id,
                                              '${value}' as value, '${DASH_STORAGE_VERSION}' as dash_storage_version
                 FROM ${tableName}
@@ -249,16 +251,20 @@ export class StorageDuckAPI {
                     dash_storage_version = EXCLUDED.dash_storage_version
                     RETURNING version;
             `;
-            console.log("Executing storage query: ", insertQuery);
             const result = await this.executeQuery(insertQuery);
-            const newVersion = new Date(result.rows[0][0]).getTime();
-            await this.executeQuery(`CHECKPOINT;`);
+            const newVersion = result.rows[0][0];
             this.updateVersion(newVersion);
-        } catch (e) {
-            console.error("Storage: ", e);
-            this.onForceReloadCallback()
-            throw e;
+            await this.executeQuery(`CHECKPOINT;`);
 
+            console.log("Storage setItem completed. New version: ", newVersion);
+        } catch (e) {
+            // only throw if it is a version conflict
+            console.warn("Storage setItem failed, likely due to version conflict. Forcing reload. Error: ", e);
+            const isVersionConflict = (e as Error).message.includes(VERSION_CONFLICT_ERROR);
+            if (isVersionConflict) {
+                console.error("Version conflict detected. Forcing reload.");
+                this.onForceReloadCallback()
+            }
         }
     }
 }

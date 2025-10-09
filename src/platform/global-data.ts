@@ -15,6 +15,9 @@ export const DATABASE_CONNECTION_ID_DUCKDB_LOCAL = 'duckdb-local';
 export const SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM = 'filesystem';
 export const MAIN_CONNECTION_ID = DATABASE_CONNECTION_ID_DUCKDB_LOCAL;
 
+
+export const VERSION_CONFLICT_ERROR = 'Version conflict, the data has been modified by another tab or user.'
+
 export const CHART_QUERY_LIMIT = 50_000;
 
 
