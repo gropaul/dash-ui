@@ -138,7 +138,7 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export async function getViewFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters, state: TaskExecutionState): Promise<RelationState> {
+export function getViewFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters, state: TaskExecutionState): RelationState {
 
     const name = getRelationNameFromSource(source);
     const relation: Relation = {
@@ -151,7 +151,7 @@ export async function getViewFromSource(connectionId: string, source: RelationSo
     const relationBaseQuery = getBaseQueryFromSource(source);
     let queryData: QueryData;
     try {
-        queryData = await getQueryFromParams(relation, viewParams, relationBaseQuery);
+        queryData = getQueryFromParamsUnchecked(relation, viewParams, relationBaseQuery);
     } catch (e) {
         const relationWithQuery: RelationWithQuery = {
             ...relation,

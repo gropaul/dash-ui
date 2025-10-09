@@ -353,7 +353,7 @@ export const useRelationsState = createWithEqualityFn(
                     } else {
                         // update state with empty (loading) relation
                         const defaultQueryParams = getInitialParams('table');
-                        const emptyRelationState = await getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
+                        const emptyRelationState = getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
 
                         // as the relation did not exist yet, we also have to add a reference to the editor
                         const parent = findNodeInTrees(get().editorElements, editorPath);

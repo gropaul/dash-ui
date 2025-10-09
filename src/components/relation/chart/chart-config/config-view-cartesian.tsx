@@ -192,12 +192,13 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
 
     async function updateDataForGroupBy(update: DeepPartial<RelationViewState>) {
 
-        const oldXAxs = props.relationState.query.viewParameters.chart.xAxis;
-        const oldYAxisIds = props.relationState.query.viewParameters.chart.yAxes;
-        const oldGroupBy = props.relationState.query.viewParameters.chart.groupBy
+        const oldChartState = props.relationState.viewState.chartState;
+        const oldXAxs = oldChartState.chart.plot.cartesian.xAxis?.columnId;
+        const oldYAxisIds = oldChartState.chart.plot.cartesian.yAxes?.map((x) => x.columnId);
+        const oldGroupBy = oldChartState.chart.plot.cartesian.groupBy?.columnId;
 
         const copy = deepClone(update);
-        const updated = safeDeepUpdate( props.relationState.viewState, copy);
+        const updated = safeDeepUpdate(props.relationState.viewState, copy);
 
         const newXAxis = updated.chartState?.chart?.plot?.cartesian?.xAxis?.columnId;
         const newYAxes = updated.chartState?.chart?.plot?.cartesian?.yAxes?.map((x) => x.columnId);
@@ -208,8 +209,11 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         const yAxisChanged = !arraysEqual(newYAxes, oldYAxisIds);
         const groupByChanged = newGroupBy !== oldGroupBy;
 
+        console.log('xAxisChanged', xAxisChanged, newXAxis, oldXAxs);
+        console.log('yAxisChanged', yAxisChanged, newYAxes, oldYAxisIds);
+        console.log('groupByChanged', groupByChanged, newGroupBy, oldGroupBy);
         // Only update if the groupById is different and all data is ready
-        if ((xAxisChanged || yAxisChanged || groupByChanged) && newXAxis && newYAxes ) {
+        if ((xAxisChanged || yAxisChanged || groupByChanged) && newXAxis && newYAxes) {
             await props.updateRelationDataWithParams({
                 ...props.relationState.query.viewParameters,
                 chart: {
@@ -372,7 +376,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                     onValueChange={(value) => updateXAxisType(value === 'auto' ? undefined : value)}
                 >
                     <SelectTrigger>
-                        <SelectValue placeholder="Auto" />
+                        <SelectValue placeholder="Auto"/>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="auto">Auto</SelectItem>
