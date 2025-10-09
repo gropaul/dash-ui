@@ -59,7 +59,7 @@ export function ShareContent() {
             const compressedLink = compressString(sanitizedLink);
 
             // Generate the shareable link
-            const generatedLink = `https://dash.builders?api=wasm&attach=${compressedLink}`;
+            const generatedLink = `https://app.dash.builders?api=wasm&attach=${compressedLink}`;
 
             setShareableLink(generatedLink);
             setError("");
