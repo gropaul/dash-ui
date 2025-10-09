@@ -16,12 +16,11 @@ export async function showExampleQuery(delay: number = 1000) {
 export function showExampleQueryInternal(connectionId: string) {
     // add example query
     const randomId = getRandomId();
-    const baseQuery = `-- Directly query Parquet file in S3
+    const baseQuery = `-- Directly query Parquet file from GitHub
 SELECT
-station_name,
+StationName,
 count(*) AS num_services
-FROM 's3://duckdb-blobs/train_services.parquet'
--- FROM train_services
+FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'
 GROUP BY ALL
 ORDER BY num_services DESC
 LIMIT 10;`;
