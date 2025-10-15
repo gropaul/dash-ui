@@ -12,7 +12,7 @@ import {ForceOpenReason} from "@/components/settings/settings-dialog";
 import {RelationZustandEntity, RelationZustandEntityType} from "@/state/relations/entity-functions";
 
 export type AvailableTab = 'connections' | 'relations' | 'chat'
-export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model'
+export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation'
 
 export interface SettingsGUIZustand {
     isOpen: boolean;
