@@ -1,11 +1,30 @@
 import {create} from 'zustand';
-import {createJSONStorage, persist} from 'zustand/middleware';
+import {createJSONStorage, persist, StateStorage} from 'zustand/middleware';
 import {LanguageModel} from 'ai';
 import {getProviderRegistry, ProviderRegistry, ValidationStatus} from "@/components/chat/providers";
+import {XorDecrypt, XorEncrypt} from "@/lib/obfuscation";
 
 // Re-export the provider types for backward compatibility
 export type LanguageModelProvider = string;
 
+
+const LOCALE_STORAGE_OBFUSCATION_KEY = 'language-model-settings-key';
+
+export const obfuscatedStorage: StateStorage = {
+    getItem: async (name: string): Promise<string | null> => {
+        const item = localStorage.getItem(name);
+        return item ? XorDecrypt(LOCALE_STORAGE_OBFUSCATION_KEY, item) : null;
+    },
+    setItem: async (name: string, value: string): Promise<void> => {
+        const obfuscatedValue = XorEncrypt(LOCALE_STORAGE_OBFUSCATION_KEY, value);
+        localStorage.setItem(name, obfuscatedValue);
+
+    },
+    removeItem: async (name: string): Promise<void> => {
+        console.log(name, 'has been deleted')
+        localStorage.removeItem(name);
+    },
+};
 
 export interface LanguageModelState {
     activeProviderId: LanguageModelProvider;
@@ -75,7 +94,7 @@ export const useLanguageModelState = create<LanguageModelState & LanguageModelAc
         }),
         {
             name: 'language-model-settings',
-            storage: createJSONStorage(() => localStorage),
+            storage: createJSONStorage(() => obfuscatedStorage),
             onRehydrateStorage: (state) => {
                 return (restoredState, error) => {
                     if (error) {
@@ -84,7 +103,7 @@ export const useLanguageModelState = create<LanguageModelState & LanguageModelAc
                     }
 
                     if (restoredState) {
-                        // Update provider registry with the loaded configurations
+                        // Update the provider registry with the loaded configurations
                         const registry = getProviderRegistry();
                         Object.entries(restoredState.providerConfigs).forEach(([providerId, config]) => {
                             const provider = registry.getProvider(providerId);

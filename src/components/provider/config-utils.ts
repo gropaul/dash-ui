@@ -1,15 +1,10 @@
 import {DBConnectionSpec, specToConnection} from "@/state/connections/configs";
 import {DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 import {DatabaseConnection} from "@/model/database-connection";
+import {XorDecrypt} from "@/lib/obfuscation";
 
 
-function XorDecrypt(key: string, data: string) {
-    let result = '';
-    for (let i = 0; i < data.length; i++) {
-        result += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-    }
-    return result;
-}
+
 
 function parseConnectionParams(urlParams: URLSearchParams): DBConnectionSpec | undefined {
     // first get the "api" parameter
