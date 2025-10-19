@@ -6,6 +6,7 @@ import {ThemeProvider} from "@/components/provider/theme-provider";
 import {cn} from "@/lib/utils";
 import {Toaster} from "sonner";
 import {ResponsiveModeProvider} from "@/components/provider/responsive-node-provider";
+import {Analytics} from "@vercel/analytics/next"
 
 export default function RootLayout({
                                        children,
@@ -42,7 +43,7 @@ export default function RootLayout({
             </div>
             <Toaster/>
         </main>
-
+        <Analytics />
         </body>
         </html>
     );
