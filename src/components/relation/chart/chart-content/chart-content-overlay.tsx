@@ -37,27 +37,19 @@ export interface ChartContentOverlayProps extends MyChartProps {
     updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void;
     onExportAsSVG?: () => void;
     onExportAsPNG?: () => void;
+    updateShowConfig: (show: boolean) => void;
 }
 
 export function ChartContentOverlay(props: ChartContentOverlayProps) {
-    const showChartSettings = props.view.showConfig;
 
     const [dashboardCommand, setDashboardCommand] = useState<DashboardCommandState>({open: false});
     const dashboards = useRelationsState((state) => state.dashboards);
     const [open, setOpen] = React.useState(false);
 
-    function updateShowConfig() {
-        props.updateRelationViewState({
-            chartState: {
-                view: {
-                    showConfig: !showChartSettings,
-                },
-            },
-        });
-    }
-
     const isMobile = useIsMobile();
     const groupHoverClass = isMobile || open ? '' : 'group-hover:opacity-100 opacity-0';
+
+    const showChartSettings = props.view.showConfig;
 
     return (
         <>
@@ -76,7 +68,9 @@ export function ChartContentOverlay(props: ChartContentOverlayProps) {
                 </div>
                 <DropdownMenuContent className={"group"} align="end" sideOffset={4}>
 
-                    <DropdownMenuItem onClick={updateShowConfig}>
+                    <DropdownMenuItem
+                        onClick={() => props.updateShowConfig(!showChartSettings)}
+                    >
                         {showChartSettings ? (
                             <>
                                 <X className="mr-1 h-4 w-4"/>

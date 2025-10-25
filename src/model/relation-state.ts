@@ -274,6 +274,7 @@ function buildQueries(
     const baseQueries = cleanAndSplitSQL(sqlWithVariables);
 
     const initialQueries = baseQueries.slice(0, -1);
+    console.log('Base Queries:', baseQueries);
     const finalQuery = baseQueries.at(-1);
     if (!finalQuery) {
         throw new Error('No final query found in base SQL');

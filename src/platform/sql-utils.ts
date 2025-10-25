@@ -55,8 +55,14 @@ export function minifySQL(sql: string) {
 }
 
 export function splitSQL(sql: string, keepSemicolon: boolean = false): string[] {
+
+    // remove comments first
+    sql = removeComments(sql);
+
     const stmts: string[] = [];
     let current = '';
+
+    console.log("Splitting SQL:", sql);
 
     enum State {
         Normal,

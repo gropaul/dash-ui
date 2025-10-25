@@ -23,10 +23,26 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
     const isEmbedded = props.embedded ?? false;
     const showOverlay = props.showOverlay ?? true;
 
+    const showChartSettings = props.relationState.viewState.chartState.view.showConfig;
+
+    function updateShowConfig() {
+        props.updateRelationViewState({
+            chartState: {
+                view: {
+                    showConfig: !showChartSettings,
+                },
+            },
+        });
+    }
+
     return (
         <>
             {plotDisplayError ?
-                <ChartContentError error={plotDisplayError}/>
+                <ChartContentError
+                    error={plotDisplayError}
+                    updateShowConfig={updateShowConfig}
+                    showChartSettings={showChartSettings}
+                />
                 :
                 <Exportable ref={exportableRef} fileName={toSnakeCase(config.chart.plot.title ?? 'plot')}>
                     <ChartContent
@@ -49,6 +65,7 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
                 onExportAsSVG={exportableRef.current?.exportChartAsSVG}
                 onExportAsPNG={exportableRef.current?.exportChartAsPNG}
                 updateRelationViewState={props.updateRelationViewState}
+                updateShowConfig={updateShowConfig}
             />}
         </>
     )

@@ -21,7 +21,7 @@ export function getInitialSelectDataElement(inputType: InputType): RelationBlock
 
     let baseQuery = '';
     if (inputType === 'select') {
-        baseQuery = "SELECT 'Option ' || range from range(5); -- E.g. SELECT DISTINCT type FROM table";
+        baseQuery = "SELECT 'Option ' || range + 1 from range(5); -- E.g. SELECT DISTINCT type FROM table";
     } else if (inputType === 'fulltext') {
         baseQuery = "SELECT 'Suggestion' LIMIT 0; -- No data initially";
     }
