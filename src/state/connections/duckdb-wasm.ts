@@ -138,8 +138,11 @@ export class DuckDBWasm implements DatabaseConnection {
 function convertArrowValue(value: any, normalized_type: ValueType, type: any): any {
     // field.type tells you if it's a struct, list, etc.
     // Recursively navigate
-    if (normalized_type.includes('Struct')) {
+    console.log('Converting value: ', value, normalized_type, type);
+    if (normalized_type.includes('Struct') || normalized_type.includes('Map')) {
 
+        const is_map = normalized_type.includes('Map');
+        console.log('Converting struct or map value: ', value, type);
         const json_value = value.toJSON();
 
         const keys = Object.keys(json_value);
@@ -147,15 +150,22 @@ function convertArrowValue(value: any, normalized_type: ValueType, type: any): a
         const struct_type_children = type.children;
         let index = 0;
         for (const key of keys) {
+            console.log('Converting struct or map key: ', key, type);
             // Recursively convert each item in the struct
             const child_value = json_value[key];
-            const child_type = struct_type_children[index].type;
+
+            let child_type = struct_type_children[index].type;
+            if (is_map) {
+                child_type = child_type.children[1].type; // for maps, get the value type
+            }
+
             const child_normalized_type = normalizeArrowType(child_type);
             struct[key] = convertArrowValue(child_value, child_normalized_type, child_type);
             index++;
         }
         return struct;
-    } else if (normalized_type.includes('List')) {
+    }
+    else if (normalized_type.includes('List')) {
         const json_list = value.toJSON();
         const list_element_type = normalizeArrowType(value.type);
 
