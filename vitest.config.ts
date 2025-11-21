@@ -24,5 +24,10 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src'),
     },
+    // Allow vitest to resolve packages from node_modules properly
+    conditions: ['node', 'default', 'import'],
+  },
+  optimizeDeps: {
+    include: ['apache-arrow'],
   },
 });

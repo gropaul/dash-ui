@@ -1,8 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import {useMemo, useState} from "react";
-import * as echarts from "echarts";
+import {useRef, useState} from "react";
 import {ConnectionsService} from "@/state/connections/connections-service";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {
@@ -12,12 +11,12 @@ const ReactECharts = dynamic(() => import("echarts-for-react"), {
 // Helper: compute histogram
 async function computeHistogram(n_values: number = 1000, binCount: number = 20) {
     const sample_query = `
-        CREATE TEMP TABLE data AS (
+        CREATE OR REPLACE TEMP TABLE data AS (
             SELECT sqrt(-2 * log(uniform1)) * cos(2 * pi() * uniform2) AS normal_sample
             FROM (
                 SELECT random() AS uniform1,
                 random() AS uniform2
-                FROM range(1000) -- number of samples
+                FROM range(10000) -- number of samples
             )
         );`;
     // wait for 3 seconds to simulate async data fetching
@@ -26,10 +25,10 @@ async function computeHistogram(n_values: number = 1000, binCount: number = 20) 
 
     const histogram_query = `
         WITH bounds AS (
-            SELECT 
+            SELECT
                 min(normal_sample) AS min_val,
                 max(normal_sample) AS max_val,
-                equi_width_bins(min_val, max_val, 10, true) as bins
+                equi_width_bins(min_val, max_val, 20, true) as bins
             FROM data
         )
         SELECT histogram(normal_sample, (SELECT bins FROM bounds)) AS histogram
@@ -37,23 +36,134 @@ async function computeHistogram(n_values: number = 1000, binCount: number = 20) 
     `;
 
     const result = await ConnectionsService.getInstance().executeQuery(histogram_query);
-    const value = result.rows[0][0] as any;
-    console.log(result)
-    console.log(value);
+    return result.rows[0][0] as any;
+}
+
+// Helper: load data from the data table based on exact value range
+async function loadDataInRange(minValue: number, maxValue: number): Promise<number[]> {
+    const query = `
+        SELECT normal_sample
+        FROM data
+        WHERE normal_sample >= ${minValue} AND normal_sample <= ${maxValue}
+        ORDER BY normal_sample;
+    `;
+
+    const result = await ConnectionsService.getInstance().executeQuery(query);
+    return result.rows.map(row => row[0] as number);
+}
+
+// Helper: load all data from the data table
+async function loadAllData(): Promise<number[]> {
+    const query = `SELECT normal_sample FROM data ORDER BY normal_sample;`;
+    const result = await ConnectionsService.getInstance().executeQuery(query);
+    return result.rows.map(row => row[0] as number);
 }
 
 export default function HistogramDemo() {
-    // Generate normal distribution data (mean=10, std dev=2, 100 samples)
-
-
     const [selectedValues, setSelectedValues] = useState<number[]>([]);
     const [chartInstance, setChartInstance] = useState<any>(null);
     const [brushActive, setBrushActive] = useState(true);
+    const [isLoadingData, setIsLoadingData] = useState(false);
+
+    // Debounce timer for data loading
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Debounced function to load data from DuckDB based on exact brush range
+    const loadDataDebounced = (brushRange: [number, number] | null) => {
+        // Clear any existing timer
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        // Set a new timer to load data after 500ms of inactivity
+        debounceTimerRef.current = setTimeout(async () => {
+            setIsLoadingData(true);
+            try {
+                if (!brushRange) {
+                    // Load all data
+                    const allData = await loadAllData();
+                    setSelectedValues(allData);
+                } else {
+                    const [minValue, maxValue] = brushRange;
+                    console.log(`Loading data in exact range: ${minValue} to ${maxValue}`);
+                    const rangeData = await loadDataInRange(minValue, maxValue);
+                    setSelectedValues(rangeData);
+                }
+            } catch (error) {
+                console.error("Error loading data:", error);
+            } finally {
+                setIsLoadingData(false);
+            }
+        }, 500); // 500ms debounce delay
+    };
 
     const handleChartReady = async (instance: any) => {
         setChartInstance(instance);
+        // With the improved convertArrowValue, data is now a properly converted JavaScript object
+        // Format: {bin_value: count, bin_value: count, ...} e.g. {-2.5: 10, -1.5: 25, -0.5: 50, ...}
+        const histogramData = await computeHistogram(1000, 20);
 
-        const data = await computeHistogram(1000, 20);
+        // Convert the histogram map to sorted arrays
+        const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
+        const counts = bins.map(bin => histogramData[bin]);
+
+        // Calculate bin width
+        const binWidth = bins.length > 1 ? (bins[1] - bins[0]) : 1;
+
+        // Prepare data for custom series - each data point is [x, y] where x is bin center
+        const barData = bins.map((bin, idx) => ({
+            value: [bin, counts[idx]],
+            binCenter: bin,
+            count: counts[idx]
+        }));
+
+        // Update the chart with the histogram data using custom series for value-based x-axis
+        instance.setOption({
+            xAxis: {
+                type: 'value',
+                name: "Value Range"
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Count'
+            },
+            series: [
+                {
+                    type: 'custom',
+                    renderItem: (params: any, api: any) => {
+                        const binCenter = api.value(0);
+                        const count = api.value(1);
+
+                        // Calculate bar position and size
+                        const barStart = api.coord([binCenter - binWidth / 2, 0]);
+                        const barEnd = api.coord([binCenter + binWidth / 2, count]);
+
+                        return {
+                            type: 'rect',
+                            shape: {
+                                x: barStart[0],
+                                y: barEnd[1],
+                                width: barEnd[0] - barStart[0],
+                                height: barStart[1] - barEnd[1]
+                            },
+                            style: {
+                                fill: '#3b82f6',
+                                stroke: '#2563eb',
+                                lineWidth: 1
+                            }
+                        };
+                    },
+                    data: barData,
+                    z: 2
+                }
+            ]
+        });
+
+        // Load all data initially
+        setIsLoadingData(true);
+        const allData = await loadAllData();
+        setSelectedValues(allData);
+        setIsLoadingData(false);
 
         // 1) Activate brush mode by default
         instance.dispatchAction({
@@ -62,37 +172,32 @@ export default function HistogramDemo() {
             brushOption: {brushType: "lineX"}
         });
 
-        return;
+        // 2) Attach listener for brush selection using brushEnd which gives us coordinate ranges
+        const handleBrushEnd = (params: any) => {
+            if (params.areas && params.areas.length > 0) {
+                // Get the brush area - for lineX brush, we care about the x-axis range
+                const area = params.areas[0];
+                const coordRange = area.coordRange; // With value-type axis, this gives actual x values
 
-        // 2) Attach the listener
-        const handleBrushSelected = (params: any) => {
-            console.log(params);
-            const selected = params.batch[0].selected[0]?.dataIndex ?? [];
-            const selectedLabels = selected.map((i: number) =>
-                bins[i].toFixed(2)
-            );
-            console.log("Selected bins:", selected);
-            console.log("Selected labels:", selectedLabels);
+                if (coordRange && coordRange.length === 2) {
+                    const [minValue, maxValue] = coordRange;
 
-            // Filter values that fall within selected bins
-            if (selected.length > 0) {
-                const min = Math.min(...demoData);
-                const max = Math.max(...demoData);
-                const step = (max - min) / binCount;
+                    console.log('========================================');
+                    console.log('Brush Selection X-Axis Values:');
+                    console.log(`  Start X: ${minValue}`);
+                    console.log(`  End X:   ${maxValue}`);
+                    console.log(`  Range:   ${(maxValue - minValue).toFixed(4)}`);
+                    console.log('========================================');
 
-                const valuesInRange = demoData.filter((v) => {
-                    const idx = Math.floor((v - min) / step);
-                    const clampedIdx = Math.max(0, Math.min(idx, binCount - 1));
-                    return selected.includes(clampedIdx);
-                });
-
-                setSelectedValues(valuesInRange);
+                    loadDataDebounced([minValue, maxValue]);
+                }
             } else {
-                setSelectedValues(demoData); // Show all when no selection
+                // Brush was cleared - load all data
+                loadDataDebounced(null);
             }
         };
 
-        instance.on("brushSelected", handleBrushSelected);
+        instance.on("brushEnd", handleBrushEnd);
     };
 
     const toggleBrush = () => {
@@ -126,7 +231,7 @@ export default function HistogramDemo() {
             containLabel: true,
         },
         xAxis: {
-            type: "category",
+            type: "value",
             data: [],
             name: "Value",
             axisLine: {
@@ -217,6 +322,15 @@ export default function HistogramDemo() {
                         )}
                     </button>
                     <button
+                        onClick={() => {
+                            if (chartInstance) {
+                                chartInstance.dispatchAction({
+                                    type: 'brush',
+                                    command: 'clear',
+                                    areas: []
+                                });
+                            }
+                        }}
                         className="px-4 py-2 rounded-lg font-medium bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
                     >
                             <span className="flex items-center gap-2">
@@ -236,23 +350,37 @@ export default function HistogramDemo() {
                 />
 
                 <div className="mt-6">
-                    <h2 className="text-lg font-semibold mb-2">Selected Values ({selectedValues.length})
+                    <h2 className="text-lg font-semibold mb-2">
+                        Selected Values ({selectedValues.length})
+                        {isLoadingData && (
+                            <span className="ml-2 text-sm text-gray-500 font-normal">
+                                Loading...
+                            </span>
+                        )}
                     </h2>
-                    <div className="border rounded-lg overflow-hidden">
+                    <div className="border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-100 border-b">
+                            <thead className="bg-gray-100 border-b sticky top-0">
                             <tr>
                                 <th className="px-4 py-2 text-left">Index</th>
                                 <th className="px-4 py-2 text-left">Value</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {selectedValues.map((value, idx) => (
-                                <tr key={idx} className="border-b hover:bg-gray-50">
-                                    <td className="px-4 py-2">{idx + 1}</td>
-                                    <td className="px-4 py-2">{value.toFixed(4)}</td>
+                            {selectedValues.length > 0 ? (
+                                selectedValues.map((value, idx) => (
+                                    <tr key={idx} className="border-b hover:bg-gray-50">
+                                        <td className="px-4 py-2">{idx + 1}</td>
+                                        <td className="px-4 py-2">{value.toFixed(4)}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={2} className="px-4 py-8 text-center text-gray-500">
+                                        {isLoadingData ? "Loading data..." : "No data selected"}
+                                    </td>
                                 </tr>
-                            ))}
+                            )}
                             </tbody>
                         </table>
                     </div>
