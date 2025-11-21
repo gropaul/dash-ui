@@ -17,10 +17,10 @@ async function computeHistogram(n_values: number = 1000, binCount: number = 20) 
                 SELECT random() AS uniform1,
                 random() AS uniform2
                 FROM range(10000) -- number of samples
-            )
+            )s
         );`;
     // wait for 3 seconds to simulate async data fetching
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     await ConnectionsService.getInstance().executeQuery(sample_query);
 
     const histogram_query = `
@@ -28,7 +28,7 @@ async function computeHistogram(n_values: number = 1000, binCount: number = 20) 
             SELECT
                 min(normal_sample) AS min_val,
                 max(normal_sample) AS max_val,
-                equi_width_bins(min_val, max_val, 20, true) as bins
+                equi_width_bins(min_val, max_val, 21, true) as bins
             FROM data
         )
         SELECT histogram(normal_sample, (SELECT bins FROM bounds)) AS histogram
@@ -45,7 +45,8 @@ async function loadDataInRange(minValue: number, maxValue: number): Promise<numb
         SELECT normal_sample
         FROM data
         WHERE normal_sample >= ${minValue} AND normal_sample <= ${maxValue}
-        ORDER BY normal_sample;
+        ORDER BY normal_sample 
+        LIMIT 100;
     `;
 
     const result = await ConnectionsService.getInstance().executeQuery(query);
@@ -54,7 +55,7 @@ async function loadDataInRange(minValue: number, maxValue: number): Promise<numb
 
 // Helper: load all data from the data table
 async function loadAllData(): Promise<number[]> {
-    const query = `SELECT normal_sample FROM data ORDER BY normal_sample;`;
+    const query = `SELECT normal_sample FROM data ORDER BY normal_sample LIMIT 100;`;
     const result = await ConnectionsService.getInstance().executeQuery(query);
     return result.rows.map(row => row[0] as number);
 }
@@ -105,19 +106,16 @@ export default function HistogramDemo() {
 
         // Convert the histogram map to sorted arrays
         const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
-        const counts = bins.map(bin => histogramData[bin]);
+        const counts = bins.map(bin => {
+            const count = histogramData[bin];
+            // Convert BigInt to Number if necessary
+            return typeof count === 'bigint' ? Number(count) : count;
+        });
 
-        // Calculate bin width
-        const binWidth = bins.length > 1 ? (bins[1] - bins[0]) : 1;
+        // Prepare data for area chart - [x, y] coordinates
+        const areaData = bins.map((bin, idx) => [bin, counts[idx]]);
 
-        // Prepare data for custom series - each data point is [x, y] where x is bin center
-        const barData = bins.map((bin, idx) => ({
-            value: [bin, counts[idx]],
-            binCenter: bin,
-            count: counts[idx]
-        }));
-
-        // Update the chart with the histogram data using custom series for value-based x-axis
+        // Create two series: one gray (background) and one blue (selected area)
         instance.setOption({
             xAxis: {
                 type: 'value',
@@ -128,32 +126,69 @@ export default function HistogramDemo() {
                 name: 'Count'
             },
             series: [
+                // Gray background series (always visible)
                 {
-                    type: 'custom',
-                    renderItem: (params: any, api: any) => {
-                        const binCenter = api.value(0);
-                        const count = api.value(1);
-
-                        // Calculate bar position and size
-                        const barStart = api.coord([binCenter - binWidth / 2, 0]);
-                        const barEnd = api.coord([binCenter + binWidth / 2, count]);
-
-                        return {
-                            type: 'rect',
-                            shape: {
-                                x: barStart[0],
-                                y: barEnd[1],
-                                width: barEnd[0] - barStart[0],
-                                height: barStart[1] - barEnd[1]
-                            },
-                            style: {
-                                fill: '#3b82f6',
-                                stroke: '#2563eb',
-                                lineWidth: 1
-                            }
-                        };
+                    type: 'line',
+                    step: 'middle',
+                    data: areaData,
+                    smooth: false,
+                    symbol: 'none',
+                    lineStyle: {
+                        color: '#9ca3af',
+                        width: 1
                     },
-                    data: barData,
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [
+                                {
+                                    offset: 0,
+                                    color: 'rgba(156, 163, 175, 0.4)'
+                                },
+                                {
+                                    offset: 1,
+                                    color: 'rgba(156, 163, 175, 0.05)'
+                                }
+                            ]
+                        }
+                    },
+                    z: 1
+                },
+                // Blue selected area series (initially shows all data)
+                {
+                    type: 'line',
+                    step: 'middle',
+                    data: areaData,
+                    smooth: false,
+                    symbol: 'none',
+                    animation: false,
+                    lineStyle: {
+                        color: '#3b82f6',
+                        width: 1
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [
+                                {
+                                    offset: 0,
+                                    color: 'rgba(59, 130, 246, 0.8)'
+                                },
+                                {
+                                    offset: 1,
+                                    color: 'rgba(59, 130, 246, 0.1)'
+                                }
+                            ]
+                        }
+                    },
                     z: 2
                 }
             ]
@@ -189,10 +224,83 @@ export default function HistogramDemo() {
                     console.log(`  Range:   ${(maxValue - minValue).toFixed(4)}`);
                     console.log('========================================');
 
+                    // Filter data to show the selected range in blue, with edge points for complete fill
+                    const filteredData: [number, number][] = [];
+
+                    // For step: 'middle', we need to determine which bin's y-value applies at each boundary
+
+                    // Find which bins the boundaries fall into
+                    let leftBinIndex = -1;
+                    let rightBinIndex = -1;
+
+                    for (let i = 0; i < areaData.length - 1; i++) {
+                        const x = areaData[i][0];
+                        const nextX = areaData[i + 1][0];
+                        const midpoint = (x + nextX) / 2;
+
+                        // For step: 'middle', the y-value of bin i applies from midpoint[i-1,i] to midpoint[i,i+1]
+                        if (leftBinIndex === -1) {
+                            if (i === 0 && minValue <= midpoint) {
+                                leftBinIndex = i;
+                            } else if (i > 0) {
+                                const prevX = areaData[i - 1][0];
+                                const prevMidpoint = (prevX + x) / 2;
+                                if (minValue >= prevMidpoint && minValue <= midpoint) {
+                                    leftBinIndex = i;
+                                }
+                            }
+                        }
+
+                        if (i === 0 && maxValue <= midpoint) {
+                            rightBinIndex = i;
+                            break;
+                        } else if (i > 0) {
+                            const prevX = areaData[i - 1][0];
+                            const prevMidpoint = (prevX + x) / 2;
+                            if (maxValue >= prevMidpoint && maxValue <= midpoint) {
+                                rightBinIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Handle edge cases
+                    if (leftBinIndex === -1) leftBinIndex = 0;
+                    if (rightBinIndex === -1) rightBinIndex = areaData.length - 1;
+
+                    // Add left boundary point
+                    filteredData.push([minValue, areaData[leftBinIndex][1]]);
+
+                    // Add all bins from leftBinIndex to rightBinIndex
+                    for (let i = leftBinIndex; i <= rightBinIndex; i++) {
+                        filteredData.push(areaData[i]);
+                    }
+
+                    // Add right boundary point
+                    filteredData.push([maxValue, areaData[rightBinIndex][1]]);
+
+                    // Update the blue series to only show selected data
+                    instance.setOption({
+                        series: [
+                            {}, // Keep gray series unchanged
+                            {
+                                data: filteredData
+                            }
+                        ]
+                    });
+
                     loadDataDebounced([minValue, maxValue]);
                 }
             } else {
-                // Brush was cleared - load all data
+                // Brush was cleared - show all data in blue
+                instance.setOption({
+                    series: [
+                        {}, // Keep gray series unchanged
+                        {
+                            data: areaData
+                        }
+                    ]
+                });
                 loadDataDebounced(null);
             }
         };
@@ -222,7 +330,7 @@ export default function HistogramDemo() {
 
     const option = {
         tooltip: {
-            show: false, // Disable tooltip
+            show: true, // Disable tooltip
         },
         grid: {
             left: "3%",
@@ -261,12 +369,9 @@ export default function HistogramDemo() {
             brushMode: "single",
             brushStyle: {
                 borderWidth: 1,
-                borderColor: "rgba(107, 114, 128, 0.2)", // Gray border
-                color: "rgba(107, 114, 128, 0.2)", // Light gray fill
+                color: "rgba(59, 130, 246, 0.1)",
             },
-            outOfBrush: {
-                colorAlpha: 0.3, // Dim unselected bars
-            },
+            seriesIndex: [] // Don't apply brush dimming to any series
         },
         toolbox: {
             show: false, // Hide default toolbox
