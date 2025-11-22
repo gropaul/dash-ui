@@ -6,14 +6,18 @@ import {HistogramChart} from "@/components/relation/table/stats/HistogramChart";
 
 // Helper: compute histogram
 async function computeHistogram() {
-    const sample_query = `
+    let sample_query = `
         CREATE OR REPLACE TEMP TABLE data AS (
-            SELECT sqrt(-2 * log(uniform1)) * cos(2 * pi() * uniform2) AS normal_sample
-            FROM (
-                SELECT random() AS uniform1,
-                random() AS uniform2
-                FROM range(10000) -- number of samples
-            )s
+            SELECT
+            count(*) AS normal_sample
+            FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'
+            GROUP BY StationName
+            ORDER BY normal_sample DESC
+            LIMIT 10000
+        );`;
+    sample_query = `
+        CREATE OR REPLACE TEMP TABLE data AS (
+            SELECT random() as normal_sample FROM range(1000)
         );`;
     // wait for 3 seconds to simulate async data fetching
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -24,7 +28,7 @@ async function computeHistogram() {
             SELECT
                 min(normal_sample) AS min_val,
                 max(normal_sample) AS max_val,
-                equi_width_bins(min_val, max_val, 21, true) as bins
+                equi_width_bins(min_val, max_val, 5, true) as bins
             FROM data
         )
         SELECT histogram(normal_sample, (SELECT bins FROM bounds)) AS histogram
@@ -60,12 +64,13 @@ export default function HistogramDemo() {
     const [selectedValues, setSelectedValues] = useState<number[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [histogramData, setHistogramData] = useState<{ [key: number]: number }>({});
+    const [totalCount, setTotalCount] = useState<number>(0);
 
     // Debounce timer for data loading
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Debounced function to load data from DuckDB based on exact brush range
-    const loadDataDebounced = (minValue: number, maxValue: number) => {
+    const loadDataDebounced = (minValue: number | null, maxValue: number | null) => {
         // Clear any existing timer
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
@@ -75,8 +80,15 @@ export default function HistogramDemo() {
         debounceTimerRef.current = setTimeout(async () => {
             setIsLoadingData(true);
             try {
-                const rangeData = await loadDataInRange(minValue, maxValue);
-                setSelectedValues(rangeData);
+                if (minValue === null || maxValue === null) {
+                    // No range selected - load all data without WHERE clause
+                    const allData = await loadAllData();
+                    setSelectedValues(allData);
+                } else {
+                    // Range selected - load data with WHERE clause
+                    const rangeData = await loadDataInRange(minValue, maxValue);
+                    setSelectedValues(rangeData);
+                }
             } catch (error) {
                 console.error("Error loading data:", error);
             } finally {
@@ -90,6 +102,13 @@ export default function HistogramDemo() {
         setIsLoadingData(true);
         const data = await computeHistogram();
         setHistogramData(data);
+
+        // Get total count from database
+        const countQuery = 'SELECT COUNT(*) as count FROM data';
+        const countResult = await ConnectionsService.getInstance().executeQuery(countQuery);
+        const total = countResult.rows[0][0];
+        setTotalCount(typeof total === 'bigint' ? Number(total) : total);
+
         const allData = await loadAllData();
         setSelectedValues(allData);
         setIsLoadingData(false);
@@ -115,6 +134,7 @@ export default function HistogramDemo() {
                         <HistogramChart
                             histogramData={histogramData}
                             onRangeChangeEnd={loadDataDebounced}
+                            totalCount={totalCount}
                             height={128 + 64}
                         />
                     </div>
