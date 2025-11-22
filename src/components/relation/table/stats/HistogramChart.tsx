@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import {useEffect, useRef, useState} from "react";
-import {formatNumber} from "@/platform/number-utils";
+import {formatNumber, formatNumberFixed} from "@/platform/number-utils";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {
     ssr: false,
@@ -14,6 +14,7 @@ interface HistogramChartProps {
     onRangeChangeEnd?: (minValue: number | null, maxValue: number | null) => void;
     totalCount?: number;
     height?: number;
+    dataType?: 'value' | 'timestamp';
 }
 
 
@@ -82,12 +83,15 @@ export function HistogramChart({
                                    onRangeChange,
                                    onRangeChangeEnd,
                                    totalCount,
-                                   height = 400
+                                   height = 400,
+                                   dataType = 'value',
                                }: HistogramChartProps) {
     const chartRef = useRef<any>(null);
     const handlersSetupRef = useRef(false);
     const [currentRange, setCurrentRange] = useState<{ min: number; max: number } | null>(null);
     const [selectedCount, setSelectedCount] = useState<number | undefined>(undefined);
+
+    console.log("HistogramChart", histogramData);
     useEffect(() => {
         if (!chartRef.current) return;
 
@@ -107,7 +111,17 @@ export function HistogramChart({
         counts.unshift(firstCount);
 
         // Prepare data for area chart - [x, y] coordinates
-        const areaData: [number, number][] = bins.map((bin, idx) => [bin, counts[idx]]);
+        const areaData: [any, number][] = bins.map((bin, idx) => [bin, counts[idx]]);
+
+        // if dateFormat is 'timestamp', convert x values to timestamps
+        if (dataType === 'timestamp') {
+            for (let i = 0; i < areaData.length; i++) {
+                // data is epoch in seconds, convert to date object
+                areaData[i][0] = new Date(areaData[i][0] * 1000);
+            }
+        }
+
+        console.log("HistogramChart areaData:", areaData);
 
         // Helper function to update the blue series based on brush range
         const updateBlueSeriesForRange = (minValue: number, maxValue: number) => {
@@ -133,7 +147,7 @@ export function HistogramChart({
 
                 if (coordRange && coordRange.length === 2) {
                     const [minValue, maxValue] = coordRange;
-                    setCurrentRange({ min: minValue, max: maxValue });
+                    setCurrentRange({min: minValue, max: maxValue});
                     updateBlueSeriesForRange(minValue, maxValue);
                     onRangeChange?.(minValue, maxValue);
                 }
@@ -146,9 +160,11 @@ export function HistogramChart({
                 const area = params.areas[0];
                 const coordRange = area.coordRange;
 
+                console.log("Brush end params:", params);
+
                 if (coordRange && coordRange.length === 2) {
                     const [minValue, maxValue] = coordRange;
-                    setCurrentRange({ min: minValue, max: maxValue });
+                    setCurrentRange({min: minValue, max: maxValue});
                     onRangeChangeEnd?.(minValue, maxValue);
                 }
             } else {
@@ -206,8 +222,14 @@ export function HistogramChart({
             containLabel: false,
         },
         xAxis: {
-            type: "value",
+            type: "time",
             boundaryGap: false,
+            axisLabel: {
+                formatter: formatNumberFixed,
+                alignMinLabel: 'left',
+                alignMaxLabel: 'right',
+            },
+            splitNumber: 2,
         },
         yAxis: {
             boundaryGap: false,
@@ -311,7 +333,7 @@ export function HistogramChart({
         : null;
 
     return (
-        <div style={{ position: 'relative', height, width: '100%' }}>
+        <div style={{position: 'relative', height, width: '100%'}}>
             <ReactECharts
                 ref={chartRef}
                 option={option}

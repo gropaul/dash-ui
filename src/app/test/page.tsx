@@ -9,16 +9,13 @@ async function computeHistogram() {
     let sample_query = `
         CREATE OR REPLACE TEMP TABLE data AS (
             SELECT
-            count(*) AS normal_sample
-            FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'
-            GROUP BY StationName
-            ORDER BY normal_sample DESC
-            LIMIT 10000
+            epoch(ArrivalTime) AS normal_sample
+            FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'            LIMIT 10000
         );`;
-    sample_query = `
-        CREATE OR REPLACE TEMP TABLE data AS (
-            SELECT random() * range * range as normal_sample FROM range(10000)
-        );`;
+    // sample_query = `
+    //     CREATE OR REPLACE TEMP TABLE data AS (
+    //         SELECT (random() - 0.5) * range * range as normal_sample FROM range(1000000)
+    //     );`;
     // wait for 3 seconds to simulate async data fetching
     await new Promise((resolve) => setTimeout(resolve, 1000));
     await ConnectionsService.getInstance().executeQuery(sample_query);
@@ -28,7 +25,7 @@ async function computeHistogram() {
             SELECT
                 min(normal_sample) AS min_val,
                 max(normal_sample) AS max_val,
-                equi_width_bins(min_val, max_val, 5, true) as bins
+                equi_width_bins(min_val, max_val, 21, false) as bins
             FROM data
         )
         SELECT histogram(normal_sample, (SELECT bins FROM bounds)) AS histogram
@@ -46,7 +43,7 @@ async function loadDataInRange(minValue: number, maxValue: number): Promise<numb
         FROM data
         WHERE normal_sample >= ${minValue} AND normal_sample <= ${maxValue}
         ORDER BY normal_sample 
-        LIMIT 10000;
+        LIMIT 100;
     `;
 
     const result = await ConnectionsService.getInstance().executeQuery(query);
@@ -55,7 +52,7 @@ async function loadDataInRange(minValue: number, maxValue: number): Promise<numb
 
 // Helper: load all data from the data table
 async function loadAllData(): Promise<number[]> {
-    const query = `SELECT normal_sample FROM data ORDER BY normal_sample LIMIT 10000;`;
+    const query = `SELECT normal_sample FROM data ORDER BY normal_sample LIMIT 100;`;
     const result = await ConnectionsService.getInstance().executeQuery(query);
     return result.rows.map(row => row[0] as number);
 }
@@ -136,6 +133,7 @@ export default function HistogramDemo() {
                             onRangeChangeEnd={loadDataDebounced}
                             totalCount={totalCount}
                             height={128 + 64}
+                            dataType={'timestamp'}
                         />
                     </div>
 
