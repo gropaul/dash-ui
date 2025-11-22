@@ -17,7 +17,7 @@ async function computeHistogram() {
         );`;
     sample_query = `
         CREATE OR REPLACE TEMP TABLE data AS (
-            SELECT random() as normal_sample FROM range(1000)
+            SELECT random() * range * range as normal_sample FROM range(10000)
         );`;
     // wait for 3 seconds to simulate async data fetching
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -46,7 +46,7 @@ async function loadDataInRange(minValue: number, maxValue: number): Promise<numb
         FROM data
         WHERE normal_sample >= ${minValue} AND normal_sample <= ${maxValue}
         ORDER BY normal_sample 
-        LIMIT 100;
+        LIMIT 10000;
     `;
 
     const result = await ConnectionsService.getInstance().executeQuery(query);
@@ -55,7 +55,7 @@ async function loadDataInRange(minValue: number, maxValue: number): Promise<numb
 
 // Helper: load all data from the data table
 async function loadAllData(): Promise<number[]> {
-    const query = `SELECT normal_sample FROM data ORDER BY normal_sample LIMIT 100;`;
+    const query = `SELECT normal_sample FROM data ORDER BY normal_sample LIMIT 10000;`;
     const result = await ConnectionsService.getInstance().executeQuery(query);
     return result.rows.map(row => row[0] as number);
 }

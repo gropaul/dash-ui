@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import {useEffect, useRef, useState} from "react";
+import {formatNumber} from "@/platform/number-utils";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {
     ssr: false,
@@ -15,6 +16,67 @@ interface HistogramChartProps {
     height?: number;
 }
 
+
+export function getCountAtX(
+    xs: number[],
+    counts: number[],
+    x: number,
+): number {
+    // Find bin index
+    let i = 0;
+    for (; i < xs.length; i++) {
+        if (x <= xs[i]) break;
+    }
+    if (i >= counts.length) i = counts.length - 1;
+    return counts[i];
+}
+
+
+export function getHistogramSubFunction(
+    xs: number[],
+    counts: number[],
+    minRange: number,
+    maxRange: number,
+): [number, number][] {
+
+    const points: [number, number][] = [];
+
+    // Build the list of x-values
+    const xValues: number[] = [minRange];
+
+    // Add all histogram boundaries inside (minRange, maxRange)
+    for (const edge of xs) {
+        if (edge > minRange && edge < maxRange) {
+            xValues.push(edge);
+        }
+    }
+
+    xValues.push(maxRange);
+
+    // Convert into [x, count]
+    for (const x of xValues) {
+        points.push([x, getCountAtX(xs, counts, x)]);
+    }
+
+    return points;
+}
+
+
+export function getSumOfHistogram(
+    histogram: [number, number][],
+    binWidth: number,
+): number {
+    let sum = 0;
+    for (let i = 0; i < histogram.length - 1; i++) {
+        const [x1, count1] = histogram[i];
+        const [x2, count2] = histogram[i + 1];
+        const width = x2 - x1;
+        const percentage = width / binWidth;
+        sum += percentage * count2;
+    }
+    return sum;
+}
+
 export function HistogramChart({
                                    histogramData,
                                    onRangeChange,
@@ -25,43 +87,7 @@ export function HistogramChart({
     const chartRef = useRef<any>(null);
     const handlersSetupRef = useRef(false);
     const [currentRange, setCurrentRange] = useState<{ min: number; max: number } | null>(null);
-    // Calculate approximate selected count from histogram bins
-    const calculateSelectedCount = (minValue: number, maxValue: number): number => {
-        const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
-        const counts = bins.map(bin => {
-            const count = histogramData[bin];
-            return typeof count === 'bigint' ? Number(count) : count;
-        });
-
-        let selectedCount = 0;
-        for (let i = 0; i < bins.length; i++) {
-            const binValue = bins[i];
-
-            // Determine if this bin is within the selected range
-            // For step: 'middle', each bin represents values from midpoint to previous to midpoint to next
-            const prevMidpoint = i > 0 ? (bins[i - 1] + binValue) / 2 : binValue - (bins[1] - bins[0]) / 2;
-            const nextMidpoint = i < bins.length - 1 ? (binValue + bins[i + 1]) / 2 : binValue + (binValue - bins[i - 1]) / 2;
-
-            // Check if this bin overlaps with the selected range
-            if (nextMidpoint > minValue && prevMidpoint < maxValue) {
-                // Calculate overlap ratio
-                const binStart = Math.max(prevMidpoint, minValue);
-                const binEnd = Math.min(nextMidpoint, maxValue);
-                const binWidth = nextMidpoint - prevMidpoint;
-                const overlapWidth = binEnd - binStart;
-                const overlapRatio = overlapWidth / binWidth;
-
-                selectedCount += counts[i] * overlapRatio;
-            }
-        }
-
-        return Math.round(selectedCount);
-    };
-
-    const selectedCount = currentRange
-        ? calculateSelectedCount(currentRange.min, currentRange.max)
-        : totalCount || 0;
-
+    const [selectedCount, setSelectedCount] = useState<number | undefined>(undefined);
     useEffect(() => {
         if (!chartRef.current) return;
 
@@ -74,71 +100,26 @@ export function HistogramChart({
             return typeof count === 'bigint' ? Number(count) : count;
         });
 
-        console.log(bins);
-        console.log(counts);
+        const binWidth = bins.length > 1 ? bins[1] - bins[0] : 1;
+        const firstBin = bins[0] - binWidth
+        const firstCount = counts[0];
+        bins.unshift(firstBin);
+        counts.unshift(firstCount);
 
         // Prepare data for area chart - [x, y] coordinates
         const areaData: [number, number][] = bins.map((bin, idx) => [bin, counts[idx]]);
 
         // Helper function to update the blue series based on brush range
         const updateBlueSeriesForRange = (minValue: number, maxValue: number) => {
-            const filteredData: [number, number][] = [];
-
-            // Find which bins the boundaries fall into
-            let leftBinIndex = -1;
-            let rightBinIndex = -1;
-
-            for (let i = 0; i < areaData.length - 1; i++) {
-                const x = areaData[i][0];
-                const nextX = areaData[i + 1][0];
-                const midpoint = (x + nextX) / 2;
-
-                if (leftBinIndex === -1) {
-                    if (i === 0 && minValue <= midpoint) {
-                        leftBinIndex = i;
-                    } else if (i > 0) {
-                        const prevX = areaData[i - 1][0];
-                        const prevMidpoint = (prevX + x) / 2;
-                        if (minValue >= prevMidpoint && minValue <= midpoint) {
-                            leftBinIndex = i;
-                        }
-                    }
-                }
-
-                if (i === 0 && maxValue <= midpoint) {
-                    rightBinIndex = i;
-                    break;
-                } else if (i > 0) {
-                    const prevX = areaData[i - 1][0];
-                    const prevMidpoint = (prevX + x) / 2;
-                    if (maxValue >= prevMidpoint && maxValue <= midpoint) {
-                        rightBinIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            // Handle edge cases
-            if (leftBinIndex === -1) leftBinIndex = 0;
-            if (rightBinIndex === -1) rightBinIndex = areaData.length - 1;
-
-            // Add left boundary point
-            filteredData.push([minValue, areaData[leftBinIndex][1]]);
-
-            // Add all bins from leftBinIndex to rightBinIndex
-            for (let i = leftBinIndex; i <= rightBinIndex; i++) {
-                filteredData.push([areaData[i][0], areaData[i][1]] as [number, number]);
-            }
-
-            // Add right boundary point
-            filteredData.push([maxValue, areaData[rightBinIndex][1]]);
-
+            const subFunction = getHistogramSubFunction(bins, counts, minValue, maxValue);
+            const selectedSum = getSumOfHistogram(subFunction, binWidth);
+            setSelectedCount(Math.round(selectedSum));
             // Update the blue series to only show selected data
             instance.setOption({
                 series: [
                     {},
                     {
-                        data: filteredData
+                        data: subFunction
                     }
                 ]
             });
@@ -259,7 +240,7 @@ export function HistogramChart({
             // Gray background series
             {
                 type: 'line',
-                step: 'middle',
+                step: 'left',
                 data: [],
                 smooth: false,
                 symbol: 'none',
@@ -291,7 +272,7 @@ export function HistogramChart({
             // Blue selected area series
             {
                 type: 'line',
-                step: 'middle',
+                step: 'left',
                 data: [],
                 smooth: false,
                 symbol: 'none',
@@ -354,7 +335,7 @@ export function HistogramChart({
                         color: '#000',
                         textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff'
                     }}>
-                        {currentRange.min.toFixed(2)} → {currentRange.max.toFixed(2)}
+                        {formatNumber(currentRange.min)} → {formatNumber(currentRange.max)}
                     </div>
                     {selectedCount !== undefined && (
                         <div style={{
@@ -362,8 +343,8 @@ export function HistogramChart({
                             marginTop: 2,
                             textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff'
                         }}>
-                            {selectedCount.toLocaleString()}
-                            ~{percentage && ` (${percentage}%)`}
+                            ~{formatNumber(selectedCount)}
+                            {percentage && ` (${percentage}%)`}
                         </div>
                     )}
                 </div>
