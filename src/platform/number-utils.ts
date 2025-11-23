@@ -5,6 +5,16 @@ export function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+export function formatDateShort(date: Date): string {
+    // format date local but no seconds
+    return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
 
 export function formatNumberFixed(value: number) {
     return formatNumber(value, 1);

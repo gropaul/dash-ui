@@ -9,8 +9,9 @@ async function computeHistogram() {
     let sample_query = `
         CREATE OR REPLACE TEMP TABLE data AS (
             SELECT
-            epoch(ArrivalTime) AS normal_sample
-            FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'            LIMIT 10000
+            ArrivalTime AS normal_sample
+            FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'
+            USING SAMPLE 100000
         );`;
     // sample_query = `
     //     CREATE OR REPLACE TEMP TABLE data AS (
@@ -21,15 +22,19 @@ async function computeHistogram() {
     await ConnectionsService.getInstance().executeQuery(sample_query);
 
     const histogram_query = `
-        WITH bounds AS (
+        WITH transformed_data AS (
+            SELECT epoch_ms(normal_sample) as normal_sample
+            FROM data
+        ),
+        bounds AS (
             SELECT
                 min(normal_sample) AS min_val,
                 max(normal_sample) AS max_val,
                 equi_width_bins(min_val, max_val, 21, false) as bins
-            FROM data
+            FROM transformed_data
         )
         SELECT histogram(normal_sample, (SELECT bins FROM bounds)) AS histogram
-        FROM data;
+        FROM transformed_data;
     `;
 
     const result = await ConnectionsService.getInstance().executeQuery(histogram_query);
@@ -41,7 +46,7 @@ async function loadDataInRange(minValue: number, maxValue: number): Promise<numb
     const query = `
         SELECT normal_sample
         FROM data
-        WHERE normal_sample >= ${minValue} AND normal_sample <= ${maxValue}
+        WHERE epoch_ms(normal_sample) >= ${minValue} AND epoch_ms(normal_sample) <= ${maxValue}
         ORDER BY normal_sample 
         LIMIT 100;
     `;
@@ -159,7 +164,7 @@ export default function HistogramDemo() {
                                     selectedValues.map((value, idx) => (
                                         <tr key={idx} className="border-b hover:bg-gray-50">
                                             <td className="px-4 py-2">{idx + 1}</td>
-                                            <td className="px-4 py-2">{value.toFixed(4)}</td>
+                                            <td className="px-4 py-2">{value.toLocaleString()}</td>
                                         </tr>
                                     ))
                                 ) : (

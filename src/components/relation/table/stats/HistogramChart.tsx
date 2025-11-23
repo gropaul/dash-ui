@@ -2,11 +2,13 @@
 
 import dynamic from "next/dynamic";
 import {useEffect, useRef, useState} from "react";
-import {formatNumber, formatNumberFixed} from "@/platform/number-utils";
+import {formatDateShort, formatNumber, formatNumberFixed} from "@/platform/number-utils";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {
     ssr: false,
 });
+
+type HistDataType = 'value' | 'timestamp';
 
 interface HistogramChartProps {
     histogramData: { [key: number]: number };
@@ -14,7 +16,7 @@ interface HistogramChartProps {
     onRangeChangeEnd?: (minValue: number | null, maxValue: number | null) => void;
     totalCount?: number;
     height?: number;
-    dataType?: 'value' | 'timestamp';
+    dataType?: HistDataType
 }
 
 
@@ -78,6 +80,17 @@ export function getSumOfHistogram(
     return sum;
 }
 
+export function transformData(data: [number, number][], dataType: HistDataType): [any, number][] {
+    return data;
+
+    if (dataType === 'timestamp' && false) {
+        // one example to console log the transformation
+        console.log("Transforming data for timestamp:", data.slice(0, 5));
+        console.log ("Transformed data:", data.slice(0, 5).map(([x, y]) => [new Date(x), y]));
+        return data.map(([x, y]) => [new Date(x), y]);
+    }
+    return data;
+}
 export function HistogramChart({
                                    histogramData,
                                    onRangeChange,
@@ -86,16 +99,16 @@ export function HistogramChart({
                                    height = 400,
                                    dataType = 'value',
                                }: HistogramChartProps) {
-    const chartRef = useRef<any>(null);
     const handlersSetupRef = useRef(false);
     const [currentRange, setCurrentRange] = useState<{ min: number; max: number } | null>(null);
     const [selectedCount, setSelectedCount] = useState<number | undefined>(undefined);
 
     console.log("HistogramChart", histogramData);
-    useEffect(() => {
-        if (!chartRef.current) return;
 
-        const instance = chartRef.current.getEchartsInstance();
+    function onChartReady(chart: any) {
+
+        if (!chart) return;
+        const instance = chart;
 
         // Convert the histogram map to sorted arrays
         const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
@@ -113,14 +126,6 @@ export function HistogramChart({
         // Prepare data for area chart - [x, y] coordinates
         const areaData: [any, number][] = bins.map((bin, idx) => [bin, counts[idx]]);
 
-        // if dateFormat is 'timestamp', convert x values to timestamps
-        if (dataType === 'timestamp') {
-            for (let i = 0; i < areaData.length; i++) {
-                // data is epoch in seconds, convert to date object
-                areaData[i][0] = new Date(areaData[i][0] * 1000);
-            }
-        }
-
         console.log("HistogramChart areaData:", areaData);
 
         // Helper function to update the blue series based on brush range
@@ -133,7 +138,7 @@ export function HistogramChart({
                 series: [
                     {},
                     {
-                        data: subFunction
+                        data: transformData(subFunction, dataType)
                     }
                 ]
             });
@@ -173,7 +178,7 @@ export function HistogramChart({
                     series: [
                         {},
                         {
-                            data: areaData
+                            data: transformData(areaData, dataType)
                         }
                     ]
                 });
@@ -201,14 +206,20 @@ export function HistogramChart({
         instance.setOption({
             series: [
                 {
-                    data: areaData
+                    data: transformData(areaData, dataType)
                 },
                 {
-                    data: areaData
+                    data: transformData(areaData, dataType)
                 }
             ]
         });
-    }, [histogramData]);
+    }
+
+    // Calculate min and max from histogram data
+    const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
+    const binWidth = bins.length > 1 ? bins[1] - bins[0] : 1;
+    const minValue = bins[0] - binWidth;
+    const maxValue = bins[bins.length - 1];
 
     const option = {
         tooltip: {
@@ -222,14 +233,25 @@ export function HistogramChart({
             containLabel: false,
         },
         xAxis: {
-            type: "time",
+            type: dataType === 'timestamp' ? 'value' : 'value',
+            min: minValue,
+            max: maxValue,
             boundaryGap: false,
-            axisLabel: {
-                formatter: formatNumberFixed,
-                alignMinLabel: 'left',
-                alignMaxLabel: 'right',
-            },
-            splitNumber: 2,
+            ...(dataType === 'timestamp' ? {
+                axisLabel: {
+                    customValues: ['min', 'max'],
+                },
+                axisTick: {
+                    customValues: [minValue, maxValue],
+                }
+            } : {
+                axisLabel: {
+                    formatter: formatNumberFixed,
+                    alignMinLabel: 'left',
+                    alignMaxLabel: 'right',
+                },
+                splitNumber: 2,
+            }),
         },
         yAxis: {
             boundaryGap: false,
@@ -335,9 +357,9 @@ export function HistogramChart({
     return (
         <div style={{position: 'relative', height, width: '100%'}}>
             <ReactECharts
-                ref={chartRef}
                 option={option}
                 style={{height, width: '100%'}}
+                onChartReady ={onChartReady}
             />
 
             {currentRange && (
@@ -357,7 +379,10 @@ export function HistogramChart({
                         color: '#000',
                         textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff'
                     }}>
-                        {formatNumber(currentRange.min)} → {formatNumber(currentRange.max)}
+                        {dataType === 'timestamp'
+                            ? `${new Date(currentRange.min).toLocaleString()} → ${new Date(currentRange.max).toLocaleString()}`
+                            : `${formatNumber(currentRange.min)} → ${formatNumber(currentRange.max)}`
+                        }
                     </div>
                     {selectedCount !== undefined && (
                         <div style={{
@@ -370,6 +395,38 @@ export function HistogramChart({
                         </div>
                     )}
                 </div>
+            )}
+
+            {dataType === 'timestamp' && (
+                <>
+                    {/* Min date label at the very left */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: 8,
+                            fontSize: '12px',
+                            color: '#666',
+                            pointerEvents: 'none',
+                        }}
+                    >
+                        {formatDateShort(new Date(minValue))}
+                    </div>
+
+                    {/* Max date label at the very right */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: 8,
+                            right: 0,
+                            fontSize: '12px',
+                            color: '#666',
+                            pointerEvents: 'none',
+                            textAlign: 'right',
+                        }}
+                    >
+                        {formatDateShort(new Date(maxValue))}
+                    </div>
+                </>
             )}
         </div>
     );
