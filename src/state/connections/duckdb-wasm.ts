@@ -247,8 +247,6 @@ export function relationFromDuckDBArrowResult(relationName: string, connectionId
         chunks = input;
     }
 
-    console.log(`Converting DuckDB Arrow result with ${chunks.length} chunks to RelationData, First chunk schema:`, chunks[0]);
-
     // Convert arrow tables to json
     let json: any[] = [];
     for (const chunk of chunks) {

@@ -15,8 +15,8 @@ interface HistogramChartProps {
     onRangeChange?: (minValue: number, maxValue: number) => void;
     onRangeChangeEnd?: (minValue: number | null, maxValue: number | null) => void;
     totalCount?: number;
-    height?: number;
     dataType?: HistDataType
+    className?: string;
 }
 
 
@@ -82,22 +82,14 @@ export function getSumOfHistogram(
 
 export function transformData(data: [number, number][], dataType: HistDataType): [any, number][] {
     return data;
-
-    if (dataType === 'timestamp' && false) {
-        // one example to console log the transformation
-        console.log("Transforming data for timestamp:", data.slice(0, 5));
-        console.log ("Transformed data:", data.slice(0, 5).map(([x, y]) => [new Date(x), y]));
-        return data.map(([x, y]) => [new Date(x), y]);
-    }
-    return data;
 }
 export function HistogramChart({
                                    histogramData,
                                    onRangeChange,
                                    onRangeChangeEnd,
                                    totalCount,
-                                   height = 400,
                                    dataType = 'value',
+                                      className,
                                }: HistogramChartProps) {
     const handlersSetupRef = useRef(false);
     const [currentRange, setCurrentRange] = useState<{ min: number; max: number } | null>(null);
@@ -226,16 +218,20 @@ export function HistogramChart({
             show: true,
         },
         grid: {
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 32,
+            left: 4,
+            right: 4,
+            top: 4,
+            bottom: 24,
             containLabel: false,
         },
         xAxis: {
             type: dataType === 'timestamp' ? 'value' : 'value',
+            showGrid: false,
             min: minValue,
             max: maxValue,
+            splitLine: {
+                show: false
+            },
             boundaryGap: false,
             ...(dataType === 'timestamp' ? {
                 axisLabel: {
@@ -256,6 +252,8 @@ export function HistogramChart({
         yAxis: {
             boundaryGap: false,
             show: false,
+            showGrid: false,
+
             type: "value",
             axisLine: {
                 show: false,
@@ -355,10 +353,10 @@ export function HistogramChart({
         : null;
 
     return (
-        <div style={{position: 'relative', height, width: '100%'}}>
+        <div style={{position: 'relative'}} className={className}>
             <ReactECharts
                 option={option}
-                style={{height, width: '100%'}}
+                style={{height: '100%', width: '100%'}}
                 onChartReady ={onChartReady}
             />
 
@@ -380,10 +378,15 @@ export function HistogramChart({
                         textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff'
                     }}>
                         {dataType === 'timestamp'
-                            ? `${new Date(currentRange.min).toLocaleString()} → ${new Date(currentRange.max).toLocaleString()}`
+                            ? <>
+                                {formatDateShort(new Date(currentRange.min))} to
+                                <br />
+                                {formatDateShort(new Date(currentRange.max))}
+                            </>
                             : `${formatNumber(currentRange.min)} → ${formatNumber(currentRange.max)}`
                         }
                     </div>
+
                     {selectedCount !== undefined && (
                         <div style={{
                             color: '#000',

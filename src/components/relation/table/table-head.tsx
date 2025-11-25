@@ -1,16 +1,27 @@
 import {TableColumnHead} from "@/components/relation/table/table-head/table-column-head";
-import React from "react";
+import React, {useEffect} from "react";
 import {ColumnHeadDropDownMenuContent} from "@/components/relation/table/table-head/dropdown-menu-content";
 import {Column} from "@/model/data-source-connection";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {useRelationData} from "@/state/relations-data.state";
+import {GetColumnStats} from "@/model/column-stats";
+import {ColumnStats} from "@/model/relation-state";
 
 export function TableHead(props: RelationViewTableContentProps) {
 
     const [column, setColumn] = React.useState<Column>(props.data.columns[0]);
     const [menuOpen, setMenuOpen] = React.useState(false);
     const [position, setPosition] = React.useState({ x: 0, y: 0 });
+    const [stats, setStats] = React.useState<ColumnStats | undefined>(undefined);
+
+    useEffect(() => {
+        GetColumnStats(props.relationState, props.data).then(stats => {
+            setStats(stats);
+            console.log("Fetched column stats:", stats);
+        });
+
+    }, [props.relationState, props.data]);
 
     // Handle the column menu click event
     function onColumnMenuClick(column: Column, event: React.MouseEvent) {
@@ -36,6 +47,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                     className="p-0 m-0 h-8 sticky left-0 z-20 bg-inherit w-20"
                 >
                     <div className="w-full h-full bg-inherit absolute right-0 top-0 z-[3] border-r border-b border-border" />
+                    <div className="w-full h-8 bg-inherit absolute right-0 top-[1px] z-[3] border-r border-b border-border" />
                 </th>
                 {/* Column headers */}
                 {props.columnViewIndices.map((index) => (
@@ -43,6 +55,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                         <TableColumnHead
                             {...props}
                             column={props.data.columns[index]}
+                            stats={stats ? stats.stats[index] : undefined }
                             onColumnMenuClick={(column, event) => onColumnMenuClick(column, event)}
                         />
                     </DropdownMenuTrigger>

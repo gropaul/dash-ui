@@ -57,9 +57,8 @@ export function ColumnHeadResizeHandle({relationId, displayState, column, update
         <div
             onMouseDown={onMouseDown}
             className="absolute right-0 top-0 h-full cursor-col-resize w-2 flex justify-center items-center"
-            style={{marginRight: "4px"}} // Add margin to separate from icons
         >
-            <div className="h-3 w-1 border-l border-gray-700 dark:border-gray-700"/>
+            <div className="ml-0.5 h-3 w-1 border-l border-gray-700 dark:border-gray-700"/>
         </div>
     );
 }

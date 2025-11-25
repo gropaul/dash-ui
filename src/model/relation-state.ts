@@ -11,7 +11,7 @@ import {
     RelationViewType,
     updateRelationViewState
 } from "@/model/relation-view-state";
-import {cleanAndSplitSQL, minifySQL, turnQueryIntoSubquery} from "@/platform/sql-utils";
+import {cleanAndSplitSQL, minifySQL, removeSemicolon, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
@@ -102,10 +102,54 @@ export interface QueryExecutionMetaData {
     lastResultOffset?: number;
 }
 
+
+export type ColumnStatsType = 'histogram' | 'top-n' | 'minMax'| 'non_null';
+
+export interface ColumnStatsBase {
+    type: ColumnStatsType;
+}
+
+export interface ColumnStatsNonNull extends ColumnStatsBase {
+    type: 'non_null';
+    nonNullCount: number;
+}
+
+export interface ColumnStatsMinMax extends ColumnStatsBase {
+    type: 'minMax';
+    nonNullCount: number;
+    min: number | string;
+    max: number | string;
+}
+
+
+export interface ColumnStatsHistogram extends ColumnStatsBase {
+    type: 'histogram';
+    nonNullCount: number;
+    min: number | string;
+    max: number | string;
+    values: { [key: number]: number }; // example: { "1": 10, "2": 5 } means value 1 occurred 10 times, value 2 occurred 5 times
+}
+
+export interface ColumnStatsTopN extends ColumnStatsBase {
+    type: 'top-n';
+    nonNullCount: number;
+    min: number | string;
+    max: number | string;
+    topValues: { value: any; count: number }[]; // example: [ { value: "A", count: 10 }, { value: "B", count: 5 } ]
+    othersCount? : number; // count of all other values not in topValues
+}
+
+export type ColumnStatsOptions = ColumnStatsHistogram | ColumnStatsTopN | ColumnStatsMinMax | ColumnStatsNonNull;
+
+export interface ColumnStats {
+    stats: ColumnStatsOptions[];
+}
+
 export interface RelationWithQuery extends Relation {
     query: QueryData;
     executionState: TaskExecutionState;
     lastExecutionMetaData?: QueryExecutionMetaData;
+    stats?: ColumnStats;
 }
 
 export interface RelationState extends RelationWithQuery {
@@ -160,6 +204,7 @@ export function getViewFromSource(connectionId: string, source: RelationSource, 
                 initialQueries: [],
                 schemaQuery: undefined,
                 countQuery: undefined,
+                finalQuery:  relationBaseQuery,
                 viewParameters: viewParams,
                 viewQuery: relationBaseQuery
             },
@@ -209,6 +254,7 @@ export interface QueryData {
     initialQueries: string[]; // the queries that must be run before the actual view query/count query
     // the query defined by the view adding sorting etc, e.g. SELECT * FROM (FROM basetable), can be undefined if the
     // base query is not viewable like CREATE TABLE
+    finalQuery: string; // the final query that was built from the base query, this is what the viewQuery is based on
     viewQuery: string;
     schemaQuery?: string; // the query to get the schema for the view, can be undefined if deduced from the view query
     // the query getting the count for the view Query
@@ -275,7 +321,7 @@ function buildQueries(
 
     const initialQueries = baseQueries.slice(0, -1);
     console.log('Base Queries:', baseQueries);
-    const finalQuery = baseQueries.at(-1);
+    const finalQuery = removeSemicolon(baseQueries.at(-1) || '');
     if (!finalQuery) {
         throw new Error('No final query found in base SQL');
     }
@@ -446,6 +492,7 @@ export async function getQueryFromParams(
     // If not executable, fallback
     return {
         schemaQuery,
+        finalQuery,
         countQuery: executable ? countQuery : undefined,
         viewQuery: executable ? viewQuery : finalQuery,
         initialQueries,
@@ -475,6 +522,7 @@ export function getQueryFromParamsUnchecked(
     return {
         countQuery,
         viewQuery,
+        finalQuery,
         schemaQuery,
         initialQueries,
         baseQuery,

@@ -10,6 +10,7 @@ import {cn} from "@/lib/utils";
 import {useRelationData} from "@/state/relations-data.state";
 import {RelationData} from "@/model/relation";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
+import {GetColumnStats} from "@/model/column-stats";
 
 
 export function Table(props: RelationViewContentProps) {

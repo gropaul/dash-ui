@@ -62,8 +62,6 @@ export function splitSQL(sql: string, keepSemicolon: boolean = false): string[] 
     const stmts: string[] = [];
     let current = '';
 
-    console.log("Splitting SQL:", sql);
-
     enum State {
         Normal,
         SingleQuote,

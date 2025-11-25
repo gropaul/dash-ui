@@ -9,7 +9,8 @@ async function computeHistogram() {
     let sample_query = `
         CREATE OR REPLACE TEMP TABLE data AS (
             SELECT
-            ArrivalTime AS normal_sample
+                TrainNumber,
+                epoch_ms(ArrivalTime) as ArrivalTime,
             FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'
             USING SAMPLE 100000
         );`;
@@ -23,21 +24,31 @@ async function computeHistogram() {
 
     const histogram_query = `
         WITH transformed_data AS (
-            SELECT epoch_ms(normal_sample) as normal_sample
+            SELECT TrainNumber, ArrivalTime
             FROM data
         ),
-        bounds AS (
+        bounds AS MATERIALIZED (
             SELECT
-                min(normal_sample) AS min_val,
-                max(normal_sample) AS max_val,
-                equi_width_bins(min_val, max_val, 21, false) as bins
+                min(TrainNumber) AS TrainNumberMin,
+                max(TrainNumber) AS TrainNumberMax,
+                min(ArrivalTime) AS ArrivalTimeMin,
+                max(ArrivalTime) AS ArrivalTimeMax   
+            FROM transformed_data
+        ),
+        histogram_data AS (
+            SELECT 
+                histogram(TrainNumber, (SELECT equi_width_bins(TrainNumberMin, TrainNumberMax, 21, false) FROM bounds)) AS histogram_train,
+                histogram(ArrivalTime, (SELECT equi_width_bins(ArrivalTimeMin, ArrivalTimeMax, 21, false) FROM bounds)) AS histogram_arrival
             FROM transformed_data
         )
-        SELECT histogram(normal_sample, (SELECT bins FROM bounds)) AS histogram
-        FROM transformed_data;
+        SELECT
+            *
+        FROM histogram_data, bounds;
     `;
 
     const result = await ConnectionsService.getInstance().executeQuery(histogram_query);
+    const [minValue, maxValue] = [result.rows[0][1] as number, result.rows[0][2] as number];
+    console.log(`Histogram min: ${new Date(minValue).toISOString()}, max: ${new Date(maxValue).toISOString()}`);
     return result.rows[0][0] as any;
 }
 
@@ -134,10 +145,10 @@ export default function HistogramDemo() {
                 <>
                     <div>
                         <HistogramChart
+                            className={"h-64 w-full"}
                             histogramData={histogramData}
                             onRangeChangeEnd={loadDataDebounced}
                             totalCount={totalCount}
-                            height={128 + 64}
                             dataType={'timestamp'}
                         />
                     </div>
