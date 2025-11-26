@@ -65,9 +65,7 @@ export async function updateRelationDataWithParams(relation: RelationState, quer
 
     try {
         const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query, inputManager); // Update the relation state
-        console.log("Updated relation state with new params, now executing query");
         const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
-        console.log("Done executing relation state");
         // update state with new data and completed state
         update(executedRelationState);
     } catch (e) {

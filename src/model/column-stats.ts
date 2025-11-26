@@ -1,5 +1,5 @@
 import {RelationData} from "@/model/relation";
-import {ColumnStats, ColumnStatsHistogram, ColumnStatsType, RelationState} from "@/model/relation-state";
+import {RelationStats, ColumnStatsHistogram, ColumnStatsType, RelationState} from "@/model/relation-state";
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {ValueType} from "@/model/value-type";
@@ -105,7 +105,6 @@ function buildStatsQuery(row_count: number, relation: RelationState, data: Relat
         SELECT *
         FROM histogram_data,
              bounds;`
-    console.log(`${query}`);
     return {
         query: query,
         parts: parts,
@@ -160,11 +159,11 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
     const buildResult = buildStatsQuery(row_count, relation, data);
     const statsData = await ConnectionsService.getInstance().executeQuery(buildResult.query);
 
-    let stats: ColumnStats = {
-        stats: [],
+    let stats: RelationStats = {
+        columns: [],
+        state: 'ready',
     }
 
-    console.log("Stats query result:", statsData);
 
     for (let colIndex = 0; colIndex < data.columns.length; colIndex++) {
         const column = data.columns[colIndex];
@@ -183,7 +182,7 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
                     type = 'timestamp';
                 }
 
-                stats.stats.push({
+                stats.columns.push({
                     type: 'histogram',
                     nonNullCount: count,
                     min: min,
@@ -195,14 +194,14 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
             }
             case 'non_null': {
                 const count = GetAgg('COUNT', column, colIndex, statsData);
-                stats.stats.push({
+                stats.columns.push({
                     type: 'non_null',
                     nonNullCount: count,
                 });
                 break;
             }
             case "minMax": {
-                stats.stats.push({
+                stats.columns.push({
                     type: 'non_null',
                     nonNullCount: 0,
                 })
@@ -213,8 +212,5 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
             }
         }
     }
-
-    console.log("Computed column stats:", stats);
-
     return stats;
 }

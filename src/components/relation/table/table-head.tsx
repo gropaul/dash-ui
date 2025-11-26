@@ -4,24 +4,16 @@ import {ColumnHeadDropDownMenuContent} from "@/components/relation/table/table-h
 import {Column} from "@/model/data-source-connection";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
-import {useRelationData} from "@/state/relations-data.state";
+import {useRelationData, useRelationDataState} from "@/state/relations-data.state";
 import {GetColumnStats} from "@/model/column-stats";
-import {ColumnStats} from "@/model/relation-state";
+import {GetStatForColumn, RelationStats} from "@/model/relation-state";
 
 export function TableHead(props: RelationViewTableContentProps) {
 
     const [column, setColumn] = React.useState<Column>(props.data.columns[0]);
     const [menuOpen, setMenuOpen] = React.useState(false);
     const [position, setPosition] = React.useState({ x: 0, y: 0 });
-    const [stats, setStats] = React.useState<ColumnStats | undefined>(undefined);
-
-    useEffect(() => {
-        GetColumnStats(props.relationState, props.data).then(stats => {
-            setStats(stats);
-            console.log("Fetched column stats:", stats);
-        });
-
-    }, [props.data]);
+    const relationStats = useRelationDataState(state => state.getStats(props.relationState.id))
 
     // Handle the column menu click event
     function onColumnMenuClick(column: Column, event: React.MouseEvent) {
@@ -55,7 +47,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                         <TableColumnHead
                             {...props}
                             column={props.data.columns[index]}
-                            stats={stats ? stats.stats[index] : undefined }
+                            stats={GetStatForColumn(index, relationStats)}
                             onColumnMenuClick={(column, event) => onColumnMenuClick(column, event)}
                         />
                     </DropdownMenuTrigger>

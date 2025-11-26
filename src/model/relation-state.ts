@@ -141,17 +141,52 @@ export interface ColumnStatsTopN extends ColumnStatsBase {
     othersCount?: number; // count of all other values not in topValues
 }
 
-export type ColumnStatsOptions = ColumnStatsHistogram | ColumnStatsTopN | ColumnStatsMinMax | ColumnStatsNonNull;
+export type ColumnStats = ColumnStatsHistogram | ColumnStatsTopN | ColumnStatsMinMax | ColumnStatsNonNull;
 
-export interface ColumnStats {
-    stats: ColumnStatsOptions[];
+export type RelationStatState = 'loading' | 'error' | 'ready';
+
+export interface RelationStatsBase {
+    state: RelationStatState;
+}
+
+export interface RelationStatsLoading extends RelationStatsBase {
+    state: 'loading';
+}
+
+export function GetRelationStatsLoading(): RelationStatsLoading {
+    return {
+        state: 'loading'
+    };
+}
+
+export interface RelationStatsError extends RelationStatsBase {
+    state: 'error';
+    error: string;
+}
+
+export interface RelationStatsReady extends RelationStatsBase {
+    state: 'ready';
+    columns: ColumnStats[]; // same order as the columns in the relation
+}
+
+export type RelationStats = RelationStatsLoading | RelationStatsError | RelationStatsReady;
+
+export function GetStatForColumn(column_index: number, stats: RelationStats): ColumnStats | undefined {
+    if (stats.state !== 'ready') {
+        return undefined;
+    }
+    return stats.columns[column_index];
 }
 
 export interface RelationWithQuery extends Relation {
     query: QueryData;
     executionState: TaskExecutionState;
     lastExecutionMetaData?: QueryExecutionMetaData;
-    stats?: ColumnStats;
+}
+
+export function ShouldUpdateStats(relation: RelationState) : boolean {
+    return relation.viewState.selectedView === 'table';
+
 }
 
 export interface RelationState extends RelationWithQuery {
@@ -596,7 +631,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
 
     if (viewQuery) {
         try {
-            const cacheResult = await useRelationDataState.getState().updateDataFromQuery(input.id, viewQuery);
+            const cacheResult = await useRelationDataState.getState().updateDataFromQuery(input, viewQuery);
             viewData = cacheResult.data;
         } catch (e) {
             return returnEmptyErrorState(input, e);

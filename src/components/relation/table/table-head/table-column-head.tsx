@@ -3,8 +3,8 @@ import {Column} from "@/model/data-source-connection";
 import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {
     ColumnSorting,
-    ColumnStatsOptions,
-    getNextColumnSorting,
+    ColumnStats,
+    getNextColumnSorting, RelationStats,
     ViewQueryParameters
 } from "@/model/relation-state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
@@ -12,12 +12,12 @@ import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
 import {RelationViewProps} from "@/components/relation/relation-view";
-import {HistDataType, HistogramChart} from "@/components/relation/table/stats/HistogramChart";
+import { HistogramChart} from "@/components/relation/table/stats/HistogramChart";
 
 
 export interface ColumnHeadProps extends RelationViewProps {
     column: Column;
-    stats?: ColumnStatsOptions;
+    stats?: ColumnStats;
     onColumnMenuClick?: (column: Column, event: React.MouseEvent) => void;
 }
 
@@ -67,7 +67,6 @@ export function TableColumnHead(props: ColumnHeadProps) {
         props.updateRelationDataWithParams(queryParams);
     }
 
-    console.log('Rendering Column Head:', column.name, 'Stats:', props.stats);
     return (
 
         <ColumnHeadWrapper columnWidth={columnWidth} stats={props.stats}>
@@ -129,7 +128,7 @@ function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize?: numb
     }
 }
 
-function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.ReactNode, stats?: ColumnStatsOptions }) {
+function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.ReactNode, stats?: ColumnStats }) {
 
     return (
         <th

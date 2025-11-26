@@ -2,9 +2,16 @@ import {RelationData} from "@/model/relation";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {deleteCache, loadCache, updateCache} from "@/state/relations-data/functions";
-import {RelationState} from "@/model/relation-state";
+import {
+    RelationStats,
+    RelationStatsLoading,
+    GetRelationStatsLoading,
+    RelationState,
+    ShouldUpdateStats
+} from "@/model/relation-state";
 import {LRUList} from "@/platform/lru";
 import {N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
+import {GetColumnStats} from "@/model/column-stats";
 
 
 export interface CacheResult {
@@ -13,13 +20,17 @@ export interface CacheResult {
 }
 
 export interface RelationDataZustandActions {
+    /* Data API */
     getData: (relationId: string) => RelationData | undefined;
     getDataForRelation: (relationState: RelationState) => RelationData | undefined;
     updateData: (relationId: string, data: RelationData) => RelationData;
     updateDataFromCache: (relationId: string) => Promise<RelationData | undefined>;
-    updateDataFromQuery: (relationId: string, query: string) => Promise<CacheResult>;
-
+    updateDataFromQuery: (input: RelationState, query: string) => Promise<CacheResult>;
     deleteData: (relationId: string) => void;
+
+    getStats: (relationId: string) => RelationStats;
+    updateStats: (relationState: RelationState, data: RelationData) => Promise<RelationStats>;
+    invalidateStats: (relationId: string) => void;
 
     recordUse: (relationId: string) => void;
     loadLastUsed: () => Promise<void>;
@@ -27,6 +38,7 @@ export interface RelationDataZustandActions {
 
 export interface RelationDataZustandState {
     data: Record<string, RelationData>;
+    stats: Record<string, RelationStats>
 }
 
 export type RelationZustandCombined = RelationDataZustandState & RelationDataZustandActions;
@@ -71,7 +83,8 @@ export const useCacheStore = createWithEqualityFn<CacheState>()(
 
 export function getInitialRelationDataZustandState(): RelationDataZustandState {
     return {
-        data: {}
+        data: {},
+        stats: {}
     };
 }
 
@@ -121,10 +134,15 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
             return get().updateData(relationId, data);
         },
 
-        updateDataFromQuery: async (relationId: string, query: string) => {
-            console.log(`Updating relation data for ${relationId} from query: ${query}`);
-            const result = await updateCache(relationId, query);
-            get().updateData(relationId, result.data);
+        updateDataFromQuery: async (input: RelationState, query: string) => {
+            console.log(`Updating relation data for ${input.id} from query: ${query}`);
+            const result = await updateCache(input.id, query);
+            get().updateData(input.id, result.data);
+
+            if (ShouldUpdateStats(input)) {
+                // this should be asynchronous, we don't want to block the user
+                get().updateStats(input, result.data);
+            }
             return result;
         },
 
@@ -142,6 +160,37 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
                 return {data: newData};
             });
         },
+
+        getStats: (relationId: string) => {
+            if (relationId in get().stats) {
+                return get().stats[relationId];
+            }
+            return GetRelationStatsLoading();
+        },
+
+        invalidateStats: (relationId: string) => {
+            set((state) => {
+                const newStats = {...state.stats};
+                delete newStats[relationId];
+                return {stats: newStats};
+            }
+            );
+        },
+
+        updateStats: async (relationState: RelationState, data: RelationData) => {
+            const stats = await GetColumnStats(relationState, data);
+            if (!stats) {
+                throw new Error(`Failed to compute stats for relation ${relationState.id}`);
+            }
+            set((state) => ({
+                stats: {
+                    ...state.stats,
+                    [relationState.id]: stats
+                }
+            }));
+            return stats;
+        },
+
         loadLastUsed: async () => {
             const ids_to_hydrate = useCacheStore.getState().cache.getElements();
             for (const relationId of ids_to_hydrate) {
