@@ -119,6 +119,7 @@ export class ConnectionsService {
             const _result = await this.executeQuery(explainQuery);
             return true;
         } catch (e) {
+            console.error(e, 'Query is not executable', explainQuery);
             return false;
         }
     }

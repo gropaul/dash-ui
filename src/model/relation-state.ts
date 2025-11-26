@@ -17,6 +17,7 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {CHART_QUERY_LIMIT} from "@/platform/global-data";
+import {HistDataType} from "@/components/relation/table/stats/HistogramChart";
 
 export function getInitialParams(type: RelationViewType): ViewQueryParameters {
     return {
@@ -103,7 +104,7 @@ export interface QueryExecutionMetaData {
 }
 
 
-export type ColumnStatsType = 'histogram' | 'top-n' | 'minMax'| 'non_null';
+export type ColumnStatsType = 'histogram' | 'top-n' | 'minMax' | 'non_null';
 
 export interface ColumnStatsBase {
     type: ColumnStatsType;
@@ -128,6 +129,7 @@ export interface ColumnStatsHistogram extends ColumnStatsBase {
     min: number | string;
     max: number | string;
     values: { [key: number]: number }; // example: { "1": 10, "2": 5 } means value 1 occurred 10 times, value 2 occurred 5 times
+    histogramType: HistDataType;
 }
 
 export interface ColumnStatsTopN extends ColumnStatsBase {
@@ -136,7 +138,7 @@ export interface ColumnStatsTopN extends ColumnStatsBase {
     min: number | string;
     max: number | string;
     topValues: { value: any; count: number }[]; // example: [ { value: "A", count: 10 }, { value: "B", count: 5 } ]
-    othersCount? : number; // count of all other values not in topValues
+    othersCount?: number; // count of all other values not in topValues
 }
 
 export type ColumnStatsOptions = ColumnStatsHistogram | ColumnStatsTopN | ColumnStatsMinMax | ColumnStatsNonNull;
@@ -204,7 +206,7 @@ export function getViewFromSource(connectionId: string, source: RelationSource, 
                 initialQueries: [],
                 schemaQuery: undefined,
                 countQuery: undefined,
-                finalQuery:  relationBaseQuery,
+                finalQuery: relationBaseQuery,
                 viewParameters: viewParams,
                 viewQuery: relationBaseQuery
             },
@@ -363,7 +365,9 @@ function buildQueries(
 export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): [string, string?] {
     const chartViewParams = viewParams.chart;
 
-    const schemaQuery = `SELECT * FROM ${finalQueryAsSubQuery} LIMIT 1;`;
+    const schemaQuery = `SELECT *
+                         FROM ${finalQueryAsSubQuery}
+                         LIMIT 1;`;
 
 
     if (chartViewParams.groupBy && chartViewParams.xAxis && chartViewParams.yAxes?.length === 1) {
@@ -373,26 +377,22 @@ export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSub
         const yAxis = chartViewParams.yAxes[0];
 
         const viewQuery = `
-            WITH data AS (
-                SELECT ${xAxis}, ${groupBy}, ${yAxis}
-                FROM ${finalQueryAsSubQuery}
-            ),
-            dash_row_number_ids AS (
-                SELECT range as dash_row_number_id FROM range((SELECT COUNT(*) FROM data))
-            ),
-            data_with_ids AS (
-                SELECT d.*, dash_row_number_ids.dash_row_number_id
-                FROM data d
-                POSITIONAL JOIN dash_row_number_ids 
-            ), 
-            data_with_ids_pivot AS (
-                PIVOT data_with_ids
-                ON ${groupBy}
-                USING FIRST(${yAxis})
-                GROUP BY ${xAxis}
-                ORDER BY ${xAxis}
-            )
-            SELECT COLUMNS(c -> c NOT LIKE '%dash_row_number_id%') 
+            WITH data AS (SELECT ${xAxis}, ${groupBy}, ${yAxis}
+                          FROM ${finalQueryAsSubQuery}),
+                 dash_row_number_ids AS (SELECT range as dash_row_number_id FROM range((SELECT COUNT(*) FROM data))),
+                 data_with_ids AS (SELECT d.*, dash_row_number_ids.dash_row_number_id
+                                   FROM data d POSITIONAL JOIN dash_row_number_ids),
+                 data_with_ids_pivot AS (PIVOT data_with_ids
+                ON
+                                         ${groupBy}
+                                         USING
+                                         FIRST
+                                         (
+                                         ${yAxis}
+                                         )
+                                         GROUP BY ${xAxis}
+                                         ORDER BY ${xAxis})
+            SELECT COLUMNS(c -> c NOT LIKE '%dash_row_number_id%')
             FROM data_with_ids_pivot
             LIMIT ${CHART_QUERY_LIMIT};
         `;
@@ -405,13 +405,15 @@ export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSub
         const viewQuery = `
             SELECT ${xAxis}, ${yAxes}
             FROM ${finalQueryAsSubQuery}
-             LIMIT ${CHART_QUERY_LIMIT};
+            LIMIT ${CHART_QUERY_LIMIT};
         `
 
         return [viewQuery, schemaQuery];
     } else {
         console.warn('Chart query not fully configured, falling back to table view');
-        return [`SELECT * FROM ${finalQueryAsSubQuery} LIMIT ${CHART_QUERY_LIMIT};`, schemaQuery];
+        return [`SELECT *
+                 FROM ${finalQueryAsSubQuery}
+                 LIMIT ${CHART_QUERY_LIMIT};`, schemaQuery];
     }
 
 }
@@ -430,8 +432,8 @@ export function buildTableQuery(viewParams: ViewQueryParameters, finalQueryAsSub
     const filterQuery = buildFilterWhereClause(tableViewParams.filters, 'subquery');
     return `
         SELECT *
-        FROM ${finalQueryAsSubQuery} as subquery ${filterQuery} ${orderByQuery} LIMIT ${limit}
-        OFFSET ${offset};
+        FROM ${finalQueryAsSubQuery} as subquery ${filterQuery} ${orderByQuery}
+        LIMIT ${limit} OFFSET ${offset};
     `;
 }
 

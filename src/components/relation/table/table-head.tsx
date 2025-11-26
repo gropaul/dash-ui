@@ -21,7 +21,7 @@ export function TableHead(props: RelationViewTableContentProps) {
             console.log("Fetched column stats:", stats);
         });
 
-    }, [props.relationState, props.data]);
+    }, [props.data]);
 
     // Handle the column menu click event
     function onColumnMenuClick(column: Column, event: React.MouseEvent) {

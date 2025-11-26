@@ -12,10 +12,10 @@ import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
 import {RelationViewProps} from "@/components/relation/relation-view";
-import {HistogramChart} from "@/components/relation/table/stats/HistogramChart";
+import {HistDataType, HistogramChart} from "@/components/relation/table/stats/HistogramChart";
 
 
-export interface ColumnHeadProps extends RelationViewProps{
+export interface ColumnHeadProps extends RelationViewProps {
     column: Column;
     stats?: ColumnStatsOptions;
     onColumnMenuClick?: (column: Column, event: React.MouseEvent) => void;
@@ -70,46 +70,46 @@ export function TableColumnHead(props: ColumnHeadProps) {
     console.log('Rendering Column Head:', column.name, 'Stats:', props.stats);
     return (
 
-            <ColumnHeadWrapper columnWidth={columnWidth} stats={props.stats}>
+        <ColumnHeadWrapper columnWidth={columnWidth} stats={props.stats}>
 
+            <div
+                ref={setDroppableNodeRef}
+                className="w-full group flex items-center justify-between pr-6"
+            >
                 <div
-                    ref={setDroppableNodeRef}
-                    className="w-full group flex items-center justify-between pr-6"
+                    ref={setDraggableNodeRef}
+                    onClick={onSortClick}
+                    className="flex items-center overflow-hidden cursor-pointer"
+                    style={{width: columnWidth}}
+                    {...listeners}
                 >
-                    <div
-                        ref={setDraggableNodeRef}
-                        onClick={onSortClick}
-                        className="flex items-center overflow-hidden cursor-pointer"
-                        style={{width: columnWidth}}
-                        {...listeners}
-                    >
-                        <div style={{minWidth: "16px", display: "flex", alignItems: "center"}}>
-                            <ValueIcon type={column.type}/>
-                        </div>
-                        <div className="ml-2 font-semibold truncate text-nowrap" title={column.name}>
-                            {column.name}
-                        </div>
-                        <div className={`px-1 ${opacityClass} h-4`}>
-                            <button className={sortingClass}>
-                                <ColumnHeadSortingIcon sorting={columnSorting}/>
-                            </button>
-                        </div>
+                    <div style={{minWidth: "16px", display: "flex", alignItems: "center"}}>
+                        <ValueIcon type={column.type}/>
                     </div>
-                    <Menu
-                        size={16}
-                        onClick={(event) => props.onColumnMenuClick?.(column, event)}
-                        className="hidden group-hover:block text-muted-foreground hover:text-primary cursor-pointer"
-                    />
+                    <div className="ml-2 font-semibold truncate text-nowrap" title={column.name}>
+                        {column.name}
+                    </div>
+                    <div className={`px-1 ${opacityClass} h-4`}>
+                        <button className={sortingClass}>
+                            <ColumnHeadSortingIcon sorting={columnSorting}/>
+                        </button>
+                    </div>
                 </div>
-
-                <ColumnHeadResizeHandle
-                    relationId={props.relationState.id}
-                    displayState={tableViewState}
-                    column={column}
-                    updateRelationViewState={props.updateRelationViewState}
-
+                <Menu
+                    size={16}
+                    onClick={(event) => props.onColumnMenuClick?.(column, event)}
+                    className="hidden group-hover:block text-muted-foreground hover:text-primary cursor-pointer"
                 />
-            </ColumnHeadWrapper>
+            </div>
+
+            <ColumnHeadResizeHandle
+                relationId={props.relationState.id}
+                displayState={tableViewState}
+                column={column}
+                updateRelationViewState={props.updateRelationViewState}
+
+            />
+        </ColumnHeadWrapper>
 
 
     );
@@ -130,26 +130,6 @@ function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize?: numb
 }
 
 function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.ReactNode, stats?: ColumnStatsOptions }) {
-    let exampleHist: { [key: number]: number } = {
-        10: 5,
-        20: 15,
-        30: 25,
-        40: 35,
-        50: 45,
-        60: 30,
-        70: 20,
-        80: 10,
-        90: 5,
-    }
-
-    if (props.stats && props.stats.type === 'histogram') {
-        exampleHist = props.stats.values;
-        for (const key in exampleHist) {
-            exampleHist[Number(key)] = exampleHist[Number(key)] || 0;
-        }
-        console.log(exampleHist);
-    }
-
 
     return (
         <th
@@ -162,11 +142,16 @@ function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.React
                 {props.children}
             </div>
             <div className={'border-b border-border pr-1'}>
-                <div className={'px-3 border-r pb-1 border-border bg-inherit'}>
-                    <HistogramChart
-                        className={"h-32 w-full"}
-                        histogramData={exampleHist}
-                    />
+                <div className={'px-3 border-r pb-1 border-border bg-inherit font-normal'}>
+                    {props.stats && props.stats.type === 'histogram' ?
+                        <HistogramChart
+                            dataType={props.stats.histogramType}
+                            className={"h-32 w-full"}
+                            histogramData={props.stats.values}
+                        /> :
+                        <div className={'h-32 w-full flex items-center justify-center text-muted-foreground'}>
+                            No Stats Available
+                        </div>}
                 </div>
             </div>
         </th>

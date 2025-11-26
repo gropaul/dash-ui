@@ -8,7 +8,7 @@ const ReactECharts = dynamic(() => import("echarts-for-react"), {
     ssr: false,
 });
 
-type HistDataType = 'value' | 'timestamp';
+export type HistDataType = 'value' | 'timestamp';
 
 interface HistogramChartProps {
     histogramData: { [key: number]: number };
@@ -89,18 +89,18 @@ export function HistogramChart({
                                    onRangeChangeEnd,
                                    totalCount,
                                    dataType = 'value',
-                                      className,
+                                   className,
                                }: HistogramChartProps) {
     const handlersSetupRef = useRef(false);
+    const chartInstanceRef = useRef<any>(null);
     const [currentRange, setCurrentRange] = useState<{ min: number; max: number } | null>(null);
     const [selectedCount, setSelectedCount] = useState<number | undefined>(undefined);
-
-    console.log("HistogramChart", histogramData);
 
     function onChartReady(chart: any) {
 
         if (!chart) return;
         const instance = chart;
+        chartInstanceRef.current = instance;
 
         // Convert the histogram map to sorted arrays
         const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
@@ -117,8 +117,6 @@ export function HistogramChart({
 
         // Prepare data for area chart - [x, y] coordinates
         const areaData: [any, number][] = bins.map((bin, idx) => [bin, counts[idx]]);
-
-        console.log("HistogramChart areaData:", areaData);
 
         // Helper function to update the blue series based on brush range
         const updateBlueSeriesForRange = (minValue: number, maxValue: number) => {
@@ -207,15 +205,105 @@ export function HistogramChart({
         });
     }
 
+    // Update chart when histogram data changes
+    useEffect(() => {
+        if (!chartInstanceRef.current) return;
+
+        const instance = chartInstanceRef.current;
+
+        // Convert the histogram map to sorted arrays
+        const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
+        const counts = bins.map(bin => {
+            const count = histogramData[bin];
+            return typeof count === 'bigint' ? Number(count) : count;
+        });
+
+        const binWidth = bins.length > 1 ? bins[1] - bins[0] : 1;
+        const firstBin = bins[0] - binWidth
+        const firstCount = counts[0];
+        bins.unshift(firstBin);
+        counts.unshift(firstCount);
+
+        // Prepare data for area chart - [x, y] coordinates
+        const areaData: [any, number][] = bins.map((bin, idx) => [bin, counts[idx]]);
+
+        // Update the gray background series with new data
+        instance.setOption({
+            series: [
+                {
+                    data: transformData(areaData, dataType)
+                },
+                {}
+            ]
+        });
+
+        // If there's a current selection, re-apply it to the new data
+        if (currentRange) {
+            const { min: minValue, max: maxValue } = currentRange;
+            const subFunction = getHistogramSubFunction(bins, counts, minValue, maxValue);
+            const selectedSum = getSumOfHistogram(subFunction, binWidth);
+            setSelectedCount(Math.round(selectedSum));
+
+            // Update the blue series with the selected range
+            instance.setOption({
+                series: [
+                    {},
+                    {
+                        data: transformData(subFunction, dataType)
+                    }
+                ]
+            });
+
+            // Notify parent of the range change with updated data
+            onRangeChange?.(minValue, maxValue);
+        } else {
+            // No selection, show all data in blue
+            instance.setOption({
+                series: [
+                    {},
+                    {
+                        data: transformData(areaData, dataType)
+                    }
+                ]
+            });
+        }
+    }, [histogramData, currentRange, dataType, onRangeChange]);
+
     // Calculate min and max from histogram data
     const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
     const binWidth = bins.length > 1 ? bins[1] - bins[0] : 1;
     const minValue = bins[0] - binWidth;
     const maxValue = bins[bins.length - 1];
 
+    const date_min_max = [
+        {
+            type: 'text',
+            left: 3,
+            bottom: 4,
+            style: {
+                text: formatDateShort(new Date(minValue)),
+                fontSize: 12,
+                fill: '#666',
+            }
+        },
+        {
+            type: 'text',
+            right: 3,
+            bottom: 4,
+            style: {
+                text: formatDateShort(new Date(maxValue)),
+                fontSize: 12,
+                fill: '#666',
+            }
+        }
+    ]
+
     const option = {
         tooltip: {
             show: true,
+        },
+        graphic: {
+            elements: dataType === 'timestamp' ? date_min_max : []
         },
         grid: {
             left: 4,
@@ -229,6 +317,8 @@ export function HistogramChart({
             showGrid: false,
             min: minValue,
             max: maxValue,
+
+
             splitLine: {
                 show: false
             },
@@ -236,6 +326,7 @@ export function HistogramChart({
             ...(dataType === 'timestamp' ? {
                 axisLabel: {
                     customValues: ['min', 'max'],
+                    fontSize: 12,
                 },
                 axisTick: {
                     customValues: [minValue, maxValue],
@@ -245,6 +336,7 @@ export function HistogramChart({
                     formatter: formatNumberFixed,
                     alignMinLabel: 'left',
                     alignMaxLabel: 'right',
+                    fontSize: 12,
                 },
                 splitNumber: 2,
             }),
@@ -398,38 +490,6 @@ export function HistogramChart({
                         </div>
                     )}
                 </div>
-            )}
-
-            {dataType === 'timestamp' && (
-                <>
-                    {/* Min date label at the very left */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            bottom: 8,
-                            fontSize: '12px',
-                            color: '#666',
-                            pointerEvents: 'none',
-                        }}
-                    >
-                        {formatDateShort(new Date(minValue))}
-                    </div>
-
-                    {/* Max date label at the very right */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            bottom: 8,
-                            right: 0,
-                            fontSize: '12px',
-                            color: '#666',
-                            pointerEvents: 'none',
-                            textAlign: 'right',
-                        }}
-                    >
-                        {formatDateShort(new Date(maxValue))}
-                    </div>
-                </>
             )}
         </div>
     );

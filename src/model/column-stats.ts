@@ -3,6 +3,7 @@ import {ColumnStats, ColumnStatsHistogram, ColumnStatsType, RelationState} from 
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {ValueType} from "@/model/value-type";
+import {HistDataType} from "@/components/relation/table/stats/HistogramChart";
 
 // export type ValueType =
 //     'Integer'
@@ -28,44 +29,49 @@ interface QueryColumnPart {
 }
 
 
-function getAggFunctions(column: Column, aggs: SimpleAggregates[]): string[] {
+function getAggFunctions(column: Column, aggs: SimpleAggregates[], column_index: number): string[] {
+    const column_ref = getColumnReference(column.name, column_index);
     return aggs.map(agg => {
-        return `${agg}(${column.name}) AS ${column.name}_${agg.toLowerCase()}`;
+        return `${agg}(${column_ref}) AS ${getColumnAggName(column, agg, column_index)}`;
     })
 }
 
-function getHistogramFunction(column: Column): string {
-    const column_min = `${column.name}_min`;
-    const column_max = `${column.name}_max`;
+function getHistogramFunction(column: Column, column_index: number): string  {
+    const column_min = getColumnAggName(column, 'MIN', column_index);
+    const column_max = getColumnAggName(column, 'MAX', column_index);
+    const column_hist = getColumnAggName(column, 'HISTOGRAM', column_index);
+    const column_quote = getColumnReference(column.name, column_index);
     return `
         histogram(
-            ${column.name}, 
+            ${column_quote}, 
             (SELECT equi_width_bins(${column_min}, ${column_max}, 21, false) FROM bounds)
-        ) AS ${column.name}_histogram`;
-
+        ) AS ${column_hist}
+    `;
 }
 
-function GetQueryForColumn(column: Column): QueryColumnPart {
+function GetQueryForColumn(column: Column, index: number): QueryColumnPart {
+    const column_reference = getColumnReference(column.name, index);
+    const column_quote = `#${index + 1}`;
     switch (column.type) {
         case "Integer":
         case "Float":
             return {
-                baseStats: getAggFunctions(column, DEFAULT_AGGS).join(', '),
-                hist: getHistogramFunction(column),
-                select: column.name,
+                baseStats: getAggFunctions(column, DEFAULT_AGGS, index).join(', '),
+                hist: getHistogramFunction(column, index),
+                select: `${column_quote} AS ${column_reference}`,
                 availableAggs: [...DEFAULT_AGGS, 'HISTOGRAM'],
             }
         case "Timestamp":
             return {
-                baseStats: getAggFunctions(column, DEFAULT_AGGS).join(', '),
-                hist: getHistogramFunction(column),
-                select: `epoch_ms(${column.name}) AS ${column.name}`,
+                baseStats: getAggFunctions(column, DEFAULT_AGGS, index).join(', '),
+                hist: getHistogramFunction(column, index),
+                select: `epoch_ms(${column_quote}) AS ${column_reference}`,
                 availableAggs: [...DEFAULT_AGGS, 'HISTOGRAM'],
             }
         default:
             return {
-                baseStats: getAggFunctions(column, ['COUNT']).join(', '),
-                select: column.name,
+                baseStats: getAggFunctions(column, ['COUNT'], index).join(', '),
+                select: `${column_quote} AS ${column_reference}`,
                 availableAggs: ['COUNT'],
             }
     }
@@ -91,7 +97,7 @@ function buildStatsQuery(row_count: number, relation: RelationState, data: Relat
     const query = `
         WITH data AS (${finalQuery}),
              transformed_data AS (SELECT ${transforms}
-                                  FROM data tablesample ${percentage.toFixed(2)}%),
+                                  FROM (FROM data USING SAMPLE ${percentage.toFixed(2)}% (system, 42))),
              bounds AS MATERIALIZED (SELECT ${base_stats}
                                      FROM transformed_data),
              histogram_data AS (SELECT ${hists}
@@ -117,8 +123,24 @@ export function GetStatsTypeForValueType(value: ValueType): ColumnStatsType {
     }
 }
 
-export function GetAgg(agg: ExtendedAggregates, column: Column, data: RelationData): any {
-    const aggName = `${column.name}_${agg.toLowerCase()}`;
+export function getColumnAggName(column: Column, agg: ExtendedAggregates, column_index: number,  quoteName = true): string {
+    const name = getColumnReference(column.name, column_index) + '_' + agg.toLowerCase();
+    if (quoteName) {
+        return quote(name);
+    }
+    return name;
+}
+
+export function quote(name: string): string {
+    return `"${name.replace(/"/g, '""')}"`;
+}
+
+export function getColumnReference(name: string, index: number): string {
+    return 'column_' + index;
+}
+
+export function GetAgg(agg: ExtendedAggregates, column: Column, column_index: number, data: RelationData): any {
+    const aggName = getColumnAggName(column, agg, column_index, false);
     const colIndex = data.columns.findIndex(col => col.name === aggName);
     if (colIndex === -1) {
         throw new Error(`Column ${aggName} not found in relation data: Available columns: ${data.columns.map(c => c.name).join(', ')}`);
@@ -151,10 +173,15 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
 
         switch (statsType) {
             case 'histogram': {
-                const count = GetAgg('COUNT', column, statsData);
-                const min = GetAgg('MIN', column, statsData);
-                const max = GetAgg('MAX', column, statsData);
-                const histogram = GetAgg('HISTOGRAM', column, statsData);
+                const count = GetAgg('COUNT', column, colIndex, statsData );
+                const min = GetAgg('MIN', column, colIndex, statsData);
+                const max = GetAgg('MAX', column, colIndex, statsData);
+                const histogram = GetAgg('HISTOGRAM', column, colIndex, statsData);
+
+                let type: HistDataType = 'value';
+                if (column.type === 'Timestamp') {
+                    type = 'timestamp';
+                }
 
                 stats.stats.push({
                     type: 'histogram',
@@ -162,11 +189,12 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
                     min: min,
                     max: max,
                     values: histogram,
+                    histogramType: type,
                 });
                 break;
             }
             case 'non_null': {
-                const count = GetAgg('COUNT', column, statsData);
+                const count = GetAgg('COUNT', column, colIndex, statsData);
                 stats.stats.push({
                     type: 'non_null',
                     nonNullCount: count,
