@@ -142,7 +142,7 @@ function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.React
             </div>
             <div className={'border-b border-border pr-1'}>
                 <div className={'px-3 border-r pb-1 border-border bg-inherit font-normal'}>
-                    <ColumnStatsView stats={props.stats} className="h-32 w-full" />
+                    <ColumnStatsView stats={props.stats} className="h-40 w-full" />
                 </div>
             </div>
         </th>

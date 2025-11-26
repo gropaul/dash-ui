@@ -15,8 +15,8 @@ interface TopNChartProps {
 }
 
 export function TopNChart({ topValues, othersCount, nonNullCount, className }: TopNChartProps) {
-    // Prepare data for horizontal bar chart
-    const data = [...topValues];
+    // Prepare data for horizontal bar chart - reversed to show max to min
+    const data = [...topValues].reverse();
     if (othersCount && othersCount > 0) {
         data.push({ value: 'Others', count: othersCount });
     }
@@ -25,8 +25,7 @@ export function TopNChart({ topValues, othersCount, nonNullCount, className }: T
         const valueStr = item.value === null ? 'null' :
                         item.value === undefined ? 'undefined' :
                         String(item.value);
-        // Truncate long values
-        return valueStr.length > 20 ? valueStr.substring(0, 17) + '...' : valueStr;
+        return valueStr;
     });
     const counts = data.map(item => item.count);
     const maxCount = Math.max(...counts);
@@ -48,11 +47,11 @@ export function TopNChart({ topValues, othersCount, nonNullCount, className }: T
             }
         },
         grid: {
-            left: 8,
-            right: 40,
-            top: 8,
-            bottom: 8,
-            containLabel: true,
+            left: 4,
+            right: 4,
+            top: 4,
+            bottom: 4,
+            containLabel: false,
         },
         xAxis: {
             type: 'value',
@@ -60,36 +59,26 @@ export function TopNChart({ topValues, othersCount, nonNullCount, className }: T
             max: maxCount,
         },
         yAxis: {
+            show: false,
             type: 'category',
-            data: categories,
-            axisLabel: {
-                fontSize: 11,
-                color: '#666',
-            },
-            axisLine: {
-                show: false,
-            },
-            axisTick: {
-                show: false,
-            },
         },
         series: [
             {
                 type: 'bar',
                 data: counts,
                 itemStyle: {
-                    color: '#3b82f6',
+                    color: '#c6d9ff',
                     borderRadius: [0, 4, 4, 0],
                 },
                 label: {
                     show: true,
-                    position: 'right',
+                    position: 'insideLeft',
                     formatter: (params: any) => {
+                        const name = categories[params.dataIndex];
                         const percentage = ((params.value / nonNullCount) * 100).toFixed(1);
-                        return `${formatNumber(params.value)} (${percentage}%)`;
+                        return `${name}`;
                     },
                     fontSize: 11,
-                    color: '#666',
                 },
                 barMaxWidth: 20,
             }

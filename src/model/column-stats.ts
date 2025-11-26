@@ -21,7 +21,8 @@ type SimpleAggregates = 'COUNT' | 'MIN' | 'MAX';
 type ExtendedAggregates = SimpleAggregates | 'HISTOGRAM' | 'TOP_K'
 const DEFAULT_AGGS: SimpleAggregates[] = ['COUNT', 'MIN', 'MAX'];
 
-const TOP_K_VALUE = 20;
+const TOP_K_VALUE = 10;
+const N_BINS = 31;
 const DATA_TABLE_NAME = 'data';
 const DATA_TRANSFORMED_TABLE_NAME = 'transformed_data';
 
@@ -55,7 +56,7 @@ function getHistogramFunction(column: Column, column_index: number): string {
     return `
         histogram(
             ${column_quote}, 
-            (SELECT equi_width_bins(${column_min}, ${column_max}, 21, false) FROM base)
+            (SELECT equi_width_bins(${column_min}, ${column_max}, ${N_BINS}, false) FROM base)
         ) AS ${column_hist}
     `;
 }
