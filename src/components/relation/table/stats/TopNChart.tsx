@@ -67,8 +67,9 @@ export function TopNChart({ topValues, othersCount, nonNullCount, className }: T
                 type: 'bar',
                 data: counts,
                 itemStyle: {
-                    color: '#c6d9ff',
-                    borderRadius: [0, 4, 4, 0],
+                    color: '#e6eeff',
+                    borderWidth: 1,
+                    borderRadius: [0, 0, 0, 0],
                 },
                 label: {
                     show: true,
