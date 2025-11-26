@@ -12,7 +12,7 @@ import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
 import {RelationViewProps} from "@/components/relation/relation-view";
-import { HistogramChart} from "@/components/relation/table/stats/HistogramChart";
+import {ColumnStatsView} from "@/components/relation/table/stats/ColumnStatsView";
 
 
 export interface ColumnHeadProps extends RelationViewProps {
@@ -142,15 +142,7 @@ function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.React
             </div>
             <div className={'border-b border-border pr-1'}>
                 <div className={'px-3 border-r pb-1 border-border bg-inherit font-normal'}>
-                    {props.stats && props.stats.type === 'histogram' ?
-                        <HistogramChart
-                            dataType={props.stats.histogramType}
-                            className={"h-32 w-full"}
-                            histogramData={props.stats.values}
-                        /> :
-                        <div className={'h-32 w-full flex items-center justify-center text-muted-foreground'}>
-                            No Stats Available
-                        </div>}
+                    <ColumnStatsView stats={props.stats} className="h-32 w-full" />
                 </div>
             </div>
         </th>

@@ -44,7 +44,7 @@ function getTopKFunction(column: Column, column_index: number, k: number): strin
     const ref = getColumnReference(column.name, column_index);
     const agg_ref = getColumnAggName(column, 'TOP_K', column_index);
 
-    return `(with ags AS (SELECT ${ref}, COUNT(*) as cnt FROM ${DATA_TRANSFORMED_TABLE_NAME} GROUP BY ${ref} ORDER BY cnt DESC LIMIT ${k}) SELECT list({val: #1, cnt: #2} ORDER BY #2 DESC) FROM ags) AS ${agg_ref}`;
+    return `(with ags AS (SELECT ${ref}, COUNT(*)::BIGINT as cnt FROM ${DATA_TRANSFORMED_TABLE_NAME} GROUP BY ${ref} ORDER BY cnt DESC LIMIT ${k}) SELECT list({val: #1, cnt: #2::UINTEGER} ORDER BY #2 DESC) FROM ags) AS ${agg_ref}`;
 }
 
 function getHistogramFunction(column: Column, column_index: number): string {
@@ -80,8 +80,8 @@ function GetQueryForColumn(column: Column, index: number): QueryColumnPart {
                 availableAggs: [...DEFAULT_AGGS, 'HISTOGRAM'],
             }
         case "String":
-            const aggs =  getSimpleAggFuns(column, ['COUNT'], index);
-            aggs.push( getTopKFunction(column, index, TOP_K_VALUE))
+            const aggs = getSimpleAggFuns(column, ['COUNT'], index);
+            aggs.push(getTopKFunction(column, index, TOP_K_VALUE))
             return {
                 baseStats: aggs.join(', '),
                 select: `${column_quote} AS ${column_reference}`,
@@ -116,9 +116,9 @@ function buildStatsQuery(row_count: number, relation: RelationState, data: Relat
     const query = `
         WITH ${DATA_TABLE_NAME} AS (${finalQuery}),
              ${DATA_TRANSFORMED_TABLE_NAME} AS (SELECT ${transforms}
-                                  FROM (FROM ${DATA_TABLE_NAME} USING SAMPLE ${percentage.toFixed(2)}% (system, 42))),
+                                                FROM (FROM ${DATA_TABLE_NAME} USING SAMPLE ${percentage.toFixed(2)}% (system, 42))),
              base AS MATERIALIZED (SELECT ${base_stats}
-                                     FROM ${DATA_TRANSFORMED_TABLE_NAME}),
+                                   FROM ${DATA_TRANSFORMED_TABLE_NAME}),
              histogram_data AS (SELECT SUM(1), ${hists}
                                 FROM ${DATA_TRANSFORMED_TABLE_NAME})
         SELECT *
@@ -136,6 +136,8 @@ export function GetStatsTypeForValueType(value: ValueType): ColumnStatsType {
         case 'Float':
         case 'Timestamp':
             return 'histogram';
+        case 'String':
+            return 'top-n';
         default:
             return 'non_null';
     }
@@ -211,6 +213,23 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
                     values: histogram,
                     histogramType: type,
                 });
+                break;
+            }
+            case "top-n": {
+                const count = GetAgg('COUNT', column, colIndex, statsData);
+                const topValuesRaw = GetAgg('TOP_K', column, colIndex, statsData) as { val: any, cnt: number }[];
+                console.log(topValuesRaw);
+                const topValues = topValuesRaw.map(item => ({
+                    value: item.val,
+                    count: item.cnt,
+                }));
+                const othersCount = Math.max(0, count - topValues.reduce((sum, item) => sum + item.count, 0));
+                stats.columns.push({
+                    type: 'top-n',
+                    nonNullCount: count,
+                    topValues: topValues,
+                    othersCount: othersCount,
+                })
                 break;
             }
             case 'non_null': {

@@ -156,6 +156,8 @@ function convertArrowValue(value: any, normalized_type: ValueType, type: any): a
             const is_map = normalized_type.includes('Map');
             const json_value = value.toJSON();
 
+            console.log(json_value);
+
             if (!json_value || typeof json_value !== 'object') {
                 return json_value;
             }
@@ -239,6 +241,7 @@ function convertArrowValue(value: any, normalized_type: ValueType, type: any): a
 
 export function relationFromDuckDBArrowResult(relationName: string, connectionId: string, input: any): RelationData {
 
+    console.log("Converting DuckDB Arrow result to RelationData for relation:", relationName, input);
     // if the arrow result is not a list, make it a list
     let chunks: any[]
     if (!Array.isArray(input)) {

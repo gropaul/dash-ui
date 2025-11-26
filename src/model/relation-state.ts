@@ -135,8 +135,6 @@ export interface ColumnStatsHistogram extends ColumnStatsBase {
 export interface ColumnStatsTopN extends ColumnStatsBase {
     type: 'top-n';
     nonNullCount: number;
-    min: number | string;
-    max: number | string;
     topValues: { value: any; count: number }[]; // example: [ { value: "A", count: 10 }, { value: "B", count: 5 } ]
     othersCount?: number; // count of all other values not in topValues
 }
