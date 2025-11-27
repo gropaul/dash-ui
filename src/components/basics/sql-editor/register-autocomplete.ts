@@ -137,7 +137,7 @@ export function configureMonaco(monaco: Monaco) {
 
     // Register completion item provider for SQL
     monaco.languages.registerCompletionItemProvider("sql", {
-        provideCompletionItems: async (model, position) => {
+        provideCompletionItems: async (model: any, position: any) => {
             const word = model.getWordUntilPosition(position);
             const range = {
                 startLineNumber: position.lineNumber,
