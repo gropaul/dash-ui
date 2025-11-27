@@ -30,6 +30,11 @@ export function TopNChart({ topValues, othersCount, nonNullCount, className }: T
     const counts = data.map(item => item.count);
     const maxCount = Math.max(...counts);
 
+    // Fixed bar height for all bars
+    const barHeight = 20;
+    const barGap = 2;
+    const chartHeight = data.length * (barHeight + barGap) + 8; // 8px for top/bottom padding
+
     const option = {
         tooltip: {
             trigger: 'axis',
@@ -44,7 +49,9 @@ export function TopNChart({ topValues, othersCount, nonNullCount, className }: T
                                String(item.value);
                 const percentage = ((item.count / nonNullCount) * 100).toFixed(1);
                 return `<strong>${valueStr}</strong><br/>Count: ${formatNumber(item.count)} (${percentage}%)`;
-            }
+            },
+            appendToBody: true,
+            z: 99999,
         },
         grid: {
             left: 4,
@@ -81,16 +88,34 @@ export function TopNChart({ topValues, othersCount, nonNullCount, className }: T
                     },
                     fontSize: 11,
                 },
-                barMaxWidth: 20,
+                barWidth: barHeight,
+                barCategoryGap: barGap,
             }
         ],
     };
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            style={{
+                maxHeight: '200px',
+                overflowY: 'auto',
+                scrollbarWidth: 'none', // Firefox
+                msOverflowStyle: 'none', // IE/Edge
+            }}
+            onWheel={(e) => {
+                // Prevent scroll propagation to parent table
+                e.stopPropagation();
+            }}
+        >
+            <style jsx>{`
+                div::-webkit-scrollbar {
+                    display: none; /* Chrome, Safari, Opera */
+                }
+            `}</style>
             <ReactECharts
                 option={option}
-                style={{ height: '100%', width: '100%' }}
+                style={{ height: `${chartHeight}px`, width: '100%' }}
                 opts={{ renderer: 'svg' }}
             />
         </div>
