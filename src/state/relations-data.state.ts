@@ -138,11 +138,6 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
             console.log(`Updating relation data for ${input.id} from query: ${query}`);
             const result = await updateCache(input.id, query);
             get().updateData(input.id, result.data);
-
-            if (ShouldUpdateStats(input)) {
-                // this should be asynchronous, we don't want to block the user
-                get().updateStats(input, result.data);
-            }
             return result;
         },
 

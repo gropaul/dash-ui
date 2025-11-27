@@ -181,8 +181,11 @@ export interface RelationWithQuery extends Relation {
     lastExecutionMetaData?: QueryExecutionMetaData;
 }
 
-export function ShouldUpdateStats(relation: RelationState) : boolean {
-    return relation.viewState.selectedView === 'table';
+export function ShouldUpdateStats(relation: RelationState): boolean {
+    return relation.viewState.selectedView === 'table' &&
+        relation.executionState.state === 'success' &&
+        relation.lastExecutionMetaData !== undefined &&
+        relation.viewState.tableState.showStats === true;
 
 }
 
@@ -676,7 +679,7 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
 
     input.viewState.schema = schemaColumns;
     // update the view state with the new data
-    return {
+    const newViewState: RelationState = {
         ...input,
         executionState: {
             state: 'success',
@@ -688,4 +691,11 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
         },
         viewState: updateRelationViewState(input.viewState, viewData),
     }
+
+    if (ShouldUpdateStats(input)) {
+        // this should be asynchronous, we don't want to block the user
+        useRelationDataState.getState().updateStats(newViewState, viewData);
+    }
+
+    return newViewState;
 }
