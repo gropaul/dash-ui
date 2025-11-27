@@ -87,7 +87,7 @@ export class DuckDBWasm implements DatabaseConnection {
             // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
             const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
             const query_escaped = escapeSQLForStringLiteral(query);
-            console.log(query_escaped);
+            // console.log(query_escaped);
             const materialize_json_query = `FROM query_result_json('${query_escaped}')`;
             const result = await con.send(materialize_json_query, false);
             const data = await result.readAll();

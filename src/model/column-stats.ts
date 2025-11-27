@@ -100,12 +100,17 @@ function GetQueryForColumn(column: Column, index: number): QueryColumnPart {
 interface StatsQueryResult {
     query: string;
     parts: QueryColumnPart[];
+    // as we only create the sample on a percentage basis, we need to know the factor to scale up the counts
+    scaleFactor: number
 }
 
 function buildStatsQuery(row_count: number, relation: RelationState, data: RelationData): StatsQueryResult {
     const columns = data.columns;
     const MAX_ROWS = 200_000;
-    const percentage = Math.min(1, MAX_ROWS / row_count) * 100;
+
+    const factor = Math.min(1, MAX_ROWS / row_count)
+    const percentage = factor * 100;
+    const scaleFactor = 1 / factor
     const parts = columns.map(GetQueryForColumn);
     const transforms = parts.map(part => part.select).join(', ');
     const base_stats = parts.map(part => part.baseStats).join(', ');
@@ -128,6 +133,7 @@ function buildStatsQuery(row_count: number, relation: RelationState, data: Relat
     return {
         query: query,
         parts: parts,
+        scaleFactor: scaleFactor,
     }
 }
 
@@ -191,15 +197,18 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
 
     for (let colIndex = 0; colIndex < data.columns.length; colIndex++) {
         const column = data.columns[colIndex];
-        const part = buildResult.parts[colIndex];
         const statsType = GetStatsTypeForValueType(column.type);
+        const count = GetAgg('COUNT', column, colIndex, statsData) * buildResult.scaleFactor;
 
         switch (statsType) {
             case 'histogram': {
-                const count = GetAgg('COUNT', column, colIndex, statsData);
                 const min = GetAgg('MIN', column, colIndex, statsData);
                 const max = GetAgg('MAX', column, colIndex, statsData);
                 const histogram = GetAgg('HISTOGRAM', column, colIndex, statsData);
+
+                for (const key in histogram) { // format  { [key: number]: number }
+                    histogram[key] = histogram[key] * buildResult.scaleFactor;
+                }
 
                 let type: HistDataType = 'value';
                 if (column.type === 'Timestamp') {
@@ -217,12 +226,11 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
                 break;
             }
             case "top-n": {
-                const count = GetAgg('COUNT', column, colIndex, statsData);
                 const topValuesRaw = GetAgg('TOP_K', column, colIndex, statsData) as { val: any, cnt: number }[];
                 console.log(`Top values for column ${column.name}:`, topValuesRaw, statsData);
                 const topValues = topValuesRaw.map(item => ({
                     value: item.val,
-                    count: item.cnt,
+                    count: item.cnt * buildResult.scaleFactor,
                 }));
                 const othersCount = Math.max(0, count - topValues.reduce((sum, item) => sum + item.count, 0));
                 stats.columns.push({
@@ -234,7 +242,6 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
                 break;
             }
             case 'non_null': {
-                const count = GetAgg('COUNT', column, colIndex, statsData);
                 stats.columns.push({
                     type: 'non_null',
                     nonNullCount: count,
@@ -244,7 +251,7 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
             case "minMax": {
                 stats.columns.push({
                     type: 'non_null',
-                    nonNullCount: 0,
+                    nonNullCount: count,
                 })
                 break;
             }

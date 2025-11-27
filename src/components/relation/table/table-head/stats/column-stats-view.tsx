@@ -57,6 +57,7 @@ function ColumnsStatsViewContent({stats, className}: ColumnStatsProps) {
                     dataType={stats.histogramType}
                     className={className}
                     histogramData={stats.values}
+                    totalCount={stats.nonNullCount}
                 />
             );
         case 'top-n':
