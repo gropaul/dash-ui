@@ -24,7 +24,7 @@ export function registerInputCompletion(editor: any, monaco: Monaco, inputManage
 
     monaco.languages.registerCompletionItemProvider("sql", {
         triggerCharacters: ["{"],
-        provideCompletionItems(model, position) {
+        provideCompletionItems(model: any, position: any) {
             const lineContent = model.getLineContent(position.lineNumber);
             const prefix = lineContent.substring(0, position.column - 1);
 
