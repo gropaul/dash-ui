@@ -56,6 +56,21 @@ export function rgbToHsl({ r, g, b }: RGB): HSL {
     return { h, s, l };
 }
 
+export function LerpColorHex(color1: string, color2: string, t: number): string {
+    const rgb1 = hexToRgb(color1);
+    const rgb2 = hexToRgb(color2);
+    const lerpedRgb = LerpColor(rgb1, rgb2, t);
+    return rgbToHex(lerpedRgb);
+}
+
+export function LerpColor(color1: RGB, color2: RGB, t: number): RGB {
+    return {
+        r: Math.round(color1.r + (color2.r - color1.r) * t),
+        g: Math.round(color1.g + (color2.g - color1.g) * t),
+        b: Math.round(color1.b + (color2.b - color1.b) * t),
+    };
+}
+
 /**
  * Converts an HSL object to an RGB object.
  */
