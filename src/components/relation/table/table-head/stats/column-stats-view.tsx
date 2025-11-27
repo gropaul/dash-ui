@@ -16,7 +16,7 @@ export interface ColumnStatsProps {
 export function ColumnStatsView({stats, className, relationState}: ColumnStatsProps) {
 
     const showStats = relationState.viewState.tableState.showStats;
-    if (!showStats) {
+    if (showStats) {
         return <></>
         return <div className={cn("w-full h-6 flex items-center justify-center")}></div>;
     }

@@ -2,7 +2,7 @@
 
 import {useRef, useState} from "react";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {ColumnStatsViewHist} from "@/components/relation/table/stats/column-stats-view-hist";
+import {ColumnStatsViewHist} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
 
 // Helper: compute histogram
 async function computeHistogram() {

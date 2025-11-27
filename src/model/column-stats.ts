@@ -3,7 +3,7 @@ import {ColumnStatsType, RelationState, RelationStats} from "@/model/relation-st
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {ValueType} from "@/model/value-type";
-import {HistDataType} from "@/components/relation/table/stats/column-stats-view-hist";
+import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
 
 // export type ValueType =
 //     'Integer'
