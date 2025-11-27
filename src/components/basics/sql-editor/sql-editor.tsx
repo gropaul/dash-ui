@@ -1,6 +1,6 @@
 'use client'
 
-import React from "react";
+import React, {useRef, useEffect} from "react";
 import {EditorButtonOverlay} from "@/components/basics/sql-editor/editor-button-overlay";
 import Editor, {Monaco} from "@monaco-editor/react";
 
@@ -76,15 +76,55 @@ export function SqlEditor(
 
     const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
 
+    // Use refs to avoid stale closures in debounced callbacks
+    const editorRef = useRef<any>(null);
+    const onCodeChangeRef = useRef(onCodeChange);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const lastExternalCodeRef = useRef(displayCode);
+
+    // Keep the callback ref up to date
+    useEffect(() => {
+        onCodeChangeRef.current = onCodeChange;
+    }, [onCodeChange]);
+
+    // Handle external code changes (e.g., when loading a new query)
+    useEffect(() => {
+        if (editorRef.current && displayCode !== lastExternalCodeRef.current) {
+            const currentValue = editorRef.current.getValue();
+            // Only update if the external change is different from current editor content
+            if (currentValue !== displayCode) {
+                editorRef.current.setValue(displayCode);
+                lastExternalCodeRef.current = displayCode;
+            }
+        }
+    }, [displayCode]);
+
     function onLocalCodeChange(value: string | undefined) {
         if (readOnly) {
             return;
-        } else if (value) {
-            if (onCodeChange) {
-                onCodeChange(value);
+        }
+
+        if (value !== undefined && onCodeChangeRef.current) {
+            // Clear any existing debounce timer
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
             }
+
+            // Debounce the state update by 300ms
+            debounceTimerRef.current = setTimeout(() => {
+                onCodeChangeRef.current?.(value);
+            }, 300);
         }
     }
+
+    // Cleanup debounce timer on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, []);
 
     // define custom theme to set the background transparent
     const customTheme: any = {
@@ -106,6 +146,9 @@ export function SqlEditor(
     };
 
     function onMount(editor: any, monaco: Monaco) {
+        // Store editor reference
+        editorRef.current = editor;
+
         // add the custom theme
         monaco.editor.defineTheme('customTheme', customTheme);
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
@@ -139,7 +182,7 @@ export function SqlEditor(
                 width={width}
                 defaultLanguage={'sql'}
                 language={'sql'}
-                value={displayCode}
+                defaultValue={displayCode}
                 path={path}
                 options={{
                     readOnly: readOnly,
