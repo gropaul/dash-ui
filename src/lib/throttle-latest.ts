@@ -4,46 +4,58 @@ export function throttleLatest<T extends unknown[], R>(
 ) {
     let timer: number | null = null;
     let latestArgs: T | null = null;
-    let leadingCall = true;
     let running = false;
     let lastPromise: Promise<R> | null = null;
+    let lastRunTime = 0;
 
     const scheduleNext = () => {
         if (latestArgs == null) {
-            // nothing queued — reset state so the next call can be immediate
-            leadingCall = true;
             return;
         }
 
-        // wait the throttle delay *after* the previous run has finished
+        const args = latestArgs;
+        latestArgs = null;
+
         timer = window.setTimeout(async () => {
-            const args = latestArgs!;
-            latestArgs = null;
+            timer = null;
             running = true;
             try {
                 lastPromise = Promise.resolve(fn(...args));
                 await lastPromise;
             } finally {
+                lastRunTime = Date.now();
                 running = false;
-                scheduleNext(); // check again if something new queued while we were running
+                scheduleNext();
             }
         }, wait);
     };
 
     const wrapped = (...args: T): Promise<R> | void => {
-        if (leadingCall && !running) {
-            // run immediately
-            leadingCall = false;
+        const now = Date.now();
+        const elapsed = now - lastRunTime;
+
+        if (!running && timer == null && elapsed >= wait) {
+            // Can run immediately
             running = true;
             lastPromise = Promise.resolve(fn(...args)).finally(() => {
+                lastRunTime = Date.now();
                 running = false;
                 scheduleNext();
             });
-
             return lastPromise;
         } else {
-            // queue the latest call
+            // Queue the latest call
             latestArgs = args;
+
+            // If nothing is scheduled and nothing is running, schedule the next run
+            if (!running && timer == null) {
+                const delay = wait - elapsed;
+                timer = window.setTimeout(() => {
+                    timer = null;
+                    scheduleNext();
+                }, delay);
+            }
+
             return lastPromise ?? Promise.resolve() as Promise<R>;
         }
     };
@@ -54,7 +66,6 @@ export function throttleLatest<T extends unknown[], R>(
             timer = null;
         }
         latestArgs = null;
-        leadingCall = true;
         running = false;
     };
 

@@ -2,6 +2,7 @@
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, LogLevel} from '@duckdb/duckdb-wasm';
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
+import {getJsonMacro} from "@/state/connections/duckdb-wasm/utils";
 
 export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
 
@@ -231,6 +232,16 @@ export class DuckdbWasmProvider {
         await connection.query("CREATE OR REPLACE TABLE dash_write_test_table AS SELECT 1 as a;");
         // drop the test table
         await connection.query("DROP TABLE dash_write_test_table;");
+
+        try {
+            const sqlMarco = getJsonMacro();
+            console.log(sqlMarco);
+            const data = await connection.query(sqlMarco);
+            console.log(data);
+        } catch (e) {
+            console.error('Failed to create or verify the JSON macro:', e);
+            throw e;
+        }
         return {db, con: connection};
     }
 }

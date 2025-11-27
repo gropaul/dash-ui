@@ -178,6 +178,11 @@ export function removeSemicolon(sql: string) {
     }
 }
 
+// escape single quotes in the sql string for use in a string literal
+export function escapeSQLForStringLiteral(sql: string): string {
+    return sql.replace(/'/g, "''");
+}
+
 export function turnQueryIntoSubquery(sql: string, alias?: string): string {
     const statements = splitSQL(sql).map(minifySQL);
 

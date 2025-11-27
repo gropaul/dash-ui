@@ -7,6 +7,7 @@ import {TriangleAlert} from "lucide-react";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/functions";
+import {ErrorBoundary} from "@/components/basics/error-bundary";
 
 export interface RelationViewAPIProps extends DefaultRelationZustandActions{
     relationState: RelationState;
@@ -23,14 +24,23 @@ export interface RelationViewProps extends AdvancedRelationActions{
 }
 
 export function RelationView(inputProps: RelationViewAPIProps) {
-
-
     return (
         <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
-            <RelationViewHeader {...inputProps}/>
-            <div className={`flex-1 bg-background overflow-auto`}>
-                <RelationStateView {...inputProps}/>
-            </div>
+            <ErrorBoundary fallback={(error) => (
+                <div className="p-4 w-full bg-inherit h-full flex flex-col items-start justify-start">
+                    <div className={'flex bg-inherit flex-row text-red-500 items-center space-x-2 h-6'}>
+                        <TriangleAlert size={16}/>
+                        <span>Error rendering relation view</span>
+                    </div>
+                    <div className="mt-2 text-red-500">
+                        {error.message}
+                    </div>
+                </div>
+            )}>
+                <div className={`flex-1 bg-background overflow-auto`}>
+                    <RelationStateView {...inputProps}/>
+                </div>
+            </ErrorBoundary>
         </div>
     );
 }

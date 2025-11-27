@@ -20,7 +20,7 @@ export async function downloadOPFSFile(fileName: string): Promise<void> {
     const file = await fileHandle.getFile();
 
     // Read the file contents as a Blob (or ArrayBuffer/Text as needed)
-    const blob = new Blob([await file.arrayBuffer()], { type: file.type || 'application/octet-stream' });
+    const blob = new Blob([await file.arrayBuffer()], {type: file.type || 'application/octet-stream'});
 
     // Create a temporary URL for the blob
     const url = URL.createObjectURL(blob);
@@ -48,6 +48,52 @@ export async function mountFilesOnWasm(files: File[], duckDBWasm: DuckDBWasm) {
 }
 
 
+export function getJsonMacro() {
+    const sql = `
+        INSTALL dash FROM community;
+        LOAD dash;
+        CREATE OR REPLACE MACRO query_result_json(query_text) as TABLE (WITH data AS MATERIALIZED (FROM query_result(query_text)),
+             dash_row_number_ids AS (SELECT range AS dash_row_number_id
+                                     FROM range((SELECT COUNT(*) FROM data))),
+             json_data AS (SELECT dash_row_number_ids.dash_row_number_id,
+                                  to_json(COLUMNS(c -> c != 'dash_row_number_id'))
+                           FROM data POSITIONAL
+                                    JOIN dash_row_number_ids),
+             json_list AS MATERIALIZED (SELECT IFNULL(
+                                                       list([* COLUMNS (c -> c != 'dash_row_number_id')]
+                                                            ORDER BY dash_row_number_id),
+                                                       []
+                                               ) AS data
+                                        FROM json_data),
+             types_data AS (SELECT ANY_VALUE(typeof(COLUMNS(*)))
+                            FROM data),
+             types_list_data AS (SELECT [(*COLUMNS(*))]                                  AS types_with_null,
+                                        list_filter(types_with_null, x -> x IS NOT NULL) AS types
+                                 FROM types_data),
+             names_data AS (SELECT ANY_VALUE(alias(COLUMNS(*)))
+                            FROM data),
+             names_list_data AS (SELECT [(*COLUMNS(*))]                                  AS names_with_null,
+                                        list_filter(names_with_null, x -> x IS NOT NULL) AS names
+                                 FROM names_data),
+             combined_data AS (SELECT data                                             AS rows,
+                                      list_transform(
+                                              list_zip(types, names),
+                                              x -> { type: x[1], name: x[2] }
+        ) AS columns,
+                                      names
+                               FROM json_list POSITIONAL
+                                        JOIN types_list_data POSITIONAL
+                                        JOIN names_list_data)
+        SELECT json_object(
+                       'rows', rows,
+                       'columns', columns,
+                       'stats', { rows: len(rows) }
+    ) as data,
+               names
+        FROM combined_data);
+    `;
+    return sql;
+}
 
 export async function inferFileTableName(file: File): Promise<FileFormat | undefined> {
     const fileName = file.name;
@@ -112,13 +158,21 @@ export async function getImportQuery(filePath: string, schemaName: string, fileF
 
     let query = '';
     if (fileFormat === 'csv') {
-        query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_csv_auto('${filePath}')`;
+        query = `CREATE TABLE "${schemaName}" AS
+        SELECT *
+        FROM read_csv_auto('${filePath}')`;
     } else if (fileFormat === 'parquet') {
-        query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_parquet('${filePath}')`;
+        query = `CREATE TABLE "${schemaName}" AS
+        SELECT *
+        FROM read_parquet('${filePath}')`;
     } else if (fileFormat === 'json') {
-        query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_json('${filePath}')`;
+        query = `CREATE TABLE "${schemaName}" AS
+        SELECT *
+        FROM read_json('${filePath}')`;
     } else if (fileFormat === 'xlsx') {
-        query = `CREATE TABLE "${schemaName}" AS SELECT * FROM read_excel('${filePath}')`;
+        query = `CREATE TABLE "${schemaName}" AS
+        SELECT *
+        FROM read_excel('${filePath}')`;
     } else if (fileFormat === 'database') {
         query = `ATTACH '${filePath}' AS  "${schemaName}"`;
         if (readonly) {
