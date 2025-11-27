@@ -15,7 +15,6 @@ export interface TableViewState {
     columnsHidden: string[];
 
     showStats?: boolean;
-
 }
 
 export const INITIAL_COLUMN_VIEW_STATE: ColumnViewState = {
@@ -28,6 +27,7 @@ export function getInitialTableDisplayStateEmpty(): TableViewState {
         columnsOrder: [],
         columnsHidden: [],
         columnStates: {},
+        showStats: false,
     };
 }
 

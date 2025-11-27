@@ -19,15 +19,19 @@ import {useRelationDataState} from "@/state/relations-data.state";
 import {CHART_QUERY_LIMIT} from "@/platform/global-data";
 import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
 
+export function getInitialTableQueryParameters(limit: number = 20): TableViewQueryParameters {
+    return {
+        offset: 0,
+        limit: limit,
+        sorting: {},
+        filters: {},
+    };
+}
+
 export function getInitialParams(type: RelationViewType): ViewQueryParameters {
     return {
         type: type,
-        table: {
-            offset: 0,
-            limit: 20,
-            sorting: {},
-            filters: {},
-        },
+        table: getInitialTableQueryParameters(),
         chart: {},
     };
 }
@@ -35,12 +39,7 @@ export function getInitialParams(type: RelationViewType): ViewQueryParameters {
 export function getInitialParamsTextInput(): ViewQueryParameters {
     return {
         type: 'table',
-        table: {
-            offset: 0,
-            limit: 1000, // for text inputs, we want to show more results
-            sorting: {},
-            filters: {},
-        },
+        table: getInitialTableQueryParameters(1000),
         chart: {},
     };
 }

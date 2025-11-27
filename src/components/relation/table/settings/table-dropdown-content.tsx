@@ -11,12 +11,14 @@ import {
     DropdownMenuSubContent,
     DropdownMenuSubTrigger
 } from "@/components/ui/dropdown-menu";
-import {ChartArea, Check, ChevronRight, Columns3, Copy, EyeOff, Filter} from "lucide-react";
+import {ChartArea, Check, ChevronRight, Columns3, Copy, EyeOff, Filter, RotateCcw} from "lucide-react";
 
 import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon";
 import {ContentSelectColumns} from "@/components/relation/table/settings/content-select-columns";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {RelationViewProps} from "@/components/relation/relation-view";
+import {getInitialTableDisplayStateEmpty} from "@/model/relation-view-state/table";
+import {getInitialTableQueryParameters} from "@/model/relation-state";
 
 export interface TableDropDownContentProps extends RelationViewProps {
     columnNames: string[];
@@ -36,8 +38,15 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
         });
     }
 
-    const numberOfColumns = props.columnNames.length;
-
+    async function resetTableViewState() {
+        props.updateRelationViewState({
+            tableState: getInitialTableDisplayStateEmpty()
+        });
+        await props.updateRelationDataWithParams({
+            ...props.relationState.query.viewParameters,
+            table: getInitialTableQueryParameters()
+        })
+    }
     return <>
         <DropdownMenuContent
             side="bottom"
@@ -59,6 +68,12 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
                     {!tableState.showStats ? "Hide" : "Show"} Statistics
                 </span>
             </DropdownMenuItem>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItem onClick={resetTableViewState}>
+                <RotateCcw />
+                Reset Table View
+            </DropdownMenuItem>
+
 
         </DropdownMenuContent>
     </>
