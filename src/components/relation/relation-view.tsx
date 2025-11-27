@@ -37,6 +37,7 @@ export function RelationView(inputProps: RelationViewAPIProps) {
                     </div>
                 </div>
             )}>
+                <RelationViewHeader {...inputProps}/>
                 <div className={`flex-1 bg-background overflow-auto`}>
                     <RelationStateView {...inputProps}/>
                 </div>
