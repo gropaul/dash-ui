@@ -15,7 +15,7 @@ interface TopNChartProps {
     className?: string;
 }
 
-export function TopNChart({ topValues, othersCount, nonNullCount, className }: TopNChartProps) {
+export function ColumnStatsViewTopN({ topValues, othersCount, nonNullCount, className }: TopNChartProps) {
     // Prepare data for horizontal bar chart - reversed to show max to min
     const data = [...topValues];
     if (othersCount && othersCount > 0) {

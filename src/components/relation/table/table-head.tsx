@@ -4,9 +4,9 @@ import {ColumnHeadDropDownMenuContent} from "@/components/relation/table/table-h
 import {Column} from "@/model/data-source-connection";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
-import {useRelationData, useRelationDataState} from "@/state/relations-data.state";
-import {GetColumnStats} from "@/model/column-stats";
-import {GetStatForColumn, RelationStats} from "@/model/relation-state";
+import { useRelationDataState} from "@/state/relations-data.state";
+import {GetStatForColumn} from "@/model/relation-state";
+import {ChevronDown, ChevronsDownUp, Settings} from "lucide-react";
 
 export function TableHead(props: RelationViewTableContentProps) {
 
@@ -33,14 +33,27 @@ export function TableHead(props: RelationViewTableContentProps) {
         <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <thead className="border-0 text-s text-primary bg-inherit sticky top-0 z-[3]">
             <tr className={'bg-inherit'}>
+
                 {/* Row index column header */}
+
                 <th
                     scope="col"
                     className="p-0 m-0 h-8 sticky left-0 z-20 bg-inherit w-20"
                 >
-                    <div className="w-full h-full bg-inherit absolute right-0 top-0 z-[3] border-r border-b border-border" />
+                    {/* Existing layers */}
+                    <div className="w-full h-full absolute right-0 top-0 z-[3] border-r border-b border-border" />
                     <div className="w-full h-8 bg-inherit absolute right-0 top-[1px] z-[3] border-r border-b border-border" />
+
+                    {/* Centered icon */}
+                    <div className="w-full h-8 absolute left-0 top-0 z-[5] flex items-center justify-center pointer-events-none">
+                        <Settings className="w-4 h-4 text-muted-foreground " />
+                    </div>
+                    {/*<div className="w-full mt-8 h-full flex items-center justify-center relative z-[4]">*/}
+                    {/*    <ChevronsDownUp className="w-4 h-4 text-muted-foreground " />*/}
+                    {/*</div>*/}
+
                 </th>
+
                 {/* Column headers */}
                 {props.columnViewIndices.map((index) => (
                     <DropdownMenuTrigger asChild key={index}>

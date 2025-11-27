@@ -2,7 +2,7 @@
 
 import {useRef, useState} from "react";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {HistogramChart} from "@/components/relation/table/stats/HistogramChart";
+import {ColumnStatsViewHist} from "@/components/relation/table/stats/column-stats-view-hist";
 
 // Helper: compute histogram
 async function computeHistogram() {
@@ -144,7 +144,7 @@ export default function HistogramDemo() {
             {Object.keys(histogramData).length > 0 && (
                 <>
                     <div>
-                        <HistogramChart
+                        <ColumnStatsViewHist
                             className={"h-64 w-full"}
                             histogramData={histogramData}
                             onRangeChangeEnd={loadDataDebounced}

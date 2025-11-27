@@ -83,7 +83,7 @@ export function getSumOfHistogram(
 export function transformData(data: [number, number][], dataType: HistDataType): [any, number][] {
     return data;
 }
-export function HistogramChart({
+export function ColumnStatsViewHist({
                                    histogramData,
                                    onRangeChange,
                                    onRangeChangeEnd,

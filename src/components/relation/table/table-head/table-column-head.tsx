@@ -4,18 +4,18 @@ import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {
     ColumnSorting,
     ColumnStats,
-    getNextColumnSorting, RelationStats,
+    getNextColumnSorting,
     ViewQueryParameters
 } from "@/model/relation-state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
+import {ColumnStatsProps, ColumnStatsView} from "@/components/relation/table/stats/column-stats-view";
+import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
-import {RelationViewProps} from "@/components/relation/relation-view";
-import {ColumnStatsView} from "@/components/relation/table/stats/ColumnStatsView";
 
 
-export interface ColumnHeadProps extends RelationViewProps {
+export interface ColumnHeadProps extends RelationViewTableContentProps {
     column: Column;
     stats?: ColumnStats;
     onColumnMenuClick?: (column: Column, event: React.MouseEvent) => void;
@@ -51,15 +51,22 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
         const nextSorting = getNextColumnSorting(columnSorting);
 
-        const {[props.column.name]: _, ...remainingSortings} = queryParameters.table.sorting || {};
+
+        // check if all columns are still in the relationState
+        for (const colName of Object.keys(queryParameters.table.sorting)) {
+            const colExists = props.data.columns.find(col => col.name === colName);
+            if (!colExists) {
+                delete queryParameters.table.sorting[colName];
+            }
+        }
 
         const queryParams: ViewQueryParameters = {
             ...queryParameters,
             table: {
                 ...queryParameters.table,
                 sorting: {
+                    ...queryParameters.table.sorting,
                     [props.column.name]: nextSorting,
-                    ...remainingSortings,
                 },
             }
         }
@@ -69,8 +76,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
     return (
 
-        <ColumnHeadWrapper columnWidth={columnWidth} stats={props.stats}>
-
+        <ColumnHeadWrapper columnWidth={columnWidth} stats={props.stats} relationState={props.relationState}>
             <div
                 ref={setDroppableNodeRef}
                 className="w-full group flex items-center justify-between pr-6"
@@ -128,7 +134,12 @@ function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize?: numb
     }
 }
 
-function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.ReactNode, stats?: ColumnStats }) {
+interface ColumnHeadWrapperProps extends ColumnStatsProps {
+    columnWidth?: string;
+    children?: React.ReactNode;
+}
+
+function ColumnHeadWrapper(props: ColumnHeadWrapperProps) {
 
     return (
         <th
@@ -140,11 +151,8 @@ function ColumnHeadWrapper(props: { columnWidth?: string, children?: React.React
                  style={{width: '100%', height: '100%'}}>
                 {props.children}
             </div>
-            <div className={'border-b border-border pr-1'}>
-                <div className={'px-3 border-r pb-1 border-border bg-inherit font-normal'}>
-                    <ColumnStatsView stats={props.stats} className="h-40 w-full" />
-                </div>
-            </div>
+
+            <ColumnStatsView relationState={props.relationState} stats={props.stats} className="h-40 w-full"/>
         </th>
     );
 }

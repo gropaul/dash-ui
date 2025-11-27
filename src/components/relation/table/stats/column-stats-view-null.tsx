@@ -6,7 +6,7 @@ interface NonNullChartProps {
     className?: string;
 }
 
-export function NonNullChart({ nonNullCount, className }: NonNullChartProps) {
+export function ColumnStatsViewNull({ nonNullCount, className }: NonNullChartProps) {
     return (
         <div className={className}>
             <div className="h-full w-full flex flex-col items-center justify-center p-4 space-y-2">

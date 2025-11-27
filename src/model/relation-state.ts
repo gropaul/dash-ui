@@ -17,7 +17,7 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {CHART_QUERY_LIMIT} from "@/platform/global-data";
-import {HistDataType} from "@/components/relation/table/stats/HistogramChart";
+import {HistDataType} from "@/components/relation/table/stats/column-stats-view-hist";
 
 export function getInitialParams(type: RelationViewType): ViewQueryParameters {
     return {

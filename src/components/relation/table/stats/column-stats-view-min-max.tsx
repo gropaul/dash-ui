@@ -8,7 +8,7 @@ interface MinMaxChartProps {
     className?: string;
 }
 
-export function MinMaxChart({ min, max, nonNullCount, className }: MinMaxChartProps) {
+export function ColumnStatsViewMinMax({ min, max, nonNullCount, className }: MinMaxChartProps) {
     const isDate = typeof min === 'number' && typeof max === 'number' &&
                    min > 1000000000000 && max > 1000000000000; // Likely timestamps
 

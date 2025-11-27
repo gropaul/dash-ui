@@ -14,6 +14,8 @@ export interface TableViewState {
     // columns that are currently not displayed, if a column is not in this list it is displayed
     columnsHidden: string[];
 
+    showStats?: boolean;
+
 }
 
 export const INITIAL_COLUMN_VIEW_STATE: ColumnViewState = {
