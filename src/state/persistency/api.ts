@@ -1,5 +1,5 @@
 import {createJSONStorage, PersistStorage} from "zustand/middleware";
-import {duckdbOverHttpStorageProvider} from "@/state/persistency/duckdb-storage";
+import {duckdbTableStorageProvider} from "@/state/persistency/duckdb-storage";
 import {duckdbLocalStorageProvider} from "@/state/persistency/local-json";
 import {RelationZustandCombined, useRelationsHydrationState, useRelationsState} from "@/state/relations.state";
 import {DatabaseConnection} from "@/model/database-connection";
@@ -20,7 +20,7 @@ export function loadRelationStateFromConnections(con: DatabaseConnection) {
 
 const rehydrateWithDuckDBStorage = () => {
     useRelationsState.persist.setOptions({
-        storage: duckdbStorage,
+        storage: localStorage,
     });
     useRelationsHydrationState.getState().setHasDuckDBStorage(true);
     useRelationsState.persist.rehydrate(); // Rehydrate the store with the new storage
@@ -28,5 +28,5 @@ const rehydrateWithDuckDBStorage = () => {
 };
 
 
-export const duckdbStorage: PersistStorage<RelationZustandCombined> | undefined = createJSONStorage(() => duckdbOverHttpStorageProvider);
+export const duckdbStorage: PersistStorage<RelationZustandCombined> | undefined = createJSONStorage(() => duckdbTableStorageProvider);
 export const localStorage: PersistStorage<RelationZustandCombined> | undefined = duckdbLocalStorageProvider;

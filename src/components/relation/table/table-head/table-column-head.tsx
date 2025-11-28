@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {Column} from "@/model/data-source-connection";
 import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {
@@ -8,11 +8,14 @@ import {
     ViewQueryParameters
 } from "@/model/relation-state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
-import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
+import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
 import {ColumnStatsProps, ColumnStatsView} from "@/components/relation/table/table-head/stats/column-stats-view";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
+import {RelationViewState} from "@/model/relation-view-state";
+import {DeepPartial} from "@/platform/object-utils";
+import {throttleLatest} from "@/lib/throttle-latest";
 
 
 export interface ColumnHeadProps extends RelationViewTableContentProps {
@@ -23,14 +26,42 @@ export interface ColumnHeadProps extends RelationViewTableContentProps {
 }
 
 
+
+
 export function TableColumnHead(props: ColumnHeadProps) {
 
     const {column} = props;
 
     const tableViewState = props.relationState.viewState.tableState;
     const columnState = tableViewState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
+    const [localColumnWidth, setLocalColumnWidth] = React.useState<number>(columnState.width);
 
-    let columnWidth = columnState.width + 'px';
+    // create throttled updater (memoize, so it doesn’t recreate every render)
+    const throttledUpdateWidthGlobal = useMemo(
+        () => throttleLatest(UpdateColumnWidthGlobalState, 300),
+        [props.relationState.viewState.tableState, column.name, props.updateRelationViewState]
+    );
+
+    function UpdateColumnWidthGlobalState(newWidth: number) {
+        const newStates = {...tableViewState.columnStates};
+        if (!newStates[column.name]) {
+            newStates[column.name] = {...INITIAL_COLUMN_VIEW_STATE};
+        }
+        newStates[column.name].width = newWidth;
+        props.updateRelationViewState({
+            tableState: {
+                ...tableViewState,
+                columnStates: newStates,
+            },
+        });
+    }
+
+    function onSetColumnWidth(newWidth: number) {
+        setLocalColumnWidth(newWidth);
+        throttledUpdateWidthGlobal(newWidth);
+    }
+
+    let columnWidthString = localColumnWidth + 'px';
 
     const {listeners, setNodeRef: setDraggableNodeRef} = useDraggable({id: column.name});
     const {setNodeRef: setDroppableNodeRef} = useDroppable({id: column.name});
@@ -79,7 +110,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
         <ColumnHeadWrapper
             columnIndex={props.columnIndex}
-            columnWidth={columnWidth}
+            columnWidth={columnWidthString}
             relationStats={props.relationStats}
             relationState={props.relationState}
         >
@@ -91,7 +122,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
                     ref={setDraggableNodeRef}
                     onClick={onSortClick}
                     className="flex items-center overflow-hidden cursor-pointer"
-                    style={{width: columnWidth}}
+                    style={{width: localColumnWidth}}
                     {...listeners}
                 >
                     <div style={{minWidth: "16px", display: "flex", alignItems: "center"}}>
@@ -114,10 +145,9 @@ export function TableColumnHead(props: ColumnHeadProps) {
             </div>
 
             <ColumnHeadResizeHandle
-                relationId={props.relationState.id}
-                displayState={tableViewState}
-                column={column}
-                updateRelationViewState={props.updateRelationViewState}
+
+                currentWidth={localColumnWidth}
+                updateColumnWidth={onSetColumnWidth}
 
             />
         </ColumnHeadWrapper>

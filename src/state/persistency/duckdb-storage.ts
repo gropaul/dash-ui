@@ -270,7 +270,7 @@ export class StorageDuckAPI {
 }
 
 
-export const duckdbOverHttpStorageProvider: StateStorage = {
+export const duckdbTableStorageProvider: StateStorage = {
     getItem: async (_tableName: string): Promise<string | null> => {
         const provider = await StorageDuckAPI.getInstance();
         return provider.getItem();

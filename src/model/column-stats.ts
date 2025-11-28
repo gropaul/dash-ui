@@ -227,7 +227,6 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
             }
             case "top-n": {
                 const topValuesRaw = GetAgg('TOP_K', column, colIndex, statsData) as { val: any, cnt: number }[];
-                console.log(`Top values for column ${column.name}:`, topValuesRaw, statsData);
                 const topValues = topValuesRaw.map(item => ({
                     value: item.val,
                     count: item.cnt * buildResult.scaleFactor,

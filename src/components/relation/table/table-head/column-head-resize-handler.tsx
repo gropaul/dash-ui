@@ -7,35 +7,20 @@ import {Column} from "@/model/data-source-connection";
 import {AdvancedRelationActions} from "@/state/relations/functions";
 
 interface ColumnHeadResizeHandleProps {
-    relationId: string;
-    displayState: TableViewState;
-    column: Column;
-    updateRelationViewState: (viewState: DeepPartial<RelationViewState>, path?: string[]) => void,
+    currentWidth: number;
+    updateColumnWidth: (width: number) => void;
 }
 
-export function ColumnHeadResizeHandle({relationId, displayState, column, updateRelationViewState}: ColumnHeadResizeHandleProps) {
+export function ColumnHeadResizeHandle({currentWidth, updateColumnWidth}: ColumnHeadResizeHandleProps) {
 
     const initialX = useRef<number | null>(null);
-    const columnViewState = displayState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
-    const widthRef = useRef<number>(columnViewState.width);
+    const widthRef = useRef<number>(currentWidth);
 
     function onMouseMove(event: MouseEvent) {
         if (initialX.current !== null) {
             const deltaX = event.clientX - initialX.current;
-            const newStates = {...displayState.columnStates};
-
-            if (!newStates[column.name]) {
-                newStates[column.name] = {...INITIAL_COLUMN_VIEW_STATE};
-            }
-
-            newStates[column.name].width = Math.max(widthRef.current + deltaX, 50); // Set a minimum width of 50px
-
-            updateRelationViewState({
-                tableState: {
-                    ...displayState,
-                    columnStates: newStates,
-                },
-            });
+            const newWidth = Math.max(widthRef.current + deltaX, 50); // Set a minimum width of 50px
+            updateColumnWidth(newWidth);
         }
     }
 
@@ -48,7 +33,7 @@ export function ColumnHeadResizeHandle({relationId, displayState, column, update
     function onMouseDown(event: React.MouseEvent) {
         event.preventDefault(); // Prevent text selection
         initialX.current = event.clientX;
-        widthRef.current = (displayState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE).width;
+        widthRef.current = currentWidth;
         document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", onMouseUp);
     }
