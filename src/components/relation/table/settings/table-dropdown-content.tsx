@@ -29,11 +29,19 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
 
 
     const tableState = props.relationState.viewState.tableState;
-    function onShowStatsChange(visible: boolean) {
+    function onShowStatsChange() {
+
+        const current = tableState.showStats;
+        let next;
+        if (current === undefined) {
+            next = true;
+        } else {
+            next = !current;
+        }
         props.updateRelationViewState({
             tableState: {
                 ...props.relationState.viewState.tableState,
-                showStats: visible
+                showStats: next
             }
         });
     }
@@ -64,7 +72,7 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
             </ContentSelectColumns>
             <DropdownMenuItem>
                 <ChartArea />
-                <span onClick={() => onShowStatsChange(!tableState.showStats)}>
+                <span onClick={() => onShowStatsChange()}>
                     {tableState.showStats ? "Hide" : "Show"} Statistics
                 </span>
             </DropdownMenuItem>
