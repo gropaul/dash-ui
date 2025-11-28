@@ -160,7 +160,9 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
             if (relationId in get().stats) {
                 return get().stats[relationId];
             }
-            return GetRelationStatsLoading();
+            return {
+                state: "empty"
+            }
         },
 
         invalidateStats: (relationId: string) => {
@@ -173,6 +175,15 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
         },
 
         updateStats: async (relationState: RelationState, data: RelationData) => {
+
+            // set loading state
+            set((state) => ({
+                stats: {
+                    ...state.stats,
+                    [relationState.id]: GetRelationStatsLoading()
+                }
+            }));
+
             const stats = await GetColumnStats(relationState, data);
             if (!stats) {
                 throw new Error(`Failed to compute stats for relation ${relationState.id}`);

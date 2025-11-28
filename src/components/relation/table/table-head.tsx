@@ -55,8 +55,9 @@ export function TableHead(props: RelationViewTableContentProps) {
                     <TableColumnHead
                         key={index}
                         {...props}
+                        relationStats={relationStats}
                         column={props.data.columns[index]}
-                        stats={GetStatForColumn(index, relationStats)}
+                        columnIndex={index}
                         onColumnMenuClick={handleColumnMenuClick}
                     />
                 ))}
@@ -81,6 +82,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                             {...props}
                             column={selectedColumn}
                             columnNames={columnNames}
+                            columnIndex={0 /* not used in content */}
                         />
                     )}
                 </DropdownMenuContent>

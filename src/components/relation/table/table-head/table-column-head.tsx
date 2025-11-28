@@ -4,7 +4,7 @@ import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {
     ColumnSorting,
     ColumnStats,
-    getNextColumnSorting,
+    getNextColumnSorting, RelationStats,
     ViewQueryParameters
 } from "@/model/relation-state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
@@ -17,8 +17,9 @@ import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/col
 
 export interface ColumnHeadProps extends RelationViewTableContentProps {
     column: Column;
-    stats?: ColumnStats;
+    relationStats?: RelationStats;
     onColumnMenuClick?: (column: Column, event: React.MouseEvent) => void;
+    columnIndex: number;
 }
 
 
@@ -76,7 +77,12 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
     return (
 
-        <ColumnHeadWrapper columnWidth={columnWidth} stats={props.stats} relationState={props.relationState}>
+        <ColumnHeadWrapper
+            columnIndex={props.columnIndex}
+            columnWidth={columnWidth}
+            relationStats={props.relationStats}
+            relationState={props.relationState}
+        >
             <div
                 ref={setDroppableNodeRef}
                 className="w-full group flex items-center justify-between pr-6"
@@ -152,7 +158,12 @@ function ColumnHeadWrapper(props: ColumnHeadWrapperProps) {
                 {props.children}
             </div>
 
-            <ColumnStatsView relationState={props.relationState} stats={props.stats} className="h-40 w-full"/>
+            <ColumnStatsView
+                columnIndex={props.columnIndex}
+                relationState={props.relationState}
+                relationStats={props.relationStats}
+                className="h-40 w-full"
+            />
         </th>
     );
 }

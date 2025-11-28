@@ -140,10 +140,14 @@ export interface ColumnStatsTopN extends ColumnStatsBase {
 
 export type ColumnStats = ColumnStatsHistogram | ColumnStatsTopN | ColumnStatsMinMax | ColumnStatsNonNull;
 
-export type RelationStatState = 'loading' | 'error' | 'ready';
+export type RelationStatState = 'empty' | 'loading' | 'error' | 'ready';
 
 export interface RelationStatsBase {
     state: RelationStatState;
+}
+
+export interface RelationStatsEmpty extends RelationStatsBase {
+    state: 'empty';
 }
 
 export interface RelationStatsLoading extends RelationStatsBase {
@@ -166,7 +170,7 @@ export interface RelationStatsReady extends RelationStatsBase {
     columns: ColumnStats[]; // same order as the columns in the relation
 }
 
-export type RelationStats = RelationStatsLoading | RelationStatsError | RelationStatsReady;
+export type RelationStats = RelationStatsLoading | RelationStatsError | RelationStatsReady | RelationStatsEmpty;
 
 export function GetStatForColumn(column_index: number, stats: RelationStats): ColumnStats | undefined {
     if (stats.state !== 'ready') {
@@ -183,8 +187,6 @@ export interface RelationWithQuery extends Relation {
 
 export function ShouldUpdateStats(relation: RelationState): boolean {
     return relation.viewState.selectedView === 'table' &&
-        relation.executionState.state === 'success' &&
-        relation.lastExecutionMetaData !== undefined &&
         relation.viewState.tableState.showStats === true;
 
 }

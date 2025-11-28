@@ -65,7 +65,7 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
             <DropdownMenuItem>
                 <ChartArea />
                 <span onClick={() => onShowStatsChange(!tableState.showStats)}>
-                    {!tableState.showStats ? "Hide" : "Show"} Statistics
+                    {tableState.showStats ? "Hide" : "Show"} Statistics
                 </span>
             </DropdownMenuItem>
             <DropdownMenuSeparator/>

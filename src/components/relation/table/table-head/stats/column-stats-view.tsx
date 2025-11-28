@@ -1,5 +1,5 @@
 import React from 'react';
-import {ColumnStats as ColumnStatsType, RelationState} from '@/model/relation-state';
+import {ColumnStats, GetStatForColumn, RelationState, RelationStats} from '@/model/relation-state';
 import {ColumnStatsViewHist} from './column-stats-view-hist';
 import {ColumnStatsViewTopN} from './column-stats-view-top-n';
 import {ColumnStatsViewMinMax} from './column-stats-view-min-max';
@@ -8,18 +8,26 @@ import {ErrorBoundary} from "@/components/basics/error-bundary";
 import {cn} from "@/lib/utils";
 
 export interface ColumnStatsProps {
-    stats?: ColumnStatsType;
+    relationStats?: RelationStats;
     className?: string;
     relationState: RelationState
+    columnIndex: number;
 }
 
-export function ColumnStatsView({stats, className, relationState}: ColumnStatsProps) {
+export function ColumnStatsView({relationStats, className, relationState, columnIndex}: ColumnStatsProps) {
 
     const showStats = relationState.viewState.tableState.showStats;
-    if (showStats) {
+    if (!showStats) {
         return <></>
         return <div className={cn("w-full h-6 flex items-center justify-center")}></div>;
     }
+
+    if (!relationStats) {
+        return <>
+            No stats
+        </>
+    }
+
     return (
         <div className={'border-b border-border pr-1'}>
             <div className={'px-3 border-r pb-1 border-border bg-inherit font-normal'}>
@@ -31,8 +39,11 @@ export function ColumnStatsView({stats, className, relationState}: ColumnStatsPr
                             </div>
                         )}
                     >
-                        <ColumnsStatsViewContent stats={stats} relationState={relationState}
-                                                 className={'h-full w-full'}/>
+                        <ColumnsStatsViewContent
+                            relationStats={relationStats}
+                            columnIndex={columnIndex}
+                            className={'h-full w-full'}
+                        />
                     </ErrorBoundary>
                 </div>
             </div>
@@ -42,47 +53,76 @@ export function ColumnStatsView({stats, className, relationState}: ColumnStatsPr
 
 }
 
-function ColumnsStatsViewContent({stats, className}: ColumnStatsProps) {
-    if (!stats) {
+interface ColumnsStatsViewContentProps {
+    relationStats: RelationStats,
+    columnIndex: number;
+    className: string
+}
+
+function ColumnsStatsViewContent({relationStats, columnIndex, className}: ColumnsStatsViewContentProps) {
+
+    if (relationStats.state === 'loading') {
+        return <div className={cn("w-full text-muted-foreground flex items-center justify-center", className)}>
+            Loading ...
+        </div>
+    }
+
+    if (relationStats.state === 'empty') {
+        return <div className={cn("w-full text-muted-foreground  flex items-center justify-center text-center", className)}>
+            No stats available. <br/>
+            Run query again
+        </div>
+    }
+
+
+    const columnStats = GetStatForColumn(columnIndex, relationStats)
+    if (!columnStats) {
+        return <div className={cn("w-full h-6 flex items-center justify-center")}>
+            Error!
+        </div>
+    }
+
+
+    if (!columnStats) {
         return (
             <div className={cn(className, 'flex items-center justify-center text-muted-foreground')}>
                 No Stats Available
             </div>
         );
     }
-    switch (stats.type) {
+    switch (columnStats.type) {
         case 'histogram':
             return (
                 <ColumnStatsViewHist
-                    dataType={stats.histogramType}
+                    dataType={columnStats.histogramType}
                     className={className}
-                    histogramData={stats.values}
-                    totalCount={stats.nonNullCount}
+                    histogramData={columnStats.values}
+                    totalCount={columnStats.nonNullCount}
                 />
             );
         case 'top-n':
             return (
                 <ColumnStatsViewTopN
                     className={className}
-                    topValues={stats.topValues}
-                    othersCount={stats.othersCount}
-                    nonNullCount={stats.nonNullCount}
+                    topValues={columnStats.topValues}
+                    othersCount={columnStats.othersCount}
+                    nonNullCount={columnStats.nonNullCount}
                 />
             );
         case 'minMax':
             return (
                 <ColumnStatsViewMinMax
                     className={className}
-                    min={stats.min}
-                    max={stats.max}
-                    nonNullCount={stats.nonNullCount}
+                    min={columnStats.min}
+                    max={columnStats.max}
+                    nonNullCount={columnStats.nonNullCount}
                 />
             );
         case 'non_null':
             return (
                 <ColumnStatsViewNull
                     className={className}
-                    nonNullCount={stats.nonNullCount}
+                    nonNullCount={columnStats.nonNullCount}
                 />
             );
         default:
