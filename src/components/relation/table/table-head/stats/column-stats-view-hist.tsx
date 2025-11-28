@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import {useEffect, useRef, useState} from "react";
-import {formatDateShort, formatNumber, formatNumberFixed} from "@/platform/number-utils";
+import {formatDateRange, formatNumber, formatNumberFixed} from "@/platform/number-utils";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {
     ssr: false,
@@ -275,13 +275,18 @@ export function ColumnStatsViewHist({
     const minValue = bins[0] - binWidth;
     const maxValue = bins[bins.length - 1];
 
+    const dateMin = new Date(minValue);
+    const dateMax = new Date(maxValue);
+
+    const [startDateStr, endDateStr] = formatDateRange(dateMin, dateMax);
+
     const date_min_max = [
         {
             type: 'text',
             left: 3,
             bottom: 4,
             style: {
-                text: formatDateShort(new Date(minValue)),
+                text: startDateStr,
                 fontSize: 12,
                 fill: '#666',
             }
@@ -291,7 +296,7 @@ export function ColumnStatsViewHist({
             right: 3,
             bottom: 4,
             style: {
-                text: formatDateShort(new Date(maxValue)),
+                text: endDateStr,
                 fontSize: 12,
                 fill: '#666',
             }
@@ -444,6 +449,14 @@ export function ColumnStatsViewHist({
         ? ((selectedCount / totalCount) * 100).toFixed(1)
         : null;
 
+    let startRangeStr = '';
+    let endRangeStr = '';
+    if (currentRange) {
+        const [s, e] = formatDateRange(new Date(currentRange.min), new Date(currentRange.max));
+        startRangeStr = s;
+        endRangeStr = e;
+    }
+
     return (
         <div style={{position: 'relative'}} className={className}>
             <ReactECharts
@@ -471,9 +484,9 @@ export function ColumnStatsViewHist({
                     }}>
                         {dataType === 'timestamp'
                             ? <>
-                                {formatDateShort(new Date(currentRange.min))} to
+                                {startRangeStr} to
                                 <br />
-                                {formatDateShort(new Date(currentRange.max))}
+                                {endRangeStr}
                             </>
                             : `${formatNumber(currentRange.min)} → ${formatNumber(currentRange.max)}`
                         }
