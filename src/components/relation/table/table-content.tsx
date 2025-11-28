@@ -11,34 +11,39 @@ export interface RelationViewTableContentProps extends RelationViewProps {
     data: RelationData;
 }
 
-export function TableContent(props: RelationViewTableContentProps) {
+export const TableContent = React.memo(function TableContent(props: RelationViewTableContentProps) {
+    const {data, columnViewIndices, relationState, embedded} = props;
 
-    const data = props.data;
-    const columnViewIndices = props.columnViewIndices;
-    const styleMarginRight = props.embedded ? 'mr-0' : 'mr-32';
-    const limitRows = props.relationState.query.viewParameters.table.limit
+    const limitRows = relationState.query.viewParameters.table.limit;
+    const offset = relationState.lastExecutionMetaData?.lastResultOffset || 0;
+
+    const columns = React.useMemo(() => data.columns, [data.columns]);
+    const viewIndices = React.useMemo(() => columnViewIndices, [columnViewIndices]);
+    const rowsSlice = React.useMemo(() => data.rows.slice(0, limitRows), [data.rows, limitRows]);
+
+    const styleMarginRight = embedded ? "mr-0" : "mr-32";
+
     return (
         <table
-            className={cn("text-sm bg-inherit text-left rtl:text-right text-muted-foreground w-fit h-fit mr-32", styleMarginRight)}
-            style={{
-                tableLayout: "fixed",
-                borderCollapse: "collapse",
-            }}
+            className={cn(
+                "text-sm bg-inherit text-left rtl:text-right text-muted-foreground w-fit h-fit mr-32",
+                styleMarginRight
+            )}
+            style={{tableLayout: "fixed", borderCollapse: "collapse"}}
         >
             <TableHead {...props} />
-            <tbody className={'bg-inherit'}>
-            {data.rows.slice(0, limitRows).map((row, index) => (
+            <tbody className="bg-inherit">
+            {rowsSlice.map((row, index) => (
                 <TableRow
                     key={index}
-                    tableState={props.relationState.viewState.tableState}
                     rowIndex={index}
                     row={row}
-                    columns={data.columns}
-                    offset={props.relationState.lastExecutionMetaData?.lastResultOffset || 0}
-                    columnViewIndices={columnViewIndices}
+                    columns={columns}
+                    offset={offset}
+                    columnViewIndices={viewIndices}
                 />
             ))}
             </tbody>
         </table>
-    )
-}
+    );
+});

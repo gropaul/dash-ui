@@ -8,7 +8,6 @@ import {TableViewState} from "@/model/relation-view-state/table";
 export const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
 
 export interface RowViewProps {
-    tableState: TableViewState;
     rowIndex: number;
     row: Row;
     columns: Column[];
@@ -48,7 +47,6 @@ export function TableRow(props: RowViewProps) {
             {/* Row elements */}
             {props.columnViewIndices.map((index) => (
                 <TableValueCell
-                    tableState={props.tableState}
                     key={index}
                     element={row[index]}
                     column={props.columns[index]}

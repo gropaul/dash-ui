@@ -6,14 +6,11 @@ import {RecursiveJsonViewer} from "@/components/ui/json-viewer";
 
 interface RowElementViewProps {
     element: any;
-    tableState: TableViewState;
     column: Column;
 }
 
 
-export function TableValueCell({tableState, column, element}: RowElementViewProps) {
-    const columnViewState = tableState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
-    const columnWidth = columnViewState.width + "px";
+export function TableValueCell({column, element}: RowElementViewProps) {
 
     const stringElement = elementToString(element, column);
 
@@ -21,7 +18,6 @@ export function TableValueCell({tableState, column, element}: RowElementViewProp
         <td
             className="px-4 py-1 group"
             style={{
-                width: columnWidth,
                 overflow: "hidden",
                 whiteSpace: "nowrap",
                 textOverflow: "ellipsis",
