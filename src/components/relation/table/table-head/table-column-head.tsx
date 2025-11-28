@@ -38,7 +38,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
     // create throttled updater (memoize, so it doesn’t recreate every render)
     const throttledUpdateWidthGlobal = useMemo(
-        () => throttleLatest(UpdateColumnWidthGlobalState, 300),
+        () => throttleLatest(UpdateColumnWidthGlobalState, 10),
         [props.relationState.viewState.tableState, column.name, props.updateRelationViewState]
     );
 
@@ -58,7 +58,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
     function onSetColumnWidth(newWidth: number) {
         setLocalColumnWidth(newWidth);
-        throttledUpdateWidthGlobal(newWidth);
+        UpdateColumnWidthGlobalState(newWidth);
     }
 
     let columnWidthString = localColumnWidth + 'px';

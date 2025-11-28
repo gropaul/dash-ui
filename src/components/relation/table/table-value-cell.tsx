@@ -6,9 +6,10 @@ import {RecursiveJsonViewer} from "@/components/ui/json-viewer";
 interface RowElementViewProps {
     element: any;
     column: Column;
+    width?: number;
 }
 
-export const TableValueCell = React.memo(function TableValueCell({column, element}: RowElementViewProps) {
+export const TableValueCell = React.memo(function TableValueCell({column, element, width}: RowElementViewProps) {
 
     const stringElement: string = useMemo(() => {
         console.log("Rendering TableValueCell:", {element, column});
@@ -26,29 +27,41 @@ export const TableValueCell = React.memo(function TableValueCell({column, elemen
         return element.toString();
     }, [element, column.type]);
 
-    return (
-        <td
-            className="relative px-4 py-1 group"
+    return <td
+        className="relative px-4 py-1 group"
+        style={{
+            backgroundColor: "white",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            width: width ? `${width}px` : undefined,
+            maxWidth: width ? `${width}px` : undefined,
+        }}
+        title={stringElement}
+    >
+        <div
             style={{
+                minWidth: 0,           // <-- CRITICAL
                 overflow: "hidden",
-                whiteSpace: "nowrap",
                 textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                display: "block",      // ensures shrinkability
+                width: "100%",
             }}
-            title={stringElement}
         >
             <ValueElement
                 column={column}
                 element={element}
                 stringElement={stringElement}
             />
+        </div>
 
-            {/* Copy button (invisible until hover) */}
-            <CopyButton
-                className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-                textToCopy={stringElement}
-            />
-        </td>
-    );
+        <CopyButton
+            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+            textToCopy={stringElement}
+        />
+    </td>
+
 });
 
 
