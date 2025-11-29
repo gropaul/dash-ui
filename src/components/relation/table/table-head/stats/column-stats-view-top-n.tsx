@@ -1,16 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import {formatNumber} from "@/platform/number-utils";
-import {LerpColorHex} from "@/platform/colors-utils";
-import {useState} from "react";
-import {EChartsOption} from "echarts-for-react/src/types";
-import {EChartsInstance} from "echarts-for-react";
+import { formatNumber } from "@/platform/number-utils";
+import { LerpColorHex } from "@/platform/colors-utils";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { EChartsInstance } from "echarts-for-react";
 
-const ReactECharts = dynamic(() => import("echarts-for-react"), {
-    ssr: false,
-});
-
+const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
 interface TopNChartProps {
     topValues: { value: any; count: number }[];
@@ -19,180 +15,201 @@ interface TopNChartProps {
     className?: string;
 }
 
-function toggleSelection(value: any, values: any[]){
-    // if in, remove
+export function ColumnStatsViewTopN({
+                                        topValues,
+                                        othersCount,
+                                        nonNullCount,
+                                        className
+                                    }: TopNChartProps) {
 
-}
-
-export function ColumnStatsViewTopN({topValues, othersCount, nonNullCount, className}: TopNChartProps) {
-    // Prepare data for horizontal bar chart - reversed to show max to min
-    const data = [...topValues];
-    if (othersCount && othersCount > 0) {
-        data.push({value: 'Others', count: othersCount});
-    }
-    // order the data by count ascending
-    data.sort((a, b) => a.count - b.count);
+    // Keep the chart instance here so React can re-bind handlers correctly
+    const chartRef = useRef<EChartsInstance | null>(null);
 
     const [selected, setSelected] = useState<string[]>([]);
 
-    const startColor = '#afc9ff';
-    const endColor = '#e6eeff';
+    const startColor = "#afc9ff";
+    const endColor = "#e6eeff";
 
-    const categories = data.map(item => {
-        return item.value === null ? 'null' :
-            item.value === undefined ? 'undefined' :
-                String(item.value);
-    });
-    const colors = data.map((item, index) => {
+    // Build base data
+    const rawData = useMemo(() => {
+        const data = [...topValues];
+        if (othersCount && othersCount > 0) {
+            data.push({ value: "Others", count: othersCount });
+        }
+        return data;
+    }, [topValues, othersCount]);
 
-        if (selected.includes(categories[index])){
-            return '#a6ffc2'
+    // Apply filtering + convert values to strings
+    const filtered = useMemo(() => {
+        return rawData.map(item => {
+            const value =
+                item.value === null
+                    ? "null"
+                    : item.value === undefined
+                        ? "undefined"
+                        : String(item.value);
+
+            let count = item.count;
+            if (selected.length > 0 && !selected.includes(value)) {
+                count = 0;
+            }
+
+            return { value, count };
+        });
+    }, [rawData, selected]);
+
+    // Sort by count ascending
+    filtered.sort((a, b) => a.count - b.count);
+
+    const categories = filtered.map(item => item.value);
+    const counts = filtered.map(item => item.count);
+    const maxCount = counts.length === 0 ? 0 : Math.max(...counts);
+
+    // Color mapping
+    const colors = filtered.map((item, index) => {
+        if (selected.includes(item.value)) {
+            return "#ff7d7d";
         }
 
-        if (data.length === 1) {
-            return LerpColorHex(startColor, endColor, 0);
-        }
-        const t = index / (data.length - 1);
-        // if name = 'Others' and count is the correct othersCount, use a fixed color
-        if (item.value === 'Others' && item.count === othersCount) {
-            return '#efefef';
-        }
-        // do the same with null
-        if (item.value === null || item.value === 'null' || item.value === undefined || item.value === 'undefined') {
-            return '#efefef';
-        }
+        const t = filtered.length === 1 ? 0 : index / (filtered.length - 1);
+
+        if (item.value === "Others") return "#efefef";
+        if (item.value === "null") return "#efefef";
+        if (item.value === "undefined") return "#efefef";
+
         return LerpColorHex(startColor, endColor, 1 - t);
     });
 
-
-
-    function onChartReady(instance: EChartsInstance){
-        instance.on('click', (params: any) => {
-            const index = params.dataIndex;
-            console.log(index);
-            if (typeof index !== 'number') return;
-            const element = categories[index];
-
-            setSelected(prev => {
-                // Toggle logic
-                if (prev.includes(element)) {
-                    // remove
-                    return prev.filter(x => x !== element);
-                } else {
-                    // add
-                    return [...prev, element];
-                }
-            });
-        });
-    }
-
-    const counts = data.map(item => item.count);
-    const maxCount = Math.max(...counts);
-
-    // Fixed bar height for all bars
+    // Bar sizing
     const barHeight = 20;
     const barGap = 2;
-    const chartHeight = data.length * (barHeight + barGap) + 8; // 8px for top/bottom padding
+    const chartHeight = filtered.length * (barHeight + barGap) + 8;
 
-    const option = {
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'shadow'
-            },
-            formatter: (params: any) => {
-                const dataIndex = params[0].dataIndex;
-                const item = data[dataIndex];
-                const valueStr = item.value === null ? 'null' :
-                               item.value === undefined ? 'undefined' :
-                               String(item.value);
-                const percentage = ((item.count / nonNullCount) * 100).toFixed(1);
-                return `<strong>${valueStr}</strong><br/>Count: ${formatNumber(item.count)} (${percentage}%)`;
-            },
-            appendToBody: true,
-            z: 99999,
-        },
-        grid: {
-            left: 4,
-            right: 4,
-            top: 4,
-            bottom: 4,
-            containLabel: false,
-        },
-        xAxis: {
-            type: 'value',
-            show: false,
-            max: maxCount,
-        },
-        yAxis: {
-            show: false,
-            type: 'category',
-        },
-        series: [
-            {
-                type: 'bar',
-                data: counts.map(() => maxCount),
-                yAxisIndex: 0,
-
-                // IMPORTANT: let ECharts determine the *full slot size* automatically
-                barWidth: '100%',      // fills entire row slot
-                barGap: '-100%',       // stack directly on top
-
-                itemStyle: {
-                    color: 'rgba(0,0,0,0)', // invisible
+    // ECharts option
+    const option = useMemo(() => {
+        return {
+            tooltip: {
+                trigger: "axis",
+                axisPointer: { type: "shadow" },
+                formatter: (params: any) => {
+                    const i = params[0].dataIndex;
+                    const item = filtered[i];
+                    const percentage = ((item.count / nonNullCount) * 100).toFixed(1);
+                    return `<strong>${item.value}</strong><br/>Count: ${formatNumber(
+                        item.count
+                    )} (${percentage}%)`;
                 },
-                silent: false,
-                z: 0,
+                appendToBody: true,
+                z: 99999
             },
-            {
-                type: 'bar',
-                data: counts,
-                itemStyle: {
-                    color: (params: any) => colors[params.dataIndex],
-                    borderWidth: 1,
-                    borderRadius: [1, 1, 1, 1],
+            grid: {
+                left: 4,
+                right: 4,
+                top: 4,
+                bottom: 4,
+                containLabel: false
+            },
+            xAxis: {
+                type: "value",
+                show: false,
+                max: maxCount
+            },
+            yAxis: {
+                type: "category",
+                show: false,
+                data: categories          // ensure correct alignment
+            },
+            series: [
+                // Background clickable band
+                {
+                    type: "bar",
+                    data: counts.map(() => maxCount),
+                    barWidth: "100%",
+                    barGap: "-100%",
+                    itemStyle: { color: "rgba(0,0,0,0)" },
+                    silent: false,
+                    z: 0
                 },
-                label: {
-                    show: true,
-                    position: 'insideLeft',
-                    formatter: (params: any) => {
-                        const name = categories[params.dataIndex];
-                        const percentage = ((params.value / nonNullCount) * 100).toFixed(1);
-                        return `${name}`;
+                // Visible bars
+                {
+                    type: "bar",
+                    data: counts,
+                    itemStyle: {
+                        color: (p: any) => colors[p.dataIndex],
+                        borderWidth: 1,
+                        borderRadius: [1, 1, 1, 1]
                     },
-                    fontSize: 11,
-                },
-                barWidth: barHeight,
-                barCategoryGap: barGap,
-                z: 1,
-            }
-        ],
-    };
+                    label: {
+                        show: true,
+                        position: "insideLeft",
+                        formatter: (p: any) => categories[p.dataIndex],
+                        fontSize: 11
+                    },
+                    barWidth: barHeight,
+                    barCategoryGap: barGap,
+                    z: 1
+                }
+            ]
+        };
+    }, [filtered, colors, categories, counts, maxCount, nonNullCount]);
+
+    function registerHandler(instance: EChartsInstance) {
+        const handler = (params: any) => {
+            const index = params.dataIndex;
+            if (typeof index !== "number") return;
+            const value = categories[index];
+
+            setSelected(prev =>
+                prev.includes(value)
+                    ? prev.filter(v => v !== value)
+                    : [...prev, value]
+            );
+        };
+
+        instance.off("click");
+        instance.on("click", handler);
+
+        return handler;
+    }
+
+    // Bind click handler reactively
+    useEffect(() => {
+        const instance = chartRef.current;
+        if (!instance) return;
+        const handler = registerHandler(instance);
+
+
+        return () => {
+            instance.off("click", handler);
+        };
+    }, [categories]);
+
+    function onChartReady(instance: EChartsInstance) {
+        chartRef.current = instance;
+        registerHandler(instance);
+    }
 
     return (
         <div
             className={className}
             style={{
-                maxHeight: '200px',
-                overflowY: 'auto',
-                scrollbarWidth: 'none', // Firefox
-                msOverflowStyle: 'none', // IE/Edge
+                maxHeight: "200px",
+                overflowY: "auto",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none"
             }}
-            onWheel={(e) => {
-                // Prevent scroll propagation to parent table
-                e.stopPropagation();
-            }}
+            onWheel={e => e.stopPropagation()}
         >
             <style jsx>{`
                 div::-webkit-scrollbar {
-                    display: none; /* Chrome, Safari, Opera */
+                    display: none;
                 }
             `}</style>
-            {selected.length}
+
             <ReactECharts
                 option={option}
-                style={{ height: `${chartHeight}px`, width: '100%' }}
-                opts={{ renderer: 'canvas' }}
+                style={{ height: `${chartHeight}px`, width: "100%" }}
+                opts={{ renderer: "canvas" }}
                 onChartReady={onChartReady}
             />
         </div>
