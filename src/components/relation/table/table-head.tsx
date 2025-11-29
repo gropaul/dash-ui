@@ -40,9 +40,14 @@ export function TableHead(props: RelationViewTableContentProps) {
                     className="p-0 m-0 h-fit sticky left-0 z-20 bg-inherit w-20"
                 >
                     <DropdownMenu>
-                        <DropdownMenuTrigger className="flex items-center justify-center absolute top-[1px] h-8 border-b border-r w-20 hover:bg-accent/50">
-                            <Settings className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer"/>
+                        <DropdownMenuTrigger asChild>
+                            <div
+                                className="flex items-center justify-center absolute top-[1px] h-8 border-b border-r w-20 hover:bg-accent/50"
+                            >
+                                <Settings className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer"/>
+                            </div>
                         </DropdownMenuTrigger>
+
                         <TableDropDownContent {...props} columnNames={columnNames}/>
                     </DropdownMenu>
                     <div className={'absolute top-0 h-full w-full border-b border-r pointer-events-none'}>
@@ -66,9 +71,7 @@ export function TableHead(props: RelationViewTableContentProps) {
 
             {/* Column dropdown menu - positioned absolutely based on click location */}
             <DropdownMenu open={columnMenuOpen} onOpenChange={setColumnMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                    <span className="hidden"/>
-                </DropdownMenuTrigger>
+
                 <DropdownMenuContent
                     style={{
                         position: "fixed",
