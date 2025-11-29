@@ -3,10 +3,12 @@
 import dynamic from "next/dynamic";
 import {formatNumber} from "@/platform/number-utils";
 import {LerpColorHex} from "@/platform/colors-utils";
+import {useState} from "react";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {
     ssr: false,
 });
+
 
 interface TopNChartProps {
     topValues: { value: any; count: number }[];
@@ -21,9 +23,27 @@ export function ColumnStatsViewTopN({ topValues, othersCount, nonNullCount, clas
     if (othersCount && othersCount > 0) {
         data.push({ value: 'Others', count: othersCount });
     }
-
     // order the data by count ascending
     data.sort((a, b) => a.count - b.count);
+
+    const [selected, setSelected] = useState<any[]>([])
+
+    const onEvents = {
+        click: (params: any) => {
+            const index = params.dataIndex;
+
+            if (typeof index !== 'number') return;
+            const element = data[index];
+
+            if (selected.includes(element.value)) {
+                setSelected(selected.filter(v => v !== element.value));
+            } else {
+                setSelected([...selected, element.value]);
+            }
+        },
+    };
+
+
 
     const startColor = '#afc9ff';
     const endColor = '#e6eeff';
@@ -33,13 +53,10 @@ export function ColumnStatsViewTopN({ topValues, othersCount, nonNullCount, clas
             return LerpColorHex(startColor, endColor, 0);
         }
         const t = index / (data.length - 1);
-
-
         // if name = 'Others' and count is the correct othersCount, use a fixed color
         if (item.value === 'Others' && item.count === othersCount) {
             return '#efefef';
         }
-
         // do the same with null
         if (item.value === null || item.value === 'null' || item.value === undefined || item.value === 'undefined') {
             return '#efefef';
@@ -142,6 +159,7 @@ export function ColumnStatsViewTopN({ topValues, othersCount, nonNullCount, clas
                 option={option}
                 style={{ height: `${chartHeight}px`, width: '100%' }}
                 opts={{ renderer: 'svg' }}
+                onEvents={onEvents}
             />
         </div>
     );

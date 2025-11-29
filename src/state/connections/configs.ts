@@ -65,7 +65,6 @@ export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"
 }
 
 export function specToConnection(spec: DBConnectionSpec): DatabaseConnection {
-    console.log("specToConnection", spec);
     switch (spec.type) {
         case "duckdb-over-http":
             return new DuckDBOverHttp(spec.config as DuckDBOverHttpConfig, DATABASE_CONNECTION_ID_DUCKDB_LOCAL);
