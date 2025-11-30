@@ -16,6 +16,7 @@ export type updateRelationFunction = (relation: RelationState) => void;
 
 export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     updateRelationDataWithParams: (query: ViewQueryParameters) => Promise<void>,
+    // Deleting elements from an object does not work with partial updates, use updateRelation directly for that
     updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void,
 }
 

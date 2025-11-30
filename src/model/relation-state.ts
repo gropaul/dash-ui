@@ -203,12 +203,13 @@ export type ColumnFilterRange = {
     max?: number;
 };
 
-export type ColumnFilterValues = {
+// will convert into an col IN (val1, ...)
+export type ColumnFilterIn = {
     type: 'values';
     values: any[];
 };
 
-export type ColumnFilter = ColumnFilterRange | ColumnFilterValues;
+export type ColumnFilter = ColumnFilterRange | ColumnFilterIn;
 
 export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | undefined {
     switch (current) {

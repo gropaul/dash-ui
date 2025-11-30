@@ -47,9 +47,12 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
     }
 
     async function resetTableViewState() {
-        props.updateRelationViewState({
-            tableState: getInitialTableDisplayStateEmpty()
-        });
+
+        const relationCopy = {...props.relationState};
+        relationCopy.viewState.tableState = getInitialTableDisplayStateEmpty();
+        relationCopy.viewState.tableState.showStats = props.relationState.viewState.tableState.showStats;
+        props.updateRelation(relationCopy);
+
         await props.updateRelationDataWithParams({
             ...props.relationState.query.viewParameters,
             table: getInitialTableQueryParameters()

@@ -1,25 +1,27 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { formatNumber } from "@/platform/number-utils";
-import { LerpColorHex } from "@/platform/colors-utils";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { EChartsInstance } from "echarts-for-react";
+import {formatNumber} from "@/platform/number-utils";
+import {LerpColorHex} from "@/platform/colors-utils";
+import {useEffect, useMemo, useRef, useState} from "react";
+import {EChartsInstance} from "echarts-for-react";
 
-const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
+const ReactECharts = dynamic(() => import("echarts-for-react"), {ssr: false});
 
 interface TopNChartProps {
     topValues: { value: any; count: number }[];
     othersCount?: number;
     nonNullCount: number;
     className?: string;
+    onSelectedChange: (selected: string[]) => void; // todo: how to handle numbers/nulls?
 }
 
 export function ColumnStatsViewTopN({
                                         topValues,
                                         othersCount,
                                         nonNullCount,
-                                        className
+                                        className,
+                                        onSelectedChange
                                     }: TopNChartProps) {
 
     // Keep the chart instance here so React can re-bind handlers correctly
@@ -34,7 +36,7 @@ export function ColumnStatsViewTopN({
     const rawData = useMemo(() => {
         const data = [...topValues];
         if (othersCount && othersCount > 0) {
-            data.push({ value: "Others", count: othersCount });
+            data.push({value: "Others", count: othersCount});
         }
         return data;
     }, [topValues, othersCount]);
@@ -54,7 +56,7 @@ export function ColumnStatsViewTopN({
                 count = 0;
             }
 
-            return { value, count };
+            return {value, count};
         });
     }, [rawData, selected]);
 
@@ -90,7 +92,7 @@ export function ColumnStatsViewTopN({
         return {
             tooltip: {
                 trigger: "axis",
-                axisPointer: { type: "shadow" },
+                axisPointer: {type: "shadow"},
                 formatter: (params: any) => {
                     const i = params[0].dataIndex;
                     const item = filtered[i];
@@ -126,7 +128,7 @@ export function ColumnStatsViewTopN({
                     data: counts.map(() => maxCount),
                     barWidth: "100%",
                     barGap: "-100%",
-                    itemStyle: { color: "rgba(0,0,0,0)" },
+                    itemStyle: {color: "rgba(0,0,0,0)"},
                     silent: false,
                     z: 0
                 },
@@ -159,11 +161,15 @@ export function ColumnStatsViewTopN({
             if (typeof index !== "number") return;
             const value = categories[index];
 
-            setSelected(prev =>
-                prev.includes(value)
+            setSelected(prev => {
+                const next = prev.includes(value)
                     ? prev.filter(v => v !== value)
-                    : [...prev, value]
-            );
+                    : [...prev, value];
+
+                console.log('onSelectedChange')
+                onSelectedChange(next);
+                return next;
+            });
         };
 
         instance.off("click");
@@ -208,8 +214,8 @@ export function ColumnStatsViewTopN({
 
             <ReactECharts
                 option={option}
-                style={{ height: `${chartHeight}px`, width: "100%" }}
-                opts={{ renderer: "canvas" }}
+                style={{height: `${chartHeight}px`, width: "100%"}}
+                opts={{renderer: "canvas"}}
                 onChartReady={onChartReady}
             />
         </div>

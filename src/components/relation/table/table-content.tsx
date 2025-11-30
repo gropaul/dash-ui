@@ -22,8 +22,6 @@ export const TableContent = React.memo(function TableContent(props: RelationView
     const limitRows = relationState.query.viewParameters.table.limit;
     const offset = relationState.lastExecutionMetaData?.lastResultOffset || 0;
 
-    const columns = React.useMemo(() => data.columns, [data.columns]);
-    const viewIndices = React.useMemo(() => columnViewIndices, [columnViewIndices]);
     const rowsSlice = React.useMemo(() => data.rows.slice(0, limitRows), [data.rows, limitRows]);
 
     // Get column widths from table state

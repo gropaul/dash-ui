@@ -2,6 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import {Column} from "@/model/data-source-connection";
 import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {
+    ColumnFilterIn,
     ColumnSorting,
     ColumnStats,
     getNextColumnSorting, RelationStats,
@@ -34,13 +35,6 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
     const tableViewState = props.relationState.viewState.tableState;
     const columnState = tableViewState.columnStates[column.name] ?? INITIAL_COLUMN_VIEW_STATE;
-    const [localColumnWidth, setLocalColumnWidth] = React.useState<number>(columnState.width);
-
-    // create throttled updater (memoize, so it doesn’t recreate every render)
-    const throttledUpdateWidthGlobal = useMemo(
-        () => throttleLatest(UpdateColumnWidthGlobalState, 10),
-        [props.relationState.viewState.tableState, column.name, props.updateRelationViewState]
-    );
 
     function UpdateColumnWidthGlobalState(newWidth: number) {
         const newStates = {...tableViewState.columnStates};
@@ -56,12 +50,8 @@ export function TableColumnHead(props: ColumnHeadProps) {
         });
     }
 
-    function onSetColumnWidth(newWidth: number) {
-        setLocalColumnWidth(newWidth);
-        UpdateColumnWidthGlobalState(newWidth);
-    }
-
-    let columnWidthString = localColumnWidth + 'px';
+    let localColumnWidth = columnState.width;
+    let columnWidthString = localColumnWidth.toString() + 'px';
 
     const {listeners, setNodeRef: setDraggableNodeRef} = useDraggable({id: column.name});
     const {setNodeRef: setDroppableNodeRef} = useDroppable({id: column.name});
@@ -106,6 +96,31 @@ export function TableColumnHead(props: ColumnHeadProps) {
         props.updateRelationDataWithParams(queryParams);
     }
 
+    function onSelectedChange(selected: string[]) {
+
+        const newFilter: ColumnFilterIn =  {
+            type: "values",
+            values: selected,
+        }
+
+        const filterCopy = {...queryParameters.table.filters}
+
+        if (selected.length > 0) {
+            filterCopy[props.column.name] = newFilter;
+        } else {
+            delete filterCopy[props.column.name];
+        }
+
+        const queryParams: ViewQueryParameters = {
+            ...queryParameters,
+            table: {
+                ...queryParameters.table,
+                filters: filterCopy
+            }
+        }
+        props.updateRelationDataWithParams(queryParams);
+    }
+
     return (
 
         <ColumnHeadWrapper
@@ -113,6 +128,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
             columnWidth={columnWidthString}
             relationStats={props.relationStats}
             relationState={props.relationState}
+            onSelectedChange={onSelectedChange}
         >
             <div
                 ref={setDroppableNodeRef}
@@ -147,7 +163,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
             <ColumnHeadResizeHandle
 
                 currentWidth={localColumnWidth}
-                updateColumnWidth={onSetColumnWidth}
+                updateColumnWidth={UpdateColumnWidthGlobalState}
 
             />
         </ColumnHeadWrapper>
@@ -189,6 +205,7 @@ function ColumnHeadWrapper(props: ColumnHeadWrapperProps) {
             </div>
 
             <ColumnStatsView
+                onSelectedChange={props.onSelectedChange}
                 columnIndex={props.columnIndex}
                 relationState={props.relationState}
                 relationStats={props.relationStats}

@@ -12,14 +12,14 @@ export interface ColumnStatsProps {
     className?: string;
     relationState: RelationState
     columnIndex: number;
+    onSelectedChange: (selected: string[]) => void;
 }
 
-export function ColumnStatsView({relationStats, className, relationState, columnIndex}: ColumnStatsProps) {
+export function ColumnStatsView({relationStats, className, relationState, columnIndex, onSelectedChange}: ColumnStatsProps) {
 
     const showStats = relationState.viewState.tableState.showStats;
     if (!showStats) {
         return <></>
-        return <div className={cn("w-full h-6 flex items-center justify-center")}></div>;
     }
 
     if (!relationStats) {
@@ -43,6 +43,7 @@ export function ColumnStatsView({relationStats, className, relationState, column
                             relationStats={relationStats}
                             columnIndex={columnIndex}
                             className={'h-full w-full'}
+                            onSelectedChange={onSelectedChange}
                         />
                     </ErrorBoundary>
                 </div>
@@ -55,11 +56,12 @@ export function ColumnStatsView({relationStats, className, relationState, column
 
 interface ColumnsStatsViewContentProps {
     relationStats: RelationStats,
-    columnIndex: number;
-    className: string
+    columnIndex: number,
+    className: string,
+    onSelectedChange: (selected: string[]) => void,
 }
 
-function ColumnsStatsViewContent({relationStats, columnIndex, className}: ColumnsStatsViewContentProps) {
+function ColumnsStatsViewContent({relationStats, columnIndex, className, onSelectedChange}: ColumnsStatsViewContentProps) {
 
     if (relationStats.state === 'loading') {
         return <div className={cn("w-full text-muted-foreground flex items-center justify-center", className)}>
@@ -90,6 +92,7 @@ function ColumnsStatsViewContent({relationStats, columnIndex, className}: Column
             </div>
         );
     }
+
     switch (columnStats.type) {
         case 'histogram':
             return (
@@ -107,6 +110,7 @@ function ColumnsStatsViewContent({relationStats, columnIndex, className}: Column
                     topValues={columnStats.topValues}
                     othersCount={columnStats.othersCount}
                     nonNullCount={columnStats.nonNullCount}
+                    onSelectedChange={onSelectedChange}
                 />
             );
         case 'minMax':
