@@ -119,7 +119,14 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
             if (typeof index !== "number") return;
             const value = filtered[index].value;
             const newSelected = ToggleSelected(props.selected, selectedStrings, value);
-            props.onSelectedChange(newSelected);
+
+            console.log("ENABLE ME AGAIN");
+            // todo: current problems:
+            // 1. The filteres are added to the view query, not the raw query. The stats
+            // are using the raw query, so the filters don't apply to what the stats show.
+            // 2. If you define a filter on column A, then change the query to not contain
+            // column A, then the query will fail as it will try filter on a non-existing column.
+            // props.onSelectedChange(newSelected);
         };
 
         instance.off("click");
