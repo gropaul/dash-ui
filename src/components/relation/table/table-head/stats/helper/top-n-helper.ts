@@ -34,19 +34,19 @@ export function ToggleSelected(selected: any[], selectedStrings: string[], value
 }
 
 /// Adds others, Transforms all values to strings, set unselected items count to 0, sorts by count descending
-export function PreprocessRawData(props: TopNChartProps, selectedStrings: string[]): TopNItemTransformed[] {
+export function PreprocessRawData(topValues: TopNItem[], selectedStrings: string[], othersCount?: number): TopNItemTransformed[] {
 
-    const {topValues, othersCount, selected} = props;
+    const copy = [...topValues];
 
 
     if (othersCount && othersCount > 0) {
-        topValues.push({value: "Others", count: othersCount});
+        copy.push({value: "Others", count: othersCount});
     }
 
-    const filtered =  topValues.map(item => {
+    const filtered =  copy.map(item => {
         const stringValue = ItemToString(item.value);
         let count = item.count;
-        if (selected.length > 0 && !selectedStrings.includes(stringValue)) {
+        if (selectedStrings.length > 0 && !selectedStrings.includes(stringValue)) {
             count = 0;
         }
 

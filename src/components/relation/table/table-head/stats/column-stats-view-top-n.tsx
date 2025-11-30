@@ -34,19 +34,22 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
 
     // Apply filtering + convert values to strings
     const selectedStrings = props.selected.map(item => ItemToString(item));
-    const filtered = PreprocessRawData(props, selectedStrings);
-    const colors = GetColors(filtered, selectedStrings)
+    const filtered = useMemo(()=>{
+        return PreprocessRawData(props.topValues,  selectedStrings, props.othersCount);
+    }, [props.topValues, props.othersCount, props.selected]);
 
-    // extract raw data
-    const categories = filtered.map(item => item.valueString);
-    const counts = filtered.map(item => item.count);
-    const maxCount = counts.length === 0 ? 0 : Math.max(...counts);
 
     // Bar sizing
     const chartHeight = filtered.length * (barHeight + barGap) + 8;
 
     // ECharts option
     const option = useMemo(() => {
+        const colors = GetColors(filtered, selectedStrings)
+        // extract raw data
+        const categories = filtered.map(item => item.valueString);
+        const counts = filtered.map(item => item.count);
+        const maxCount = counts.length === 0 ? 0 : Math.max(...counts);
+
         return {
             tooltip: {
                 trigger: "axis",
@@ -111,7 +114,7 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
                 }
             ]
         };
-    }, [filtered, colors, categories, counts, maxCount, props.nonNullCount]);
+    }, [filtered, props.nonNullCount]);
 
     function registerHandler(instance: EChartsInstance) {
         const handler = (params: any) => {
@@ -145,7 +148,7 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
         return () => {
             instance.off("click", handler);
         };
-    }, [categories]);
+    }, [props.topValues, props.othersCount, props.selected]);
 
     function onChartReady(instance: EChartsInstance) {
         chartRef.current = instance;
@@ -174,6 +177,7 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
                 style={{height: `${chartHeight}px`, width: "100%"}}
                 opts={{renderer: "canvas"}}
                 onChartReady={onChartReady}
+                lazyUpdate={true}
             />
         </div>
     );
