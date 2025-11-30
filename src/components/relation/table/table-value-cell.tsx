@@ -30,7 +30,6 @@ export const TableValueCell = React.memo(function TableValueCell({column, elemen
     return <td
         className="relative px-4 py-1 group"
         style={{
-            backgroundColor: "white",
             overflow: "hidden",
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
