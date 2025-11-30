@@ -2,89 +2,47 @@
 
 import dynamic from "next/dynamic";
 import {formatNumber} from "@/platform/number-utils";
-import {LerpColorHex} from "@/platform/colors-utils";
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useMemo, useRef} from "react";
 import {EChartsInstance} from "echarts-for-react";
+import {
+    GetColors,
+    ItemToString,
+    PreprocessRawData, ToggleSelected
+} from "@/components/relation/table/table-head/stats/helper/top-n-helper";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {ssr: false});
 
-interface TopNChartProps {
-    topValues: { value: any; count: number }[];
+export type TopNItem = { value: any; count: number }
+export type TopNItemTransformed = { valueString: string } & TopNItem;
+
+const barHeight = 20;
+const barGap = 2;
+
+export interface TopNChartProps {
+    topValues: TopNItem[];
     othersCount?: number;
     nonNullCount: number;
     className?: string;
-    onSelectedChange: (selected: string[]) => void; // todo: how to handle numbers/nulls?
+    selected: any[];
+    onSelectedChange: (selected: any[]) => void;
 }
 
-export function ColumnStatsViewTopN({
-                                        topValues,
-                                        othersCount,
-                                        nonNullCount,
-                                        className,
-                                        onSelectedChange
-                                    }: TopNChartProps) {
+export function ColumnStatsViewTopN(props: TopNChartProps) {
 
     // Keep the chart instance here so React can re-bind handlers correctly
     const chartRef = useRef<EChartsInstance | null>(null);
 
-    const [selected, setSelected] = useState<string[]>([]);
-
-    const startColor = "#afc9ff";
-    const endColor = "#e6eeff";
-
-    // Build base data
-    const rawData = useMemo(() => {
-        const data = [...topValues];
-        if (othersCount && othersCount > 0) {
-            data.push({value: "Others", count: othersCount});
-        }
-        return data;
-    }, [topValues, othersCount]);
-
     // Apply filtering + convert values to strings
-    const filtered = useMemo(() => {
-        return rawData.map(item => {
-            const value =
-                item.value === null
-                    ? "null"
-                    : item.value === undefined
-                        ? "undefined"
-                        : String(item.value);
+    const selectedStrings = props.selected.map(item => ItemToString(item));
+    const filtered = PreprocessRawData(props, selectedStrings);
+    const colors = GetColors(filtered, selectedStrings)
 
-            let count = item.count;
-            if (selected.length > 0 && !selected.includes(value)) {
-                count = 0;
-            }
-
-            return {value, count};
-        });
-    }, [rawData, selected]);
-
-    // Sort by count ascending
-    filtered.sort((a, b) => a.count - b.count);
-
-    const categories = filtered.map(item => item.value);
+    // extract raw data
+    const categories = filtered.map(item => item.valueString);
     const counts = filtered.map(item => item.count);
     const maxCount = counts.length === 0 ? 0 : Math.max(...counts);
 
-    // Color mapping
-    const colors = filtered.map((item, index) => {
-        if (selected.includes(item.value)) {
-            return "#ff7d7d";
-        }
-
-        const t = filtered.length === 1 ? 0 : index / (filtered.length - 1);
-
-        if (item.value === "Others") return "#efefef";
-        if (item.value === "null") return "#efefef";
-        if (item.value === "undefined") return "#efefef";
-
-        return LerpColorHex(startColor, endColor, 1 - t);
-    });
-
     // Bar sizing
-    const barHeight = 20;
-    const barGap = 2;
     const chartHeight = filtered.length * (barHeight + barGap) + 8;
 
     // ECharts option
@@ -96,7 +54,7 @@ export function ColumnStatsViewTopN({
                 formatter: (params: any) => {
                     const i = params[0].dataIndex;
                     const item = filtered[i];
-                    const percentage = ((item.count / nonNullCount) * 100).toFixed(1);
+                    const percentage = ((item.count / props.nonNullCount) * 100).toFixed(1);
                     return `<strong>${item.value}</strong><br/>Count: ${formatNumber(
                         item.count
                     )} (${percentage}%)`;
@@ -153,23 +111,15 @@ export function ColumnStatsViewTopN({
                 }
             ]
         };
-    }, [filtered, colors, categories, counts, maxCount, nonNullCount]);
+    }, [filtered, colors, categories, counts, maxCount, props.nonNullCount]);
 
     function registerHandler(instance: EChartsInstance) {
         const handler = (params: any) => {
             const index = params.dataIndex;
             if (typeof index !== "number") return;
-            const value = categories[index];
-
-            setSelected(prev => {
-                const next = prev.includes(value)
-                    ? prev.filter(v => v !== value)
-                    : [...prev, value];
-
-                console.log('onSelectedChange')
-                onSelectedChange(next);
-                return next;
-            });
+            const value = filtered[index].value;
+            const newSelected = ToggleSelected(props.selected, selectedStrings, value);
+            props.onSelectedChange(newSelected);
         };
 
         instance.off("click");
@@ -197,7 +147,7 @@ export function ColumnStatsViewTopN({
 
     return (
         <div
-            className={className}
+            className={props.className}
             style={{
                 maxHeight: "200px",
                 overflowY: "auto",

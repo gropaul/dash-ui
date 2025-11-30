@@ -111,6 +111,7 @@ function ColumnsStatsViewContent({relationStats, columnIndex, className, onSelec
                     othersCount={columnStats.othersCount}
                     nonNullCount={columnStats.nonNullCount}
                     onSelectedChange={onSelectedChange}
+                    selected={[]}
                 />
             );
         case 'minMax':
