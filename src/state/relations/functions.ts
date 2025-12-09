@@ -29,8 +29,12 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps): Adva
     return {
         updateRelation: updateRelation,
         updateRelationDataWithBaseQuery: async (baseQuery: string) => {
-            const newViewParams = resetQueryParams(relationState.query);
-            // todo: Here we need to update the relationState to contain the new base query and new params
+            let query = relationState.query.viewParameters;
+            if (relationState.query.baseQuery === baseQuery) {
+                query = resetQueryParams(relationState.query);
+            }
+            return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager, baseQuery);
+
         },
         updateRelationDataWithParams: async (query: ViewQueryParameters) => {
             return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager);
@@ -67,7 +71,20 @@ export async function updateRelationViewState(relation: RelationState, partialUp
     }
 }
 
-export async function updateAndExecuteRelation(relation: RelationState, viewQueryParameters: ViewQueryParameters, update: updateRelationFunction, inputManager?: InputManager) {
+export async function updateAndExecuteRelation(
+    relation: RelationState,
+    viewQueryParameters: ViewQueryParameters,
+    update: updateRelationFunction,
+    inputManager?: InputManager,
+    // the base query is only provided when rerunning the query from the play button, not if e.g.
+    // the view type changes
+    baseQuery?: string
+) {
+
+    // if a new base query is provided, set it to be the active one
+    if (baseQuery !== undefined) {
+        relation.query.activeBaseQuery = baseQuery;
+    }
 
     const loadingRelationState = setRelationLoading(relation); // Set it loading
     update(loadingRelationState);
