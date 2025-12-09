@@ -1,5 +1,5 @@
 import {RelationData} from "@/model/relation";
-import {ColumnStatsType, RelationState, RelationStats} from "@/model/relation-state";
+import {ColumnStatsType, buildQuery, RelationState, RelationStats} from "@/model/relation-state";
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {ValueType} from "@/model/value-type";
@@ -118,7 +118,9 @@ function buildStatsQuery(row_count: number, relation: RelationState, data: Relat
         .filter(part => part !== undefined)
         .join(', ');
 
-    const finalQuery = relation.query.finalQuery;
+    // todo: We need the InputManager here for the stats!!
+    const buildResult = buildQuery(relation)
+    const finalQuery = buildResult.finalQuery;
     const query = `
         WITH ${DATA_TABLE_NAME} AS (${finalQuery}),
              ${DATA_TRANSFORMED_TABLE_NAME} AS (SELECT ${transforms}

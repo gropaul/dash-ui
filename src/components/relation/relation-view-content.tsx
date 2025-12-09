@@ -6,7 +6,7 @@ import {TextField} from "@/components/relation/text-input/text-field";
 import {RelationData} from "@/model/relation";
 import {useRelationData} from "@/state/relations-data.state";
 import {RelationViewContentEmpty} from "@/components/relation/relation-view-content-empty";
-import {getUpdatedParams} from "@/model/relation-state";
+import {resetQueryParams} from "@/model/relation-state";
 
 const DATA_QUERY = "SELECT\n" +
     "     TO_JSON(LIST(geo_lng)) AS lng_list_json,\n" +
@@ -30,7 +30,7 @@ export function RelationViewContent(props: RelationViewProps) {
 
     async function onRunQuery() {
         // we need to reset the view params as the could be columns removed now that had filters before!
-        await props.updateRelationDataWithParams(getUpdatedParams(props.relationState.query.viewParameters));
+        await props.updateRelationDataWithBaseQuery(props.relationState.query.baseQuery);
     }
 
     if (!data) {

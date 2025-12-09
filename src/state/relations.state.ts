@@ -1,13 +1,9 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {
-    executeQueryOfRelationState,
+    executeQueryOfRelation,
     getInitialParams,
-    getViewFromSource,
+    getRelationStateFromSource,
     RelationState,
-    returnEmptyErrorState,
-    setRelationLoading,
-    updateRelationQueryForParams,
-    ViewQueryParameters,
 } from "@/model/relation-state";
 import {RelationViewState} from "@/model/relation-view-state";
 import {SchemaState} from "@/model/schema-state";
@@ -353,7 +349,7 @@ export const useRelationsState = createWithEqualityFn(
                     } else {
                         // update state with empty (loading) relation
                         const defaultQueryParams = getInitialParams('table');
-                        const emptyRelationState = getViewFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
+                        const emptyRelationState = getRelationStateFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
 
                         // as the relation did not exist yet, we also have to add a reference to the editor
                         const parent = findNodeInTrees(get().editorElements, editorPath);
@@ -372,7 +368,7 @@ export const useRelationsState = createWithEqualityFn(
                         useGUIState.getState().addEntityTab('relations', emptyRelationState);
 
                         // execute query
-                        const executedRelationState = await executeQueryOfRelationState(emptyRelationState);
+                        const executedRelationState = await executeQueryOfRelation(emptyRelationState);
                         set((state) => ({
                             relations: {
                                 ...state.relations,

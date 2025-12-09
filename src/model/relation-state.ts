@@ -45,7 +45,8 @@ export function getInitialParamsTextInput(): ViewQueryParameters {
 }
 
 //! Is called when the user changes the code and reruns the query -> Reset some view parameters
-export function getUpdatedParams(oldParams: ViewQueryParameters): ViewQueryParameters {
+export function resetQueryParams(queryData: QueryData): ViewQueryParameters {
+    const oldParams = queryData.viewParameters;
 
     if (oldParams.type === 'table') {
         return {
@@ -53,7 +54,9 @@ export function getUpdatedParams(oldParams: ViewQueryParameters): ViewQueryParam
             type: 'table',
             table: {
                 ...oldParams.table,
-                limit: oldParams.table.limit,
+                sorting: {},
+                filters: {},
+                offset: 0,
             },
         };
     } else if (oldParams.type === 'chart') {
@@ -222,7 +225,7 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export function getViewFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters, state: TaskExecutionState): RelationState {
+export function getRelationStateFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters, state: TaskExecutionState): RelationState {
 
     const name = getRelationNameFromSource(source);
     const relation: Relation = {
@@ -231,47 +234,21 @@ export function getViewFromSource(connectionId: string, source: RelationSource, 
         source: source,
         connectionId: connectionId,
     }
-
-    const relationBaseQuery = getBaseQueryFromSource(source);
-    let queryData: QueryData;
-    try {
-        queryData = getQueryFromParamsUnchecked(relation, viewParams, relationBaseQuery);
-    } catch (e) {
-        const relationWithQuery: RelationWithQuery = {
-            ...relation,
-            query: {
-                baseQuery: relationBaseQuery,
-                initialQueries: [],
-                schemaQuery: undefined,
-                countQuery: undefined,
-                finalQuery: relationBaseQuery,
-                viewParameters: viewParams,
-                viewQuery: relationBaseQuery
-            },
-            executionState: {
-                state: 'error',
-                error: getErrorMessage(e),
-            },
-            lastExecutionMetaData: undefined,
-        }
-        return {
-            ...relationWithQuery,
-            viewState: getInitViewState(name, undefined, undefined, true),
-        };
-    }
-
+    const baseQuery = getBaseQueryFromSource(source);
     const relationWithQuery: RelationWithQuery = {
         ...relation,
-        query: queryData,
+        query: {
+            baseQuery: baseQuery,
+            activeBaseQuery: baseQuery,
+            viewParameters: viewParams,
+        },
         executionState: state,
-        lastExecutionMetaData: undefined,
     }
-
     const showCode = source.type === 'query';
 
     return {
         ...relationWithQuery,
-        viewState: getInitViewState(name, undefined, [], showCode), // we will execute the query later
+        viewState: getInitViewState(name, undefined, undefined, showCode),
     };
 }
 
@@ -289,28 +266,26 @@ export function getBaseQueryFromSource(source: RelationSource): string {
     }
 }
 
-export interface QueryData {
-    baseQuery: string;  // the query that the user defined, e.g. FROM basetable
-    initialQueries: string[]; // the queries that must be run before the actual view query/count query
-    // the query defined by the view adding sorting etc, e.g. SELECT * FROM (FROM basetable), can be undefined if the
-    // base query is not viewable like CREATE TABLE
-    finalQuery: string; // the final query that was built from the base query, this is what the viewQuery is based on
+export interface QueryBuildResult {
+    // the queries that must be run before the actual view query/count query
+    initialQueries: string[];
+    // the final query that was built from the base query, this is what the viewQuery is based on
+    finalQuery: string;
+    // The query to get the data for the view
     viewQuery: string;
-    schemaQuery?: string; // the query to get the schema for the view, can be undefined if deduced from the view query
+    // the query to get the schema for the view, can be undefined if deduced from the view query
+    schemaQuery?: string;
     // the query getting the count for the view Query
     countQuery?: string;
-    viewParameters: ViewQueryParameters;
 }
 
-interface BuildQuery {
-    initialQueries: string[];
-    finalQuery: string;
-    viewQuery: string;
-    countQuery?: string;
-    schemaQuery?: string;
+export interface QueryData {
+    // the query that the user defined, e.g. FROM basetable, changes the moment the user edits the code
     baseQuery: string;
+    // the query that all new QueryParams should use as a base. This will be updated from the baseQuery when the user
+    // re-runs the query using the Play Button. But only adding an OrderBy or Filter will still use the last activeBaseQuery
+    activeBaseQuery: string;
     viewParameters: ViewQueryParameters;
-    // optionally return any other intermediate results if needed
 }
 
 export const getVariablesUsedByQuery = (query: string): string[] => {
@@ -350,14 +325,13 @@ const setVariablesInQuery = (query: string, manger?: InputManager): string => {
 }
 
 // 1. A helper that does all the heavy-lifting but doesn't do the async check.
-function buildQueries(
-    _relation: Relation,
-    query: ViewQueryParameters,
-    baseSQL: string,
+export function buildQuery(
+    relationState: RelationState,
     inputManager?: InputManager
-): BuildQuery {
-    const sqlWithVariables = setVariablesInQuery(baseSQL, inputManager);
+): QueryBuildResult {
+    const sqlWithVariables = setVariablesInQuery(relationState.query.activeBaseQuery, inputManager);
     const baseQueries = cleanAndSplitSQL(sqlWithVariables);
+    const viewParameters = relationState.query.viewParameters;
 
     const initialQueries = baseQueries.slice(0, -1);
     console.log('Base Queries:', baseQueries);
@@ -373,19 +347,19 @@ function buildQueries(
     let countQuery = undefined;
     let viewQuery;
     let schemaQuery = undefined;
-    if (query.type === 'table') {
-        viewQuery = buildTableQuery(query, finalQueryAsSubQuery);
-        const filterQuery = buildFilterWhereClause(query.table.filters, 'subquery');
+    if (viewParameters.type === 'table') {
+        viewQuery = buildTableQuery(viewParameters, finalQueryAsSubQuery);
+        const filterQuery = buildFilterWhereClause(viewParameters.table.filters, 'subquery');
         countQuery = `
             SELECT COUNT(*)
             FROM ${finalQueryAsSubQuery} as subquery ${filterQuery}
         `;
-    } else if (query.type === 'chart') {
-        const [lViewQuery, lSchemaQuery] = buildChartQuery(query, finalQueryAsSubQuery);
+    } else if (viewParameters.type === 'chart') {
+        const [lViewQuery, lSchemaQuery] = buildChartQuery(viewParameters, finalQueryAsSubQuery);
         viewQuery = lViewQuery;
         schemaQuery = lSchemaQuery;
     } else {
-        throw new Error(`Unknown view type: ${query.type}`);
+        throw new Error(`Unknown view type: ${viewParameters.type}`);
     }
 
     return {
@@ -394,8 +368,6 @@ function buildQueries(
         viewQuery,
         schemaQuery,
         countQuery,
-        baseQuery: baseSQL,
-        viewParameters: query,
     };
 }
 
@@ -506,23 +478,15 @@ function buildFilterWhereClause(filters?: { [key: string]: ColumnFilter | undefi
 }
 
 // 2. The async version that checks executability
-export async function getQueryFromParams(
-    relation: Relation,
-    query: ViewQueryParameters,
-    baseSQL: string,
-    inputManager?: InputManager,
-    check: boolean = true
-): Promise<QueryData> {
+export async function buildQueryWithCheck(relation: RelationState, inputManager?: InputManager): Promise<QueryBuildResult> {
     // Build the queries first
     const {
         initialQueries,
         finalQuery,
         viewQuery,
         countQuery,
-        baseQuery,
-        viewParameters,
         schemaQuery,
-    } = buildQueries(relation, query, baseSQL, inputManager);
+    } = buildQuery(relation, inputManager);
 
     // Then do your async check:
     const executable = await ConnectionsService
@@ -536,40 +500,8 @@ export async function getQueryFromParams(
         countQuery: executable ? countQuery : undefined,
         viewQuery: executable ? viewQuery : finalQuery,
         initialQueries,
-        baseQuery,
-        viewParameters,
     };
 }
-
-// 3. The sync version that SKIPS the check
-export function getQueryFromParamsUnchecked(
-    relation: Relation,
-    query: ViewQueryParameters,
-    baseSQL: string
-): QueryData {
-    // Same shared build
-    const {
-        initialQueries,
-        finalQuery,
-        viewQuery,
-        schemaQuery,
-        countQuery,
-        baseQuery,
-        viewParameters,
-    } = buildQueries(relation, query, baseSQL);
-
-    // No check => always return viewQuery & countQuery
-    return {
-        countQuery,
-        viewQuery,
-        finalQuery,
-        schemaQuery,
-        initialQueries,
-        baseQuery,
-        viewParameters,
-    };
-}
-
 
 export function setRelationLoading(relation: RelationState): RelationState {
     return {
@@ -578,18 +510,6 @@ export function setRelationLoading(relation: RelationState): RelationState {
             state: 'running',
         },
     };
-}
-
-export async function updateRelationQueryForParams(relation: RelationState, newParams: ViewQueryParameters, inputManger?: InputManager): Promise<RelationState> {
-    const baseQuery = relation.query.baseQuery;
-    const query = await getQueryFromParams(relation, newParams, baseQuery, inputManger);
-
-    return {
-        ...relation,
-        query: query,
-        executionState: relation.executionState,
-    };
-
 }
 
 export function returnEmptyErrorState(relation: RelationState, error: unknown): RelationState {
@@ -609,19 +529,16 @@ export function returnEmptyErrorState(relation: RelationState, error: unknown): 
     }
 }
 
+// builds and executes the query and updates the view state
+export async function executeQueryOfRelation(input: RelationState, inputManager?: InputManager): Promise<RelationState> {
 
-// executes the query and updates the view state
-export async function executeQueryOfRelationState(input: RelationState): Promise<RelationState> {
-
-    const viewQuery = input.query.viewQuery;
-    const countQuery = input.query.countQuery;
-    const schemaQuery = input.query.schemaQuery;
+    const buildResult = await buildQueryWithCheck(input, inputManager);
 
     // start a timer to measure the query duration
     const start = performance.now();
 
     // first execute the initial queries
-    for (const query of input.query.initialQueries) {
+    for (const query of buildResult.initialQueries) {
         try {
             await ConnectionsService.getInstance().executeQuery(query);
         } catch (e) {
@@ -632,9 +549,9 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     let viewData: RelationData;
     let countData;
 
-    if (viewQuery) {
+    if (buildResult.viewQuery) {
         try {
-            const cacheResult = await useRelationDataState.getState().updateDataFromQuery(input, viewQuery);
+            const cacheResult = await useRelationDataState.getState().updateDataFromQuery(input, buildResult.viewQuery);
             viewData = cacheResult.data;
         } catch (e) {
             return returnEmptyErrorState(input, e);
@@ -649,9 +566,9 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
     }
 
     let schemaColumns = [];
-    if (schemaQuery) {
+    if (buildResult.schemaQuery) {
         try {
-            const schemaData = await ConnectionsService.getInstance().executeQuery(schemaQuery);
+            const schemaData = await ConnectionsService.getInstance().executeQuery(buildResult.schemaQuery);
             schemaColumns = schemaData.columns;
 
         } catch (e) {
@@ -661,9 +578,9 @@ export async function executeQueryOfRelationState(input: RelationState): Promise
         schemaColumns = viewData.columns;
     }
 
-    if (countQuery) {
+    if (buildResult.countQuery) {
         try {
-            countData = await ConnectionsService.getInstance().executeQuery(countQuery);
+            countData = await ConnectionsService.getInstance().executeQuery(buildResult.countQuery);
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }

@@ -1,9 +1,8 @@
 import {
-    executeQueryOfRelationState,
-    RelationState,
+    executeQueryOfRelation,
+    RelationState, resetQueryParams,
     returnEmptyErrorState,
     setRelationLoading,
-    updateRelationQueryForParams,
     ViewQueryParameters
 } from "@/model/relation-state";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
@@ -15,7 +14,12 @@ import {RelationViewAPIProps} from "@/components/relation/relation-view";
 export type updateRelationFunction = (relation: RelationState) => void;
 
 export interface AdvancedRelationActions extends DefaultRelationZustandActions {
+    // Updates the relation data based on new query parameters. If the baseQuery changes, it should be provided.
+    // here
     updateRelationDataWithParams: (query: ViewQueryParameters) => Promise<void>,
+    // This will reset the query parameters to default and re-run the base query, which might have changed
+    // between this and the last call
+    updateRelationDataWithBaseQuery: (baseQuery: string) => Promise<void>,
     // Deleting elements from an object does not work with partial updates, use updateRelation directly for that
     updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void,
 }
@@ -24,8 +28,12 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps): Adva
     const {updateRelation, relationState} = props;
     return {
         updateRelation: updateRelation,
+        updateRelationDataWithBaseQuery: async (baseQuery: string) => {
+            const newViewParams = resetQueryParams(relationState.query);
+            // todo: Here we need to update the relationState to contain the new base query and new params
+        },
         updateRelationDataWithParams: async (query: ViewQueryParameters) => {
-            return updateRelationDataWithParams(relationState, query, updateRelation, props.inputManager);
+            return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager);
         },
         updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => {
             return updateRelationViewState(relationState, viewState, updateRelation);
@@ -55,18 +63,19 @@ export async function updateRelationViewState(relation: RelationState, partialUp
             ...viewParameters,
             type: partialUpdate.selectedView
         };
-        await updateRelationDataWithParams(updatedRelation, newViewParameters, update, undefined);
+        await updateAndExecuteRelation(updatedRelation, newViewParameters, update, undefined);
     }
 }
 
-export async function updateRelationDataWithParams(relation: RelationState, query: ViewQueryParameters, update: updateRelationFunction, inputManager?: InputManager) {
+export async function updateAndExecuteRelation(relation: RelationState, viewQueryParameters: ViewQueryParameters, update: updateRelationFunction, inputManager?: InputManager) {
 
     const loadingRelationState = setRelationLoading(relation); // Set it loading
     update(loadingRelationState);
 
     try {
-        const updatedRelationState = await updateRelationQueryForParams(loadingRelationState, query, inputManager); // Update the relation state
-        const executedRelationState = await executeQueryOfRelationState(updatedRelationState);
+        const updatedRelationState = {...relation}
+        relation.query.viewParameters = viewQueryParameters;
+        const executedRelationState = await executeQueryOfRelation(updatedRelationState, inputManager);
         // update state with new data and completed state
         update(executedRelationState);
     } catch (e) {

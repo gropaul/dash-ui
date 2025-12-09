@@ -13,7 +13,7 @@ import {RelationBlockData, RelationComponent} from "@/components/editor/tools/re
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN, ICON_TABLE} from "@/components/editor/tools/icons";
-import {updateRelationDataWithParams} from "@/state/relations/functions";
+import {updateAndExecuteRelation} from "@/state/relations/functions";
 
 /**
  * Base class for block tools that share common functionality
@@ -106,7 +106,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
             ...currentPrams,
         }
 
-        await updateRelationDataWithParams(this.data, newParams, this.updateAndRender.bind(this), this.inputManager);
+        await updateAndExecuteRelation(this.data, newParams, this.updateAndRender.bind(this), this.inputManager);
     }
 
 

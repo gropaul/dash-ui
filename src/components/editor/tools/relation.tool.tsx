@@ -17,7 +17,7 @@ import {
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
-import {updateRelationDataWithParams} from "@/state/relations/functions";
+import {updateAndExecuteRelation} from "@/state/relations/functions";
 
 export interface RelationBlockData extends RelationState {
 }
@@ -95,7 +95,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
             ...currentPrams,
             type: viewType,
         }
-        await updateRelationDataWithParams(this.data, newParams, this.updateAndRender.bind(this), this.inputManager);
+        await updateAndExecuteRelation(this.data, newParams, this.updateAndRender.bind(this), this.inputManager);
     }
 
     public showChartSettings(show: boolean) {

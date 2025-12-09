@@ -6,9 +6,8 @@ import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
 import {
-    executeQueryOfRelationState,
+    executeQueryOfRelation,
     getInitialParams,
-    getQueryFromParamsUnchecked,
     RelationState
 } from "@/model/relation-state";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
@@ -86,8 +85,7 @@ export async function getDefaultRelationBockData(sql: string, viewType:  Relatio
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }
-    const query = getQueryFromParamsUnchecked(relation, defaultQueryParams, sql)
-    const initalViewState = getInitViewState(
+    const initialViewState = getInitViewState(
         'New Data Element',
         undefined,
         [],
@@ -95,16 +93,20 @@ export async function getDefaultRelationBockData(sql: string, viewType:  Relatio
     );
     const relationState: RelationState = {
         ...relation,
-        query: query,
+        query: {
+            baseQuery: sql,
+            activeBaseQuery: sql,
+            viewParameters: defaultQueryParams
+        },
         viewState: {
-            ...initalViewState,
+            ...initialViewState,
         },
         executionState: {
             state: "not-started"
         }
     };
 
-    const executedRelationState = await executeQueryOfRelationState(relationState);
+    const executedRelationState = await executeQueryOfRelation(relationState);
 
     return {
         ...executedRelationState,

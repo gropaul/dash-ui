@@ -1,4 +1,4 @@
-import {getInitialParams, getQueryFromParamsUnchecked} from "@/model/relation-state";
+import {getInitialParams} from "@/model/relation-state";
 import {
     getInitialTabViewBaseState,
     getInitViewState,
@@ -47,7 +47,6 @@ export function getInitialDataElement(viewType: RelationViewType): RelationBlock
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }
-    const query = getQueryFromParamsUnchecked(relation, defaultQueryParams, baseQuery)
 
     const viewState =  getInitViewState(
             'New Data Element',
@@ -73,7 +72,11 @@ export function getInitialDataElement(viewType: RelationViewType): RelationBlock
     }
     return {
         ...relation,
-        query: query,
+        query: {
+            baseQuery: baseQuery,
+            activeBaseQuery: baseQuery,
+            viewParameters: defaultQueryParams
+        },
         viewState,
         executionState: {
             state: "not-started"

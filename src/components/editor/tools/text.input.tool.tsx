@@ -1,7 +1,7 @@
 // SelectBlockTool.tsx
 import type {BlockToolConstructorOptions, PasteEvent} from '@editorjs/editorjs';
 
-import {getInitialParams, getInitialParamsTextInput, getQueryFromParamsUnchecked} from '@/model/relation-state';
+import {getInitialParamsTextInput} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState} from "@/model/relation-view-state";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_SEARCH, ICON_SELECT, ICON_SETTING,} from "@/components/editor/tools/icons";
@@ -34,11 +34,9 @@ export function getInitialSelectDataElement(inputType: InputType): RelationBlock
         id: randomId,
         name: "select_" + randomId.substring(0, 8),
     }
-    const defaultQueryParams = getInitialParamsTextInput();
     const relation: Relation = {
         connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
     }
-    const query = getQueryFromParamsUnchecked(relation, defaultQueryParams, baseQuery)
     const initialViewState = getInitViewState(
         'New Data Element',
         undefined,
@@ -51,7 +49,11 @@ export function getInitialSelectDataElement(inputType: InputType): RelationBlock
     initialViewState.selectedView = 'select';
     return {
         ...relation,
-        query: query,
+        query: {
+            baseQuery: baseQuery,
+            activeBaseQuery: baseQuery,
+            viewParameters: getInitialParamsTextInput()
+        },
         viewState: initialViewState,
         executionState: {
             state: "not-started"
@@ -90,7 +92,7 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
         this.currentSelectValue = this.data.viewState.inputTextState.value;
         this.currentSelectName = this.data.viewState.inputTextState.name;
 
-        if (this.inputManager){
+        if (this.inputManager) {
             const inputSource: InputSource = {
                 blockId: this.interactiveId,
                 inputName: this.data.viewState.inputTextState.name,
