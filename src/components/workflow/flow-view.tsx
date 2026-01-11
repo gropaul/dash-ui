@@ -3,32 +3,22 @@
 import {useCallback, useState} from 'react';
 import {addEdge, applyEdgeChanges, applyNodeChanges, Background, Controls, ReactFlow} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import {FromNode} from "@/components/workflow/nodes/from";
-import {WhereNode} from "@/components/workflow/nodes/where";
+import {RelationNode} from "@/components/workflow/nodes/relation";
 
 const initialNodes = [
     {
         id: 'n1',
-        type: 'fromNode',
+        type: 'relationNode',
         position: { x: 0, y: 0 },
         data: { },
     },
-    {
-        id: 'n2',
-        type: 'whereNode',
-        position: { x: 200, y: 0 },
-        data: {
-
-        },
-    }
 ];
 const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
 
-export type NodeType = 'fromNode' | 'whereNode';
+export type NodeType = 'relationNode';
 
 const nodeTypes: { [key in NodeType]: React.FC<any> } = {
-    fromNode: FromNode,
-    whereNode: WhereNode
+    relationNode: RelationNode,
 };
 
 export function FlowView(){

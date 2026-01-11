@@ -12,7 +12,6 @@ export interface DashboardDataViewProps {
 
 export function DashboardDataView(props: DashboardDataViewProps) {
 
-
     return <RelationStateView
         embedded
         relationState={props.relation}

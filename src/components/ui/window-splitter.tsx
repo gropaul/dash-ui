@@ -80,7 +80,7 @@ export function WindowSplitter(props: WindowSplitterProps) {
 
             {needHandle && (
                 <div
-                    className={`${isHorizontal ? 'w-px h-full' : 'h-px w-full'} relative bg-border`}
+                    className={`${isHorizontal ? 'w-px h-full' : 'h-px w-full'} nodrag nopan relative bg-border`}
                     style={{ zIndex: 40, cursor: isHorizontal ? 'col-resize' : 'row-resize' }}
                     onMouseDown={onMouseDown}
                 >

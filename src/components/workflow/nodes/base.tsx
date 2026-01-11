@@ -1,9 +1,13 @@
 import {ReactNode} from "react";
 import {NodeType} from "@/components/workflow/flow-view";
+import {NodeResizer} from "@xyflow/react";
+import {cn} from "@/lib/utils";
 
 export interface NodeBodyProps {
     type: NodeType;
     children?: ReactNode;
+    className?: string;
+    selected: boolean;
 }
 
 interface BodyStyle {
@@ -11,8 +15,7 @@ interface BodyStyle {
 }
 
 const BodyStyles: Record<NodeType, BodyStyle> = {
-    fromNode: { displayName: "Data Source" },
-    whereNode: { displayName: "Filter" },
+    relationNode: { displayName: "Data Source" },
 };
 
 export function NodeBody(props: NodeBodyProps) {
@@ -21,7 +24,7 @@ export function NodeBody(props: NodeBodyProps) {
 
     // colors — feel free to swap shades
     const headerGradient =
-        type === "fromNode"
+        type === "relationNode"
             ? "linear-gradient(135deg, #ff9a8b, #ff6a88, #ff99ac)"
             : "linear-gradient(135deg, #6a11cb, #2575fc)";
 
@@ -29,10 +32,10 @@ export function NodeBody(props: NodeBodyProps) {
         <div className="flex flex-col w-full h-full">
             <div
                 className="flex-1 rounded-md overflow-hidden"
-                style={{ 
-                    padding: "2px", // Space for the gradient border
-                    background: headerGradient,
-                    boxShadow: "var(--node-shadow)"
+                style={{
+                    padding: "1px", // Space for the gradient border
+                    background: "#e4e4e4",
+                    // boxShadow: "var(--node-shadow)"
                 }}
             >
                 <div 
@@ -45,15 +48,7 @@ export function NodeBody(props: NodeBodyProps) {
                         flexDirection: "column"
                     }}
                 >
-                    <div
-                        className="text-sm font-semibold py-2 px-4"
-                        style={{
-                            color: "#333",
-                        }}
-                    >
-                        {title}
-                    </div>
-                    <div className="flex-1 p-2">{children}</div>
+                    <div className={cn("flex-1",props.className)}>{children}</div>
                 </div>
             </div>
         </div>
