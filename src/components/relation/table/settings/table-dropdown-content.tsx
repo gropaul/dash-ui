@@ -73,12 +73,12 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
                 <Columns3 />
                 Show / Hide Columns <ChevronRight className="ml-auto h-4 w-4"/>
             </ContentSelectColumns>
-            <DropdownMenuItem>
-                <ChartArea />
-                <span onClick={() => onShowStatsChange()}>
-                    {tableState.showStats ? "Hide" : "Show"} Statistics
-                </span>
-            </DropdownMenuItem>
+            {/*<DropdownMenuItem>*/}
+            {/*    <ChartArea />*/}
+            {/*    <span onClick={() => onShowStatsChange()}>*/}
+            {/*        {tableState.showStats ? "Hide" : "Show"} Statistics*/}
+            {/*    </span>*/}
+            {/*</DropdownMenuItem>*/}
             <DropdownMenuSeparator/>
             <DropdownMenuItem onClick={resetTableViewState}>
                 <RotateCcw />

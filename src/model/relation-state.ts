@@ -189,6 +189,7 @@ export interface RelationWithQuery extends Relation {
 }
 
 export function ShouldUpdateStats(relation: RelationState): boolean {
+    return false;
     return relation.viewState.selectedView === 'table' &&
         relation.viewState.tableState.showStats === true;
 

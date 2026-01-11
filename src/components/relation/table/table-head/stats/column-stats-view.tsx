@@ -18,6 +18,9 @@ export interface ColumnStatsProps {
 export function ColumnStatsView({relationStats, className, relationState, columnIndex, onSelectedChange}: ColumnStatsProps) {
 
     const showStats = relationState.viewState.tableState.showStats;
+
+    return <></>
+    // if (!showStats) {
     if (!showStats) {
         return <></>
     }
@@ -27,6 +30,7 @@ export function ColumnStatsView({relationStats, className, relationState, column
             No stats
         </>
     }
+
 
     return (
         <div className={'border-b border-border pr-1'}>
@@ -40,7 +44,7 @@ export function ColumnStatsView({relationStats, className, relationState, column
                         )}
                     >
                         <ColumnsStatsViewContent
-                            relationStats={relationStats}
+                            relationStats={relationStats!}
                             columnIndex={columnIndex}
                             className={'h-full w-full'}
                             onSelectedChange={onSelectedChange}
