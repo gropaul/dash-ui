@@ -1,14 +1,15 @@
 import {useState} from "react";
 
 
-import {Handle, Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
+import {Handle, Node, NodeProps, NodeResizer, NodeToolbar, Position} from '@xyflow/react';
 import {NodeBody} from "@/components/workflow/nodes/base";
 import {Column, DataSource} from "@/model/data-source-connection";
-import {RelationBlockData, RelationComponent} from "@/components/editor/tools/relation.tool";
+import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {getInitialDataElement} from "@/model/dashboard-state";
-import {DashboardDataView} from "@/components/dashboard/dashboard-data-view";
 import {RelationStateView} from "@/components/relation/relation-state-view";
+import {Button} from "@/components/ui/button";
+import {AlignLeft, Code} from "lucide-react";
 
 
 type NodeFromProps = {
@@ -36,7 +37,16 @@ export function RelationNode(props: NodeProps<FromNode>) {
 
     const manger = new InputManager()
     return (
-        <NodeBody type="relationNode" className={'pt-1 '} selected={props.selected}>
+        <NodeBody type="relationNode" className={''} selected={props.selected}>
+            <NodeToolbar isVisible={props.selected} position={Position.Left} align={'start'}>
+                <Button
+                    variant={'outline'}
+                    size={'icon'}
+                    className={'h-8 w-8'}
+                >
+                    <Code />
+                </Button>
+            </NodeToolbar>
             <NodeResizer
                 isVisible={props.selected}
                 minWidth={100}
@@ -49,10 +59,10 @@ export function RelationNode(props: NodeProps<FromNode>) {
                     inputManager={manger}
                 />
             </div>
-            <Handle type="source" position={Position.Right} />
-            <Handle type="source" position={Position.Left} />
-            <Handle type="source" position={Position.Top} />
-            <Handle type="source" position={Position.Bottom} />
+            <Handle type="source" position={Position.Top} id="a" />
+            <Handle type="source" position={Position.Right} id="b" />
+            <Handle type="source" position={Position.Bottom} id="c" />
+            <Handle type="source" position={Position.Left} id="d" />
         </NodeBody>
     );
 

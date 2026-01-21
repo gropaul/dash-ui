@@ -1,9 +1,22 @@
 'use client'
 
-import {useCallback, useState} from 'react';
-import {addEdge, applyEdgeChanges, applyNodeChanges, Background, Controls, ReactFlow} from '@xyflow/react';
+import {useCallback} from 'react';
+import {
+    addEdge,
+    Background,
+    Connection,
+    ConnectionMode,
+    Controls,
+    MarkerType,
+    ReactFlow,
+    useEdgesState,
+    useNodesState
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {RelationNode} from "@/components/workflow/nodes/relation";
+import FloatingEdge from "@/components/workflow/edge/floating-edge";
+
+import './flow-theme.css';
 
 const initialNodes = [
     {
@@ -12,8 +25,19 @@ const initialNodes = [
         position: { x: 0, y: 0 },
         data: { },
     },
+    {
+        id: 'n2',
+        type: 'relationNode',
+        position: { x: 10, y: 0 },
+        data: { },
+    },
+    {
+        id: 'n3',
+        type: 'relationNode',
+        position: { x: 0, y: 10 },
+        data: { },
+    },
 ];
-const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
 
 export type NodeType = 'relationNode';
 
@@ -21,20 +45,39 @@ const nodeTypes: { [key in NodeType]: React.FC<any> } = {
     relationNode: RelationNode,
 };
 
-export function FlowView(){
-    const [nodes, setNodes] = useState(initialNodes);
-    const [edges, setEdges] = useState(initialEdges);
+const edgeTypes = {
+    floating: FloatingEdge,
+};
 
-    const onNodesChange = useCallback(
-        (changes: any) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
-        [],
-    );
-    const onEdgesChange = useCallback(
-        (changes: any) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-        [],
-    );
+const initialEdges = [
+    {
+        id: '1-2',
+        source: 'n1',
+        target: 'n2',
+        sourceHandle: 'c',
+        targetHandle: 'a',
+        type: 'floating',
+        markerEnd: { type: MarkerType.ArrowClosed },
+    },
+];
+
+export function FlowView(){
+
+    const [nodes, , onNodesChange] = useNodesState(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
     const onConnect = useCallback(
-        (params: any) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
+        (connection: Connection) =>
+            setEdges((eds) =>
+                addEdge(
+                    {
+                        ...connection,
+                        type: 'floating',
+                        markerEnd: { type: MarkerType.Arrow },
+                    },
+                    eds,
+                ),
+            ),
         [],
     );
 
@@ -47,6 +90,8 @@ export function FlowView(){
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
+                connectionMode={ConnectionMode.Loose}
+                connectionRadius={32}
             >
                 <Background />
                 <Controls />
