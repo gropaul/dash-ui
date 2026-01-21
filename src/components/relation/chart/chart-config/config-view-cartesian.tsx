@@ -42,7 +42,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                 }
             }
         }
-        await updateDataForGroupBy(newState);
+        await updateRelationDataForConfigChanged(newState);
 
         props.updateRelationViewState(newState);
     }
@@ -62,7 +62,8 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     }
 
     async function updateYAxis(index: number, update: Partial<AxisConfig> | undefined) {
-        const yAxes = config.chart.plot.cartesian.yAxes ?? ([] as Partial<AxisConfig>[]);
+        const yAxesOriginal = config.chart.plot.cartesian.yAxes ?? ([] as Partial<AxisConfig>[]);
+        const yAxes = deepClone(yAxesOriginal);
 
         if (update === undefined) {
             // Delete the axis at the specified index
@@ -90,7 +91,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
             }
         }
 
-        await updateDataForGroupBy(newState);
+        await updateRelationDataForConfigChanged(newState);
         props.updateRelationViewState(newState);
     }
 
@@ -190,7 +191,8 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
     }
 
 
-    async function updateDataForGroupBy(update: DeepPartial<RelationViewState>) {
+    // Will update the relation data by rerunning the query if the axis configuration changed
+    async function updateRelationDataForConfigChanged(update: DeepPartial<RelationViewState>) {
 
         const oldChartState = props.relationState.viewState.chartState;
         const oldXAxs = oldChartState.chart.plot.cartesian.xAxis?.columnId;
@@ -204,17 +206,26 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         const newYAxes = updated.chartState?.chart?.plot?.cartesian?.yAxes?.map((x) => x.columnId);
         const newGroupBy = updated.chartState?.chart?.plot?.cartesian?.groupBy?.columnId;
 
-        console.log('There are some errors here')
         const xAxisChanged = newXAxis !== oldXAxs;
         const yAxisChanged = !arraysEqual(newYAxes, oldYAxisIds);
         const groupByChanged = newGroupBy !== oldGroupBy;
 
+        const changeHappened = xAxisChanged || yAxisChanged || groupByChanged;
+
         console.log('xAxisChanged', xAxisChanged, newXAxis, oldXAxs);
         console.log('yAxisChanged', yAxisChanged, newYAxes, oldYAxisIds);
         console.log('groupByChanged', groupByChanged, newGroupBy, oldGroupBy);
-        // Only update if the groupById is different and all data is ready
-        if ((xAxisChanged || yAxisChanged || groupByChanged) && newXAxis && newYAxes) {
-            await props.updateRelationDataWithParams({
+
+        if (!changeHappened) {
+            return;
+        }
+
+        // we now know that either x, ys, or group by changed.
+
+        // we have a group by if there is a y-axis and a group by column
+        const hasNowGroupBy = newGroupBy !== undefined && newYAxes !== undefined;
+        if (hasNowGroupBy){
+            return await props.updateRelationDataWithParams({
                 ...props.relationState.query.viewParameters,
                 chart: {
                     xAxis: newXAxis,
@@ -223,6 +234,15 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                 }
             })
         }
+
+        // else we have a normal plot, so we use all y axes
+        return await props.updateRelationDataWithParams({
+            ...props.relationState.query.viewParameters,
+            chart: {
+                xAxis: newXAxis,
+                yAxes: newYAxes,
+            }
+        });
     }
 
     async function updateGroupAxis(update: Partial<AxisConfig> | undefined) {
@@ -241,7 +261,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
         }
 
         props.updateRelationViewState(newState);
-        await updateDataForGroupBy(newState);
+        await updateRelationDataForConfigChanged(newState);
 
 
     }
