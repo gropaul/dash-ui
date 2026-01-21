@@ -6,18 +6,20 @@ import {removeSemicolon} from "@/platform/sql-utils";
 
 function GetFullViewName(id: string): string {
     const viewName = `cache-${id}`;
-    return `"${DEFAULT_STATE_SCHEMA_NAME}"."${viewName}"`;
+    // return `"${DEFAULT_STATE_SCHEMA_NAME}"."${viewName}"`;
+    // we can't use the schema as we can't create a temp schema
+    return `"${DEFAULT_STATE_SCHEMA_NAME}_dash_${viewName}"`;
 
 }
 
 function getMaterializedViewFromQuery(id: string, query: string, readonly: boolean): string {
-    const tmpPhrase = readonly ? 'TEMP TABLE' : 'TABLE';
+    const TEMP_TABLE = readonly ? 'TEMP TABLE' : 'TABLE';
     const tableName = GetFullViewName(id);
 
     // remove the semicolon in the query if it exists (can be everywhere in the query)
     query = removeSemicolon(query);
 
-    return `CREATE OR REPLACE ${tmpPhrase} ${tableName} AS (${query});`;
+    return `CREATE OR REPLACE ${TEMP_TABLE} ${tableName} AS (${query});`;
 }
 
 export async function loadCache(id: string): Promise<RelationData | undefined> {
