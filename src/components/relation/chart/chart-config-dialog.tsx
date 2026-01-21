@@ -37,7 +37,7 @@ export function ChartConfigDialog(props: ChartConfigDialogProps) {
                             <ResizablePanel defaultSize={70}>
                                 <ChartContentWrapper {...propsCopy} showOverlay={false}/>
                             </ResizablePanel>
-                            <ResizableHandle className={'mr-2'}/>
+                            <ResizableHandle className={'mr-2 !cursor-col-resize'}/>
                         </>
                     }
                     <ResizablePanel

@@ -187,7 +187,6 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
     }
 
     const buildResult = buildStatsQuery(row_count, relation, data);
-    console.log('Stats data:', buildResult.query);
 
     const statsData = await ConnectionsService.getInstance().executeQuery(buildResult.query);
 

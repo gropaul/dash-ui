@@ -137,6 +137,7 @@ export function NavigationBarContent(props: NavigationBarContentProps) {
                 {allTabs.map((tab, index) => (
                     <Fragment key={`panel-group-${tab}`}>
                         {tab != firstTab && true && <ResizableHandle
+                            className={'!cursor-row-resize'}
                             style={{display:actualSelectedTabs.includes(tab) ? 'block' : 'none'}}
                         />}
                         <ResizablePanel

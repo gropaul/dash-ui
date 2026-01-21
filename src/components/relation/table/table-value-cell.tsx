@@ -12,7 +12,6 @@ interface RowElementViewProps {
 export const TableValueCell = React.memo(function TableValueCell({column, element, width}: RowElementViewProps) {
 
     const stringElement: string = useMemo(() => {
-        console.log("Rendering TableValueCell:", {element, column});
         if (element === null || element === undefined) return "NULL";
 
         if (column.type === "List" || column.type === "Map" || column.type === "Struct") {

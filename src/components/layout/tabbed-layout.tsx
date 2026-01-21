@@ -16,6 +16,7 @@ import {useGUIState} from "@/state/gui.state";
 import {WorkflowTab} from "@/components/workflow/workflow-tab";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {NavigationBarMobile} from "@/components/layout/navigation-bar-mobile";
+import {cn} from "@/lib/utils";
 
 
 export function TabbedLayout() {
@@ -104,7 +105,7 @@ export function DesktopLayout(props: LayoutProps) {
             >
                 {<NavigationBarContent selectedTabs={selectedTabs}/>}
             </ResizablePanel>
-            <ResizableHandle className={hasNonEmptyTabs ? '' : 'hidden'}/>
+            <ResizableHandle className={cn(hasNonEmptyTabs ? '' : 'hidden', '!cursor-col-resize')}/>
             <ResizablePanel
                 defaultSize={hasNonEmptyTabs ? (100 - panelRatio) : 100}
                 minSize={40}
