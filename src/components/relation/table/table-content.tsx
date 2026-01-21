@@ -33,6 +33,11 @@ export const TableContent = React.memo(function TableContent(props: RelationView
         });
     }, [relationState.viewState.tableState, data.columns]);
 
+    // Calculate total table width: row number column (80px) + all column widths
+    const totalTableWidth = React.useMemo(() => {
+        return 80 + columnWidths.reduce((sum, w) => sum + w, 0);
+    }, [columnWidths]);
+
     const styleMarginRight = embedded ? "mr-0" : "mr-32";
 
     // Reference to the scrolling parent element
@@ -68,10 +73,10 @@ export const TableContent = React.memo(function TableContent(props: RelationView
         <table
             ref={setTableRef}
             className={cn(
-                "text-sm bg-inherit text-left rtl:text-right text-muted-foreground w-fit h-fit mr-32",
+                "text-sm bg-inherit text-left rtl:text-right text-muted-foreground h-fit",
                 styleMarginRight
             )}
-            style={{tableLayout: "fixed", borderCollapse: "collapse"}}
+            style={{tableLayout: "fixed", width: totalTableWidth}}
         >
             <TableHead {...props} />
             <tbody className="bg-inherit" style={{height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative'}}>
