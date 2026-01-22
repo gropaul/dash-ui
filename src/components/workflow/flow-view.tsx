@@ -29,12 +29,8 @@ const initialNodes = [
         id: 'n2',
         type: 'relationNode',
         position: { x: 10, y: 0 },
-        data: { },
-    },
-    {
-        id: 'n3',
-        type: 'relationNode',
-        position: { x: 0, y: 10 },
+        width: 512,
+        height: 256,
         data: { },
     },
 ];
@@ -91,6 +87,12 @@ export function FlowView(){
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
                 connectionMode={ConnectionMode.Loose}
+
+                panOnScroll={true}
+                panOnScrollSpeed={1.5}
+                panOnDrag={false}
+                zoomOnScroll={false}  // disable zoom on scroll if needed
+
                 connectionRadius={32}
             >
                 <Background />

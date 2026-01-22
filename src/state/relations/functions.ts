@@ -7,7 +7,7 @@ import {
 } from "@/model/relation-state";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
-import {RelationViewState} from "@/model/relation-view-state";
+import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationViewAPIProps} from "@/components/relation/relation-view";
 
@@ -99,6 +99,37 @@ export async function updateAndExecuteRelation(
         // if error update with error state
         const errorState = returnEmptyErrorState(loadingRelationState, e)
         update(errorState);
+
+    }
+}
+
+
+export interface EndUserRelationActions extends AdvancedRelationActions {
+    // toggle show code
+    toggleShowCode: () => void,
+    // set view type
+    setViewType: (view: RelationViewType) => void,
+}
+
+export function createEndUserRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
+    const advancedActions = createAdvancedRelationActions(props);
+    const {relationState, updateRelation} = props;
+
+    return {
+        ...advancedActions,
+        toggleShowCode: () => {
+            const current = relationState.viewState.codeFenceState.show;
+            advancedActions.updateRelationViewState({
+                codeFenceState: {
+                    show: !current,
+                },
+            });
+        },
+        setViewType: (view: RelationViewType) => {
+            advancedActions.updateRelationViewState({
+                selectedView: view,
+            });
+        },
 
     }
 }

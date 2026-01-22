@@ -41,7 +41,7 @@ export function ColumnHeadResizeHandle({currentWidth, updateColumnWidth}: Column
     return (
         <div
             onMouseDown={onMouseDown}
-            className="absolute right-0 top-0 h-full cursor-col-resize w-2 flex justify-center items-center"
+            className="absolute right-0 top-0 h-full nodrag nopan cursor-col-resize w-2 flex justify-center items-center"
         >
             <div className="ml-0.5 h-3 w-1 border-l border-gray-700 dark:border-gray-700"/>
         </div>
