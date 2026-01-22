@@ -33,8 +33,10 @@ body {
   }
 }
 
+
 @layer base {
   :root {
+    --muted-background: 0 0% 98%;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -65,6 +67,7 @@ body {
     --node-glow: 0 0 0 1px hsl(var(--primary) / 0.1), 0 10px 25px -5px hsl(var(--primary) / 0.25);
   }
   .dark {
+    --muted-background: 240 5% 4%;
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;

@@ -127,22 +127,27 @@ export function SqlEditor(
     }, []);
 
     // define custom theme to set the background transparent
-    const customTheme: any = {
-        base: 'vs',
+    const baseTheme: any = {
         inherit: true,
-        rules: [],
+        rules: [
+            { token: 'string.sql', foreground: '22863a' }, // Green color for strings
+        ],
         colors: {
             'editor.background': '#00000000',
         },
     };
 
+    const customTheme: any = {
+        ...baseTheme,
+        base: 'vs',
+    };
+
     const customThemeDark: any = {
+        ...baseTheme,
         base: 'vs-dark',
-        inherit: true,
-        rules: [],
-        colors: {
-            'editor.background': '#00000000',
-        },
+        rules: [
+            { token: 'string.sql', foreground: '7ec699' }, // Light green color for strings in dark mode
+        ],
     };
 
     function onMount(editor: any, monaco: Monaco) {

@@ -26,7 +26,7 @@ export function NavigationBarDesktop(props: NavigationBarProps) {
     };
 
     return (
-        <div className={'w-16 py-4 h-full bg-background border-r border-separate flex flex-col items-center'}>
+        <div className={'w-16 py-4 h-full bg-muted-background border-r border-separate flex flex-col items-center'}>
             <Avatar>
                 <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
             </Avatar>
