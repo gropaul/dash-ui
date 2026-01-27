@@ -15,10 +15,10 @@ export function RelationPart(props: ChatTablePartProps) {
         return (
             <div className={"w-full h-full flex flex-col p-0 m-0 bg-background "}>
                 <RelationStateView
-                    // className={"border-primary border rounded-md"}
                     relationState={relationState}
                     updateRelation={setRelationState}
                     embedded={true}
+                    height={'resizable'}
                 />
             </div>
         );

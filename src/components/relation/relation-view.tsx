@@ -9,15 +9,24 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/functions";
 import {ErrorBoundary} from "@/components/basics/error-bundary";
 
-export interface RelationViewAPIProps extends DefaultRelationZustandActions{
+// If resizable, the relation view will have a draggable handle to adjust its height, if
+// fit, it will adjust to the parent height.
+export type HeightType = 'resizable' | 'fit';
+
+export interface StaticDisplayProps {
+    embedded?: boolean; // if embedded, some UI elements may be hidden for a cleaner look
+    height?: HeightType;
+    configDisplayMode?: 'inline' | 'dialog'; // if inline, the config panel will be displayed next to the relation view, otherwise in a dialog
+}
+
+export interface RelationViewAPIProps extends DefaultRelationZustandActions, StaticDisplayProps{
     relationState: RelationState;
     inputManager?: InputManager;
-    embedded?: boolean;
     className?: string;
 }
 
 
-export interface RelationViewProps extends AdvancedRelationActions{
+export interface RelationViewProps extends AdvancedRelationActions, StaticDisplayProps{
     relationState: RelationState;
     inputManager?: InputManager;
     embedded?: boolean;

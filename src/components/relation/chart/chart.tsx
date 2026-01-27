@@ -18,29 +18,33 @@ export function Chart(props: RelationViewContentProps) {
     }
 
     const config = props.relationState.viewState.chartState;
+
+    const configDisplayMode = props.configDisplayMode ?? (props.embedded ? 'dialog' : 'inline');
     const isEmbedded = props.embedded ?? false;
-    const contentPaddingClass = isEmbedded ? 'p-0' : 'h-full p-2';
-    const contentHeightClass = isEmbedded ? 'h-fit' : 'h-full';
-    const overflowClass = isEmbedded ? 'overflow-hidden' : 'overflow-auto';
+    const paddingClass = isEmbedded ? 'p-0' : ' p-2';
+
+    const isResizable = props.height === 'resizable';
+    const heightClass = isResizable ? 'h-fit' : 'h-full';
+    const overflowClass = isResizable ? 'overflow-hidden' : 'overflow-auto';
     return (
         <>
-            <div className={cn('group w-full relative overflow-hidden', contentHeightClass)}>
+            <div className={cn('group w-full relative overflow-hidden', heightClass)}>
                 <WindowSplitter
                     ratio={config.view.configPlotRatio}
                     layout={config.view.layout}
                     onChange={updateConfigRatio}
-                    child2Active={config.view.showConfig && !isEmbedded}
+                    child2Active={config.view.showConfig && configDisplayMode == 'inline'}
                 >
-                    <div className={cn(contentPaddingClass, overflowClass, 'relative')}>
+                    <div className={cn(paddingClass, heightClass, overflowClass, 'relative')}>
                         <ChartContentWrapper {...props}/>
                     </div>
-                    {!isEmbedded ? <div className={'px-4 py-3 w-full h-full overflow-y-auto'}>
+                    {configDisplayMode == 'inline' ? <div className={'px-4 py-3 w-full h-full overflow-y-auto'}>
                         <ChartConfigView {...props} />
                     </div> : <div/>}
                 </WindowSplitter>
             </div>
             <ChartConfigDialog
-                isOpen={config.view.showConfig && isEmbedded}
+                isOpen={config.view.showConfig && configDisplayMode == 'dialog'}
                 onOpenChange={(open) => props.updateRelationViewState({
                     chartState: {
                         view: {

@@ -24,7 +24,6 @@ export interface RelationViewContentProps extends RelationViewProps {
 
 export function RelationViewContent(props: RelationViewProps) {
 
-    const relationId = props.relationState.id;
     const selectedView = props.relationState.viewState.selectedView;
     const data = useRelationData(props.relationState);
 

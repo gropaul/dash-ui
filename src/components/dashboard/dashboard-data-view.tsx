@@ -14,6 +14,7 @@ export function DashboardDataView(props: DashboardDataViewProps) {
 
     return <RelationStateView
         embedded
+        height={'resizable'}
         relationState={props.relation}
         inputManager={props.inputManager}
         updateRelation={props.onRelationUpdate}

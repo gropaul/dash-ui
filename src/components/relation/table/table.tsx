@@ -85,10 +85,9 @@ export function Table(props: RelationViewContentProps) {
 
     const columnViewIndices = getTableColumnViewIndices(props.relationState.viewState.tableState, data);
 
-    const isEmbedded = props.embedded ?? false;
     // will the whole height of the screen when not embedded, todo: maybe make max height configurable
-    const wrapperClasses = isEmbedded ? 'h-fit max-h-96' : 'h-full';
-    const contentClasses = isEmbedded ? 'overflow-y-auto' : 'flex-1 overflow-y-auto ';
+    const wrapperClasses = props.height === 'resizable' ? 'h-fit max-h-96' : 'h-full';
+    const contentClasses = props.height === 'resizable' ? 'overflow-y-auto' : 'flex-1 overflow-y-auto ';
 
     return (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>

@@ -87,6 +87,9 @@ export function RelationNode(props: NodeProps<FromNode>) {
                     relationState={data}
                     updateRelation={setData}
                     inputManager={manager}
+                    embedded={false}
+                    configDisplayMode={'dialog'}
+                    height={'fit'}
                 />
             </div>
             {
