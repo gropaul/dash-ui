@@ -79,7 +79,7 @@ export const TableContent = React.memo(function TableContent(props: RelationView
             style={{tableLayout: "fixed", width: totalTableWidth}}
         >
             <TableHead {...props} />
-            <tbody className="bg-inherit" style={{height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative'}}>
+            <tbody className="bg-inherit" style={{position: 'relative'}}>
             {virtualItems.length > 0 && (
                 <>
                     {/* Spacer for rows before visible area */}
@@ -95,9 +95,9 @@ export const TableContent = React.memo(function TableContent(props: RelationView
                                 key={virtualRow.index}
                             >
                                 <td
-                                    className="sticky py-1 top-0 left-0 z-[2] w-20 h-full bg-inherit text-muted-foreground text-left"
+                                    className="sticky py-1 top-0 left-0 z-[2] w-20 bg-inherit text-muted-foreground text-left"
                                 >
-                                    <div className={'absolute py-1 top-0 left-0 w-full h-full pl-4 border-r pointer-events-none text-left '}>
+                                    <div className={'absolute py-1 top-0 left-0 w-full pl-4 border-r pointer-events-none text-left '}>
                                         {offset + virtualRow.index + 1}
                                     </div>
                                 </td>

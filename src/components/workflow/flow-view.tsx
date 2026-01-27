@@ -90,8 +90,8 @@ export function FlowView(){
 
                 panOnScroll={true}
                 panOnScrollSpeed={1.5}
-                panOnDrag={false}
-                zoomOnScroll={false}  // disable zoom on scroll if needed
+                panOnDrag={[0, 1]}
+                zoomOnScroll={false}
 
                 connectionRadius={32}
             >
