@@ -13,6 +13,7 @@ import {RelationViewProps} from "@/components/relation/relation-view";
 import {ViewQueryParameters} from "@/model/relation-state";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
+import {TABLE_FOOTER_SMALL_WIDTH_THRESHOLD} from "@/platform/global-data";
 
 function formatNumber(num: number): string {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -24,30 +25,48 @@ export function TableFooter(props: RelationViewProps) {
 
     const startIndex = props.relationState.query.viewParameters.table.offset + 1;
     const endIndex = Math.min(props.relationState.query.viewParameters.table.offset + props.relationState.query.viewParameters.table.limit, lastResultCount);
-    let testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)}`;
 
+    const [footerWidth, setFooterWidth] = React.useState<number>(0);
+    const footerRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (!footerRef.current) return;
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setFooterWidth(entry.contentRect.width);
+            }
+        });
+
+        resizeObserver.observe(footerRef.current);
+        return () => resizeObserver.disconnect();
+    }, []);
+
+    const isSmallWidth = footerWidth < TABLE_FOOTER_SMALL_WIDTH_THRESHOLD;
     const isMobile = useIsMobile();
-    if (!isMobile){
+
+    let testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)}`;
+    if (!isMobile && !isSmallWidth){
         testShowingRange += ` of ${formatNumber(lastResultCount)}`;
     }
 
     const wrapperClass = isMobile ? 'p-2 space-x-2 p-0.5' : 'p-2 space-x-4';
 
     return (
-        <div className={cn(wrapperClass,"flex h-8 flex-row items-center border-t border-border text-sm text-primary")}>
-            <div className="pl-1 flex flex-row items-center">
-                <RelationViewPageController {...props}/>
+        <div ref={footerRef} className={cn(wrapperClass,"flex h-8 flex-row items-center border-t border-border text-sm text-primary")}>
+            <div className="pl-1 flex flex-row items-center whitespace-nowrap">
+                <RelationViewPageController footerWidth={footerWidth} {...props}/>
             </div>
             <div className="flex-grow"/>
-            <div className="pr-2">
+            <div className="pr-2 whitespace-nowrap">
                 {testShowingRange}
             </div>
         </div>
     );
 }
 
-export function RelationViewPageController(props: RelationViewProps) {
-    const {relationState} = props;
+export function RelationViewPageController(props: RelationViewProps & { footerWidth: number }) {
+    const {relationState, footerWidth} = props;
 
     const totalCount = relationState.lastExecutionMetaData?.lastResultCount;
 
@@ -58,7 +77,11 @@ export function RelationViewPageController(props: RelationViewProps) {
     const currentPageIndex = Math.floor(relationState.query.viewParameters.table.offset / relationState.query.viewParameters.table.limit);
     const maxPageIndex = Math.floor((totalCount - 1) / relationState.query.viewParameters.table.limit);
     const minPageIndex = 0;
-    const text = `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumber(maxPageIndex + 1)}`;
+
+    const isSmallWidth = footerWidth < TABLE_FOOTER_SMALL_WIDTH_THRESHOLD;
+    const text = isSmallWidth
+        ? `${formatNumber(currentPageIndex + 1)}/${formatNumber(maxPageIndex + 1)}`
+        : `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumber(maxPageIndex + 1)}`;
 
     const iconSize = 16;
     const isFirstPage = currentPageIndex === 0;
@@ -109,8 +132,8 @@ export function RelationViewPageController(props: RelationViewProps) {
         <div className="flex flex-row items-center space-x-1 text-primary font-normal">
             <Select onValueChange={handlePageSizeChange} defaultValue={pageSize.toString()}>
                 <SelectTrigger className={'text-primary border-0 outline-none h-6 p-0 w-fit font-normal shadow-none'}>
-                    {isMobile ?
-                        <div className={'pr-1'}>Show {pageSize}</div>
+                    {isMobile || isSmallWidth ?
+                        <div className={'pr-1'}>{pageSize}</div>
                         :
                         <SelectValue placeholder={`Show ${pageSize}`}/>
                     }

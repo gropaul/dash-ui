@@ -49,7 +49,7 @@ export function NodeBody(props: NodeBodyProps) {
                     }}
                 >
                     <div
-                        className="h-8 flex items-center justify-center border-b text-sm font-medium"
+                        className=" whitespace-nowrap h-8 flex items-center justify-center border-b text-sm font-medium"
                         style={{
                             borderTopLeftRadius: "0.5rem",
                             borderTopRightRadius: "0.5rem",

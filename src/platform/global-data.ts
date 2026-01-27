@@ -52,3 +52,5 @@ export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
 }
 
 export const ERROR_MESSAGE_QUERY_ABORTED = 'Query aborted by user';
+
+export const TABLE_FOOTER_SMALL_WIDTH_THRESHOLD = 512;

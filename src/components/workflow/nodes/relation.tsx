@@ -60,10 +60,15 @@ export function RelationNode(props: NodeProps<FromNode>) {
                     <Button
                         variant={'outline'}
                         size={'icon'}
-                        className={'h-8 w-8'}
+                        className={'h-8 w-8 relative'}
                         onClick={actions.toggleShowCode}
                     >
-                        <Code/>
+                        <Code className={data.viewState.codeFenceState.show ? 'opacity-50' : ''}/>
+                        {data.viewState.codeFenceState.show && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="w-2/3 h-[1.5px] rounded bg-muted-foreground -rotate-45 origin-center" />
+                            </div>
+                        )}
                     </Button>
                     <ViewSwitcher
                         currentView={data.viewState.selectedView}

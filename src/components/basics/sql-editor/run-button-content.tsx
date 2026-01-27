@@ -21,7 +21,7 @@ export function RunButton(props: RunButtonContentProps) {
                     <div className={`${testMargin} flex flex-row items-center gap-2 justify-center`}>
                         <Loader2 size={18} className="animate-spin"/>
                     </div>
-                    <span className="text-sm">{props.runText}</span>
+                    <span className="text-sm  whitespace-nowrap">{props.runText}</span>
                 </div>
             );
         default:
@@ -31,7 +31,7 @@ export function RunButton(props: RunButtonContentProps) {
                         className={`${testMargin} flex flex-row items-center gap-2 justify-center text-green-600 hover:text-green-800`}>
                         <Play size={18}/>
                     </div>
-                    <span className="text-sm">{props.runText}</span>
+                    <span className="text-sm  whitespace-nowrap">{props.runText}</span>
                 </div>
             );
     }
