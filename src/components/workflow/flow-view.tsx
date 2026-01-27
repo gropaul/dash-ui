@@ -9,6 +9,7 @@ import {
     Controls,
     MarkerType,
     ReactFlow,
+    SelectionMode,
     useEdgesState,
     useNodesState
 } from '@xyflow/react';
@@ -53,7 +54,11 @@ const initialEdges = [
         sourceHandle: 'c',
         targetHandle: 'a',
         type: 'floating',
-        markerEnd: { type: MarkerType.ArrowClosed },
+        markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 30,
+            height: 30,
+        },
     },
 ];
 
@@ -69,7 +74,11 @@ export function FlowView(){
                     {
                         ...connection,
                         type: 'floating',
-                        markerEnd: { type: MarkerType.Arrow },
+                        markerEnd: {
+                            type: MarkerType.Arrow,
+                            width: 30,
+                            height: 30,
+                        },
                     },
                     eds,
                 ),
@@ -86,12 +95,16 @@ export function FlowView(){
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
                 connectionMode={ConnectionMode.Loose}
 
                 panOnScroll={true}
                 panOnScrollSpeed={1.5}
-                panOnDrag={[0, 1]}
+                panOnDrag={[1]}
                 zoomOnScroll={false}
+
+                selectionOnDrag={true}
+                selectionMode={SelectionMode.Partial}
 
                 connectionRadius={32}
             >
