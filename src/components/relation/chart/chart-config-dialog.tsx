@@ -27,8 +27,7 @@ export function ChartConfigDialog(props: ChartConfigDialogProps) {
             open={props.isOpen}
             onOpenChange={props.onOpenChange}
         >
-            <DialogContent className={'max-w-full rounded-sm md:min-h-[100dvh] supports-[height:100dvh]:min-h-dvh flex flex-col p-2'}
-                           style={{width: '90vw', height: '90%'}}
+            <DialogContent className={'max-w-full w-screen h-screen supports-[height:100dvh]:h-dvh md:max-w-7xl md:h-[90vh] md:supports-[height:100dvh]:h-[90dvh] rounded-sm flex flex-col p-2'}
             >
                 <ResizablePanelGroup direction="horizontal">
                     {
