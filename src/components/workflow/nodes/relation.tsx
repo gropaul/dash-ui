@@ -25,6 +25,7 @@ import { createEndUserRelationActions } from "@/state/relations/functions";
 import {Toolbar} from "@/components/workflow/nodes/relation/toolbar";
 import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
+import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
 
 type NodeFromProps = {
     tableName?: string;
@@ -36,6 +37,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
     const [data, setData] = useState<RelationBlockData>(getInitialDataElement('table'))
     const [manager] = useState(() => new InputManager())
     const [closestHandle, setClosestHandle] = useState<Position>(Position.Top)
+    const [isFullscreen, setIsFullscreen] = useState(false)
 
     const [divRef, isHovered] = useHoverWithPadding<HTMLDivElement>(48);
 
@@ -86,6 +88,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
                     onToggleCode={actions.toggleShowCode}
                     currentView={data.viewState.selectedView}
                     onViewChange={actions.setViewType}
+                    onFullscreen={() => setIsFullscreen(true)}
                 />
                 <NodeResizer
                     lineClassName={'z-40'}
@@ -105,6 +108,13 @@ export function RelationNode(props: NodeProps<FromNode>) {
                 </div>
                 <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle} />
             </NodeBody>
+            <FullscreenDialog
+                isOpen={isFullscreen}
+                onOpenChange={setIsFullscreen}
+                relationState={data}
+                updateRelation={setData}
+                inputManager={manager}
+            />
         </div>
     );
 }

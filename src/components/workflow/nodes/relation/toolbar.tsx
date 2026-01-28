@@ -1,6 +1,6 @@
 import { NodeToolbar, Position } from '@xyflow/react';
 import { Button } from "@/components/ui/button";
-import { Code } from "lucide-react";
+import { Code, Maximize } from "lucide-react";
 import { ToolbarViewSwitcher } from './toolbar-view-switcher';
 import { RelationViewType } from "@/model/relation-view-state";
 
@@ -10,6 +10,7 @@ interface RelationToolbarProps {
     onToggleCode: () => void;
     currentView: RelationViewType;
     onViewChange: (view: RelationViewType) => void;
+    onFullscreen: () => void;
 }
 
 export function Toolbar({
@@ -17,11 +18,20 @@ export function Toolbar({
     showCode,
     onToggleCode,
     currentView,
-    onViewChange
+    onViewChange,
+    onFullscreen
 }: RelationToolbarProps) {
     return (
         <NodeToolbar isVisible={isVisible} position={Position.Left} align={'start'}>
             <div className="flex flex-col space-y-2">
+                <Button
+                    variant={'outline'}
+                    size={'icon'}
+                    className={'h-8 w-8'}
+                    onClick={onFullscreen}
+                >
+                    <Maximize />
+                </Button>
                 <Button
                     variant={'outline'}
                     size={'icon'}

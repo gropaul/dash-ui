@@ -2,6 +2,7 @@ import {ReactNode} from "react";
 import {NodeType} from "@/components/workflow/flow-view";
 import {NodeResizer} from "@xyflow/react";
 import {cn} from "@/lib/utils";
+import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 
 export interface NodeBodyProps {
     type: NodeType;
@@ -49,14 +50,39 @@ export function NodeBody(props: NodeBodyProps) {
                     }}
                 >
                     <div
-                        className=" whitespace-nowrap h-8 flex items-center justify-center border-b text-sm font-medium"
                         style={{
-                            borderTopLeftRadius: "0.5rem",
-                            borderTopRightRadius: "0.5rem",
+                            padding: '8px 8px',
                             display: title ? 'flex' : 'none',
+                            alignItems: 'center',
+                            gap: '10px',
+                            borderBottom: '1px solid #e4e4e7'
                         }}
                     >
-                        {title}
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            background: 'rgba(139,92,246,0.1)',
+                            color: '#8b5cf6'
+                        }}>
+                            {defaultIconFactory('relation')}
+                        </div>
+                        <span style={{
+                            fontWeight: 600,
+                            textAlign: 'left',
+                            fontSize: '13px',
+                            color: '#18181b',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            flex: 1
+                        }}>
+                            {title}
+                        </span>
                     </div>
                     <div className={cn("w-full",props.className)} style={{ height: `calc(100% - ${headerHeight})` }}>{children}</div>
                 </div>
