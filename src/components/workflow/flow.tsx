@@ -1,6 +1,6 @@
 'use client'
 
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {
     addEdge,
     Background,
@@ -9,6 +9,7 @@ import {
     Controls,
     MarkerType,
     Node,
+    OnConnectStartParams,
     ReactFlow,
     SelectionMode,
     useEdgesState,
@@ -90,7 +91,8 @@ export function Flow() {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [canvasState, setCanvasState] = useState<CanvasState>(INITIAL_CANVAS_STATE);
-    const {screenToFlowPosition} = useReactFlow();
+    const {screenToFlowPosition, getIntersectingNodes} = useReactFlow();
+    const connectingFrom = useRef<OnConnectStartParams | null>(null);
 
     const onConnect = useCallback(
         (connection: Connection) =>
@@ -109,6 +111,57 @@ export function Flow() {
                 ),
             ),
         [],
+    );
+
+    const onConnectStart = useCallback((_: any, params: OnConnectStartParams) => {
+        connectingFrom.current = params;
+    }, []);
+
+    const onConnectEnd = useCallback(
+        (event: MouseEvent | TouchEvent) => {
+            if (!connectingFrom.current) return;
+
+            const {nodeId: sourceNodeId, handleId: sourceHandleId} = connectingFrom.current;
+            if (!sourceNodeId) return;
+
+            // Get the drop position
+            const clientX = 'changedTouches' in event ? event.changedTouches[0].clientX : event.clientX;
+            const clientY = 'changedTouches' in event ? event.changedTouches[0].clientY : event.clientY;
+            const dropPosition = screenToFlowPosition({x: clientX, y: clientY});
+
+            // Find nodes at drop position
+            const intersectingNodes = getIntersectingNodes({
+                x: dropPosition.x,
+                y: dropPosition.y,
+                width: 1,
+                height: 1,
+            }).filter(n => n.id !== sourceNodeId);
+
+            if (intersectingNodes.length > 0) {
+                const targetNode = intersectingNodes[0];
+
+                setEdges((eds) =>
+                    addEdge(
+                        {
+                            source: sourceNodeId,
+                            target: targetNode.id,
+                            sourceHandle: sourceHandleId,
+                            targetHandle: null,
+                            type: 'floating',
+                            markerEnd: {
+                                type: MarkerType.Arrow,
+                                width: 30,
+                                height: 30,
+                            },
+                        },
+                        eds,
+                    ),
+                );
+            }
+
+            connectingFrom.current = null;
+        },
+        [screenToFlowPosition, getIntersectingNodes, setEdges],
     );
 
     const pointerCtx: PointerHandlerContext = {
@@ -144,6 +197,8 @@ export function Flow() {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onConnectStart={onConnectStart}
+                onConnectEnd={onConnectEnd}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 connectionMode={ConnectionMode.Loose}

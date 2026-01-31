@@ -21,13 +21,18 @@ const handlePositions = [
 export function ConditionalHandles({type, isHovered, closestHandle, isSelected}: ConditionalHandlesProps) {
     const isActive = (position: Position) => isHovered && closestHandle === position;
 
-    if (!isSelected) return null;
-
     return (
         <>
             {handlePositions.map(({position, id, Icon, offsetKey}) => {
                 const active = isActive(position);
-                const margin = active ? HANDLE_MARGIN_ACTIVE : HANDLE_MARGIN_INACTIVE;
+                let margin = 0;
+                let size = 0;
+                let opacity = 0;
+                if (isSelected) {
+                    margin = active ? HANDLE_MARGIN_ACTIVE : HANDLE_MARGIN_INACTIVE;
+                    size = active ? 24 : 8;
+                    opacity = active ? 1 : 0.6;
+                }
                 return (
                     <Handle
                         key={id}
@@ -35,20 +40,25 @@ export function ConditionalHandles({type, isHovered, closestHandle, isSelected}:
                         position={position}
                         id={id}
                         className="!border-0 !bg-transparent transition-all duration-200"
-                        style={{pointerEvents: active ? 'auto' : 'none', [offsetKey]: margin}}
+                        style={{
+                            pointerEvents: active ? 'auto' : 'none',
+                            [offsetKey]: margin,
+                            width: size, height: size,
+                            opacity: opacity,
+                    }}
                     >
                         <div
                             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-200 ease-out pointer-events-none"
                             style={{
-                                width: active ? 24 : 8,
-                                height: active ? 24 : 8,
+                                width: size,
+                                height: size,
                                 borderRadius: '50%',
                                 backgroundColor: active ? 'white' : '#8b5cf6',
                                 border: active ? '1px solid #8b5cf6' : 'none',
-                                opacity: active ? 1 : 0.6,
+                                opacity: opacity,
                             }}
                         >
-                            {active && (
+                            {active && isSelected && (
                                 <Icon
                                     size={16}
                                     strokeWidth={2}
