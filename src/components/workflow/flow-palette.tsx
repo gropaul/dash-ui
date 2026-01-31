@@ -38,9 +38,12 @@ export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
     return (
         <TooltipProvider>
             <div
-                className="absolute bottom-[15px] left-1/2 -translate-x-1/2 h-12 bg-white border border-[#ededed] rounded-2xl shadow-sm z-[200] flex items-center px-2">
+                className="absolute bottom-[15px] left-1/2 -translate-x-1/2 h-12 bg-white border border-[#ededed] rounded-2xl shadow-sm z-[200] flex items-center px-2"
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
+                onPointerMove={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-6">
-                    <div className="flex gap-3 items-center">
+                    <div className="flex gap-2 items-center">
                         <PaletteItem
                             selected={canvasState.selectedTool === 'pointer'}
                             icon={<MousePointer2 size={20} strokeWidth={1.5}/>}
@@ -86,7 +89,10 @@ function PaletteItem({selected, icon, label, onClick}: PaletteItemProps) {
             <TooltipTrigger asChild>
                 <div
                     className={`w-8 h-8 rounded-sm flex items-center justify-center  ${selected ? 'text-white bg-blue-600' : 'text-gray-600'}`}
-                    onClick={onClick}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onClick();
+                    }}
                 >
                     {icon}
                 </div>

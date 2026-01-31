@@ -1,6 +1,6 @@
 'use client'
 
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {
     addEdge,
     Background,
@@ -120,6 +120,16 @@ export function Flow() {
     };
 
     const cursorStyle = getCursorStyle(canvasState);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setCanvasState({selectedTool: 'pointer'});
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     return (
         <div
