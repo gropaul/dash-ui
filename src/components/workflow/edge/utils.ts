@@ -1,59 +1,4 @@
-import { Position } from '@xyflow/react';
-
-// returns the position (top,right,bottom or right) passed node compared to
-function getParams(nodeA: any, nodeB: any) {
-    const centerA = getNodeCenter(nodeA);
-    const centerB = getNodeCenter(nodeB);
-
-    const horizontalDiff = Math.abs(centerA.x - centerB.x);
-    const verticalDiff = Math.abs(centerA.y - centerB.y);
-
-    let position;
-
-    // when the horizontal difference between the nodes is bigger, we use Position.Left or Position.Right for the handle
-    if (horizontalDiff > verticalDiff) {
-        position = centerA.x > centerB.x ? Position.Left : Position.Right;
-    } else {
-        // here the vertical difference between the nodes is bigger, so we use Position.Top or Position.Bottom for the handle
-        position = centerA.y > centerB.y ? Position.Top : Position.Bottom;
-    }
-
-    const [x, y] = getHandleCoordsByPosition(nodeA, position);
-    return [x, y, position];
-}
-
-function getHandleCoordsByPosition(node: any, handlePosition: any) {
-    // all handles are from type source, that's why we use handleBounds.source here
-    const handle = node.internals.handleBounds.source.find(
-        (h:any) => h.position === handlePosition,
-    );
-
-    let offsetX = handle.width / 2;
-    let offsetY = handle.height / 2;
-
-    // this is a tiny detail to make the markerEnd of an edge visible.
-    // The handle position that gets calculated has the origin top-left, so depending which side we are using, we add a little offset
-    // when the handlePosition is Position.Right for example, we need to add an offset as big as the handle itself in order to get the correct position
-    switch (handlePosition) {
-        case Position.Left:
-            offsetX = 0;
-            break;
-        case Position.Right:
-            offsetX = handle.width;
-            break;
-        case Position.Top:
-            offsetY = 0;
-            break;
-        case Position.Bottom:
-            offsetY = handle.height;
-            break;
-    }
-
-    const x = node.internals.positionAbsolute.x + handle.x + offsetX;
-    const y = node.internals.positionAbsolute.y + handle.y + offsetY;
-
-    return [x, y];
-}
+import {Position} from '@xyflow/react';
 
 function getNodeCenter(node: any) {
     return {
@@ -62,16 +7,83 @@ function getNodeCenter(node: any) {
     };
 }
 
-// returns the parameters (sx, sy, tx, ty, sourcePos, targetPos) you need to create an edge
+function getNodeBounds(node: any) {
+    return {
+        x: node.internals.positionAbsolute.x,
+        y: node.internals.positionAbsolute.y,
+        width: node.measured.width,
+        height: node.measured.height,
+    };
+}
+
+// Get the intersection point of a line from center to target on the node's border
+function getNodeIntersection(node: any, targetPoint: {x: number; y: number}) {
+    const bounds = getNodeBounds(node);
+    const center = getNodeCenter(node);
+
+    const w = bounds.width / 2;
+    const h = bounds.height / 2;
+
+    const dx = targetPoint.x - center.x;
+    const dy = targetPoint.y - center.y;
+
+    // Handle edge case where nodes are at the same position
+    if (dx === 0 && dy === 0) {
+        return {x: center.x, y: bounds.y};
+    }
+
+    const slope = Math.abs(dy / dx);
+    const nodeSlope = h / w;
+
+    let x: number, y: number;
+
+    if (slope <= nodeSlope) {
+        // Intersection on left or right edge
+        const sign = dx >= 0 ? 1 : -1;
+        x = center.x + sign * w;
+        y = center.y + (sign * w * dy) / dx;
+    } else {
+        // Intersection on top or bottom edge
+        const sign = dy >= 0 ? 1 : -1;
+        x = center.x + (sign * h * dx) / dy;
+        y = center.y + sign * h;
+    }
+
+    return {x, y};
+}
+
+// Determine which Position (Top, Right, Bottom, Left) a point is relative to node center
+function getEdgePosition(node: any, intersectionPoint: {x: number; y: number}): Position {
+    const center = getNodeCenter(node);
+    const dx = intersectionPoint.x - center.x;
+    const dy = intersectionPoint.y - center.y;
+
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    if (absDx > absDy) {
+        return dx > 0 ? Position.Right : Position.Left;
+    } else {
+        return dy > 0 ? Position.Bottom : Position.Top;
+    }
+}
+
+// Returns the parameters for a floating edge between two nodes
 export function getEdgeParams(source: any, target: any) {
-    const [sx, sy, sourcePos] = getParams(source, target);
-    const [tx, ty, targetPos] = getParams(target, source);
+    const sourceCenter = getNodeCenter(source);
+    const targetCenter = getNodeCenter(target);
+
+    const sourceIntersection = getNodeIntersection(source, targetCenter);
+    const targetIntersection = getNodeIntersection(target, sourceCenter);
+
+    const sourcePos = getEdgePosition(source, sourceIntersection);
+    const targetPos = getEdgePosition(target, targetIntersection);
 
     return {
-        sx,
-        sy,
-        tx,
-        ty,
+        sx: sourceIntersection.x,
+        sy: sourceIntersection.y,
+        tx: targetIntersection.x,
+        ty: targetIntersection.y,
         sourcePos,
         targetPos,
     };

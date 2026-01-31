@@ -8,8 +8,8 @@ interface ConditionalHandlesProps {
     isSelected: boolean;
 }
 
-const HANDLE_MARGIN_INACTIVE = -8;
-const HANDLE_MARGIN_ACTIVE = -16;
+const HANDLE_MARGIN_INACTIVE = -12;
+const HANDLE_MARGIN_ACTIVE = -24;
 
 const handlePositions = [
     {position: Position.Top, id: 'a', Icon: ArrowUp, offsetKey: 'top' as const},
@@ -30,7 +30,7 @@ export function ConditionalHandles({type, isHovered, closestHandle, isSelected}:
                 let opacity = 0;
                 if (isSelected) {
                     margin = active ? HANDLE_MARGIN_ACTIVE : HANDLE_MARGIN_INACTIVE;
-                    size = active ? 24 : 8;
+                    size = active ? 32 : 12;
                     opacity = active ? 1 : 0.6;
                 }
                 return (
@@ -54,14 +54,14 @@ export function ConditionalHandles({type, isHovered, closestHandle, isSelected}:
                                 height: size,
                                 borderRadius: '50%',
                                 backgroundColor: active ? 'white' : '#8b5cf6',
-                                border: active ? '1px solid #8b5cf6' : 'none',
+                                border: active ? '2px solid #8b5cf6' : 'none',
                                 opacity: opacity,
                             }}
                         >
                             {active && isSelected && (
                                 <Icon
-                                    size={16}
-                                    strokeWidth={2}
+                                    size={20}
+                                    strokeWidth={2.5}
                                     style={{color: '#8b5cf6'}}
                                     className="transition-opacity duration-200"
                                 />
