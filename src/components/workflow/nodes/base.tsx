@@ -1,5 +1,5 @@
 import {ReactNode} from "react";
-import {NodeType} from "@/components/workflow/flow-view";
+import {NodeType} from "@/components/workflow/flow";
 import {NodeResizer} from "@xyflow/react";
 import {cn} from "@/lib/utils";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
@@ -17,9 +17,9 @@ interface BodyStyle {
 }
 
 const BodyStyles: Record<NodeType, BodyStyle> = {
-    relationNode: {
-
-    },
+    relationNode: {},
+    chartNode: {},
+    textNode: {},
 };
 
 export function NodeBody(props: NodeBodyProps) {
