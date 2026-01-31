@@ -7,7 +7,7 @@ export interface PointerHandlerContext {
     setCanvasState: (state: CanvasState) => void;
     nodes: Node[];
     setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
-    screenToFlowPosition: (position: {x: number; y: number}) => {x: number; y: number};
+    screenToFlowPosition: (position: { x: number; y: number }) => { x: number; y: number };
 }
 
 function getRelativePosition(event: React.PointerEvent<HTMLDivElement>): Position {
@@ -81,12 +81,12 @@ export function handlePointerUp(
     );
 
     // If drag is minimal (< 5px), use default size, otherwise use calculated size
-    const nodeScreenSize = dragDistance < 5
-        ? nodeCreationState.nodeAdded.size
-        : {
+    const useDragSize = dragDistance >= 5;
+    const nodeScreenSize = useDragSize ?
+        {
             width: Math.max(Math.abs(end.x - start.x), 100),
             height: Math.max(Math.abs(end.y - start.y), 100)
-        };
+        } : nodeCreationState.nodeAdded.size;
 
     // Get top-left corner position (in case user dragged backwards)
     const topLeftX = Math.min(start.x, end.x);
@@ -99,6 +99,7 @@ export function handlePointerUp(
     };
 
     const flowTopLeft = ctx.screenToFlowPosition(screenTopLeft);
+
     const flowLowerRight = ctx.screenToFlowPosition({
         x: screenTopLeft.x + nodeScreenSize.width,
         y: screenTopLeft.y + nodeScreenSize.height,
@@ -109,12 +110,13 @@ export function handlePointerUp(
         height: flowLowerRight.y - flowTopLeft.y,
     };
 
-    const template: NodeTemplate = {
-        ...nodeCreationState.nodeAdded,
-        size: flowNodeSize,
-    };
+    // if there is no drag, the node size is already canvas size
+    let copy = {...nodeCreationState.nodeAdded};
+    if (useDragSize) {
+        copy['size'] = flowNodeSize;
+    }
 
-    createNode(ctx, template, flowTopLeft);
+    createNode(ctx, copy, flowTopLeft);
 
     ctx.setCanvasState({
         selectedTool: 'pointer',
@@ -131,6 +133,10 @@ function createNode(ctx: PointerHandlerContext, template: NodeTemplate, position
         selected: true,
         data: {},
     };
+    // deselect all other nodes
+    ctx.setNodes((nds) =>
+        nds.map((node) => ({...node, selected: false}))
+    );
     ctx.setNodes((nds) => nds.concat(newNode));
 }
 
