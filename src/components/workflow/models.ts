@@ -1,5 +1,3 @@
-import {useState} from "react";
-import {MousePointer2} from "lucide-react";
 import {NodeTypeItem} from "@/components/workflow/flow-palette";
 
 export const DEFAULT_NODE_SIZE = {width: 512, height: 256};
