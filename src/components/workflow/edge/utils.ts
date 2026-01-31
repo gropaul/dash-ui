@@ -1,5 +1,7 @@
 import {Position} from '@xyflow/react';
 
+const EDGE_PADDING = 2;
+
 function getNodeCenter(node: any) {
     return {
         x: node.internals.positionAbsolute.x + node.measured.width / 2,
@@ -17,7 +19,7 @@ function getNodeBounds(node: any) {
 }
 
 // Get the intersection point of a line from center to target on the node's border
-function getNodeIntersection(node: any, targetPoint: {x: number; y: number}) {
+function getNodeIntersection(node: any, targetPoint: {x: number; y: number}, snapToCenter: boolean = false) {
     const bounds = getNodeBounds(node);
     const center = getNodeCenter(node);
 
@@ -29,62 +31,59 @@ function getNodeIntersection(node: any, targetPoint: {x: number; y: number}) {
 
     // Handle edge case where nodes are at the same position
     if (dx === 0 && dy === 0) {
-        return {x: center.x, y: bounds.y};
+        return {x: center.x, y: bounds.y, position: Position.Top};
     }
 
     const slope = Math.abs(dy / dx);
     const nodeSlope = h / w;
 
     let x: number, y: number;
+    let position: Position;
 
     if (slope <= nodeSlope) {
         // Intersection on left or right edge
         const sign = dx >= 0 ? 1 : -1;
-        x = center.x + sign * w;
-        y = center.y + (sign * w * dy) / dx;
+        x = center.x + sign * (w + EDGE_PADDING);
+        y = snapToCenter ? center.y : center.y + (sign * w * dy) / dx;
+        position = sign > 0 ? Position.Right : Position.Left;
     } else {
         // Intersection on top or bottom edge
         const sign = dy >= 0 ? 1 : -1;
-        x = center.x + (sign * h * dx) / dy;
-        y = center.y + sign * h;
+        x = snapToCenter ? center.x : center.x + (sign * h * dx) / dy;
+        y = center.y + sign * (h + EDGE_PADDING);
+        position = sign > 0 ? Position.Bottom : Position.Top;
     }
 
-    return {x, y};
+    return {x, y, position};
 }
 
-// Determine which Position (Top, Right, Bottom, Left) a point is relative to node center
-function getEdgePosition(node: any, intersectionPoint: {x: number; y: number}): Position {
-    const center = getNodeCenter(node);
-    const dx = intersectionPoint.x - center.x;
-    const dy = intersectionPoint.y - center.y;
-
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-
-    if (absDx > absDy) {
-        return dx > 0 ? Position.Right : Position.Left;
-    } else {
-        return dy > 0 ? Position.Bottom : Position.Top;
-    }
+export interface EdgeParams {
+    sx: number;
+    sy: number;
+    tx: number;
+    ty: number;
+    sourcePos: Position;
+    targetPos: Position;
 }
 
 // Returns the parameters for a floating edge between two nodes
-export function getEdgeParams(source: any, target: any) {
+export function getEdgeParams(
+    source: any,
+    target: any,
+    snapToCenter: boolean = false
+): EdgeParams {
     const sourceCenter = getNodeCenter(source);
     const targetCenter = getNodeCenter(target);
 
-    const sourceIntersection = getNodeIntersection(source, targetCenter);
-    const targetIntersection = getNodeIntersection(target, sourceCenter);
-
-    const sourcePos = getEdgePosition(source, sourceIntersection);
-    const targetPos = getEdgePosition(target, targetIntersection);
+    const sourceIntersection = getNodeIntersection(source, targetCenter, snapToCenter);
+    const targetIntersection = getNodeIntersection(target, sourceCenter, snapToCenter);
 
     return {
         sx: sourceIntersection.x,
         sy: sourceIntersection.y,
         tx: targetIntersection.x,
         ty: targetIntersection.y,
-        sourcePos,
-        targetPos,
+        sourcePos: sourceIntersection.position,
+        targetPos: targetIntersection.position,
     };
 }

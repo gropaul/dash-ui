@@ -210,6 +210,8 @@ export function Flow() {
                 selectionOnDrag={canvasState.selectedTool === 'pointer'}
                 selectionMode={SelectionMode.Partial}
                 connectionRadius={32}
+                edgesFocusable={true}
+                defaultEdgeOptions={{interactionWidth: 20}}
             >
                 <Background/>
                 <Controls/>
