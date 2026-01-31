@@ -12,7 +12,6 @@ import {
 interface NodePaletteProps {
     canvasState: CanvasState;
     setCanvasState: (state: CanvasState) => void;
-    onCreateNode: (template: NodeTemplate, position: Position) => void;
 }
 
 export interface NodeTypeItem extends NodeTemplate {
@@ -26,7 +25,7 @@ export const nodeTypes: NodeTypeItem[] = [
     {type: 'textNode', label: 'Text', icon: <Text size={20} strokeWidth={1.5}/>, size: DEFAULT_TEXT_SIZE},
 ];
 
-export function FlowPalette({onCreateNode, setCanvasState, canvasState}: NodePaletteProps) {
+export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
 
 
     function startCreatingNode(nodeType: NodeTypeItem) {

@@ -21,10 +21,16 @@ export interface CanvasStateDragCanvas {
 }
 
 
+export interface SizingState {
+    startPosition: { x: number; y: number };
+    endPosition: { x: number; y: number };
+}
+
 export interface CanvasStateNodeCreation {
     selectedTool: 'create-node';
     previewMousePosition?: { x: number; y: number };
     nodeAdded: NodeTypeItem;
+    sizing?: SizingState;
 }
 
 export type CanvasState = CanvasStatePointer | CanvasStateDragCanvas | CanvasStateNodeCreation;
