@@ -106,7 +106,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
                         height={'fit'}
                     />
                 </div>
-                <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle} />
+                <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle} isSelected={props.selected ?? false} />
             </NodeBody>
             <FullscreenDialog
                 isOpen={isFullscreen}
