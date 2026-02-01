@@ -18,6 +18,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {RelationNode} from "@/components/workflow/nodes/relation";
+import {FreeDrawNode} from "@/components/workflow/nodes/free-draw-node";
 import FloatingEdge from "@/components/workflow/edge/floating-edge";
 import {FlowPalette} from "@/components/workflow/flow-palette";
 import {
@@ -29,8 +30,9 @@ import {
 } from "@/components/workflow/flow-pointer-functions";
 
 import './flow-theme.css';
-import {INITIAL_CANVAS_STATE, CanvasState} from "@/components/workflow/models";
+import {INITIAL_CANVAS_STATE, CanvasState, CanvasStateFreeDraw} from "@/components/workflow/models";
 import {NodePreview} from "@/components/workflow/node-preview";
+import {FreeDrawPreview} from "@/components/workflow/free-draw-preview";
 
 const initialNodes: Node[] = [
     {
@@ -49,12 +51,13 @@ const initialNodes: Node[] = [
     },
 ];
 
-export type NodeType = 'relationNode' | 'chartNode' | 'textNode';
+export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'freeDrawNode';
 
 const nodeTypes: { [key in NodeType]: React.FC<any> } = {
     relationNode: RelationNode,
     chartNode: RelationNode, // Template - uses RelationNode for now
     textNode: RelationNode,  // Template - uses RelationNode for now
+    freeDrawNode: FreeDrawNode,
 };
 
 const edgeTypes = {
@@ -68,7 +71,7 @@ export interface Position {
 
 export interface NodeTemplate {
     type: NodeType;
-    size: { width: number; height: number  };
+    size: { width: number; height: number };
 }
 
 const initialEdges = [
@@ -216,6 +219,9 @@ export function Flow() {
                 <Background/>
                 <Controls/>
                 <NodePreview canvasState={canvasState}/>
+                <FreeDrawPreview
+                    currentStroke={canvasState.selectedTool === 'free-draw' ? (canvasState as CanvasStateFreeDraw).currentStroke : undefined}
+                />
                 <FlowPalette canvasState={canvasState} setCanvasState={setCanvasState}/>
             </ReactFlow>
         </div>

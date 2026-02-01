@@ -4,7 +4,7 @@ export const DEFAULT_NODE_SIZE = {width: 512, height: 256};
 export const DEFAULT_CHART_SIZE = {width: 512, height: 512};
 export const DEFAULT_TEXT_SIZE = {width: 128, height: 64};
 
-export type CanvasSelectedTool = 'pointer' | 'create-node' | 'drag-canvas';
+export type CanvasSelectedTool = 'pointer' | 'create-node' | 'drag-canvas' | 'free-draw';
 
 export interface CanvasStateBase {
     selectedTool: CanvasSelectedTool;
@@ -31,7 +31,21 @@ export interface CanvasStateNodeCreation {
     sizing?: SizingState;
 }
 
-export type CanvasState = CanvasStatePointer | CanvasStateDragCanvas | CanvasStateNodeCreation;
+export type StrokePoint = [number, number, number]; // x, y, pressure
+
+export interface Stroke {
+    id: string;
+    points: StrokePoint[];
+    color: string;
+    size: number;
+}
+
+export interface CanvasStateFreeDraw {
+    selectedTool: 'free-draw';
+    currentStroke?: Stroke;
+}
+
+export type CanvasState = CanvasStatePointer | CanvasStateDragCanvas | CanvasStateNodeCreation | CanvasStateFreeDraw;
 
 export const INITIAL_CANVAS_STATE: CanvasState = {
     selectedTool: 'pointer',

@@ -20,6 +20,7 @@ const BodyStyles: Record<NodeType, BodyStyle> = {
     relationNode: {},
     chartNode: {},
     textNode: {},
+    freeDrawNode: {},
 };
 
 export function NodeBody(props: NodeBodyProps) {
@@ -35,9 +36,19 @@ export function NodeBody(props: NodeBodyProps) {
                 style={{
                     // padding: "0.5px", // Space for the gradient border
                     background: "#e4e4e4",
-                    boxShadow: "var(--node-shadow)"
+                    boxShadow: "var(--node-shadow)",
+                    borderRadius: "0.5rem",
+                    borderColor: props.selected ? "#8b5cf6" : "transparent",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
                 }}
             >
+                <NodeResizer
+                    lineClassName={'z-40'}
+                    isVisible={props.selected}
+                    minWidth={100}
+                    minHeight={30}
+                />
                 <div
                     className={`w-full h-full`}
                     style={{

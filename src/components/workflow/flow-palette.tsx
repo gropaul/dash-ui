@@ -1,4 +1,4 @@
-import {Sheet, BarChart3, Text, MousePointer2, Hand} from 'lucide-react';
+import {Sheet, BarChart3, Text, MousePointer2, Hand, Pencil} from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {NodeTemplate, Position} from "@/components/workflow/flow";
 import {ReactNode} from "react";
@@ -55,6 +55,12 @@ export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
                             icon={<Hand size={20} strokeWidth={1.5}/>}
                             label="Drag Canvas"
                             onClick={() => setCanvasState({selectedTool: 'drag-canvas'})}
+                        />
+                        <PaletteItem
+                            selected={canvasState.selectedTool === 'free-draw'}
+                            icon={<Pencil size={20} strokeWidth={1.5}/>}
+                            label="Free Draw"
+                            onClick={() => setCanvasState({selectedTool: 'free-draw'})}
                         />
 
                         <div className="w-px h-6 bg-gray-300"/>
