@@ -27,8 +27,11 @@ import {ConditionalHandles} from "@/components/workflow/nodes/relation/condition
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
 
+import {ConnectionHoverState} from "@/components/workflow/models";
+
 type NodeFromProps = {
     tableName?: string;
+    connectionHover?: ConnectionHoverState | null;
 }
 
 type FromNode = Node<NodeFromProps, 'FromNode'>;
@@ -81,6 +84,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
                 className={''}
                 selected={props.selected}
                 displayName={data.viewState.displayName}
+                connectionHover={props.data.connectionHover}
             >
                 <Toolbar
                     isVisible={props.selected}

@@ -6,15 +6,23 @@ export const DEFAULT_TEXT_SIZE = {width: 128, height: 64};
 
 export type CanvasSelectedTool = 'pointer' | 'create-node' | 'drag-canvas' | 'free-draw';
 
-export interface CanvasStateBase {
-    selectedTool: CanvasSelectedTool;
+export interface ConnectionHoverState {
+    nodeId: string;
+    isValid: boolean;
+    invalidReason?: 'cycle' | 'duplicate';
+    shake?: boolean;
 }
 
-export interface CanvasStatePointer {
+export interface CanvasStateBase {
+    selectedTool: CanvasSelectedTool;
+    connectionHover?: ConnectionHoverState | null;
+}
+
+export interface CanvasStatePointer extends CanvasStateBase{
     selectedTool: 'pointer';
 }
 
-export interface CanvasStateDragCanvas {
+export interface CanvasStateDragCanvas extends CanvasStateBase {
     selectedTool: 'drag-canvas';
 }
 
@@ -24,7 +32,7 @@ export interface SizingState {
     endPosition: { x: number; y: number };
 }
 
-export interface CanvasStateNodeCreation {
+export interface CanvasStateNodeCreation  extends CanvasStateBase {
     selectedTool: 'create-node';
     previewMousePosition?: { x: number; y: number };
     nodeAdded: NodeTypeItem;
@@ -40,7 +48,7 @@ export interface Stroke {
     size: number;
 }
 
-export interface CanvasStateFreeDraw {
+export interface CanvasStateFreeDraw extends CanvasStateBase{
     selectedTool: 'free-draw';
     currentStroke?: Stroke;
 }

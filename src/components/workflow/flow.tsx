@@ -1,12 +1,13 @@
 'use client'
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
     addEdge,
     Background,
     Connection,
     ConnectionMode,
     Controls,
+    getOutgoers,
     MarkerType,
     Node,
     OnConnectStartParams,
@@ -94,8 +95,58 @@ export function Flow() {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [canvasState, setCanvasState] = useState<CanvasState>(INITIAL_CANVAS_STATE);
-    const {screenToFlowPosition, getIntersectingNodes} = useReactFlow();
+    const {screenToFlowPosition, getIntersectingNodes, getNodes, getEdges} = useReactFlow();
     const connectingFrom = useRef<OnConnectStartParams | null>(null);
+
+    const checkConnectionValidity = useCallback(
+        (sourceId: string, targetId: string): { isValid: boolean; reason?: 'cycle' | 'duplicate' } => {
+            const currentNodes = getNodes();
+            const currentEdges = getEdges();
+
+            // Check for duplicate edge
+            const isDuplicate = currentEdges.some(
+                edge => edge.source === sourceId && edge.target === targetId
+            );
+            if (isDuplicate) {
+                return {isValid: false, reason: 'duplicate'};
+            }
+
+            // Check for self-connection
+            if (sourceId === targetId) {
+                return {isValid: false, reason: 'cycle'};
+            }
+
+            // Check for cycle
+            const target = currentNodes.find(node => node.id === targetId);
+            if (!target) return {isValid: true};
+
+            const hasCycle = (node: Node, visited = new Set<string>()): boolean => {
+                if (visited.has(node.id)) return false;
+                visited.add(node.id);
+
+                for (const outgoer of getOutgoers(node, currentNodes, currentEdges)) {
+                    if (outgoer.id === sourceId) return true;
+                    if (hasCycle(outgoer, visited)) return true;
+                }
+                return false;
+            };
+
+            if (hasCycle(target)) {
+                return {isValid: false, reason: 'cycle'};
+            }
+
+            return {isValid: true};
+        },
+        [getNodes, getEdges],
+    );
+
+    const isValidConnection = useCallback(
+        (connection: Connection) => {
+            if (!connection.source || !connection.target) return false;
+            return checkConnectionValidity(connection.source, connection.target).isValid;
+        },
+        [checkConnectionValidity],
+    );
 
     const onConnect = useCallback(
         (connection: Connection) =>
@@ -143,29 +194,95 @@ export function Flow() {
             if (intersectingNodes.length > 0) {
                 const targetNode = intersectingNodes[0];
 
-                setEdges((eds) =>
-                    addEdge(
-                        {
-                            source: sourceNodeId,
-                            target: targetNode.id,
-                            sourceHandle: sourceHandleId,
-                            targetHandle: null,
-                            type: 'floating',
-                            markerEnd: {
-                                type: MarkerType.Arrow,
-                                width: 30,
-                                height: 30,
+                // Only create edge if connection is valid
+                const validity = checkConnectionValidity(sourceNodeId, targetNode.id);
+                if (validity.isValid) {
+                    setEdges((eds) =>
+                        addEdge(
+                            {
+                                source: sourceNodeId,
+                                target: targetNode.id,
+                                sourceHandle: sourceHandleId,
+                                targetHandle: null,
+                                type: 'floating',
+                                markerEnd: {
+                                    type: MarkerType.Arrow,
+                                    width: 30,
+                                    height: 30,
+                                },
                             },
+                            eds,
+                        ),
+                    );
+                    connectingFrom.current = null;
+                    setCanvasState(prev => ({...prev, connectionHover: null}));
+                } else {
+                    // Trigger shake animation
+                    setCanvasState(prev => ({
+                        ...prev,
+                        connectionHover: {
+                            nodeId: targetNode.id,
+                            isValid: false,
+                            invalidReason: validity.reason,
+                            shake: true,
                         },
-                        eds,
-                    ),
-                );
+                    }));
+                    connectingFrom.current = null;
+                    // Clear after animation
+                    setTimeout(() => {
+                        setCanvasState(prev => ({...prev, connectionHover: null}));
+                    }, 400);
+                }
+                return;
             }
 
             connectingFrom.current = null;
+            setCanvasState(prev => ({...prev, connectionHover: null}));
         },
-        [screenToFlowPosition, getIntersectingNodes, setEdges],
+        [screenToFlowPosition, getIntersectingNodes, setEdges, checkConnectionValidity],
     );
+
+    const onNodeMouseEnter = useCallback(
+        (_: React.MouseEvent, node: Node) => {
+            if (connectingFrom.current && node.id !== connectingFrom.current.nodeId && node.type === 'relationNode') {
+                const sourceId = connectingFrom.current.nodeId;
+                if (!sourceId) return;
+
+                const validity = checkConnectionValidity(sourceId, node.id);
+                setCanvasState(prev => ({
+                    ...prev,
+                    connectionHover: {
+                        nodeId: node.id,
+                        isValid: validity.isValid,
+                        invalidReason: validity.reason,
+                    },
+                }));
+            }
+        },
+        [checkConnectionValidity],
+    );
+
+    const onNodeMouseLeave = useCallback(
+        () => {
+            if (connectingFrom.current) {
+                setCanvasState(prev => ({...prev, connectionHover: null}));
+            }
+        },
+        [],
+    );
+
+    const nodesWithConnectionHover = useMemo(() => {
+        return nodes.map(node => {
+            const isHovered = canvasState.connectionHover?.nodeId === node.id;
+            return {
+                ...node,
+                data: {
+                    ...node.data,
+                    connectionHover: isHovered ? canvasState.connectionHover : null,
+                },
+            };
+        });
+    }, [nodes, canvasState.connectionHover]);
 
     const pointerCtx: PointerHandlerContext = {
         canvasState,
@@ -195,13 +312,16 @@ export function Flow() {
             onPointerUp={(e) => handlePointerUp(e, pointerCtx)}
         >
             <ReactFlow
-                nodes={nodes}
+                nodes={nodesWithConnectionHover}
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onConnectStart={onConnectStart}
                 onConnectEnd={onConnectEnd}
+                onNodeMouseEnter={onNodeMouseEnter}
+                onNodeMouseLeave={onNodeMouseLeave}
+                isValidConnection={isValidConnection}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 connectionMode={ConnectionMode.Loose}
