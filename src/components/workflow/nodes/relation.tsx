@@ -28,6 +28,7 @@ import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
 
 import {ConnectionHoverState} from "@/components/workflow/models";
+import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 
 type NodeFromProps = {
     tableName?: string;
@@ -39,7 +40,7 @@ type FromNode = Node<NodeFromProps, 'FromNode'>;
 export function RelationNode(props: NodeProps<FromNode>) {
     const [data, setData] = useState<RelationBlockData>(getInitialDataElement('table'))
     const [manager] = useState(() => new InputManager())
-    const [closestHandle, setClosestHandle] = useState<Position>(Position.Top)
+    const [closestHandle, setClosestHandle] = useState<Position | undefined>()
     const [isFullscreen, setIsFullscreen] = useState(false)
 
     const [divRef, isHovered] = useHoverWithPadding<HTMLDivElement>(48);
@@ -50,18 +51,25 @@ export function RelationNode(props: NodeProps<FromNode>) {
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
         const distances = {
-            [Position.Top]: mouseY,
-            [Position.Right]: rect.width - mouseX,
-            [Position.Bottom]: rect.height - mouseY,
-            [Position.Left]: mouseX,
+            [Position.Top]: Math.sqrt((mouseX - centerX) ** 2 + mouseY ** 2),
+            [Position.Right]: Math.sqrt((mouseX - rect.width) ** 2 + (mouseY - centerY) ** 2),
+            [Position.Bottom]: Math.sqrt((mouseX - centerX) ** 2 + (mouseY - rect.height) ** 2),
+            [Position.Left]: Math.sqrt(mouseX ** 2 + (mouseY - centerY) ** 2),
         };
 
         const closest = Object.entries(distances).reduce((min, [pos, dist]) =>
             dist < distances[min] ? pos as Position : min
         , Position.Top);
 
-        setClosestHandle(closest);
+        if (distances[closest] > WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE) {
+            setClosestHandle(undefined);
+        } else {
+            setClosestHandle(closest);
+        }
     };
 
     const actions = useMemo(() => {

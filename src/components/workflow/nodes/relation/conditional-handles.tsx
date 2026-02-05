@@ -4,7 +4,7 @@ import {ArrowUp, ArrowRight, ArrowDown, ArrowLeft} from 'lucide-react';
 interface ConditionalHandlesProps {
     type: HandleType;
     isHovered: boolean;
-    closestHandle: Position;
+    closestHandle?: Position;
     isSelected: boolean;
 }
 

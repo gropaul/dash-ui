@@ -32,8 +32,8 @@ import {
 
 import './flow-theme.css';
 import {INITIAL_CANVAS_STATE, CanvasState, CanvasStateFreeDraw} from "@/components/workflow/models";
-import {NodePreview} from "@/components/workflow/node-preview";
-import {FreeDrawPreview} from "@/components/workflow/free-draw-preview";
+import {NodePreview} from "@/components/workflow/previews/node-preview";
+import {FreeDrawPreview} from "@/components/workflow/previews/free-draw-preview";
 
 const initialNodes: Node[] = [
     {
@@ -331,6 +331,7 @@ export function Flow() {
                 style={{cursor: cursorStyle}}
                 zoomOnScroll={false}
                 selectionOnDrag={canvasState.selectedTool === 'pointer'}
+                elementsSelectable={canvasState.selectedTool === 'pointer'}
                 selectionMode={SelectionMode.Partial}
                 connectionRadius={32}
                 edgesFocusable={true}

@@ -48,6 +48,11 @@
     border-color: #d9d9d9;
 }
 
+/* Override pointer cursor on nodes when not selectable */
+.react-flow__node:not(.selectable) {
+    cursor: inherit;
+}
+
 .react-flow__node.selectable:focus:active {
 }
 

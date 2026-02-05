@@ -14,21 +14,34 @@ interface NodePaletteProps {
     setCanvasState: (state: CanvasState) => void;
 }
 
-export interface NodeTypeItem extends NodeTemplate {
+export interface NodePaletteItem extends NodeTemplate {
     label: string;
     icon: React.ReactNode;
+    selectAfterCreation: boolean;
 }
 
-export const nodeTypes: NodeTypeItem[] = [
-    {type: 'relationNode', label: 'Relation', icon: <Sheet size={20} strokeWidth={1.5}/>, size: DEFAULT_NODE_SIZE},
-    {type: 'chartNode', label: 'Chart', icon: <BarChart3 size={20} strokeWidth={1.5}/>, size: DEFAULT_CHART_SIZE},
-    {type: 'textNode', label: 'Text', icon: <Text size={20} strokeWidth={1.5}/>, size: DEFAULT_TEXT_SIZE},
+export const nodeTypes: NodePaletteItem[] = [
+    {
+        type: 'relationNode', label: 'Relation',
+        icon: <Sheet size={20} strokeWidth={1.5}/>, size: DEFAULT_NODE_SIZE,
+        selectAfterCreation: true,
+    },
+    {   type: 'chartNode', label: 'Chart',
+        icon: <BarChart3 size={20} strokeWidth={1.5}/>, size: DEFAULT_CHART_SIZE,
+        selectAfterCreation: true
+    },
+    {
+        type: 'textNode', label: 'Text',
+        icon: <Text size={20} strokeWidth={1.5}/>,
+        size: DEFAULT_TEXT_SIZE,
+        selectAfterCreation: true
+    },
 ];
 
 export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
 
 
-    function startCreatingNode(nodeType: NodeTypeItem) {
+    function startCreatingNode(nodeType: NodePaletteItem) {
         setCanvasState({
             selectedTool: 'create-node',
             nodeAdded: nodeType,

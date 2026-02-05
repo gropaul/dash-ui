@@ -1,6 +1,6 @@
-import {NodeTypeItem} from "@/components/workflow/flow-palette";
+import {NodePaletteItem} from "@/components/workflow/flow-palette";
 
-export const DEFAULT_NODE_SIZE = {width: 512, height: 256};
+export const DEFAULT_NODE_SIZE = {width: 512, height: 512};
 export const DEFAULT_CHART_SIZE = {width: 512, height: 512};
 export const DEFAULT_TEXT_SIZE = {width: 128, height: 64};
 
@@ -35,7 +35,7 @@ export interface SizingState {
 export interface CanvasStateNodeCreation  extends CanvasStateBase {
     selectedTool: 'create-node';
     previewMousePosition?: { x: number; y: number };
-    nodeAdded: NodeTypeItem;
+    nodeAdded: NodePaletteItem;
     sizing?: SizingState;
 }
 

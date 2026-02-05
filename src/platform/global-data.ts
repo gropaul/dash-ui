@@ -54,3 +54,6 @@ export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
 export const ERROR_MESSAGE_QUERY_ABORTED = 'Query aborted by user';
 
 export const TABLE_FOOTER_SMALL_WIDTH_THRESHOLD = 512;
+
+// minimum distance from node center for relation handles to become active, in pixels
+export const WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE = 64;

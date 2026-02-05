@@ -35,15 +35,19 @@ function getBounds(points: StrokePoint[]): { minX: number; minY: number; maxX: n
     return {minX, minY, maxX, maxY};
 }
 
-export function FreeDrawNode({data, selected}: NodeProps) {
+export function FreeDrawNode({data, selected, width: nodeWidth, height: nodeHeight}: NodeProps) {
     const {points, color, strokeSize} = data as unknown as FreeDrawNodeData;
 
     if (!points || points.length === 0) return null;
 
     const bounds = getBounds(points);
     const padding = strokeSize + 4;
-    const width = bounds.maxX - bounds.minX + padding * 2;
-    const height = bounds.maxY - bounds.minY + padding * 2;
+    const intrinsicWidth = bounds.maxX - bounds.minX + padding * 2;
+    const intrinsicHeight = bounds.maxY - bounds.minY + padding * 2;
+
+    // Use node dimensions from React Flow if available, otherwise use intrinsic size
+    const width = (nodeWidth && nodeWidth > 0) ? nodeWidth : intrinsicWidth;
+    const height = (nodeHeight && nodeHeight > 0) ? nodeHeight : intrinsicHeight;
 
     // Normalize points relative to the node's top-left corner
     const normalizedPoints = points.map(([x, y, pressure]: StrokePoint) => [
@@ -84,16 +88,18 @@ export function FreeDrawNode({data, selected}: NodeProps) {
             <NodeResizer
                 lineClassName={'z-40'}
                 isVisible={selected}
-                minWidth={100}
-                minHeight={30}
+                minWidth={20}
+                minHeight={20}
             />
             <svg
                 width={width}
                 height={height}
+                viewBox={`0 0 ${intrinsicWidth} ${intrinsicHeight}`}
+                preserveAspectRatio="none"
                 style={{
                     position: 'absolute',
-                    top: -2,
-                    left: -2,
+                    top: 0,
+                    left: 0,
                     overflow: 'visible',
                     display: 'block',
                 }}

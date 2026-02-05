@@ -93,6 +93,9 @@ export function NodeBody(props: NodeBodyProps) {
                     isVisible={props.selected}
                     minWidth={100}
                     minHeight={30}
+                    onResize={(e) => e.sourceEvent.stopPropagation()}
+                    onResizeStart={(e) => e.sourceEvent.stopPropagation()}
+                    onResizeEnd={(e) => e.sourceEvent.stopPropagation()}
                 />
                 <div
                     className={`w-full h-full`}

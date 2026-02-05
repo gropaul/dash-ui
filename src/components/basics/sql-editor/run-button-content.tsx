@@ -1,6 +1,5 @@
 import {Loader2, Play} from "lucide-react";
 import React from "react";
-import {CodeFenceButtonProps} from "@/components/basics/sql-editor/editor-button-panel";
 import {TaskExecutionState} from "@/model/relation-state";
 
 

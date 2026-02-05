@@ -135,7 +135,7 @@ function createFreeDrawNode(ctx: PointerHandlerContext, stroke: Stroke) {
         type: 'freeDrawNode',
         position: {x: bounds.minX - padding, y: bounds.minY - padding},
         data: nodeData as unknown as Record<string, unknown>,
-        selected: true,
+        selected: false,
     };
 
     ctx.setNodes((nds) =>
