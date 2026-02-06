@@ -76,7 +76,7 @@ export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
                             onClick={() => setCanvasState({selectedTool: 'free-draw'})}
                         />
 
-                        <div className="w-px h-6 bg-gray-300"/>
+                        <div className="w-px h-6 bg-border"/>
 
                         {nodeTypes.map((nodeType) => (
                             <PaletteItem

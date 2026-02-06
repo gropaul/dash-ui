@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { BarChart3, Table2, Map } from "lucide-react";
+import {BarChart3, Table2, Map, ChevronDown} from "lucide-react";
 import { RelationViewType } from "@/model/relation-view-state";
 import {
     DropdownMenu,
@@ -27,11 +27,15 @@ export function ToolbarViewSwitcher({ currentView, onViewChange }: ViewSwitcherP
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8">
-                    <CurrentIcon />
+                <Button
+                    className={'rounded-[0px] w-14 h-10 flex flex-row items-center justify-center'}
+                    variant="ghost" size="icon"
+                >
+                    <CurrentIcon className={'p-0'} />
+                    <ChevronDown className={'w-2 h-2'}/>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
                 {views.map((view) => {
                     const Icon = view.icon;
                     return (

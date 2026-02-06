@@ -13,7 +13,7 @@ export function getTables(source: Column | DataSource): DataSource[] {
     return tables;
 }
 
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState } from "react";
 import { Node, NodeProps, NodeResizer, Position } from '@xyflow/react';
 import { NodeBody } from "@/components/workflow/nodes/base";
 import { RelationBlockData } from "@/components/editor/tools/relation.tool";
@@ -93,6 +93,15 @@ export function RelationNode(props: NodeProps<FromNode>) {
                 selected={props.selected}
                 displayName={data.viewState.displayName}
                 connectionHover={props.data.connectionHover}
+                onUpdateTitle={(newTitle) => {
+                    setData(prev => ({
+                        ...prev,
+                        viewState: {
+                            ...prev.viewState,
+                            displayName: newTitle
+                        }
+                    }))
+                }}
             >
                 <Toolbar
                     isVisible={props.selected}
