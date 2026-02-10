@@ -61,7 +61,7 @@ export function ChartContentOverlay(props: ChartContentOverlayProps) {
                     "absolute group right-2 top-2 data-[state=open]:opacity-100",
                     props.className, groupHoverClass)}>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" aria-label="Chart options" data-testid="chart-options-menu">
                             <ChevronDown className="h-4 w-4"/>
                         </Button>
                     </DropdownMenuTrigger>
