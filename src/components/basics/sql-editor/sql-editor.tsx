@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useRef, useEffect} from "react";
+import React, {useRef, useEffect, useId} from "react";
 import {EditorButtonOverlay} from "@/components/basics/sql-editor/editor-button-overlay";
 import Editor, {Monaco} from "@monaco-editor/react";
 
@@ -73,19 +73,28 @@ export function SqlEditor(
 
     copyCode = copyCode || displayCode;
     const {resolvedTheme} = useTheme();
+    // Always use a unique path per editor instance to avoid model sharing issues
+    // when multiple editors exist (e.g., main view + fullscreen dialog)
+    const uniqueId = useId();
+    const editorPath = `sql-editor-${uniqueId}`;
 
     const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
 
     // Use refs to avoid stale closures in debounced callbacks
     const editorRef = useRef<any>(null);
     const onCodeChangeRef = useRef(onCodeChange);
+    const onRunRef = useRef(onRun);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastExternalCodeRef = useRef(displayCode);
 
-    // Keep the callback ref up to date
+    // Keep the callback refs up to date
     useEffect(() => {
         onCodeChangeRef.current = onCodeChange;
     }, [onCodeChange]);
+
+    useEffect(() => {
+        onRunRef.current = onRun;
+    }, [onRun]);
 
     // Handle external code changes (e.g., when loading a new query)
     useEffect(() => {
@@ -159,7 +168,7 @@ export function SqlEditor(
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
         monaco.editor.setTheme(editorTheme);
 
-        registerHotkeys(editor, monaco, onRun);
+        registerHotkeys(editor, monaco, () => onRunRef.current?.());
         registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
     }
@@ -188,7 +197,7 @@ export function SqlEditor(
                 defaultLanguage={'sql'}
                 language={'sql'}
                 defaultValue={displayCode}
-                path={path}
+                path={editorPath}
                 options={{
                     readOnly: readOnly,
                     minimap: {enabled: false},

@@ -52,7 +52,7 @@ export function NodeBody(props: NodeBodyProps) {
     const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
     const [renameValue, setRenameValue] = useState('');
 
-    const headerHeight = title ?  '2rem' : '0rem';
+    const headerHeight = title ?  '3rem' : '0rem';
 
     const isConnectionHovered = !!connectionHover;
     const isValidConnection = connectionHover?.isValid ?? true;
