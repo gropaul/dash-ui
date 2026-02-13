@@ -4,7 +4,7 @@ import {toSnakeCase} from "@/platform/string-utils";
 import {ChartContent} from "@/components/relation/chart/chart-content";
 import {CanDisplayPlot} from "@/model/relation-view-state/chart";
 import {useEffect, useRef} from "react";
-import {useChartExport} from "@/components/relation/chart/chart-export-context";
+import {useRelationContext} from "@/components/relation/chart/chart-export-context";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 
 export interface ChartContentWrapperProps extends RelationViewContentProps {
@@ -13,7 +13,7 @@ export interface ChartContentWrapperProps extends RelationViewContentProps {
 
 export function ChartContentWrapper(props: ChartContentWrapperProps) {
     const exportableRef = useRef<ExportableRef>(null);
-    const chartExport = useChartExport();
+    const chartExport = useRelationContext();
     const data = props.data;
 
     const config = props.relationState.viewState.chartState;
@@ -21,8 +21,9 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
 
     // Register ref with context
     useEffect(() => {
-        chartExport?.setExportableRef(exportableRef);
-        return () => chartExport?.setExportableRef(null);
+        chartExport?.setExportableChartRef(exportableRef);
+        console.log('setting chart export to', exportableRef);
+        return () => chartExport?.setExportableChartRef(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

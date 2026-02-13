@@ -8,7 +8,7 @@ import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {AdvancedRelationActions} from "@/state/relations/functions";
 import {ErrorBoundary} from "@/components/basics/error-bundary";
-import {ChartExportProvider} from "@/components/relation/chart/chart-export-context";
+import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 
 // If resizable, the relation view will have a draggable handle to adjust its height, if
 // fit, it will adjust to the parent height.
@@ -35,7 +35,7 @@ export interface RelationViewProps extends AdvancedRelationActions, StaticDispla
 
 export function RelationView(inputProps: RelationViewAPIProps) {
     return (
-        <ChartExportProvider>
+        <RelationContextProvider>
             <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
                 <ErrorBoundary fallback={(error) => (
                     <div className="p-4 w-full bg-inherit h-full flex flex-col items-start justify-start">
@@ -54,7 +54,7 @@ export function RelationView(inputProps: RelationViewAPIProps) {
                     </div>
                 </ErrorBoundary>
             </div>
-        </ChartExportProvider>
+        </RelationContextProvider>
     );
 }
 

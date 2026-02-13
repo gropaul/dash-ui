@@ -1,7 +1,7 @@
 import {Column, DataSource} from "@/model/data-source-connection";
 import {useMemo, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
-import {NodeBody} from "@/components/workflow/nodes/relation/base";
+import {RelationNodeBody} from "@/components/workflow/nodes/relation/node-body";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {getInitialDataElement} from "@/model/dashboard-state";
@@ -15,6 +15,7 @@ import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-
 
 import {ConnectionHoverState} from "@/components/workflow/models";
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
+import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 
 
 export function getTables(source: Column | DataSource): DataSource[] {
@@ -92,55 +93,57 @@ export function RelationNode(props: NodeProps<FromNode>) {
             ref={divRef}
             onMouseMove={handleMouseMove}
         >
-            <NodeBody
-                viewType={data.viewState.selectedView}
-                className={''}
-                selected={props.selected}
-                displayName={data.viewState.displayName}
-                connectionHover={props.data.connectionHover}
-                onUpdateTitle={(newTitle) => {
-                    setData(prev => ({
-                        ...prev,
-                        viewState: {
-                            ...prev.viewState,
-                            displayName: newTitle
-                        }
-                    }))
-                }}
-            >
-                <Toolbar
-                    isVisible={props.selected}
-                    showCode={data.viewState.codeFenceState.show}
-                    onToggleCode={actions.toggleShowCode}
-                    viewProps={viewProps}
-                    onViewChange={actions.setViewType}
-                    onFullscreen={() => setIsFullscreen(true)}
-                />
-                <NodeResizer
-                    lineClassName={'z-40'}
-                    isVisible={props.selected}
-                    minWidth={100}
-                    minHeight={30}
-                />
-                <div className={'w-full h-full bg-background relative'}>
-                    <RelationStateView
-                        relationState={data}
-                        updateRelation={setData}
-                        inputManager={manager}
-                        embedded={false}
-                        configDisplayMode={'dialog'}
-                        height={'fit'}
+            <RelationContextProvider>
+                <RelationNodeBody
+                    viewType={data.viewState.selectedView}
+                    className={''}
+                    selected={props.selected}
+                    displayName={data.viewState.displayName}
+                    connectionHover={props.data.connectionHover}
+                    onUpdateTitle={(newTitle) => {
+                        setData(prev => ({
+                            ...prev,
+                            viewState: {
+                                ...prev.viewState,
+                                displayName: newTitle
+                            }
+                        }))
+                    }}
+                >
+                    <Toolbar
+                        isVisible={props.selected}
+                        showCode={data.viewState.codeFenceState.show}
+                        onToggleCode={actions.toggleShowCode}
+                        viewProps={viewProps}
+                        onViewChange={actions.setViewType}
+                        onFullscreen={() => setIsFullscreen(true)}
                     />
-                </div>
-                <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle} isSelected={props.selected ?? false} />
-            </NodeBody>
-            <FullscreenDialog
-                isOpen={isFullscreen}
-                onOpenChange={setIsFullscreen}
-                relationState={data}
-                updateRelation={setData}
-                inputManager={manager}
-            />
+                    <NodeResizer
+                        lineClassName={'z-40'}
+                        isVisible={props.selected}
+                        minWidth={100}
+                        minHeight={30}
+                    />
+                    <div className={'w-full h-full bg-background relative'}>
+                        <RelationStateView
+                            relationState={data}
+                            updateRelation={setData}
+                            inputManager={manager}
+                            embedded={false}
+                            configDisplayMode={'dialog'}
+                            height={'fit'}
+                        />
+                    </div>
+                    <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle} isSelected={props.selected ?? false} />
+                </RelationNodeBody>
+                <FullscreenDialog
+                    isOpen={isFullscreen}
+                    onOpenChange={setIsFullscreen}
+                    relationState={data}
+                    updateRelation={setData}
+                    inputManager={manager}
+                />
+            </RelationContextProvider>
         </div>
     );
 }

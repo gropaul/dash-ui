@@ -38,7 +38,7 @@ const shakeKeyframes = `
 }
 `;
 
-export function NodeBody(props: NodeBodyProps) {
+export function RelationNodeBody(props: NodeBodyProps) {
     const { viewType, children, connectionHover, onUpdateTitle } = props;
     const title = props.displayName;
     const viewTypeColor = defaultColorFactory(viewType);

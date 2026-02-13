@@ -22,7 +22,7 @@ export function TableSettingsContent(props: RelationSettingsProps) {
         props.updateRelationViewState({
             tableState: {
                 ...props.relationState.viewState.tableState,
-                showStats: ! tableState.showStats
+                showStats: !tableState.showStats
             }
         });
     }
@@ -40,43 +40,37 @@ export function TableSettingsContent(props: RelationSettingsProps) {
     }
 
     return <>
-        <DropdownMenuContent
-            side="bottom"
-            align={props.align ?? "start"}
-        >
-            <DropdownMenuLabel>
-                Table Settings
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator/>
 
-            {/*<DropdownMenuItem>*/}
-            {/*    <ChartArea />*/}
-            {/*    <span onClick={() => onShowStatsChange()}>*/}
-            {/*        {tableState.showStats ? "Hide" : "Show"} Statistics*/}
-            {/*    </span>*/}
-            {/*</DropdownMenuItem>*/}
+        <DropdownMenuLabel>
+            Table Settings
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator/>
 
-            { columns ? (
+        {/*<DropdownMenuItem>*/}
+        {/*    <ChartArea />*/}
+        {/*    <span onClick={() => onShowStatsChange()}>*/}
+        {/*        {tableState.showStats ? "Hide" : "Show"} Statistics*/}
+        {/*    </span>*/}
+        {/*</DropdownMenuItem>*/}
+
+        {columns ? (
                 <ContentSelectColumns {...props} columnNames={columns.map(col => col.name)}>
-                    <Columns3 />
+                    <Columns3/>
                     Show / Hide Columns <ChevronRight className="ml-auto h-4 w-4"/>
                 </ContentSelectColumns>
             )
-                : (
-                    <DropdownMenuItem disabled>
-                        <Columns3 />
-                        Show / Hide Columns <ChevronRight className="ml-auto h-4 w-4"/>
-                    </DropdownMenuItem>
-                )
-            }
+            : (
+                <DropdownMenuItem disabled>
+                    <Columns3/>
+                    Show / Hide Columns <ChevronRight className="ml-auto h-4 w-4"/>
+                </DropdownMenuItem>
+            )
+        }
 
-            <DropdownMenuSeparator/>
-            <DropdownMenuItem onClick={resetTableViewState}>
-                <RotateCcw />
-                Reset Table View
-            </DropdownMenuItem>
-
-
-        </DropdownMenuContent>
+        <DropdownMenuSeparator/>
+        <DropdownMenuItem onClick={resetTableViewState}>
+            <RotateCcw/>
+            Reset Table View
+        </DropdownMenuItem>
     </>
 }

@@ -14,13 +14,11 @@ import {RelationSettingsProps} from "@/components/relation/relation-settings";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import {useRelationsState} from "@/state/relations.state";
 import {DashboardCommandState, onAddToDashboardSelected} from "@/components/workbench/editor-overview-tab";
-import {useChartExport} from "@/components/relation/chart/chart-export-context";
+import {useRelationContext} from "@/components/relation/chart/chart-export-context";
 
 export function ChartSettingsContent(props: RelationSettingsProps) {
 
-    const [dashboardCommand, setDashboardCommand] = useState<DashboardCommandState>({open: false});
-    const dashboards = useRelationsState((state) => state.dashboards);
-    const chartExport = useChartExport();
+    const chartExport = useRelationContext();
 
     const showChartSettings = props.relationState.viewState.chartState.view.showConfig;
 
@@ -34,60 +32,49 @@ export function ChartSettingsContent(props: RelationSettingsProps) {
         });
     }
 
+    console.log("ChartSettingsContent", chartExport)
+
     return <>
-        <DropdownMenuContent
-            side="bottom"
-            align={props.align ?? "start"}
+
+        <DropdownMenuLabel>
+            Chart Settings
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator/>
+
+        <DropdownMenuItem
+            onClick={() => updateShowConfig()}
         >
-            <DropdownMenuLabel>
-                Chart Settings
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator/>
+            {showChartSettings ? (
+                <>
+                    <X className="mr-1 h-4 w-4"/> Hide Settings
+                </>
+            ) : (
+                <>
+                    <Settings className="mr-1 h-4 w-4"/> Show Settings
+                </>
+            )}
+        </DropdownMenuItem>
 
-            <DropdownMenuItem
-                onClick={() => updateShowConfig()}
-            >
-                {showChartSettings ? (
-                    <>
-                        <X className="mr-1 h-4 w-4"/> Hide Settings
-                    </>
-                ) : (
-                    <>
-                        <Settings className="mr-1 h-4 w-4"/> Show Settings
-                    </>
-                )}
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator/>
-            <DropdownMenuSub>
-                <DropdownMenuSubTrigger disabled={!chartExport?.exportableRef?.current}>
-                    <Download className="mr-1 h-4 w-4"/> Export chart as ...
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                    <DropdownMenuItem
-                        onClick={() => chartExport?.exportableRef?.current?.exportChartAsPNG?.()}
-                    >
-                        PNG
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => chartExport?.exportableRef?.current?.exportChartAsSVG?.()}
-                    >
-                        SVG
-                    </DropdownMenuItem>
-                </DropdownMenuSubContent>
-            </DropdownMenuSub>
-
-            <DropdownMenuSeparator/>
-            <DropdownMenuItem onClick={() => setDashboardCommand({open: true, relation: props.relationState})}>
-                <LayoutDashboard size={16} className="mr-1"/>
-                Add to Dashboard
-            </DropdownMenuItem>
-        </DropdownMenuContent>
-        <DashboardCommand
-            dashboards={Object.values(dashboards)}
-            open={dashboardCommand.open}
-            setOpen={(open) => setDashboardCommand({...dashboardCommand, open})}
-            onDashboardSelected={(d) => onAddToDashboardSelected(dashboardCommand.relation!, d)}
-        />
+        <DropdownMenuSeparator/>
+        <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+                <Download className="mr-1 h-4 w-4"/> Export chart
+                as {chartExport?.exportableChartRef ? 'true' : 'false'} ...
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+                <DropdownMenuItem
+                    disabled={!chartExport?.exportableChartRef?.current}
+                    onClick={() => chartExport?.exportableChartRef?.current?.exportChartAsPNG?.()}
+                >
+                    PNG
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    disabled={!chartExport?.exportableChartRef?.current}
+                    onClick={() => chartExport?.exportableChartRef?.current?.exportChartAsSVG?.()}
+                >
+                    SVG
+                </DropdownMenuItem>
+            </DropdownMenuSubContent>
+        </DropdownMenuSub>
     </>
 }

@@ -1,23 +1,23 @@
 import {createContext, MutableRefObject, ReactNode, useContext, useState} from 'react';
 import {ExportableRef} from "@/components/relation/chart/exportable";
 
-interface ChartExportContextValue {
-    exportableRef: MutableRefObject<ExportableRef | null> | null;
-    setExportableRef: (ref: MutableRefObject<ExportableRef | null> | null) => void;
+interface RelationContextContent {
+    exportableChartRef: MutableRefObject<ExportableRef | null> | null;
+    setExportableChartRef: (ref: MutableRefObject<ExportableRef | null> | null) => void;
 }
 
-const ChartExportContext = createContext<ChartExportContextValue | null>(null);
+const RelationContext = createContext<RelationContextContent | null>(null);
 
-export function ChartExportProvider({children}: { children: ReactNode }) {
-    const [exportableRef, setExportableRef] = useState<MutableRefObject<ExportableRef | null> | null>(null);
+export function RelationContextProvider({children}: { children: ReactNode }) {
+    const [exportableChartRef, setExportableChartRef] = useState<MutableRefObject<ExportableRef | null> | null>(null);
 
     return (
-        <ChartExportContext.Provider value={{exportableRef, setExportableRef}}>
+        <RelationContext.Provider value={{exportableChartRef, setExportableChartRef}}>
             {children}
-        </ChartExportContext.Provider>
+        </RelationContext.Provider>
     );
 }
 
-export function useChartExport() {
-    return useContext(ChartExportContext);
+export function useRelationContext() {
+    return useContext(RelationContext);
 }
