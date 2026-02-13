@@ -4,7 +4,7 @@ import {DndContext, DragOverEvent, PointerSensor, useSensor, useSensors} from "@
 import type {DragEndEvent, DragStartEvent} from "@dnd-kit/core/dist/types";
 import React, {useState} from "react";
 import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-state/table";
-import {TableColumnDragOverlay} from "@/components/relation/table/table-column-drag-overlay";
+import {ColumnDragOverlay} from "@/components/relation/table/table-column/column-drag-overlay";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {cn} from "@/lib/utils";
 import {useRelationData} from "@/state/relations-data.state";
@@ -97,7 +97,7 @@ export function Table(props: RelationViewContentProps) {
                 </div>
                 <TableFooter {...props}/>
             </div>
-            <TableColumnDragOverlay activeId={activeId}/>
+            <ColumnDragOverlay activeId={activeId}/>
         </DndContext>
     )
 }

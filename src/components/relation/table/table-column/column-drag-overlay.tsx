@@ -6,7 +6,7 @@ interface TableColumnDragOverlayProps {
     activeId: string | number | null;
 }
 
-export function TableColumnDragOverlay({activeId}: TableColumnDragOverlayProps) {
+export function ColumnDragOverlay({activeId}: TableColumnDragOverlayProps) {
     return(
         <DragOverlay>
             {activeId ? (

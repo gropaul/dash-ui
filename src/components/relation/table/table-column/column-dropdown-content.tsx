@@ -13,15 +13,16 @@ import {
 import {Check, Copy, EyeOff, Filter} from "lucide-react";
 
 import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon";
-import {ContentSelectColumns} from "@/components/relation/table/settings/content-select-columns";
+import {ContentSelectColumns} from "@/components/relation/table/table-column/content-select-columns";
 
 
 export interface ColumnHeadDropDownProps extends ColumnHeadProps {
-    columnNames: string[];
 
 }
 
 export function ColumnDropDownContent(props: ColumnHeadDropDownProps) {
+
+    const columnNames = props.data.columns.map(col => col.name);
 
     function onCopyName() {
         navigator.clipboard.writeText(props.column.name);
@@ -61,7 +62,7 @@ export function ColumnDropDownContent(props: ColumnHeadDropDownProps) {
                 <AdaptiveEyeOff visible={thisColumnHidden}/>
                 <span>{thisColumnHidden ? "Show Column" : "Hide Column"}</span>
             </DropdownMenuItem>
-            <ContentSelectColumns {...props} >
+            <ContentSelectColumns {...props} columnNames={columnNames}>
                 <EyeOff className={"opacity-0"}/>
                 <span>Hide other Columns</span>
             </ContentSelectColumns>

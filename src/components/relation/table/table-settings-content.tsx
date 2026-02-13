@@ -14,23 +14,24 @@ import {
 import {ChartArea, Check, ChevronRight, Columns3, Copy, EyeOff, Filter, RotateCcw} from "lucide-react";
 
 import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon";
-import {ContentSelectColumns} from "@/components/relation/table/settings/content-select-columns";
+import {ContentSelectColumns} from "@/components/relation/table/table-column/content-select-columns";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {getInitialTableDisplayStateEmpty} from "@/model/relation-view-state/table";
 import {getInitialTableQueryParameters} from "@/model/relation-state";
+import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 
-export interface TableDropDownContentProps extends RelationViewProps {
-    columnNames: string[];
+export interface TableDropDownContentProps extends RelationViewContentProps {
+
 }
 
 
-export function TableDropDownContent(props: TableDropDownContentProps) {
-
+export function TableSettingsContent(props: TableDropDownContentProps) {
+    const columnNames = props.data.columns.map(col => col.name);
 
     const tableState = props.relationState.viewState.tableState;
-    function onShowStatsChange() {
 
+    function onShowStatsChange() {
         const current = tableState.showStats;
         let next;
         if (current === undefined) {
@@ -47,7 +48,6 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
     }
 
     async function resetTableViewState() {
-
         const relationCopy = {...props.relationState};
         relationCopy.viewState.tableState = getInitialTableDisplayStateEmpty();
         relationCopy.viewState.tableState.showStats = props.relationState.viewState.tableState.showStats;
@@ -58,6 +58,7 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
             table: getInitialTableQueryParameters()
         })
     }
+
     return <>
         <DropdownMenuContent
             side="bottom"
@@ -69,7 +70,7 @@ export function TableDropDownContent(props: TableDropDownContentProps) {
                 Table Settings
             </DropdownMenuLabel>
             <DropdownMenuSeparator/>
-            <ContentSelectColumns {...props}>
+            <ContentSelectColumns {...props} columnNames={columnNames}>
                 <Columns3 />
                 Show / Hide Columns <ChevronRight className="ml-auto h-4 w-4"/>
             </ContentSelectColumns>

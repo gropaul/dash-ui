@@ -1,28 +1,22 @@
 import {TableColumnHead} from "@/components/relation/table/table-head/table-column-head";
 import React from "react";
-import {ColumnDropDownContent} from "@/components/relation/table/settings/column-dropdown-content";
+import {ColumnDropDownContent} from "@/components/relation/table/table-column/column-dropdown-content";
 import {Column} from "@/model/data-source-connection";
 import {
     DropdownMenu,
-    DropdownMenuContent, DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
+    DropdownMenuContent,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {useRelationDataState} from "@/state/relations-data.state";
-import {GetStatForColumn} from "@/model/relation-state";
-import {ChevronRight, Settings} from "lucide-react";
-import {TableDropDownContent} from "@/components/relation/table/settings/table-dropdown-content";
-import {ContentSelectColumns} from "@/components/relation/table/settings/content-select-columns";
+import {Settings} from "lucide-react";
+import {TableSettingsContent} from "@/components/relation/table/table-settings-content";
 
 export function TableHead(props: RelationViewTableContentProps) {
     const [selectedColumn, setSelectedColumn] = React.useState<Column | null>(null);
     const [columnMenuOpen, setColumnMenuOpen] = React.useState(false);
     const [columnMenuPosition, setColumnMenuPosition] = React.useState({x: 0, y: 0});
     const relationStats = useRelationDataState(state => state.getStats(props.relationState.id));
-
-    const columnNames = props.data.columns.map(col => col.name);
 
     function handleColumnMenuClick(column: Column, event: React.MouseEvent) {
         setSelectedColumn(column);
@@ -48,7 +42,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                             </div>
                         </DropdownMenuTrigger>
 
-                        <TableDropDownContent {...props} columnNames={columnNames}/>
+                        <TableSettingsContent {...props}/>
                     </DropdownMenu>
                     <div className={'absolute top-0 h-full w-full border-b border-r pointer-events-none'}>
 
@@ -84,7 +78,6 @@ export function TableHead(props: RelationViewTableContentProps) {
                         <ColumnDropDownContent
                             {...props}
                             column={selectedColumn}
-                            columnNames={columnNames}
                             columnIndex={0 /* not used in content */}
                         />
                     )}

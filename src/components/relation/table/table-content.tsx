@@ -24,16 +24,17 @@ export const TableContent = React.memo(function TableContent(props: RelationView
 
     const rowsSlice = React.useMemo(() => data.rows.slice(0, limitRows), [data.rows, limitRows]);
 
-    // Get column widths from table state
+    // Get column widths from table state (only for visible columns)
     const columnWidths = React.useMemo(() => {
         const tableState = relationState.viewState.tableState;
-        return data.columns.map(col => {
+        return columnViewIndices.map(colIndex => {
+            const col = data.columns[colIndex];
             const columnState = tableState.columnStates[col.name];
             return columnState?.width ?? INITIAL_COLUMN_VIEW_STATE.width;
         });
-    }, [relationState.viewState.tableState, data.columns]);
+    }, [relationState.viewState.tableState, data.columns, columnViewIndices]);
 
-    // Calculate total table width: row number column (80px) + all column widths
+    // Calculate total table width: row number column (80px) + visible column widths
     const totalTableWidth = React.useMemo(() => {
         return 80 + columnWidths.reduce((sum, w) => sum + w, 0);
     }, [columnWidths]);
@@ -101,12 +102,12 @@ export const TableContent = React.memo(function TableContent(props: RelationView
                                         {offset + virtualRow.index + 1}
                                     </div>
                                 </td>
-                                {row.map((value, index) => (
+                                {columnViewIndices.map((colIndex, i) => (
                                     <TableValueCell
-                                        key={index}
-                                        element={value}
-                                        column={props.data.columns[index]}
-                                        width={columnWidths[index]}
+                                        key={colIndex}
+                                        element={row[colIndex]}
+                                        column={data.columns[colIndex]}
+                                        width={columnWidths[i]}
                                     />
                                 ))
                                 }
