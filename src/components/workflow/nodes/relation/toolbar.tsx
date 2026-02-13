@@ -1,7 +1,7 @@
 import { NodeToolbar, Position } from '@xyflow/react';
 import { Button } from "@/components/ui/button";
 import { Code, Maximize } from "lucide-react";
-import { ToolbarViewSwitcher } from './toolbar-view-switcher';
+import { RelationViewTypeSwitcher } from '../../../relation/settings/relation-view-type-switcher';
 import { RelationViewType } from "@/model/relation-view-state";
 import {cn} from "@/lib/utils";
 import {Toggle} from "@/components/ui/toggle";
@@ -46,7 +46,7 @@ export function Toolbar({
                 </Toggle>
                 <div className="w-[1px] h-10 bg-border"/>
 
-                <ToolbarViewSwitcher
+                <RelationViewTypeSwitcher
                     currentView={currentView}
                     onViewChange={onViewChange}
                 />

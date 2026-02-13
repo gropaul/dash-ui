@@ -14,7 +14,7 @@ interface ViewSwitcherProps {
     onViewChange: (view: RelationViewType) => void;
 }
 
-export function ToolbarViewSwitcher({ currentView, onViewChange }: ViewSwitcherProps) {
+export function RelationViewTypeSwitcher({ currentView, onViewChange }: ViewSwitcherProps) {
     const views: {id: RelationViewType, label: string}[] = [
         { id: 'chart', label: 'Chart' },
         { id: 'table', label: 'Table' },

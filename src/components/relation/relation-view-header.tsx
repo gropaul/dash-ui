@@ -24,6 +24,7 @@ import {FilepathDialog, FilepathDialogState} from "@/components/export/filepath-
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
 import {RelationSettings} from "@/components/relation/relation-settings";
+import {RelationViewTypeSwitcher} from "@/components/relation/settings/relation-view-type-switcher";
 
 export interface RelationViewHeaderProps extends RelationViewAPIProps{
     children?: React.ReactNode;
@@ -172,17 +173,10 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                 <Code className="h-4 w-4"/>
                             </Toggle>
                             <Separator orientation={'vertical'}/>
-                            <ToggleGroup rovingFocus type="single" value={viewState.selectedView} onValueChange={onViewChange}>
-                                <ToggleGroupItem value="table" aria-label="Table view" title={'Table view'}>
-                                    <Sheet className="h-4 w-4"/>
-                                </ToggleGroupItem>
-                                <ToggleGroupItem value="chart" aria-label="Chart view" title={'Chart view'}>
-                                    <ChartSpline className="h-4 w-4"/>
-                                </ToggleGroupItem>
-                                <ToggleGroupItem value="map" aria-label="Map view" disabled={mapDisabled} title={'Not implemented'}>
-                                    <Map className="h-4 w-4"/>
-                                </ToggleGroupItem>
-                            </ToggleGroup>
+                            <RelationViewTypeSwitcher
+                                currentView={viewState.selectedView}
+                                onViewChange={onViewChange}
+                            />
                             <Separator orientation={'vertical'}/>
                             <RelationSettings {...props} align={"end"}/>
                             <Separator orientation={'vertical'}/>

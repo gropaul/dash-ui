@@ -62,7 +62,7 @@ export function ChartConfigView(props: ChartConfigProps) {
             )}
         >
             <div className="pb-1 shrink-0 mr-3">
-                <H5>Data Config</H5>
+                <H5>Chart Config</H5>
                 <Separator />
             </div>
 
