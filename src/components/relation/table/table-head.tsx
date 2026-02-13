@@ -33,17 +33,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                     scope="col"
                     className="p-0 m-0 h-fit sticky left-0 z-20 bg-inherit w-20"
                 >
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <div
-                                className="flex items-center justify-center absolute top-[1px] h-8 border-b border-r w-20 hover:bg-accent/50"
-                            >
-                                <Settings className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer"/>
-                            </div>
-                        </DropdownMenuTrigger>
 
-                        <TableSettingsContent {...props}/>
-                    </DropdownMenu>
                     <div className={'absolute top-0 h-full w-full border-b border-r pointer-events-none'}>
 
                     </div>

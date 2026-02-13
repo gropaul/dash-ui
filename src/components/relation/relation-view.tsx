@@ -26,7 +26,7 @@ export interface RelationViewAPIProps extends DefaultRelationZustandActions, Sta
 }
 
 
-export interface RelationViewProps extends AdvancedRelationActions, StaticDisplayProps{
+export interface RelationViewProps extends AdvancedRelationActions, StaticDisplayProps {
     relationState: RelationState;
     inputManager?: InputManager;
     embedded?: boolean;

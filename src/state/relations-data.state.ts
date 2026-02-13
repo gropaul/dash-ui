@@ -12,6 +12,7 @@ import {
 import {LRUList} from "@/platform/lru";
 import {N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
 import {GetColumnStats} from "@/model/column-stats";
+import {Column} from "@/model/data-source-connection";
 
 
 export interface CacheResult {
@@ -23,6 +24,7 @@ export interface RelationDataZustandActions {
     /* Data API */
     getData: (relationId: string) => RelationData | undefined;
     getDataForRelation: (relationState: RelationState) => RelationData | undefined;
+    getColumnsForRelation: (relationState: RelationState) => Column[] | undefined;
     updateData: (relationId: string, data: RelationData) => RelationData;
     updateDataFromCache: (relationId: string) => Promise<RelationData | undefined>;
     updateDataFromQuery: (input: RelationState, query: string) => Promise<CacheResult>;
@@ -92,6 +94,10 @@ export function useRelationData(relationState: RelationState) {
     return useRelationDataState((state) => state.getDataForRelation(relationState));
 }
 
+export function useRelationColumns(relationState: RelationState) {
+    return useRelationDataState((state) => state.getColumnsForRelation(relationState));
+}
+
 export const useRelationDataState = createWithEqualityFn<RelationZustandCombined>(
     (set, get) => ({
         ...getInitialRelationDataZustandState(),
@@ -105,7 +111,7 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
             get().recordUse(relationId);
             if (relationId in get().data) {
                 return get().data[relationId];
-            }else{
+            } else {
                 get().updateDataFromCache(relationId);
                 return undefined;
             }
@@ -113,6 +119,10 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
 
         getDataForRelation: (relationState: RelationState) => {
             return get().getData(relationState.id);
+        },
+
+        getColumnsForRelation: (relationState: RelationState) => {
+            return get().getData(relationState.id)?.columns;
         },
 
         updateData: (relationId: string, data: RelationData) => {
@@ -167,10 +177,10 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
 
         invalidateStats: (relationId: string) => {
             set((state) => {
-                const newStats = {...state.stats};
-                delete newStats[relationId];
-                return {stats: newStats};
-            }
+                    const newStats = {...state.stats};
+                    delete newStats[relationId];
+                    return {stats: newStats};
+                }
             );
         },
 

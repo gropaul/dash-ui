@@ -22,20 +22,24 @@ import {Button} from "@/components/ui/button";
 import {useState} from "react";
 import {FilepathDialog, FilepathDialogState} from "@/components/export/filepath-dialog";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/functions";
+import {createAdvancedRelationActions} from "@/state/relations/functions";
+import {RelationSettings} from "@/components/relation/relation-settings";
 
 export interface RelationViewHeaderProps extends RelationViewAPIProps{
     children?: React.ReactNode;
 }
 
-export function RelationViewHeader(props: RelationViewHeaderProps) {
+export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
+
+
+    const advancedActions = createAdvancedRelationActions(inputProps)
+    const props: RelationViewProps = {
+        ...inputProps,
+        ...advancedActions,
+    };
 
     const relationId = props.relationState.id;
     const {source, connectionId, viewState} = props.relationState;
-
-    const advancedActions = createAdvancedRelationActions(props)
-
-
 
     function onPathClick(element: string, index: number) {
         if (source.type === 'table') {
@@ -179,6 +183,8 @@ export function RelationViewHeader(props: RelationViewHeaderProps) {
                                     <Map className="h-4 w-4"/>
                                 </ToggleGroupItem>
                             </ToggleGroup>
+                            <Separator orientation={'vertical'}/>
+                            <RelationSettings {...props} align={"end"}/>
                             <Separator orientation={'vertical'}/>
                             <HeaderDownloadButton
                                 state={filepathDialogState}
