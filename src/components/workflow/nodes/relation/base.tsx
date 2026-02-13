@@ -1,17 +1,17 @@
 import {ReactNode, useState} from "react";
-import {NodeType} from "@/components/workflow/flow";
 import {NodeResizer} from "@xyflow/react";
 import {cn} from "@/lib/utils";
-import {defaultIconFactory} from "@/components/basics/files/icon-factories";
+import {defaultIconFactory, defaultColorFactory} from "@/components/basics/files/icon-factories";
 import {ConnectionHoverState} from "@/components/workflow/models";
 import {Pencil} from "lucide-react";
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
+import {RelationViewType} from "@/model/relation-view-state";
 
 export interface NodeBodyProps {
-    type: NodeType;
     children?: ReactNode;
+    viewType: RelationViewType
     className?: string;
     selected: boolean;
     displayName?: string;
@@ -22,13 +22,6 @@ export interface NodeBodyProps {
 interface BodyStyle {
 
 }
-
-const BodyStyles: Record<NodeType, BodyStyle> = {
-    relationNode: {},
-    chartNode: {},
-    textNode: {},
-    freeDrawNode: {},
-};
 
 const INVALID_MESSAGES: Record<string, string> = {
     cycle: 'Cannot create cycle',
@@ -46,8 +39,9 @@ const shakeKeyframes = `
 `;
 
 export function NodeBody(props: NodeBodyProps) {
-    const { type, children, connectionHover, onUpdateTitle } = props;
-    const title = props.displayName
+    const { viewType, children, connectionHover, onUpdateTitle } = props;
+    const title = props.displayName;
+    const viewTypeColor = defaultColorFactory(viewType);
 
     const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
     const [renameValue, setRenameValue] = useState('');
@@ -144,10 +138,10 @@ export function NodeBody(props: NodeBodyProps) {
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: '14px',
-                            background: 'rgba(139,92,246,0.1)',
-                            color: '#8b5cf6'
+                            background: viewTypeColor.background,
+                            color: viewTypeColor.foreground
                         }}>
-                            {defaultIconFactory('relation')}
+                            {defaultIconFactory(viewType)}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, minWidth: 0 }}>
                             <span style={{

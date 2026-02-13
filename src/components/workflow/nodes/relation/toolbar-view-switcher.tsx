@@ -7,6 +7,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 
 interface ViewSwitcherProps {
     currentView: RelationViewType;
@@ -14,15 +15,16 @@ interface ViewSwitcherProps {
 }
 
 export function ToolbarViewSwitcher({ currentView, onViewChange }: ViewSwitcherProps) {
-    const views = [
-        { id: 'chart', label: 'Chart', icon: BarChart3 },
-        { id: 'table', label: 'Table', icon: Table2 },
-        { id: 'map', label: 'Map', icon: Map },
+    const views: {id: RelationViewType, label: string}[] = [
+        { id: 'chart', label: 'Chart' },
+        { id: 'table', label: 'Table' },
+        { id: 'select', label: 'Input: Select' },
+        { id: 'map', label: 'Map' },
     ] as const;
 
     const disabledViews = ['map'];
 
-    const CurrentIcon = views.find(v => v.id === currentView)?.icon ?? BarChart3;
+    const CurrentIcon = defaultIconFactory(currentView);
 
     return (
         <DropdownMenu>
@@ -31,13 +33,14 @@ export function ToolbarViewSwitcher({ currentView, onViewChange }: ViewSwitcherP
                     className={'rounded-[0px] w-14 h-10 flex flex-row items-center justify-center'}
                     variant="ghost" size="icon"
                 >
-                    <CurrentIcon className={'p-0'} />
+                    {/*<CurrentIcon className={'p-0'} />*/}
+                    {defaultIconFactory(currentView)}
                     <ChevronDown className={'w-2 h-2'}/>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
                 {views.map((view) => {
-                    const Icon = view.icon;
+
                     return (
                         <DropdownMenuItem
                             disabled={disabledViews.includes(view.id)}
@@ -45,7 +48,8 @@ export function ToolbarViewSwitcher({ currentView, onViewChange }: ViewSwitcherP
                             onClick={() => onViewChange(view.id)}
                             className={currentView === view.id ? 'bg-accent' : ''}
                         >
-                            <Icon className="mr-2 h-4 w-4" />
+                            {/*<Icon className="mr-2 h-4 w-4" />*/}
+                            {defaultIconFactory(view.id)}
                             {view.label}
                         </DropdownMenuItem>
                     );

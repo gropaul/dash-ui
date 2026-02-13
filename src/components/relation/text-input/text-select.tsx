@@ -52,7 +52,7 @@ export function TextSelect(props: RelationViewContentProps) {
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="w-[200px] justify-between relative"
+                        className="w-full justify-between relative"
                     >
                         {value
                             ? items.find((item) => item.value === value)?.label
@@ -60,10 +60,10 @@ export function TextSelect(props: RelationViewContentProps) {
                         <ChevronsUpDown className="opacity-50"/>
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
+                <PopoverContent align="start" className="w-full p-0">
                     <Command>
                         <CommandInput placeholder="Search..." className="h-9"/>
-                        <CommandList>
+                        <CommandList className="max-h-60">
                             <CommandEmpty>No item found.</CommandEmpty>
                             <CommandGroup>
                                 {items.map((item) => (

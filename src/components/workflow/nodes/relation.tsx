@@ -15,7 +15,7 @@ export function getTables(source: Column | DataSource): DataSource[] {
 
 import { useMemo, useState } from "react";
 import { Node, NodeProps, NodeResizer, Position } from '@xyflow/react';
-import { NodeBody } from "@/components/workflow/nodes/base";
+import { NodeBody } from "@/components/workflow/nodes/relation/base";
 import { RelationBlockData } from "@/components/editor/tools/relation.tool";
 import { InputManager } from "@/components/editor/inputs/input-manager";
 import { getInitialDataElement } from "@/model/dashboard-state";
@@ -88,7 +88,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
             onMouseMove={handleMouseMove}
         >
             <NodeBody
-                type="relationNode"
+                viewType={data.viewState.selectedView}
                 className={''}
                 selected={props.selected}
                 displayName={data.viewState.displayName}

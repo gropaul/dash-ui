@@ -1,5 +1,6 @@
 import React, {ReactNode} from "react";
 import {
+    BarChart3,
     Braces,
     Calendar,
     Database,
@@ -7,15 +8,16 @@ import {
     Folder,
     Hash,
     LayoutDashboard,
-    LoaderCircle,
+    LoaderCircle, Map,
     Network,
-    Sheet,
+    Sheet, SquareChevronDown, Table2,
     Text,
     ToggleLeft,
     View,
     WorkflowIcon
 } from "lucide-react";
 import {ValueIcon} from "@/components/relation/common/value-icon";
+import {RelationViewType} from "@/model/relation-view-state";
 
 
 export type DBConnectionType = 'duckdb-wasm' | 'duckdb-wasm-motherduck' | 'duckdb-over-http';
@@ -24,8 +26,45 @@ export type DataGroupType = 'folder' | 'database';
 
 export type PossibleIconTypes = DataSourceType | DataGroupType | DBConnectionType;
 
+export interface ViewTypeColor {
+    background: string;
+    foreground: string;
+}
+
+const relationViewTypeColors: Record<RelationViewType, ViewTypeColor> = {
+    table: { background: 'rgba(139, 92, 246, 0.1)', foreground: '#8b5cf6' },  // purple
+    chart: { background: 'rgba(59, 130, 246, 0.1)', foreground: '#3b82f6' },  // blue
+    map: { background: 'rgba(34, 197, 94, 0.1)', foreground: '#22c55e' },     // green
+    select: { background: 'rgba(249, 115, 22, 0.1)', foreground: '#f97316' }, // orange
+};
+
+export const defaultColorFactory = (type: RelationViewType): ViewTypeColor => {
+    return relationViewTypeColors[type] ?? relationViewTypeColors.table;
+};
+
+const relationViewTypeIconFactory = (type: RelationViewType): ReactNode | null => {
+    const iconSize = 16;
+
+    switch (type) {
+        case 'map':
+            return <Map size={iconSize} />
+        case 'chart':
+            return <BarChart3 size={iconSize} />
+        case 'table':
+            return <Table2 size={iconSize} />
+        case 'select':
+            return <SquareChevronDown size={iconSize}/>
+    }
+    return null;
+}
+
 export const defaultIconFactory = (type: string): ReactNode => {
     const iconSize = 16;
+
+    const relationIcon = relationViewTypeIconFactory(type as RelationViewType);
+    if (relationIcon) {
+        return relationIcon;
+    }
 
     switch (type) {
         case 'loading':

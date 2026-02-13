@@ -65,8 +65,13 @@ export function resetQueryParams(queryData: QueryData): ViewQueryParameters {
             type: 'chart',
             chart: oldParams.chart,
         };
-    } else {
-        throw new Error(`Unknown view type: ${oldParams.type}`);
+    } else if (oldParams.type === 'select') {
+        return {
+            ...oldParams,
+        };
+    }
+    else {
+        throw new Error(`Unknown view type during reset query parameters: ${oldParams.type}`);
     }
 }
 
@@ -359,8 +364,11 @@ export function buildQuery(
         const [lViewQuery, lSchemaQuery] = buildChartQuery(viewParameters, finalQueryAsSubQuery);
         viewQuery = lViewQuery;
         schemaQuery = lSchemaQuery;
+    } else if (viewParameters.type === 'select') {
+        viewQuery = finalQueryAsSubQuery;
+
     } else {
-        throw new Error(`Unknown view type: ${viewParameters.type}`);
+        throw new Error(`Unknown view type for building a view query: ${viewParameters.type}`);
     }
 
     return {

@@ -60,10 +60,9 @@ export function RelationViewContent(props: RelationViewProps) {
                     <TextField {...contentProps} />
                 );
         }
-
     } else {
         return (
-            <div>Unknown view type: {selectedView}</div>
+            <div>Unknown view type: "{selectedView}"</div>
         );
     }
 }
