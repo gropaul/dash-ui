@@ -10,8 +10,6 @@ interface ChartContentErrorProps {
 }
 
 export function ChartContentError(props: ChartContentErrorProps) {
-
-
     return (
         <div className={'w-full h-full flex justify-center items-center border-b border-t'}>
             <div className={'text-center mt-4'}>

@@ -4,6 +4,7 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigge
 import {Settings} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {RelationViewProps} from "@/components/relation/relation-view";
+import {ChartSettingsContent} from "@/components/relation/chart/chart-settings-content";
 
 
 export interface RelationSettingsProps extends RelationViewProps {
@@ -29,6 +30,8 @@ function RelationSettingsDropDownContent(props: RelationSettingsProps) {
     switch (props.relationState.viewState.selectedView) {
         case "table":
             return <TableSettingsContent {...props}/>
+        case "chart":
+            return <ChartSettingsContent {...props}/>
         default:
             return <DropdownMenuContent side="bottom" align={props.align ?? "start"}>
                 <DropdownMenuLabel>

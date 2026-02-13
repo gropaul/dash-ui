@@ -8,6 +8,7 @@ import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/functions";
 import {ErrorBoundary} from "@/components/basics/error-bundary";
+import {ChartExportProvider} from "@/components/relation/chart/chart-export-context";
 
 // If resizable, the relation view will have a draggable handle to adjust its height, if
 // fit, it will adjust to the parent height.
@@ -34,24 +35,26 @@ export interface RelationViewProps extends AdvancedRelationActions, StaticDispla
 
 export function RelationView(inputProps: RelationViewAPIProps) {
     return (
-        <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
-            <ErrorBoundary fallback={(error) => (
-                <div className="p-4 w-full bg-inherit h-full flex flex-col items-start justify-start">
-                    <div className={'flex bg-inherit flex-row text-red-500 items-center space-x-2 h-6'}>
-                        <TriangleAlert size={16}/>
-                        <span>Error rendering relation view</span>
+        <ChartExportProvider>
+            <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
+                <ErrorBoundary fallback={(error) => (
+                    <div className="p-4 w-full bg-inherit h-full flex flex-col items-start justify-start">
+                        <div className={'flex bg-inherit flex-row text-red-500 items-center space-x-2 h-6'}>
+                            <TriangleAlert size={16}/>
+                            <span>Error rendering relation view</span>
+                        </div>
+                        <div className="mt-2 text-red-500">
+                            {error.message}
+                        </div>
                     </div>
-                    <div className="mt-2 text-red-500">
-                        {error.message}
+                )}>
+                    <RelationViewHeader {...inputProps}/>
+                    <div className={`flex-1 bg-background overflow-auto`}>
+                        <RelationStateView {...inputProps}/>
                     </div>
-                </div>
-            )}>
-                <RelationViewHeader {...inputProps}/>
-                <div className={`flex-1 bg-background overflow-auto`}>
-                    <RelationStateView {...inputProps}/>
-                </div>
-            </ErrorBoundary>
-        </div>
+                </ErrorBoundary>
+            </div>
+        </ChartExportProvider>
     );
 }
 

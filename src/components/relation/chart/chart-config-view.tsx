@@ -6,9 +6,7 @@ import {Label} from "@/components/ui/label";
 import {ChartTypeSelector} from "@/components/relation/chart/chart-config/chart-type-selector";
 import {ConfigViewCartesian} from "@/components/relation/chart/chart-config/config-view-cartesian";
 import {ConfigViewPie} from "@/components/relation/chart/chart-config/config-view-pie";
-import {RelationState, ViewQueryParameters} from "@/model/relation-state";
-import {DeepPartial} from "@/platform/object-utils";
-import {RelationViewState} from "@/model/relation-view-state";
+import {RelationState} from "@/model/relation-state";
 import {cn} from "@/lib/utils";
 import {RelationData} from "@/model/relation";
 import {ScrollArea} from "@/components/ui/scroll-area";
@@ -26,7 +24,6 @@ export interface ChartConfigProps extends AdvancedRelationActions{
 
 export function ChartConfigView(props: ChartConfigProps) {
 
-    const relationId = props.relationState.id;
     const config = props.relationState.viewState.chartState;
 
     function updateTitle(title: string) {

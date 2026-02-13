@@ -16,8 +16,8 @@ interface ViewSwitcherProps {
 
 export function RelationViewTypeSwitcher({ currentView, onViewChange }: ViewSwitcherProps) {
     const views: {id: RelationViewType, label: string}[] = [
-        { id: 'chart', label: 'Chart' },
         { id: 'table', label: 'Table' },
+        { id: 'chart', label: 'Chart' },
         { id: 'select', label: 'Input: Select' },
         { id: 'map', label: 'Map' },
     ] as const;
