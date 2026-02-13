@@ -20,7 +20,7 @@ import { RelationBlockData } from "@/components/editor/tools/relation.tool";
 import { InputManager } from "@/components/editor/inputs/input-manager";
 import { getInitialDataElement } from "@/model/dashboard-state";
 import { RelationStateView } from "@/components/relation/relation-state-view";
-import { RelationViewAPIProps } from "@/components/relation/relation-view";
+import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import { createEndUserRelationActions } from "@/state/relations/functions";
 import {Toolbar} from "@/components/workflow/nodes/relation/toolbar";
 import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
@@ -44,7 +44,6 @@ export function RelationNode(props: NodeProps<FromNode>) {
     const [isFullscreen, setIsFullscreen] = useState(false)
 
     const [divRef, isHovered] = useHoverWithPadding<HTMLDivElement>(48);
-
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -81,6 +80,13 @@ export function RelationNode(props: NodeProps<FromNode>) {
         }
         return createEndUserRelationActions(inputProps)
     }, [data])
+
+    const viewProps: RelationViewProps = {
+        relationState: data,
+        ...actions
+    }
+
+
     return (
         <div
             className="w-full h-full relative"
@@ -107,7 +113,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
                     isVisible={props.selected}
                     showCode={data.viewState.codeFenceState.show}
                     onToggleCode={actions.toggleShowCode}
-                    currentView={data.viewState.selectedView}
+                    viewProps={viewProps}
                     onViewChange={actions.setViewType}
                     onFullscreen={() => setIsFullscreen(true)}
                 />

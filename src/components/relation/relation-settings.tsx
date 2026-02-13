@@ -9,6 +9,7 @@ import {ChartSettingsContent} from "@/components/relation/chart/chart-settings-c
 
 export interface RelationSettingsProps extends RelationViewProps {
     align?: "start" | "center" | "end";
+    className?: string;
 }
 
 export function RelationSettings(props: RelationSettingsProps) {
@@ -16,7 +17,7 @@ export function RelationSettings(props: RelationSettingsProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className={props.className}>
                     <Settings className="h-4 w-4"/>
                     <span className="sr-only">Open settings</span>
                 </Button>

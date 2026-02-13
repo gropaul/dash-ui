@@ -1,28 +1,33 @@
-import { NodeToolbar, Position } from '@xyflow/react';
-import { Button } from "@/components/ui/button";
-import { Code, Maximize } from "lucide-react";
-import { RelationViewTypeSwitcher } from '../../../relation/settings/relation-view-type-switcher';
-import { RelationViewType } from "@/model/relation-view-state";
+import {NodeToolbar, Position} from '@xyflow/react';
+import {Button} from "@/components/ui/button";
+import {Code, Maximize} from "lucide-react";
+import {RelationViewTypeSwitcher} from '../../../relation/settings/relation-view-type-switcher';
+import {RelationViewType} from "@/model/relation-view-state";
 import {cn} from "@/lib/utils";
 import {Toggle} from "@/components/ui/toggle";
+import {RelationSettings} from "@/components/relation/relation-settings";
+import {RelationState} from "@/model/relation-state";
+import {RelationViewProps} from "@/components/relation/relation-view";
 
 interface RelationToolbarProps {
     isVisible: boolean;
     showCode: boolean;
     onToggleCode: () => void;
-    currentView: RelationViewType;
+    viewProps: RelationViewProps,
     onViewChange: (view: RelationViewType) => void;
     onFullscreen: () => void;
 }
 
 export function Toolbar({
-    isVisible,
-    showCode,
-    onToggleCode,
-    currentView,
-    onViewChange,
-    onFullscreen
-}: RelationToolbarProps) {
+                            isVisible,
+                            showCode,
+                            onToggleCode,
+                            viewProps,
+                            onViewChange,
+                            onFullscreen
+                        }: RelationToolbarProps) {
+
+
     return (
         <NodeToolbar isVisible={isVisible} position={Position.Top} align={'center'}>
             <div className="flex flex-row  bg-background border rounded-2xl shadow-sm px-1">
@@ -32,7 +37,7 @@ export function Toolbar({
                     size={'icon'}
                     onClick={onFullscreen}
                 >
-                    <Maximize />
+                    <Maximize/>
                 </Button>
                 <div className="w-[1px] h-10 bg-border"/>
 
@@ -47,9 +52,12 @@ export function Toolbar({
                 <div className="w-[1px] h-10 bg-border"/>
 
                 <RelationViewTypeSwitcher
-                    currentView={currentView}
+                    currentView={viewProps.relationState.viewState.selectedView}
                     onViewChange={onViewChange}
                 />
+                <div className="w-[1px] h-10 bg-border"/>
+
+                <RelationSettings {...viewProps} className={'h-10 w-10 rounded-sm'}/>
             </div>
         </NodeToolbar>
     );
