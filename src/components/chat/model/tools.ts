@@ -5,11 +5,7 @@ import {useGUIState} from "@/state/gui.state";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
-import {
-    executeQueryOfRelation,
-    getInitialParams,
-    RelationState
-} from "@/model/relation-state";
+import {executeQueryOfRelation, getInitialParams, RelationState} from "@/model/relation-state";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
 import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-state/chart";

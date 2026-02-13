@@ -6,7 +6,7 @@ import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/functions";
+import {AdvancedRelationActions} from "@/state/relations/functions";
 import {ErrorBoundary} from "@/components/basics/error-bundary";
 import {ChartExportProvider} from "@/components/relation/chart/chart-export-context";
 

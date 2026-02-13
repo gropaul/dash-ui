@@ -1,13 +1,8 @@
-import {Sheet, BarChart3, Text, MousePointer2, Hand, Pencil} from 'lucide-react';
+import {BarChart3, Hand, MousePointer2, Pencil, Sheet, Text} from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
-import {NodeTemplate, Position} from "@/components/workflow/flow";
+import {NodeTemplate} from "@/components/workflow/flow";
 import {ReactNode} from "react";
-import {
-    DEFAULT_CHART_SIZE,
-    DEFAULT_NODE_SIZE,
-    DEFAULT_TEXT_SIZE,
-    CanvasState
-} from "@/components/workflow/models";
+import {CanvasState, DEFAULT_CHART_SIZE, DEFAULT_NODE_SIZE, DEFAULT_TEXT_SIZE} from "@/components/workflow/models";
 
 interface NodePaletteProps {
     canvasState: CanvasState;

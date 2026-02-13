@@ -4,13 +4,9 @@ import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuPortal,
-    DropdownMenuSeparator,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger
+    DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import {Check, Copy, EyeOff, Filter} from "lucide-react";
+import {Copy, EyeOff} from "lucide-react";
 
 import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon";
 import {ContentSelectColumns} from "@/components/relation/table/table-column/content-select-columns";

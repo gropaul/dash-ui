@@ -7,9 +7,7 @@ import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command"
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
-import {RelationViewProps} from "@/components/relation/relation-view"
 import {TextInputConfigDialog} from "@/components/relation/text-input/text-input-config-dialog"
-import {useRelationData} from "@/state/relations-data.state";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 
 export function TextSelect(props: RelationViewContentProps) {

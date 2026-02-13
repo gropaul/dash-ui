@@ -1,4 +1,3 @@
-import {RelationViewProps} from "@/components/relation/relation-view";
 import {Dialog, DialogContent,} from "@/components/ui/dialog";
 import {ChartContentWrapper} from "@/components/relation/chart/chart-content-wrapper";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";

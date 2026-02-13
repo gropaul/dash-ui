@@ -4,7 +4,6 @@ import {Muted} from "@/components/ui/typography";
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector";
 import {AxisConfig, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {Column} from "@/model/data-source-connection";
-import {useRelationData} from "@/state/relations-data.state";
 
 
 export function ConfigViewPie(props: ChartConfigProps) {

@@ -3,10 +3,8 @@ import {Button} from "@/components/ui/button";
 import {Code, Maximize} from "lucide-react";
 import {RelationViewTypeSwitcher} from '../../../relation/settings/relation-view-type-switcher';
 import {RelationViewType} from "@/model/relation-view-state";
-import {cn} from "@/lib/utils";
 import {Toggle} from "@/components/ui/toggle";
 import {RelationSettings} from "@/components/relation/relation-settings";
-import {RelationState} from "@/model/relation-state";
 import {RelationViewProps} from "@/components/relation/relation-view";
 
 interface RelationToolbarProps {

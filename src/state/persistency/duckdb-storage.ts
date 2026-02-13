@@ -2,17 +2,8 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {throttleLatest} from "@/lib/throttle-latest";
-import {
-    DatabaseConnection,
-    DefaultStateStorageInfo,
-    StateStorageInfo, StateStorageInfoLoaded,
-    StorageDestination
-} from "@/model/database-connection";
-import {
-    DASH_STORAGE_VERSION,
-    DEFAULT_STATE_STORAGE_DESTINATION,
-    STORAGE_THROTTLE_TIME_MS, VERSION_CONFLICT_ERROR
-} from "@/platform/global-data";
+import {DatabaseConnection, StateStorageInfoLoaded, StorageDestination} from "@/model/database-connection";
+import {DASH_STORAGE_VERSION, STORAGE_THROTTLE_TIME_MS, VERSION_CONFLICT_ERROR} from "@/platform/global-data";
 
 
 export function GetFullNameDestination(destination: StorageDestination) {

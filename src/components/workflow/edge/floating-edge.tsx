@@ -1,5 +1,13 @@
 import {useState} from 'react';
-import {useInternalNode, EdgeProps, getSmoothStepPath, getBezierPath, getStraightPath, useReactFlow, BaseEdge} from '@xyflow/react';
+import {
+    BaseEdge,
+    EdgeProps,
+    getBezierPath,
+    getSmoothStepPath,
+    getStraightPath,
+    useInternalNode,
+    useReactFlow
+} from '@xyflow/react';
 import {getEdgeParams} from "@/components/workflow/edge/utils";
 import {
     ContextMenu,

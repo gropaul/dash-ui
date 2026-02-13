@@ -1,9 +1,7 @@
-import React, {Fragment} from "react";
-import {ArrowLeft, Database, Folder, Home, Info, Menu, Settings, Wand2, X} from "lucide-react";
+import React from "react";
+import {Database, Folder, Home, Settings, Wand2} from "lucide-react";
 import {AvailableTab, useGUIState} from "@/state/gui.state";
-import {Button} from "@/components/ui/button";
 import {NavigationBarProps} from "@/components/layout/navigation-bar-desktop";
-import {MobileAppBar} from "@/components/layout/mobile-app-bar";
 
 interface NavigationBarPropsMobile extends NavigationBarProps {
     onBackButtonClick?: () => void;

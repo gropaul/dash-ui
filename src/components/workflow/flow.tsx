@@ -31,7 +31,7 @@ import {
 } from "@/components/workflow/flow-pointer-functions";
 
 import './flow-theme.css';
-import {INITIAL_CANVAS_STATE, CanvasState, CanvasStateFreeDraw} from "@/components/workflow/models";
+import {CanvasState, CanvasStateFreeDraw, INITIAL_CANVAS_STATE} from "@/components/workflow/models";
 import {NodePreview} from "@/components/workflow/previews/node-preview";
 import {FreeDrawPreview} from "@/components/workflow/previews/free-draw-preview";
 

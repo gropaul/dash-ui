@@ -1,8 +1,5 @@
-
-
-
 // ResponsiveModeProvider.tsx
-import {createContext, useContext, PropsWithChildren, useState, useEffect} from "react";
+import {createContext, PropsWithChildren, useContext, useEffect, useState} from "react";
 
 
 const ResponsiveModeCtx = createContext(false);

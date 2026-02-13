@@ -1,5 +1,5 @@
 import {RelationData} from "@/model/relation";
-import {ColumnStatsType, buildQuery, RelationState, RelationStats} from "@/model/relation-state";
+import {buildQuery, ColumnStatsType, RelationState, RelationStats} from "@/model/relation-state";
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {ValueType} from "@/model/value-type";

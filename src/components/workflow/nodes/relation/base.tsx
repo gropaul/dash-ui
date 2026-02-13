@@ -1,10 +1,10 @@
 import {ReactNode, useState} from "react";
 import {NodeResizer} from "@xyflow/react";
 import {cn} from "@/lib/utils";
-import {defaultIconFactory, defaultColorFactory} from "@/components/basics/files/icon-factories";
+import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {ConnectionHoverState} from "@/components/workflow/models";
 import {Pencil} from "lucide-react";
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {RelationViewType} from "@/model/relation-view-state";

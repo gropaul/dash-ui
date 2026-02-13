@@ -3,11 +3,9 @@ import {Exportable, ExportableRef} from "@/components/relation/chart/exportable"
 import {toSnakeCase} from "@/platform/string-utils";
 import {ChartContent} from "@/components/relation/chart/chart-content";
 import {CanDisplayPlot} from "@/model/relation-view-state/chart";
-import {RelationViewProps} from "@/components/relation/relation-view";
 import {useEffect, useRef} from "react";
 import {useChartExport} from "@/components/relation/chart/chart-export-context";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
-import {cn} from "@/lib/utils";
 
 export interface ChartContentWrapperProps extends RelationViewContentProps {
     showOverlay?: boolean;

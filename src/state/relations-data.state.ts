@@ -2,13 +2,7 @@ import {RelationData} from "@/model/relation";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {deleteCache, loadCache, updateCache} from "@/state/relations-data/functions";
-import {
-    RelationStats,
-    RelationStatsLoading,
-    GetRelationStatsLoading,
-    RelationState,
-    ShouldUpdateStats
-} from "@/model/relation-state";
+import {GetRelationStatsLoading, RelationState, RelationStats} from "@/model/relation-state";
 import {LRUList} from "@/platform/lru";
 import {N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
 import {GetColumnStats} from "@/model/column-stats";

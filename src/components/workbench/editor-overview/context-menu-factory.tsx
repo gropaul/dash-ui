@@ -2,7 +2,8 @@ import {TreeNode} from "@/components/basics/files/tree-utils";
 import {Copy, Folder, LayoutDashboard, PencilLine, Plus, Sheet, Trash} from "lucide-react";
 import React from "react";
 import {
-    ResponsiveMenuItem, ResponsiveMenuSeparator,
+    ResponsiveMenuItem,
+    ResponsiveMenuSeparator,
     ResponsiveMenuSub,
     ResponsiveMenuSubContent,
     ResponsiveMenuSubTrigger

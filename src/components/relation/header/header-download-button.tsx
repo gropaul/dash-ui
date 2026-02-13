@@ -9,11 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
 import {Download} from "lucide-react";
-import {FilepathDialogState, FilepathDialog, FilepathDialogProps} from "@/components/export/filepath-dialog";
-import {useState} from "react";
-import {exportQueryToFile, FileFormat} from "@/state/data-source/duckdb-helper";
-import {useRelationsState} from "@/state/relations.state";
-import {toast} from "sonner";
+import {FilepathDialogProps} from "@/components/export/filepath-dialog";
+import {FileFormat} from "@/state/data-source/duckdb-helper";
 
 
 interface HeaderDownloadButtonProps extends FilepathDialogProps{

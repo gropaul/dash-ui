@@ -1,9 +1,5 @@
 import {LerpColorHex} from "@/platform/colors-utils";
-import {
-    TopNChartProps,
-    TopNItem,
-    TopNItemTransformed
-} from "@/components/relation/table/table-head/stats/column-stats-view-top-n";
+import {TopNItem, TopNItemTransformed} from "@/components/relation/table/table-head/stats/column-stats-view-top-n";
 
 const startColor = "#afc9ff";
 const endColor = "#e6eeff";

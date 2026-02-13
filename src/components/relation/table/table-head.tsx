@@ -2,15 +2,9 @@ import {TableColumnHead} from "@/components/relation/table/table-head/table-colu
 import React from "react";
 import {ColumnDropDownContent} from "@/components/relation/table/table-column/column-dropdown-content";
 import {Column} from "@/model/data-source-connection";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import {DropdownMenu, DropdownMenuContent} from "@/components/ui/dropdown-menu";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {useRelationDataState} from "@/state/relations-data.state";
-import {Settings} from "lucide-react";
-import {TableSettingsContent} from "@/components/relation/table/table-settings-content";
 
 export function TableHead(props: RelationViewTableContentProps) {
     const [selectedColumn, setSelectedColumn] = React.useState<Column | null>(null);

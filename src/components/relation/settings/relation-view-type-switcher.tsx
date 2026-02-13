@@ -1,12 +1,7 @@
-import { Button } from "@/components/ui/button";
-import {BarChart3, Table2, Map, ChevronDown} from "lucide-react";
-import { RelationViewType } from "@/model/relation-view-state";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import {Button} from "@/components/ui/button";
+import {ChevronDown} from "lucide-react";
+import {RelationViewType} from "@/model/relation-view-state";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 
 interface ViewSwitcherProps {

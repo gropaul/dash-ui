@@ -1,8 +1,7 @@
 import {Dialog, DialogContent} from "@/components/ui/dialog";
-import {RelationStateView} from "@/components/relation/relation-state-view";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {RelationView, RelationViewProps} from "@/components/relation/relation-view";
+import {RelationView} from "@/components/relation/relation-view";
 
 interface FullscreenDialogProps {
     isOpen: boolean;

@@ -2,7 +2,7 @@ import React from "react";
 import {TableHead} from "@/components/relation/table/table-head";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {cn} from "@/lib/utils";
-import {RelationData, Row} from "@/model/relation";
+import {RelationData} from "@/model/relation";
 import {TableValueCell} from "@/components/relation/table/table-value-cell";
 import {Sometype_Mono} from "next/font/google";
 import {useVirtualizer} from "@tanstack/react-virtual";

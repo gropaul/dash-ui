@@ -1,4 +1,20 @@
-import { Column, DataSource } from "@/model/data-source-connection";
+import {Column, DataSource} from "@/model/data-source-connection";
+import {useMemo, useState} from "react";
+import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
+import {NodeBody} from "@/components/workflow/nodes/relation/base";
+import {RelationBlockData} from "@/components/editor/tools/relation.tool";
+import {InputManager} from "@/components/editor/inputs/input-manager";
+import {getInitialDataElement} from "@/model/dashboard-state";
+import {RelationStateView} from "@/components/relation/relation-state-view";
+import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
+import {createEndUserRelationActions} from "@/state/relations/functions";
+import {Toolbar} from "@/components/workflow/nodes/relation/toolbar";
+import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
+import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
+import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
+
+import {ConnectionHoverState} from "@/components/workflow/models";
+import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 
 
 export function getTables(source: Column | DataSource): DataSource[] {
@@ -12,23 +28,6 @@ export function getTables(source: Column | DataSource): DataSource[] {
     }
     return tables;
 }
-
-import { useMemo, useState } from "react";
-import { Node, NodeProps, NodeResizer, Position } from '@xyflow/react';
-import { NodeBody } from "@/components/workflow/nodes/relation/base";
-import { RelationBlockData } from "@/components/editor/tools/relation.tool";
-import { InputManager } from "@/components/editor/inputs/input-manager";
-import { getInitialDataElement } from "@/model/dashboard-state";
-import { RelationStateView } from "@/components/relation/relation-state-view";
-import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import { createEndUserRelationActions } from "@/state/relations/functions";
-import {Toolbar} from "@/components/workflow/nodes/relation/toolbar";
-import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
-import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
-import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
-
-import {ConnectionHoverState} from "@/components/workflow/models";
-import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 
 type NodeFromProps = {
     tableName?: string;

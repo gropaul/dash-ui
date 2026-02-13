@@ -8,7 +8,7 @@ import {
 import {RelationViewState} from "@/model/relation-view-state";
 import {SchemaState} from "@/model/schema-state";
 import {DatabaseState} from "@/model/database-state";
-import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
+import {DeepPartial} from "@/platform/object-utils";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {DashboardState, getInitDashboardViewState} from "@/model/dashboard-state";

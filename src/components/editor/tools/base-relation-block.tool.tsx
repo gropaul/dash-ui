@@ -1,6 +1,6 @@
 // BaseBlockTool.tsx
 import {createRoot, Root} from 'react-dom/client';
-import type {API, BlockTool, PasteEvent} from '@editorjs/editorjs';
+import type {API, BlockTool} from '@editorjs/editorjs';
 import React from 'react';
 import {
     InputManager,
@@ -12,7 +12,7 @@ import {getRandomId} from "@/platform/id-utils";
 import {RelationBlockData, RelationComponent} from "@/components/editor/tools/relation.tool";
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
-import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN, ICON_TABLE} from "@/components/editor/tools/icons";
+import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN} from "@/components/editor/tools/icons";
 import {updateAndExecuteRelation} from "@/state/relations/functions";
 
 /**

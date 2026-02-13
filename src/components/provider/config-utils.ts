@@ -4,8 +4,6 @@ import {DatabaseConnection} from "@/model/database-connection";
 import {XorDecrypt} from "@/lib/obfuscation";
 
 
-
-
 function parseConnectionParams(urlParams: URLSearchParams): DBConnectionSpec | undefined {
     // first get the "api" parameter
     if (!urlParams.has('api')) {

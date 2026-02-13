@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatNumber } from "@/platform/number-utils";
+import {formatNumber} from "@/platform/number-utils";
 
 interface NonNullChartProps {
     nonNullCount: number;

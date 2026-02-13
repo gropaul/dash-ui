@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from "react";
 import {Button} from "@/components/ui/button";
-import {Send, X} from "lucide-react";
+import {X} from "lucide-react";
 import {ChatMessagePart} from "./chat-message-part";
 
 import {useChatState} from "@/state/chat.state";

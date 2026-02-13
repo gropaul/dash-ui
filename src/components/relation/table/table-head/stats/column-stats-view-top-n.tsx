@@ -7,7 +7,8 @@ import {EChartsInstance} from "echarts-for-react";
 import {
     GetColors,
     ItemToString,
-    PreprocessRawData, ToggleSelected
+    PreprocessRawData,
+    ToggleSelected
 } from "@/components/relation/table/table-head/stats/helper/top-n-helper";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {ssr: false});

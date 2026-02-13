@@ -1,21 +1,22 @@
 import {ChartSpline, Code, Map, Menu, Sheet} from "lucide-react";
-import {DeepPartial, formatDuration} from "@/platform/object-utils";
+import {formatDuration} from "@/platform/object-utils";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
-import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
+import {RelationViewType} from "@/model/relation-view-state";
 import {Toggle} from "@/components/ui/toggle"
-
-import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {Separator} from "@/components/ui/separator";
 import {getPathFromRelation} from "@/model/relation";
 import {HeaderDownloadButton, HeaderDownloadButtonContent} from "@/components/relation/header/header-download-button";
-import {RelationState} from "@/model/relation-state";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {
-    DropdownMenu, DropdownMenuCheckboxItem,
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel, DropdownMenuPortal,
-    DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger,
+    DropdownMenuPortal,
+    DropdownMenuSeparator,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";

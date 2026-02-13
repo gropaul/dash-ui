@@ -5,11 +5,10 @@ import {
     DropdownMenuSubTrigger
 } from "@/components/ui/dropdown-menu";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
-import {Check, EyeOff} from "lucide-react";
+import {Check} from "lucide-react";
 import {cn} from "@/lib/utils";
 import React from "react";
 import {RelationViewProps} from "@/components/relation/relation-view";
-import {RelationData} from "@/model/relation";
 
 export interface ContentSelectColumnsProps extends RelationViewProps {
     children: React.ReactNode;

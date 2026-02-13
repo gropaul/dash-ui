@@ -1,5 +1,5 @@
 import React from 'react';
-import {ColumnStats, GetStatForColumn, RelationState, RelationStats} from '@/model/relation-state';
+import {GetStatForColumn, RelationState, RelationStats} from '@/model/relation-state';
 import {ColumnStatsViewHist} from './column-stats-view-hist';
 import {ColumnStatsViewTopN} from './column-stats-view-top-n';
 import {ColumnStatsViewMinMax} from './column-stats-view-min-max';

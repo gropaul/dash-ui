@@ -9,8 +9,7 @@ import {
 import {DatabaseConnectionType} from "@/state/connections/configs";
 import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections/duckdb-wasm/utils";
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
-import {normalizeArrowType} from "@/components/relation/common/value-icon";
-import {duckDBTypeToValueType, ValueType} from "@/model/value-type";
+import {duckDBTypeToValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
 import {AsyncQueue} from "@/platform/async-queue";

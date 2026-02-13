@@ -1,6 +1,7 @@
 import {
     executeQueryOfRelation,
-    RelationState, resetQueryParams,
+    RelationState,
+    resetQueryParams,
     returnEmptyErrorState,
     setRelationLoading,
     ViewQueryParameters

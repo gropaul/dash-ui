@@ -1,5 +1,4 @@
 import {Monaco} from "@monaco-editor/react"; // for types and editor APIs
-import {createWithEqualityFn} from "zustand/traditional";
 
 
 // create a little zustand state to check if the editor is already registered

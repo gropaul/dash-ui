@@ -1,7 +1,5 @@
 'use strict';
 
-import {Parser} from 'node-sql-parser';
-
 const debug = require('debug')('sql-strip-comments');
 
 // strip comments in sql

@@ -2,7 +2,6 @@ import {DuckDBOverHttp, DuckDBOverHttpConfig} from "@/state/connections/duckdb-o
 import {DuckDBWasm, DuckDBWasmConfig} from "@/state/connections/duckdb-wasm";
 import {DatabaseConnection} from "@/model/database-connection";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL, DATABASE_CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
-import {MdWasmProvider} from "@/state/connections/md-wasm/md-wasm-provider";
 import {MdWasm, MdWasmConnectionConfig} from "@/state/connections/md-wasm";
 
 export type DatabaseConnectionType =

@@ -1,5 +1,11 @@
 import {Node} from '@xyflow/react';
-import {CanvasState, CanvasStateNodeCreation, CanvasStateFreeDraw, Stroke, StrokePoint} from "@/components/workflow/models";
+import {
+    CanvasState,
+    CanvasStateFreeDraw,
+    CanvasStateNodeCreation,
+    Stroke,
+    StrokePoint
+} from "@/components/workflow/models";
 import {NodeTemplate, Position} from "@/components/workflow/flow";
 import {FreeDrawNodeData} from "@/components/workflow/nodes/free-draw-node";
 

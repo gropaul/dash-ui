@@ -1,4 +1,4 @@
-import React, {FC, ReactElement, useEffect, useMemo, useRef, useState} from "react";
+import React, {FC, ReactElement, useEffect, useRef, useState} from "react";
 import {CustomForm, FormDefinition} from "@/components/basics/input/custom-form";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {validateUrl} from "@/platform/string-validation";
@@ -6,7 +6,7 @@ import {ConnectionStringField} from "@/state/connections/duckdb-over-http/widget
 import {DBConnectionSpec, getDefaultSpec, specToConnection, typeToLabel} from "@/state/connections/configs";
 import {DBConnectionType} from "@/components/basics/files/icon-factories";
 import {Button} from "@/components/ui/button";
-import {Check, Info, LoaderCircle, RefreshCcw, AlertTriangle} from "lucide-react";
+import {AlertTriangle, Check, LoaderCircle, RefreshCcw} from "lucide-react";
 import {deepEqual} from "@/platform/object-utils";
 import {clearOPFS} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 

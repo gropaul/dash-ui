@@ -1,4 +1,3 @@
-import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 import {TableSettingsContent} from "@/components/relation/table/table-settings-content";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {Settings} from "lucide-react";

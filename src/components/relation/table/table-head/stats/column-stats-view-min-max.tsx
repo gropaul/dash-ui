@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatNumber, formatDateShort } from "@/platform/number-utils";
+import {formatDateShort, formatNumber} from "@/platform/number-utils";
 
 interface MinMaxChartProps {
     min: number | string;

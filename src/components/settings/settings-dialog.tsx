@@ -5,14 +5,13 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";
-import {AlertCircle, ArrowLeft, BookOpen, Database, Info, Share2, Wand2} from "lucide-react";
+import {AlertCircle, BookOpen, Database, Info, Share2, Wand2} from "lucide-react";
 import {ShareContent} from "@/components/settings/share-content";
 import {LanguageModelContent} from "@/components/settings/language-model-content";
 import {DocumentationContent} from "@/components/settings/documentation-content";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
-import {Button} from "@/components/ui/button";
 import {MobileAppBar} from "@/components/layout/mobile-app-bar";
 
 // Define the tab types

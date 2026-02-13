@@ -1,22 +1,19 @@
-import React, {useEffect, useMemo} from 'react';
+import React from 'react';
 import {Column} from "@/model/data-source-connection";
 import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {
     ColumnFilterIn,
     ColumnSorting,
-    ColumnStats,
-    getNextColumnSorting, RelationStats,
+    getNextColumnSorting,
+    RelationStats,
     ViewQueryParameters
 } from "@/model/relation-state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
-import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
+import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
 import {ColumnStatsProps, ColumnStatsView} from "@/components/relation/table/table-head/stats/column-stats-view";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
-import {RelationViewState} from "@/model/relation-view-state";
-import {DeepPartial} from "@/platform/object-utils";
-import {throttleLatest} from "@/lib/throttle-latest";
 
 
 export interface ColumnHeadProps extends RelationViewTableContentProps {

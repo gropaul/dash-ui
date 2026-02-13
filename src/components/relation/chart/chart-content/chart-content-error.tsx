@@ -1,5 +1,4 @@
 import {getTitleForType, PlotDisplayError} from "@/model/relation-view-state/chart";
-import {H5, P} from "@/components/ui/typography";
 import {Button} from "@/components/ui/button";
 
 

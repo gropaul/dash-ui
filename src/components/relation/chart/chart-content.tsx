@@ -1,14 +1,12 @@
 "use client"
 
 import {RelationData} from "@/model/relation";
-import {ChartConfig} from "@/model/relation-view-state/chart";
 
 import React from 'react';
 import ReactECharts from 'echarts-for-react';
 import {EChartsOption} from "echarts-for-react/src/types";
 import {toEChartOptions} from "@/components/relation/chart/echart-utils";
 import {RelationState} from "@/model/relation-state";
-import {RelationViewState} from "@/model/relation-view-state";
 
 export interface MyChartProps {
     embedded?: boolean,

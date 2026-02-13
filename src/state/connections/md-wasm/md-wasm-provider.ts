@@ -1,6 +1,6 @@
 import {RelationData} from "@/model/relation";
 import {Column} from "@/model/data-source-connection";
-import {duckDBTypeToValueType} from "@/model/value-type";
+
 // import {MaterializedQueryResult, MDConnection, SpecialDuckDBValue} from "@motherduck/wasm-client";
 
 

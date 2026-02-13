@@ -1,5 +1,5 @@
-import {Handle, Position, HandleType} from '@xyflow/react';
-import {ArrowUp, ArrowRight, ArrowDown, ArrowLeft} from 'lucide-react';
+import {Handle, HandleType, Position} from '@xyflow/react';
+import {ArrowDown, ArrowLeft, ArrowRight, ArrowUp} from 'lucide-react';
 
 interface ConditionalHandlesProps {
     type: HandleType;

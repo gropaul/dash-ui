@@ -10,7 +10,7 @@ import {DirectoryTab} from "@/components/directory/directory-tab";
 import {DashboardTab} from "@/components/dashboard/dashboard-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
-import {NavigationBarDesktop, NavigationBarContent} from "@/components/layout/navigation-bar-desktop";
+import {NavigationBarContent, NavigationBarDesktop} from "@/components/layout/navigation-bar-desktop";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
 import {WorkflowTab} from "@/components/workflow/workflow-tab";

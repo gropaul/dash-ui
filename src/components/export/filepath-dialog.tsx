@@ -2,10 +2,6 @@ import React from "react";
 import {exportQueryToFile, FileFormat} from "@/state/data-source/duckdb-helper";
 import {FilepathDialogContentView} from "@/components/export/filepath-dialog-content-view";
 import {MyDialog} from "@/components/ui/my-dialog";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
-import {Button} from "@/components/ui/button";
-import {Download} from "lucide-react";
-import {HeaderDownloadButtonContent} from "@/components/relation/header/header-download-button";
 import {useRelationsState} from "@/state/relations.state";
 import {toast} from "sonner";
 

@@ -5,7 +5,9 @@ import {
     AddChartToDashboard,
     AddMarkdownToDashboard,
     AddTableToDashboard,
-    QueryDatabaseTool, ShowChart, ShowTable
+    QueryDatabaseTool,
+    ShowChart,
+    ShowTable
 } from "@/components/chat/model/tools";
 import {useLanguageModelState} from "@/state/language-model.state";
 

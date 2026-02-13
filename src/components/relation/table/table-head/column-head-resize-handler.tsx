@@ -1,10 +1,4 @@
-import {INITIAL_COLUMN_VIEW_STATE, TableViewState} from "@/model/relation-view-state/table";
-
 import React, {useRef} from "react";
-import {DeepPartial} from "@/platform/object-utils";
-import {RelationViewState} from "@/model/relation-view-state";
-import {Column} from "@/model/data-source-connection";
-import {AdvancedRelationActions} from "@/state/relations/functions";
 
 interface ColumnHeadResizeHandleProps {
     currentWidth: number;
