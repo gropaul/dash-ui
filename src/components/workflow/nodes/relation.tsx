@@ -1,6 +1,6 @@
 import {Column, DataSource} from "@/model/data-source-connection";
-import {useMemo, useState} from "react";
-import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
+import {useCallback, useMemo, useState} from "react";
+import {Node, NodeProps, NodeResizer, Position, useReactFlow} from '@xyflow/react';
 import {RelationNodeBody} from "@/components/workflow/nodes/relation/node-body";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
@@ -37,11 +37,14 @@ type NodeFromProps = {
 
 type FromNode = Node<NodeFromProps, 'FromNode'>;
 
+const CODE_VIEW_HEIGHT = 192; // Height added to node when code view is shown
+
 export function RelationNode(props: NodeProps<FromNode>) {
     const [data, setData] = useState<RelationBlockData>(getInitialDataElement('table'))
     const [manager] = useState(() => new InputManager())
     const [closestHandle, setClosestHandle] = useState<Position | undefined>()
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const {updateNode} = useReactFlow();
 
     const [divRef, isHovered] = useHoverWithPadding<HTMLDivElement>(48);
 
@@ -81,6 +84,20 @@ export function RelationNode(props: NodeProps<FromNode>) {
         return createEndUserRelationActions(inputProps)
     }, [data])
 
+    const handleToggleCode = useCallback(() => {
+        const isCurrentlyShowing = data.viewState.codeFenceState.show;
+        const newShowCode = !isCurrentlyShowing;
+
+        // Toggle the code fence state
+        actions.toggleShowCode();
+
+        // Update node height
+        updateNode(props.id, (node) => ({
+            ...node,
+            height: (node.height ?? 256) + (newShowCode ? CODE_VIEW_HEIGHT : -CODE_VIEW_HEIGHT),
+        }));
+    }, [data.viewState.codeFenceState.show, actions, updateNode, props.id]);
+
     const viewProps: RelationViewProps = {
         relationState: data,
         ...actions
@@ -114,7 +131,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
                     <Toolbar
                         isVisible={props.selected}
                         showCode={data.viewState.codeFenceState.show}
-                        onToggleCode={actions.toggleShowCode}
+                        onToggleCode={handleToggleCode}
                         viewProps={viewProps}
                         onViewChange={actions.setViewType}
                         onFullscreen={() => setIsFullscreen(true)}
