@@ -19,6 +19,7 @@ import {useRelationsState} from "@/state/relations.state";
 export interface RelationSettingsProps extends RelationViewProps {
     align?: "start" | "center" | "end";
     className?: string;
+    children?: React.ReactNode;
 }
 
 export function RelationSettings(props: RelationSettingsProps) {
@@ -35,6 +36,8 @@ export function RelationSettings(props: RelationSettingsProps) {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align={props.align ?? "start"}>
+                {props.children}
+                {props.children && <DropdownMenuSeparator/>}
                 <RelationSettingsContent {...props}/>
 
                 <DropdownMenuSeparator/>

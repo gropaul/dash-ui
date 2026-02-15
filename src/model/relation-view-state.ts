@@ -40,6 +40,7 @@ export function getInitialTabViewBaseState(displayName: string): TabViewBaseStat
 export interface RelationViewBaseState extends TabViewBaseState {
     codeFenceState: CodeFenceViewState;
     selectedView: RelationViewType;
+    showHeader: boolean;
 }
 
 export interface RelationViewState extends RelationViewBaseState {
@@ -92,6 +93,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
             layout: 'row',
         },
         selectedView: 'table',
+        showHeader: true,
     }
 
     if (!data) {

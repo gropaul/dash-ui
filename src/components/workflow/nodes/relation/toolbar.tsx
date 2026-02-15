@@ -1,11 +1,13 @@
 import {NodeToolbar, Position} from '@xyflow/react';
 import {Button} from "@/components/ui/button";
-import {Code, Maximize} from "lucide-react";
+import {Code, Maximize, PanelTop} from "lucide-react";
 import {RelationViewTypeSwitcher} from '../../../relation/settings/relation-view-type-switcher';
 import {RelationViewType} from "@/model/relation-view-state";
 import {Toggle} from "@/components/ui/toggle";
 import {RelationSettings} from "@/components/relation/relation-settings";
 import {RelationViewProps} from "@/components/relation/relation-view";
+import {DropdownMenuCheckboxItem, DropdownMenuLabel} from "@/components/ui/dropdown-menu";
+import React from "react";
 
 interface RelationToolbarProps {
     isVisible: boolean;
@@ -14,6 +16,7 @@ interface RelationToolbarProps {
     viewProps: RelationViewProps,
     onViewChange: (view: RelationViewType) => void;
     onFullscreen: () => void;
+    onToggleHeader?: () => void;
 }
 
 export function Toolbar({
@@ -22,7 +25,8 @@ export function Toolbar({
                             onToggleCode,
                             viewProps,
                             onViewChange,
-                            onFullscreen
+                            onFullscreen,
+                            onToggleHeader
                         }: RelationToolbarProps) {
 
 
@@ -55,7 +59,21 @@ export function Toolbar({
                 />
                 <div className="w-[1px] h-10 bg-border"/>
 
-                <RelationSettings {...viewProps} className={'h-10 w-10 rounded-sm'}/>
+                <RelationSettings {...viewProps} className={'h-10 w-10 rounded-sm'}>
+                    {onToggleHeader && (
+                        <>
+                            <DropdownMenuLabel>
+                                Node
+                            </DropdownMenuLabel>
+                            <DropdownMenuCheckboxItem
+                                checked={viewProps.relationState.viewState.showHeader}
+                                onCheckedChange={onToggleHeader}
+                            >
+                                Show Header
+                            </DropdownMenuCheckboxItem>
+                        </>
+                    )}
+                </RelationSettings>
             </div>
         </NodeToolbar>
     );

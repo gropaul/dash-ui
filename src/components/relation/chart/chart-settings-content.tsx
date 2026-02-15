@@ -37,29 +37,25 @@ export function ChartSettingsContent(props: RelationSettingsProps) {
     return <>
 
         <DropdownMenuLabel>
-            Chart Settings
+            Chart
         </DropdownMenuLabel>
-        <DropdownMenuSeparator/>
 
         <DropdownMenuItem
             onClick={() => updateShowConfig()}
         >
             {showChartSettings ? (
                 <>
-                    <X className="mr-1 h-4 w-4"/> Hide Settings
+                    <X className="mr-1 h-4 w-4"/> Hide Configuration
                 </>
             ) : (
                 <>
-                    <Settings className="mr-1 h-4 w-4"/> Show Settings
+                    <Settings className="mr-1 h-4 w-4"/> Configure
                 </>
             )}
         </DropdownMenuItem>
-
-        <DropdownMenuSeparator/>
         <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-                <Download className="mr-1 h-4 w-4"/> Export chart
-                as {chartExport?.exportableChartRef ? 'true' : 'false'} ...
+                <Download className="mr-1 h-4 w-4"/> Export as  ...
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
                 <DropdownMenuItem

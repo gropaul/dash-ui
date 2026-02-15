@@ -17,6 +17,7 @@ export interface NodeBodyProps {
     displayName?: string;
     connectionHover?: ConnectionHoverState | null;
     onUpdateTitle?: (newTitle: string) => void;
+    showHeader?: boolean;
 }
 
 const INVALID_MESSAGES: Record<string, string> = {
@@ -35,14 +36,15 @@ const shakeKeyframes = `
 `;
 
 export function RelationNodeBody(props: NodeBodyProps) {
-    const { viewType, children, connectionHover, onUpdateTitle } = props;
+    const { viewType, children, connectionHover, onUpdateTitle, showHeader = true } = props;
     const title = props.displayName;
     const viewTypeColor = defaultColorFactory(viewType);
 
     const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
     const [renameValue, setRenameValue] = useState('');
 
-    const headerHeight = title ?  '3rem' : '0rem';
+    const shouldShowHeader = showHeader && !!title;
+    const headerHeight = shouldShowHeader ? '3rem' : '0rem';
 
     const isConnectionHovered = !!connectionHover;
     const isValidConnection = connectionHover?.isValid ?? true;
@@ -120,7 +122,7 @@ export function RelationNodeBody(props: NodeBodyProps) {
                         className="group/title"
                         style={{
                             padding: '8px 8px',
-                            display: title ? 'flex' : 'none',
+                            display: shouldShowHeader ? 'flex' : 'none',
                             alignItems: 'center',
                             gap: '10px',
                             borderBottom: '1px solid #e4e4e7'

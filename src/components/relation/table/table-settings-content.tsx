@@ -42,9 +42,8 @@ export function TableSettingsContent(props: RelationSettingsProps) {
     return <>
 
         <DropdownMenuLabel>
-            Table Settings
+            Table
         </DropdownMenuLabel>
-        <DropdownMenuSeparator/>
 
         {/*<DropdownMenuItem>*/}
         {/*    <ChartArea />*/}
@@ -67,7 +66,6 @@ export function TableSettingsContent(props: RelationSettingsProps) {
             )
         }
 
-        <DropdownMenuSeparator/>
         <DropdownMenuItem onClick={resetTableViewState}>
             <RotateCcw/>
             Reset Table View

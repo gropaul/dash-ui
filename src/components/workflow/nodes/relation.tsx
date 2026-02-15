@@ -99,6 +99,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
                     className={''}
                     selected={props.selected}
                     displayName={data.viewState.displayName}
+                    showHeader={data.viewState.showHeader}
                     connectionHover={props.data.connectionHover}
                     onUpdateTitle={(newTitle) => {
                         setData(prev => ({
@@ -117,6 +118,15 @@ export function RelationNode(props: NodeProps<FromNode>) {
                         viewProps={viewProps}
                         onViewChange={actions.setViewType}
                         onFullscreen={() => setIsFullscreen(true)}
+                        onToggleHeader={() => {
+                            setData(prev => ({
+                                ...prev,
+                                viewState: {
+                                    ...prev.viewState,
+                                    showHeader: !prev.viewState.showHeader
+                                }
+                            }))
+                        }}
                     />
                     <NodeResizer
                         lineClassName={'z-40'}
