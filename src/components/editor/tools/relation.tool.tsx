@@ -56,6 +56,7 @@ export function RelationComponent(props: RelationComponentProps) {
 
 export default class RelationBlockTool extends BaseRelationBlockTool {
 
+    // todo: add export option here
     // Editor.js config
     static get toolbox() {
         return {

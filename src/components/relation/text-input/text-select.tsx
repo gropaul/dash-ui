@@ -43,7 +43,7 @@ export function TextSelect(props: RelationViewContentProps) {
 
 
     return (
-        <div className='pt-0.5 pb-0.5 flex flex-row gap-2 items-center justify-start group'>
+        <div className='pt-0.5 pb-0.5 flex flex-row w-full gap-2 items-center justify-start group'>
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <Button

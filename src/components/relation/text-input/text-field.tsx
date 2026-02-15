@@ -38,7 +38,7 @@ export function TextField(props: RelationViewContentProps) {
 
     return (
         <>
-            <div className="group pt-0.5 pb-0.5 flex flex-row gap-2 items-center justify-start">
+            <div className="group pt-0.5 pb-0.5 w-full flex flex-row gap-2 items-center justify-start">
                 <SearchAutocomplete
                     suggestions={suggestionsFiltered}
                     value={textSearchState.value || ""}

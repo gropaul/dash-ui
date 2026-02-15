@@ -49,7 +49,13 @@ export interface RelationViewState extends RelationViewBaseState {
     schema: Column[];
 }
 
+
 export type RelationViewType = 'table' | 'chart' | 'map' | 'select';
+export type RelationViewSizing = 'fit' | 'full'; // fit: take the height of the content, full: take all available height
+export const RELATION_SIZE_REQUIREMENTS: Record<RelationViewSizing, RelationViewType[]> = {
+    'fit': ['select'],
+    'full': ['table', 'chart', 'map'],
+}
 
 
 export function updateRelationViewState(currentState: RelationViewState, newData: RelationData): RelationViewState {

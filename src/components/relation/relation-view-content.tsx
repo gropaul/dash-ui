@@ -49,14 +49,19 @@ export function RelationViewContent(props: RelationViewProps) {
             <Chart {...contentProps}/>
         );
     } else if (selectedView === 'select') {
+        const wrapperClass = props.height === 'fit' ? 'p-2 flex items-center h-full w-full' : 'w-full';
         switch (props.relationState.viewState.inputTextState.inputType) {
             case 'select':
                 return (
-                    <TextSelect {...contentProps} />
+                    <div className={wrapperClass}>
+                        <TextSelect {...contentProps} />
+                    </div>
                 );
             case 'fulltext':
                 return (
-                    <TextField {...contentProps} />
+                    <div className={wrapperClass}>
+                        <TextField {...contentProps} />
+                    </div>
                 );
         }
     } else {

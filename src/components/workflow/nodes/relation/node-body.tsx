@@ -19,10 +19,6 @@ export interface NodeBodyProps {
     onUpdateTitle?: (newTitle: string) => void;
 }
 
-interface BodyStyle {
-
-}
-
 const INVALID_MESSAGES: Record<string, string> = {
     cycle: 'Cannot create cycle',
     duplicate: 'Connection already exists',
@@ -148,7 +144,6 @@ export function RelationNodeBody(props: NodeBodyProps) {
                                 fontWeight: 600,
                                 textAlign: 'left',
                                 fontSize: '13px',
-                                color: '#18181b',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis'
@@ -156,24 +151,17 @@ export function RelationNodeBody(props: NodeBodyProps) {
                                 {title}
                             </span>
                             {onUpdateTitle && (
-                                <button
+                                <Button
+                                    className={'opacity-0 group-hover/title:opacity-100 transition-opacity h-7 w-7'}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleOpenRename();
                                     }}
-                                    className="opacity-0 group-hover/title:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-200 shrink-0"
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: 'none',
-                                        background: 'transparent',
-                                        cursor: 'pointer',
-                                        color: '#71717a'
-                                    }}
+                                    variant={'ghost'}
+                                    size={'icon'}
                                 >
-                                    <Pencil size={14} />
-                                </button>
+                                    <Pencil size={12} />
+                                </Button>
                             )}
                         </div>
                     </div>
