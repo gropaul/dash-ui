@@ -52,9 +52,22 @@ export interface RelationViewState extends RelationViewBaseState {
 
 export type RelationViewType = 'table' | 'chart' | 'map' | 'select';
 export type RelationViewSizing = 'fit' | 'full'; // fit: take the height of the content, full: take all available height
-export const RELATION_SIZE_REQUIREMENTS: Record<RelationViewSizing, RelationViewType[]> = {
+
+
+const RELATION_SIZE_REQUIREMENTS: Record<RelationViewSizing, RelationViewType[]> = {
     'fit': ['select'],
     'full': ['table', 'chart', 'map'],
+}
+
+// only used for HeightType = fit as for resizable the height of the element is static anyway
+export function getViewSizeRequirements(viewType: RelationViewType): RelationViewSizing {
+    for (const [size, viewTypes] of Object.entries(RELATION_SIZE_REQUIREMENTS)) {
+        if (viewTypes.includes(viewType as RelationViewType)) {
+            return size as RelationViewSizing;
+        }
+    }
+    // default to full if not found
+    return 'full';
 }
 
 

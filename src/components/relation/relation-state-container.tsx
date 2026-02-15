@@ -5,6 +5,7 @@ import React, {useState} from "react";
 import {Sizable} from "@/components/ui/sizable";
 import {cn} from "@/lib/utils";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
+import {getViewSizeRequirements} from "@/model/relation-view-state";
 
 export function RelationStateContainer(inputProps: RelationViewAPIProps) {
     const advancedActions = createAdvancedRelationActions(inputProps);
@@ -30,18 +31,44 @@ export function RelationStateContainer(inputProps: RelationViewAPIProps) {
     const layout = codeFenceState.layout;
 
     if (props.height === 'fit' || props.height == null) {
-        return (
-            <WindowSplitter
-                child1Active={showQuery}
-                child2Active={true}
-                ratio={codePercentage / 100}
-                onChange={setCodeFenceState}
-                layout={layout}
-            >
-                <RelationViewQueryView {...props} embedded={props.embedded}/>
-                <ContentWrapper {...props}/>
-            </WindowSplitter>
-        );
+
+        const sizeRequirement = getViewSizeRequirements(props.relationState.viewState.selectedView);
+
+        switch (sizeRequirement) {
+            case 'fit':
+                // for fit views, we show the query above the content, the content should just take as much
+                // as it needs and the query should take the remaining height if shown.
+                return (
+                    <div className={cn("w-full h-full bg-inherit flex flex-col", inputProps.className)}>
+                        {showQuery && (
+                            <div className="flex-1 min-h-8">
+                                <RelationViewQueryView
+                                    {...props}
+                                    embedded={props.embedded}
+                                    inputManager={props.inputManager}
+                                />
+                            </div>
+                        )}
+                        <div className={cn("h-[1px] w-full bg-muted my-1", !showQuery && 'hidden')}/>
+                        <div className="flex-shrink-0">
+                            <ContentWrapper {...props}/>
+                        </div>
+                    </div>
+                );
+            case 'full':
+                return (
+                    <WindowSplitter
+                        child1Active={showQuery}
+                        child2Active={true}
+                        ratio={codePercentage / 100}
+                        onChange={setCodeFenceState}
+                        layout={layout}
+                    >
+                        <RelationViewQueryView {...props} embedded={props.embedded}/>
+                        <ContentWrapper {...props}/>
+                    </WindowSplitter>
+                );
+        }
     }
 
     if (props.height === 'resizable') {
