@@ -1,23 +1,19 @@
-import {ReactNode, useState} from "react";
+import {ReactNode} from "react";
 import {NodeResizer} from "@xyflow/react";
 import {cn} from "@/lib/utils";
-import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {ConnectionHoverState} from "@/components/workflow/models";
-import {Pencil} from "lucide-react";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button";
+import {RelationNodeHeader} from "@/components/workflow/nodes/relation/node-header";
 import {RelationViewType} from "@/model/relation-view-state";
 
 export interface NodeBodyProps {
     children?: ReactNode;
-    viewType: RelationViewType
     className?: string;
     selected: boolean;
-    displayName?: string;
     connectionHover?: ConnectionHoverState | null;
-    onUpdateTitle?: (newTitle: string) => void;
     showHeader?: boolean;
+    viewType: RelationViewType;
+    displayName: string;
+    onUpdateTitle?: (newTitle: string) => void;
 }
 
 const INVALID_MESSAGES: Record<string, string> = {
@@ -36,30 +32,12 @@ const shakeKeyframes = `
 `;
 
 export function RelationNodeBody(props: NodeBodyProps) {
-    const { viewType, children, connectionHover, onUpdateTitle, showHeader = true } = props;
-    const title = props.displayName;
-    const viewTypeColor = defaultColorFactory(viewType);
-
-    const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-    const [renameValue, setRenameValue] = useState('');
-
-    const shouldShowHeader = showHeader && !!title;
-    const headerHeight = shouldShowHeader ? '3rem' : '0rem';
+    const {children, connectionHover, showHeader = true, viewType, displayName, onUpdateTitle} = props;
 
     const isConnectionHovered = !!connectionHover;
     const isValidConnection = connectionHover?.isValid ?? true;
     const invalidMessage = connectionHover?.invalidReason ? INVALID_MESSAGES[connectionHover.invalidReason] : null;
     const shouldShake = connectionHover?.shake ?? false;
-
-    const handleOpenRename = () => {
-        setRenameValue(title || '');
-        setIsRenameDialogOpen(true);
-    };
-
-    const handleSaveRename = () => {
-        onUpdateTitle?.(renameValue);
-        setIsRenameDialogOpen(false);
-    };
 
     return (
         <div
@@ -87,7 +65,6 @@ export function RelationNodeBody(props: NodeBodyProps) {
             <div
                 className="flex-1 rounded-md overflow-visible w-full h-full"
                 style={{
-                    // padding: "0.5px", // Space for the gradient border
                     background: "#e4e4e4",
                     boxShadow: "var(--node-shadow)",
                     borderRadius: "0.5rem",
@@ -118,86 +95,16 @@ export function RelationNodeBody(props: NodeBodyProps) {
                         flexDirection: "column"
                     }}
                 >
-                    <div
-                        className="group/title"
-                        style={{
-                            padding: '8px 8px',
-                            display: shouldShowHeader ? 'flex' : 'none',
-                            alignItems: 'center',
-                            gap: '10px',
-                            borderBottom: '1px solid #e4e4e7'
-                        }}
-                    >
-                        <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            background: viewTypeColor.background,
-                            color: viewTypeColor.foreground
-                        }}>
-                            {defaultIconFactory(viewType)}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, minWidth: 0 }}>
-                            <span style={{
-                                fontWeight: 600,
-                                textAlign: 'left',
-                                fontSize: '13px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}>
-                                {title}
-                            </span>
-                            {onUpdateTitle && (
-                                <Button
-                                    className={'opacity-0 group-hover/title:opacity-100 transition-opacity h-7 w-7'}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleOpenRename();
-                                    }}
-                                    variant={'ghost'}
-                                    size={'icon'}
-                                >
-                                    <Pencil size={12} />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                    <div className={cn("w-full",props.className)} style={{ height: `calc(100% - ${headerHeight})` }}>{children}</div>
+                    {showHeader && (
+                        <RelationNodeHeader
+                            viewType={viewType}
+                            displayName={displayName}
+                            onUpdateTitle={onUpdateTitle}
+                        />
+                    )}
+                    <div className={cn("w-full flex-1", props.className)}>{children}</div>
                 </div>
             </div>
-            {onUpdateTitle && (
-                <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
-                    <DialogContent className="sm:max-w-[400px]" onClick={(e) => e.stopPropagation()}>
-                        <DialogHeader>
-                            <DialogTitle>Rename</DialogTitle>
-                        </DialogHeader>
-                        <Input
-                            value={renameValue}
-                            onChange={(e) => setRenameValue(e.target.value)}
-                            placeholder="Enter name"
-                            autoFocus
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSaveRename();
-                                }
-                            }}
-                        />
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button onClick={handleSaveRename}>
-                                Save
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
         </div>
     );
 }

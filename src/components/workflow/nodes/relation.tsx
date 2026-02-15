@@ -112,12 +112,12 @@ export function RelationNode(props: NodeProps<FromNode>) {
         >
             <RelationContextProvider>
                 <RelationNodeBody
-                    viewType={data.viewState.selectedView}
                     className={''}
                     selected={props.selected}
-                    displayName={data.viewState.displayName}
-                    showHeader={data.viewState.showHeader}
                     connectionHover={props.data.connectionHover}
+                    showHeader={data.viewState.showHeader}
+                    viewType={data.viewState.selectedView}
+                    displayName={data.viewState.displayName}
                     onUpdateTitle={(newTitle) => {
                         setData(prev => ({
                             ...prev,
