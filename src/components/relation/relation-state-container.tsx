@@ -1,4 +1,3 @@
-import {WindowSplitter} from "@/components/ui/window-splitter";
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
 import {ContentWrapper, RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import React, {useState} from "react";
@@ -6,6 +5,7 @@ import {Sizable} from "@/components/ui/sizable";
 import {cn} from "@/lib/utils";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
 import {getViewSizeRequirements} from "@/model/relation-view-state";
+import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 
 export function RelationStateContainer(inputProps: RelationViewAPIProps) {
     const advancedActions = createAdvancedRelationActions(inputProps);
@@ -21,12 +21,12 @@ export function RelationStateContainer(inputProps: RelationViewAPIProps) {
         props.updateRelationViewState({
             codeFenceState: {
                 ...codeFenceState,
-                sizePercentage: sizePercentage,
+                sizePercentage: 100 - sizePercentage,
             }
         });
     }
 
-    const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage * 100 : 0;
+    const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage : 0;
     const showQuery = codeFenceState.show;
     const layout = codeFenceState.layout;
 
@@ -57,16 +57,25 @@ export function RelationStateContainer(inputProps: RelationViewAPIProps) {
                 );
             case 'full':
                 return (
-                    <WindowSplitter
-                        child1Active={showQuery}
-                        child2Active={true}
-                        ratio={codePercentage / 100}
-                        onChange={setCodeFenceState}
-                        layout={layout}
-                    >
-                        <RelationViewQueryView {...props} embedded={props.embedded}/>
-                        <ContentWrapper {...props}/>
-                    </WindowSplitter>
+                    <ResizablePanelGroup direction={layout == 'row' ? 'vertical' : 'horizontal'}>
+                        <ResizablePanel
+                            className={cn(showQuery ? 'block' : 'hidden')}
+                            defaultSize={codePercentage}
+                            minSize={20}
+                        >
+                            <RelationViewQueryView {...props} embedded={props.embedded}/>
+                        </ResizablePanel>
+                        <ResizableHandle
+                            className={cn(showQuery ? 'block' : 'hidden')}
+                        />
+                        <ResizablePanel
+                            defaultSize={100 - codePercentage}
+                            minSize={showQuery ? 20 : 100}
+                            onResize={setCodeFenceState}
+                        >
+                            <ContentWrapper {...props}/>
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
                 );
         }
     }

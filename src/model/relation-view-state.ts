@@ -23,7 +23,7 @@ export type Layout = 'row' | 'column';
 
 export interface CodeFenceViewState {
     show: boolean;
-    sizePercentage: number; // percentage, 0-1
+    sizePercentage: number; // percentage, 0-100
     layout: Layout;
 }
 
@@ -89,7 +89,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
         ...getInitialTabViewBaseState(displayName),
         codeFenceState: {
             show: showCode,
-            sizePercentage: 0.3,
+            sizePercentage: 30,
             layout: 'row',
         },
         selectedView: 'table',

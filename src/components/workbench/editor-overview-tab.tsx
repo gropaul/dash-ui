@@ -75,7 +75,7 @@ export function onAddToDashboardSelected(relation_: RelationState, dashboard: Da
                 }
             },
             codeFenceState: {
-                sizePercentage: 0.5,
+                sizePercentage: 50.0,
                 layout: 'row',
                 show: false
             }
