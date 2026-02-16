@@ -38,6 +38,7 @@ type NodeFromProps = {
 type FromNode = Node<NodeFromProps, 'FromNode'>;
 
 const CODE_VIEW_HEIGHT = 192; // Height added to node when code view is shown
+const HEADER_HEIGHT = 45; // Height of the node header (8px padding top + 28px icon + 8px padding bottom + 1px border)
 
 export function RelationNode(props: NodeProps<FromNode>) {
     const [data, setData] = useState<RelationBlockData>(getInitialDataElement('table'))
@@ -136,13 +137,22 @@ export function RelationNode(props: NodeProps<FromNode>) {
                         onViewChange={actions.setViewType}
                         onFullscreen={() => setIsFullscreen(true)}
                         onToggleHeader={() => {
+                            const isCurrentlyShowing = data.viewState.showHeader;
+                            const newShowHeader = !isCurrentlyShowing;
+
                             setData(prev => ({
                                 ...prev,
                                 viewState: {
                                     ...prev.viewState,
-                                    showHeader: !prev.viewState.showHeader
+                                    showHeader: newShowHeader
                                 }
-                            }))
+                            }));
+
+                            // Update node height
+                            updateNode(props.id, (node) => ({
+                                ...node,
+                                height: (node.height ?? 256) + (newShowHeader ? HEADER_HEIGHT : -HEADER_HEIGHT),
+                            }));
                         }}
                     />
                     <NodeResizer

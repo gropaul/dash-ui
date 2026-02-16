@@ -41,7 +41,7 @@ export function RelationNodeBody(props: NodeBodyProps) {
 
     return (
         <div
-            className="flex flex-col w-full h-full relative"
+            className="w-full h-full relative"
             style={{
                 animation: shouldShake ? 'shake 0.4s ease-in-out' : undefined,
             }}
@@ -63,7 +63,7 @@ export function RelationNodeBody(props: NodeBodyProps) {
                 </div>
             )}
             <div
-                className="flex-1 rounded-md overflow-visible w-full h-full"
+                className="rounded-md overflow-visible w-full h-full"
                 style={{
                     background: "#e4e4e4",
                     boxShadow: "var(--node-shadow)",
@@ -96,13 +96,15 @@ export function RelationNodeBody(props: NodeBodyProps) {
                     }}
                 >
                     {showHeader && (
-                        <RelationNodeHeader
-                            viewType={viewType}
-                            displayName={displayName}
-                            onUpdateTitle={onUpdateTitle}
-                        />
+                        <div className="flex-shrink-0">
+                            <RelationNodeHeader
+                                viewType={viewType}
+                                displayName={displayName}
+                                onUpdateTitle={onUpdateTitle}
+                            />
+                        </div>
                     )}
-                    <div className={cn("w-full flex-1", props.className)}>{children}</div>
+                    <div className={cn("w-full flex-1 min-h-0 overflow-hidden", props.className)}>{children}</div>
                 </div>
             </div>
         </div>
