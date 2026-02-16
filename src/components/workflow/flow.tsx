@@ -20,6 +20,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import {RelationNode} from "@/components/workflow/nodes/relation-node";
 import {FreeDrawNode} from "@/components/workflow/nodes/free-draw-node";
+import {TextNode} from "@/components/workflow/nodes/text-node";
 import FloatingEdge from "@/components/workflow/edge/floating-edge";
 import {FlowPalette} from "@/components/workflow/flow-palette";
 import {
@@ -57,7 +58,7 @@ export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'freeDrawNode
 const nodeTypes: { [key in NodeType]: React.FC<any> } = {
     relationNode: RelationNode,
     chartNode: RelationNode, // Template - uses RelationNode for now
-    textNode: RelationNode,  // Template - uses RelationNode for now
+    textNode: TextNode,
     freeDrawNode: FreeDrawNode,
 };
 

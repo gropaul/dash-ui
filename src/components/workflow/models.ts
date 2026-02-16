@@ -4,7 +4,7 @@ export const DEFAULT_NODE_SIZE = {width: 512, height: 512};
 export const DEFAULT_CHART_SIZE = {width: 512, height: 512};
 export const DEFAULT_TEXT_SIZE = {width: 128, height: 64};
 
-export type CanvasSelectedTool = 'pointer' | 'create-node' | 'drag-canvas' | 'free-draw';
+export type CanvasSelectedTool = 'pointer' | 'create-node' | 'create-text' | 'drag-canvas' | 'free-draw';
 
 export type DrawToolVariant = 'pen' | 'marker' | 'highlighter';
 
@@ -78,7 +78,11 @@ export interface CanvasStateFreeDraw extends CanvasStateBase{
     currentStroke?: Stroke;
 }
 
-export type CanvasState = CanvasStatePointer | CanvasStateDragCanvas | CanvasStateNodeCreation | CanvasStateFreeDraw;
+export interface CanvasStateTextCreation extends CanvasStateBase {
+    selectedTool: 'create-text';
+}
+
+export type CanvasState = CanvasStatePointer | CanvasStateDragCanvas | CanvasStateNodeCreation | CanvasStateFreeDraw | CanvasStateTextCreation;
 
 export const INITIAL_CANVAS_STATE: CanvasState = {
     selectedTool: 'pointer',

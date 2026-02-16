@@ -3,11 +3,13 @@ import {
     CanvasState,
     CanvasStateFreeDraw,
     CanvasStateNodeCreation,
+    DEFAULT_TEXT_SIZE,
     Stroke,
     StrokePoint
 } from "@/components/workflow/models";
 import {NodeTemplate, Position} from "@/components/workflow/flow";
 import {FreeDrawNodeData} from "@/components/workflow/nodes/free-draw-node";
+import {DEFAULT_TEXT_NODE_DATA} from "@/components/workflow/nodes/text-node";
 
 export interface PointerHandlerContext {
     canvasState: CanvasState;
@@ -96,6 +98,17 @@ export function handlePointerDown(
         return;
     }
 
+    if (ctx.canvasState.selectedTool === 'create-text') {
+        event.preventDefault();
+        const flowPos = ctx.screenToFlowPosition({x: event.clientX, y: event.clientY});
+        createTextNode(ctx, flowPos);
+        ctx.setCanvasState({
+            selectedTool: 'pointer',
+            drawSettings: ctx.canvasState.drawSettings,
+        });
+        return;
+    }
+
     if (ctx.canvasState.selectedTool !== 'create-node') return;
     const nodeCreationState = ctx.canvasState as CanvasStateNodeCreation;
     if (!nodeCreationState.previewMousePosition) return;
@@ -121,6 +134,22 @@ function getBounds(points: StrokePoint[]): { minX: number; minY: number; maxX: n
         maxY = Math.max(maxY, y);
     }
     return {minX, minY, maxX, maxY};
+}
+
+function createTextNode(ctx: PointerHandlerContext, position: Position) {
+    const newNode: Node = {
+        id: `txt-${Date.now()}`,
+        type: 'textNode',
+        position,
+        width: DEFAULT_TEXT_SIZE.width,
+        height: DEFAULT_TEXT_SIZE.height,
+        selected: true,
+        data: {...DEFAULT_TEXT_NODE_DATA, isNew: true},
+    };
+    ctx.setNodes((nds) =>
+        nds.map((node) => ({...node, selected: false}))
+    );
+    ctx.setNodes((nds) => nds.concat(newNode));
 }
 
 function createFreeDrawNode(ctx: PointerHandlerContext, stroke: Stroke) {
@@ -234,6 +263,15 @@ export function handlePointerUp(
     });
 }
 
+function getDefaultNodeData(type: string): Record<string, unknown> {
+    switch (type) {
+        case 'textNode':
+            return {...DEFAULT_TEXT_NODE_DATA};
+        default:
+            return {};
+    }
+}
+
 function createNode(ctx: PointerHandlerContext, template: NodeTemplate, position: Position) {
     const newNode: Node = {
         id: `n${ctx.nodes.length + 1}`,
@@ -242,7 +280,7 @@ function createNode(ctx: PointerHandlerContext, template: NodeTemplate, position
         width: template.size.width,
         height: template.size.height,
         selected: true,
-        data: {},
+        data: getDefaultNodeData(template.type),
     };
     // deselect all other nodes
     ctx.setNodes((nds) =>
@@ -259,6 +297,8 @@ export function getCursorStyle(canvasState: CanvasState): string {
             return 'grab';
         case 'create-node':
             return 'crosshair';
+        case 'create-text':
+            return 'text';
         case 'free-draw':
             return 'crosshair';
     }

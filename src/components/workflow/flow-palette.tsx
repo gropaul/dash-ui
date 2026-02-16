@@ -55,12 +55,6 @@ export const nodeTypes: NodePaletteItem[] = [
         icon: <ChartColumnBig size={20} strokeWidth={1.5}/>, size: DEFAULT_CHART_SIZE,
         selectAfterCreation: true
     },
-    {
-        type: 'textNode', label: 'Text',
-        icon: <Type size={20} strokeWidth={1.5}/>,
-        size: DEFAULT_TEXT_SIZE,
-        selectAfterCreation: true
-    },
 ];
 
 export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
@@ -113,6 +107,12 @@ export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
                             icon={getToolVariantIcon(drawSettings.toolVariant)}
                             label="Free Draw"
                             onClick={() => setCanvasState({selectedTool: 'free-draw', drawSettings})}
+                        />
+                        <PaletteItem
+                            selected={canvasState.selectedTool === 'create-text'}
+                            icon={<Type size={20} strokeWidth={1.5}/>}
+                            label="Text"
+                            onClick={() => setCanvasState({selectedTool: 'create-text', drawSettings})}
                         />
 
                         <div className="w-px h-6 bg-border"/>
