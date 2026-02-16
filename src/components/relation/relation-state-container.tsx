@@ -50,14 +50,14 @@ export function RelationStateContainer(inputProps: RelationViewAPIProps) {
                             </div>
                         )}
                         <div className={cn("h-[1px] w-full bg-muted my-1", !showQuery && 'hidden')}/>
-                        <div className="flex-shrink-0">
+                        <div className="bg-inherit flex-shrink-0">
                             <ContentWrapper {...props}/>
                         </div>
                     </div>
                 );
             case 'full':
                 return (
-                    <ResizablePanelGroup direction={layout == 'row' ? 'vertical' : 'horizontal'}>
+                    <ResizablePanelGroup className={'bg-inherit'} direction={layout == 'row' ? 'vertical' : 'horizontal'}>
                         <ResizablePanel
                             className={cn(showQuery ? 'block' : 'hidden')}
                             defaultSize={codePercentage}
@@ -69,6 +69,7 @@ export function RelationStateContainer(inputProps: RelationViewAPIProps) {
                             className={cn(showQuery ? 'block' : 'hidden')}
                         />
                         <ResizablePanel
+                            className={'bg-inherit'}
                             defaultSize={100 - codePercentage}
                             minSize={showQuery ? 20 : 100}
                             onResize={setCodeFenceState}
