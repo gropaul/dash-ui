@@ -3,6 +3,7 @@ import {RelationState} from "@/model/relation-state";
 import {splitSQL} from "@/platform/sql-utils";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {AdvancedRelationActions} from "@/state/relations/functions";
+import {forwardRef} from "react";
 
 interface RelationViewQueryProps extends AdvancedRelationActions{
     relationState: RelationState,
@@ -10,7 +11,7 @@ interface RelationViewQueryProps extends AdvancedRelationActions{
     embedded?: boolean;
 }
 
-export function RelationViewQueryView(props: RelationViewQueryProps) {
+export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQueryProps>(function RelationViewQueryView(props, ref) {
 
     const codeFenceState = props.relationState.viewState.codeFenceState;
     const queryString = props.relationState.query.baseQuery;
@@ -43,7 +44,7 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
 
     const embedded = props.embedded ?? false;
     return (
-        <div className={"w-full h-full overflow-hidden"}>
+        <div ref={ref} className={"w-full h-full overflow-hidden"}>
             <SqlEditor
                 path={`relation-${relationId}`}
                 inputManager={props.inputManager}
@@ -73,4 +74,4 @@ export function RelationViewQueryView(props: RelationViewQueryProps) {
             />
         </div>
     );
-}
+});

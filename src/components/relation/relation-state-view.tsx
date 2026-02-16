@@ -1,5 +1,5 @@
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import React, {useEffect, useState} from "react";
+import React, {RefObject, useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET_MS} from "@/platform/global-data";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
 import {ConnectionsService} from "@/state/connections/connections-service";
@@ -8,7 +8,11 @@ import {Loader2, Pause} from "lucide-react";
 import {RelationState} from "@/model/relation-state";
 import {RelationStateContainer} from "@/components/relation/relation-state-container";
 
-export function RelationStateView(inputProps: RelationViewAPIProps) {
+export interface RelationStateViewProps extends RelationViewAPIProps {
+    codeFenceRef?: RefObject<HTMLDivElement>;
+}
+
+export function RelationStateView(inputProps: RelationStateViewProps) {
     const advancedActions = createAdvancedRelationActions(inputProps);
     const props: RelationViewProps = {
         ...inputProps,
@@ -51,7 +55,7 @@ export function RelationStateView(inputProps: RelationViewAPIProps) {
 
     return (
         <>
-            <RelationStateContainer {...inputProps} />
+            <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef} />
             {isLoading && (
                 <div
                     className="absolute top-0 left-0 w-full h-full z-50 flex flex-col items-center justify-center bg-background transition-opacity duration-200"

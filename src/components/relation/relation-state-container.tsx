@@ -1,13 +1,17 @@
 import {RelationViewQueryView} from "@/components/relation/relation-view-query-view";
 import {ContentWrapper, RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import React, {useState} from "react";
+import React, {RefObject, useState} from "react";
 import {Sizable} from "@/components/ui/sizable";
 import {cn} from "@/lib/utils";
 import {createAdvancedRelationActions} from "@/state/relations/functions";
 import {getViewSizeRequirements} from "@/model/relation-view-state";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 
-export function RelationStateContainer(inputProps: RelationViewAPIProps) {
+export interface RelationStateContainerProps extends RelationViewAPIProps {
+    codeFenceRef?: RefObject<HTMLDivElement>;
+}
+
+export function RelationStateContainer(inputProps: RelationStateContainerProps) {
     const advancedActions = createAdvancedRelationActions(inputProps);
     const props: RelationViewProps = {
         ...inputProps,
@@ -43,13 +47,14 @@ export function RelationStateContainer(inputProps: RelationViewAPIProps) {
                         {showQuery && (
                             <div className="flex-1 min-h-8">
                                 <RelationViewQueryView
+                                    ref={inputProps.codeFenceRef}
                                     {...props}
                                     embedded={props.embedded}
                                     inputManager={props.inputManager}
                                 />
                             </div>
                         )}
-                        <div className={cn("h-[1px] w-full bg-muted my-1", !showQuery && 'hidden')}/>
+                        <div className={cn("h-[1px] w-full bg-muted", !showQuery && 'hidden')}/>
                         <div className="bg-inherit flex-shrink-0">
                             <ContentWrapper {...props}/>
                         </div>
@@ -63,7 +68,7 @@ export function RelationStateContainer(inputProps: RelationViewAPIProps) {
                             defaultSize={codePercentage}
                             minSize={20}
                         >
-                            <RelationViewQueryView {...props} embedded={props.embedded}/>
+                            <RelationViewQueryView ref={inputProps.codeFenceRef} {...props} embedded={props.embedded}/>
                         </ResizablePanel>
                         <ResizableHandle
                             className={cn(showQuery ? 'block' : 'hidden')}
@@ -94,6 +99,7 @@ export function RelationStateContainer(inputProps: RelationViewAPIProps) {
                         resizableElements={['barBottom']}
                     >
                         <RelationViewQueryView
+                            ref={inputProps.codeFenceRef}
                             {...props}
                             embedded={props.embedded}
                             inputManager={props.inputManager}

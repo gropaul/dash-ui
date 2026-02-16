@@ -1,5 +1,5 @@
 import {Column, DataSource} from "@/model/data-source-connection";
-import {useCallback, useMemo, useState} from "react";
+import {useCallback, useMemo, useRef, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position, useReactFlow} from '@xyflow/react';
 import {RelationNodeBody} from "@/components/workflow/nodes/relation/node-body";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
@@ -37,7 +37,7 @@ type NodeFromProps = {
 
 type FromNode = Node<NodeFromProps, 'FromNode'>;
 
-const CODE_VIEW_HEIGHT = 192; // Height added to node when code view is shown
+const DEFAULT_CODE_VIEW_HEIGHT = 192; // Default fallback height for code view
 const HEADER_HEIGHT = 45; // Height of the node header (8px padding top + 28px icon + 8px padding bottom + 1px border)
 
 export function RelationNode(props: NodeProps<FromNode>) {
@@ -45,6 +45,8 @@ export function RelationNode(props: NodeProps<FromNode>) {
     const [manager] = useState(() => new InputManager())
     const [closestHandle, setClosestHandle] = useState<Position | undefined>()
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [lastCodeHeight, setLastCodeHeight] = useState(DEFAULT_CODE_VIEW_HEIGHT)
+    const codeFenceRef = useRef<HTMLDivElement>(null!);
     const {updateNode} = useReactFlow();
 
     const [divRef, isHovered] = useHoverWithPadding<HTMLDivElement>(48);
@@ -87,7 +89,17 @@ export function RelationNode(props: NodeProps<FromNode>) {
 
     const handleToggleCode = useCallback(() => {
         const isCurrentlyShowing = data.viewState.codeFenceState.show;
-        const newShowCode = !isCurrentlyShowing;
+
+        let heightDelta: number;
+        if (isCurrentlyShowing) {
+            // Closing: measure current height and store it
+            const currentHeight = codeFenceRef.current?.offsetHeight ?? lastCodeHeight;
+            setLastCodeHeight(currentHeight);
+            heightDelta = -currentHeight;
+        } else {
+            // Opening: use the last stored height
+            heightDelta = lastCodeHeight;
+        }
 
         // Toggle the code fence state
         actions.toggleShowCode();
@@ -95,9 +107,9 @@ export function RelationNode(props: NodeProps<FromNode>) {
         // Update node height
         updateNode(props.id, (node) => ({
             ...node,
-            height: (node.height ?? 256) + (newShowCode ? CODE_VIEW_HEIGHT : -CODE_VIEW_HEIGHT),
+            height: (node.height ?? 256) + heightDelta,
         }));
-    }, [data.viewState.codeFenceState.show, actions, updateNode, props.id]);
+    }, [data.viewState.codeFenceState.show, actions, updateNode, props.id, lastCodeHeight]);
 
     const viewProps: RelationViewProps = {
         relationState: data,
@@ -169,6 +181,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
                             embedded={false}
                             configDisplayMode={'dialog'}
                             height={'fit'}
+                            codeFenceRef={codeFenceRef}
                         />
                     </div>
                     <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle} isSelected={props.selected ?? false} />
