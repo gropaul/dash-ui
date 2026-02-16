@@ -1,11 +1,13 @@
 import {NodeProps, NodeResizer} from '@xyflow/react';
 import getStroke from 'perfect-freehand';
 import {StrokePoint} from "@/components/workflow/models";
+import {FreeDrawToolbar} from "./free-draw/free-draw-toolbar";
 
 export interface FreeDrawNodeData {
     points: StrokePoint[];
     color: string;
     strokeSize: number;
+    opacity: number;
 }
 
 function getSvgPathFromStroke(stroke: number[][]): string {
@@ -35,8 +37,9 @@ function getBounds(points: StrokePoint[]): { minX: number; minY: number; maxX: n
     return {minX, minY, maxX, maxY};
 }
 
-export function FreeDrawNode({data, selected, width: nodeWidth, height: nodeHeight}: NodeProps) {
-    const {points, color, strokeSize} = data as unknown as FreeDrawNodeData;
+export function FreeDrawNode({id, data, selected, width: nodeWidth, height: nodeHeight}: NodeProps) {
+    const nodeData = data as unknown as FreeDrawNodeData;
+    const {points, color, strokeSize, opacity = 1} = nodeData;
 
     if (!points || points.length === 0) return null;
 
@@ -85,6 +88,11 @@ export function FreeDrawNode({data, selected, width: nodeWidth, height: nodeHeig
                 boxSizing: 'border-box',
             }}
         >
+            <FreeDrawToolbar
+                nodeId={id}
+                isVisible={selected ?? false}
+                data={nodeData}
+            />
             <NodeResizer
                 lineClassName={'z-40'}
                 isVisible={selected}
@@ -107,6 +115,7 @@ export function FreeDrawNode({data, selected, width: nodeWidth, height: nodeHeig
                 <path
                     d={pathData}
                     fill={color}
+                    fillOpacity={opacity}
                     stroke="none"
                 />
             </svg>

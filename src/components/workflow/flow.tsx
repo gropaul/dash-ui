@@ -18,7 +18,7 @@ import {
     useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import {RelationNode} from "@/components/workflow/nodes/relation";
+import {RelationNode} from "@/components/workflow/nodes/relation-node";
 import {FreeDrawNode} from "@/components/workflow/nodes/free-draw-node";
 import FloatingEdge from "@/components/workflow/edge/floating-edge";
 import {FlowPalette} from "@/components/workflow/flow-palette";
@@ -297,7 +297,7 @@ export function Flow() {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
-                setCanvasState({selectedTool: 'pointer'});
+                setCanvasState(prev => ({selectedTool: 'pointer', drawSettings: prev.drawSettings}));
             }
         };
         window.addEventListener('keydown', handleKeyDown);

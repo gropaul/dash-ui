@@ -2,7 +2,7 @@ import React, {ReactNode} from "react";
 import {
     BarChart3,
     Braces,
-    Calendar,
+    Calendar, ChartArea, ChartBarBig, ChartColumnBig,
     Database,
     File,
     Folder,
@@ -52,9 +52,9 @@ const relationViewTypeIconFactory = (type: RelationViewType): ReactNode | null =
         case 'map':
             return <Map size={iconSize} />
         case 'chart':
-            return <BarChart3 size={iconSize} />
+            return <ChartColumnBig size={iconSize} />
         case 'table':
-            return <Table2 size={iconSize} />
+            return <Sheet size={iconSize} />
         case 'select':
             return <SquareChevronDown size={iconSize}/>
     }

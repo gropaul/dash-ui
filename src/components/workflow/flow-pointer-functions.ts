@@ -75,18 +75,22 @@ export function handlePointerDown(
 ) {
     if (ctx.canvasState.selectedTool === 'free-draw') {
         event.preventDefault();
+        const {drawSettings} = ctx.canvasState;
         const flowPos = ctx.screenToFlowPosition({x: event.clientX, y: event.clientY});
         const pressure = event.pressure || 0.5;
 
         const newStroke: Stroke = {
             id: `stroke-${Date.now()}`,
             points: [[flowPos.x, flowPos.y, pressure]],
-            color: '#000000',
-            size: 8,
+            color: drawSettings.color,
+            size: drawSettings.size,
+            opacity: drawSettings.opacity,
+            toolVariant: drawSettings.toolVariant,
         };
 
         ctx.setCanvasState({
             selectedTool: 'free-draw',
+            drawSettings,
             currentStroke: newStroke,
         });
         return;
@@ -134,6 +138,7 @@ function createFreeDrawNode(ctx: PointerHandlerContext, stroke: Stroke) {
         points: normalizedPoints,
         color: stroke.color,
         strokeSize: stroke.size,
+        opacity: stroke.opacity,
     };
 
     const newNode: Node = {
@@ -167,6 +172,7 @@ export function handlePointerUp(
 
         ctx.setCanvasState({
             selectedTool: 'free-draw',
+            drawSettings: ctx.canvasState.drawSettings,
             currentStroke: undefined,
         });
         return;
@@ -224,6 +230,7 @@ export function handlePointerUp(
 
     ctx.setCanvasState({
         selectedTool: 'pointer',
+        drawSettings: ctx.canvasState.drawSettings,
     });
 }
 

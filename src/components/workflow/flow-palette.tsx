@@ -1,8 +1,38 @@
-import {BarChart3, Hand, MousePointer2, Pencil, Sheet, Text} from 'lucide-react';
+import {
+    BarChart3,
+    ChartColumnBig,
+    Hand,
+    Highlighter,
+    MousePointer2,
+    Pencil,
+    PenTool,
+    Sheet,
+    Text,
+    Type
+} from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {NodeTemplate} from "@/components/workflow/flow";
 import {ReactNode} from "react";
-import {CanvasState, DEFAULT_CHART_SIZE, DEFAULT_NODE_SIZE, DEFAULT_TEXT_SIZE} from "@/components/workflow/models";
+import {
+    CanvasState,
+    DEFAULT_CHART_SIZE,
+    DEFAULT_NODE_SIZE,
+    DEFAULT_TEXT_SIZE,
+    DrawSettings,
+    DrawToolVariant
+} from "@/components/workflow/models";
+
+function getToolVariantIcon(variant: DrawToolVariant) {
+    switch (variant) {
+        case 'pen':
+            return <Pencil size={20} strokeWidth={1.5}/>;
+        case 'marker':
+            return <PenTool size={20} strokeWidth={1.5} className="-rotate-90"/>;
+        case 'highlighter':
+            return <Highlighter size={20} strokeWidth={1.5}/>;
+    }
+}
+import {FreeDrawToolbar} from "@/components/workflow/free-draw-toolbar";
 
 interface NodePaletteProps {
     canvasState: CanvasState;
@@ -22,29 +52,43 @@ export const nodeTypes: NodePaletteItem[] = [
         selectAfterCreation: true,
     },
     {   type: 'chartNode', label: 'Chart',
-        icon: <BarChart3 size={20} strokeWidth={1.5}/>, size: DEFAULT_CHART_SIZE,
+        icon: <ChartColumnBig size={20} strokeWidth={1.5}/>, size: DEFAULT_CHART_SIZE,
         selectAfterCreation: true
     },
     {
         type: 'textNode', label: 'Text',
-        icon: <Text size={20} strokeWidth={1.5}/>,
+        icon: <Type size={20} strokeWidth={1.5}/>,
         size: DEFAULT_TEXT_SIZE,
         selectAfterCreation: true
     },
 ];
 
 export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
-
+    const {drawSettings} = canvasState;
 
     function startCreatingNode(nodeType: NodePaletteItem) {
         setCanvasState({
             selectedTool: 'create-node',
             nodeAdded: nodeType,
+            drawSettings,
+        });
+    }
+
+    function updateDrawSettings(settings: DrawSettings) {
+        setCanvasState({
+            ...canvasState,
+            drawSettings: settings,
         });
     }
 
     return (
         <TooltipProvider>
+            {canvasState.selectedTool === 'free-draw' && (
+                <FreeDrawToolbar
+                    settings={drawSettings}
+                    onSettingsChange={updateDrawSettings}
+                />
+            )}
             <div
                 className="absolute bottom-[15px] left-1/2 -translate-x-1/2 h-12 bg-white border border-[#ededed] rounded-2xl shadow-sm z-[200] flex items-center px-2"
                 onPointerDown={(e) => e.stopPropagation()}
@@ -56,19 +100,19 @@ export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
                             selected={canvasState.selectedTool === 'pointer'}
                             icon={<MousePointer2 size={20} strokeWidth={1.5}/>}
                             label="Pointer"
-                            onClick={() => setCanvasState({selectedTool: 'pointer'})}
+                            onClick={() => setCanvasState({selectedTool: 'pointer', drawSettings})}
                         />
                         <PaletteItem
                             selected={canvasState.selectedTool === 'drag-canvas'}
                             icon={<Hand size={20} strokeWidth={1.5}/>}
                             label="Drag Canvas"
-                            onClick={() => setCanvasState({selectedTool: 'drag-canvas'})}
+                            onClick={() => setCanvasState({selectedTool: 'drag-canvas', drawSettings})}
                         />
                         <PaletteItem
                             selected={canvasState.selectedTool === 'free-draw'}
-                            icon={<Pencil size={20} strokeWidth={1.5}/>}
+                            icon={getToolVariantIcon(drawSettings.toolVariant)}
                             label="Free Draw"
-                            onClick={() => setCanvasState({selectedTool: 'free-draw'})}
+                            onClick={() => setCanvasState({selectedTool: 'free-draw', drawSettings})}
                         />
 
                         <div className="w-px h-6 bg-border"/>

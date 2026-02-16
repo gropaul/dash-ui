@@ -1,14 +1,14 @@
 import {Column, DataSource} from "@/model/data-source-connection";
 import {useCallback, useMemo, useRef, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position, useReactFlow} from '@xyflow/react';
-import {RelationNodeBody} from "@/components/workflow/nodes/relation/node-body";
+import {RelationNodeBody} from "@/components/workflow/nodes/relation/relation-body";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import {createEndUserRelationActions} from "@/state/relations/functions";
-import {Toolbar} from "@/components/workflow/nodes/relation/toolbar";
+import {RelationToolbar} from "@/components/workflow/nodes/relation/relation-toolbar";
 import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
@@ -16,19 +16,6 @@ import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-
 import {ConnectionHoverState} from "@/components/workflow/models";
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
-
-
-export function getTables(source: Column | DataSource): DataSource[] {
-    const tables: DataSource[] = []
-    for (const child of source.children || []) {
-        tables.push(...getTables(child));
-    }
-
-    if (source.type === 'relation') {
-        tables.push(source);
-    }
-    return tables;
-}
 
 type NodeFromProps = {
     tableName?: string;
@@ -141,7 +128,7 @@ export function RelationNode(props: NodeProps<FromNode>) {
                         }))
                     }}
                 >
-                    <Toolbar
+                    <RelationToolbar
                         isVisible={props.selected}
                         showCode={data.viewState.codeFenceState.show}
                         onToggleCode={handleToggleCode}

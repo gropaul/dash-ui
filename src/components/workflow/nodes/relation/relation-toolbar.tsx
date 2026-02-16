@@ -19,7 +19,7 @@ interface RelationToolbarProps {
     onToggleHeader?: () => void;
 }
 
-export function Toolbar({
+export function RelationToolbar({
                             isVisible,
                             showCode,
                             onToggleCode,

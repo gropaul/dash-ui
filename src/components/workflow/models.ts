@@ -6,6 +6,8 @@ export const DEFAULT_TEXT_SIZE = {width: 128, height: 64};
 
 export type CanvasSelectedTool = 'pointer' | 'create-node' | 'drag-canvas' | 'free-draw';
 
+export type DrawToolVariant = 'pen' | 'marker' | 'highlighter';
+
 export interface ConnectionHoverState {
     nodeId: string;
     isValid: boolean;
@@ -16,6 +18,7 @@ export interface ConnectionHoverState {
 export interface CanvasStateBase {
     selectedTool: CanvasSelectedTool;
     connectionHover?: ConnectionHoverState | null;
+    drawSettings: DrawSettings;
 }
 
 export interface CanvasStatePointer extends CanvasStateBase{
@@ -46,7 +49,29 @@ export interface Stroke {
     points: StrokePoint[];
     color: string;
     size: number;
+    opacity: number; // 0-1
+    toolVariant: DrawToolVariant;
 }
+
+export interface DrawSettings {
+    color: string;
+    size: number;
+    opacity: number;
+    toolVariant: DrawToolVariant;
+}
+
+export const DEFAULT_DRAW_SETTINGS: DrawSettings = {
+    color: '#000000',
+    size: 8,
+    opacity: 1,
+    toolVariant: 'pen',
+};
+
+export const TOOL_VARIANT_PRESETS: Record<DrawToolVariant, Partial<DrawSettings>> = {
+    pen: { size: 4, opacity: 1 },
+    marker: { size: 12, opacity: 0.7 },
+    highlighter: { size: 24, opacity: 0.3 },
+};
 
 export interface CanvasStateFreeDraw extends CanvasStateBase{
     selectedTool: 'free-draw';
@@ -57,4 +82,5 @@ export type CanvasState = CanvasStatePointer | CanvasStateDragCanvas | CanvasSta
 
 export const INITIAL_CANVAS_STATE: CanvasState = {
     selectedTool: 'pointer',
+    drawSettings: DEFAULT_DRAW_SETTINGS,
 }
