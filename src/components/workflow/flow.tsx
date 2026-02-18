@@ -36,6 +36,7 @@ import {CanvasState, CanvasStateFreeDraw, INITIAL_CANVAS_STATE} from "@/componen
 import {NodePreview} from "@/components/workflow/previews/node-preview";
 import {FreeDrawPreview} from "@/components/workflow/previews/free-draw-preview";
 import {useTheme} from "next-themes";
+import {useFlowShortcuts} from "@/hooks/use-flow-shortcuts";
 
 const initialNodes: Node[] = [
     {
@@ -53,6 +54,8 @@ const initialNodes: Node[] = [
         data: {},
     },
 ];
+
+export const GRID_SIZE = 16;
 
 export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'freeDrawNode';
 
@@ -100,6 +103,14 @@ export function Flow() {
     const {screenToFlowPosition, getIntersectingNodes, getNodes, getEdges} = useReactFlow();
     const connectingFrom = useRef<OnConnectStartParams | null>(null);
     const {resolvedTheme} = useTheme();
+
+    useFlowShortcuts({
+        nodes,
+        edges,
+        setNodes,
+        setEdges,
+        enabled: canvasState.selectedTool === 'pointer',
+    });
 
     const checkConnectionValidity = useCallback(
         (sourceId: string, targetId: string): { isValid: boolean; reason?: 'cycle' | 'duplicate' } => {
@@ -330,7 +341,7 @@ export function Flow() {
                 connectionMode={ConnectionMode.Loose}
                 colorMode={resolvedTheme === 'dark' ? 'dark' : 'light'}
                 snapToGrid={true}
-                snapGrid={[16, 16]}
+                snapGrid={[GRID_SIZE, GRID_SIZE]}
                 panOnScroll={true}
                 panOnScrollSpeed={1.5}
                 panOnDrag={canvasState.selectedTool === 'drag-canvas' ? true : [1]}
@@ -342,6 +353,7 @@ export function Flow() {
                 connectionRadius={32}
                 edgesFocusable={true}
                 defaultEdgeOptions={{interactionWidth: 20}}
+                deleteKeyCode={['Delete', 'Backspace']}
             >
                 <Background/>
                 <Controls/>
