@@ -37,6 +37,8 @@ import {NodePreview} from "@/components/workflow/previews/node-preview";
 import {FreeDrawPreview} from "@/components/workflow/previews/free-draw-preview";
 import {useTheme} from "next-themes";
 import {useFlowShortcuts} from "@/hooks/use-flow-shortcuts";
+import {useHelperLines} from "@/components/workflow/helpers/use-helper-lines";
+import {HelperLines} from "@/components/workflow/helpers/helper-lines";
 
 const initialNodes: Node[] = [
     {
@@ -55,7 +57,11 @@ const initialNodes: Node[] = [
     },
 ];
 
-export const GRID_SIZE = 16;
+export const GRID_SIZE = 20;
+
+export const DEFAULT_CODE_VIEW_HEIGHT = 192; // Default fallback height for code view
+export const HEADER_HEIGHT = 40; // Height of the node header (8px padding top + 28px icon + 8px padding bottom + 1px border)
+
 
 export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'freeDrawNode';
 
@@ -110,6 +116,16 @@ export function Flow() {
         setNodes,
         setEdges,
         enabled: canvasState.selectedTool === 'pointer',
+    });
+
+    const {
+        helperLines,
+        onNodeDragStart,
+        onNodeDrag,
+        onNodeDragStop,
+    } = useHelperLines(nodes, {
+        enabled: canvasState.selectedTool === 'pointer',
+        alignableNodeTypes: ['relationNode', 'textNode'],
     });
 
     const checkConnectionValidity = useCallback(
@@ -335,6 +351,9 @@ export function Flow() {
                 onConnectEnd={onConnectEnd}
                 onNodeMouseEnter={onNodeMouseEnter}
                 onNodeMouseLeave={onNodeMouseLeave}
+                onNodeDragStart={onNodeDragStart}
+                onNodeDrag={onNodeDrag}
+                onNodeDragStop={onNodeDragStop}
                 isValidConnection={isValidConnection}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
@@ -355,8 +374,13 @@ export function Flow() {
                 defaultEdgeOptions={{interactionWidth: 20}}
                 deleteKeyCode={['Delete', 'Backspace']}
             >
-                <Background/>
+                <Background
+                    offset={GRID_SIZE}
+                    gap={GRID_SIZE}
+                />
+
                 <Controls/>
+                <HelperLines helperLines={helperLines}/>
                 <NodePreview canvasState={canvasState}/>
                 <FreeDrawPreview
                     currentStroke={canvasState.selectedTool === 'free-draw' ? (canvasState as CanvasStateFreeDraw).currentStroke : undefined}

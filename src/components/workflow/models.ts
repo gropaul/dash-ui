@@ -88,3 +88,12 @@ export const INITIAL_CANVAS_STATE: CanvasState = {
     selectedTool: 'pointer',
     drawSettings: DEFAULT_DRAW_SETTINGS,
 }
+
+export interface HelperLine {
+    axis: 'horizontal' | 'vertical';
+    position: number;
+    sourceNodeId: string;
+    targetNodeIds: string[];
+    start: number;
+    end: number;
+}

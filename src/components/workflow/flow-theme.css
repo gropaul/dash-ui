@@ -271,3 +271,14 @@
     margin-bottom: 3px;
     display: inline-block;
 }
+
+/* Helper Lines */
+.helper-line {
+    stroke: var(--xy-theme-selected);
+    stroke-width: 1px;
+    stroke-dasharray: 4 2;
+}
+
+.helper-line-marker {
+    fill: var(--xy-theme-selected);
+}

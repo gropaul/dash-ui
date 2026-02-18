@@ -1,4 +1,3 @@
-import {Column, DataSource} from "@/model/data-source-connection";
 import {useCallback, useMemo, useRef, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position, useReactFlow} from '@xyflow/react';
 import {RelationNodeBody} from "@/components/workflow/nodes/relation/relation-body";
@@ -16,6 +15,7 @@ import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-
 import {ConnectionHoverState} from "@/components/workflow/models";
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
+import {DEFAULT_CODE_VIEW_HEIGHT, GRID_SIZE, HEADER_HEIGHT} from "@/components/workflow/flow";
 
 type NodeFromProps = {
     tableName?: string;
@@ -23,9 +23,6 @@ type NodeFromProps = {
 }
 
 type FromNode = Node<NodeFromProps, 'FromNode'>;
-
-const DEFAULT_CODE_VIEW_HEIGHT = 192; // Default fallback height for code view
-const HEADER_HEIGHT = 45; // Height of the node header (8px padding top + 28px icon + 8px padding bottom + 1px border)
 
 export function RelationNode(props: NodeProps<FromNode>) {
     const [data, setData] = useState<RelationBlockData>(getInitialDataElement('table'))
@@ -80,7 +77,10 @@ export function RelationNode(props: NodeProps<FromNode>) {
         let heightDelta: number;
         if (isCurrentlyShowing) {
             // Closing: measure current height and store it
-            const currentHeight = codeFenceRef.current?.offsetHeight ?? lastCodeHeight;
+            const currentHeightRaw = codeFenceRef.current?.offsetHeight ?? lastCodeHeight;
+            // make sure that this height fits the GRID layout, so we round it to the nearest multiple of GRID_SIZE
+            const currentHeight = Math.round(currentHeightRaw / GRID_SIZE) * GRID_SIZE;
+
             setLastCodeHeight(currentHeight);
             heightDelta = -currentHeight;
         } else {
