@@ -25,7 +25,7 @@ export function FreeDrawToolbar({settings, onSettingsChange}: FreeDrawToolbarPro
 
     return (
         <div
-            className="absolute bottom-[72px] left-1/2 -translate-x-1/2 bg-white border border-[#ededed] rounded-xl shadow-sm z-[200]"
+            className="absolute bottom-[72px] left-1/2 -translate-x-1/2 bg-background border rounded-xl shadow-sm z-[200]"
             onPointerDown={(e) => e.stopPropagation()}
             onPointerUp={(e) => e.stopPropagation()}
             onPointerMove={(e) => e.stopPropagation()}

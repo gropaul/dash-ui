@@ -84,7 +84,7 @@ export function FlowPalette({setCanvasState, canvasState}: NodePaletteProps) {
                 />
             )}
             <div
-                className="absolute bottom-[15px] left-1/2 -translate-x-1/2 h-12 bg-white border border-[#ededed] rounded-2xl shadow-sm z-[200] flex items-center px-2"
+                className="absolute bottom-[15px] left-1/2 -translate-x-1/2 h-12 bg-background border rounded-2xl shadow-sm z-[200] flex items-center px-2"
                 onPointerDown={(e) => e.stopPropagation()}
                 onPointerUp={(e) => e.stopPropagation()}
                 onPointerMove={(e) => e.stopPropagation()}>
@@ -146,7 +146,7 @@ function PaletteItem({selected, icon, label, onClick}: PaletteItemProps) {
         <Tooltip>
             <TooltipTrigger asChild>
                 <div
-                    className={`w-8 h-8 rounded-sm flex items-center justify-center  ${selected ? 'text-white bg-blue-600' : 'text-gray-600'}`}
+                    className={`w-8 h-8 rounded-sm flex items-center justify-center ${selected ? 'text-white bg-blue-600' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={(event) => {
                         event.stopPropagation();
                         onClick();

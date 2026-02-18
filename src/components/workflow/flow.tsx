@@ -35,6 +35,7 @@ import './flow-theme.css';
 import {CanvasState, CanvasStateFreeDraw, INITIAL_CANVAS_STATE} from "@/components/workflow/models";
 import {NodePreview} from "@/components/workflow/previews/node-preview";
 import {FreeDrawPreview} from "@/components/workflow/previews/free-draw-preview";
+import {useTheme} from "next-themes";
 
 const initialNodes: Node[] = [
     {
@@ -98,6 +99,7 @@ export function Flow() {
     const [canvasState, setCanvasState] = useState<CanvasState>(INITIAL_CANVAS_STATE);
     const {screenToFlowPosition, getIntersectingNodes, getNodes, getEdges} = useReactFlow();
     const connectingFrom = useRef<OnConnectStartParams | null>(null);
+    const {resolvedTheme} = useTheme();
 
     const checkConnectionValidity = useCallback(
         (sourceId: string, targetId: string): { isValid: boolean; reason?: 'cycle' | 'duplicate' } => {
@@ -326,6 +328,9 @@ export function Flow() {
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 connectionMode={ConnectionMode.Loose}
+                colorMode={resolvedTheme === 'dark' ? 'dark' : 'light'}
+                snapToGrid={true}
+                snapGrid={[16, 16]}
                 panOnScroll={true}
                 panOnScrollSpeed={1.5}
                 panOnDrag={canvasState.selectedTool === 'drag-canvas' ? true : [1]}

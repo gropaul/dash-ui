@@ -63,9 +63,8 @@ export function RelationNodeBody(props: NodeBodyProps) {
                 </div>
             )}
             <div
-                className="rounded-md overflow-visible w-full h-full"
+                className="rounded-md bg-muted-background overflow-visible w-full h-full"
                 style={{
-                    background: "#e4e4e4",
                     boxShadow: "var(--node-shadow)",
                     borderRadius: "0.5rem",
                     borderColor: props.selected ? "#8b5cf6" : "transparent",
@@ -85,9 +84,8 @@ export function RelationNodeBody(props: NodeBodyProps) {
                     onResizeEnd={(e) => e.sourceEvent.stopPropagation()}
                 />
                 <div
-                    className={`w-full h-full`}
+                    className={`w-full h-full bg-background`}
                     style={{
-                        backgroundColor: "#fafbfc",
                         borderRadius: "0.5rem",
                         height: "100%",
                         overflow: "hidden",

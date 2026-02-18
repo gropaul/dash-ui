@@ -32,13 +32,12 @@ export function RelationNodeHeader(props: RelationNodeHeaderProps) {
     return (
         <>
             <div
-                className="group/title"
+                className="group/title border-b"
                 style={{
                     padding: '8px 8px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    borderBottom: '1px solid #e4e4e7'
                 }}
             >
                 <div style={{
