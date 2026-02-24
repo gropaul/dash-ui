@@ -4,12 +4,13 @@ import {DEFAULT_STATE_SCHEMA_NAME} from "@/platform/global-data";
 import {CacheResult} from "@/state/relations-data.state";
 import {removeSemicolon} from "@/platform/sql-utils";
 
-function GetFullViewName(id: string): string {
-    const viewName = `cache-${id}`;
-    // return `"${DEFAULT_STATE_SCHEMA_NAME}"."${viewName}"`;
-    // we can't use the schema as we can't create a temp schema
-    return `"${DEFAULT_STATE_SCHEMA_NAME}_dash_${viewName}"`;
 
+export function GetCacheViewPrefix(): string {
+    return`${DEFAULT_STATE_SCHEMA_NAME}_cache_`;
+}
+
+function GetFullViewName(id: string): string {
+    return GetCacheViewPrefix() + id;
 }
 
 function getMaterializedViewFromQuery(id: string, query: string, readonly: boolean): string {
