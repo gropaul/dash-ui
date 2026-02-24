@@ -1,5 +1,5 @@
 import {useCallback, useMemo, useRef, useState} from "react";
-import {Node, NodeProps, NodeResizer, Position, useReactFlow} from '@xyflow/react';
+import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
 import {RelationNodeBody} from "@/components/workflow/nodes/relation/relation-body";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
@@ -16,22 +16,53 @@ import {ConnectionHoverState} from "@/components/workflow/models";
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {DEFAULT_CODE_VIEW_HEIGHT, GRID_SIZE, HEADER_HEIGHT} from "@/components/workflow/flow";
+import {useWorkflowState} from "@/components/workflow/workflow-context";
 
-type NodeFromProps = {
-    tableName?: string;
+const DEFAULT_RELATION_DATA = getInitialDataElement('table');
+
+type RelationNodeProps = {
+    relationData?: RelationBlockData;
     connectionHover?: ConnectionHoverState | null;
 }
 
-type FromNode = Node<NodeFromProps, 'FromNode'>;
+type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
 
-export function RelationNode(props: NodeProps<FromNode>) {
-    const [data, setData] = useState<RelationBlockData>(getInitialDataElement('table'))
+export function RelationNode(props: NodeProps<RelationNodeType>) {
+    const {setNodes} = useWorkflowState();
+
+    // Get relation data from node props, merge with defaults
+    const rawData = props.data as RelationNodeProps;
+    const data: RelationBlockData = rawData.relationData ?? DEFAULT_RELATION_DATA;
+
+    // Update relation data in node
+    const setData = useCallback((updater: RelationBlockData | ((prev: RelationBlockData) => RelationBlockData)) => {
+        setNodes((nodes) =>
+            nodes.map((node) => {
+                if (node.id !== props.id) return node;
+                const currentData = (node.data as RelationNodeProps).relationData ?? DEFAULT_RELATION_DATA;
+                const newRelationData = typeof updater === 'function' ? updater(currentData) : updater;
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        relationData: newRelationData,
+                    },
+                };
+            })
+        );
+    }, [setNodes, props.id]);
+
     const [manager] = useState(() => new InputManager())
     const [closestHandle, setClosestHandle] = useState<Position | undefined>()
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [lastCodeHeight, setLastCodeHeight] = useState(DEFAULT_CODE_VIEW_HEIGHT)
     const codeFenceRef = useRef<HTMLDivElement>(null!);
-    const {updateNode} = useReactFlow();
+
+    const updateNode = useCallback((nodeId: string, updater: (node: Node) => Node) => {
+        setNodes((nodes) =>
+            nodes.map((node) => (node.id === nodeId ? updater(node) : node))
+        );
+    }, [setNodes]);
 
     const [divRef, isHovered] = useHoverWithPadding<HTMLDivElement>(48);
 

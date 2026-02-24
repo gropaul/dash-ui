@@ -10,6 +10,7 @@ import {
 import {NodeTemplate, Position} from "@/components/workflow/flow";
 import {FreeDrawNodeData} from "@/components/workflow/nodes/free-draw-node";
 import {DEFAULT_TEXT_NODE_DATA} from "@/components/workflow/nodes/text-node";
+import {getInitialDataElement} from "@/model/dashboard-state";
 
 export interface PointerHandlerContext {
     canvasState: CanvasState;
@@ -267,6 +268,9 @@ function getDefaultNodeData(type: string): Record<string, unknown> {
     switch (type) {
         case 'textNode':
             return {...DEFAULT_TEXT_NODE_DATA};
+        case 'relationNode':
+        case 'chartNode':
+            return {relationData: getInitialDataElement('table')};
         default:
             return {};
     }
