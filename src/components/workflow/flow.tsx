@@ -5,14 +5,9 @@ import {
     Background,
     ConnectionMode,
     Controls,
-    Edge,
-    MarkerType,
-    Node,
     OnConnectStartParams,
     ReactFlow,
     SelectionMode,
-    useEdgesState,
-    useNodesState,
     useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -46,23 +41,12 @@ import {useTheme} from "next-themes";
 import {useFlowShortcuts} from "@/hooks/use-flow-shortcuts";
 import {useHelperLines} from "@/components/workflow/helpers/use-helper-lines";
 import {HelperLines} from "@/components/workflow/helpers/helper-lines";
+import {useUndoableFlow} from "@/hooks/use-undoable-flow";
+import {WorkflowProvider} from "@/components/workflow/workflow-context";
 
-const initialNodes: Node[] = [
-    {
-        id: 'n1',
-        type: 'relationNode',
-        position: {x: 0, y: 0},
-        data: {},
-    },
-    {
-        id: 'n2',
-        type: 'relationNode',
-        position: {x: 10, y: 0},
-        width: 512,
-        height: 256,
-        data: {},
-    },
-];
+export interface FlowProps {
+    workflowId: string;
+}
 
 export const GRID_SIZE = 20;
 
@@ -93,25 +77,20 @@ export interface NodeTemplate {
     size: { width: number; height: number };
 }
 
-const initialEdges: Edge[] = [
-    {
-        id: '1-2',
-        source: 'n1',
-        target: 'n2',
-        sourceHandle: 'c',
-        targetHandle: 'a',
-        type: 'floating',
-        markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 30,
-            height: 30,
-        },
-    },
-];
+export function Flow({workflowId}: FlowProps) {
+    const {
+        nodes,
+        edges,
+        viewport,
+        setNodes,
+        setEdges,
+        onNodesChange,
+        onEdgesChange,
+        onViewportChange,
+        undo,
+        redo,
+    } = useUndoableFlow(workflowId);
 
-export function Flow() {
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [canvasState, setCanvasState] = useState<CanvasState>(INITIAL_CANVAS_STATE);
     const {screenToFlowPosition, getIntersectingNodes, getNodes, getEdges} = useReactFlow();
     const connectingFrom = useRef<OnConnectStartParams | null>(null);
@@ -122,7 +101,8 @@ export function Flow() {
         edges,
         setNodes,
         setEdges,
-        enabled: canvasState.selectedTool === 'pointer',
+        onUndo: undo,
+        onRedo: redo,
     });
 
     const {
@@ -209,13 +189,14 @@ export function Flow() {
     }, []);
 
     return (
-        <div
-            style={{width: '100%', height: '100%'}}
-            onPointerMove={(e) => handlePointerMove(e, pointerCtx)}
-            onPointerDown={(e) => handlePointerDown(e, pointerCtx)}
-            onPointerUp={(e) => handlePointerUp(e, pointerCtx)}
-        >
-            <ReactFlow
+        <WorkflowProvider setNodes={setNodes} setEdges={setEdges}>
+            <div
+                style={{width: '100%', height: '100%'}}
+                onPointerMove={(e) => handlePointerMove(e, pointerCtx)}
+                onPointerDown={(e) => handlePointerDown(e, pointerCtx)}
+                onPointerUp={(e) => handlePointerUp(e, pointerCtx)}
+            >
+                <ReactFlow
                 nodes={nodesWithConnectionHover}
                 edges={edges}
                 onNodesChange={onNodesChange}
@@ -233,6 +214,8 @@ export function Flow() {
                 edgeTypes={edgeTypes}
                 connectionMode={ConnectionMode.Loose}
                 colorMode={resolvedTheme === 'dark' ? 'dark' : 'light'}
+                defaultViewport={viewport}
+                onViewportChange={onViewportChange}
                 snapToGrid={true}
                 snapGrid={[GRID_SIZE, GRID_SIZE]}
                 panOnScroll={true}
@@ -260,7 +243,8 @@ export function Flow() {
                     currentStroke={canvasState.selectedTool === 'free-draw' ? (canvasState as CanvasStateFreeDraw).currentStroke : undefined}
                 />
                 <FlowPalette canvasState={canvasState} setCanvasState={setCanvasState}/>
-            </ReactFlow>
-        </div>
+                </ReactFlow>
+            </div>
+        </WorkflowProvider>
     );
 }

@@ -22,7 +22,7 @@ export function WorkflowTab(props: WorkflowTabProps) {
                 {workflow.viewState.displayName}
             </div>
             <ReactFlowProvider>
-                <Flow />
+                <Flow workflowId={props.workflowId} />
             </ReactFlowProvider>
         </div>
     )

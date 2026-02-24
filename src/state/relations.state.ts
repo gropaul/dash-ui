@@ -87,6 +87,7 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     /* workflow actions */
     addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => void,
     getWorkflowState: (workflowId: string) => WorkflowState,
+    updateWorkflowState: (workflowId: string, workflow: Partial<WorkflowState>) => void,
 
     /* entity actions */
     deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
@@ -200,6 +201,17 @@ export const useRelationsState = createWithEqualityFn(
                         throw new Error(`Workflow with id ${workflowId} not found`);
                     }
                     return workflow;
+                },
+                updateWorkflowState: (workflowId: string, updates: Partial<WorkflowState>) => {
+                    set((state) => ({
+                        workflows: {
+                            ...state.workflows,
+                            [workflowId]: {
+                                ...state.workflows[workflowId],
+                                ...updates,
+                            },
+                        },
+                    }));
                 },
 
                 deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {

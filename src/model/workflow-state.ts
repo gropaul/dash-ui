@@ -1,13 +1,16 @@
 import {getRandomId} from "@/platform/id-utils";
-
+import {Edge, Node, Viewport} from "@xyflow/react";
 
 export interface WorkflowState {
-    id: string; // unique identifier for the workflow
-    viewState: WorkflowViewState; // view state for the workflow
+    id: string;
+    viewState: WorkflowViewState;
+    nodes: Node[];
+    edges: Edge[];
+    viewport?: Viewport;
 }
 
 export interface WorkflowViewState {
-    displayName: string; // display name for the workflow view
+    displayName: string;
 }
 
 export function GetWorkflowId(workflow: WorkflowState): string {
@@ -19,6 +22,8 @@ export function GetInitialWorkflowState(): WorkflowState {
         id: getRandomId(),
         viewState: {
             displayName: "New Workflow"
-        }
+        },
+        nodes: [],
+        edges: [],
     };
 }

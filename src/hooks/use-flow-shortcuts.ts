@@ -21,7 +21,8 @@ interface UseFlowShortcutsOptions<E extends Edge = Edge> {
     edges: E[];
     setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
     setEdges: React.Dispatch<React.SetStateAction<E[]>>;
-    enabled: boolean;
+    onUndo?: () => void;
+    onRedo?: () => void;
 }
 
 export function useFlowShortcuts<E extends Edge = Edge>({
@@ -29,13 +30,13 @@ export function useFlowShortcuts<E extends Edge = Edge>({
     edges,
     setNodes,
     setEdges,
-    enabled,
+    onUndo,
+    onRedo,
 }: UseFlowShortcutsOptions<E>) {
     const clipboardRef = useRef<ClipboardData | null>(null);
     const pasteCountRef = useRef(0);
 
     const hotkeyOptions = {
-        enabled,
         enableOnFormTags: false as const,
         preventDefault: true,
     };
@@ -106,4 +107,6 @@ export function useFlowShortcuts<E extends Edge = Edge>({
     useHotkeys('ctrl+c,mod+c', copySelectedNodes, hotkeyOptions);
     useHotkeys('ctrl+v,mod+v', pasteNodes, hotkeyOptions);
     useHotkeys('ctrl+d,mod+d', duplicateSelectedNodes, hotkeyOptions);
+    useHotkeys('ctrl+z,mod+z', () => onUndo?.(), hotkeyOptions);
+    useHotkeys('ctrl+shift+z,mod+shift+z,ctrl+y,mod+y', () => onRedo?.(), hotkeyOptions);
 }

@@ -1,4 +1,5 @@
 import {NodeToolbar, Position, useReactFlow} from '@xyflow/react';
+import {useWorkflowState} from "@/components/workflow/workflow-context";
 import {Button} from "@/components/ui/button";
 import {
     AlignCenter,
@@ -60,7 +61,8 @@ interface TextToolbarProps {
 }
 
 export function TextToolbar({nodeId, isVisible, data}: TextToolbarProps) {
-    const {setNodes, deleteElements} = useReactFlow();
+    const {deleteElements} = useReactFlow();
+    const {setNodes} = useWorkflowState();
 
     const updateNodeData = (updates: Partial<TextNodeData>) => {
         setNodes((nodes) =>
@@ -156,6 +158,7 @@ export function TextToolbar({nodeId, isVisible, data}: TextToolbarProps) {
                         ))}
                     </DropdownMenuContent>
                 </DropdownMenu>
+                <div className="w-[1px] h-10 bg-border"/>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
