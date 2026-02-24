@@ -2,12 +2,10 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
-    addEdge,
     Background,
-    Connection,
     ConnectionMode,
     Controls,
-    getOutgoers,
+    Edge,
     MarkerType,
     Node,
     OnConnectStartParams,
@@ -23,6 +21,15 @@ import {FreeDrawNode} from "@/components/workflow/nodes/free-draw-node";
 import {TextNode} from "@/components/workflow/nodes/text-node";
 import FloatingEdge from "@/components/workflow/edge/floating-edge";
 import {FlowPalette} from "@/components/workflow/flow-palette";
+import {
+    createIsValidConnection,
+    createOnConnect,
+    createOnConnectEnd,
+    createOnConnectStart,
+    createOnNodeMouseEnter,
+    createOnNodeMouseLeave,
+    EdgeHandlerContext,
+} from "@/components/workflow/flow-edge-functions";
 import {
     getCursorStyle,
     handlePointerDown,
@@ -86,7 +93,7 @@ export interface NodeTemplate {
     size: { width: number; height: number };
 }
 
-const initialEdges = [
+const initialEdges: Edge[] = [
     {
         id: '1-2',
         source: 'n1',
@@ -128,176 +135,43 @@ export function Flow() {
         alignableNodeTypes: ['relationNode', 'textNode'],
     });
 
-    const checkConnectionValidity = useCallback(
-        (sourceId: string, targetId: string): { isValid: boolean; reason?: 'cycle' | 'duplicate' } => {
-            const currentNodes = getNodes();
-            const currentEdges = getEdges();
+    const edgeHandlerCtx: EdgeHandlerContext = {
+        getNodes,
+        getEdges,
+        setEdges,
+        setCanvasState,
+        screenToFlowPosition,
+        getIntersectingNodes,
+        connectingFrom,
+    };
 
-            // Check for duplicate edge
-            const isDuplicate = currentEdges.some(
-                edge => edge.source === sourceId && edge.target === targetId
-            );
-            if (isDuplicate) {
-                return {isValid: false, reason: 'duplicate'};
-            }
-
-            // Check for self-connection
-            if (sourceId === targetId) {
-                return {isValid: false, reason: 'cycle'};
-            }
-
-            // Check for cycle
-            const target = currentNodes.find(node => node.id === targetId);
-            if (!target) return {isValid: true};
-
-            const hasCycle = (node: Node, visited = new Set<string>()): boolean => {
-                if (visited.has(node.id)) return false;
-                visited.add(node.id);
-
-                for (const outgoer of getOutgoers(node, currentNodes, currentEdges)) {
-                    if (outgoer.id === sourceId) return true;
-                    if (hasCycle(outgoer, visited)) return true;
-                }
-                return false;
-            };
-
-            if (hasCycle(target)) {
-                return {isValid: false, reason: 'cycle'};
-            }
-
-            return {isValid: true};
-        },
+    const isValidConnection = useCallback(
+        createIsValidConnection(getNodes, getEdges),
         [getNodes, getEdges],
     );
 
-    const isValidConnection = useCallback(
-        (connection: Connection) => {
-            if (!connection.source || !connection.target) return false;
-            return checkConnectionValidity(connection.source, connection.target).isValid;
-        },
-        [checkConnectionValidity],
+    const onConnect = useCallback(
+        createOnConnect(setEdges),
+        [setEdges],
     );
 
-    const onConnect = useCallback(
-        (connection: Connection) =>
-            setEdges((eds) =>
-                addEdge(
-                    {
-                        ...connection,
-                        type: 'floating',
-                        markerEnd: {
-                            type: MarkerType.Arrow,
-                            width: 30,
-                            height: 30,
-                        },
-                    },
-                    eds,
-                ),
-            ),
+    const onConnectStart = useCallback(
+        createOnConnectStart(connectingFrom),
         [],
     );
 
-    const onConnectStart = useCallback((_: any, params: OnConnectStartParams) => {
-        connectingFrom.current = params;
-    }, []);
-
     const onConnectEnd = useCallback(
-        (event: MouseEvent | TouchEvent) => {
-            if (!connectingFrom.current) return;
-
-            const {nodeId: sourceNodeId, handleId: sourceHandleId} = connectingFrom.current;
-            if (!sourceNodeId) return;
-
-            // Get the drop position
-            const clientX = 'changedTouches' in event ? event.changedTouches[0].clientX : event.clientX;
-            const clientY = 'changedTouches' in event ? event.changedTouches[0].clientY : event.clientY;
-            const dropPosition = screenToFlowPosition({x: clientX, y: clientY});
-
-            // Find nodes at drop position
-            const intersectingNodes = getIntersectingNodes({
-                x: dropPosition.x,
-                y: dropPosition.y,
-                width: 1,
-                height: 1,
-            }).filter(n => n.id !== sourceNodeId);
-
-            if (intersectingNodes.length > 0) {
-                const targetNode = intersectingNodes[0];
-
-                // Only create edge if connection is valid
-                const validity = checkConnectionValidity(sourceNodeId, targetNode.id);
-                if (validity.isValid) {
-                    setEdges((eds) =>
-                        addEdge(
-                            {
-                                source: sourceNodeId,
-                                target: targetNode.id,
-                                sourceHandle: sourceHandleId,
-                                targetHandle: null,
-                                type: 'floating',
-                                markerEnd: {
-                                    type: MarkerType.Arrow,
-                                    width: 30,
-                                    height: 30,
-                                },
-                            },
-                            eds,
-                        ),
-                    );
-                    connectingFrom.current = null;
-                    setCanvasState(prev => ({...prev, connectionHover: null}));
-                } else {
-                    // Trigger shake animation
-                    setCanvasState(prev => ({
-                        ...prev,
-                        connectionHover: {
-                            nodeId: targetNode.id,
-                            isValid: false,
-                            invalidReason: validity.reason,
-                            shake: true,
-                        },
-                    }));
-                    connectingFrom.current = null;
-                    // Clear after animation
-                    setTimeout(() => {
-                        setCanvasState(prev => ({...prev, connectionHover: null}));
-                    }, 400);
-                }
-                return;
-            }
-
-            connectingFrom.current = null;
-            setCanvasState(prev => ({...prev, connectionHover: null}));
-        },
-        [screenToFlowPosition, getIntersectingNodes, setEdges, checkConnectionValidity],
+        createOnConnectEnd(edgeHandlerCtx),
+        [screenToFlowPosition, getIntersectingNodes, setEdges, getNodes, getEdges],
     );
 
     const onNodeMouseEnter = useCallback(
-        (_: React.MouseEvent, node: Node) => {
-            if (connectingFrom.current && node.id !== connectingFrom.current.nodeId && node.type === 'relationNode') {
-                const sourceId = connectingFrom.current.nodeId;
-                if (!sourceId) return;
-
-                const validity = checkConnectionValidity(sourceId, node.id);
-                setCanvasState(prev => ({
-                    ...prev,
-                    connectionHover: {
-                        nodeId: node.id,
-                        isValid: validity.isValid,
-                        invalidReason: validity.reason,
-                    },
-                }));
-            }
-        },
-        [checkConnectionValidity],
+        createOnNodeMouseEnter(connectingFrom, setCanvasState, getNodes, getEdges),
+        [getNodes, getEdges],
     );
 
     const onNodeMouseLeave = useCallback(
-        () => {
-            if (connectingFrom.current) {
-                setCanvasState(prev => ({...prev, connectionHover: null}));
-            }
-        },
+        createOnNodeMouseLeave(connectingFrom, setCanvasState),
         [],
     );
 
