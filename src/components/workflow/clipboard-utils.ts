@@ -1,5 +1,6 @@
 import {Node, Edge} from '@xyflow/react';
 import {deepClone} from '@/platform/object-utils';
+import {getRandomId} from '@/platform/id-utils';
 
 /**
  * Generate a unique ID for a cloned node
@@ -7,6 +8,13 @@ import {deepClone} from '@/platform/object-utils';
 export function generateClonedId(originalId: string): string {
     const prefix = originalId.split('-')[0] || 'n';
     return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+}
+
+/**
+ * Generate a unique relation ID for cloned relation data
+ */
+function generateClonedRelationId(): string {
+    return getRandomId();
 }
 
 /**
@@ -51,6 +59,14 @@ export function cloneNodes(
 
         // Deep clone the entire node first to avoid any reference issues
         const clonedNode = deepClone(node);
+
+        // Generate new relation ID for relation nodes to ensure independence
+        if (clonedNode.type === 'relationNode') {
+            const data = clonedNode.data as { relationData?: { id?: string } };
+            if (data.relationData?.id) {
+                data.relationData.id = generateClonedRelationId();
+            }
+        }
 
         return {
             ...clonedNode,

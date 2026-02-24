@@ -5,6 +5,7 @@ import {
     Background,
     ConnectionMode,
     Controls,
+    Node,
     OnConnectStartParams,
     ReactFlow,
     SelectionMode,
@@ -43,6 +44,7 @@ import {useHelperLines} from "@/components/workflow/helpers/use-helper-lines";
 import {HelperLines} from "@/components/workflow/helpers/helper-lines";
 import {useUndoableFlow} from "@/hooks/use-undoable-flow";
 import {WorkflowProvider} from "@/components/workflow/workflow-context";
+import {useRelationDataState} from "@/state/relations-data.state";
 
 export interface FlowProps {
     workflowId: string;
@@ -155,6 +157,17 @@ export function Flow({workflowId}: FlowProps) {
         [],
     );
 
+    const onNodesDelete = useCallback((deletedNodes: Node[]) => {
+        for (const node of deletedNodes) {
+            if (node.type === 'relationNode') {
+                const data = node.data as { relationData?: { id?: string } };
+                if (data.relationData?.id) {
+                    useRelationDataState.getState().deleteData(data.relationData.id);
+                }
+            }
+        }
+    }, []);
+
     const nodesWithConnectionHover = useMemo(() => {
         return nodes.map(node => {
             const isHovered = canvasState.connectionHover?.nodeId === node.id;
@@ -206,6 +219,7 @@ export function Flow({workflowId}: FlowProps) {
                 onConnectEnd={onConnectEnd}
                 onNodeMouseEnter={onNodeMouseEnter}
                 onNodeMouseLeave={onNodeMouseLeave}
+                onNodesDelete={onNodesDelete}
                 onNodeDragStart={onNodeDragStart}
                 onNodeDrag={onNodeDrag}
                 onNodeDragStop={onNodeDragStop}

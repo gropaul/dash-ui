@@ -34,35 +34,37 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
     const rawData = props.data as RelationNodeProps;
     const data: RelationBlockData = rawData.relationData ?? DEFAULT_RELATION_DATA;
 
-    // Update relation data in node
-    const setData = useCallback((updater: RelationBlockData | ((prev: RelationBlockData) => RelationBlockData)) => {
+    // Update relation data in node, optionally with node-level updates (height, etc.)
+    const updateNodeData = useCallback((
+        dataUpdater: (prev: RelationBlockData) => RelationBlockData,
+        nodeUpdater?: (node: Node) => Partial<Node>
+    ) => {
         setNodes((nodes) =>
             nodes.map((node) => {
                 if (node.id !== props.id) return node;
                 const currentData = (node.data as RelationNodeProps).relationData ?? DEFAULT_RELATION_DATA;
-                const newRelationData = typeof updater === 'function' ? updater(currentData) : updater;
                 return {
                     ...node,
+                    ...(nodeUpdater?.(node) ?? {}),
                     data: {
                         ...node.data,
-                        relationData: newRelationData,
+                        relationData: dataUpdater(currentData),
                     },
                 };
             })
         );
     }, [setNodes, props.id]);
 
+    // Simple data-only updater for compatibility with actions
+    const setData = useCallback((updater: RelationBlockData | ((prev: RelationBlockData) => RelationBlockData)) => {
+        updateNodeData(prev => typeof updater === 'function' ? updater(prev) : updater);
+    }, [updateNodeData]);
+
     const [manager] = useState(() => new InputManager())
     const [closestHandle, setClosestHandle] = useState<Position | undefined>()
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [lastCodeHeight, setLastCodeHeight] = useState(DEFAULT_CODE_VIEW_HEIGHT)
     const codeFenceRef = useRef<HTMLDivElement>(null!);
-
-    const updateNode = useCallback((nodeId: string, updater: (node: Node) => Node) => {
-        setNodes((nodes) =>
-            nodes.map((node) => (node.id === nodeId ? updater(node) : node))
-        );
-    }, [setNodes]);
 
     const [divRef, isHovered] = useHoverWithPadding<HTMLDivElement>(48);
 
@@ -100,7 +102,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
             embedded: true
         }
         return createEndUserRelationActions(inputProps)
-    }, [data])
+    }, [data, setData, manager])
 
     const handleToggleCode = useCallback(() => {
         const isCurrentlyShowing = data.viewState.codeFenceState.show;
@@ -109,25 +111,24 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         if (isCurrentlyShowing) {
             // Closing: measure current height and store it
             const currentHeightRaw = codeFenceRef.current?.offsetHeight ?? lastCodeHeight;
-            // make sure that this height fits the GRID layout, so we round it to the nearest multiple of GRID_SIZE
             const currentHeight = Math.round(currentHeightRaw / GRID_SIZE) * GRID_SIZE;
-
             setLastCodeHeight(currentHeight);
             heightDelta = -currentHeight;
         } else {
-            // Opening: use the last stored height
             heightDelta = lastCodeHeight;
         }
 
-        // Toggle the code fence state
-        actions.toggleShowCode();
-
-        // Update node height
-        updateNode(props.id, (node) => ({
-            ...node,
-            height: (node.height ?? 256) + heightDelta,
-        }));
-    }, [data.viewState.codeFenceState.show, actions, updateNode, props.id, lastCodeHeight]);
+        updateNodeData(
+            (prev) => ({
+                ...prev,
+                viewState: {
+                    ...prev.viewState,
+                    codeFenceState: {...prev.viewState.codeFenceState, show: !isCurrentlyShowing},
+                },
+            }),
+            (node) => ({height: (node.height ?? 256) + heightDelta})
+        );
+    }, [data.viewState.codeFenceState.show, updateNodeData, lastCodeHeight]);
 
     const viewProps: RelationViewProps = {
         relationState: data,
@@ -167,22 +168,11 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         onViewChange={actions.setViewType}
                         onFullscreen={() => setIsFullscreen(true)}
                         onToggleHeader={() => {
-                            const isCurrentlyShowing = data.viewState.showHeader;
-                            const newShowHeader = !isCurrentlyShowing;
-
-                            setData(prev => ({
-                                ...prev,
-                                viewState: {
-                                    ...prev.viewState,
-                                    showHeader: newShowHeader
-                                }
-                            }));
-
-                            // Update node height
-                            updateNode(props.id, (node) => ({
-                                ...node,
-                                height: (node.height ?? 256) + (newShowHeader ? HEADER_HEIGHT : -HEADER_HEIGHT),
-                            }));
+                            const newShowHeader = !data.viewState.showHeader;
+                            updateNodeData(
+                                (prev) => ({...prev, viewState: {...prev.viewState, showHeader: newShowHeader}}),
+                                (node) => ({height: (node.height ?? 256) + (newShowHeader ? HEADER_HEIGHT : -HEADER_HEIGHT)})
+                            );
                         }}
                     />
                     <NodeResizer
