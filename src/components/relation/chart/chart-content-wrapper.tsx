@@ -2,7 +2,7 @@ import {ChartContentError} from "@/components/relation/chart/chart-content/chart
 import {Exportable, ExportableRef} from "@/components/relation/chart/exportable";
 import {toSnakeCase} from "@/platform/string-utils";
 import {ChartContent} from "@/components/relation/chart/chart-content";
-import {CanDisplayPlot} from "@/model/relation-view-state/chart";
+import {CanDisplayPlot, tryInferChartConfig} from "@/model/relation-view-state/chart";
 import {useEffect, useRef} from "react";
 import {useRelationContext} from "@/components/relation/chart/chart-export-context";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
@@ -16,8 +16,32 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
     const chartExport = useRelationContext();
     const data = props.data;
 
-    const config = props.relationState.viewState.chartState;
-    const plotDisplayError = CanDisplayPlot(config.chart, data);
+    const originalConfig = props.relationState.viewState.chartState;
+
+    // Check if original config has an error
+    const originalError = CanDisplayPlot(originalConfig.chart, data);
+
+    // Only try to infer if original has an error
+    let effectiveChartState = originalConfig;
+    let effectiveRelationState = props.relationState;
+
+    if (originalError) {
+        const inferredChart = tryInferChartConfig(originalConfig.chart, data);
+        if (inferredChart) {
+            const inferredChartState = {...originalConfig, chart: inferredChart};
+            const inferredError = CanDisplayPlot(inferredChart, data);
+            // Only use inferred if it has no error
+            if (!inferredError) {
+                effectiveChartState = inferredChartState;
+                effectiveRelationState = {
+                    ...props.relationState,
+                    viewState: {...props.relationState.viewState, chartState: effectiveChartState}
+                };
+            }
+        }
+    }
+
+    const plotDisplayError = CanDisplayPlot(effectiveChartState.chart, data);
 
     // Register ref with context
     useEffect(() => {
@@ -51,12 +75,12 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
                     showChartSettings={showChartSettings}
                 />
                 :
-                <Exportable ref={exportableRef} fileName={toSnakeCase(config.chart.plot.title ?? 'plot')}>
+                <Exportable ref={exportableRef} fileName={toSnakeCase(effectiveChartState.chart.plot.title ?? 'plot')}>
                     <ChartContent
                         embedded={props.embedded}
                         hideTitleIfEmpty={props.embedded}
                         data={data}
-                        relationState={props.relationState}
+                        relationState={effectiveRelationState}
                     />
                 </Exportable>
             }

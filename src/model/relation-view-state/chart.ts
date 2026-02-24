@@ -537,6 +537,198 @@ export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationD
 }
 
 
+/**
+ * Check if a column type is numeric (suitable for Y-axis values)
+ */
+function isNumericType(type: string): boolean {
+    return type === 'Integer' || type === 'Float';
+}
+
+/**
+ * Check if a column type is text/categorical
+ */
+function isTextType(type: string): boolean {
+    return type === 'String';
+}
+
+/**
+ * Check if a column exists in the available columns
+ */
+function columnExists(columnId: string, columns: RelationData['columns']): boolean {
+    return columns.some(col => col.id === columnId);
+}
+
+/**
+ * Create an AxisConfig for a column
+ */
+function createAxisConfig(column: {id: string; name: string}, yIndex: number = 0): AxisConfig {
+    return {
+        label: column.name,
+        columnId: column.id,
+        decoration: getInitialAxisDecoration(yIndex),
+    };
+}
+
+/**
+ * Remove columns from config that are no longer present in the schema
+ */
+function cleanupInvalidColumns(
+    plotConfig: PlotConfig,
+    columns: RelationData['columns']
+): PlotConfig {
+    const cleaned = {...plotConfig};
+
+    // Clean cartesian config
+    if (cleaned.cartesian) {
+        cleaned.cartesian = {...cleaned.cartesian};
+
+        if (cleaned.cartesian.xAxis && !columnExists(cleaned.cartesian.xAxis.columnId, columns)) {
+            cleaned.cartesian.xAxis = undefined;
+        }
+
+        if (cleaned.cartesian.yAxes) {
+            cleaned.cartesian.yAxes = cleaned.cartesian.yAxes.filter(
+                axis => columnExists(axis.columnId, columns)
+            );
+            if (cleaned.cartesian.yAxes.length === 0) {
+                cleaned.cartesian.yAxes = undefined;
+            }
+        }
+
+        if (cleaned.cartesian.groupBy && !columnExists(cleaned.cartesian.groupBy.columnId, columns)) {
+            cleaned.cartesian.groupBy = undefined;
+        }
+    }
+
+    // Clean pie config
+    if (cleaned.pie?.axis) {
+        cleaned.pie = {...cleaned.pie, axis: {...cleaned.pie.axis}};
+
+        if (cleaned.pie.axis.label && !columnExists(cleaned.pie.axis.label.columnId, columns)) {
+            cleaned.pie.axis.label = undefined;
+        }
+
+        if (cleaned.pie.axis.radius && !columnExists(cleaned.pie.axis.radius.columnId, columns)) {
+            cleaned.pie.axis.radius = undefined;
+        }
+    }
+
+    return cleaned;
+}
+
+/**
+ * Try to infer a chart config from available data columns.
+ * First removes columns that are no longer in the schema, then infers missing axes.
+ *
+ * For X-axis selection (left to right):
+ * - line, area, scatter: prefer numeric column, fallback to text
+ * - bar, radar: prefer text column, fallback to numeric
+ *
+ * For Y-axis: always use first numeric column
+ *
+ * Returns undefined if inference is not possible (e.g., no numeric columns)
+ */
+export function tryInferChartConfig(
+    chartConfig: ChartConfig,
+    relationData: RelationData
+): ChartConfig | undefined {
+    const columns = relationData.columns;
+
+    if (columns.length === 0) {
+        return undefined;
+    }
+
+    // First clean up invalid columns from the config
+    const cleanedPlotConfig = cleanupInvalidColumns(chartConfig.plot, columns);
+
+    switch (cleanedPlotConfig.type) {
+        case 'line':
+        case 'area':
+        case 'scatter':
+        case 'bar':
+        case 'radar': {
+            // Check if config already has valid Y-axes defined
+            if ((cleanedPlotConfig.cartesian.yAxes?.length ?? 0) > 0) {
+                // Config is complete, but return cleaned version if it changed
+                if (cleanedPlotConfig !== chartConfig.plot) {
+                    return {plot: cleanedPlotConfig};
+                }
+                return undefined;
+            }
+
+            // If only one column, use it as both X and Y axis
+            if (columns.length === 1) {
+                const onlyColumn = columns[0];
+                return {
+                    plot: {
+                        ...cleanedPlotConfig,
+                        cartesian: {
+                            ...cleanedPlotConfig.cartesian,
+                            xAxis: createAxisConfig(onlyColumn),
+                            yAxes: [createAxisConfig(onlyColumn, 0)],
+                        },
+                    },
+                };
+            }
+
+            // Multiple columns: use 1st as X-axis, next columns as Y-axes (up to 3)
+            const xColumn = columns[0];
+            const yColumns = columns.slice(1, 4); // Take columns 2, 3, 4 (indices 1, 2, 3)
+
+            return {
+                plot: {
+                    ...cleanedPlotConfig,
+                    cartesian: {
+                        ...cleanedPlotConfig.cartesian,
+                        xAxis: createAxisConfig(xColumn),
+                        yAxes: yColumns.map((col, index) => createAxisConfig(col, index)),
+                    },
+                },
+            };
+        }
+
+        case 'pie': {
+            // Check if config already has both label and radius
+            if (cleanedPlotConfig.pie.axis.label && cleanedPlotConfig.pie.axis.radius) {
+                // Config is complete, but return cleaned version if it changed
+                if (cleanedPlotConfig !== chartConfig.plot) {
+                    return {plot: cleanedPlotConfig};
+                }
+                return undefined;
+            }
+
+            // Find first numeric column for radius (left to right)
+            const radiusColumn = columns.find(col => isNumericType(col.type));
+            if (!radiusColumn) {
+                return undefined; // Can't infer without numeric column
+            }
+
+            // Find first text column for label, fallback to any non-radius column
+            const labelColumn = columns.find(col => isTextType(col.type))
+                ?? columns.find(col => col.id !== radiusColumn.id);
+
+            if (!labelColumn) {
+                return undefined; // Can't infer label column
+            }
+
+            return {
+                plot: {
+                    ...cleanedPlotConfig,
+                    pie: {
+                        axis: {
+                            label: cleanedPlotConfig.pie.axis.label ?? createAxisConfig(labelColumn),
+                            radius: cleanedPlotConfig.pie.axis.radius ?? createAxisConfig(radiusColumn, 0),
+                        },
+                    },
+                },
+            };
+        }
+
+        default:
+            return undefined;
+    }
+}
+
 export function getNeededColumnsForConfig(chartConfig: ChartConfig) {
     const plotConfig = chartConfig.plot;
     switch (plotConfig.type) {
