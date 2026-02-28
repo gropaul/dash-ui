@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState, MouseEvent as ReactMouseEvent } from 'react';
 import { Node, useReactFlow, useStore } from '@xyflow/react';
-import { HelperLine } from '../models';
+import {GRID_SIZE, HelperLine} from '../models';
 import { findAlignments, createHelperLines, getNodeBounds } from './helper-lines-utils';
-import { GRID_SIZE } from "@/components/workflow/flow";
 
 interface ViewportBounds {
     left: number;

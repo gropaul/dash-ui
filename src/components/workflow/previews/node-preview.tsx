@@ -7,7 +7,6 @@ export interface NodePreviewProps {
 
 export function NodePreview(props: NodePreviewProps) {
     const { screenToFlowPosition, flowToScreenPosition } = useReactFlow();
-    const viewport = useViewport(); // Subscribe to viewport changes (zoom/pan)
 
     if (props.canvasState.selectedTool !== 'create-node') {
         return null;
@@ -61,7 +60,6 @@ export function NodePreview(props: NodePreviewProps) {
     const screenLowerRight = flowToScreenPosition(flowLowerRight);
     const scaledWidth = screenLowerRight.x - props.canvasState.previewMousePosition.x;
     const scaledHeight = screenLowerRight.y - props.canvasState.previewMousePosition.y;
-
 
     return (
         <div

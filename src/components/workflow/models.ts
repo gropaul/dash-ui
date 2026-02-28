@@ -1,8 +1,19 @@
 import {NodePaletteItem} from "@/components/workflow/flow-palette";
 
-export const DEFAULT_NODE_SIZE = {width: 512, height: 512};
-export const DEFAULT_CHART_SIZE = {width: 512, height: 512};
-export const DEFAULT_TEXT_SIZE = {width: 128, height: 64};
+
+export const GRID_SIZE: number = 20;
+export const DEFAULT_NODE_HEIGHT = 260 // 13 * GRID_SIZE, Default fallback height for nodes (excluding relation nodes which have dynamic height)
+export const DEFAULT_CODE_VIEW_HEIGHT = 200; // 10 * GRID_SIZE, Default fallback height for code view
+export const HEADER_HEIGHT = 40; // 2 * GRID_SIZE, Height of the node header (8px padding top + 28px icon + 8px padding bottom + 1px border)
+
+export const DEFAULT_NODE_SIZE = {width: 25 * GRID_SIZE, height: 25 * GRID_SIZE};
+export const DEFAULT_CHART_SIZE = {width: 25 * GRID_SIZE, height: 25 * GRID_SIZE};
+export const DEFAULT_TEXT_SIZE = {width: 5 * GRID_SIZE, height: 2 * GRID_SIZE};
+
+export function roundToGrid(value: number): number {
+    return Math.round(value / GRID_SIZE) * GRID_SIZE;
+}
+
 
 export type CanvasSelectedTool = 'pointer' | 'create-node' | 'create-text' | 'drag-canvas' | 'free-draw';
 

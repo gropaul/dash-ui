@@ -9,7 +9,8 @@ import {
     cloneNodes,
     cloneEdges,
 } from '@/components/workflow/clipboard-utils';
-import {GRID_SIZE} from "@/components/workflow/flow";
+
+import {GRID_SIZE} from "@/components/workflow/models";
 
 interface ClipboardData {
     nodes: Node[];

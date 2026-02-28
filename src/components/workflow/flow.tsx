@@ -35,7 +35,7 @@ import {
 } from "@/components/workflow/flow-pointer-functions";
 
 import './flow-theme.css';
-import {CanvasState, CanvasStateFreeDraw, INITIAL_CANVAS_STATE} from "@/components/workflow/models";
+import {CanvasState, CanvasStateFreeDraw, GRID_SIZE, INITIAL_CANVAS_STATE} from "@/components/workflow/models";
 import {NodePreview} from "@/components/workflow/previews/node-preview";
 import {FreeDrawPreview} from "@/components/workflow/previews/free-draw-preview";
 import {useTheme} from "next-themes";
@@ -49,11 +49,6 @@ import {useRelationDataState} from "@/state/relations-data.state";
 export interface FlowProps {
     workflowId: string;
 }
-
-export const GRID_SIZE = 20;
-
-export const DEFAULT_CODE_VIEW_HEIGHT = 192; // Default fallback height for code view
-export const HEADER_HEIGHT = 40; // Height of the node header (8px padding top + 28px icon + 8px padding bottom + 1px border)
 
 
 export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'freeDrawNode';
@@ -230,7 +225,7 @@ export function Flow({workflowId}: FlowProps) {
                 colorMode={resolvedTheme === 'dark' ? 'dark' : 'light'}
                 defaultViewport={viewport}
                 onViewportChange={onViewportChange}
-                snapToGrid={true}
+                snapToGrid={canvasState.selectedTool !== 'free-draw'}
                 snapGrid={[GRID_SIZE, GRID_SIZE]}
                 panOnScroll={true}
                 panOnScrollSpeed={1.5}

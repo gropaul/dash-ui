@@ -5,7 +5,8 @@ import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {RelationViewType} from "@/model/relation-view-state";
 import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files/icon-factories";
-import {HEADER_HEIGHT} from "@/components/workflow/flow";
+
+import {HEADER_HEIGHT} from "@/components/workflow/models";
 
 export interface RelationNodeHeaderProps {
     viewType: RelationViewType;

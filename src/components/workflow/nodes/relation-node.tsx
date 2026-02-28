@@ -12,10 +12,15 @@ import {ConditionalHandles} from "@/components/workflow/nodes/relation/condition
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
 
-import {ConnectionHoverState} from "@/components/workflow/models";
+import {
+    ConnectionHoverState,
+    DEFAULT_CODE_VIEW_HEIGHT,
+    DEFAULT_NODE_HEIGHT, GRID_SIZE,
+    HEADER_HEIGHT,
+    roundToGrid
+} from "@/components/workflow/models";
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
-import {DEFAULT_CODE_VIEW_HEIGHT, GRID_SIZE, HEADER_HEIGHT} from "@/components/workflow/flow";
 import {useWorkflowState} from "@/components/workflow/workflow-context";
 
 const DEFAULT_RELATION_DATA = getInitialDataElement('table');
@@ -110,8 +115,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         let heightDelta: number;
         if (isCurrentlyShowing) {
             // Closing: measure current height and store it
-            const currentHeightRaw = codeFenceRef.current?.offsetHeight ?? lastCodeHeight;
-            const currentHeight = Math.round(currentHeightRaw / GRID_SIZE) * GRID_SIZE;
+            const currentHeight = roundToGrid(codeFenceRef.current?.offsetHeight ?? lastCodeHeight);
             setLastCodeHeight(currentHeight);
             heightDelta = -currentHeight;
         } else {
@@ -126,7 +130,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     codeFenceState: {...prev.viewState.codeFenceState, show: !isCurrentlyShowing},
                 },
             }),
-            (node) => ({height: (node.height ?? 256) + heightDelta})
+            (node) => ({height: roundToGrid((node.height ?? DEFAULT_NODE_HEIGHT) + heightDelta)})
         );
     }, [data.viewState.codeFenceState.show, updateNodeData, lastCodeHeight]);
 
