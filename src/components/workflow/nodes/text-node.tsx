@@ -2,6 +2,7 @@ import {NodeProps, NodeResizer} from '@xyflow/react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {TextToolbar} from "./text/text-toolbar";
 import {useWorkflowState} from "@/components/workflow/workflow-context";
+import {GRID_SIZE} from "@/components/workflow/models";
 
 export type TextStyle = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body' | 'code';
 
@@ -55,7 +56,7 @@ export function TextNode({id, data, selected, width, height}: NodeProps) {
 
     const [isEditing, setIsEditing] = useState(false);
     const [localText, setLocalText] = useState(text);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const editableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setLocalText(text);
@@ -77,9 +78,16 @@ export function TextNode({id, data, selected, width, height}: NodeProps) {
     }, [rawData.isNew, id, setNodes]);
 
     useEffect(() => {
-        if (isEditing && textareaRef.current) {
-            textareaRef.current.focus();
-            textareaRef.current.select();
+        if (isEditing && editableRef.current) {
+            // Set text content when entering edit mode
+            editableRef.current.textContent = localText;
+            editableRef.current.focus();
+            // Select all text in contenteditable
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(editableRef.current);
+            selection?.removeAllRanges();
+            selection?.addRange(range);
         }
     }, [isEditing]);
 
@@ -133,62 +141,42 @@ export function TextNode({id, data, selected, width, height}: NodeProps) {
             <NodeResizer
                 lineClassName="z-40"
                 isVisible={selected}
-                minWidth={50}
-                minHeight={30}
+                minWidth={4 * GRID_SIZE}
+                minHeight={2 * GRID_SIZE}
             />
-            {isEditing ? (
+            <div
+                className={`w-full h-full p-0.5 flex ${isEditing ? 'nodrag' : ''}`}
+                style={{
+                    justifyContent: textAlign,
+                    alignItems: verticalAlignToFlex[verticalAlign],
+                    cursor: isEditing ? undefined : 'text',
+                }}
+            >
                 <div
-                    className="w-full h-full flex p-2 nodrag"
+                    key={isEditing ? 'editing' : 'display'}
+                    className="whitespace-pre-wrap break-words overflow-hidden w-full outline-none"
                     style={{
-                        justifyContent: textAlign,
-                        alignItems: verticalAlignToFlex[verticalAlign],
+                        fontSize: `${styleConfig.fontSize}px`,
+                        fontWeight: styleConfig.fontWeight,
+                        fontFamily: styleConfig.fontFamily,
+                        fontStyle,
+                        textAlign,
+                        color,
+                        lineHeight: styleConfig.lineHeight,
                     }}
+                    ref={isEditing ? editableRef : undefined}
+                    contentEditable={isEditing}
+                    suppressContentEditableWarning
+                    onInput={isEditing ? (e) => setLocalText(e.currentTarget.textContent || '') : undefined}
+                    onBlur={isEditing ? handleBlur : undefined}
+                    onKeyDown={isEditing ? handleKeyDown : undefined}
                 >
-                    <textarea
-                        ref={textareaRef}
-                        value={localText}
-                        onChange={(e) => setLocalText(e.target.value)}
-                        onBlur={handleBlur}
-                        onKeyDown={handleKeyDown}
-                        className="w-full h-full resize-none border-none outline-none bg-transparent"
-                        style={{
-                            fontSize: `${styleConfig.fontSize}px`,
-                            fontWeight: styleConfig.fontWeight,
-                            fontFamily: styleConfig.fontFamily,
-                            fontStyle,
-                            textAlign,
-                            color,
-                            lineHeight: styleConfig.lineHeight,
-                        }}
-                        placeholder="Enter text..."
-                    />
+                    {!isEditing && !text && (
+                        <span className="text-muted-foreground/50">Double-click to edit...</span>
+                    )}
+                    {!isEditing && text}
                 </div>
-            ) : (
-                <div
-                    className="w-full h-full p-2 flex"
-                    style={{
-                        justifyContent: textAlign,
-                        alignItems: verticalAlignToFlex[verticalAlign],
-                        cursor: 'text',
-                    }}
-                >
-                    <div
-                        className="whitespace-pre-wrap break-words overflow-hidden"
-                        style={{
-                            fontSize: `${styleConfig.fontSize}px`,
-                            fontWeight: styleConfig.fontWeight,
-                            fontFamily: styleConfig.fontFamily,
-                            fontStyle,
-                            textAlign,
-                            color,
-                            lineHeight: styleConfig.lineHeight,
-                            width: '100%',
-                        }}
-                    >
-                        {text || <span className="text-muted-foreground/50">Double-click to edit...</span>}
-                    </div>
-                </div>
-            )}
+            </div>
         </div>
     );
 }
