@@ -9,23 +9,23 @@ export function GetCacheViewPrefix(): string {
     return`${DEFAULT_STATE_SCHEMA_NAME}_cache_`;
 }
 
-function GetFullViewName(id: string): string {
-    return GetCacheViewPrefix() + id;
+function GetFullViewNameEscaped(id: string): string {
+    return '"' + GetCacheViewPrefix() + id + '"';
 }
 
 function getMaterializedViewFromQuery(id: string, query: string, readonly: boolean): string {
     const TEMP_TABLE = readonly ? 'TEMP TABLE' : 'TABLE';
-    const tableName = GetFullViewName(id);
+    const tableName = GetFullViewNameEscaped(id);
 
     // remove the semicolon in the query if it exists (can be everywhere in the query)
     query = removeSemicolon(query);
 
-    return `CREATE OR REPLACE ${TEMP_TABLE} "${tableName}" AS (${query});`;
+    return `CREATE OR REPLACE ${TEMP_TABLE} ${tableName} AS (${query});`;
 }
 
 export async function loadCache(id: string): Promise<RelationData | undefined> {
     try {
-        const viewName = GetFullViewName(id);
+        const viewName = GetFullViewNameEscaped(id);
         return await ConnectionsService.getInstance().executeQuery(`SELECT * FROM ${viewName};`);
     } catch (error) {
         return Promise.resolve(undefined);
@@ -33,7 +33,7 @@ export async function loadCache(id: string): Promise<RelationData | undefined> {
 }
 
 export async function deleteCache(id: string): Promise<RelationData> {
-    const viewName = GetFullViewName(id);
+    const viewName = GetFullViewNameEscaped(id);
     return ConnectionsService.getInstance().executeQuery(`DROP TABLE IF EXISTS ${viewName};`);
 }
 
@@ -55,7 +55,6 @@ export async function updateCache(id: string, query: string): Promise<CacheResul
         await connectionsService.executeQuery(materializedViewQuery);
 
         const cacheData = await loadCache(id);
-
         if (!cacheData) {
             throw new Error('Failed to load cache data after creating materialized view.');
         }
@@ -69,10 +68,13 @@ export async function updateCache(id: string, query: string): Promise<CacheResul
         // execute the query directly as we cannot cache it
         const message = (error as Error).message;
         const isParsingError = message.includes('Parser Error');
+        const isSyntaxError = message.includes('"exception_type":"Parser"');
 
-        if (!isParsingError) {
-            throw error;
-        }
+        // always try to execute the query even if it is not a parsing error. Might be less performant
+        // but more robust.
+        // if (!isParsingError && !isSyntaxError) {
+        //     throw error;
+        // }
 
         const data = await connectionsService.executeQuery(query);
         return {
