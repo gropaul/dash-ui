@@ -8,6 +8,8 @@ import {RelationSettings} from "@/components/relation/relation-settings";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {DropdownMenuCheckboxItem, DropdownMenuLabel} from "@/components/ui/dropdown-menu";
 import React from "react";
+import {TaskExecutionState} from "@/model/relation-state";
+import {RelationViewRunButton} from "@/components/relation/settings/relation-view-run-button";
 
 interface RelationToolbarProps {
     isVisible: boolean;
@@ -17,6 +19,9 @@ interface RelationToolbarProps {
     onViewChange: (view: RelationViewType) => void;
     onFullscreen: () => void;
     onToggleHeader?: () => void;
+    runState: TaskExecutionState;
+    onRun: () => void;
+    onStopRun: () => void;
 }
 
 export function RelationToolbar({
@@ -26,7 +31,10 @@ export function RelationToolbar({
                             viewProps,
                             onViewChange,
                             onFullscreen,
-                            onToggleHeader
+                            onToggleHeader,
+                            runState,
+                            onRun,
+                            onStopRun
                         }: RelationToolbarProps) {
 
 
@@ -42,7 +50,12 @@ export function RelationToolbar({
                     <Maximize/>
                 </Button>
                 <div className="w-[1px] h-10 bg-border"/>
-
+                <RelationViewRunButton
+                    onStopRun={onStopRun}
+                    onRun={onRun}
+                    runState={runState}
+                />
+                <div className="w-[1px] h-10 bg-border"/>
                 <div className="flex flex-row items-center justify-center  "></div>
                 <Toggle
                     className={'rounded-[0px] w-10 h-10 '}

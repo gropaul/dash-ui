@@ -118,13 +118,16 @@ export class DuckdbWasmProvider {
     public async getCurrentWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
         // If already initialized, just return the existing connection
         if (this.asyncDuckDBState === 'initialised' && this.con && this.db) {
+            console.log("Returning existing DuckDB-Wasm instance: ", this.con);
             return {db: this.db, con: this.con};
         }
-
         // If in the process of initializing, return that shared promise
         if (this.asyncDuckDBState === 'initialising' && this.initPromise) {
+            console.log("Returning pending DuckDB-Wasm initialization promise");
             return this.initPromise;
         }
+
+        console.log("No existing DuckDB-Wasm instance, starting initialization");
 
         // Otherwise, begin initializing
         this.asyncDuckDBState = 'initialising';
@@ -222,6 +225,7 @@ export class DuckdbWasmProvider {
 
         // Finally, create a connection
         const connection = await db.connect();
+        console.log("New connection to DuckDB-Wasm established: ID ", connection);
         // await db.registerOPFSFileName('opfs://attached.duckdb');
         // console.log('Registered OPFS file name');
         // // try to attach a second database

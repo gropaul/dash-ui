@@ -44,6 +44,7 @@ interface CacheState {
     cache: LRUList<string>;
     use: (item: string) => void;
     clear: () => void;
+    delete: (item: string) => void;
 }
 
 export const useCacheStore = createWithEqualityFn<CacheState>()(
@@ -53,6 +54,11 @@ export const useCacheStore = createWithEqualityFn<CacheState>()(
             use: (item) => {
                 const cache = get().cache;
                 cache.use(item);
+                set({cache});
+            },
+            delete: (item: string) => {
+                const cache = get().cache;
+                cache.delete(item);
                 set({cache});
             },
             clear: () => set({cache: new LRUList<string>(N_RELATIONS_DATA_TO_LOAD)}),
@@ -147,12 +153,16 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
 
         deleteData: async (relationId: string) => {
 
-            // throw an error if the relationId is not in the state
-            if (!get().data[relationId]) {
-                throw new Error(`Relation data with id ${relationId} does not exist in the state`);
-            }
+            const state = get();
+            console.log(`Deleting relation data for ${relationId}`);
 
-            await deleteCache(relationId);
+            // throw an error if the relationId is not in the state
+            try {
+                await deleteCache(relationId);
+            } catch (e) {
+                console.error(`Failed to delete cache for relation ${relationId}:`, e);
+            }
+            useCacheStore.getState().delete(relationId);
             set((state) => {
                 const newData = {...state.data};
                 delete newData[relationId];
@@ -203,10 +213,18 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
 
         loadLastUsed: async () => {
             const ids_to_hydrate = useCacheStore.getState().cache.getElements();
+            const keysLoadFailed = [];
             for (const relationId of ids_to_hydrate) {
                 if (!get().data[relationId]) {
-                    await get().updateDataFromCache(relationId);
+                    const data = await get().updateDataFromCache(relationId);
+                    if (!data) {
+                        keysLoadFailed.push(relationId);
+                    }
                 }
+            }
+            if (keysLoadFailed.length > 0) {
+                console.warn(`Failed to load data for relations with ids: ${keysLoadFailed.join(", ")}. Removing them from cache.`);
+                keysLoadFailed.forEach(get().deleteData);
             }
         }
     })

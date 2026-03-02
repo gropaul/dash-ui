@@ -167,6 +167,9 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     <RelationToolbar
                         isVisible={props.selected}
                         showCode={data.viewState.codeFenceState.show}
+                        runState={data.executionState}
+                        onRun={() => actions.updateRelationDataWithBaseQuery(data.query.baseQuery)}
+                        onStopRun={actions.cancelQuery}
                         onToggleCode={handleToggleCode}
                         viewProps={viewProps}
                         onViewChange={actions.setViewType}

@@ -44,13 +44,13 @@ export class DuckDBOverHttp implements DatabaseConnection {
         this.queue = new AsyncQueue<string, RelationData>((input) => this.executeQueryInternal(input));
     }
 
-    async abortQuery(): Promise<void> {
+    async abortQuery(): Promise<boolean> {
         this.queue.cancelAll(ERROR_MESSAGE_QUERY_ABORTED);
-        await this.sendCancel();
+        return await this.sendCancel();
 
     }
 
-    async sendCancel(): Promise<void> {
+    async sendCancel(): Promise<boolean> {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json'
         };
@@ -67,6 +67,7 @@ export class DuckDBOverHttp implements DatabaseConnection {
         }
 
         console.log("Cancel request sent to server");
+        return true;
 
     }
 

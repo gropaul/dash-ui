@@ -62,11 +62,15 @@ export class DuckDBWasm implements DatabaseConnection {
         return this.checkConnectionState();
     }
 
-    async abortQuery(): Promise<void> {
+    async abortQuery(): Promise<boolean> {
         console.log("Aborting query");
         this.queue.cancelAll(ERROR_MESSAGE_QUERY_ABORTED);
-        const {con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
-        await con.cancelSent()
+        console.log("Get current WASM instance and send cancel");
+        const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
+        console.log("Current WASM instance and send cancel", con);
+        const success = await con.cancelSent()
+        console.log("Cancel sent to DuckDB WASM, success: ", success);
+        return success;
     }
 
     async executeQuery(sql: string): Promise<RelationData> {
@@ -82,14 +86,21 @@ export class DuckDBWasm implements DatabaseConnection {
     }
 
     async executeQueryInternal(query: string): Promise<RelationData> {
+        console.log("Execute query: ", query);
         try {
             // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
             const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
             const query_escaped = escapeSQLForStringLiteral(query);
-            // console.log(query_escaped);
+            // todo: I think this is the reason why we can't abort the query, the better
+            // todo: way would be to split query_result_json into creating the view for the base query first
+            // todo: and then calling the query_result_json(FROM view) as this is the short running query that
+            // todo: does not have to be aborted
             const materialize_json_query = `FROM query_result_json('${query_escaped}')`;
-            const result = await con.send(materialize_json_query, false);
+            console.log("Sending query to DuckDB WASM: ", materialize_json_query);
+            const result = await con.send(materialize_json_query, true);
+            console.log("Received result from DuckDB WASM, reading all data...");
             const data = await result.readAll();
+            console.log("Data read from DuckDB WASM, parsing result...");
 
             // log the time taken to parse the result
             const startTime = performance.now();

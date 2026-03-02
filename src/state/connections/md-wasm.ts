@@ -55,7 +55,7 @@ export class MdWasm implements DatabaseConnection {
         return resultToRelationData(res);
     }
 
-    async abortQuery(): Promise<void> {
+    async abortQuery(): Promise<boolean> {
         throw new Error("Abort query is not supported for DuckDB Over HTTP");
     }
 

@@ -10,6 +10,19 @@ export class LRUList<T> {
         this.capacity = capacity;
     }
 
+    contains(item: T): boolean {
+        return this.items.includes(item);
+    }
+
+    delete(item: T) {
+        const idx = this.items.indexOf(item);
+        if (idx !== -1) {
+            this.items.splice(idx, 1);
+        } else {
+            throw new Error("Item not found in LRU list.");
+        }
+    }
+
     /** Add an element and mark it as most recently used */
     use(item: T): void {
         // Remove if already present

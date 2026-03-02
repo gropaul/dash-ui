@@ -20,7 +20,7 @@ function getMaterializedViewFromQuery(id: string, query: string, readonly: boole
     // remove the semicolon in the query if it exists (can be everywhere in the query)
     query = removeSemicolon(query);
 
-    return `CREATE OR REPLACE ${TEMP_TABLE} ${tableName} AS (${query});`;
+    return `CREATE OR REPLACE ${TEMP_TABLE} "${tableName}" AS (${query});`;
 }
 
 export async function loadCache(id: string): Promise<RelationData | undefined> {

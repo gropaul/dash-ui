@@ -62,7 +62,7 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
                 onCodeChange={onCodeChange}
                 onRun={runQueryIfNotRunning}
                 executionState={executionState}
-                showLayoutButton={!embedded}
+                showLayoutButton={false}
                 currentLayout={codeFenceState.layout}
                 onLayoutChange={(layout) => {
                     props.updateRelationViewState( {

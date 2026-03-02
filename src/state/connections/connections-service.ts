@@ -86,7 +86,7 @@ export class ConnectionsService {
         return await this.database_connection.executeQuery(query);
     }
 
-    async abortQuery(): Promise<void> {
+    async abortQuery(): Promise<boolean> {
         if (!this.database_connection) {
             throw new Error('No active database connection');
         }

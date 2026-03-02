@@ -1,3 +1,4 @@
+import {memo} from "react";
 import {Table} from "@/components/relation/table/table";
 import {Chart} from "@/components/relation/chart/chart";
 import {TextSelect} from "@/components/relation/text-input/text-select";
@@ -21,7 +22,7 @@ export interface RelationViewContentProps extends RelationViewProps {
     data: RelationData;
 }
 
-export function RelationViewContent(props: RelationViewProps) {
+export const RelationViewContent = memo(function RelationViewContent(props: RelationViewProps) {
 
     const selectedView = props.relationState.viewState.selectedView;
     const data = useRelationData(props.relationState);
@@ -69,4 +70,4 @@ export function RelationViewContent(props: RelationViewProps) {
             <div>Unknown view type: "{selectedView}"</div>
         );
     }
-}
+});

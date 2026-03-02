@@ -11,8 +11,10 @@ import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationViewAPIProps} from "@/components/relation/relation-view";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {toast} from "sonner";
 
-export type updateRelationFunction = (relation: RelationState) => void;
+export type UpdateRelationFunction = (relation: RelationState) => void;
 
 export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     // Updates the relation data based on new query parameters. If the baseQuery changes, it should be provided.
@@ -21,6 +23,8 @@ export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     // This will reset the query parameters to default and re-run the base query, which might have changed
     // between this and the last call
     updateRelationDataWithBaseQuery: (baseQuery: string) => Promise<void>,
+    // Cancels the currently running query, returns whether the cancellation was successful
+    cancelQuery: () => Promise<boolean>,
     // Deleting elements from an object does not work with partial updates, use updateRelation directly for that
     updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void,
 }
@@ -37,6 +41,9 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps): Adva
             return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager, baseQuery);
 
         },
+        cancelQuery: async () => {
+            return cancelQuery(relationState, updateRelation);
+        },
         updateRelationDataWithParams: async (query: ViewQueryParameters) => {
             return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager);
         },
@@ -46,7 +53,7 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps): Adva
     }
 }
 
-export async function updateRelationViewState(relation: RelationState, partialUpdate: DeepPartial<RelationViewState>, update: updateRelationFunction) {
+export async function updateRelationViewState(relation: RelationState, partialUpdate: DeepPartial<RelationViewState>, update: UpdateRelationFunction) {
     const currentViewState = deepClone(relation.viewState);
 
     // the display name may not be updated here, as it is managed outside of the view state
@@ -75,7 +82,7 @@ export async function updateRelationViewState(relation: RelationState, partialUp
 export async function updateAndExecuteRelation(
     relation: RelationState,
     viewQueryParameters: ViewQueryParameters,
-    update: updateRelationFunction,
+    update: UpdateRelationFunction,
     inputManager?: InputManager,
     // the base query is only provided when rerunning the query from the play button, not if e.g.
     // the view type changes
@@ -104,6 +111,31 @@ export async function updateAndExecuteRelation(
     }
 }
 
+
+export async function cancelQuery(relation: RelationState, update: UpdateRelationFunction) {
+    try {
+
+        const success = await ConnectionsService.getInstance().abortQuery();
+        if (relation.executionState.state === "running") {
+            if (success) {
+                const copy: RelationState = {
+                    ...relation,
+                    executionState: {
+                        ...relation.executionState,
+                        state: "error",
+                        error: {message: "Error: Query aborted by user"}
+                    }
+                };
+                update(copy);
+            } else {
+                toast.error("Error: Failed to abort query");
+            }
+        }
+        return success;
+    } catch (e) {
+        return false;
+    }
+}
 
 export interface EndUserRelationActions extends AdvancedRelationActions {
     // toggle show code

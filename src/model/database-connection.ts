@@ -61,7 +61,8 @@ export interface DatabaseConnection {
     updateConfig: (config: Partial<DataConnectionConfig>) => void;
 
     executeQuery: (query: string) => Promise<RelationData>;
-    abortQuery: () => Promise<void>;
+    // returns true if the query was successfully aborted, false otherwise (e.g. if there was no query to abort)
+    abortQuery: () => Promise<boolean>;
 
 
     mountFiles: (files: File[]) => Promise<void>;
