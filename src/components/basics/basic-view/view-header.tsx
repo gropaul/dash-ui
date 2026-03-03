@@ -3,39 +3,49 @@ import {TaskExecutionState} from "@/model/relation-state";
 import {RelationViewHeaderBorder} from "@/components/basics/basic-view/view-header-with-border";
 import {H5} from "@/components/ui/typography";
 import {ViewPathBreadcrumb} from "@/components/basics/basic-view/view-path-breadcrumb";
-import {EditableTextBase} from "@/components/basics/input/editable-text-base";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
+import {RelationViewRunButton} from "@/components/relation/settings/relation-view-run-button";
 
 export interface ViewHeaderProps {
     title: string;
     path: string[];
     onPathClick?: (element: string, index: number) => void;
 
-    subtitle?: string;
+    subtitle?: ReactNode;
     actionButtons?: ReactNode;
     state?: TaskExecutionState;
+    onRunClick?: () => void;
+    onCancelClick?: () => void;
 
     onTitleChange?: (newTitle: string) => void;
-    onSubtitleChange?: (newSubtitle: string) => void;
 }
 
 export function ViewHeader({
                                title,
                                path,
                                actionButtons,
-                               state = { state: "not-started" },
+                               state,
+                               onCancelClick,
+                               onRunClick,
                                subtitle,
                                onPathClick,
                                onTitleChange,
-                               onSubtitleChange,
                            }: ViewHeaderProps) {
 
     const isMobile = useIsMobile();
 
     return (
         <>
-            <div className="flex flex-row items-center justify-between w-full h-[48px] pl-4 pr-2">
-                <div className="flex flex-row items-center flex-1 gap-4 overflow-hidden pr-2">
+            <div className="flex flex-row items-center justify-between w-full h-[48px] pl-3 pr-2">
+                <div className="flex flex-row items-center flex-1 gap-2  overflow-hidden pr-2">
+                    {
+                        state && onCancelClick && onRunClick && <RelationViewRunButton
+                            className={'rounded-sm h-10 w-10'}
+                            onStopRun={onCancelClick}
+                            onRun={onRunClick}
+                            runState={state}
+                        />
+                    }
                     {/* Title (shrinks, ellipsizes) */}
                     <H5
                         className="text-primary overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0"
@@ -45,15 +55,15 @@ export function ViewHeader({
 
                     {/* Breadcrumb (also shrinks, ellipsizes) */}
                     {!isMobile && (
-                        <div className="overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0">
-                            <ViewPathBreadcrumb path={path} onClick={onPathClick} />
+                        <div className="pl-2 overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0">
+                            <ViewPathBreadcrumb path={path} onClick={onPathClick}/>
                         </div>
                     )}
 
                     {/* Subtitle (fixed width, always visible, never shrinks) */}
                     {subtitle && (
-                        <div className="whitespace-nowrap flex-shrink-0">
-                            <EditableTextBase text={subtitle} onTextChange={onSubtitleChange} />
+                        <div className="pl-2 whitespace-nowrap flex-shrink-0">
+                            {subtitle}
                         </div>
                     )}
                 </div>
@@ -63,7 +73,7 @@ export function ViewHeader({
                 </div>
             </div>
 
-            <RelationViewHeaderBorder state={state} />
+            <RelationViewHeaderBorder state={state ??  { state: "not-started" }}/>
         </>
     );
 }

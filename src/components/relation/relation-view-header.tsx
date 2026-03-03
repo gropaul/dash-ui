@@ -1,6 +1,6 @@
 import {ChartSpline, Code, Map, Menu, Sheet} from "lucide-react";
-import {formatDuration} from "@/platform/object-utils";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
+import {RelationExecutionInfo} from "@/components/relation/common/relation-execution-info";
 import {RelationViewType} from "@/model/relation-view-state";
 import {Toggle} from "@/components/ui/toggle"
 import {Separator} from "@/components/ui/separator";
@@ -26,6 +26,7 @@ import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/rel
 import {createAdvancedRelationActions} from "@/state/relations/functions";
 import {RelationSettings} from "@/components/relation/relation-settings";
 import {RelationViewTypeSwitcher} from "@/components/relation/settings/relation-view-type-switcher";
+import {RelationViewRunButton} from "@/components/relation/settings/relation-view-run-button";
 
 export interface RelationViewHeaderProps extends RelationViewAPIProps{
     children?: React.ReactNode;
@@ -79,19 +80,21 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         });
     }
 
-    const lastExecutionDuration = props.relationState.lastExecutionMetaData?.lastExecutionDuration;
-    const isMobile = useIsMobile();
-
-    let durationString = '';
-    if (lastExecutionDuration) {
-        if (isMobile) {
-            durationString = `in ${formatDuration(lastExecutionDuration)}`;
-        } else {
-            durationString += `(Took ${formatDuration(lastExecutionDuration)})`;
-        }
+    function onRun() {
+        props.updateRelationDataWithBaseQuery(props.relationState.query.baseQuery);
     }
 
+    const isMobile = useIsMobile();
+
     const path = getPathFromRelation(source, connectionId);
+
+    const subtitle = (
+        <RelationExecutionInfo
+            executionState={props.relationState.executionState}
+            lastExecutionMetaData={props.relationState.lastExecutionMetaData}
+            className="text-sm"
+        />
+    );
 
     const mapDisabled = true;
 
@@ -105,8 +108,10 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                 title={viewState.displayName}
                 path={path}
                 onPathClick={onPathClick}
-                subtitle={durationString}
+                subtitle={subtitle}
                 state={props.relationState.executionState}
+                onRunClick={onRun}
+                onCancelClick={props.cancelQuery}
                 actionButtons={
                     isMobile ?
                         <>
@@ -165,7 +170,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                         </>
                         :
                         <>
-
+                            <Separator orientation={'vertical'}/>
                             <Toggle
                                 onClick={onShowCode}
                                 pressed={codeFenceState.show}

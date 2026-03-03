@@ -41,6 +41,12 @@ export function RelationToolbar({
     return (
         <NodeToolbar isVisible={isVisible} position={Position.Top} align={'center'}>
             <div className="flex flex-row  bg-background border rounded-2xl shadow-sm px-1">
+                <RelationViewRunButton
+                    onStopRun={onStopRun}
+                    onRun={onRun}
+                    runState={runState}
+                />
+                <div className="w-[1px] h-10 bg-border"/>
                 <Button
                     className={'rounded-[0px] w-10 h-10 '}
                     variant={'ghost'}
@@ -49,12 +55,6 @@ export function RelationToolbar({
                 >
                     <Maximize/>
                 </Button>
-                <div className="w-[1px] h-10 bg-border"/>
-                <RelationViewRunButton
-                    onStopRun={onStopRun}
-                    onRun={onRun}
-                    runState={runState}
-                />
                 <div className="w-[1px] h-10 bg-border"/>
                 <div className="flex flex-row items-center justify-center  "></div>
                 <Toggle

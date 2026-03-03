@@ -4,6 +4,7 @@ import {cn} from "@/lib/utils";
 import {ConnectionHoverState} from "@/components/workflow/models";
 import {RelationNodeHeader} from "@/components/workflow/nodes/relation/relation-header";
 import {RelationViewType} from "@/model/relation-view-state";
+import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
 
 export interface NodeBodyProps {
     children?: ReactNode;
@@ -14,6 +15,8 @@ export interface NodeBodyProps {
     viewType: RelationViewType;
     displayName: string;
     onUpdateTitle?: (newTitle: string) => void;
+    executionState: TaskExecutionState;
+    lastExecutionMetaData?: QueryExecutionMetaData;
 }
 
 const INVALID_MESSAGES: Record<string, string> = {
@@ -96,6 +99,8 @@ export function RelationNodeBody(props: NodeBodyProps) {
                     {showHeader && (
                         <div className="flex-shrink-0">
                             <RelationNodeHeader
+                                executionState={props.executionState}
+                                lastExecutionMetaData={props.lastExecutionMetaData}
                                 viewType={viewType}
                                 displayName={displayName}
                                 onUpdateTitle={onUpdateTitle}

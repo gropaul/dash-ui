@@ -7,11 +7,15 @@ import {RelationViewType} from "@/model/relation-view-state";
 import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files/icon-factories";
 
 import {HEADER_HEIGHT} from "@/components/workflow/models";
+import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
+import {RelationExecutionInfo} from "@/components/relation/common/relation-execution-info";
 
 export interface RelationNodeHeaderProps {
     viewType: RelationViewType;
     displayName: string;
     onUpdateTitle?: (newTitle: string) => void;
+    executionState: TaskExecutionState;
+    lastExecutionMetaData?: QueryExecutionMetaData;
 }
 
 export function RelationNodeHeader(props: RelationNodeHeaderProps) {
@@ -56,31 +60,38 @@ export function RelationNodeHeader(props: RelationNodeHeaderProps) {
                 }}>
                     {defaultIconFactory(viewType)}
                 </div>
-                <div style={{display: 'flex', alignItems: 'center', gap: '4px', flex: 1, minWidth: 0}}>
-                    <span style={{
+                <div style={{display: 'flex', flexDirection: 'column', minWidth: 0}}>
+                    <span
+                        className={'leading-none pb-0.5'}
+                        style={{
                         fontWeight: 600,
                         textAlign: 'left',
-                        fontSize: '13px',
+                        fontSize: '15px',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
                     }}>
                         {displayName}
                     </span>
-                    {onUpdateTitle && (
-                        <Button
-                            className={'opacity-0 group-hover/title:opacity-100 transition-opacity h-7 w-7'}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenRename();
-                            }}
-                            variant={'ghost'}
-                            size={'icon'}
-                        >
-                            <Pencil size={12}/>
-                        </Button>
-                    )}
+                    <RelationExecutionInfo
+                        executionState={props.executionState}
+                        lastExecutionMetaData={props.lastExecutionMetaData}
+                        className="text-[11px]"
+                    />
                 </div>
+                {onUpdateTitle && (
+                    <Button
+                        className={'opacity-0 group-hover/title:opacity-100 transition-opacity h-7 w-7 flex-shrink-0'}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenRename();
+                        }}
+                        variant={'ghost'}
+                        size={'icon'}
+                    >
+                        <Pencil size={12}/>
+                    </Button>
+                )}
             </div>
             {onUpdateTitle && (
                 <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>

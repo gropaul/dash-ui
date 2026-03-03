@@ -108,6 +108,7 @@ export interface QueryExecutionMetaData {
     lastExecutionDuration: number; // in s
     lastResultCount: number;
     lastResultOffset?: number;
+    lastExecutedAt?: number; // timestamp in ms
 }
 
 
@@ -617,6 +618,7 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
             lastExecutionDuration: duration,
             lastResultCount: count,
             lastResultOffset: input.query.viewParameters.table.offset,
+            lastExecutedAt: Date.now(),
         },
         viewState: updateRelationViewState(input.viewState, viewData),
     }

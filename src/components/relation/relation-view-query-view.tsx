@@ -4,11 +4,12 @@ import {splitSQL} from "@/platform/sql-utils";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {AdvancedRelationActions} from "@/state/relations/functions";
 import {forwardRef} from "react";
+import {StaticDisplayProps} from "@/components/relation/relation-view";
 
 interface RelationViewQueryProps extends AdvancedRelationActions{
     relationState: RelationState,
+    statics: StaticDisplayProps,
     inputManager?: InputManager;
-    embedded?: boolean;
 }
 
 export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQueryProps>(function RelationViewQueryView(props, ref) {
@@ -42,7 +43,7 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
     const nQueries = splitSQL(queryString).length
     const runText = executionState.state == "running" ? "Running..." : `Run (${nQueries} Query${nQueries > 1 ? "s" : ""})`
 
-    const embedded = props.embedded ?? false;
+    const embedded = props.statics.embedded ?? false;
     return (
         <div ref={ref} className={"w-full h-full overflow-hidden"}>
             <SqlEditor
@@ -50,14 +51,14 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
                 inputManager={props.inputManager}
                 embedded={embedded}
                 alwaysConsumeMouseWheel={!embedded}
-                buttonPosition={'panel'}
+                panelMode={props.statics.sqlEditorPanelMode ?? "panel"}
                 showLineNumbers={true}
                 height={'100%'}
                 runText={runText}
                 language="sql"
                 displayCode={queryString}
                 showCopyButton={true}
-                showRunButton={true}
+                showRunButton={props.statics.sqlEditorShowRunButton ?? true}
                 readOnly={false}
                 onCodeChange={onCodeChange}
                 onRun={runQueryIfNotRunning}

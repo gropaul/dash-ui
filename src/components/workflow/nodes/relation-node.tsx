@@ -154,6 +154,8 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     showHeader={data.viewState.showHeader}
                     viewType={data.viewState.selectedView}
                     displayName={data.viewState.displayName}
+                    lastExecutionMetaData={data.lastExecutionMetaData}
+                    executionState={data.executionState}
                     onUpdateTitle={(newTitle) => {
                         setData(prev => ({
                             ...prev,
@@ -195,6 +197,8 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                             inputManager={manager}
                             embedded={false}
                             configDisplayMode={'dialog'}
+                            sqlEditorShowRunButton={false}
+                            sqlEditorPanelMode={'overlay'}
                             height={'fit'}
                             codeFenceRef={codeFenceRef}
                         />

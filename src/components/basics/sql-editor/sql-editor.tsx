@@ -17,7 +17,7 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 
 export type SupportedLanguages = "sql" | "plaintext";
 
-export type ButtonPosition = "panel" | "overlay";
+export type EditorPanelPosition = "panel" | "overlay";
 
 export interface SqlEditorProps {
     embedded: boolean;
@@ -28,7 +28,7 @@ export interface SqlEditorProps {
     path?: string;
     showLineNumbers?: boolean;
     showCopyButton?: boolean;
-    buttonPosition?: ButtonPosition;
+    panelMode?: EditorPanelPosition;
     alwaysConsumeMouseWheel?: boolean;
     inputManager?: InputManager;
 
@@ -58,7 +58,7 @@ export function SqlEditor(
         showLineNumbers = false,
         showCopyButton = false,
         showRunButton = false,
-        buttonPosition = "overlay",
+        panelMode = "overlay",
         runText = "Run",
         readOnly = false,
         height = "auto",
@@ -175,7 +175,7 @@ export function SqlEditor(
 
     return (
         <div className="flex flex-col h-full w-full relative">
-            {buttonPosition === "panel" && (
+            {panelMode === "panel" && (
                 <EditorButtonPanel
                     embedded={embedded}
                     showLayoutButton={showLayoutButton}
@@ -219,7 +219,7 @@ export function SqlEditor(
                 onChange={onLocalCodeChange}
                 onMount={onMount}
             />
-            {buttonPosition === "overlay" && (
+            {panelMode === "overlay" && (
                 <EditorButtonOverlay
                     embedded={embedded}
                     showCopyButton={showCopyButton}

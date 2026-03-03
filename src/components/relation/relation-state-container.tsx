@@ -47,10 +47,10 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                         {showQuery && (
                             <div className="flex-1 min-h-8">
                                 <RelationViewQueryView
+                                    statics={inputProps}
                                     ref={inputProps.codeFenceRef}
-                                    {...props}
-                                    embedded={props.embedded}
                                     inputManager={props.inputManager}
+                                    {...props}
                                 />
                             </div>
                         )}
@@ -62,13 +62,18 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                 );
             case 'full':
                 return (
-                    <ResizablePanelGroup className={'bg-inherit'} direction={layout == 'row' ? 'vertical' : 'horizontal'}>
+                    <ResizablePanelGroup className={'bg-inherit'}
+                                         direction={layout == 'row' ? 'vertical' : 'horizontal'}>
                         <ResizablePanel
                             className={cn(showQuery ? 'block' : 'hidden')}
                             defaultSize={codePercentage}
                             minSize={20}
                         >
-                            <RelationViewQueryView ref={inputProps.codeFenceRef} {...props} embedded={props.embedded}/>
+                            <RelationViewQueryView
+                                statics={inputProps}
+                                ref={inputProps.codeFenceRef}
+                                {...props}
+                            />
                         </ResizablePanel>
                         <ResizableHandle
                             className={cn(showQuery ? 'block' : 'hidden')}
@@ -99,9 +104,9 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                         resizableElements={['barBottom']}
                     >
                         <RelationViewQueryView
+                            statics={inputProps}
                             ref={inputProps.codeFenceRef}
                             {...props}
-                            embedded={props.embedded}
                             inputManager={props.inputManager}
                         />
                     </Sizable>
