@@ -25,7 +25,7 @@ export interface ParametersState {
 export function getInitialParametersState(): ParametersState {
     return {
         panelState: {
-            show: false,
+            show: true,
             sizePercentage: 30,
         },
         parameters: [],
