@@ -34,10 +34,13 @@ export const TableContent = React.memo(function TableContent(props: RelationView
         });
     }, [relationState.viewState.tableState, data.columns, columnViewIndices]);
 
-    // Calculate total table width: row number column (80px) + visible column widths
+    const showIndexColumn = relationState.viewState.tableState.showIndexColumn ?? true;
+
+    // Calculate total table width: row number column (80px if shown) + visible column widths
     const totalTableWidth = React.useMemo(() => {
-        return 80 + columnWidths.reduce((sum, w) => sum + w, 0);
-    }, [columnWidths]);
+        const indexColumnWidth = showIndexColumn ? 80 : 0;
+        return indexColumnWidth + columnWidths.reduce((sum, w) => sum + w, 0);
+    }, [columnWidths, showIndexColumn]);
 
     const styleMarginRight = embedded ? "mr-0" : "mr-32";
 
@@ -95,13 +98,15 @@ export const TableContent = React.memo(function TableContent(props: RelationView
                                 className={cn(fontMono.className, "bg-inherit hover:bg-muted border-b mb-0")}
                                 key={virtualRow.index}
                             >
-                                <td
-                                    className="sticky py-1 top-0 left-0 z-[2] w-20 bg-inherit text-muted-foreground text-left"
-                                >
-                                    <div className={'absolute py-1 top-0 left-0 w-full pl-4 border-r pointer-events-none text-left '}>
-                                        {offset + virtualRow.index + 1}
-                                    </div>
-                                </td>
+                                {showIndexColumn && (
+                                    <td
+                                        className="sticky py-1 top-0 left-0 z-[2] w-20 bg-inherit text-muted-foreground text-left"
+                                    >
+                                        <div className={'absolute py-1 top-0 left-0 w-full pl-4 border-r pointer-events-none text-left '}>
+                                            {offset + virtualRow.index + 1}
+                                        </div>
+                                    </td>
+                                )}
                                 {columnViewIndices.map((colIndex, i) => (
                                     <TableValueCell
                                         key={colIndex}

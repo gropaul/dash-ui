@@ -60,38 +60,47 @@ export function RelationNodeHeader(props: RelationNodeHeaderProps) {
                 }}>
                     {defaultIconFactory(viewType)}
                 </div>
-                <div style={{display: 'flex', flexDirection: 'column', minWidth: 0}}>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    minWidth: 0,
+                    gap: '6px',
+                    alignItems: 'center',
+                    flex: 1
+                }}>
                     <span
                         className={'leading-none pb-0.5'}
                         style={{
-                        fontWeight: 600,
-                        textAlign: 'left',
-                        fontSize: '15px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                    }}>
+                            fontWeight: 600,
+                            textAlign: 'left',
+                            fontSize: '16px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>
                         {displayName}
                     </span>
+
                     <RelationExecutionInfo
                         executionState={props.executionState}
                         lastExecutionMetaData={props.lastExecutionMetaData}
-                        className="text-[11px]"
+                        className="text-[12px]"
                     />
+                    {onUpdateTitle && (
+                        <Button
+                            className={'opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0'}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenRename();
+                            }}
+                            variant={'ghost'}
+                            size={'icon'}
+                        >
+                            <Pencil size={12}/>
+                        </Button>
+                    )}
                 </div>
-                {onUpdateTitle && (
-                    <Button
-                        className={'opacity-0 group-hover/title:opacity-100 transition-opacity h-7 w-7 flex-shrink-0'}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenRename();
-                        }}
-                        variant={'ghost'}
-                        size={'icon'}
-                    >
-                        <Pencil size={12}/>
-                    </Button>
-                )}
+
             </div>
             {onUpdateTitle && (
                 <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>

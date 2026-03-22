@@ -83,7 +83,10 @@ export function Table(props: RelationViewContentProps) {
 
     // will the whole height of the screen when not embedded, todo: maybe make max height configurable
     const wrapperClasses = props.height === 'resizable' ? 'h-fit max-h-96' : 'h-full';
-    const contentClasses = props.height === 'resizable' ? 'overflow-y-auto' : 'flex-1 overflow-y-auto ';
+    const scrollbarHoverClasses = '[&::-webkit-scrollbar-thumb]:bg-transparent hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/50 [scrollbar-color:transparent_transparent] hover:[scrollbar-color:hsl(var(--muted-foreground)/0.5)_transparent]';
+    const contentClasses = props.height === 'resizable'
+        ? `overflow-y-auto ${scrollbarHoverClasses}`
+        : `flex-1 overflow-y-auto ${scrollbarHoverClasses}`;
 
     return (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>

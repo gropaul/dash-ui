@@ -15,6 +15,7 @@ export interface TableViewState {
     columnsHidden: string[];
 
     showStats?: boolean;
+    showIndexColumn?: boolean;
 }
 
 export const INITIAL_COLUMN_VIEW_STATE: ColumnViewState = {
@@ -28,6 +29,7 @@ export function getInitialTableDisplayStateEmpty(): TableViewState {
         columnsHidden: [],
         columnStates: {},
         showStats: false,
+        showIndexColumn: true,
     };
 }
 
@@ -78,6 +80,7 @@ export function getInitialTableDisplayState(relationData: RelationData): TableVi
         columnsOrder: columnOrder,
         columnsHidden: [],
         columnStates: columnStates,
+        showIndexColumn: true,
     };
 }
 

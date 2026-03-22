@@ -5,7 +5,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import {ChevronRight, Columns3, RotateCcw} from "lucide-react";
+import {ChevronRight, Columns3, Hash, RotateCcw} from "lucide-react";
 import {ContentSelectColumns} from "@/components/relation/table/table-column/content-select-columns";
 import {getInitialTableDisplayStateEmpty} from "@/model/relation-view-state/table";
 import {getInitialTableQueryParameters} from "@/model/relation-state";
@@ -27,10 +27,20 @@ export function TableSettingsContent(props: RelationSettingsProps) {
         });
     }
 
+    function onShowIndexColumnChange() {
+        props.updateRelationViewState({
+            tableState: {
+                ...props.relationState.viewState.tableState,
+                showIndexColumn: !(tableState.showIndexColumn ?? true)
+            }
+        });
+    }
+
     async function resetTableViewState() {
         const relationCopy = {...props.relationState};
         relationCopy.viewState.tableState = getInitialTableDisplayStateEmpty();
         relationCopy.viewState.tableState.showStats = props.relationState.viewState.tableState.showStats;
+        relationCopy.viewState.tableState.showIndexColumn = props.relationState.viewState.tableState.showIndexColumn;
         props.updateRelation(relationCopy);
 
         await props.updateRelationDataWithParams({
@@ -51,6 +61,11 @@ export function TableSettingsContent(props: RelationSettingsProps) {
         {/*        {tableState.showStats ? "Hide" : "Show"} Statistics*/}
         {/*    </span>*/}
         {/*</DropdownMenuItem>*/}
+
+        <DropdownMenuItem onClick={onShowIndexColumnChange}>
+            <Hash/>
+            {(tableState.showIndexColumn ?? true) ? "Hide" : "Show"} Row Index
+        </DropdownMenuItem>
 
         {columns ? (
                 <ContentSelectColumns {...props} columnNames={columns.map(col => col.name)}>

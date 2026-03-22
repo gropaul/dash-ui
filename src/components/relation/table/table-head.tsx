@@ -11,6 +11,7 @@ export function TableHead(props: RelationViewTableContentProps) {
     const [columnMenuOpen, setColumnMenuOpen] = React.useState(false);
     const [columnMenuPosition, setColumnMenuPosition] = React.useState({x: 0, y: 0});
     const relationStats = useRelationDataState(state => state.getStats(props.relationState.id));
+    const showIndexColumn = props.relationState.viewState.tableState.showIndexColumn ?? true;
 
     function handleColumnMenuClick(column: Column, event: React.MouseEvent) {
         setSelectedColumn(column);
@@ -23,15 +24,15 @@ export function TableHead(props: RelationViewTableContentProps) {
             <thead className="border-0 text-s text-primary bg-inherit sticky top-0 z-[3]">
             <tr className="bg-inherit">
                 {/* Row index / settings column header */}
-                <th
-                    scope="col"
-                    className="p-0 m-0 h-fit sticky left-0 z-20 bg-inherit w-20"
-                >
-
-                    <div className={'absolute top-0 h-full w-full border-b border-r pointer-events-none'}>
-
-                    </div>
-                </th>
+                {showIndexColumn && (
+                    <th
+                        scope="col"
+                        className="p-0 m-0 h-fit sticky left-0 z-20 bg-inherit w-20"
+                    >
+                        <div className={'absolute top-0 h-full w-full border-b border-r pointer-events-none'}>
+                        </div>
+                    </th>
+                )}
 
                 {/* Column headers */}
                 {props.columnViewIndices.map((index) => (
