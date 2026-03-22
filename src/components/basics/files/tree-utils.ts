@@ -111,6 +111,22 @@ export function IterateAll(trees: TreeNode[], callback: (node: TreeNode, id_path
     trees.forEach((node) => iterate(node, [node.id]));
 }
 
+/**
+ * Find the path to a node by its ID (searching the entire tree).
+ * Returns the path array if found, or undefined if not found.
+ */
+export function findPathById(trees: TreeNode[], nodeId: string): string[] | undefined {
+    let foundPath: string[] | undefined;
+
+    IterateAll(trees, (node, id_path) => {
+        if (node.id === nodeId && !foundPath) {
+            foundPath = id_path;
+        }
+    });
+
+    return foundPath;
+}
+
 
 export function findNodeParentInTrees(trees: TreeNode[], id_path: string[]): TreeNode | undefined {
     if (id_path.length === 0) {

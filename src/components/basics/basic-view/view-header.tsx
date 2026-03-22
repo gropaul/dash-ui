@@ -8,6 +8,7 @@ import {RelationViewRunButton} from "@/components/relation/settings/relation-vie
 
 export interface ViewHeaderProps {
     title: string;
+    titleComponent?: ReactNode;
     path: string[];
     onPathClick?: (element: string, index: number) => void;
 
@@ -22,6 +23,7 @@ export interface ViewHeaderProps {
 
 export function ViewHeader({
                                title,
+                               titleComponent,
                                path,
                                actionButtons,
                                state,
@@ -47,18 +49,22 @@ export function ViewHeader({
                         />
                     }
                     {/* Title (shrinks, ellipsizes) */}
-                    <H5
-                        className="text-primary overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0"
-                    >
-                        {title}
-                    </H5>
-
-                    {/* Breadcrumb (also shrinks, ellipsizes) */}
-                    {!isMobile && (
-                        <div className="pl-2 overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0">
-                            <ViewPathBreadcrumb path={path} onClick={onPathClick}/>
-                        </div>
+                    {titleComponent ? (
+                        titleComponent
+                    ) : (
+                        <H5
+                            className="text-primary overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0"
+                        >
+                            {title}
+                        </H5>
                     )}
+
+                    {/*/!* Breadcrumb (also shrinks, ellipsizes) *!/*/}
+                    {/*{!isMobile && (*/}
+                    {/*    <div className="pl-2 overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0">*/}
+                    {/*        <ViewPathBreadcrumb path={path} onClick={onPathClick}/>*/}
+                    {/*    </div>*/}
+                    {/*)}*/}
 
                     {/* Subtitle (fixed width, always visible, never shrinks) */}
                     {subtitle && (

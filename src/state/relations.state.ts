@@ -19,6 +19,7 @@ import {
     applyTreeActions,
     copyAndApplyTreeActions,
     findNodeInTrees,
+    findPathById,
     IterateAll,
     removeNode,
     TreeAction,
@@ -271,16 +272,28 @@ export const useRelationsState = createWithEqualityFn(
                     const newEntity = SetEntityDisplayName(entityId, entityType, displayName, get());
                     useGUIState.getState().renameTab(entityId, displayName);
 
-                    const node = findNodeInTrees(get().editorElements, path);
-                    const actions = RenameNodeActions(path, displayName, node!);
-                    const newEditorElements = copyAndApplyTreeActions(get().editorElements, actions);
-                    set((state) => ({
-                        [entityType]: {
-                            ...state[entityType],
-                            [entityId]: newEntity,
-                        },
-                        editorElements: newEditorElements,
-                    }));
+                    // If path is empty, find the path by entity ID
+                    const effectivePath = path.length > 0 ? path : findPathById(get().editorElements, entityId);
+                    if (effectivePath) {
+                        const node = findNodeInTrees(get().editorElements, effectivePath);
+                        const actions = RenameNodeActions(effectivePath, displayName, node!);
+                        const newEditorElements = copyAndApplyTreeActions(get().editorElements, actions);
+                        set((state) => ({
+                            [entityType]: {
+                                ...state[entityType],
+                                [entityId]: newEntity,
+                            },
+                            editorElements: newEditorElements,
+                        }));
+                    } else {
+                        // No path found, just update the entity without editor elements
+                        set((state) => ({
+                            [entityType]: {
+                                ...state[entityType],
+                                [entityId]: newEntity,
+                            },
+                        }));
+                    }
                 },
 
                 showEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, editorPath: string[] = []) {

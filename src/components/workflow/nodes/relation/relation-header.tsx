@@ -1,135 +1,57 @@
-import {useState} from "react";
-import {Pencil} from "lucide-react";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button";
 import {RelationViewType} from "@/model/relation-view-state";
 import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files/icon-factories";
 
 import {HEADER_HEIGHT} from "@/components/workflow/models";
 import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
-import {RelationExecutionInfo} from "@/components/relation/common/relation-execution-info";
+import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
 
 export interface RelationNodeHeaderProps {
     viewType: RelationViewType;
     displayName: string;
+    sql: string;
     onUpdateTitle?: (newTitle: string) => void;
     executionState: TaskExecutionState;
     lastExecutionMetaData?: QueryExecutionMetaData;
 }
 
 export function RelationNodeHeader(props: RelationNodeHeaderProps) {
-    const {viewType, displayName, onUpdateTitle} = props;
+    const {viewType, displayName, sql, onUpdateTitle} = props;
     const viewTypeColor = defaultColorFactory(viewType);
 
-    const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-    const [renameValue, setRenameValue] = useState('');
-
-    const handleOpenRename = () => {
-        setRenameValue(displayName || '');
-        setIsRenameDialogOpen(true);
-    };
-
-    const handleSaveRename = () => {
-        onUpdateTitle?.(renameValue);
-        setIsRenameDialogOpen(false);
-    };
-
     return (
-        <>
-            <div
-                className="group/title border-b"
-                style={{
-                    padding: '8px 8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    height: `${HEADER_HEIGHT}px`,
-                }}
-            >
-                <div style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '14px',
-                    background: viewTypeColor.background,
-                    color: viewTypeColor.foreground
-                }}>
-                    {defaultIconFactory(viewType)}
-                </div>
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    minWidth: 0,
-                    gap: '6px',
-                    alignItems: 'center',
-                    flex: 1
-                }}>
-                    <span
-                        className={'leading-none pb-0.5'}
-                        style={{
-                            fontWeight: 600,
-                            textAlign: 'left',
-                            fontSize: '16px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                        }}>
-                        {displayName}
-                    </span>
-
-                    <RelationExecutionInfo
-                        executionState={props.executionState}
-                        lastExecutionMetaData={props.lastExecutionMetaData}
-                        className="text-[12px]"
-                    />
-                    {onUpdateTitle && (
-                        <Button
-                            className={'opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0'}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenRename();
-                            }}
-                            variant={'ghost'}
-                            size={'icon'}
-                        >
-                            <Pencil size={12}/>
-                        </Button>
-                    )}
-                </div>
-
+        <div
+            className="border-b"
+            style={{
+                padding: '8px 8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                height: `${HEADER_HEIGHT}px`,
+            }}
+        >
+            <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                background: viewTypeColor.background,
+                color: viewTypeColor.foreground
+            }}>
+                {defaultIconFactory(viewType)}
             </div>
-            {onUpdateTitle && (
-                <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
-                    <DialogContent className="sm:max-w-[400px]" onClick={(e) => e.stopPropagation()}>
-                        <DialogHeader>
-                            <DialogTitle>Rename</DialogTitle>
-                        </DialogHeader>
-                        <Input
-                            value={renameValue}
-                            onChange={(e) => setRenameValue(e.target.value)}
-                            placeholder="Enter name"
-                            autoFocus
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSaveRename();
-                                }
-                            }}
-                        />
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button onClick={handleSaveRename}>
-                                Save
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
-        </>
+            <div className="flex flex-row min-w-0 gap-1.5 items-center flex-1">
+                <RelationTitleWithActions
+                    displayName={displayName}
+                    sql={sql}
+                    onUpdateTitle={onUpdateTitle}
+                    executionState={props.executionState}
+                    lastExecutionMetaData={props.lastExecutionMetaData}
+                    executionInfoClassName="text-[12px]"
+                />
+            </div>
+        </div>
     );
 }

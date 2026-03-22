@@ -154,6 +154,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     showHeader={data.viewState.showHeader}
                     viewType={data.viewState.selectedView}
                     displayName={data.viewState.displayName}
+                    sql={data.query.baseQuery}
                     lastExecutionMetaData={data.lastExecutionMetaData}
                     executionState={data.executionState}
                     onUpdateTitle={(newTitle) => {

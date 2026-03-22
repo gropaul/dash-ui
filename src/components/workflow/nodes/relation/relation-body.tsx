@@ -14,6 +14,7 @@ export interface NodeBodyProps {
     showHeader?: boolean;
     viewType: RelationViewType;
     displayName: string;
+    sql: string;
     onUpdateTitle?: (newTitle: string) => void;
     executionState: TaskExecutionState;
     lastExecutionMetaData?: QueryExecutionMetaData;
@@ -35,7 +36,7 @@ const shakeKeyframes = `
 `;
 
 export function RelationNodeBody(props: NodeBodyProps) {
-    const {children, connectionHover, showHeader = true, viewType, displayName, onUpdateTitle} = props;
+    const {children, connectionHover, showHeader = true, viewType, displayName, sql, onUpdateTitle} = props;
 
     const isConnectionHovered = !!connectionHover;
     const isValidConnection = connectionHover?.isValid ?? true;
@@ -103,6 +104,7 @@ export function RelationNodeBody(props: NodeBodyProps) {
                                 lastExecutionMetaData={props.lastExecutionMetaData}
                                 viewType={viewType}
                                 displayName={displayName}
+                                sql={sql}
                                 onUpdateTitle={onUpdateTitle}
                             />
                         </div>
