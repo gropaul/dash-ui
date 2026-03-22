@@ -2,6 +2,7 @@ import { TABLE_MACRO_PREFIX } from "@/platform/global-data";
 import { ConnectionsService } from "@/state/connections/connections-service";
 import { onRelationAction, RelationAction } from "./relation-actions";
 import { StateStorageInfoLoaded } from "@/model/database-connection";
+import { ParameterDefinition } from "@/model/relation-view-state/parameters";
 
 /**
  * Check if the database is in read-only mode.
@@ -63,37 +64,74 @@ function escapeSqlString(sql: string): string {
 }
 
 /**
+ * Format a default value for use in macro parameter definition.
+ * Strings/dates are wrapped in single quotes, other types are not.
+ */
+function formatDefaultValue(param: ParameterDefinition): string {
+    const value = param.defaultValue ?? '';
+    if (param.type === 'string' || param.type === 'date') {
+        return `'${escapeSqlString(value)}'`;
+    }
+    return value;
+}
+
+/**
  * Generate CREATE MACRO SQL statement.
  *
  * For queries without parameters:
  *   CREATE OR REPLACE MACRO node_x() AS TABLE (FROM query_result('...'))
  *
  * For queries with parameters ({{param}}):
- *   CREATE OR REPLACE MACRO node_x(p1, p2) AS TABLE (FROM query_result(format('...', p1, p2)))
+ *   CREATE OR REPLACE MACRO node_x(p1, p2 := 'default') AS TABLE (FROM query_result(replace(...)))
+ *
+ * Uses chained replace() instead of format() to handle parameters that appear multiple times.
+ * Supports default parameter values from ParameterDefinition.
  *
  * @param temporary - If true, creates a TEMP macro (for read-only databases)
+ * @param paramDefs - Optional parameter definitions with default values
  */
-export function generateCreateMacroSQL(relationName: string, baseQuery: string, temporary: boolean = false): string {
+export function generateCreateMacroSQL(
+    relationName: string,
+    baseQuery: string,
+    temporary: boolean = false,
+    paramDefs?: ParameterDefinition[]
+): string {
     const macroName = getMacroName(relationName);
-    const parameters = extractParameters(baseQuery);
+    const paramNames = extractParameters(baseQuery);
     const createKeyword = temporary ? 'CREATE OR REPLACE TEMP MACRO' : 'CREATE OR REPLACE MACRO';
 
-    if (parameters.length === 0) {
+    if (paramNames.length === 0) {
         // No parameters - simple case
         const escapedQuery = escapeSqlString(baseQuery);
         return `${createKeyword} ${macroName}() AS TABLE (FROM query_result('${escapedQuery}'))`;
     } else {
-        // Has parameters - use format() function
-        // Replace {{param}} with {} for format() placeholders
-        let formatTemplate = baseQuery;
-        for (const param of parameters) {
-            formatTemplate = formatTemplate.replace(new RegExp(`\\{\\{${param}\\}\\}`, 'g'), '{}');
+        // Build parameter definitions map for quick lookup
+        const paramDefMap = new Map<string, ParameterDefinition>();
+        for (const p of paramDefs ?? []) {
+            paramDefMap.set(p.name, p);
         }
 
-        const escapedTemplate = escapeSqlString(formatTemplate);
-        const paramList = parameters.join(', ');
+        // Build parameter list with defaults: (p1, p2 := 'default')
+        const paramListParts = paramNames.map(name => {
+            const def = paramDefMap.get(name);
+            if (def?.defaultValue) {
+                return `${name} := ${formatDefaultValue(def)}`;
+            }
+            return name;
+        });
+        const paramList = paramListParts.join(', ');
 
-        return `${createKeyword} ${macroName}(${paramList}) AS TABLE (FROM query_result(format('${escapedTemplate}', ${paramList})))`;
+        // Has parameters - use chained replace() to handle multiple occurrences
+        const escapedTemplate = escapeSqlString(baseQuery);
+
+        // Build nested replace() calls: replace(replace(template, '{{p1}}', p1::VARCHAR), '{{p2}}', p2::VARCHAR)
+        let replaceExpr = `'${escapedTemplate}'`;
+        for (const param of paramNames) {
+            const escapedPlaceholder = `{{${param}}}`;
+            replaceExpr = `replace(${replaceExpr}, '${escapedPlaceholder}', ${param}::VARCHAR)`;
+        }
+
+        return `${createKeyword} ${macroName}(${paramList}) AS TABLE (FROM query_result(${replaceExpr}))`;
     }
 }
 
@@ -110,9 +148,13 @@ export function generateDropMacroSQL(relationName: string): string {
  * Uses TEMP macro if database is read-only.
  * Fails silently - macro registration is a convenience feature.
  */
-export async function registerRelationMacro(relationName: string, baseQuery: string): Promise<void> {
+export async function registerRelationMacro(
+    relationName: string,
+    baseQuery: string,
+    paramDefs?: ParameterDefinition[]
+): Promise<void> {
     const isReadonly = isDatabaseReadonly();
-    const sql = generateCreateMacroSQL(relationName, baseQuery, isReadonly);
+    const sql = generateCreateMacroSQL(relationName, baseQuery, isReadonly, paramDefs);
 
     try {
         await ConnectionsService.getInstance().executeQuery(sql);
@@ -142,15 +184,20 @@ export async function dropRelationMacro(relationName: string): Promise<void> {
 function handleRelationAction(action: RelationAction): void {
     switch (action.type) {
         case 'CREATE':
+            registerRelationMacro(action.relationName, action.sql, action.parameters);
+            break;
         case 'UPDATE_SQL':
-            registerRelationMacro(action.relationName, action.sql);
+            registerRelationMacro(action.relationName, action.sql, action.parameters);
+            break;
+        case 'UPDATE_PARAMS':
+            registerRelationMacro(action.relationName, action.sql, action.parameters);
             break;
         case 'DELETE':
             dropRelationMacro(action.relationName);
             break;
         case 'RENAME':
             dropRelationMacro(action.oldName);
-            registerRelationMacro(action.relationName, action.sql);
+            registerRelationMacro(action.relationName, action.sql, action.parameters);
             break;
     }
 }

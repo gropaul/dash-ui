@@ -8,13 +8,29 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { CodeFence } from "@/components/basics/code-fence/code-fence";
+import { ParameterDefinition } from "@/model/relation-view-state/parameters";
 
 export interface MacroCopyButtonProps {
     relationName: string;
     sql: string;
+    parameters?: ParameterDefinition[];
     className?: string;
     size?: "default" | "sm" | "lg" | "icon";
     variant?: "default" | "ghost" | "outline";
+}
+
+/**
+ * Format a parameter value for SQL based on its type.
+ * Strings are wrapped in single quotes, other types are not.
+ */
+function formatParamValue(param: ParameterDefinition): string {
+    const value = param.defaultValue ?? `<${param.name}>`;
+
+    if (param.type === 'string' || param.type === 'date') {
+        return `'${value}'`;
+    }
+
+    return value;
 }
 
 /**
@@ -34,31 +50,57 @@ export function getMacroSignature(relationName: string, sql: string): string {
 /**
  * Generate example usage SQL for the macro.
  */
-export function getMacroUsageExample(relationName: string, sql: string): string {
+export function getMacroUsageExample(relationName: string, sql: string, paramDefs?: ParameterDefinition[]): string {
     const macroName = getMacroName(relationName);
-    const parameters = extractParameters(sql);
+    const paramNames = extractParameters(sql);
 
-    if (parameters.length === 0) {
+    if (paramNames.length === 0) {
         return `${macroName}()`;
-    } else {
-        const paramPlaceholders = parameters.map(p => `${p} := '<${p}>'`).join(', ');
-        return `${macroName}(${paramPlaceholders})`;
     }
+
+    // Create a map of parameter definitions for quick lookup
+    const paramDefMap = new Map<string, ParameterDefinition>();
+    for (const p of paramDefs ?? []) {
+        paramDefMap.set(p.name, p);
+    }
+
+    const paramPlaceholders = paramNames.map(name => {
+        const def = paramDefMap.get(name);
+        if (def) {
+            return `${name} := ${formatParamValue(def)}`;
+        }
+        return `${name} := '<${name}>'`;
+    }).join(', ');
+
+    return `${macroName}(${paramPlaceholders})`;
 }
 
 /**
  * Generate Python example usage for the macro.
  */
-export function getMacroPythonExample(relationName: string, sql: string): string {
+export function getMacroPythonExample(relationName: string, sql: string, paramDefs?: ParameterDefinition[]): string {
     const macroName = getMacroName(relationName);
-    const parameters = extractParameters(sql);
+    const paramNames = extractParameters(sql);
 
-    if (parameters.length === 0) {
+    if (paramNames.length === 0) {
         return `duckdb.sql("FROM ${macroName}()")`;
-    } else {
-        const paramPlaceholders = parameters.map(p => `${p} := '<${p}>'`).join(', ');
-        return `duckdb.sql(f"FROM ${macroName}(${paramPlaceholders})")`;
     }
+
+    // Create a map of parameter definitions for quick lookup
+    const paramDefMap = new Map<string, ParameterDefinition>();
+    for (const p of paramDefs ?? []) {
+        paramDefMap.set(p.name, p);
+    }
+
+    const paramPlaceholders = paramNames.map(name => {
+        const def = paramDefMap.get(name);
+        if (def) {
+            return `${name} := ${formatParamValue(def)}`;
+        }
+        return `${name} := '<${name}>'`;
+    }).join(', ');
+
+    return `duckdb.sql(f"FROM ${macroName}(${paramPlaceholders})")`;
 }
 
 /**
@@ -68,6 +110,7 @@ export function getMacroPythonExample(relationName: string, sql: string): string
 export function MacroCopyButton({
     relationName,
     sql,
+    parameters: paramDefs,
     className,
     size = "icon",
     variant = "ghost"
@@ -75,9 +118,9 @@ export function MacroCopyButton({
     const [copied, setCopied] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
 
-    const usageExample = getMacroUsageExample(relationName, sql);
-    const pythonExample = getMacroPythonExample(relationName, sql);
-    const parameters = extractParameters(sql);
+    const usageExample = getMacroUsageExample(relationName, sql, paramDefs);
+    const pythonExample = getMacroPythonExample(relationName, sql, paramDefs);
+    const paramNames = extractParameters(sql);
 
     async function handleCopy() {
         try {
@@ -137,10 +180,10 @@ export function MacroCopyButton({
                             showCopyButton={true}
                         />
                     </div>
-                    {parameters.length > 0 && (
+                    {paramNames.length > 0 && (
                         <p className="text-xs text-muted-foreground">
                             <span className="font-medium">Parameters: </span>
-                            {parameters.join(', ')}
+                            {paramNames.join(', ')}
                         </p>
                     )}
                 </div>

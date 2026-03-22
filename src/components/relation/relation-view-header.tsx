@@ -1,4 +1,4 @@
-import {ChartSpline, Code, Map, Menu, Sheet} from "lucide-react";
+import {Braces, ChartSpline, Code, Map, Menu, Sheet} from "lucide-react";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {RelationViewType} from "@/model/relation-view-state";
 import {Toggle} from "@/components/ui/toggle"
@@ -62,10 +62,22 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
     }
 
     const codeFenceState = viewState.codeFenceState;
+    const parametersState = viewState.parametersState ?? { panelState: { show: false, sizePercentage: 30 }, parameters: [] };
+
     function onShowCode() {
         advancedActions.updateRelationViewState( {
             codeFenceState: {
                 show: !codeFenceState.show,
+            }
+        });
+    }
+
+    function onToggleParameters() {
+        advancedActions.updateRelationViewState({
+            parametersState: {
+                panelState: {
+                    show: !parametersState.panelState.show,
+                }
             }
         });
     }
@@ -91,7 +103,8 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
 
     const mapDisabled = true;
 
-    const queryToggleText = codeFenceState.show ? 'Hide Query' : 'Show Query'
+    const queryToggleText = codeFenceState.show ? 'Hide Query' : 'Show Query';
+    const parametersToggleText = parametersState.panelState.show ? 'Hide Parameters' : 'Show Parameters';
 
     const [filepathDialogState, setFilepathDialogState] = useState<FilepathDialogState>({open: false, fileFormat: 'csv', relationId: relationId});
 
@@ -105,6 +118,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         <RelationTitleWithActions
             displayName={viewState.displayName}
             sql={props.relationState.query.baseQuery}
+            parameters={parametersState.parameters}
             onUpdateTitle={handleUpdateTitle}
             executionState={props.relationState.executionState}
             lastExecutionMetaData={props.relationState.lastExecutionMetaData}
@@ -150,6 +164,12 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     >
                                         <span>{queryToggleText}</span>
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={onToggleParameters}
+                                        title={parametersToggleText}
+                                    >
+                                        <span>{parametersToggleText}</span>
+                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
 
                                     <DropdownMenuItem>Show as</DropdownMenuItem>
@@ -187,6 +207,13 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                 title={queryToggleText}
                             >
                                 <Code className="h-4 w-4"/>
+                            </Toggle>
+                            <Toggle
+                                onClick={onToggleParameters}
+                                pressed={parametersState.panelState.show}
+                                title={parametersToggleText}
+                            >
+                                <Braces className="h-4 w-4"/>
                             </Toggle>
                             <Separator orientation={'vertical'}/>
                             <RelationViewTypeSwitcher

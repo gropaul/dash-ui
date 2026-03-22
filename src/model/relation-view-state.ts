@@ -16,6 +16,10 @@ import {
     getInitialSelectViewStateEmpty,
     InputTextViewState
 } from "@/model/relation-view-state/select";
+import {
+    getInitialParametersState,
+    ParametersState
+} from "@/model/relation-view-state/parameters";
 
 //
 
@@ -47,6 +51,7 @@ export interface RelationViewState extends RelationViewBaseState {
     tableState: TableViewState
     chartState: ChartViewState
     inputTextState: InputTextViewState
+    parametersState: ParametersState
     schema: Column[];
 }
 
@@ -102,6 +107,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
             chartState: getInitialChartViewStateEmpty(),
             tableState: getInitialTableDisplayStateEmpty(),
             inputTextState: getInitialSelectViewStateEmpty(),
+            parametersState: getInitialParametersState(),
             schema: [],
         };
     }
@@ -111,6 +117,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
         chartState: getInitialChartViewState(data),
         tableState: getInitialTableDisplayState(data),
         inputTextState: getInitialSelectViewState(data),
+        parametersState: getInitialParametersState(),
         schema: schemaColumns ?? data.columns,
     };
 }

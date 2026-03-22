@@ -5,6 +5,7 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {AdvancedRelationActions} from "@/state/relations/functions";
 import {forwardRef} from "react";
 import {StaticDisplayProps} from "@/components/relation/relation-view";
+import {mergeParameters, parametersEqual} from "@/state/relations/parameter-sync";
 
 interface RelationViewQueryProps extends AdvancedRelationActions{
     relationState: RelationState,
@@ -25,12 +26,27 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
     }
 
     function onCodeChange(code: string) {
+        // Sync parameters with the new SQL
+        const currentParams = props.relationState.viewState.parametersState?.parameters ?? [];
+        const mergedParams = mergeParameters(code, currentParams);
+
+        // Only update parameters if they actually changed
+        const paramsChanged = !parametersEqual(currentParams, mergedParams);
+
         props.updateRelation({
                 ...props.relationState,
                 query: {
                     ...props.relationState.query,
                     baseQuery: code,
                 },
+                viewState: paramsChanged ? {
+                    ...props.relationState.viewState,
+                    parametersState: {
+                        ...props.relationState.viewState.parametersState,
+                        panelState: props.relationState.viewState.parametersState?.panelState ?? { show: false, sizePercentage: 30 },
+                        parameters: mergedParams,
+                    }
+                } : props.relationState.viewState,
             }
         );
     }

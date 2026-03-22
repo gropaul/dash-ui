@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { MacroCopyButton } from "@/components/relation/macro-copy-button";
 import { RelationExecutionInfo } from "@/components/relation/common/relation-execution-info";
 import { QueryExecutionMetaData, TaskExecutionState } from "@/model/relation-state";
+import { ParameterDefinition } from "@/model/relation-view-state/parameters";
 
 export interface RelationTitleWithActionsProps {
     displayName: string;
     sql: string;
+    parameters?: ParameterDefinition[];
     onUpdateTitle?: (newTitle: string) => void;
     className?: string;
     executionState?: TaskExecutionState;
@@ -25,6 +27,7 @@ export interface RelationTitleWithActionsProps {
 export function RelationTitleWithActions({
     displayName,
     sql,
+    parameters,
     onUpdateTitle,
     className,
     executionState,
@@ -76,6 +79,7 @@ export function RelationTitleWithActions({
                 <MacroCopyButton
                     relationName={displayName}
                     sql={sql}
+                    parameters={parameters}
                     className="opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0"
                 />
             </div>

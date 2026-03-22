@@ -4,18 +4,20 @@ import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files
 import {HEADER_HEIGHT} from "@/components/workflow/models";
 import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
+import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 
 export interface RelationNodeHeaderProps {
     viewType: RelationViewType;
     displayName: string;
     sql: string;
+    parameters?: ParameterDefinition[];
     onUpdateTitle?: (newTitle: string) => void;
     executionState: TaskExecutionState;
     lastExecutionMetaData?: QueryExecutionMetaData;
 }
 
 export function RelationNodeHeader(props: RelationNodeHeaderProps) {
-    const {viewType, displayName, sql, onUpdateTitle} = props;
+    const {viewType, displayName, sql, parameters, onUpdateTitle} = props;
     const viewTypeColor = defaultColorFactory(viewType);
 
     return (
@@ -46,6 +48,7 @@ export function RelationNodeHeader(props: RelationNodeHeaderProps) {
                 <RelationTitleWithActions
                     displayName={displayName}
                     sql={sql}
+                    parameters={parameters}
                     onUpdateTitle={onUpdateTitle}
                     executionState={props.executionState}
                     lastExecutionMetaData={props.lastExecutionMetaData}

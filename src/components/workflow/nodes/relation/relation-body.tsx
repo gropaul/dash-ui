@@ -5,6 +5,7 @@ import {ConnectionHoverState} from "@/components/workflow/models";
 import {RelationNodeHeader} from "@/components/workflow/nodes/relation/relation-header";
 import {RelationViewType} from "@/model/relation-view-state";
 import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
+import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 
 export interface NodeBodyProps {
     children?: ReactNode;
@@ -15,6 +16,7 @@ export interface NodeBodyProps {
     viewType: RelationViewType;
     displayName: string;
     sql: string;
+    parameters?: ParameterDefinition[];
     onUpdateTitle?: (newTitle: string) => void;
     executionState: TaskExecutionState;
     lastExecutionMetaData?: QueryExecutionMetaData;
@@ -36,7 +38,7 @@ const shakeKeyframes = `
 `;
 
 export function RelationNodeBody(props: NodeBodyProps) {
-    const {children, connectionHover, showHeader = true, viewType, displayName, sql, onUpdateTitle} = props;
+    const {children, connectionHover, showHeader = true, viewType, displayName, sql, parameters, onUpdateTitle} = props;
 
     const isConnectionHovered = !!connectionHover;
     const isValidConnection = connectionHover?.isValid ?? true;
@@ -105,6 +107,7 @@ export function RelationNodeBody(props: NodeBodyProps) {
                                 viewType={viewType}
                                 displayName={displayName}
                                 sql={sql}
+                                parameters={parameters}
                                 onUpdateTitle={onUpdateTitle}
                             />
                         </div>
