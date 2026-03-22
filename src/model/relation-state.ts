@@ -341,7 +341,7 @@ export function buildQuery(
     const viewParameters = relationState.query.viewParameters;
 
     const initialQueries = baseQueries.slice(0, -1);
-    console.log('Base Queries:', baseQueries);
+    // console.log('Base Queries:', baseQueries);
     const finalQuery = removeSemicolon(baseQueries.at(-1) || '');
     if (!finalQuery) {
         throw new Error('No final query found in base SQL');

@@ -57,3 +57,9 @@ export const TABLE_FOOTER_SMALL_WIDTH_THRESHOLD = 512;
 
 // minimum distance from node center for relation handles to become active, in pixels
 export const WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE = 64;
+
+// Table macro configuration
+export const TABLE_MACRO_PREFIX = 'node_';
+
+// SQL editor debounce time for local code changes in milliseconds
+export const SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS = 300;

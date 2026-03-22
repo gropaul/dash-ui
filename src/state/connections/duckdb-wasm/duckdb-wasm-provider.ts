@@ -118,12 +118,12 @@ export class DuckdbWasmProvider {
     public async getCurrentWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
         // If already initialized, just return the existing connection
         if (this.asyncDuckDBState === 'initialised' && this.con && this.db) {
-            console.log("Returning existing DuckDB-Wasm instance: ", this.con);
+            // console.log("Returning existing DuckDB-Wasm instance: ", this.con);
             return {db: this.db, con: this.con};
         }
         // If in the process of initializing, return that shared promise
         if (this.asyncDuckDBState === 'initialising' && this.initPromise) {
-            console.log("Returning pending DuckDB-Wasm initialization promise");
+            // console.log("Returning pending DuckDB-Wasm initialization promise");
             return this.initPromise;
         }
 

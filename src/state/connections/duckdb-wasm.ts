@@ -86,21 +86,14 @@ export class DuckDBWasm implements DatabaseConnection {
     }
 
     async executeQueryInternal(query: string): Promise<RelationData> {
-        console.log("Execute query: ", query);
+        // console.log("Execute query: ", query);
         try {
             // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
             const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
             const query_escaped = escapeSQLForStringLiteral(query);
-            // todo: I think this is the reason why we can't abort the query, the better
-            // todo: way would be to split query_result_json into creating the view for the base query first
-            // todo: and then calling the query_result_json(FROM view) as this is the short running query that
-            // todo: does not have to be aborted
             const materialize_json_query = `FROM query_result_json('${query_escaped}')`;
-            console.log("Sending query to DuckDB WASM: ", materialize_json_query);
             const result = await con.send(materialize_json_query, true);
-            console.log("Received result from DuckDB WASM, reading all data...");
             const data = await result.readAll();
-            console.log("Data read from DuckDB WASM, parsing result...");
 
             // log the time taken to parse the result
             const startTime = performance.now();
@@ -110,7 +103,7 @@ export class DuckDBWasm implements DatabaseConnection {
             const data_parsed = JSON.parse(json_string) as RelationData;
             data_parsed.columns = data_parsed.columns.map(this.polishColumn)
             const endTime = performance.now();
-            console.log(`Time taken to parse DuckDB WASM query result: ${endTime - startTime} ms`);
+            // console.log(`Time taken to parse DuckDB WASM query result: ${endTime - startTime} ms`);
             return data_parsed;
         } catch (e: any) {
             // check if it is an error

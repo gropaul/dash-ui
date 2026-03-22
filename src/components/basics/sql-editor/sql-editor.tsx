@@ -14,6 +14,7 @@ import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
 import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
 import {registerInputCompletion} from "@/components/basics/sql-editor/regsiter-input-completion";
 import {InputManager} from "@/components/editor/inputs/input-manager";
+import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
 
 export type SupportedLanguages = "sql" | "plaintext";
 
@@ -119,10 +120,10 @@ export function SqlEditor(
                 clearTimeout(debounceTimerRef.current);
             }
 
-            // Debounce the state update by 300ms
+            // Debounce the state update
             debounceTimerRef.current = setTimeout(() => {
                 onCodeChangeRef.current?.(value);
-            }, 300);
+            }, SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS);
         }
     }
 

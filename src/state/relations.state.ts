@@ -42,6 +42,10 @@ import {
 import {useInitState} from "@/state/init.state";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {isInteractiveBlock} from "@/components/editor/inputs/input-manager";
+import {RelationActions} from "@/state/relations/relation-actions";
+// Side-effect import: initializes macro registration subscription
+// Do not remove - required for table macros to work
+import "@/state/relations/table-macros";
 
 
 export interface RelationZustand {
@@ -182,6 +186,11 @@ export const useRelationsState = createWithEqualityFn(
                         };
                     });
 
+                    // Register macros for newly merged relations
+                    Object.values(relations).forEach((relation) => {
+                        RelationActions.create(relation.id, relation.viewState.displayName, relation.query.baseQuery);
+                    });
+
                     if (openDashboards) {
                         // open all dashboards in the GUI
                         Object.values(dashboards).forEach((dashboard) => {
@@ -219,9 +228,13 @@ export const useRelationsState = createWithEqualityFn(
                         useGUIState.getState().removeTab(entityId);
                     }
 
-                    // if it is a relation we have to delete the cache as well
+                    // if it is a relation we have to delete the cache and dispatch delete action
                     if (entityType === 'relations') {
                         useRelationDataState.getState().deleteData(entityId);
+                        const relation = get().relations[entityId];
+                        if (relation) {
+                            RelationActions.delete(entityId, relation.viewState.displayName);
+                        }
                     }
                     // if it is a dashboard, we have to delete the blocks' cache as well
                     if (entityType === 'dashboards') {
@@ -247,6 +260,14 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => {
+                    // If renaming a relation, dispatch rename action
+                    if (entityType === 'relations') {
+                        const relation = get().relations[entityId];
+                        if (relation) {
+                            RelationActions.rename(entityId, relation.viewState.displayName, displayName, relation.query.baseQuery);
+                        }
+                    }
+
                     const newEntity = SetEntityDisplayName(entityId, entityType, displayName, get());
                     useGUIState.getState().renameTab(entityId, displayName);
 
@@ -387,10 +408,19 @@ export const useRelationsState = createWithEqualityFn(
                                 [relationId]: executedRelationState,
                             },
                         }));
+
+                        // Dispatch create action for the new relation
+                        RelationActions.create(relationId, executedRelationState.viewState.displayName, executedRelationState.query.baseQuery);
                     }
                 },
 
                 updateRelation: (newRelation: RelationState) => {
+                    // Check if baseQuery changed and dispatch update action
+                    const oldRelation = get().relations[newRelation.id];
+                    if (oldRelation && oldRelation.query.baseQuery !== newRelation.query.baseQuery) {
+                        RelationActions.updateSql(newRelation.id, newRelation.viewState.displayName, newRelation.query.baseQuery);
+                    }
+
                     set((state) => ({
                         relations: {
                             ...state.relations,
@@ -457,7 +487,7 @@ export const useRelationsState = createWithEqualityFn(
                     const elementToRemove = findNodeInTrees(newElements, path);
                     if (!elementToRemove) throw new Error('Element to remove not found');
 
-                    IterateAll([elementToRemove], (node, id_path) => {
+                    IterateAll([elementToRemove], (node) => {
                         if (node.type === 'dashboards') {
                             if (useGUIState.getState().isTabOpen(node.id)) {
                                 useGUIState.getState().removeTab(node.id);
@@ -466,6 +496,10 @@ export const useRelationsState = createWithEqualityFn(
                         } else if (node.type === 'relations') {
                             if (useGUIState.getState().isTabOpen(node.id)) {
                                 useGUIState.getState().removeTab(node.id);
+                            }
+                            const relation = get().relations[node.id];
+                            if (relation) {
+                                RelationActions.delete(node.id, relation.viewState.displayName);
                             }
                             delete newRelations[node.id];
                         }

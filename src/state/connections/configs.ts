@@ -32,7 +32,7 @@ export interface DBConnectionSpec {
 }
 
 export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"): DBConnectionSpec {
-    console.log("getDefaultSpec", type);
+    // console.log("getDefaultSpec", type);
     switch (type) {
         case "duckdb-over-http":
             return {
