@@ -18,6 +18,7 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {CHART_QUERY_LIMIT} from "@/platform/global-data";
 import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
+import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 
 export function getInitialTableQueryParameters(limit: number = 20): TableViewQueryParameters {
     return {
@@ -307,7 +308,7 @@ export const getVariablesUsedByQuery = (query: string): string[] => {
     return matches.map(match => match.replace(/{{|}}/g, '').trim());
 }
 
-const setVariablesInQuery = (query: string, manger?: InputManager): string => {
+const setVariablesInQuery = (query: string, manager?: InputManager, paramDefs?: ParameterDefinition[]): string => {
 
     // find all matches of {{variable}}
     const regex = /{{([^}]+)}}/g;
@@ -316,17 +317,39 @@ const setVariablesInQuery = (query: string, manger?: InputManager): string => {
         return query;
     }
 
-    // replace all matches with the value of the variable in the inputStore
+    // Build a map of parameter definitions for quick lookup
+    const paramDefMap = new Map<string, ParameterDefinition>();
+    for (const p of paramDefs ?? []) {
+        paramDefMap.set(p.name, p);
+    }
+
+    // replace all matches with the value of the variable
     let newQuery = query;
     for (const match of matches) {
+        const variable = match.replace(/{{|}}/g, '').trim();
 
-        if (!manger) {
-            throw new Error('Input manager is not defined');
+        // First try InputManager
+        if (manager) {
+            try {
+                const value = manager.getInputValue(variable);
+                if (value?.value !== undefined) {
+                    newQuery = newQuery.replace(match, value.value);
+                    continue;
+                }
+            } catch {
+                // InputManager doesn't have this variable, fall through to param defaults
+            }
         }
 
-        const variable = match.replace(/{{|}}/g, '');
-        const value = manger.getInputValue(variable);
-        newQuery = newQuery.replace(match, value.value);
+        // Fall back to parameter definition default (simple substitution, user handles quoting)
+        const paramDef = paramDefMap.get(variable);
+        if (paramDef?.defaultValue !== undefined) {
+            newQuery = newQuery.replace(match, paramDef.defaultValue);
+            continue;
+        }
+
+        // No value available - throw error
+        throw new Error(`Parameter '${variable}' has no value. Set a default value in the Parameters panel or provide an input.`);
     }
     return newQuery;
 }
@@ -336,7 +359,8 @@ export function buildQuery(
     relationState: RelationState,
     inputManager?: InputManager
 ): QueryBuildResult {
-    const sqlWithVariables = setVariablesInQuery(relationState.query.activeBaseQuery, inputManager);
+    const paramDefs = relationState.viewState.parametersState?.parameters;
+    const sqlWithVariables = setVariablesInQuery(relationState.query.activeBaseQuery, inputManager, paramDefs);
     const baseQueries = cleanAndSplitSQL(sqlWithVariables);
     const viewParameters = relationState.query.viewParameters;
 

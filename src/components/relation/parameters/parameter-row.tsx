@@ -24,12 +24,12 @@ export function ParameterRow({ parameter, onUpdate }: ParameterRowProps) {
     }
 
     return (
-        <div className="flex items-center gap-2 px-2 py-1.5 border-b last:border-b-0">
+        <div className="flex items-center gap-2 px-3 py-1.5 border-b last:border-b-0">
             {/* Copy button */}
             <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 shrink-0"
+                className="h-7 w-10 shrink-0"
                 onClick={handleCopyName}
                 title={`Copy {{${parameter.name}}}`}
             >
