@@ -1,5 +1,7 @@
 # Claude Code Instructions
 
+- Implementation details and others can be found in /dev
+
 ## Styling Guidelines
 
 - **Never use custom/hardcoded colors** (e.g., `bg-white`, `text-gray-600`, `border-[#ededed]`, `#f7f9fb`)
