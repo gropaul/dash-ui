@@ -1,4 +1,4 @@
-import React, {Fragment} from "react";
+import React from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
 import {BookOpen, Database, Folder, Info, Settings, Wand2} from "lucide-react";
@@ -90,68 +90,45 @@ export function NavigationBarDesktop(props: NavigationBarProps) {
 }
 
 
+const ALL_TABS = ['relations', 'connections', 'chat'] as const;
+const TAB_ORDER: Record<AvailableTab, number> = {relations: 0, connections: 1, chat: 2};
+
+function renderTabContent(tab: AvailableTab) {
+    switch (tab) {
+        case 'connections':
+            return <ConnectionsOverviewTab/>;
+        case 'relations':
+            return <EditorOverviewTab/>;
+        case 'chat':
+            return <ChatTab/>;
+    }
+}
+
 interface NavigationBarContentProps {
     selectedTabs: AvailableTab[];
 }
 
 export function NavigationBarContent(props: NavigationBarContentProps) {
-    const sideBarTabsRatios = useGUIState(state => state.sideBarTabsSizeRatios);
-    const setSideBarTabsRatios = useGUIState(state => state.setSideBarTabsSizeRatios);
-
-    // Ensure ratios array has correct length
-    React.useEffect(() => {
-        if (!Array.isArray(sideBarTabsRatios) || sideBarTabsRatios.length !== props.selectedTabs.length) {
-            const defaultRatio = Math.floor(100 / props.selectedTabs.length);
-            setSideBarTabsRatios(Array(props.selectedTabs.length).fill(defaultRatio));
-        }
-    }, [props.selectedTabs.length]);
-
-    function renderTabContent(tab: AvailableTab) {
-        switch (tab) {
-            case 'connections':
-                return <ConnectionsOverviewTab/>;
-            case 'relations':
-                return <EditorOverviewTab/>;
-            case 'chat':
-                return <ChatTab/>;
-        }
-    }
-
-    function handleResize(index: number, size: number) {
-        const updated = [...sideBarTabsRatios];
-        updated[index] = size;
-        setSideBarTabsRatios(updated);
-    }
-
-    const allTabs = ['relations', 'connections', 'chat'] as const;
-
     const isMobile = useIsMobile();
-    // if is mobile, only show the first selected tab
     const actualSelectedTabs = isMobile ? props.selectedTabs.slice(0, 1) : props.selectedTabs;
+    const visibleTabs = ALL_TABS.filter(tab => actualSelectedTabs.includes(tab));
+    const defaultSize = visibleTabs.length > 0 ? Math.floor(100 / visibleTabs.length) : 100;
 
-    const selectedTabsSorted = allTabs.filter(tab => actualSelectedTabs.includes(tab));
-    const firstTab = selectedTabsSorted[0];
     return (
         <div className="flex-1 h-full overflow-auto">
-            <ResizablePanelGroup direction="vertical">
-                {allTabs.map((tab, index) => (
-                    <Fragment key={`panel-group-${tab}`}>
-                        {tab != firstTab && true && <ResizableHandle
-                            className={'!cursor-row-resize'}
-                            style={{display:actualSelectedTabs.includes(tab) ? 'block' : 'none'}}
-                        />}
+            <ResizablePanelGroup direction="vertical" autoSaveId="sidebar-panels">
+                {visibleTabs.map((tab, index) => (
+                    <React.Fragment key={tab}>
+                        {index > 0 && <ResizableHandle className="!cursor-row-resize"/>}
                         <ResizablePanel
-                            style={{
-                                overflow: 'auto',
-                                display: actualSelectedTabs.includes(tab) ? 'block' : 'none'
-                            }}
-                            minSize={15}
-                            onResize={(size) => handleResize(index, size)}
-                            defaultSize={sideBarTabsRatios[index] ?? Math.floor(100 / actualSelectedTabs.length)}
+                            id={tab}
+                            order={TAB_ORDER[tab]}
+                            style={{overflow: 'auto', minHeight: 50}}
+                            defaultSize={defaultSize}
                         >
                             {renderTabContent(tab)}
                         </ResizablePanel>
-                    </Fragment>
+                    </React.Fragment>
                 ))}
             </ResizablePanelGroup>
         </div>
