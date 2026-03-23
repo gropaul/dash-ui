@@ -85,25 +85,30 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                         {parameterPanelElement}
                         <ResizablePanelGroup className={'bg-inherit flex-1'}
                                              direction={layout == 'row' ? 'vertical' : 'horizontal'}>
+                            {showQuery && (
+                                <>
+                                    <ResizablePanel
+                                        id="query"
+                                        order={0}
+                                        defaultSize={codePercentage}
+                                        minSize={20}
+                                    >
+                                        <RelationViewQueryView
+                                            statics={inputProps}
+                                            ref={inputProps.codeFenceRef}
+                                            {...props}
+                                        />
+                                    </ResizablePanel>
+                                    <ResizableHandle/>
+                                </>
+                            )}
                             <ResizablePanel
-                                className={cn(showQuery ? 'block' : 'hidden')}
-                                defaultSize={codePercentage}
-                                minSize={20}
-                            >
-                                <RelationViewQueryView
-                                    statics={inputProps}
-                                    ref={inputProps.codeFenceRef}
-                                    {...props}
-                                />
-                            </ResizablePanel>
-                            <ResizableHandle
-                                className={cn(showQuery ? 'block' : 'hidden')}
-                            />
-                            <ResizablePanel
+                                id="content"
+                                order={1}
                                 className={'bg-inherit'}
-                                defaultSize={100 - codePercentage}
-                                minSize={showQuery ? 20 : 100}
+                                defaultSize={showQuery ? 100 - codePercentage : 100}
                                 onResize={setCodeFenceState}
+                                minSize={40}
                             >
                                 <ContentWrapper {...props}/>
                             </ResizablePanel>
