@@ -261,7 +261,7 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => {
-                    // If renaming a relation, dispatch rename action
+                    // Dispatch rename action for macro re-registration
                     if (entityType === 'relations') {
                         const relation = get().relations[entityId];
                         if (relation) {
@@ -428,12 +428,8 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 updateRelation: (newRelation: RelationState) => {
-                    // Check if baseQuery changed and dispatch update action
-                    const oldRelation = get().relations[newRelation.id];
-                    if (oldRelation && oldRelation.query.baseQuery !== newRelation.query.baseQuery) {
-                        RelationActions.updateSql(newRelation.id, newRelation.viewState.displayName, newRelation.query.baseQuery);
-                    }
-
+                    // Note: RelationActions dispatch is handled by useRelationActions hook
+                    // to work uniformly across standalone, workflow, and dashboard contexts.
                     set((state) => ({
                         relations: {
                             ...state.relations,

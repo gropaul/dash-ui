@@ -8,7 +8,6 @@ import {getViewSizeRequirements} from "@/model/relation-view-state";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {ParameterPanel} from "@/components/relation/parameters/parameter-panel";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
-import {RelationActions} from "@/state/relations/relation-actions";
 
 export interface RelationStateContainerProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement>;
@@ -40,13 +39,6 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                 parameters,
             }
         });
-        // Dispatch action to update macro with new parameter defaults
-        RelationActions.updateParams(
-            props.relationState.id,
-            props.relationState.viewState.displayName,
-            props.relationState.query.baseQuery,
-            parameters
-        );
     }
 
     const parameterPanelElement = (

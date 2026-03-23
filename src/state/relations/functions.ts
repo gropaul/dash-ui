@@ -13,6 +13,7 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationViewAPIProps} from "@/components/relation/relation-view";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
+import {dispatchRelationChanges} from "@/state/relations/relation-actions-dispatch";
 
 export type UpdateRelationFunction = (relation: RelationState) => void;
 
@@ -30,9 +31,15 @@ export interface AdvancedRelationActions extends DefaultRelationZustandActions {
 }
 
 export function createAdvancedRelationActions(props: RelationViewAPIProps): AdvancedRelationActions {
-    const {updateRelation, relationState} = props;
+    const {updateRelation: rawUpdateRelation, relationState} = props;
+
+    const updateRelation: UpdateRelationFunction = (newRelation: RelationState) => {
+        rawUpdateRelation(newRelation);
+        dispatchRelationChanges(relationState, newRelation);
+    };
+
     return {
-        updateRelation: updateRelation,
+        updateRelation,
         updateRelationDataWithBaseQuery: async (baseQuery: string) => {
             let query = relationState.query.viewParameters;
             if (relationState.query.baseQuery === baseQuery) {
@@ -146,7 +153,7 @@ export interface EndUserRelationActions extends AdvancedRelationActions {
 
 export function createEndUserRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
     const advancedActions = createAdvancedRelationActions(props);
-    const {relationState, updateRelation} = props;
+    const {relationState} = props;
 
     return {
         ...advancedActions,

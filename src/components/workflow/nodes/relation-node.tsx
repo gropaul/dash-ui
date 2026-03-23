@@ -12,11 +12,11 @@ import {ConditionalHandles} from "@/components/workflow/nodes/relation/condition
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
 
+
 import {
     ConnectionHoverState,
     DEFAULT_CODE_VIEW_HEIGHT,
-    DEFAULT_NODE_HEIGHT, GRID_SIZE,
-    HEADER_HEIGHT,
+    DEFAULT_NODE_HEIGHT,
     roundToGrid
 } from "@/components/workflow/models";
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
@@ -179,10 +179,29 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         onViewChange={actions.setViewType}
                         onFullscreen={() => setIsFullscreen(true)}
                         onToggleHeader={() => {
-                            const newShowHeader = !data.viewState.showHeader;
                             updateNodeData(
-                                (prev) => ({...prev, viewState: {...prev.viewState, showHeader: newShowHeader}}),
-                                (node) => ({height: (node.height ?? 256) + (newShowHeader ? HEADER_HEIGHT : -HEADER_HEIGHT)})
+                                (prev) => ({...prev, viewState: {...prev.viewState, showHeader: !prev.viewState.showHeader}}),
+                            );
+                        }}
+                        showParams={data.viewState.parametersState?.panelState?.show ?? false}
+                        onToggleParams={() => {
+                            updateNodeData(
+                                (prev) => {
+                                    const currentShow = prev.viewState.parametersState?.panelState?.show ?? false;
+                                    return {
+                                        ...prev,
+                                        viewState: {
+                                            ...prev.viewState,
+                                            parametersState: {
+                                                ...prev.viewState.parametersState,
+                                                panelState: {
+                                                    ...prev.viewState.parametersState?.panelState,
+                                                    show: !currentShow,
+                                                },
+                                            },
+                                        },
+                                    };
+                                },
                             );
                         }}
                     />
