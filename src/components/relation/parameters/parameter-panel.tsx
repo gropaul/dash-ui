@@ -4,10 +4,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ParameterPanelProps {
     parametersState: ParametersState;
+    size: 'small' | 'large';
     onUpdateParameters: (parameters: ParameterDefinition[]) => void;
 }
 
-export function ParameterPanel({ parametersState, onUpdateParameters }: ParameterPanelProps) {
+export function ParameterPanel({ parametersState, onUpdateParameters, size}: ParameterPanelProps) {
     const parameters = parametersState?.parameters ?? [];
 
     function handleUpdateParameter(name: string, updates: Partial<ParameterDefinition>) {
@@ -26,11 +27,12 @@ export function ParameterPanel({ parametersState, onUpdateParameters }: Paramete
     }
 
     return (
-        <div className="border-b bg-background">
+        <div className="border-b bg-background text-left">
             <ScrollArea className="max-h-48">
                 <div>
                     {parameters.map((param) => (
                         <ParameterRow
+                            size={size}
                             key={param.name}
                             parameter={param}
                             onUpdate={(updates) => handleUpdateParameter(param.name, updates)}

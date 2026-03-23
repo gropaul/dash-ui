@@ -29,6 +29,7 @@ export type EdgeStyle = 'smoothstep' | 'bezier' | 'straight';
 export interface FloatingEdgeData extends Record<string, unknown> {
     snapToCenter?: boolean;
     edgeStyle?: EdgeStyle;
+    animating?: boolean;
 }
 
 function FloatingEdge({id, source, target, markerEnd, style, selected, data, interactionWidth}: EdgeProps) {
@@ -44,6 +45,7 @@ function FloatingEdge({id, source, target, markerEnd, style, selected, data, int
     const edgeData = data as FloatingEdgeData | undefined;
     const snapToCenter = edgeData?.snapToCenter ?? true;
     const edgeStyle = edgeData?.edgeStyle ?? 'smoothstep';
+    const animating = edgeData?.animating ?? false;
     const {sx, sy, tx, ty, sourcePos, targetPos} = getEdgeParams(sourceNode, targetNode, snapToCenter);
 
     const pathParams = {
@@ -95,6 +97,9 @@ function FloatingEdge({id, source, target, markerEnd, style, selected, data, int
 
     const isActive = selected || isHovered;
 
+    const baseStroke = selected ? '#8b5cf6' : isHovered ? '#a78bfa' : (style?.stroke ?? '#b1b1b7');
+    const activeStroke = animating ? 'hsl(var(--primary))' : baseStroke;
+
     return (
         <ContextMenu>
             <ContextMenuTrigger asChild>
@@ -102,18 +107,58 @@ function FloatingEdge({id, source, target, markerEnd, style, selected, data, int
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
+                    {animating && (
+                        <defs>
+                            <marker
+                                id={`arrow-${id}`}
+                                markerWidth="30"
+                                markerHeight="30"
+                                viewBox="-10 -10 20 20"
+                                markerUnits="strokeWidth"
+                                orient="auto-start-reverse"
+                                refX="0"
+                                refY="0"
+                            >
+                                <polyline
+                                    points="-5,-4 0,0 -5,4"
+                                    style={{stroke: baseStroke, strokeWidth: 1, fill: 'none'}}
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </marker>
+                        </defs>
+                    )}
                     <BaseEdge
                         id={id}
                         path={edgePath}
-                        markerEnd={markerEnd}
+                        markerEnd={animating ? undefined : markerEnd}
                         interactionWidth={interactionWidth ?? 20}
                         style={{
                             ...style,
                             strokeWidth: isActive ? 2 : 1.5,
-                            stroke: selected ? '#8b5cf6' : isHovered ? '#a78bfa' : (style?.stroke ?? '#b1b1b7'),
-                            transition: 'stroke 0.15s, stroke-width 0.15s',
+                            stroke: animating ? 'transparent' : baseStroke,
+                            transition: animating ? 'none' : 'stroke 0.15s, stroke-width 0.15s',
                         }}
                     />
+                    {animating && (
+                        <path
+                            d={edgePath}
+                            fill="none"
+                            stroke={baseStroke}
+                            strokeWidth={1.5}
+                            strokeDasharray="6 4"
+                            strokeLinecap="round"
+                            markerEnd={`url(#arrow-${id})`}
+                        >
+                            <animate
+                                attributeName="stroke-dashoffset"
+                                from="20"
+                                to="0"
+                                dur="0.6s"
+                                repeatCount="indefinite"
+                            />
+                        </path>
+                    )}
                 </g>
             </ContextMenuTrigger>
             <ContextMenuContent>

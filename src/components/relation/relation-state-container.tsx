@@ -43,6 +43,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
 
     const parameterPanelElement = (
         <ParameterPanel
+            size={props.height === 'fit' ? 'small' : 'large'}
             parametersState={parametersState}
             onUpdateParameters={handleUpdateParameters}
         />

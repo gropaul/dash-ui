@@ -12,6 +12,7 @@ import {ConditionalHandles} from "@/components/workflow/nodes/relation/condition
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
 import {extractNodeRefs, diffEdges, createAutoEdge} from "@/state/relations/sql-ref-detection";
+import {refreshDownstream} from "@/state/relations/refresh-queue";
 
 
 import {
@@ -161,6 +162,11 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         );
     }, [data.viewState.codeFenceState.show, updateNodeData, lastCodeHeight]);
 
+    const handleRun = useCallback(async () => {
+        await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
+        await refreshDownstream(props.id, {getNodes, getEdges, setNodes, setEdges});
+    }, [actions, data.query.baseQuery, props.id, getNodes, getEdges, setNodes, setEdges]);
+
     const viewProps: RelationViewProps = {
         relationState: data,
         ...actions
@@ -199,7 +205,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         isVisible={props.selected}
                         showCode={data.viewState.codeFenceState.show}
                         runState={data.executionState}
-                        onRun={() => actions.updateRelationDataWithBaseQuery(data.query.baseQuery)}
+                        onRun={handleRun}
                         onStopRun={actions.cancelQuery}
                         onToggleCode={handleToggleCode}
                         viewProps={viewProps}
