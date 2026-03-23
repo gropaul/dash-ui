@@ -10,6 +10,9 @@ import {
 } from '@xyflow/react';
 import {Dispatch, MutableRefObject, SetStateAction} from 'react';
 import {CanvasState} from "@/components/workflow/models";
+import {getMacroName} from "@/state/relations/table-macros";
+import {injectNodeRef} from "@/state/relations/sql-ref-detection";
+import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 
 export interface ConnectionValidity {
     isValid: boolean;
@@ -19,11 +22,62 @@ export interface ConnectionValidity {
 export interface EdgeHandlerContext {
     getNodes: () => Node[];
     getEdges: () => Edge[];
+    setNodes: Dispatch<SetStateAction<Node[]>>;
     setEdges: Dispatch<SetStateAction<Edge[]>>;
     setCanvasState: Dispatch<SetStateAction<CanvasState>>;
     screenToFlowPosition: (position: { x: number; y: number }) => { x: number; y: number };
     getIntersectingNodes: (rect: { x: number; y: number; width: number; height: number }) => Node[];
     connectingFrom: MutableRefObject<OnConnectStartParams | null>;
+}
+
+/**
+ * Inject a node macro reference into the target node's SQL when an edge is created via drag.
+ */
+function injectSqlOnConnect(
+    sourceNodeId: string,
+    targetNodeId: string,
+    getNodes: () => Node[],
+    setNodes: Dispatch<SetStateAction<Node[]>>,
+): void {
+    const nodes = getNodes();
+    const sourceNode = nodes.find(n => n.id === sourceNodeId);
+    const targetNode = nodes.find(n => n.id === targetNodeId);
+
+    if (!sourceNode || !targetNode) return;
+    if (sourceNode.type !== 'relationNode' || targetNode.type !== 'relationNode') return;
+
+    const sourceData = sourceNode.data as { relationData?: RelationBlockData };
+    const targetData = targetNode.data as { relationData?: RelationBlockData };
+    const displayName = sourceData?.relationData?.viewState?.displayName;
+    if (!displayName) return;
+
+    const macroName = getMacroName(displayName);
+    const currentSql = targetData?.relationData?.query?.baseQuery ?? '';
+    const newSql = injectNodeRef(currentSql, macroName);
+
+    if (newSql === currentSql) return;
+
+    setNodes((nodes) =>
+        nodes.map((node) => {
+            if (node.id !== targetNodeId) return node;
+            const data = node.data as { relationData?: RelationBlockData };
+            const relationData = data?.relationData;
+            if (!relationData) return node;
+            return {
+                ...node,
+                data: {
+                    ...node.data,
+                    relationData: {
+                        ...relationData,
+                        query: {
+                            ...relationData.query,
+                            baseQuery: newSql,
+                        },
+                    },
+                },
+            };
+        })
+    );
 }
 
 export function checkConnectionValidity(
@@ -80,10 +134,9 @@ export function createIsValidConnection(
     };
 }
 
-export function createOnConnect(
-    setEdges: Dispatch<SetStateAction<Edge[]>>,
-) {
-    return (connection: Connection) =>
+export function createOnConnect(ctx: EdgeHandlerContext) {
+    const {setEdges, setNodes, getNodes} = ctx;
+    return (connection: Connection) => {
         setEdges((eds) =>
             addEdge(
                 {
@@ -98,6 +151,11 @@ export function createOnConnect(
                 eds,
             ),
         );
+        // Inject SQL into the target node
+        if (connection.source && connection.target) {
+            injectSqlOnConnect(connection.source, connection.target, getNodes, setNodes);
+        }
+    };
 }
 
 export function createOnConnectStart(
@@ -114,6 +172,7 @@ export function createOnConnectEnd(ctx: EdgeHandlerContext) {
         screenToFlowPosition,
         getIntersectingNodes,
         setEdges,
+        setNodes,
         setCanvasState,
         getNodes,
         getEdges,
@@ -161,6 +220,8 @@ export function createOnConnectEnd(ctx: EdgeHandlerContext) {
                         eds,
                     ),
                 );
+                // Inject SQL into the target node
+                injectSqlOnConnect(sourceNodeId, targetNode.id, getNodes, setNodes);
                 connectingFrom.current = null;
                 setCanvasState(prev => ({...prev, connectionHover: null}));
             } else {

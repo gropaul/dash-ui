@@ -115,6 +115,7 @@ export function Flow({workflowId}: FlowProps) {
     const edgeHandlerCtx: EdgeHandlerContext = {
         getNodes,
         getEdges,
+        setNodes,
         setEdges,
         setCanvasState,
         screenToFlowPosition,
@@ -128,8 +129,8 @@ export function Flow({workflowId}: FlowProps) {
     );
 
     const onConnect = useCallback(
-        createOnConnect(setEdges),
-        [setEdges],
+        createOnConnect(edgeHandlerCtx),
+        [setEdges, setNodes, getNodes],
     );
 
     const onConnectStart = useCallback(
@@ -197,7 +198,7 @@ export function Flow({workflowId}: FlowProps) {
     }, []);
 
     return (
-        <WorkflowProvider setNodes={setNodes} setEdges={setEdges}>
+        <WorkflowProvider setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges}>
             <div
                 style={{width: '100%', height: '100%'}}
                 onPointerMove={(e) => handlePointerMove(e, pointerCtx)}

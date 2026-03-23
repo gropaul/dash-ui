@@ -5,10 +5,14 @@ import {Node, Edge} from '@xyflow/react';
 
 type SetNodes = (nodesOrUpdater: Node[] | ((nodes: Node[]) => Node[])) => void;
 type SetEdges = (edgesOrUpdater: Edge[] | ((edges: Edge[]) => Edge[])) => void;
+type GetNodes = () => Node[];
+type GetEdges = () => Edge[];
 
 interface WorkflowContextValue {
     setNodes: SetNodes;
     setEdges: SetEdges;
+    getNodes: GetNodes;
+    getEdges: GetEdges;
 }
 
 const WorkflowContext = createContext<WorkflowContextValue | null>(null);
@@ -17,13 +21,17 @@ export function WorkflowProvider({
     children,
     setNodes,
     setEdges,
+    getNodes,
+    getEdges,
 }: {
     children: ReactNode;
     setNodes: SetNodes;
     setEdges: SetEdges;
+    getNodes: GetNodes;
+    getEdges: GetEdges;
 }) {
     return (
-        <WorkflowContext.Provider value={{setNodes, setEdges}}>
+        <WorkflowContext.Provider value={{setNodes, setEdges, getNodes, getEdges}}>
             {children}
         </WorkflowContext.Provider>
     );

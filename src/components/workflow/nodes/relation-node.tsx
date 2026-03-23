@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
 import {RelationNodeBody} from "@/components/workflow/nodes/relation/relation-body";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
@@ -11,6 +11,7 @@ import {RelationToolbar} from "@/components/workflow/nodes/relation/relation-too
 import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
+import {extractNodeRefs, diffEdges, createAutoEdge} from "@/state/relations/sql-ref-detection";
 
 
 import {
@@ -33,7 +34,7 @@ type RelationNodeProps = {
 type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
 
 export function RelationNode(props: NodeProps<RelationNodeType>) {
-    const {setNodes} = useWorkflowState();
+    const {setNodes, setEdges, getNodes, getEdges} = useWorkflowState();
 
     // Get relation data from node props, merge with defaults
     const rawData = props.data as RelationNodeProps;
@@ -64,6 +65,32 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
     const setData = useCallback((updater: RelationBlockData | ((prev: RelationBlockData) => RelationBlockData)) => {
         updateNodeData(prev => typeof updater === 'function' ? updater(prev) : updater);
     }, [updateNodeData]);
+
+    // Auto-detect node_xxx() references in SQL and sync edges
+    const sql = data.query.baseQuery;
+    useEffect(() => {
+        const refs = extractNodeRefs(sql);
+        const currentEdges = getEdges();
+        const currentNodes = getNodes();
+        const {toAdd, toRemove} = diffEdges(props.id, refs, currentEdges, currentNodes);
+
+        if (toAdd.length === 0 && toRemove.length === 0) return;
+
+        setEdges((edges) => {
+            let updated = edges;
+            if (toRemove.length > 0) {
+                const removeSet = new Set(toRemove);
+                updated = updated.filter(e => !removeSet.has(e.id));
+            }
+            for (const {source, target} of toAdd) {
+                // Avoid duplicates (edge may already exist from manual drag)
+                if (!updated.some(e => e.source === source && e.target === target)) {
+                    updated = [...updated, createAutoEdge(source, target)];
+                }
+            }
+            return updated;
+        });
+    }, [sql, props.id, setEdges, getEdges, getNodes]);
 
     const [manager] = useState(() => new InputManager())
     const [closestHandle, setClosestHandle] = useState<Position | undefined>()
