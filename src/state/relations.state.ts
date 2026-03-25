@@ -550,8 +550,6 @@ export const useRelationsState = createWithEqualityFn(
                         return INIT;
                     }
 
-
-
                     const hasDuckDBStorage = useRelationsHydrationState.getState().hasDuckDBStorage
                     console.log('Has DuckDB Storage:', hasDuckDBStorage);
                     if (hasDuckDBStorage) {

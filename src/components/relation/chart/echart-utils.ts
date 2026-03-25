@@ -84,6 +84,7 @@ export function toEChartOptions(
             series: [{
                 type: "pie",
                 radius: [dec.innerRadius, "60%"],
+                center: ['50%', '60%'],
                 padAngle: dec.padAngle,
                 data: seriesData,
                 itemStyle: {

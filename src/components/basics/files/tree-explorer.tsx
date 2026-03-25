@@ -43,7 +43,7 @@ export function TreeExplorer({
                              }: TreeExplorerProps) {
     // Convert tree to array if it’s a single TreeNode
     const trees = Array.isArray(tree) ? tree : [tree];
-    const sortedTrees = orderBy ? trees.sort(orderBy) : trees;
+    const sortedTrees = orderBy ? [...trees].sort(orderBy) : trees;
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [selectionMode, setSelectionMode] = useState<SelectionMode>("passive");
@@ -84,7 +84,7 @@ export function TreeExplorer({
                     <TreeExplorerNode
                         orderBy={orderBy}
                         parent_id_path={[]}
-                        key={index}
+                        key={treeNode.id}
                         tree={treeNode}
                         loadChildren={loadChildren}
                         onPointerDown={onPointerDown}

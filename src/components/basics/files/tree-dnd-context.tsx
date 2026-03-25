@@ -14,6 +14,11 @@ export interface TreeDndContextProps {
     iconFactory: (type: string) => React.ReactNode;
 }
 
+function isMovingIntoSelf(sourcePath: string[], targetPath: string[]): boolean {
+    if (sourcePath.length > targetPath.length) return false;
+    return sourcePath.every((seg, i) => targetPath[i] === seg);
+}
+
 export function TreeDndContext(props: TreeDndContextProps) {
 
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
@@ -53,13 +58,19 @@ export function TreeDndContext(props: TreeDndContextProps) {
         const target = canHaveChildren ? path : path.slice(0, -1);
         setLastTarget(target);
 
-        const actions: TreeAction[] = props.selectedIds.map((selectedId) => {
-            return {
+        const actions: TreeAction[] = props.selectedIds
+            .filter((selectedId) => !isMovingIntoSelf(selectedId, target))
+            .map((selectedId) => ({
                 type: 'move',
                 id_path: selectedId,
                 target_id_path: target
-            }
-        });
+            }));
+
+        if (actions.length === 0) {
+            setDragActive(null);
+            return;
+        }
+
         applyEditorElementsActions(actions);
         setDragActive(null);
     }

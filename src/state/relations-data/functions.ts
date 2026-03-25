@@ -28,12 +28,19 @@ export async function loadCache(id: string): Promise<RelationData | undefined> {
         const viewName = GetFullViewNameEscaped(id);
         return await ConnectionsService.getInstance().executeQuery(`SELECT * FROM ${viewName};`);
     } catch (error) {
+        console.error(`Failed to load cache for relation ${id}:`, error);
+        ConnectionsService.getInstance().executeQuery("SHOW ALL TABLES;").then((tables) => {
+            console.log(tables);
+        }).catch((e) => {
+            console.error('Failed to list tables:', e);
+        });
         return Promise.resolve(undefined);
     }
 }
 
 export async function deleteCache(id: string): Promise<RelationData> {
     const viewName = GetFullViewNameEscaped(id);
+    console.log(`Delete cache for relation ${viewName}`);
     return ConnectionsService.getInstance().executeQuery(`DROP TABLE IF EXISTS ${viewName};`);
 }
 
@@ -53,7 +60,7 @@ export async function updateCache(id: string, query: string): Promise<CacheResul
     try {
         const materializedViewQuery = getMaterializedViewFromQuery(id, query, isReadonly);
         await connectionsService.executeQuery(materializedViewQuery);
-
+        await connectionsService.executeQuery("CHECKPOINT;"); // ensure that the data is written to disk, this is important for the WASM backend
         const cacheData = await loadCache(id);
         if (!cacheData) {
             throw new Error('Failed to load cache data after creating materialized view.');
@@ -70,6 +77,7 @@ export async function updateCache(id: string, query: string): Promise<CacheResul
         const isParsingError = message.includes('Parser Error');
         const isSyntaxError = message.includes('"exception_type":"Parser"');
 
+        console.error(`Failed to create materialized view for relation ${id}, executing query directly. Error:`, error);
         // always try to execute the query even if it is not a parsing error. Might be less performant
         // but more robust.
         // if (!isParsingError && !isSyntaxError) {

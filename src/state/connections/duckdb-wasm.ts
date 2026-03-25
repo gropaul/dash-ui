@@ -136,6 +136,10 @@ export class DuckDBWasm implements DatabaseConnection {
             const version = versionResult.rows[0][0] as string;
             console.log('DuckDB WASM version: ', version);
             this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this.executeQuery.bind(this));
+            // print the names of all the tables in the database using information_schema.tables, this is useful for debugging and to check if the database is accessible
+            const tablesResult = await this.executeQuery("SELECT table_name FROM information_schema.tables;");
+            const tableNames = tablesResult.rows.map(row => row[0]);
+            console.log('Tables in DuckDB WASM database: ', tableNames);
             this.connectionStatus = {state: 'connected', message: `Connected to DuckDB WASM. Version: ${version}`};
         } catch (e: any) {
             const message = e.message;
