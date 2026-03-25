@@ -1,7 +1,7 @@
 import {TreeNode} from "@/components/basics/files/tree-utils";
-import React, {useState} from "react";
+import React, {useCallback, useState} from "react";
 import {cn} from "@/lib/utils";
-import {ChevronDown, ChevronRight} from "lucide-react";
+import {ChevronRight} from "lucide-react";
 import {SelectionMode, TreeContextMenuFactory} from "@/components/basics/files/tree-explorer";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {
@@ -9,6 +9,7 @@ import {
     ResponsiveMenuContent,
     ResponsiveMenuTrigger
 } from "@/components/basics/responsive-menu/responsive-menu";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
 export interface TreeExplorerNodeProps {
     tree: TreeNode;
@@ -41,6 +42,12 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
     const current_tree_id_path = props.parent_id_path.concat(props.tree.id);
 
     const [isExpanded, setIsExpanded] = useState(props.tree.expanded ?? false);
+    const [isTruncated, setIsTruncated] = useState(false);
+    const nameRef = useCallback((node: HTMLDivElement | null) => {
+        if (node) {
+            setIsTruncated(node.scrollWidth > node.clientWidth);
+        }
+    }, [props.tree.name]);
     const {listeners, setNodeRef: setDraggableNodeRef} = useDraggable({id: id});
     const {setNodeRef: setDroppableNodeRef, isOver} = useDroppable({
         id: id, data: {
@@ -76,15 +83,12 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
     function localOnDoubleClick(_e: React.MouseEvent) {
         if (props.onDoubleClick) {
             props.onDoubleClick(current_tree_id_path, props.tree);
-        } else {
-            if (childrenLoaded) {
-                setIsExpanded(!isExpanded);
-            }
+        } else if (!cantHaveChildren && childrenLoaded) {
+            setIsExpanded(!isExpanded);
         }
     }
 
     const chevronSize = 16;
-    const chevronColor = "#9a9a9a";
 
     const children = props.tree.children ?? [];
     if (props.orderBy) {
@@ -101,13 +105,13 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
 
     const classIsSelected = isSelected ?
         props.selectionMode === "active" ?
-            `bg-[rgba(0,96,255,0.04)] hover:bg-[rgba(0,96,255,0.08)]` :
-            "bg-[hsl(var(--muted-light))] hover:bg-[hsl(var(--muted))]" :
+            `bg-primary/5 hover:bg-primary/10` :
+            "bg-muted/50 hover:bg-muted" :
         props.selectionMode === "active" ?
-            `hover:bg-[rgba(0,96,255,0.08)]` :
-            "hover:bg-[hsl(var(--muted))]";
+            `hover:bg-primary/10` :
+            "hover:bg-muted";
 
-    const classIsOver = isOver && enableDnd? "border border-primary bg-[rgba(0,96,255,0.08)]" : "border border-transparent";
+    const classIsOver = isOver && enableDnd ? "border border-primary bg-primary/10" : "border border-transparent";
     return (
         <>
             {/* Node content */}
@@ -115,13 +119,21 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                 <ResponsiveMenuTrigger disabled={!props.contextMenuFactory} className={'w-full'}>
                     {/* Node content */}
                     <div
-                        className={cn('')}
+                        className={cn('relative')}
                         onClick={localOnClick}
                         ref={setDroppableNodeRef}
                         onDoubleClick={localOnDoubleClick}
                         onMouseDown={(e) => e.preventDefault()}
                         onPointerDown={(e) => props.onPointerDown?.(current_tree_id_path, props.tree, e)}
                     >
+                        {/* Indent guide lines */}
+                        {Array.from({length: depth}, (_, i) => (
+                            <div
+                                key={i}
+                                className="absolute top-0 bottom-0 border-l border-border/40"
+                                style={{left: `${i * 1.5 + 0.5}rem`}}
+                            />
+                        ))}
                         <div
                             style={{paddingLeft: `${depth * 1.5}rem`}}
                             className={cn('flex items-center p-0.5 rounded-md', classIsSelected, classIsOver)}
@@ -135,9 +147,15 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                                 style={{width: '1.5rem'}}
                             >
                                 {/* Expand/collapse icon */}
-                                {!cantHaveChildren && (isExpanded ?
-                                    <ChevronDown size={chevronSize} color={chevronColor}/> :
-                                    <ChevronRight size={chevronSize} color={chevronColor}/>)}
+                                {!cantHaveChildren && (
+                                    <ChevronRight
+                                        size={chevronSize}
+                                        className={cn(
+                                            'text-muted-foreground transition-transform duration-150',
+                                            isExpanded && 'rotate-90'
+                                        )}
+                                    />
+                                )}
                             </div>
                             <div
                                 className="flex-shrink-0 flex items-center"
@@ -146,9 +164,20 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                                 {props.iconFactory(props.tree.type)}
                             </div>
                             {/* Node name with flex-grow to use remaining space */}
-                            <div className="flex-grow whitespace-nowrap break-words">
-                                {props.tree.name}
-                            </div>
+                            <TooltipProvider delayDuration={500}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div ref={nameRef} className="flex-grow truncate">
+                                            {props.tree.name}
+                                        </div>
+                                    </TooltipTrigger>
+                                    {isTruncated && (
+                                        <TooltipContent side="top" className="max-w-80">
+                                            {props.tree.name}
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                     </div>
                 </ResponsiveMenuTrigger>
@@ -157,38 +186,50 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                 </ResponsiveMenuContent>
 
             </ResponsiveMenu>
-            {isExpanded && (
-                childrenLoaded ?
-                    <>
-                        {children.map((child, index) => (
-                            <TreeExplorerNode
-                                {...props}
-                                enableDnd={enableDnd}
-                                selectedIds={childSelectedIds}
-                                key={index}
-                                tree={child}
-                                parent_id_path={current_tree_id_path}
-                            />
-                        ))}
-                    </>
-                    :
-                    <div className="pl-2">
-                        <TreeExplorerNode
-                            tree={{
-                                id: "",
-                                name: "Loading...",
-                                type: "loading",
-                                children: []
-                            }}
-                            enableDnd={false}
-                            iconFactory={props.iconFactory}
-                            parent_id_path={current_tree_id_path}
-                            onClick={props.onClick}
-                            selectionMode={props.selectionMode}
-                        />
-                    </div>
-            )
-            }
+            <div
+                className="grid transition-[grid-template-rows] duration-150 ease-out"
+                style={{gridTemplateRows: isExpanded ? '1fr' : '0fr'}}
+            >
+                <div className="overflow-hidden min-h-0">
+                    {(isExpanded || childrenLoaded) && (
+                        childrenLoaded ?
+                            children.length > 0 ?
+                                children.map((child) => (
+                                    <TreeExplorerNode
+                                        {...props}
+                                        enableDnd={enableDnd}
+                                        selectedIds={childSelectedIds}
+                                        key={child.id}
+                                        tree={child}
+                                        parent_id_path={current_tree_id_path}
+                                    />
+                                ))
+                                :
+                                <div
+                                    className="text-muted-foreground text-xs py-0.5 italic"
+                                    style={{paddingLeft: `${(depth + 1) * 1.5 + 1.5}rem`}}
+                                >
+                                    No items
+                                </div>
+                            :
+                            <div className="pl-2">
+                                <TreeExplorerNode
+                                    tree={{
+                                        id: "",
+                                        name: "Loading...",
+                                        type: "loading",
+                                        children: []
+                                    }}
+                                    enableDnd={false}
+                                    iconFactory={props.iconFactory}
+                                    parent_id_path={current_tree_id_path}
+                                    onClick={props.onClick}
+                                    selectionMode={props.selectionMode}
+                                />
+                            </div>
+                    )}
+                </div>
+            </div>
         </>
     );
 }
