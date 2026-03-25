@@ -42,27 +42,42 @@ export function getDownstreamQueue(startNodeId: string, edges: Edge[]): string[]
     return order;
 }
 
+export type EdgeAnimationState = 'queued' | 'executing' | undefined;
+
 /**
  * Clear animation state from all edges.
  */
 function clearAllAnimations(setEdges: SetEdges) {
     setEdges((edges) =>
         edges.map((e) =>
-            e.data?.animating ? {...e, data: {...e.data, animating: false}} : e
+            e.data?.animationState ? {...e, data: {...e.data, animationState: undefined}} : e
         )
     );
 }
 
 /**
- * Set the animation state on edges targeting a specific node.
+ * Set all downstream edges to their animation states in one call.
+ * Edges targeting the executing node get 'executing', edges targeting
+ * queued nodes get 'queued', everything else is cleared.
  */
-function setEdgeAnimation(nodeId: string, animating: boolean, setEdges: SetEdges) {
+function setEdgeAnimationStates(
+    executingNodeId: string,
+    queuedNodeIds: Set<string>,
+    setEdges: SetEdges,
+) {
     setEdges((edges) =>
-        edges.map((e) =>
-            e.target === nodeId
-                ? {...e, data: {...e.data, animating}}
-                : e
-        )
+        edges.map((e) => {
+            let newState: EdgeAnimationState;
+            if (e.target === executingNodeId) {
+                newState = 'executing';
+            } else if (queuedNodeIds.has(e.target)) {
+                newState = 'queued';
+            } else {
+                newState = undefined;
+            }
+            if (e.data?.animationState === newState) return e;
+            return {...e, data: {...e.data, animationState: newState}};
+        })
     );
 }
 
@@ -126,6 +141,8 @@ export async function refreshDownstream(
     if (queue.length === 0) return;
 
     for (const nodeId of queue) {
+        // wait 1s for debug
+
         // Cancellation: if a new run started, clear all animations and stop
         if (runId !== currentRunId) {
             clearAllAnimations(setEdges);
@@ -135,12 +152,14 @@ export async function refreshDownstream(
         const relation = getNodeRelationData(nodeId, getNodes);
         if (!relation) continue;
 
-        // Animate incoming edges
-        setEdgeAnimation(nodeId, true, setEdges);
+        // Mark current node as executing, remaining as queued
+        const remainingQueued = new Set(queue.slice(queue.indexOf(nodeId) + 1));
+        setEdgeAnimationStates(nodeId, remainingQueued, setEdges);
 
         const update = (newRelation: RelationState) => {
             updateNodeRelationData(nodeId, newRelation, setNodes);
         };
+
 
         try {
             // Set loading state
@@ -158,9 +177,9 @@ export async function refreshDownstream(
         } catch (e) {
             const errorState = returnEmptyErrorState(setRelationLoading(relation), e);
             update(errorState);
-        } finally {
-            // Always stop animating incoming edges
-            setEdgeAnimation(nodeId, false, setEdges);
         }
     }
+
+    // Clear all animations when done
+    clearAllAnimations(setEdges);
 }

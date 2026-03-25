@@ -23,16 +23,17 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {Trash2} from "lucide-react";
+import type {EdgeAnimationState} from "@/state/relations/refresh-queue";
 
 export type EdgeStyle = 'smoothstep' | 'bezier' | 'straight';
 
 export interface FloatingEdgeData extends Record<string, unknown> {
     snapToCenter?: boolean;
     edgeStyle?: EdgeStyle;
-    animating?: boolean;
+    animationState?: EdgeAnimationState;
 }
 
-function FloatingEdge({id, source, target, markerEnd, style, selected, data, interactionWidth}: EdgeProps) {
+function FloatingEdge({id, source, target, style, selected, data, interactionWidth}: EdgeProps) {
     const sourceNode = useInternalNode(source);
     const targetNode = useInternalNode(target);
     const {setEdges} = useReactFlow();
@@ -45,7 +46,7 @@ function FloatingEdge({id, source, target, markerEnd, style, selected, data, int
     const edgeData = data as FloatingEdgeData | undefined;
     const snapToCenter = edgeData?.snapToCenter ?? true;
     const edgeStyle = edgeData?.edgeStyle ?? 'smoothstep';
-    const animating = edgeData?.animating ?? false;
+    const animationState = edgeData?.animationState;
     const {sx, sy, tx, ty, sourcePos, targetPos} = getEdgeParams(sourceNode, targetNode, snapToCenter);
 
     const pathParams = {
@@ -96,9 +97,11 @@ function FloatingEdge({id, source, target, markerEnd, style, selected, data, int
     };
 
     const isActive = selected || isHovered;
+    const isAnimated = !!animationState;
 
     const baseStroke = selected ? '#8b5cf6' : isHovered ? '#a78bfa' : (style?.stroke ?? '#b1b1b7');
-    const activeStroke = animating ? 'hsl(var(--primary))' : baseStroke;
+    // Executing = fast dashes, Queued = slow dashes
+    const animDuration = animationState === 'executing' ? '0.6s' : '1.5s';
 
     return (
         <ContextMenu>
@@ -107,40 +110,38 @@ function FloatingEdge({id, source, target, markerEnd, style, selected, data, int
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
-                    {animating && (
-                        <defs>
-                            <marker
-                                id={`arrow-${id}`}
-                                markerWidth="30"
-                                markerHeight="30"
-                                viewBox="-10 -10 20 20"
-                                markerUnits="strokeWidth"
-                                orient="auto-start-reverse"
-                                refX="0"
-                                refY="0"
-                            >
-                                <polyline
-                                    points="-5,-4 0,0 -5,4"
-                                    style={{stroke: baseStroke, strokeWidth: 1, fill: 'none'}}
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </marker>
-                        </defs>
-                    )}
+                    <defs>
+                        <marker
+                            id={`arrow-${id}`}
+                            markerWidth="30"
+                            markerHeight="30"
+                            viewBox="-10 -10 20 20"
+                            markerUnits="strokeWidth"
+                            orient="auto-start-reverse"
+                            refX="0"
+                            refY="0"
+                        >
+                            <polyline
+                                points="-5,-4 0,0 -5,4"
+                                style={{stroke: baseStroke, strokeWidth: 1, fill: 'none'}}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </marker>
+                    </defs>
                     <BaseEdge
                         id={id}
                         path={edgePath}
-                        markerEnd={animating ? undefined : markerEnd}
+                        markerEnd={`url(#arrow-${id})`}
                         interactionWidth={interactionWidth ?? 20}
                         style={{
                             ...style,
                             strokeWidth: isActive ? 2 : 1.5,
-                            stroke: animating ? 'transparent' : baseStroke,
-                            transition: animating ? 'none' : 'stroke 0.15s, stroke-width 0.15s',
+                            stroke: isAnimated ? 'transparent' : baseStroke,
+                            transition: isAnimated ? 'none' : 'stroke 0.15s, stroke-width 0.15s',
                         }}
                     />
-                    {animating && (
+                    {isAnimated && (
                         <path
                             d={edgePath}
                             fill="none"
@@ -154,7 +155,7 @@ function FloatingEdge({id, source, target, markerEnd, style, selected, data, int
                                 attributeName="stroke-dashoffset"
                                 from="20"
                                 to="0"
-                                dur="0.6s"
+                                dur={animDuration}
                                 repeatCount="indefinite"
                             />
                         </path>
