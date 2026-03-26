@@ -29,7 +29,7 @@ import {RelationViewRunButton} from "@/components/relation/settings/relation-vie
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
 import {useRelationsState} from "@/state/relations.state";
 
-export interface RelationViewHeaderProps extends RelationViewAPIProps{
+export interface RelationViewHeaderProps extends RelationViewAPIProps {
     children?: React.ReactNode;
 }
 
@@ -47,7 +47,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
 
     function onPathClick(element: string, index: number) {
         if (source.type === 'table') {
-            if ( index === 0) {
+            if (index === 0) {
                 // connection, no action
             } else if (index === 1) {
                 // showDatabase(relation.connectionId, relation.source.database);
@@ -62,10 +62,13 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
     }
 
     const codeFenceState = viewState.codeFenceState;
-    const parametersState = viewState.parametersState ?? { panelState: { show: false, sizePercentage: 30 }, parameters: [] };
+    const parametersState = viewState.parametersState ?? {
+        panelState: {show: false, sizePercentage: 30},
+        parameters: []
+    };
 
     function onShowCode() {
-        advancedActions.updateRelationViewState( {
+        advancedActions.updateRelationViewState({
             codeFenceState: {
                 show: !codeFenceState.show,
             }
@@ -88,7 +91,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         if (!selected) {
             return;
         }
-        advancedActions.updateRelationViewState( {
+        advancedActions.updateRelationViewState({
             selectedView: selected as RelationViewType,
         });
     }
@@ -106,7 +109,11 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
     const queryToggleText = codeFenceState.show ? 'Hide Query' : 'Show Query';
     const parametersToggleText = parametersState.panelState.show ? 'Hide Parameters' : 'Show Parameters';
 
-    const [filepathDialogState, setFilepathDialogState] = useState<FilepathDialogState>({open: false, fileFormat: 'csv', relationId: relationId});
+    const [filepathDialogState, setFilepathDialogState] = useState<FilepathDialogState>({
+        open: false,
+        fileFormat: 'csv',
+        relationId: relationId
+    });
 
     const setEntityDisplayName = useRelationsState((state) => state.setEntityDisplayName);
 
@@ -142,7 +149,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon">
-                                        <Menu />
+                                        <Menu/>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
@@ -164,13 +171,15 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     >
                                         <span>{queryToggleText}</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={onToggleParameters}
-                                        title={parametersToggleText}
-                                    >
-                                        <span>{parametersToggleText}</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
+                                    {parametersState.parameters.length != 0 &&
+                                        <DropdownMenuItem
+                                            onClick={onToggleParameters}
+                                            title={parametersToggleText}
+                                        >
+                                            <span>{parametersToggleText}</span>
+                                        </DropdownMenuItem>
+                                    }
+                                    <DropdownMenuSeparator/>
 
                                     <DropdownMenuItem>Show as</DropdownMenuItem>
                                     <DropdownMenuCheckboxItem
@@ -208,13 +217,15 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                             >
                                 <Code className="h-4 w-4"/>
                             </Toggle>
-                            <Toggle
-                                onClick={onToggleParameters}
-                                pressed={parametersState.panelState.show}
-                                title={parametersToggleText}
-                            >
-                                <Braces className="h-4 w-4"/>
-                            </Toggle>
+                            {
+                                parametersState.parameters.length != 0 && <Toggle
+                                    onClick={onToggleParameters}
+                                    pressed={parametersState.panelState.show}
+                                    title={parametersToggleText}
+                                >
+                                    <Braces className="h-4 w-4"/>
+                                </Toggle>
+                            }
                             <Separator orientation={'vertical'}/>
                             <RelationViewTypeSwitcher
                                 currentView={viewState.selectedView}

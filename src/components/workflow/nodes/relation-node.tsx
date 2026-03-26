@@ -211,13 +211,13 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         viewProps={viewProps}
                         onViewChange={actions.setViewType}
                         onFullscreen={() => setIsFullscreen(true)}
-                        onToggleHeader={() => {
+                        onToggleHeader={ () => {
                             updateNodeData(
                                 (prev) => ({...prev, viewState: {...prev.viewState, showHeader: !prev.viewState.showHeader}}),
                             );
                         }}
                         showParams={data.viewState.parametersState?.panelState?.show ?? false}
-                        onToggleParams={() => {
+                        onToggleParams={data.viewState.parametersState.parameters.length == 0 ? undefined : () => {
                             updateNodeData(
                                 (prev) => {
                                     const currentShow = prev.viewState.parametersState?.panelState?.show ?? false;

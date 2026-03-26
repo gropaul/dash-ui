@@ -3,6 +3,7 @@ import { ConnectionsService } from "@/state/connections/connections-service";
 import { onRelationAction, RelationAction } from "./relation-actions";
 import { StateStorageInfoLoaded } from "@/model/database-connection";
 import { ParameterDefinition } from "@/model/relation-view-state/parameters";
+import { getAllRelations } from "@/state/relations/all-relations";
 
 /**
  * Check if the database is in read-only mode.
@@ -204,3 +205,27 @@ function handleRelationAction(action: RelationAction): void {
 
 // Subscribe to relation actions
 onRelationAction(handleRelationAction);
+
+/**
+ * Re-register all existing relation macros.
+ * Called when the database connection changes, since macros are not persistent across connections.
+ */
+async function reregisterAllMacros(): Promise<void> {
+    const entries = getAllRelations();
+    for (const { relation, origin } of entries) {
+        if (origin === 'dashboard') continue;
+        const name = relation.viewState.displayName;
+        const sql = relation.query.baseQuery;
+        const params = relation.viewState.parametersState?.parameters;
+        if (name && sql) {
+            await registerRelationMacro(name, sql, params);
+        }
+    }
+}
+
+// Re-register all macros when the database connection changes
+ConnectionsService.getInstance().onDatabaseConnectionChange((connection) => {
+    if (connection) {
+        reregisterAllMacros();
+    }
+});
