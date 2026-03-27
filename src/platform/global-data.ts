@@ -22,14 +22,14 @@ export const CHART_QUERY_LIMIT = 50_000;
 
 
 export const DEFAULT_COLORS = [
-    "#ea5545",
-    "#edbf33",
-    "#ede15b",
-    "#bdcf32",
-    "#87bc45",
-    "#27aeef",
-    "#b33dc6",
-    "#f46a9b",
+    "#6366f1",
+    "#f43f5e",
+    "#0ea5e9",
+    "#f59e0b",
+    "#10b981",
+    "#8b5cf6",
+    "#ec4899",
+    "#14b8a6",
 ]
 
 export interface LLMSettings {
