@@ -32,7 +32,7 @@ export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void,
 }
 
-export function createAdvancedRelationActions(props: RelationViewAPIProps): AdvancedRelationActions {
+function createAdvancedRelationActions(props: RelationViewAPIProps): AdvancedRelationActions {
     const {updateRelation: rawUpdateRelation, relationState} = props;
 
     const updateRelation: UpdateRelationFunction = (newRelation: RelationState) => {
@@ -158,7 +158,7 @@ export interface EndUserRelationActions extends AdvancedRelationActions {
     showChartSettings: (show: boolean) => void,
 }
 
-export function createEndUserRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
+export function createRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
     const advancedActions = createAdvancedRelationActions(props);
     const {relationState} = props;
 

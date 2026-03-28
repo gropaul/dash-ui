@@ -47,7 +47,7 @@ import {RelationActions} from "@/state/relations/relation-actions";
 // Side-effect import: initializes macro registration subscription
 // Do not remove - required for table macros to work
 import "@/state/relations/sql/table-macros";
-import {createEndUserRelationActions} from "@/state/relations/actions";
+import {createRelationActions} from "@/state/relations/actions";
 
 
 export interface RelationZustand {
@@ -392,7 +392,7 @@ export const useRelationsState = createWithEqualityFn(
                         // update state with empty (loading) relation
                         const defaultQueryParams = getInitialParams('table');
                         const relationState = getRelationStateFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
-                        const actions = createEndUserRelationActions({relationState, updateRelation: get().updateRelation});
+                        const actions = createRelationActions({relationState, updateRelation: get().updateRelation});
                         get().showEntity('relations', relationState, editorPath);
                         await actions.runQuery();
                     }

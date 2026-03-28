@@ -6,7 +6,7 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import {createEndUserRelationActions} from "@/state/relations/actions";
+import {createRelationActions} from "@/state/relations/actions";
 import {RelationToolbar} from "@/components/workflow/nodes/relation/relation-toolbar";
 import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
@@ -134,7 +134,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
             inputManager: manager,
             embedded: true
         }
-        return createEndUserRelationActions(inputProps)
+        return createRelationActions(inputProps)
     }, [data, setData, manager])
 
     const handleToggleCode = useCallback(() => {
