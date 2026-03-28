@@ -16,56 +16,56 @@ import { ParameterDefinition } from "@/model/relation-view-state/parameters";
  *   dispatchRelationAction({ type: 'CREATE', relationId: '...', relationName: '...', sql: '...' });
  */
 
-export type RelationActionType =
+export type RelationEventType =
     | 'CREATE'        // New relation created
     | 'DELETE'        // Relation deleted
     | 'RENAME'        // Relation renamed
     | 'UPDATE_SQL'    // SQL query changed
     | 'UPDATE_PARAMS'; // Parameters changed
 
-interface RelationActionBase {
-    type: RelationActionType;
+interface RelationEventBase {
+    type: RelationEventType;
     relationId: string;
     relationName: string;
 }
 
-export interface RelationCreateAction extends RelationActionBase {
+export interface RelationCreateEvent extends RelationEventBase {
     type: 'CREATE';
     sql: string;
     parameters?: ParameterDefinition[];
 }
 
-export interface RelationDeleteAction extends RelationActionBase {
+export interface RelationDeleteEvent extends RelationEventBase {
     type: 'DELETE';
 }
 
-export interface RelationRenameAction extends RelationActionBase {
+export interface RelationRenameEvent extends RelationEventBase {
     type: 'RENAME';
     oldName: string;
     sql: string;
     parameters?: ParameterDefinition[];
 }
 
-export interface RelationUpdateSqlAction extends RelationActionBase {
+export interface RelationUpdateSqlEvent extends RelationEventBase {
     type: 'UPDATE_SQL';
     sql: string;
     parameters?: ParameterDefinition[];
 }
 
-export interface RelationUpdateParamsAction extends RelationActionBase {
+export interface RelationUpdateParamsEvent extends RelationEventBase {
     type: 'UPDATE_PARAMS';
     sql: string;
     parameters: ParameterDefinition[];
 }
 
-export type RelationAction =
-    | RelationCreateAction
-    | RelationDeleteAction
-    | RelationRenameAction
-    | RelationUpdateSqlAction
-    | RelationUpdateParamsAction;
+export type RelationEvent =
+    | RelationCreateEvent
+    | RelationDeleteEvent
+    | RelationRenameEvent
+    | RelationUpdateSqlEvent
+    | RelationUpdateParamsEvent;
 
-export type RelationActionListener = (action: RelationAction) => void;
+export type RelationActionListener = (action: RelationEvent) => void;
 
 // Internal state
 const listeners = new Set<RelationActionListener>();
@@ -74,7 +74,7 @@ const listeners = new Set<RelationActionListener>();
  * Subscribe to relation actions.
  * @returns Unsubscribe function
  */
-export function onRelationAction(listener: RelationActionListener): () => void {
+export function onRelationEvent(listener: RelationActionListener): () => void {
     listeners.add(listener);
     return () => {
         listeners.delete(listener);
@@ -84,7 +84,7 @@ export function onRelationAction(listener: RelationActionListener): () => void {
 /**
  * Dispatch a relation action to all subscribers.
  */
-export function dispatchRelationAction(action: RelationAction): void {
+function dispatchRelationEvent(action: RelationEvent): void {
     for (const listener of listeners) {
         try {
             listener(action);
@@ -95,24 +95,24 @@ export function dispatchRelationAction(action: RelationAction): void {
 }
 
 // Helper functions for common actions
-export const RelationActions = {
+export const RelationEvents = {
     create(relationId: string, relationName: string, sql: string): void {
-        dispatchRelationAction({ type: 'CREATE', relationId, relationName, sql });
+        dispatchRelationEvent({ type: 'CREATE', relationId, relationName, sql });
     },
 
     delete(relationId: string, relationName: string): void {
-        dispatchRelationAction({ type: 'DELETE', relationId, relationName });
+        dispatchRelationEvent({ type: 'DELETE', relationId, relationName });
     },
 
     rename(relationId: string, oldName: string, newName: string, sql: string): void {
-        dispatchRelationAction({ type: 'RENAME', relationId, relationName: newName, oldName, sql });
+        dispatchRelationEvent({ type: 'RENAME', relationId, relationName: newName, oldName, sql });
     },
 
     updateSql(relationId: string, relationName: string, sql: string, parameters?: ParameterDefinition[]): void {
-        dispatchRelationAction({ type: 'UPDATE_SQL', relationId, relationName, sql, parameters });
+        dispatchRelationEvent({ type: 'UPDATE_SQL', relationId, relationName, sql, parameters });
     },
 
     updateParams(relationId: string, relationName: string, sql: string, parameters: ParameterDefinition[]): void {
-        dispatchRelationAction({ type: 'UPDATE_PARAMS', relationId, relationName, sql, parameters });
+        dispatchRelationEvent({ type: 'UPDATE_PARAMS', relationId, relationName, sql, parameters });
     },
 };

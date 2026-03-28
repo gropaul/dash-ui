@@ -1,9 +1,9 @@
 import { TABLE_MACRO_PREFIX } from "@/platform/global-data";
 import { ConnectionsService } from "@/state/connections/connections-service";
-import { onRelationAction, RelationAction } from "../relation-actions";
+import { onRelationEvent, RelationEvent } from "../event/relation-events";
 import { StateStorageInfoLoaded } from "@/model/database-connection";
 import { ParameterDefinition } from "@/model/relation-view-state/parameters";
-import { getAllRelations } from "@/state/relations/relation-utils";
+import { getAllRelations } from "@/state/relations/all-relation-utils";
 
 /**
  * Check if the database is in read-only mode.
@@ -182,7 +182,7 @@ export async function dropRelationMacro(relationName: string): Promise<void> {
  * Handle relation actions for macro management.
  * Note: SQL editor already debounces onCodeChange (300ms), so no extra debouncing needed here.
  */
-function handleRelationAction(action: RelationAction): void {
+function handleRelationAction(action: RelationEvent): void {
     switch (action.type) {
         case 'CREATE':
             registerRelationMacro(action.relationName, action.sql, action.parameters);
@@ -204,7 +204,7 @@ function handleRelationAction(action: RelationAction): void {
 }
 
 // Subscribe to relation actions
-onRelationAction(handleRelationAction);
+onRelationEvent(handleRelationAction);
 
 /**
  * Re-register all existing relation macros.

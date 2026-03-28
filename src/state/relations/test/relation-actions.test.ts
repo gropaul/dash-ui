@@ -1,18 +1,18 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
-    onRelationAction,
-    dispatchRelationAction,
-    RelationActions,
-    RelationAction,
-} from './relation-actions';
+    onRelationEvent,
+    dispatchRelationEvent,
+    RelationEvents,
+    RelationEvent,
+} from '../event/relation-events';
 
 describe('relation-actions', () => {
     describe('onRelationAction', () => {
         it('should subscribe and receive dispatched actions', () => {
             const listener = vi.fn();
-            const unsubscribe = onRelationAction(listener);
+            const unsubscribe = onRelationEvent(listener);
 
-            dispatchRelationAction({
+            dispatchRelationEvent({
                 type: 'CREATE',
                 relationId: 'test-id',
                 relationName: 'test',
@@ -32,11 +32,11 @@ describe('relation-actions', () => {
 
         it('should unsubscribe correctly', () => {
             const listener = vi.fn();
-            const unsubscribe = onRelationAction(listener);
+            const unsubscribe = onRelationEvent(listener);
 
             unsubscribe();
 
-            dispatchRelationAction({
+            dispatchRelationEvent({
                 type: 'DELETE',
                 relationId: 'test-id',
                 relationName: 'test',
@@ -49,10 +49,10 @@ describe('relation-actions', () => {
             const listener1 = vi.fn();
             const listener2 = vi.fn();
 
-            const unsub1 = onRelationAction(listener1);
-            const unsub2 = onRelationAction(listener2);
+            const unsub1 = onRelationEvent(listener1);
+            const unsub2 = onRelationEvent(listener2);
 
-            dispatchRelationAction({
+            dispatchRelationEvent({
                 type: 'DELETE',
                 relationId: 'test-id',
                 relationName: 'test',
@@ -71,11 +71,11 @@ describe('relation-actions', () => {
             });
             const normalListener = vi.fn();
 
-            const unsub1 = onRelationAction(errorListener);
-            const unsub2 = onRelationAction(normalListener);
+            const unsub1 = onRelationEvent(errorListener);
+            const unsub2 = onRelationEvent(normalListener);
 
             // Should not throw
-            dispatchRelationAction({
+            dispatchRelationEvent({
                 type: 'DELETE',
                 relationId: 'test-id',
                 relationName: 'test',
@@ -91,12 +91,12 @@ describe('relation-actions', () => {
     });
 
     describe('RelationActions helpers', () => {
-        let receivedActions: RelationAction[];
+        let receivedActions: RelationEvent[];
         let unsubscribe: () => void;
 
         beforeEach(() => {
             receivedActions = [];
-            unsubscribe = onRelationAction((action) => {
+            unsubscribe = onRelationEvent((action) => {
                 receivedActions.push(action);
             });
         });
@@ -106,7 +106,7 @@ describe('relation-actions', () => {
         });
 
         it('should dispatch CREATE action', () => {
-            RelationActions.create('id-1', 'my_relation', 'SELECT * FROM users');
+            RelationEvents.create('id-1', 'my_relation', 'SELECT * FROM users');
 
             expect(receivedActions).toHaveLength(1);
             expect(receivedActions[0]).toEqual({
@@ -118,7 +118,7 @@ describe('relation-actions', () => {
         });
 
         it('should dispatch DELETE action', () => {
-            RelationActions.delete('id-1', 'my_relation');
+            RelationEvents.delete('id-1', 'my_relation');
 
             expect(receivedActions).toHaveLength(1);
             expect(receivedActions[0]).toEqual({
@@ -129,7 +129,7 @@ describe('relation-actions', () => {
         });
 
         it('should dispatch RENAME action', () => {
-            RelationActions.rename('id-1', 'old_name', 'new_name', 'SELECT 1');
+            RelationEvents.rename('id-1', 'old_name', 'new_name', 'SELECT 1');
 
             expect(receivedActions).toHaveLength(1);
             expect(receivedActions[0]).toEqual({
@@ -142,7 +142,7 @@ describe('relation-actions', () => {
         });
 
         it('should dispatch UPDATE_SQL action', () => {
-            RelationActions.updateSql('id-1', 'my_relation', 'SELECT 2');
+            RelationEvents.updateSql('id-1', 'my_relation', 'SELECT 2');
 
             expect(receivedActions).toHaveLength(1);
             expect(receivedActions[0]).toEqual({

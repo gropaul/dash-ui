@@ -43,7 +43,7 @@ import {
 import {useInitState} from "@/state/init.state";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {isInteractiveBlock} from "@/components/editor/inputs/input-manager";
-import {RelationActions} from "@/state/relations/relation-actions";
+import {RelationEvents} from "@/state/relations/event/relation-events";
 // Side-effect import: initializes macro registration subscription
 // Do not remove - required for table macros to work
 import "@/state/relations/sql/table-macros";
@@ -186,7 +186,7 @@ export const useRelationsState = createWithEqualityFn(
 
                     // Register macros for newly merged relations
                     Object.values(relations).forEach((relation) => {
-                        RelationActions.create(relation.id, relation.viewState.displayName, relation.query.baseQuery);
+                        RelationEvents.create(relation.id, relation.viewState.displayName, relation.query.baseQuery);
                     });
 
                     if (openDashboards) {
@@ -231,7 +231,7 @@ export const useRelationsState = createWithEqualityFn(
                         useRelationDataState.getState().deleteData(entityId);
                         const relation = get().relations[entityId];
                         if (relation) {
-                            RelationActions.delete(entityId, relation.viewState.displayName);
+                            RelationEvents.delete(entityId, relation.viewState.displayName);
                         }
                     }
                     // if it is a dashboard, we have to delete the blocks' cache as well
@@ -262,7 +262,7 @@ export const useRelationsState = createWithEqualityFn(
                     if (entityType === 'relations') {
                         const relation = get().relations[entityId];
                         if (relation) {
-                            RelationActions.rename(entityId, relation.viewState.displayName, displayName, relation.query.baseQuery);
+                            RelationEvents.rename(entityId, relation.viewState.displayName, displayName, relation.query.baseQuery);
                         }
                     }
 
@@ -460,7 +460,7 @@ export const useRelationsState = createWithEqualityFn(
                             }
                             const relation = get().relations[node.id];
                             if (relation) {
-                                RelationActions.delete(node.id, relation.viewState.displayName);
+                                RelationEvents.delete(node.id, relation.viewState.displayName);
                             }
                             delete newRelations[node.id];
                         }

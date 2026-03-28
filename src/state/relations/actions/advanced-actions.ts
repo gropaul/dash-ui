@@ -1,0 +1,150 @@
+import {
+    executeQueryOfRelation,
+    RelationState,
+    resetQueryParams,
+    returnEmptyErrorState,
+    setRelationLoading,
+    ViewQueryParameters
+} from "@/model/relation-state";
+import {DefaultRelationZustandActions} from "@/state/relations.state";
+import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
+import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
+import {InputManager} from "@/components/editor/inputs/input-manager";
+import {RelationViewAPIProps} from "@/components/relation/relation-view";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {toast} from "sonner";
+import {processRelationUpdateEvent} from "@/state/relations/event/relation-event-update-dispatch";
+
+export type UpdateRelationFunction = (relation: RelationState) => void;
+
+export interface AdvancedRelationActions extends DefaultRelationZustandActions {
+    // Updates the relation data based on new query parameters. If the baseQuery changes, it should be provided.
+    // here
+    updateRelationDataWithParams: (query: ViewQueryParameters) => Promise<void>,
+    // This will reset the query parameters to default and re-run the base query, which might have changed
+    // between this and the last call
+    updateRelationDataWithBaseQuery: (baseQuery: string) => Promise<void>,
+    // Re-run the current query with the current parameters, useful for the play button
+    runQuery: () => Promise<void>,
+    // Cancels the currently running query, returns whether the cancellation was successful
+    cancelQuery: () => Promise<boolean>,
+    // Deleting elements from an object does not work with partial updates, use updateRelation directly for that
+    updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void,
+}
+
+export function createAdvancedRelationActions(props: RelationViewAPIProps): AdvancedRelationActions {
+    const {updateRelation: rawUpdateRelation, relationState} = props;
+
+    const updateRelation: UpdateRelationFunction = (newRelation: RelationState) => {
+        rawUpdateRelation(newRelation);
+        processRelationUpdateEvent(relationState, newRelation);
+    };
+
+    return {
+        updateRelation,
+        updateRelationDataWithBaseQuery: async (baseQuery: string) => {
+            let query = relationState.query.viewParameters;
+            if (relationState.query.baseQuery === baseQuery) {
+                query = resetQueryParams(relationState.query);
+            }
+            return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager, baseQuery);
+
+        },
+        runQuery: async () => {
+            return updateAndExecuteRelation(relationState, relationState.query.viewParameters, updateRelation, props.inputManager);
+        },
+        cancelQuery: async () => {
+            return cancelQuery(relationState, updateRelation);
+        },
+        updateRelationDataWithParams: async (query: ViewQueryParameters) => {
+            return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager);
+        },
+        updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => {
+            return updateRelationViewState(relationState, viewState, updateRelation);
+        },
+    }
+}
+
+export async function updateRelationViewState(relation: RelationState, partialUpdate: DeepPartial<RelationViewState>, update: UpdateRelationFunction) {
+    const currentViewState = deepClone(relation.viewState);
+
+    // the display name may not be updated here, as it is managed outside of the view state
+    if (partialUpdate.displayName !== undefined) {
+        throw new Error("Display name cannot be updated via view state update, use setEntityDisplayName ");
+    }
+
+    safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
+    const updatedRelation = {
+        ...relation,
+        viewState: currentViewState,
+    };
+    update(updatedRelation);
+
+    // if the view mode has been changed, update the query params
+    if (partialUpdate.selectedView) {
+        const viewParameters = relation.query.viewParameters;
+        const newViewParameters: ViewQueryParameters = {
+            ...viewParameters,
+            type: partialUpdate.selectedView
+        };
+        await updateAndExecuteRelation(updatedRelation, newViewParameters, update, undefined);
+    }
+}
+
+async function updateAndExecuteRelation(
+    relation: RelationState,
+    viewQueryParameters: ViewQueryParameters,
+    update: UpdateRelationFunction,
+    inputManager?: InputManager,
+    // the base query is only provided when rerunning the query from the play button, not if e.g.
+    // the view type changes
+    baseQuery?: string
+) {
+
+    // if a new base query is provided, set it to be the active one
+    if (baseQuery !== undefined) {
+        relation.query.activeBaseQuery = baseQuery;
+    }
+
+    const loadingRelationState = setRelationLoading(relation); // Set it loading
+    update(loadingRelationState);
+
+    try {
+        const updatedRelationState = {...relation}
+        relation.query.viewParameters = viewQueryParameters;
+        const executedRelationState = await executeQueryOfRelation(updatedRelationState, inputManager);
+        // update state with new data and completed state
+        update(executedRelationState);
+    } catch (e) {
+        // if error update with error state
+        const errorState = returnEmptyErrorState(loadingRelationState, e)
+        update(errorState);
+
+    }
+}
+
+
+async function cancelQuery(relation: RelationState, update: UpdateRelationFunction) {
+    try {
+
+        const success = await ConnectionsService.getInstance().abortQuery();
+        if (relation.executionState.state === "running") {
+            if (success) {
+                const copy: RelationState = {
+                    ...relation,
+                    executionState: {
+                        ...relation.executionState,
+                        state: "error",
+                        error: {message: "Error: Query aborted by user"}
+                    }
+                };
+                update(copy);
+            } else {
+                toast.error("Error: Failed to abort query");
+            }
+        }
+        return success;
+    } catch (e) {
+        return false;
+    }
+}

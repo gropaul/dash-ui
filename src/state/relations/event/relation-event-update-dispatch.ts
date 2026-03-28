@@ -1,5 +1,5 @@
 import { RelationState } from "@/model/relation-state";
-import { RelationActions } from "@/state/relations/relation-actions";
+import { RelationEvents } from "@/state/relations/event/relation-events";
 import { ParameterDefinition } from "@/model/relation-view-state/parameters";
 
 /**
@@ -10,7 +10,7 @@ import { ParameterDefinition } from "@/model/relation-view-state/parameters";
  * and other action subscribers stay in sync across all contexts
  * (standalone, workflow, dashboard).
  */
-export function dispatchRelationChanges(
+export function processRelationUpdateEvent(
     oldState: RelationState,
     newState: RelationState
 ): void {
@@ -22,13 +22,13 @@ export function dispatchRelationChanges(
 
     // SQL changed
     if (oldQuery !== newQuery) {
-        RelationActions.updateSql(newState.id, name, newQuery, newParams);
+        RelationEvents.updateSql(newState.id, name, newQuery, newParams);
         return;
     }
 
     // Parameters changed (defaults, types, descriptions)
     if (!parametersEqual(oldParams, newParams)) {
-        RelationActions.updateParams(newState.id, name, newQuery, newParams ?? []);
+        RelationEvents.updateParams(newState.id, name, newQuery, newParams ?? []);
     }
 }
 
