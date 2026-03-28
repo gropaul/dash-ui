@@ -22,11 +22,11 @@ import {Button} from "@/components/ui/button";
 import {useState} from "react";
 import {FilepathDialog, FilepathDialogState} from "@/components/export/filepath-dialog";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import {getRelationActions} from "@/state/relations/actions";
 import {RelationSettings} from "@/components/relation/relation-settings";
 import {RelationViewTypeSwitcher} from "@/components/relation/settings/relation-view-type-switcher";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
 import {useRelationsState} from "@/state/relations.state";
+import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface RelationViewHeaderProps extends RelationViewAPIProps {
     children?: React.ReactNode;
@@ -66,24 +66,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         parameters: []
     };
 
-    function onShowCode() {
-        advancedActions.updateRelationViewState({
-            codeFenceState: {
-                show: !codeFenceState.show,
-            }
-        });
-    }
-
-    function onToggleParameters() {
-        advancedActions.updateRelationViewState({
-            parametersState: {
-                panelState: {
-                    show: !parametersState.panelState.show,
-                }
-            }
-        });
-    }
-
     function onViewChange(selected: string) {
 
         // only update if something selected
@@ -93,10 +75,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         advancedActions.updateRelationViewState({
             selectedView: selected as RelationViewType,
         });
-    }
-
-    function onRun() {
-        props.updateRelationDataWithBaseQuery(props.relationState.query.baseQuery);
     }
 
     const isMobile = useIsMobile();
@@ -140,7 +118,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                 path={path}
                 onPathClick={onPathClick}
                 state={props.relationState.executionState}
-                onRunClick={onRun}
+                onRunClick={() => props.updateRelationDataWithBaseQuery(props.relationState.query.baseQuery)}
                 onCancelClick={props.cancelQuery}
                 actionButtons={
                     isMobile ?
@@ -165,14 +143,14 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                         </DropdownMenuPortal>
                                     </DropdownMenuSub>
                                     <DropdownMenuItem
-                                        onClick={onShowCode}
+                                        onClick={props.toggleShowCode}
                                         title={queryToggleText}
                                     >
                                         <span>{queryToggleText}</span>
                                     </DropdownMenuItem>
                                     {parametersState.parameters.length != 0 &&
                                         <DropdownMenuItem
-                                            onClick={onToggleParameters}
+                                            onClick={props.toggleShowParameters}
                                             title={parametersToggleText}
                                         >
                                             <span>{parametersToggleText}</span>
@@ -210,7 +188,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                         <>
                             <Separator orientation={'vertical'}/>
                             <Toggle
-                                onClick={onShowCode}
+                                onClick={props.toggleShowCode}
                                 pressed={codeFenceState.show}
                                 title={queryToggleText}
                             >
@@ -218,7 +196,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                             </Toggle>
                             {
                                 parametersState.parameters.length != 0 && <Toggle
-                                    onClick={onToggleParameters}
+                                    onClick={props.toggleShowParameters}
                                     pressed={parametersState.panelState.show}
                                     title={parametersToggleText}
                                 >

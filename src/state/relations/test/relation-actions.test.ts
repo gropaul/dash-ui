@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
     onRelationEvent,
-    dispatchRelationEvent,
     RelationEvents,
     RelationEvent,
 } from '../event/relation-events';
@@ -12,12 +11,8 @@ describe('relation-actions', () => {
             const listener = vi.fn();
             const unsubscribe = onRelationEvent(listener);
 
-            dispatchRelationEvent({
-                type: 'CREATE',
-                relationId: 'test-id',
-                relationName: 'test',
-                sql: 'SELECT 1',
-            });
+            RelationEvents.create('test-id', 'test', 'SELECT 1');
+
 
             expect(listener).toHaveBeenCalledTimes(1);
             expect(listener).toHaveBeenCalledWith({
@@ -35,12 +30,8 @@ describe('relation-actions', () => {
             const unsubscribe = onRelationEvent(listener);
 
             unsubscribe();
+            RelationEvents.delete('test-id','test');
 
-            dispatchRelationEvent({
-                type: 'DELETE',
-                relationId: 'test-id',
-                relationName: 'test',
-            });
 
             expect(listener).not.toHaveBeenCalled();
         });
@@ -52,11 +43,7 @@ describe('relation-actions', () => {
             const unsub1 = onRelationEvent(listener1);
             const unsub2 = onRelationEvent(listener2);
 
-            dispatchRelationEvent({
-                type: 'DELETE',
-                relationId: 'test-id',
-                relationName: 'test',
-            });
+            RelationEvents.delete('test-id','test');
 
             expect(listener1).toHaveBeenCalledTimes(1);
             expect(listener2).toHaveBeenCalledTimes(1);
@@ -75,11 +62,7 @@ describe('relation-actions', () => {
             const unsub2 = onRelationEvent(normalListener);
 
             // Should not throw
-            dispatchRelationEvent({
-                type: 'DELETE',
-                relationId: 'test-id',
-                relationName: 'test',
-            });
+            RelationEvents.delete('test-id','test');
 
             // Both listeners should be called despite error
             expect(errorListener).toHaveBeenCalled();

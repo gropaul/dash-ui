@@ -6,7 +6,6 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import {getRelationActions} from "@/state/relations/actions";
 import {RelationToolbar} from "@/components/workflow/nodes/relation/relation-toolbar";
 import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
@@ -24,6 +23,7 @@ import {
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {useWorkflowState} from "@/components/workflow/workflow-context";
+import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 const DEFAULT_RELATION_DATA = getInitialDataElement('table');
 
@@ -117,8 +117,8 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         };
 
         const closest = Object.entries(distances).reduce((min, [pos, dist]) =>
-            dist < distances[min] ? pos as Position : min
-        , Position.Top);
+                dist < distances[min] ? pos as Position : min
+            , Position.Top);
 
         if (distances[closest] > WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE) {
             setClosestHandle(undefined);
@@ -172,7 +172,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         ...actions
     }
 
-
     return (
         <div
             className="w-full h-full relative"
@@ -191,15 +190,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     parameters={data.viewState.parametersState?.parameters}
                     lastExecutionMetaData={data.lastExecutionMetaData}
                     executionState={data.executionState}
-                    onUpdateTitle={(newTitle) => {
-                        setData(prev => ({
-                            ...prev,
-                            viewState: {
-                                ...prev.viewState,
-                                displayName: newTitle
-                            }
-                        }))
-                    }}
+                    onUpdateTitle={viewProps.setDisplayName}
                 >
                     <RelationToolbar
                         isVisible={props.selected}
@@ -211,32 +202,12 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         viewProps={viewProps}
                         onViewChange={actions.setRelationViewType}
                         onFullscreen={() => setIsFullscreen(true)}
-                        onToggleHeader={ () => {
-                            updateNodeData(
-                                (prev) => ({...prev, viewState: {...prev.viewState, showHeader: !prev.viewState.showHeader}}),
-                            );
-                        }}
+                        onToggleHeader={viewProps.toggleShowHeader}
                         showParams={data.viewState.parametersState?.panelState?.show ?? false}
-                        onToggleParams={data.viewState.parametersState.parameters.length == 0 ? undefined : () => {
-                            updateNodeData(
-                                (prev) => {
-                                    const currentShow = prev.viewState.parametersState?.panelState?.show ?? false;
-                                    return {
-                                        ...prev,
-                                        viewState: {
-                                            ...prev.viewState,
-                                            parametersState: {
-                                                ...prev.viewState.parametersState,
-                                                panelState: {
-                                                    ...prev.viewState.parametersState?.panelState,
-                                                    show: !currentShow,
-                                                },
-                                            },
-                                        },
-                                    };
-                                },
-                            );
-                        }}
+                        onToggleParams={
+                            data.viewState.parametersState.parameters.length == 0 ?
+                                undefined : actions.toggleShowParameters
+                        }
                     />
                     <NodeResizer
                         lineClassName={'z-40'}
@@ -257,7 +228,8 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                             codeFenceRef={codeFenceRef}
                         />
                     </div>
-                    <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle} isSelected={props.selected ?? false} />
+                    <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle}
+                                        isSelected={props.selected ?? false}/>
                 </RelationNodeBody>
                 <FullscreenDialog
                     isOpen={isFullscreen}

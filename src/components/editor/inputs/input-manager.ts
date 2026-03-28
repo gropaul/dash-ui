@@ -1,19 +1,14 @@
 import {InputDependency, InputSource, InputValue} from "@/components/editor/inputs/models";
 import {BlockMutationEvent} from "@editorjs/editorjs/types/events/block";
-import {RELATION_BLOCK_NAME, SELECT_BLOCK_NAME, TEXT_SEARCH_BLOCK_NAME} from "@/components/editor/tool-names";
+
 import {useRelationDataState} from "@/state/relations-data.state";
+import {INTERACTIVE_BLOCKS} from "@/components/editor/tool-names";
 
 export interface InputValueChangeParams {
     interactiveId: string;
     inputName: string;
     inputValue: InputValue;
 }
-
-const INTERACTIVE_BLOCKS = [
-    RELATION_BLOCK_NAME,
-    SELECT_BLOCK_NAME,
-    TEXT_SEARCH_BLOCK_NAME,
-];
 
 export type StringReturnFunction = (id: string) => string;
 

@@ -10,10 +10,10 @@ import {RelationState} from "@/model/relation-state";
 import {cn} from "@/lib/utils";
 import {RelationData} from "@/model/relation";
 import {ScrollArea} from "@/components/ui/scroll-area";
-import {AdvancedRelationActions} from "@/state/relations/actions";
+import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
 
 
-export interface ChartConfigProps extends AdvancedRelationActions{
+export interface ChartConfigProps extends EndUserRelationActions{
     className?: string,
     relationState: RelationState,
     data: RelationData,

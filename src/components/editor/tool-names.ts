@@ -9,3 +9,10 @@ export const SELECT_BLOCK_NAME = 'select';
 export const TEXT_SEARCH_BLOCK_NAME = 'text-search';
 export const RELATION_BLOCK_NAME = 'relation';
 export const CHART_BLOCK_NAME = 'chart';
+
+export const INTERACTIVE_BLOCKS = [
+    RELATION_BLOCK_NAME,
+    CHART_BLOCK_NAME,
+    SELECT_BLOCK_NAME,
+    TEXT_SEARCH_BLOCK_NAME,
+];

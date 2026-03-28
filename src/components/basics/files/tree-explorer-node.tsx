@@ -113,7 +113,7 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
 
     const classIsOver = isOver && enableDnd ? "border border-primary bg-primary/10" : "border border-transparent";
     return (
-        <>
+        <div>
             {/* Node content */}
             <ResponsiveMenu>
                 <ResponsiveMenuTrigger disabled={!props.contextMenuFactory} className={'w-full'}>
@@ -230,6 +230,6 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                     )}
                 </div>
             </div>
-        </>
+        </div>
     );
 }

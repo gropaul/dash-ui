@@ -24,8 +24,6 @@ export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     // This will reset the query parameters to default and re-run the base query, which might have changed
     // between this and the last call
     updateRelationDataWithBaseQuery: (baseQuery: string) => Promise<void>,
-    // Re-run the current query with the current parameters, useful for the play button
-    runQuery: () => Promise<void>,
     // Cancels the currently running query, returns whether the cancellation was successful
     cancelQuery: () => Promise<boolean>,
     // Deleting elements from an object does not work with partial updates, use updateRelation directly for that
@@ -49,9 +47,6 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps): Adva
             }
             return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager, baseQuery);
 
-        },
-        runQuery: async () => {
-            return updateAndExecuteRelation(relationState, relationState.query.viewParameters, updateRelation, props.inputManager);
         },
         cancelQuery: async () => {
             return cancelQuery(relationState, updateRelation);

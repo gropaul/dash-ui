@@ -12,7 +12,6 @@ import {ICON_CAPTIONS_OFF, ICON_CHART, ICON_SETTING, ICON_TABLE} from "@/compone
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
-import {getRelationActions} from "@/state/relations/actions";
 
 export type RelationBlockData = RelationState;
 
@@ -70,7 +69,6 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
         readOnly: boolean,
         config: any
     }, blockName: string) {
-
         if (!isRelationBlockData(data)) {
             data = getInitialDataElement('table');
         }

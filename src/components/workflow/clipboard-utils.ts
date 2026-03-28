@@ -1,6 +1,5 @@
 import {Node, Edge} from '@xyflow/react';
 import {deepClone} from '@/platform/object-utils';
-import {createCopyOfRelationData} from '@/state/relations/all-relation-utils';
 import {RelationState} from '@/model/relation-state';
 import {RelationActions} from "@/state/relations/actions/static-actions";
 

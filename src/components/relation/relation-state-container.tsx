@@ -3,11 +3,11 @@ import {ContentWrapper, RelationViewAPIProps, RelationViewProps} from "@/compone
 import React, {RefObject, useState} from "react";
 import {Sizable} from "@/components/ui/sizable";
 import {cn} from "@/lib/utils";
-import {getRelationActions} from "@/state/relations/actions";
 import {getViewSizeRequirements} from "@/model/relation-view-state";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {ParameterPanel} from "@/components/relation/parameters/parameter-panel";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
+import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface RelationStateContainerProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement>;

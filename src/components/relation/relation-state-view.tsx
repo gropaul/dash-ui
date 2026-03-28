@@ -1,13 +1,9 @@
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import React, {RefObject, useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET_MS} from "@/platform/global-data";
-import {getRelationActions} from "@/state/relations/actions";
-import {ConnectionsService} from "@/state/connections/connections-service";
-import {Button} from "@/components/ui/button";
-import {Loader2, Pause} from "lucide-react";
-import {RelationState} from "@/model/relation-state";
 import {RelationStateContainer} from "@/components/relation/relation-state-container";
 import {RelationLoadingView} from "@/components/relation/relation-loading-view";
+import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement>;
@@ -37,9 +33,8 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
 
     return (
         <>
-            <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef} />
-            {isLoading &&
-                <RelationLoadingView cancelQuery={props.cancelQuery} />}
+            <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
+            {isLoading && <RelationLoadingView cancelQuery={props.cancelQuery}/>}
         </>
     );
 }

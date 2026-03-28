@@ -47,7 +47,7 @@ import {RelationEvents} from "@/state/relations/event/relation-events";
 // Side-effect import: initializes macro registration subscription
 // Do not remove - required for table macros to work
 import "@/state/relations/sql/table-macros";
-import {getRelationActions} from "@/state/relations/actions";
+import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 
 export interface RelationZustand {
@@ -394,7 +394,7 @@ export const useRelationsState = createWithEqualityFn(
                         const relationState = getRelationStateFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
                         const actions = getRelationActions({relationState, updateRelation: get().updateRelation});
                         get().showEntity('relations', relationState, editorPath);
-                        await actions.runQuery();
+                        await actions.updateRelationDataWithBaseQuery(relationState.query.baseQuery);
                     }
                 },
 

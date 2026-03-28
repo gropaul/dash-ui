@@ -13,7 +13,8 @@ import {RelationBlockData, RelationComponent} from "@/components/editor/tools/re
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN} from "@/components/editor/tools/icons";
-import {EndUserRelationActions, getRelationActions} from "@/state/relations/actions";
+import {RelationActions} from "@/state/relations/actions/static-actions";
+import {EndUserRelationActions, getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 /**
  * Base class for block tools that share common functionality
@@ -58,16 +59,20 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
             if (!block) {
                 continue;
             }
+            console.log("Checking block for interactive relation block", block.name, block.id);
             if (isInteractiveBlock(block.name)) {
+                console.warn(`Block ${block.name} with id ${block.id} is an interactive block, checking relation id...`);
                 let otherRelationId = '';
                 let getRelationIdFun = (id: string) => {
                     otherRelationId = id;
                 }
                 block.call("getRelationId", getRelationIdFun);
-
-                // if there is a block with the same relation id than we need to update our relation id
+                console.log("Relation id for block", block.name, block.id, "is", otherRelationId);
+                // if there is a block with the same relation id so we have to make our block a copy
                 if (otherRelationId === this.data.id) {
-                    this.data.id = getRandomId();
+                    console.log("Found another block with the same relation id, creating a copy of the relation for this block", block.name, block.id);
+                    this.data = RelationActions.copy(this.data);
+                    console.log("New relation id for block", block.name, block.id, "is", this.data.id);
                 }
             }
 
@@ -108,7 +113,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
     }
 
     public async rerunQuery() {
-        await this.getActions().runQuery();
+        await this.getActions().updateRelationDataWithBaseQuery(this.data.query.baseQuery);
     }
 
 

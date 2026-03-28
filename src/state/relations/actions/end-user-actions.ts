@@ -19,10 +19,15 @@ import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/re
 export interface EndUserRelationActions extends AdvancedRelationActions {
     // toggle show code
     toggleShowCode: () => void,
+    toggleShowHeader: () => void,
+    toggleShowParameters: () => void,
     // set view type
     setRelationViewType: (view: RelationViewType) => void,
     // show chart settings
     showChartSettings: (show: boolean) => void,
+
+    // set display name
+    setDisplayName: (name: string) => void,
 }
 
 export function getRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
@@ -39,6 +44,22 @@ export function getRelationActions(props: RelationViewAPIProps): EndUserRelation
                 },
             });
         },
+        toggleShowHeader: () => {
+            const current = relationState.viewState.showHeader;
+            advancedActions.updateRelationViewState({
+                showHeader: !current,
+            });
+        },
+        toggleShowParameters: () => {
+            const current = relationState.viewState.parametersState.panelState.show;
+            advancedActions.updateRelationViewState({
+                parametersState: {
+                    panelState: {
+                        show: !current,
+                    }
+                },
+            });
+        },
         setRelationViewType: (view: RelationViewType) => {
             advancedActions.updateRelationViewState({
                 selectedView: view,
@@ -51,6 +72,11 @@ export function getRelationActions(props: RelationViewAPIProps): EndUserRelation
                         showConfig: show,
                     }
                 }
+            });
+        },
+        setDisplayName: (name: string) => {
+            advancedActions.updateRelationViewState({
+                displayName: name,
             });
         }
     }
