@@ -9,10 +9,11 @@ import {
     OnConnectStartParams,
 } from '@xyflow/react';
 import {Dispatch, MutableRefObject, SetStateAction} from 'react';
-import {CanvasState} from "@/components/workflow/logic/models";
+import {CanvasState, DEFAULT_NODE_SIZE} from "@/components/workflow/logic/models";
 import {getMacroName} from "@/state/relations/sql/table-macros";
-import {injectNodeRef} from "@/state/relations/sql/ref-detection";
+import {injectNodeRef} from "@/components/workflow/logic/ref-detection";
 import {RelationState} from "@/model/relation-state";
+import {getInitialDataElement} from "@/model/dashboard-state";
 
 export interface ConnectionValidity {
     isValid: boolean;
@@ -242,6 +243,38 @@ export function createOnConnectEnd(ctx: EdgeHandlerContext) {
                 }, 400);
             }
             return;
+        }
+
+        // Dropped on empty canvas — create a new relation node with a ref to the source
+        const sourceNode = getNodes().find(n => n.id === sourceNodeId);
+        if (sourceNode && sourceNode.type === 'relationNode') {
+            const sourceData = sourceNode.data as { relationData?: RelationState };
+            const displayName = sourceData?.relationData?.viewState?.displayName;
+            if (displayName) {
+                const macroName = getMacroName(displayName);
+                const initialData = getInitialDataElement('table');
+                const newSql = `SELECT * FROM ${macroName}()`;
+                initialData.query.baseQuery = newSql;
+                initialData.query.activeBaseQuery = newSql;
+
+                const newNodeId = `n-${Date.now()}`;
+                const newNode: Node = {
+                    id: newNodeId,
+                    type: 'relationNode',
+                    position: {
+                        x: dropPosition.x - DEFAULT_NODE_SIZE.width / 2,
+                        y: dropPosition.y - DEFAULT_NODE_SIZE.height / 2,
+                    },
+                    width: DEFAULT_NODE_SIZE.width,
+                    height: DEFAULT_NODE_SIZE.height,
+                    selected: true,
+                    data: {relationData: initialData},
+                };
+
+                setNodes((nds) =>
+                    [...nds.map((node) => ({...node, selected: false})), newNode]
+                );
+            }
         }
 
         connectingFrom.current = null;

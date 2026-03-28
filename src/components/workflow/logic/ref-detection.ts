@@ -1,6 +1,7 @@
 import {Edge, MarkerType, Node} from '@xyflow/react';
-import {sanitizeMacroName, getMacroName} from './table-macros';
+import {sanitizeMacroName, getMacroName} from '../../../state/relations/sql/table-macros';
 import {RelationState} from "@/model/relation-state";
+import {minifySQL} from "@/platform/sql-utils";
 
 /**
  * Extract node references from SQL.
@@ -101,6 +102,12 @@ export function createAutoEdge(source: string, target: string): Edge {
  */
 export function injectNodeRef(currentSql: string, macroName: string): string {
     const trimmed = currentSql.trim();
+
+    // check if the macro name is already present in the SQL to avoid duplicate injection
+    const sqlWithoutComments = minifySQL(trimmed);
+    if (new RegExp(`\\b${macroName}\\s*\\(`).test(sqlWithoutComments)) {
+        return currentSql; // already present, no injection needed
+    }
 
     // Empty SQL: generate a full SELECT
     if (!trimmed) {

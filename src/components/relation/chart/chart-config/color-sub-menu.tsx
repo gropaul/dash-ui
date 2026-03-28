@@ -56,7 +56,7 @@ export function ColorSubMenu(props: ColorSubMenuProps) {
                             setLocalColor(color.hex);     // instant local update
                             throttledSetColor(color);     // at most one global update per interval (latest wins)
                         }}
-                        presetColors={DEFAULT_COLORS}
+                        presetColors={DEFAULT_COLORS.slice(0, 4).concat(['black'])}
                     />
                 </DropdownMenuSubContent>
             </DropdownMenuPortal>

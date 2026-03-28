@@ -9,7 +9,7 @@ import {RelationToolbar} from "@/components/workflow/nodes/relation/relation-too
 import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
-import {extractNodeRefs, diffEdges, createAutoEdge} from "@/state/relations/sql/ref-detection";
+import {extractNodeRefs, diffEdges, createAutoEdge} from "@/components/workflow/logic/ref-detection";
 import {refreshDownstream} from "@/state/relations/sql/dag-execution";
 
 

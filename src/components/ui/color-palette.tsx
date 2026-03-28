@@ -43,7 +43,7 @@ interface ColorPaletteProps {
 export function ColorPalette({
     color,
     onChange,
-    colors = DEFAULT_COLORS,
+    colors = ['black'].concat(DEFAULT_COLORS.slice(0, 4)),
     showPicker = true,
     debounceMs = 100,
 }: ColorPaletteProps) {

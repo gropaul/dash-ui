@@ -23,7 +23,7 @@ function isDatabaseReadonly(): boolean {
 
 /**
  * Sanitize relation name for use as a macro name.
- * Converts "My Query!" -> "my_query"
+ * Converts "My Query!" -> "my_query" and MyQuery -> "myquery"
  */
 export function sanitizeMacroName(name: string): string {
     return name
