@@ -44,8 +44,8 @@ function FloatingEdge({id, source, target, style, selected, data, interactionWid
     }
 
     const edgeData = data as FloatingEdgeData | undefined;
-    const snapToCenter = edgeData?.snapToCenter ?? true;
-    const edgeStyle = edgeData?.edgeStyle ?? 'smoothstep';
+    const snapToCenter = edgeData?.snapToCenter ?? false;
+    const edgeStyle = edgeData?.edgeStyle ?? 'bezier';
     const animationState = edgeData?.animationState;
     const {sx, sy, tx, ty, sourcePos, targetPos} = getEdgeParams(sourceNode, targetNode, snapToCenter);
 

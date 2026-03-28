@@ -25,17 +25,17 @@ import {
     createOnNodeMouseEnter,
     createOnNodeMouseLeave,
     EdgeHandlerContext,
-} from "@/components/workflow/flow-edge-functions";
+} from "@/components/workflow/logic/flow-edge-functions";
 import {
     getCursorStyle,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
     PointerHandlerContext,
-} from "@/components/workflow/flow-pointer-functions";
+} from "@/components/workflow/logic/flow-pointer-functions";
 
 import './flow-theme.css';
-import {CanvasState, CanvasStateFreeDraw, GRID_SIZE, INITIAL_CANVAS_STATE} from "@/components/workflow/models";
+import {CanvasState, CanvasStateFreeDraw, GRID_SIZE, INITIAL_CANVAS_STATE} from "@/components/workflow/logic/models";
 import {NodePreview} from "@/components/workflow/previews/node-preview";
 import {FreeDrawPreview} from "@/components/workflow/previews/free-draw-preview";
 import {useTheme} from "next-themes";

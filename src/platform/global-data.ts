@@ -22,14 +22,26 @@ export const CHART_QUERY_LIMIT = 50_000;
 
 
 export const DEFAULT_COLORS = [
-    "#6366f1",
-    "#f43f5e",
-    "#0ea5e9",
-    "#f59e0b",
-    "#10b981",
-    "#8b5cf6",
-    "#ec4899",
-    "#14b8a6",
+    "#6366f1",  // Indigo
+    "#f43f5e",  // Rose
+    "#0ea5e9",  // Sky
+    "#f59e0b",  // Amber
+    "#10b981",  // Emerald
+    "#8b5cf6",  // Violet
+    "#ec4899",  // Pink
+    "#14b8a6",  // Teal
+    "#f97316",  // Orange
+    "#06b6d4",  // Cyan
+    "#84cc16",  // Lime
+    "#e11d48",  // Red
+    "#a855f7",  // Purple
+    "#22d3ee",  // Light Cyan
+    "#facc15",  // Yellow
+    "#2dd4bf",  // Light Teal
+    "#fb7185",  // Light Rose
+    "#818cf8",  // Light Indigo
+    "#34d399",  // Light Emerald
+    "#fbbf24",  // Light Amber
 ]
 
 export interface LLMSettings {

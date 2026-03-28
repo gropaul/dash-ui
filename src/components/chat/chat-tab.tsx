@@ -5,7 +5,7 @@ import {UIMessage, UIMessagePart, DynamicToolUIPart} from "ai";
 import {useChatState} from "@/state/chat.state";
 import {deepClone} from "@/platform/object-utils";
 import {getErrorMessage} from "@/platform/error-handling";
-import {buildTargetContextPrompt, getAvailableTargets} from "@/components/chat/model/chat-context";
+import {buildTargetContextPrompt, getEnabledTargets} from "@/components/chat/model/chat-context";
 
 
 interface ChatProps {
@@ -73,7 +73,7 @@ export function ChatTab({className}: ChatProps) {
             });
 
             // Inject dynamic context about available targets (not persisted)
-            const targets = getAvailableTargets();
+            const targets = getEnabledTargets();
             const contextMessage: UIMessage = {
                 id: 'dynamic-context',
                 role: 'system',

@@ -9,7 +9,7 @@ import {
     OnConnectStartParams,
 } from '@xyflow/react';
 import {Dispatch, MutableRefObject, SetStateAction} from 'react';
-import {CanvasState} from "@/components/workflow/models";
+import {CanvasState} from "@/components/workflow/logic/models";
 import {getMacroName} from "@/state/relations/sql/table-macros";
 import {injectNodeRef} from "@/state/relations/sql/ref-detection";
 import {RelationState} from "@/model/relation-state";

@@ -1,7 +1,7 @@
 import {ReactNode} from "react";
 import {NodeResizer} from "@xyflow/react";
 import {cn} from "@/lib/utils";
-import {ConnectionHoverState} from "@/components/workflow/models";
+import {ConnectionHoverState} from "@/components/workflow/logic/models";
 import {RelationNodeHeader} from "@/components/workflow/nodes/relation/relation-header";
 import {RelationViewType} from "@/model/relation-view-state";
 import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";

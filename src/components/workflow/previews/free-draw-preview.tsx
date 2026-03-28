@@ -1,6 +1,6 @@
 import {useViewport} from '@xyflow/react';
 import getStroke from 'perfect-freehand';
-import {Stroke, StrokePoint} from "@/components/workflow/models";
+import {Stroke, StrokePoint} from "@/components/workflow/logic/models";
 
 interface FreeDrawPreviewProps {
     currentStroke?: Stroke;

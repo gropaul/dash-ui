@@ -1,6 +1,6 @@
 import {NodeProps, NodeResizer} from '@xyflow/react';
 import getStroke from 'perfect-freehand';
-import {StrokePoint} from "@/components/workflow/models";
+import {StrokePoint} from "@/components/workflow/logic/models";
 import {FreeDrawToolbar} from "./free-draw/free-draw-toolbar";
 
 export interface FreeDrawNodeData {

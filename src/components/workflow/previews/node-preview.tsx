@@ -1,4 +1,4 @@
-import {CanvasState} from "@/components/workflow/models";
+import {CanvasState} from "@/components/workflow/logic/models";
 import {useReactFlow, useViewport} from "@xyflow/react";
 
 export interface NodePreviewProps {

@@ -10,7 +10,6 @@ import {ChatInput} from "@/components/chat/chat-input";
 import {ModelDownloadBanner} from "@/components/chat/model-download-banner";
 import {useLanguageModelState} from "@/state/language-model.state";
 import {getProviderRegistry} from "@/components/chat/providers";
-import {ChatContextBar} from "@/components/chat/chat-context-bar";
 
 
 export function ChatContentMessages({

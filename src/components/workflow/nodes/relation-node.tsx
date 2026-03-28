@@ -18,7 +18,7 @@ import {
     DEFAULT_CODE_VIEW_HEIGHT,
     DEFAULT_NODE_HEIGHT,
     roundToGrid
-} from "@/components/workflow/models";
+} from "@/components/workflow/logic/models";
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {useWorkflowState} from "@/components/workflow/workflow-context";

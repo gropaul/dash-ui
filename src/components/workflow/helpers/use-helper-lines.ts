@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState, MouseEvent as ReactMouseEvent } from 'react';
 import { Node, useReactFlow, useStore } from '@xyflow/react';
-import {GRID_SIZE, HelperLine} from '../models';
+import {GRID_SIZE, HelperLine} from '../logic/models';
 import { findAlignments, createHelperLines, getNodeBounds } from './helper-lines-utils';
 
 interface ViewportBounds {

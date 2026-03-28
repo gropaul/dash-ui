@@ -1,6 +1,7 @@
 import {AxisConfig, ChartConfig, getInitialAxisDecoration, PlotConfig} from "@/model/relation-view-state/chart";
 import {RelationData} from "@/model/relation";
 import {EChartsOption} from "echarts-for-react/src/types";
+import {DEFAULT_COLORS} from "@/platform/global-data";
 
 
 export function plotIsCartesian(plot: PlotConfig) {
@@ -81,6 +82,7 @@ export function toEChartOptions(
         return {
 
             ...baseConfig,
+            color: DEFAULT_COLORS,
             series: [{
                 type: "pie",
                 radius: [dec.innerRadius, "60%"],

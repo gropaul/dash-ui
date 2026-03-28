@@ -1,7 +1,7 @@
 'use client';
 
 import { useViewport } from '@xyflow/react';
-import { HelperLine } from '../models';
+import { HelperLine } from '../logic/models';
 
 interface HelperLinesProps {
     helperLines: HelperLine[];

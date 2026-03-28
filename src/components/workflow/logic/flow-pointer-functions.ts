@@ -6,7 +6,7 @@ import {
     DEFAULT_TEXT_SIZE,
     Stroke,
     StrokePoint
-} from "@/components/workflow/models";
+} from "@/components/workflow/logic/models";
 import {NodeTemplate, Position} from "@/components/workflow/flow";
 import {FreeDrawNodeData} from "@/components/workflow/nodes/free-draw-node";
 import {DEFAULT_TEXT_NODE_DATA} from "@/components/workflow/nodes/text-node";

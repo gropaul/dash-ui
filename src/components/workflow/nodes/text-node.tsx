@@ -2,7 +2,7 @@ import {NodeProps, NodeResizer} from '@xyflow/react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {TextToolbar} from "./text/text-toolbar";
 import {useWorkflowState} from "@/components/workflow/workflow-context";
-import {GRID_SIZE} from "@/components/workflow/models";
+import {GRID_SIZE} from "@/components/workflow/logic/models";
 
 export type TextStyle = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body' | 'code';
 

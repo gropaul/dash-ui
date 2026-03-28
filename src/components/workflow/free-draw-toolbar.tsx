@@ -2,7 +2,7 @@ import {ColorPalette} from "@/components/ui/color-palette";
 import {Slider} from "@/components/ui/slider";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {Blend, Diameter, Highlighter, PenTool, Pencil} from "lucide-react";
-import {DrawSettings, DrawToolVariant, TOOL_VARIANT_PRESETS} from "@/components/workflow/models";
+import {DrawSettings, DrawToolVariant, TOOL_VARIANT_PRESETS} from "@/components/workflow/logic/models";
 
 interface FreeDrawToolbarProps {
     settings: DrawSettings;

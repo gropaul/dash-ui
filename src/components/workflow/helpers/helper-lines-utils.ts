@@ -1,5 +1,5 @@
 import { Node } from '@xyflow/react';
-import { HelperLine } from '../models';
+import { HelperLine } from '../logic/models';
 
 export interface NodeBounds {
     left: number;

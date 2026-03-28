@@ -13,7 +13,7 @@ import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {useRelationsState} from "@/state/relations.state";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
-import {getAvailableTargets} from "@/components/chat/model/chat-context";
+import {getAvailableTargets, isTargetEnabled} from "@/components/chat/model/chat-context";
 import {TableViewConfigSchema} from "@/model/relation-view-state/table";
 import {deepClone, DeepPartial} from "@/platform/object-utils";
 import {updateRelationWithPartial} from "@/state/relations/actions/advanced-actions";
@@ -218,7 +218,7 @@ export const ChartTool = tool({
         const data = updateRelationWithPartial(base, partialUpdate);
 
         // 3. Route the target
-        return RouteResult(target, data);
+        return RouteAndApplyTarget(target, data);
     }
 });
 
@@ -266,7 +266,12 @@ function GetBase(targetId: string, sql: string, viewType: RelationViewType): Rel
     return base;
 }
 
-async function RouteResult(target: string, data: RelationState): Promise<string | RelationState> {
+async function RouteAndApplyTarget(target: string, data: RelationState): Promise<string | RelationState> {
+
+    // Guard: reject targets the user has disabled in the context bar
+    if (target !== 'chat' && !isTargetEnabled(target)) {
+        return `Error: Target "${target}" is not enabled. The user has disabled this target in the context bar.`;
+    }
 
     switch (getTargetType(target)) {
         case 'chat':
@@ -309,7 +314,7 @@ export const TableTool = tool({
         }
 
         // 3. Route the target
-        return RouteResult(target, data);
+        return RouteAndApplyTarget(target, data);
     }
 });
 

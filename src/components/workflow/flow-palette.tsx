@@ -20,7 +20,7 @@ import {
     DEFAULT_TEXT_SIZE,
     DrawSettings,
     DrawToolVariant
-} from "@/components/workflow/models";
+} from "@/components/workflow/logic/models";
 
 function getToolVariantIcon(variant: DrawToolVariant) {
     switch (variant) {
