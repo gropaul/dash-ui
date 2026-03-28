@@ -47,6 +47,7 @@ import {RelationActions} from "@/state/relations/relation-actions";
 // Side-effect import: initializes macro registration subscription
 // Do not remove - required for table macros to work
 import "@/state/relations/sql/table-macros";
+import {createEndUserRelationActions} from "@/state/relations/actions";
 
 
 export interface RelationZustand {
@@ -72,10 +73,6 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
 
     /* relation data actions */
     getRelation: (relationId: string) => RelationState | undefined,
-
-    /* relation view state actions */
-    setRelationViewState: (relationId: string, viewState: RelationViewState) => void,
-    getRelationViewState: (relationId: string) => RelationViewState,
 
     /* schema actions */
     getSchemaState: (schemaId: string) => SchemaState,
@@ -394,9 +391,10 @@ export const useRelationsState = createWithEqualityFn(
                     } else {
                         // update state with empty (loading) relation
                         const defaultQueryParams = getInitialParams('table');
-                        const emptyRelationState = getRelationStateFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
-                        get().showEntity('relations', emptyRelationState, editorPath);
-
+                        const relationState = getRelationStateFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
+                        const actions = createEndUserRelationActions({relationState, updateRelation: get().updateRelation});
+                        get().showEntity('relations', relationState, editorPath);
+                        await actions.runQuery();
                     }
                 },
 
@@ -409,25 +407,6 @@ export const useRelationsState = createWithEqualityFn(
                             [newRelation.id]: newRelation,
                         },
                     }));
-                },
-
-                setRelationViewState: (relationId: string, viewState: RelationViewState) => {
-                    set((state) => ({
-                        relations: {
-                            ...state.relations,
-                            [relationId]: {
-                                ...state.relations[relationId],
-                                viewState,
-                            },
-                        }
-                    }));
-                },
-
-                getRelationViewState: (relationId: string) => {
-                    return get().relations[relationId].viewState;
-                },
-                updateRelationViewState: (relationId: string, partialUpdate: DeepPartial<RelationViewState>, path?: string[]) => {
-
                 },
                 closeTab: (tabId: string) => {
                     const {schemas, databases, relations, dashboards} = get();
