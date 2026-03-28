@@ -4,6 +4,12 @@ import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {RelationSource} from "@/model/relation";
 
 
+function isDisplayNameTaken (displayName: string, excludeRelationId?: string): boolean {
+    return getAllRelations().some(
+        ({ relation }) => relation.viewState.displayName === displayName && relation.id !== excludeRelationId
+    );
+}
+
 export class RelationActions {
 
     static copy = (original: RelationState) => {
@@ -32,21 +38,16 @@ export class RelationActions {
         return getRelationStateFromSource(connectionId, source, defaultQueryParams);
     }
 
-    static isDisplayNameTaken = (displayName: string, excludeRelationId?: string): boolean => {
-        return getAllRelations().some(
-            ({ relation }) => relation.viewState.displayName === displayName && relation.id !== excludeRelationId
-        );
-    }
-
     static getUniqueDisplayName = (desiredName: string, excludeRelationId?: string): string => {
-        if (!RelationActions.isDisplayNameTaken(desiredName, excludeRelationId)) {
+        if (!isDisplayNameTaken(desiredName, excludeRelationId)) {
             return desiredName;
         }
         const base = desiredName.replace(/ \(\d+\)$/, '');
         let counter = 2;
-        while (RelationActions.isDisplayNameTaken(`${base} (${counter})`, excludeRelationId)) {
+        while (isDisplayNameTaken(`${base} (${counter})`, excludeRelationId)) {
             counter++;
         }
         return `${base} (${counter})`;
     }
 }
+

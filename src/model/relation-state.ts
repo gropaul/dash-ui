@@ -235,9 +235,9 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
 
 export function getRelationStateFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters): RelationState {
 
-    const name = getRelationNameFromSource(source);
+    const displayName = getRelationNameFromSource(source);
     const relation: Relation = {
-        name: name,
+        name: displayName,
         id: getRelationIdFromSource(connectionId, source),
         source: source,
         connectionId: connectionId,
@@ -258,7 +258,7 @@ export function getRelationStateFromSource(connectionId: string, source: Relatio
 
     return {
         ...relationWithQuery,
-        viewState: getInitViewState(name, undefined, undefined, showCode),
+        viewState: getInitViewState(displayName, undefined, undefined, showCode),
     };
 }
 
