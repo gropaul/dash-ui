@@ -1,6 +1,6 @@
 import {TreeAction, TreeActionAdd, TreeActionUpdate, TreeNode} from "@/components/basics/files/tree-utils";
 import {GetNewEditorEntity, GetNewEditorFolder} from "@/model/editor-folder";
-import {RelationZustandEntityType} from "@/state/relations/entity-functions";
+import {RelationZustandEntityType} from "@/state/entities/entity-functions";
 
 export function AddFolderActions(path: string[], parent?: TreeNode, name?: string): TreeAction[] {
     return AddNodeActions(path, GetNewEditorFolder(name), parent);

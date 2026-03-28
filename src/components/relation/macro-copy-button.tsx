@@ -1,7 +1,7 @@
 import { Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { getMacroName, extractParameters } from "@/state/relations/table-macros";
+import { getMacroName, extractParameters } from "@/state/relations/sql/table-macros";
 import {
     Popover,
     PopoverContent,

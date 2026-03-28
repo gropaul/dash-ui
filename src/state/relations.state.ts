@@ -39,14 +39,14 @@ import {
     RelationZustandEntity,
     RelationZustandEntityType,
     SetEntityDisplayName
-} from "@/state/relations/entity-functions";
+} from "@/state/entities/entity-functions";
 import {useInitState} from "@/state/init.state";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {isInteractiveBlock} from "@/components/editor/inputs/input-manager";
 import {RelationActions} from "@/state/relations/relation-actions";
 // Side-effect import: initializes macro registration subscription
 // Do not remove - required for table macros to work
-import "@/state/relations/table-macros";
+import "@/state/relations/sql/table-macros";
 
 
 export interface RelationZustand {
@@ -387,7 +387,6 @@ export const useRelationsState = createWithEqualityFn(
                 showRelationFromSource: async (connectionId: string, source: RelationSource, editorPath: string[]) => {
 
                     const relationId = getRelationIdFromSource(connectionId, source);
-
                     // check if relation already exists
                     const existingRelation = get().relations[relationId];
                     if (existingRelation) {
@@ -396,34 +395,8 @@ export const useRelationsState = createWithEqualityFn(
                         // update state with empty (loading) relation
                         const defaultQueryParams = getInitialParams('table');
                         const emptyRelationState = getRelationStateFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
+                        get().showEntity('relations', emptyRelationState, editorPath);
 
-                        // as the relation did not exist yet, we also have to add a reference to the editor
-                        const parent = findNodeInTrees(get().editorElements, editorPath);
-                        const actions = AddEntityActions(editorPath, relationId, 'relations', emptyRelationState.viewState.displayName, parent);
-
-                        const newElements = copyAndApplyTreeActions(get().editorElements, actions);
-                        // finally update the state
-                        set((state) => ({
-                            relations: {
-                                ...state.relations,
-                                [relationId]: emptyRelationState,
-                            },
-                            editorElements: newElements,
-                        }));
-
-                        useGUIState.getState().addEntityTab('relations', emptyRelationState);
-
-                        // execute query
-                        const executedRelationState = await executeQueryOfRelation(emptyRelationState);
-                        set((state) => ({
-                            relations: {
-                                ...state.relations,
-                                [relationId]: executedRelationState,
-                            },
-                        }));
-
-                        // Dispatch create action for the new relation
-                        RelationActions.create(relationId, executedRelationState.viewState.displayName, executedRelationState.query.baseQuery);
                     }
                 },
 

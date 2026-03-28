@@ -1,4 +1,4 @@
-import { extractParameters } from "@/state/relations/table-macros";
+import { extractParameters } from "@/state/relations/sql/table-macros";
 import { ParameterDefinition, createParameter } from "@/model/relation-view-state/parameters";
 
 /**

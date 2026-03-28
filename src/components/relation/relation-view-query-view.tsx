@@ -2,10 +2,10 @@ import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {RelationState} from "@/model/relation-state";
 import {splitSQL} from "@/platform/sql-utils";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {AdvancedRelationActions} from "@/state/relations/functions";
+import {AdvancedRelationActions} from "@/state/relations/actions";
 import {forwardRef} from "react";
 import {StaticDisplayProps} from "@/components/relation/relation-view";
-import {mergeParameters, parametersEqual} from "@/state/relations/parameter-sync";
+import {mergeParameters, parametersEqual} from "@/state/relations/sql/query-parameters";
 
 interface RelationViewQueryProps extends AdvancedRelationActions{
     relationState: RelationState,

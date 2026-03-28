@@ -25,7 +25,7 @@ import {DefaultStateStorageInfo, StateStorageInfo} from "@/model/database-connec
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
-import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/relations/entity-functions";
+import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {deepClone} from "@/platform/object-utils";
 
 

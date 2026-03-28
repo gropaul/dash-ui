@@ -6,7 +6,7 @@ import {
     GetEntityDisplayName,
     RelationZustandEntity,
     RelationZustandEntityType
-} from "@/state/relations/entity-functions";
+} from "@/state/entities/entity-functions";
 
 // Layout Initialization
 export function getInitialLayoutModel(): Model {

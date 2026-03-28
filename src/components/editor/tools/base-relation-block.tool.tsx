@@ -13,7 +13,7 @@ import {RelationBlockData, RelationComponent} from "@/components/editor/tools/re
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN} from "@/components/editor/tools/icons";
-import {updateAndExecuteRelation} from "@/state/relations/functions";
+import {updateAndExecuteRelation} from "@/state/relations/actions";
 
 /**
  * Base class for block tools that share common functionality

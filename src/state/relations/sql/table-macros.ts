@@ -1,9 +1,9 @@
 import { TABLE_MACRO_PREFIX } from "@/platform/global-data";
 import { ConnectionsService } from "@/state/connections/connections-service";
-import { onRelationAction, RelationAction } from "./relation-actions";
+import { onRelationAction, RelationAction } from "../relation-actions";
 import { StateStorageInfoLoaded } from "@/model/database-connection";
 import { ParameterDefinition } from "@/model/relation-view-state/parameters";
-import { getAllRelations } from "@/state/relations/all-relations";
+import { getAllRelations } from "@/state/relations/relation-utils";
 
 /**
  * Check if the database is in read-only mode.

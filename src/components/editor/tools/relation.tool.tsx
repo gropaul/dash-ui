@@ -12,7 +12,7 @@ import {ICON_CAPTIONS_OFF, ICON_CHART, ICON_SETTING, ICON_TABLE} from "@/compone
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
-import {updateAndExecuteRelation} from "@/state/relations/functions";
+import {updateAndExecuteRelation} from "@/state/relations/actions";
 
 export interface RelationBlockData extends RelationState {
 }

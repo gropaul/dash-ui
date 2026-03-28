@@ -6,10 +6,10 @@ import {
     getInitialLayoutModel,
     removeTab,
     renameTab,
-} from "@/state/relations/layout-updates";
+} from "@/state/relations/tabs/layout-updates";
 import {createWithEqualityFn} from "zustand/traditional";
 import {ForceOpenReason} from "@/components/settings/settings-dialog";
-import {RelationZustandEntity, RelationZustandEntityType} from "@/state/relations/entity-functions";
+import {RelationZustandEntity, RelationZustandEntityType} from "@/state/entities/entity-functions";
 
 export type AvailableTab = 'connections' | 'relations' | 'chat'
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation'

@@ -3,7 +3,7 @@ import {ContentWrapper, RelationViewAPIProps, RelationViewProps} from "@/compone
 import React, {RefObject, useState} from "react";
 import {Sizable} from "@/components/ui/sizable";
 import {cn} from "@/lib/utils";
-import {createAdvancedRelationActions} from "@/state/relations/functions";
+import {createAdvancedRelationActions} from "@/state/relations/actions";
 import {getViewSizeRequirements} from "@/model/relation-view-state";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {ParameterPanel} from "@/components/relation/parameters/parameter-panel";

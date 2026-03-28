@@ -1,6 +1,6 @@
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {getRandomId} from "@/platform/id-utils";
-import {RelationZustandEntityType} from "@/state/relations/entity-functions";
+import {RelationZustandEntityType} from "@/state/entities/entity-functions";
 
 
 export interface EditorFolder extends TreeNode<EditorFolder, string> {

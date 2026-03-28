@@ -6,7 +6,7 @@ import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {AdvancedRelationActions} from "@/state/relations/functions";
+import {AdvancedRelationActions} from "@/state/relations/actions";
 import {ErrorBoundary} from "@/components/basics/error-bundary";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {EditorPanelPosition} from "@/components/basics/sql-editor/sql-editor";

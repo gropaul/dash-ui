@@ -10,8 +10,8 @@ import {
 } from '@xyflow/react';
 import {Dispatch, MutableRefObject, SetStateAction} from 'react';
 import {CanvasState} from "@/components/workflow/models";
-import {getMacroName} from "@/state/relations/table-macros";
-import {injectNodeRef} from "@/state/relations/sql-ref-detection";
+import {getMacroName} from "@/state/relations/sql/table-macros";
+import {injectNodeRef} from "@/state/relations/sql/ref-detection";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 
 export interface ConnectionValidity {

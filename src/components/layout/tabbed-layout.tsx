@@ -3,7 +3,7 @@ import {Layout, TabNode} from 'flexlayout-react';
 import '@/styles/tabs.css';
 import {Database, Folder, LayoutDashboard, Network, Sheet, WorkflowIcon} from 'lucide-react';
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
-import {onLayoutModelChange} from "@/state/relations/layout-updates";
+import {onLayoutModelChange} from "@/state/relations/tabs/layout-updates";
 import {SchemaTab} from "@/components/schema/schema-tab";
 import {DatabaseTab} from "@/components/database/database-tab";
 import {DirectoryTab} from "@/components/directory/directory-tab";

@@ -6,13 +6,13 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import {createEndUserRelationActions} from "@/state/relations/functions";
+import {createEndUserRelationActions} from "@/state/relations/actions";
 import {RelationToolbar} from "@/components/workflow/nodes/relation/relation-toolbar";
 import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
-import {extractNodeRefs, diffEdges, createAutoEdge} from "@/state/relations/sql-ref-detection";
-import {refreshDownstream} from "@/state/relations/refresh-queue";
+import {extractNodeRefs, diffEdges, createAutoEdge} from "@/state/relations/sql/ref-detection";
+import {refreshDownstream} from "@/state/relations/sql/dag-execution";
 
 
 import {
@@ -209,7 +209,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         onStopRun={actions.cancelQuery}
                         onToggleCode={handleToggleCode}
                         viewProps={viewProps}
-                        onViewChange={actions.setViewType}
+                        onViewChange={actions.setRelationViewType}
                         onFullscreen={() => setIsFullscreen(true)}
                         onToggleHeader={ () => {
                             updateNodeData(
