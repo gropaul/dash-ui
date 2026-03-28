@@ -1,4 +1,4 @@
-import {getInitialParams} from "@/model/relation-state";
+import {getInitialParams, RelationState} from "@/model/relation-state";
 import {
     getInitialTabViewBaseState,
     getInitViewState,
@@ -9,7 +9,6 @@ import {Relation, RelationSourceQuery} from "@/model/relation";
 import {getRandomId} from "@/platform/id-utils";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {OutputData} from "@editorjs/editorjs";
-import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 
 export interface DashboardViewState extends TabViewBaseState {
@@ -30,7 +29,7 @@ export interface DashboardState {
 }
 
 
-export function getInitialDataElement(viewType: RelationViewType): RelationBlockData {
+export function getInitialDataElement(viewType: RelationViewType): RelationState {
 
     const randomId = getRandomId();
     const baseQuery = viewType === 'table' ?

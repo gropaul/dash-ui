@@ -6,7 +6,6 @@ import {
     setRelationRunning,
 } from '@/model/relation-state';
 import {registerRelationMacro} from './table-macros';
-import {RelationBlockData} from '@/components/editor/tools/relation.tool';
 
 type SetNodes = (updater: Node[] | ((nodes: Node[]) => Node[])) => void;
 type SetEdges = (updater: Edge[] | ((edges: Edge[]) => Edge[])) => void;
@@ -106,10 +105,10 @@ function updateNodeRelationData(
 /**
  * Get the relation data for a workflow node.
  */
-function getNodeRelationData(nodeId: string, getNodes: GetNodes): RelationBlockData | null {
+function getNodeRelationData(nodeId: string, getNodes: GetNodes): RelationState | null {
     const node = getNodes().find(n => n.id === nodeId);
     if (!node || node.type !== 'relationNode') return null;
-    const data = node.data as { relationData?: RelationBlockData };
+    const data = node.data as { relationData?: RelationState };
     return data?.relationData ?? null;
 }
 

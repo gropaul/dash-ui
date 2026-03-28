@@ -1,6 +1,6 @@
 import {Edge, MarkerType, Node} from '@xyflow/react';
 import {sanitizeMacroName, getMacroName} from './table-macros';
-import {RelationBlockData} from '@/components/editor/tools/relation.tool';
+import {RelationState} from "@/model/relation-state";
 
 /**
  * Extract node references from SQL.
@@ -26,7 +26,7 @@ function findNodeIdByMacroRef(ref: string, allNodes: Node[], excludeNodeId: stri
     for (const node of allNodes) {
         if (node.id === excludeNodeId) continue;
         if (node.type !== 'relationNode') continue;
-        const data = node.data as { relationData?: RelationBlockData };
+        const data = node.data as { relationData?: RelationState };
         const displayName = data?.relationData?.viewState?.displayName;
         if (displayName && sanitizeMacroName(displayName) === ref) {
             return node.id;

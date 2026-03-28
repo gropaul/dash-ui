@@ -2,6 +2,7 @@ import {Button} from "@/components/ui/button";
 import {Send} from "lucide-react";
 import React from "react";
 import {cn} from "@/lib/utils";
+import {ChatContextBar} from "@/components/chat/chat-context-bar";
 
 
 interface ChatInputProps {
@@ -24,6 +25,9 @@ export function ChatInput({onSendMessage, isLoading, className}: ChatInputProps)
 
 
     return <div className={cn(className, 'px-2 pb-1 pt-2 border-t border-border/70')}>
+        {/* Context Bar */}
+        <ChatContextBar/>
+
         <div className="relative">
               <textarea
                   value={inputValue}

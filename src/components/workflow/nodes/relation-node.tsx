@@ -1,7 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
 import {RelationNodeBody} from "@/components/workflow/nodes/relation/relation-body";
-import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {getInitialDataElement} from "@/model/dashboard-state";
 import {RelationStateView} from "@/components/relation/relation-state-view";
@@ -24,11 +23,12 @@ import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/glob
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {useWorkflowState} from "@/components/workflow/workflow-context";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {RelationState} from "@/model/relation-state";
 
 const DEFAULT_RELATION_DATA = getInitialDataElement('table');
 
 type RelationNodeProps = {
-    relationData?: RelationBlockData;
+    relationData?: RelationState;
     connectionHover?: ConnectionHoverState | null;
 }
 
@@ -39,11 +39,11 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
 
     // Get relation data from node props, merge with defaults
     const rawData = props.data as RelationNodeProps;
-    const data: RelationBlockData = rawData.relationData ?? DEFAULT_RELATION_DATA;
+    const data: RelationState = rawData.relationData ?? DEFAULT_RELATION_DATA;
 
     // Update relation data in node, optionally with node-level updates (height, etc.)
     const updateNodeData = useCallback((
-        dataUpdater: (prev: RelationBlockData) => RelationBlockData,
+        dataUpdater: (prev: RelationState) => RelationState,
         nodeUpdater?: (node: Node) => Partial<Node>
     ) => {
         setNodes((nodes) =>
@@ -63,7 +63,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
     }, [setNodes, props.id]);
 
     // Simple data-only updater for compatibility with actions
-    const setData = useCallback((updater: RelationBlockData | ((prev: RelationBlockData) => RelationBlockData)) => {
+    const setData = useCallback((updater: RelationState | ((prev: RelationState) => RelationState)) => {
         updateNodeData(prev => typeof updater === 'function' ? updater(prev) : updater);
     }, [updateNodeData]);
 

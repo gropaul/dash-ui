@@ -17,7 +17,6 @@ import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import {DashboardState} from "@/model/dashboard-state";
-import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {useEditorStore} from "@/state/editor.state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
@@ -64,7 +63,7 @@ export function onAddToDashboardSelected(relation_: RelationState, dashboard: Da
     // copy.id = getRandomId();
 
 
-    const newElementData: RelationBlockData = {
+    const newElementData: RelationState = {
         ...copy,
         viewState: {
             ...copy.viewState,

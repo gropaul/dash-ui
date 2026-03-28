@@ -9,8 +9,8 @@ import {
     StringReturnFunction
 } from "@/components/editor/inputs/input-manager";
 import {getRandomId} from "@/platform/id-utils";
-import {RelationBlockData, RelationComponent} from "@/components/editor/tools/relation.tool";
-import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
+import {RelationComponent} from "@/components/editor/tools/relation.tool";
+import {getVariablesUsedByQuery, RelationState} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN} from "@/components/editor/tools/icons";
 import {RelationActions} from "@/state/relations/actions/static-actions";
@@ -22,7 +22,7 @@ import {EndUserRelationActions, getRelationActions} from "@/state/relations/acti
  */
 export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlock {
     protected readonly api: API;
-    protected data: RelationBlockData;
+    protected data: RelationState;
     protected readOnly: boolean;
     protected wrapper: HTMLElement | null = null;
     protected reactRoot: Root | null = null;
@@ -42,7 +42,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
     }
 
     protected constructor({data, api, readOnly, config}: {
-        data: RelationBlockData,
+        data: RelationState,
         api: API,
         readOnly: boolean,
         config: any
@@ -99,7 +99,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         returnFunction(this.interactiveId);
     }
 
-    updateAndRender(newData: RelationBlockData) {
+    updateAndRender(newData: RelationState) {
         this.data = newData;
         this.render();
     }
@@ -200,7 +200,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         );
     }
 
-    public onDataChanged(updatedData: RelationBlockData): void {
+    public onDataChanged(updatedData: RelationState): void {
         // check if the sql is different and if yes register
         // the input source
         if (updatedData.query.baseQuery !== this.data.query.baseQuery) {
@@ -237,7 +237,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
     }
 
     // Common save method
-    public save(): RelationBlockData {
+    public save(): RelationState {
         return this.data;
     }
 

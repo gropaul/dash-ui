@@ -389,6 +389,7 @@ export const useRelationsState = createWithEqualityFn(
                 updateRelation: (newRelation: RelationState) => {
                     // Note: RelationActions dispatch is handled by useRelationActions hook
                     // to work uniformly across standalone, workflow, and dashboard contexts.
+                    console.log(newRelation);
                     set((state) => ({
                         relations: {
                             ...state.relations,

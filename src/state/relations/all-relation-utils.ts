@@ -1,6 +1,6 @@
 import { RelationState } from "@/model/relation-state";
 import { useRelationsState } from "@/state/relations.state";
-import { isRelationBlockData } from "@/components/editor/tools/utils";
+import { isRelationState } from "@/components/editor/tools/utils";
 import { getRandomId } from "@/platform/id-utils";
 
 export type RelationOrigin = 'relation' | 'workflow' | 'dashboard';
@@ -40,7 +40,7 @@ export function getAllRelations(): RelationWithOrigin[] {
         const blocks = dashboard.elementState?.blocks;
         if (!blocks) continue;
         for (const block of blocks) {
-            if (isRelationBlockData(block.data)) {
+            if (isRelationState(block.data)) {
                 result.push({ relation: block.data, origin: 'dashboard' });
             }
         }

@@ -1,4 +1,24 @@
 import {RelationData} from "@/model/relation";
+import z from "zod";
+
+/**
+ * LLM-controllable subset of the table view configuration.
+ * TableViewState extends this with UI-level details (column widths, etc).
+ */
+export interface TableViewConfig {
+    columnsOrder: string[];
+    columnsHidden: string[];
+    showStats?: boolean;
+    showIndexColumn?: boolean;
+}
+
+/** Zod schema matching TableViewConfig — used as tool input schema. */
+export const TableViewConfigSchema = z.object({
+    columnsOrder: z.array(z.string()).describe('Order of columns to display. Columns not listed appear at the end.'),
+    columnsHidden: z.array(z.string()).describe('Columns to hide from the table.'),
+    showStats: z.boolean().optional().describe('Whether to show column statistics.'),
+    showIndexColumn: z.boolean().optional().describe('Whether to show the row index column. Defaults to true.'),
+});
 
 export interface ColumnViewState {
     width: number;
@@ -6,16 +26,24 @@ export interface ColumnViewState {
 }
 
 
-export interface TableViewState {
+export interface TableViewState extends TableViewConfig {
     // key is column name, value is display state -> map, can always be null!
     columnStates: { [key: string]: ColumnViewState };
-    // order of the columns to be displayed. if a column is not in this list it will be displayed at the end
-    columnsOrder: string[];
-    // columns that are currently not displayed, if a column is not in this list it is displayed
-    columnsHidden: string[];
+}
 
-    showStats?: boolean;
-    showIndexColumn?: boolean;
+/**
+ * Creates a full TableViewState from LLM-provided config, filling in
+ * default column display states for any columns in the order list.
+ */
+export function tableViewStateFromConfig(config: TableViewConfig): TableViewState {
+    const columnStates: { [key: string]: ColumnViewState } = {};
+    for (const col of config.columnsOrder) {
+        columnStates[col] = {...INITIAL_COLUMN_VIEW_STATE};
+    }
+    return {
+        ...config,
+        columnStates,
+    };
 }
 
 export const INITIAL_COLUMN_VIEW_STATE: ColumnViewState = {

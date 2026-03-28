@@ -5,6 +5,7 @@ import {UIMessage, UIMessagePart, DynamicToolUIPart} from "ai";
 import {useChatState} from "@/state/chat.state";
 import {deepClone} from "@/platform/object-utils";
 import {getErrorMessage} from "@/platform/error-handling";
+import {buildTargetContextPrompt, getAvailableTargets} from "@/components/chat/model/chat-context";
 
 
 interface ChatProps {
@@ -71,7 +72,16 @@ export function ChatTab({className}: ChatProps) {
                 state: 'inferring',
             });
 
-            const result = await aiService.streamText(messageWithUserMessage);
+            // Inject dynamic context about available targets (not persisted)
+            const targets = getAvailableTargets();
+            const contextMessage: UIMessage = {
+                id: 'dynamic-context',
+                role: 'system',
+                parts: [{type: 'text', text: buildTargetContextPrompt(targets)}],
+            };
+            const messagesWithContext = [messageWithUserMessage[0], contextMessage, ...messageWithUserMessage.slice(1)];
+
+            const result = await aiService.streamText(messagesWithContext);
             let currentMessage: UIMessage;
             let currentMessageParts: UIMessagePart<any, any>[] = [];
             let currentMessagePart: UIMessagePart<any, any> | undefined = undefined;

@@ -2,12 +2,11 @@ import {convertToModelMessages, UIMessage, streamText, StreamTextResult, ToolSet
 
 import {DataEngAssistantPrompt} from "@/components/chat/model/promts";
 import {
-    AddChartToDashboard,
-    AddMarkdownToDashboard,
-    AddTableToDashboard,
+    ChartTool,
+    MarkdownTool,
     QueryDatabaseTool,
-    ShowChart,
-    ShowTable
+    ReadTargetTool,
+    TableTool,
 } from "@/components/chat/model/tools";
 import {useLanguageModelState} from "@/state/language-model.state";
 import {getProviderRegistry} from "@/components/chat/providers";
@@ -73,41 +72,35 @@ class LlmService {
 // The models are now configured through the language model settings
 
 export const TOOL_NAME_EXECUTE_QUERY = 'executeQuery';
-export const TOOL_NAME_ADD_CHART_TO_DASHBOARD = 'addChartToDashboard';
-export const TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD = 'addMarkdownToDashboard';
-export const TOOL_NAME_ADD_TABLE_TO_DASHBOARD = 'addTableToDashboard';
-export const TOOL_NAME_SHOW_TABLE = 'showTable';
-export const TOOL_NAME_SHOW_CHART = 'showChart';
+export const TOOL_NAME_CHART = 'chart';
+export const TOOL_NAME_TABLE = 'table';
+export const TOOL_NAME_MARKDOWN = 'markdown';
+export const TOOL_NAME_READ_TARGET = 'readTarget';
 
 // type that must contain one of the tool names
 export type ToolName =
     typeof TOOL_NAME_EXECUTE_QUERY |
-    typeof TOOL_NAME_ADD_CHART_TO_DASHBOARD |
-    typeof TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD |
-    typeof TOOL_NAME_ADD_TABLE_TO_DASHBOARD |
-    typeof TOOL_NAME_SHOW_TABLE |
-    typeof TOOL_NAME_SHOW_CHART;
+    typeof TOOL_NAME_CHART |
+    typeof TOOL_NAME_TABLE |
+    typeof TOOL_NAME_MARKDOWN |
+    typeof TOOL_NAME_READ_TARGET;
 
 
 export const aiService = new LlmService(
     {
-        [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: AddChartToDashboard,
-        [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: AddMarkdownToDashboard,
         [TOOL_NAME_EXECUTE_QUERY]: QueryDatabaseTool,
-        [TOOL_NAME_ADD_TABLE_TO_DASHBOARD]: AddTableToDashboard,
-        [TOOL_NAME_SHOW_TABLE]: ShowTable,
-        [TOOL_NAME_SHOW_CHART]: ShowChart,
-
-
+        [TOOL_NAME_CHART]: ChartTool,
+        [TOOL_NAME_TABLE]: TableTool,
+        [TOOL_NAME_MARKDOWN]: MarkdownTool,
+        [TOOL_NAME_READ_TARGET]: ReadTargetTool,
     }
 );
 
-// map that takes and tool name the tool display name
+// map that takes a tool name to the tool display name
 export const ToolDisplayNameMap: Record<string, string> = {
     [TOOL_NAME_EXECUTE_QUERY]: 'Execute Query',
-    [TOOL_NAME_ADD_CHART_TO_DASHBOARD]: 'Add Chart to Dashboard',
-    [TOOL_NAME_ADD_MARKDOWN_TO_DASHBOARD]: 'Add Markdown to Dashboard',
-    [TOOL_NAME_ADD_TABLE_TO_DASHBOARD]: 'Add Table to Dashboard',
-    [TOOL_NAME_SHOW_TABLE]: 'Show Table',
-    [TOOL_NAME_SHOW_CHART]: 'Show Chart',
+    [TOOL_NAME_CHART]: 'Chart',
+    [TOOL_NAME_TABLE]: 'Table',
+    [TOOL_NAME_MARKDOWN]: 'Markdown',
+    [TOOL_NAME_READ_TARGET]: 'Read Target',
 };

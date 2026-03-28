@@ -10,10 +10,8 @@ import {RelationViewType} from "@/model/relation-view-state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {ICON_CAPTIONS_OFF, ICON_CHART, ICON_SETTING, ICON_TABLE} from "@/components/editor/tools/icons";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
-import {isRelationBlockData} from "@/components/editor/tools/utils";
+import {isRelationState} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
-
-export type RelationBlockData = RelationState;
 
 /**
  * React wrapper that will:
@@ -22,8 +20,8 @@ export type RelationBlockData = RelationState;
  */
 
 export interface RelationComponentProps {
-    initialData: RelationBlockData,
-    onDataChange: (data: RelationBlockData) => void,
+    initialData: RelationState,
+    onDataChange: (data: RelationState) => void,
     inputManager: InputManager;
 }
 
@@ -31,14 +29,14 @@ export function RelationComponent(props: RelationComponentProps) {
 
     const {initialData, onDataChange, inputManager} = props;
     // Keep a React state that holds the data needed for your component
-    const [localData, setLocalData] = useState<RelationBlockData>(initialData);
+    const [localData, setLocalData] = useState<RelationState>(initialData);
 
     // update if the data changes
     useEffect(() => {
         setLocalData(initialData);
     }, [initialData]);
 
-    function handleUpdate(newData: RelationBlockData) {
+    function handleUpdate(newData: RelationState) {
         setLocalData(newData);
         onDataChange(newData); // sync back to the block tool
     }
@@ -64,12 +62,12 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
     }
 
     protected constructor({data, api, readOnly, config}: {
-        data: RelationBlockData,
+        data: RelationState,
         api: API,
         readOnly: boolean,
         config: any
     }, blockName: string) {
-        if (!isRelationBlockData(data)) {
+        if (!isRelationState(data)) {
             data = getInitialDataElement('table');
         }
         super({data, api, readOnly, config}, RELATION_BLOCK_NAME);

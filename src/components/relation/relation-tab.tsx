@@ -12,8 +12,9 @@ export function RelationTab(props: RelationTabProps) {
 
     const updateRelation = useRelationsState((state) => state.updateRelation);
 
-    const relationsState = useRelationsState((state) => state.relations[relationId], shallow);
+    const relationsState = useRelationsState((state) => state.relations[relationId]);
 
+    console.log(relationsState);
     if (!relationsState) {
         return <div>Data View not found: {props.relationId}</div>
     }

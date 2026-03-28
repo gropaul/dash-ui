@@ -12,7 +12,7 @@ import {Dispatch, MutableRefObject, SetStateAction} from 'react';
 import {CanvasState} from "@/components/workflow/models";
 import {getMacroName} from "@/state/relations/sql/table-macros";
 import {injectNodeRef} from "@/state/relations/sql/ref-detection";
-import {RelationBlockData} from "@/components/editor/tools/relation.tool";
+import {RelationState} from "@/model/relation-state";
 
 export interface ConnectionValidity {
     isValid: boolean;
@@ -46,8 +46,8 @@ function injectSqlOnConnect(
     if (!sourceNode || !targetNode) return;
     if (sourceNode.type !== 'relationNode' || targetNode.type !== 'relationNode') return;
 
-    const sourceData = sourceNode.data as { relationData?: RelationBlockData };
-    const targetData = targetNode.data as { relationData?: RelationBlockData };
+    const sourceData = sourceNode.data as { relationData?: RelationState };
+    const targetData = targetNode.data as { relationData?: RelationState };
     const displayName = sourceData?.relationData?.viewState?.displayName;
     if (!displayName) return;
 
@@ -60,7 +60,7 @@ function injectSqlOnConnect(
     setNodes((nodes) =>
         nodes.map((node) => {
             if (node.id !== targetNodeId) return node;
-            const data = node.data as { relationData?: RelationBlockData };
+            const data = node.data as { relationData?: RelationState };
             const relationData = data?.relationData;
             if (!relationData) return node;
             return {

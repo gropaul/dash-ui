@@ -1,23 +1,22 @@
 // SelectBlockTool.tsx
 import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
 
-import {getInitialParamsTextInput} from '@/model/relation-state';
+import {getInitialParamsTextInput, RelationState} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState} from "@/model/relation-view-state";
 import {ICON_SEARCH, ICON_SELECT, ICON_SETTING,} from "@/components/editor/tools/icons";
-import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {Relation, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {InputSource} from "@/components/editor/inputs/models";
 import {InputValueChangeParams} from "@/components/editor/inputs/input-manager";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tool-names";
-import {isRelationBlockData} from "@/components/editor/tools/utils";
+import {isRelationState} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
 import {InputType} from "@/model/relation-view-state/select";
 
 
-export function getInitialSelectDataElement(inputType: InputType): RelationBlockData {
+export function getInitialSelectDataElement(inputType: InputType): RelationState {
 
     let baseQuery = '';
     if (inputType === 'select') {
@@ -81,9 +80,9 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
         this.render();
     }
 
-    constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationBlockData>) {
+    constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationState>) {
 
-        if (!isRelationBlockData(data)) {
+        if (!isRelationState(data)) {
             data = getInitialSelectDataElement(config.type);
         }
 
@@ -133,7 +132,7 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
         this.inputManager.updateInputSource(oldInputSource, newInputSource);
     }
 
-    public onDataChanged(updatedData: RelationBlockData): void {
+    public onDataChanged(updatedData: RelationState): void {
         super.onDataChanged(updatedData);
         if (this.data.viewState.inputTextState.value !== this.currentSelectValue) {
             this.currentSelectValue = this.data.viewState.inputTextState.value;

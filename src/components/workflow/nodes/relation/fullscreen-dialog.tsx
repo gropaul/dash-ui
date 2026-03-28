@@ -1,13 +1,13 @@
 import {Dialog, DialogContent} from "@/components/ui/dialog";
-import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationView} from "@/components/relation/relation-view";
+import {RelationState} from "@/model/relation-state";
 
 interface FullscreenDialogProps {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
-    relationState: RelationBlockData;
-    updateRelation: (state: RelationBlockData) => void;
+    relationState: RelationState;
+    updateRelation: (state: RelationState) => void;
     inputManager: InputManager;
 }
 

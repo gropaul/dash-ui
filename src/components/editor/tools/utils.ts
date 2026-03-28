@@ -1,5 +1,5 @@
-import {RelationBlockData} from "@/components/editor/tools/relation.tool";
+import {RelationState} from "@/model/relation-state";
 
-export function isRelationBlockData(data: any): data is RelationBlockData {
+export function isRelationState(data: any): data is RelationState {
     return data && typeof data === 'object' && 'viewState' in data;
 }

@@ -1,11 +1,9 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {SQLTollDescription} from "@/components/chat/model/promts";
 import {EditorsService} from "@/state/editor.state";
-import {useGUIState} from "@/state/gui.state";
-import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
-import {executeQueryOfRelation} from "@/model/relation-state";
+import {executeQueryOfRelation, RelationState} from "@/model/relation-state";
 import {RelationViewType} from "@/model/relation-view-state";
 import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import z from 'zod';
@@ -13,7 +11,15 @@ import {tool} from "ai";
 import {parseMarkdownToBlocks} from "@/components/editor/parse-markdown";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {RelationActions} from "@/state/relations/actions/static-actions";
+import {useRelationsState} from "@/state/relations.state";
+import {getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {getAvailableTargets} from "@/components/chat/model/chat-context";
+import {TableViewConfigSchema} from "@/model/relation-view-state/table";
+import {deepClone, DeepPartial} from "@/platform/object-utils";
+import {updateRelationWithPartial} from "@/state/relations/actions/advanced-actions";
 
+
+// --- Query Tool (unchanged) ---
 
 export const QueryDatabaseTool = tool({
     description: SQLTollDescription,
@@ -59,6 +65,8 @@ export const QueryDatabaseTool = tool({
     },
 });
 
+// --- Shared helpers ---
+
 interface ChartViewDataArgs {
     title?: string;
     sql: string;
@@ -69,7 +77,7 @@ interface ChartViewDataArgs {
     yRangeMin?: 'min' | 'zero';
 }
 
-export async function getDefaultRelationBockData(sql: string, viewType: RelationViewType): Promise<RelationBlockData> {
+export function getDefaultRelationBockData(sql: string, viewType: RelationViewType): RelationState {
     const randomId = getRandomId();
     const source: RelationSourceQuery = {
         type: "query",
@@ -80,22 +88,10 @@ export async function getDefaultRelationBockData(sql: string, viewType: Relation
 
     const state = RelationActions.create(source, viewType);
     state.viewState.codeFenceState.show = false;
-    return await executeQueryOfRelation(state);
-
+    return state;
 }
 
-export async function getChartBlockData(args: ChartViewDataArgs): Promise<RelationBlockData> {
-
-    const chartViewState = getChartViewState(args)
-    const defaultData = await getDefaultRelationBockData(args.sql, 'chart');
-
-    defaultData.viewState.selectedView = 'chart';
-    defaultData.viewState.chartState = chartViewState;
-
-    return defaultData;
-}
-
-export function getChartViewState(args: ChartViewDataArgs): ChartViewState {
+function getChartViewState(args: ChartViewDataArgs): ChartViewState {
 
     function dequoteAxisLabel(label: string): string {
         return label.replace(/"/g, '');
@@ -153,49 +149,258 @@ export function getChartViewState(args: ChartViewDataArgs): ChartViewState {
     }
 }
 
-interface TableViewDataArgs {
-    sql: string;
-    showNumberOfRows: '5' | '10' | '50' | '100' | undefined;
+// --- Dashboard insertion helper ---
+
+const DASHBOARD_BLOCK_DEFAULT_CONFIG: any = {
+    placeholder: "Add a new relation",
+    getInputManager: () => null,
 }
 
-export async function getTableBlockData(args: TableViewDataArgs): Promise<RelationBlockData> {
-    const defaultData = await getDefaultRelationBockData(args.sql, 'table');
-    defaultData.viewState.selectedView = 'table';
-    if (args.showNumberOfRows) {
-        defaultData.query.viewParameters.table.limit = parseInt(args.showNumberOfRows);
+function insertBlockIntoDashboard(targetId: string, blockType: string, data: any): string {
+    const hasEditor = EditorsService.getInstance().hasEditor(targetId);
+    if (!hasEditor) {
+        return `Error: No editor found for dashboard "${targetId}". The dashboard tab may not be fully loaded.`;
     }
-    return defaultData;
+    const editor = EditorsService.getInstance().getEditor(targetId);
+    const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
+    editor.editor.blocks.insert(blockType, data, DASHBOARD_BLOCK_DEFAULT_CONFIG, currentNumberOfBlocks);
+    return '';
 }
 
-export const AddMarkdownToDashboard = tool({
-    description: 'Adds a markdown element to the dashboard.',
-    inputSchema: z.object({
-        markdown: z.string().describe('The markdown content to add to the dashboard.')
-    }).describe('Parameters for adding markdown to the dashboard.'),
-    execute: async ({markdown}) => {
-        const guiState = useGUIState.getState();
-        const selectedTabId = guiState.selectedTabId;
-        if (!selectedTabId) {
-            return 'Error: No active tab found. The user must open a tab to add the markdown.';
-        } else {
-            const hasEditor = EditorsService.getInstance().hasEditor(selectedTabId);
-            if (!hasEditor) {
-                return 'Error: No editor found for the active tab. The user must open a tab to add the markdown.';
+const TARGET_DESCRIPTION = 'Where to place the result. Use "chat" to show inline in the chat, or a target ID (e.g. "dashboard-abc123" or "relation-xyz") to add to that tab. Use the readTarget tool to see available targets.';
+
+// --- Chart Tool (unified) ---
+
+const ChartToolInputSchema = z.object({
+    target: z.string().describe(TARGET_DESCRIPTION),
+    sql: z.string().describe('The SQL query to execute for the chart.'),
+    chartType: z.enum(['bar', 'line', 'pie']).describe('The type of chart to create.'),
+    xAxis: z.string().describe('The column to use for the x-axis.'),
+    xLabelRotation: z.number().optional().describe('Rotation of x-axis labels. For long labels like names, use -30.'),
+    yRangeMin: z.enum(['min', 'zero']).optional().describe('For values like counts etc. that have a reference to zero, use "zero". For other values, use "min".'),
+    yAxes: z.array(z.string()).describe('The columns to use for the y-axes.'),
+    title: z.string().optional().describe('The title of the chart.')
+});
+
+function chartInputToPartialRelation(input: z.infer<typeof ChartToolInputSchema>): DeepPartial<RelationState> {
+    const chartViewState = getChartViewState({
+        title: input.title,
+        sql: input.sql,
+        chartType: input.chartType,
+        xAxis: input.xAxis,
+        xLabelRotation: input.xLabelRotation,
+        yAxes: input.yAxes,
+        yRangeMin: input.yRangeMin,
+    });
+    return {
+        query: {
+            baseQuery: input.sql,
+            activeBaseQuery: input.sql,
+        },
+        viewState: {
+            selectedView: 'chart',
+            chartState: chartViewState,
+        }
+    };
+}
+
+export const ChartTool = tool({
+    description: 'Creates a chart from a SQL query. Can show it in chat, add it to a dashboard, or update a relation tab.',
+    inputSchema: ChartToolInputSchema,
+    execute: async (args) => {
+        const {target, sql} = args;
+
+        // 1. Get Base and partial update from input
+        const partialUpdate = chartInputToPartialRelation(args);
+        const base = GetBase(target, sql, 'chart');
+
+        // 2. Merge with existing relation
+        const data = updateRelationWithPartial(base, partialUpdate);
+
+        // 3. Route the target
+        return RouteResult(target, data);
+    }
+});
+
+// --- Table Tool (unified) ---
+
+type TargetType = 'chat' | 'dashboard' | 'relation';
+
+function getTargetType(target: string): TargetType {
+    if (target === 'chat') return 'chat';
+    if (target.startsWith('dashboard')) return 'dashboard';
+    if (target.startsWith('relation')) return 'relation';
+    throw new Error(`Unknown target type for target "${target}".`);
+}
+
+const TableToolInputSchema = z.object({
+    target: z.string().describe(TARGET_DESCRIPTION),
+    sql: z.string().describe('The SQL query to execute for the table content.'),
+    showNumberOfRows: z.enum(['5', '10', '50']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
+    tableConfig: TableViewConfigSchema.partial().optional().describe('Optional table display configuration.'),
+});
+
+function tableInputToPartialRelation(input: z.infer<typeof TableToolInputSchema>): DeepPartial<RelationState> {
+    return {
+        query: {
+            baseQuery: input.sql,
+            activeBaseQuery: input.sql,
+            viewParameters: {
+                table: {
+                    limit: input.showNumberOfRows ? parseInt(input.showNumberOfRows) : undefined,
+                }
             }
+        },
+        viewState: {
+            tableState: input.tableConfig
+        }
+    };
+}
 
-            const editor = EditorsService.getInstance().getEditor(selectedTabId);
+function GetBase(targetId: string, sql: string, viewType: RelationViewType): RelationState {
+    const targetType = getTargetType(targetId);
+    let base = getDefaultRelationBockData(sql, viewType);
+    if (targetType === 'relation') {
+        base = useRelationsState.getState().relations[targetId];
+    }
+    return base;
+}
 
-            const blocks = parseMarkdownToBlocks(markdown)
+async function RouteResult(target: string, data: RelationState): Promise<string | RelationState> {
 
+    switch (getTargetType(target)) {
+        case 'chat':
+            const executed = await executeQueryOfRelation(data);
+            if (executed.executionState.state === 'error') {
+                return `Error executing query: ${JSON.stringify(executed.executionState.error, null, 2)}`;
+            } else {
+                return executed;
+            }
+        case 'relation':
+            const updateRelation = useRelationsState.getState().updateRelation;
+            const actions = getRelationActions({
+                relationState: data,
+                updateRelation: updateRelation
+            });
+            useRelationsState.getState().updateRelation(deepClone(data));
+            await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
+            return `Relation was updated successfully.`;
+        case 'dashboard': {
+            const error = insertBlockIntoDashboard(target, RELATION_BLOCK_NAME, data);
+            return error || `Table was added successfully to the dashboard.`;
+        }
+    }
+}
+
+export const TableTool = tool({
+    description: 'Creates a table from a SQL query. Can show it in chat, add it to a dashboard, or update a relation tab.',
+    inputSchema: TableToolInputSchema,
+    execute: async (props) => {
+        const {target, sql} = props;
+
+        // 1. Get Base and partial update from input
+        const partialUpdate = tableInputToPartialRelation(props);
+        const base = GetBase(target, sql, 'table');
+
+        // 2. Relation target: merge with existing relation and re-execute
+        const data = updateRelationWithPartial(base, partialUpdate);
+        if (data.executionState.state === 'error') {
+            return `Error executing query: ${JSON.stringify(data.executionState.error, null, 2)}`;
+        }
+
+        // 3. Route the target
+        return RouteResult(target, data);
+    }
+});
+
+// --- Markdown Tool (unified) ---
+
+export const MarkdownTool = tool({
+    description: 'Adds markdown content to a dashboard. When targeting chat, the markdown is returned as text.',
+    inputSchema: z.object({
+        target: z.string().describe(TARGET_DESCRIPTION),
+        markdown: z.string().describe('The markdown content.')
+    }),
+    execute: async ({target, markdown}) => {
+        // Chat target: just return the markdown text
+        if (target === 'chat') {
+            return markdown;
+        }
+
+        // Dashboard target: insert markdown blocks
+        if (target.startsWith('dashboard')) {
+            const hasEditor = EditorsService.getInstance().hasEditor(target);
+            if (!hasEditor) {
+                return `Error: No editor found for dashboard "${target}". The dashboard tab may not be fully loaded.`;
+            }
+            const editor = EditorsService.getInstance().getEditor(target);
+            const blocks = parseMarkdownToBlocks(markdown);
             for (const block of blocks) {
                 const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
                 editor.editor.blocks.insert(block.type, block.data, {}, currentNumberOfBlocks);
             }
-
             return `Markdown was added successfully to the dashboard.`;
+        }
+
+        // Relation target: not applicable
+        if (target.startsWith('relation')) {
+            return `Error: Cannot add markdown to a relation tab. Use a dashboard target instead.`;
+        }
+
+        return `Error: Unknown target "${target}".`;
+    }
+});
+
+// --- Read Target Tool ---
+
+export const ReadTargetTool = tool({
+    description: 'Reads details about an open tab (dashboard or relation). Use this to understand what is currently in a target before modifying it.',
+    inputSchema: z.object({
+        targetId: z.string().describe('The ID of the target to read (e.g. "dashboard-abc123" or "relation-xyz").'),
+    }),
+    execute: async ({targetId}) => {
+        const targets = getAvailableTargets();
+        const target = targets.find(t => t.id === targetId);
+
+        if (!target) {
+            return `Error: Target "${targetId}" not found. Available targets: ${targets.map(t => t.id).join(', ')}`;
+        }
+
+        switch (target.type) {
+            case 'chat':
+                return 'Error: Cannot read the chat target.';
+
+            case 'dashboard': {
+                const dashboard = useRelationsState.getState().dashboards[targetId];
+                if (!dashboard) return `Error: Dashboard "${targetId}" not found in state.`;
+                const blocks = dashboard.elementState?.blocks ?? [];
+                const blockSummary = blocks.map(b => b.type).join(', ') || 'none';
+                return JSON.stringify({
+                    name: target.name,
+                    type: 'dashboard',
+                    blockCount: blocks.length,
+                    blockTypes: blockSummary,
+                });
+            }
+
+            case 'relation': {
+                const relation = useRelationsState.getState().relations[targetId];
+                if (!relation) return `Error: Relation "${targetId}" not found in state.`;
+                const columns = relation.viewState.schema?.map(c => `${c.name} (${c.type})`) ?? [];
+                return JSON.stringify({
+                    name: target.name,
+                    type: 'relation',
+                    query: relation.query.baseQuery,
+                    activeQuery: relation.query.activeBaseQuery,
+                    viewType: relation.viewState.selectedView,
+                    columns: columns,
+                });
+            }
         }
     }
 });
+
+// --- Input Tool (kept as-is, no target param needed) ---
 
 export const AddInputToDashboard = tool({
     description: 'Adds an input element to the dashboard. The input can be used in other queries for interactivity. Usage example: `SELECT * FROM table WHERE column = {{input_id}}`.',
@@ -203,172 +408,4 @@ export const AddInputToDashboard = tool({
         input_id: z.string().describe('The id of the input element.'),
         inputType: z.enum(['text-select', 'text-field']).describe('Type of the input element: "text-select" for a select input, "text-field" for a text input.'),
     }).describe('Parameters for adding an input to the dashboard.'),
-})
-
-
-export const AddChartToDashboard = tool({
-
-    description: 'Adds an chart element to the dashboard.',
-    inputSchema: z.object({
-        sql: z.string().describe('The SQL query to execute for the chart.'),
-        chartType: z.enum(['bar', 'line', 'pie']).describe('The type of chart to create.'),
-        xAxis: z.string().describe('The column to use for the x-axis.'),
-        xLabelRotation: z.number().optional().describe('Rotation of x-axis labels. For long labels like names, user -30.'),
-        yRangeMin: z.enum(['min', 'zero']).optional().describe('For values like counts etc. that have a reference to zero, use "zero". For other values, use "min".'),
-        yAxes: z.array(z.string()).describe('The columns to use for the y-axes.'),
-        title: z.string().optional().describe('The title of the chart.')
-    }).describe('Parameters for adding a chart to the dashboard.'),
-    execute: async (args) => {
-        const {sql, chartType, xAxis, yAxes, title, xLabelRotation, yRangeMin} = args;
-        const guiState = useGUIState.getState();
-        const selectedTabId = guiState.selectedTabId;
-        if (!selectedTabId) {
-            return 'Error: No active tab found. The user must open a tab to add the chart.';
-        } else {
-            const hasEditor = EditorsService.getInstance().hasEditor(selectedTabId);
-            if (!hasEditor) {
-                return 'Error: No editor found for the active tab. The user must open a tab to add the chart.';
-            }
-
-            const editor = EditorsService.getInstance().getEditor(selectedTabId);
-
-            const DEFAULT_CONFIG: any = {
-                placeholder: "Add a new relation",
-                getInputManager: (blockName: string) => {
-                    return null; // no input manager for this block
-                }
-            }
-
-            const data = await getChartBlockData({
-                title: title,
-                sql: sql,
-                chartType: chartType,
-                xAxis: xAxis,
-                xLabelRotation: xLabelRotation,
-                yAxes: yAxes,
-                yRangeMin: yRangeMin
-            });
-
-            // if there is an error in the data, return an error message
-            if (data.executionState.state === 'error') {
-                const jsonString = JSON.stringify(data.executionState.error, null, 2);
-                return `Error executing query: ${jsonString}`;
-            }
-
-            const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
-            editor.editor.blocks.insert(RELATION_BLOCK_NAME, data, DEFAULT_CONFIG, currentNumberOfBlocks);
-
-            return `Chart was added successfully to the dashboard.`;
-        }
-    }
-});
-
-
-export const ShowChart = tool({
-
-    description: 'Shows the result of a SQL query as a chart in the chat. Dont summarize the data again, the chart is shown directly.',
-    inputSchema: z.object({
-        sql: z.string().describe('The SQL query to execute for the chart.'),
-        chartType: z.enum(['bar', 'line', 'pie']).describe('The type of chart to create.'),
-        xAxis: z.string().describe('The column to use for the x-axis.'),
-        xLabelRotation: z.number().optional().describe('Rotation of x-axis labels. For long labels like names, user -30.'),
-        yRangeMin: z.enum(['min', 'zero']).optional().describe('For values like counts etc. that have a reference to zero, use "zero". For other values, use "min".'),
-        yAxes: z.array(z.string()).describe('The columns to use for the y-axes.'),
-        title: z.string().optional().describe('The title of the chart.')
-    }).describe('Parameters for adding a chart to the dashboard.'),
-    execute: async (args) => {
-        const {sql, chartType, xAxis, yAxes, title, xLabelRotation, yRangeMin} = args;
-
-        const data = await getChartBlockData({
-            title: title,
-            sql: sql,
-            chartType: chartType,
-            xAxis: xAxis,
-            xLabelRotation: xLabelRotation,
-            yAxes: yAxes,
-            yRangeMin: yRangeMin
-        });
-
-        // if there is an error in the data, return an error message
-        if (data.executionState.state === 'error') {
-            const jsonString = JSON.stringify(data.executionState.error, null, 2);
-            return `Error executing query: ${jsonString}`;
-        }
-        return data;
-    }
-});
-
-
-export const AddTableToDashboard = tool({
-
-    description: 'Adds a table element to the dashboard.',
-    inputSchema: z.object({
-        sql: z.string().describe('The SQL query to execute for the table content.'),
-        showNumberOfRows: z.enum(['5', '10', '50']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
-    }).describe('Parameters for adding a chart to the dashboard.'),
-    execute: async (args) => {
-        const {sql, showNumberOfRows} = args;
-        const guiState = useGUIState.getState();
-        const selectedTabId = guiState.selectedTabId;
-        if (!selectedTabId) {
-            return 'Error: No active tab found. The user must open a tab to add the chart.';
-        } else {
-            const hasEditor = EditorsService.getInstance().hasEditor(selectedTabId);
-            if (!hasEditor) {
-                return 'Error: No editor found for the active tab. The user must open a tab to add the chart.';
-            }
-
-            const editor = EditorsService.getInstance().getEditor(selectedTabId);
-
-            const DEFAULT_CONFIG: any = {
-                placeholder: "Add a new relation",
-                getInputManager: (blockName: string) => {
-                    return null; // no input manager for this block
-                }
-            }
-
-            const data = await getTableBlockData({
-                sql: sql,
-                showNumberOfRows: showNumberOfRows
-            });
-
-            // if there is an error in the data, return an error message
-            if (data.executionState.state === 'error') {
-                const jsonString = JSON.stringify(data.executionState.error, null, 2);
-                return `Error executing query: ${jsonString}`;
-            }
-
-            const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
-            editor.editor.blocks.insert(RELATION_BLOCK_NAME, data, DEFAULT_CONFIG, currentNumberOfBlocks);
-
-            return `Table was added successfully to the dashboard.`;
-        }
-    }
-});
-
-
-export const ShowTable = tool({
-
-    description: 'Shows the result of a SQL query as a table in the chat. Dont summarize the data again, the table is shown directly.',
-    inputSchema: z.object({
-        sql: z.string().describe('The SQL query to execute for the table content.'),
-        showNumberOfRows: z.enum(['5', '10', '50']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
-    }).describe('Parameters for adding a chart to the dashboard.'),
-    execute: async (args) => {
-        const {sql, showNumberOfRows} = args;
-
-        const data = await getTableBlockData({
-            sql: sql,
-            showNumberOfRows: showNumberOfRows
-        });
-
-        // if there is an error in the data, return an error message
-        if (data.executionState.state === 'error') {
-            const jsonString = JSON.stringify(data.executionState.error, null, 2);
-            return `Error executing query: ${jsonString}`;
-        }
-
-        return data;
-
-    }
 });

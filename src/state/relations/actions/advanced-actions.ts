@@ -28,6 +28,9 @@ export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     cancelQuery: () => Promise<boolean>,
     // Deleting elements from an object does not work with partial updates, use updateRelation directly for that
     updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void,
+
+    // update relation with deep partial
+    updateRelationWithPartial: (partialRelation: DeepPartial<RelationState>) => void,
 }
 
 export function createAdvancedRelationActions(props: RelationViewAPIProps): AdvancedRelationActions {
@@ -57,10 +60,19 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps): Adva
         updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => {
             return updateRelationViewState(relationState, viewState, updateRelation);
         },
+        updateRelationWithPartial: (partialRelation: DeepPartial<RelationState>) => {
+            return updateRelationWithPartial(relationState, partialRelation);
+        }
     }
 }
 
-export async function updateRelationViewState(relation: RelationState, partialUpdate: DeepPartial<RelationViewState>, update: UpdateRelationFunction) {
+export function updateRelationWithPartial(relation: RelationState, partialRelation: DeepPartial<RelationState>): RelationState {
+    const updatedRelation = deepClone(relation);
+    safeDeepUpdate(updatedRelation, partialRelation);
+    return updatedRelation;
+}
+
+async function updateRelationViewState(relation: RelationState, partialUpdate: DeepPartial<RelationViewState>, update: UpdateRelationFunction) {
     const currentViewState = deepClone(relation.viewState);
 
     // the display name may not be updated here, as it is managed outside of the view state
