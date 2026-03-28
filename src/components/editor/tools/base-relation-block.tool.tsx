@@ -13,7 +13,7 @@ import {RelationBlockData, RelationComponent} from "@/components/editor/tools/re
 import {getVariablesUsedByQuery, ViewQueryParameters} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN} from "@/components/editor/tools/icons";
-import {updateAndExecuteRelation} from "@/state/relations/actions";
+import {EndUserRelationActions, getRelationActions, updateAndExecuteRelation} from "@/state/relations/actions";
 
 /**
  * Base class for block tools that share common functionality
@@ -99,14 +99,16 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         this.render();
     }
 
+    getActions(): EndUserRelationActions {
+        return getRelationActions({
+            relationState: this.data,
+            updateRelation: this.updateAndRender.bind(this),
+            inputManager: this.inputManager,
+        });
+    }
+
     public async rerunQuery() {
-
-        const currentPrams = this.data.query.viewParameters;
-        const newParams: ViewQueryParameters = {
-            ...currentPrams,
-        }
-
-        await updateAndExecuteRelation(this.data, newParams, this.updateAndRender.bind(this), this.inputManager);
+        await this.getActions().runQuery();
     }
 
 
@@ -223,7 +225,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
                 icon: ICON_RUN,
                 closeOnActivate: true,
                 onActivate: () => {
-                    this.rerunQuery();
+                    this.rerunQuery.bind(this)();
                 },
             },
         ]

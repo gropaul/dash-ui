@@ -158,7 +158,7 @@ export interface EndUserRelationActions extends AdvancedRelationActions {
     showChartSettings: (show: boolean) => void,
 }
 
-export function createRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
+export function getRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
     const advancedActions = createAdvancedRelationActions(props);
     const {relationState} = props;
 

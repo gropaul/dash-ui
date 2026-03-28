@@ -3,7 +3,7 @@ import {ContentWrapper, RelationViewAPIProps, RelationViewProps} from "@/compone
 import React, {RefObject, useState} from "react";
 import {Sizable} from "@/components/ui/sizable";
 import {cn} from "@/lib/utils";
-import {createRelationActions} from "@/state/relations/actions";
+import {getRelationActions} from "@/state/relations/actions";
 import {getViewSizeRequirements} from "@/model/relation-view-state";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {ParameterPanel} from "@/components/relation/parameters/parameter-panel";
@@ -14,7 +14,7 @@ export interface RelationStateContainerProps extends RelationViewAPIProps {
 }
 
 export function RelationStateContainer(inputProps: RelationStateContainerProps) {
-    const advancedActions = createRelationActions(inputProps);
+    const advancedActions = getRelationActions(inputProps);
     const props: RelationViewProps = {
         ...inputProps,
         ...advancedActions,

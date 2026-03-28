@@ -12,10 +12,9 @@ import {ICON_CAPTIONS_OFF, ICON_CHART, ICON_SETTING, ICON_TABLE} from "@/compone
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationBlockData} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
-import {updateAndExecuteRelation} from "@/state/relations/actions";
+import {getRelationActions} from "@/state/relations/actions";
 
-export interface RelationBlockData extends RelationState {
-}
+export type RelationBlockData = RelationState;
 
 /**
  * React wrapper that will:
@@ -78,40 +77,6 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
         super({data, api, readOnly, config}, RELATION_BLOCK_NAME);
     }
 
-    public async setViewType(viewType: RelationViewType) {
-        this.data = {
-            ...this.data,
-            viewState: {
-                ...this.data.viewState,
-                selectedView: viewType,
-            }
-        }
-        const currentPrams = this.data.query.viewParameters;
-        const newParams: ViewQueryParameters = {
-            ...currentPrams,
-            type: viewType,
-        }
-        await updateAndExecuteRelation(this.data, newParams, this.updateAndRender.bind(this), this.inputManager);
-    }
-
-    public showChartSettings(show: boolean) {
-        this.data = {
-            ...this.data,
-            viewState: {
-                ...this.data.viewState,
-                chartState: {
-                    ...this.data.viewState.chartState,
-                    view: {
-                        ...this.data.viewState.chartState.view,
-                        showConfig: show,
-                    }
-                }
-            }
-        }
-        this.render();
-    }
-
-
     public renderSettings(): HTMLElement | MenuConfig {
 
         const superSettings = super.renderSettings();
@@ -139,7 +104,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
                 icon: v.icon,
                 closeOnActivate: true,
                 onActivate: () => {
-                    this.setViewType(v.type);
+                    this.getActions().setRelationViewType(v.type);
                 }
             })),
             ...(selectedView === 'chart') ? [{
@@ -147,7 +112,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
                 icon: chartSettingsVisible ? ICON_CAPTIONS_OFF : ICON_SETTING,
                 closeOnActivate: true,
                 onActivate: () => {
-                    this.showChartSettings(!chartSettingsVisible);
+                    this.getActions().showChartSettings(!chartSettingsVisible);
                 }
             }] : []
         ]

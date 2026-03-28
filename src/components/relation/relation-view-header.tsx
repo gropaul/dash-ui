@@ -22,7 +22,7 @@ import {Button} from "@/components/ui/button";
 import {useState} from "react";
 import {FilepathDialog, FilepathDialogState} from "@/components/export/filepath-dialog";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import {createRelationActions} from "@/state/relations/actions";
+import {getRelationActions} from "@/state/relations/actions";
 import {RelationSettings} from "@/components/relation/relation-settings";
 import {RelationViewTypeSwitcher} from "@/components/relation/settings/relation-view-type-switcher";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
@@ -35,7 +35,7 @@ export interface RelationViewHeaderProps extends RelationViewAPIProps {
 export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
 
 
-    const advancedActions = createRelationActions(inputProps)
+    const advancedActions = getRelationActions(inputProps)
     const props: RelationViewProps = {
         ...inputProps,
         ...advancedActions,

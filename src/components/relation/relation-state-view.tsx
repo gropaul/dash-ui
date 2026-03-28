@@ -1,7 +1,7 @@
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import React, {RefObject, useEffect, useState} from "react";
 import {LOADING_TIMER_OFFSET_MS} from "@/platform/global-data";
-import {createRelationActions} from "@/state/relations/actions";
+import {getRelationActions} from "@/state/relations/actions";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {Button} from "@/components/ui/button";
 import {Loader2, Pause} from "lucide-react";
@@ -14,7 +14,7 @@ export interface RelationStateViewProps extends RelationViewAPIProps {
 }
 
 export function RelationStateView(inputProps: RelationStateViewProps) {
-    const advancedActions = createRelationActions(inputProps);
+    const advancedActions = getRelationActions(inputProps);
     const props: RelationViewProps = {
         ...inputProps,
         ...advancedActions,
