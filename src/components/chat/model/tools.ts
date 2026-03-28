@@ -4,15 +4,15 @@ import {EditorsService} from "@/state/editor.state";
 import {useGUIState} from "@/state/gui.state";
 import {RelationBlockData} from "@/components/editor/tools/relation.tool";
 import {getRandomId} from "@/platform/id-utils";
-import {Relation, RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
-import {executeQueryOfRelation, getInitialParams, RelationState} from "@/model/relation-state";
-import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
+import {RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
+import {executeQueryOfRelation} from "@/model/relation-state";
+import {RelationViewType} from "@/model/relation-view-state";
 import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import z from 'zod';
 import {tool} from "ai";
 import {parseMarkdownToBlocks} from "@/components/editor/parse-markdown";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
+import {RelationActions} from "@/state/relations/actions/static-actions";
 
 
 export const QueryDatabaseTool = tool({
@@ -69,7 +69,7 @@ interface ChartViewDataArgs {
     yRangeMin?: 'min' | 'zero';
 }
 
-export async function getDefaultRelationBockData(sql: string, viewType:  RelationViewType): Promise<RelationBlockData> {
+export async function getDefaultRelationBockData(sql: string, viewType: RelationViewType): Promise<RelationBlockData> {
     const randomId = getRandomId();
     const source: RelationSourceQuery = {
         type: "query",
@@ -77,36 +77,11 @@ export async function getDefaultRelationBockData(sql: string, viewType:  Relatio
         id: randomId,
         name: "New Query"
     }
-    const defaultQueryParams = getInitialParams(viewType);
-    const relation: Relation = {
-        connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
-    }
-    const initialViewState = getInitViewState(
-        'New Data Element',
-        undefined,
-        [],
-        false
-    );
-    const relationState: RelationState = {
-        ...relation,
-        query: {
-            baseQuery: sql,
-            activeBaseQuery: sql,
-            viewParameters: defaultQueryParams
-        },
-        viewState: {
-            ...initialViewState,
-        },
-        executionState: {
-            state: "not-started"
-        }
-    };
 
-    const executedRelationState = await executeQueryOfRelation(relationState);
+    const state = RelationActions.create(source, viewType);
+    state.viewState.codeFenceState.show = false;
+    return await executeQueryOfRelation(state);
 
-    return {
-        ...executedRelationState,
-    };
 }
 
 export async function getChartBlockData(args: ChartViewDataArgs): Promise<RelationBlockData> {
@@ -289,7 +264,6 @@ export const AddChartToDashboard = tool({
 });
 
 
-
 export const ShowChart = tool({
 
     description: 'Shows the result of a SQL query as a chart in the chat. Dont summarize the data again, the chart is shown directly.',
@@ -371,7 +345,6 @@ export const AddTableToDashboard = tool({
         }
     }
 });
-
 
 
 export const ShowTable = tool({

@@ -56,7 +56,6 @@ export interface RelationSourceQuery {
 export type RelationSource = RelationSourceTable | RelationSourceFile | RelationSourceQuery
 
 export interface Relation {
-    name: string,
     connectionId: string,
     source: RelationSource,
     id: string,

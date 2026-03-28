@@ -237,7 +237,6 @@ export function getRelationStateFromSource(connectionId: string, source: Relatio
 
     const displayName = getRelationNameFromSource(source);
     const relation: Relation = {
-        name: displayName,
         id: getRelationIdFromSource(connectionId, source),
         source: source,
         connectionId: connectionId,

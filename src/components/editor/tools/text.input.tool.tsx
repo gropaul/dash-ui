@@ -35,7 +35,7 @@ export function getInitialSelectDataElement(inputType: InputType): RelationBlock
         name: "select_" + randomId.substring(0, 8),
     }
     const relation: Relation = {
-        connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, name: "New Query", source: source
+        connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId,  source: source
     }
     const initialViewState = getInitViewState(
         'New Data Element',
