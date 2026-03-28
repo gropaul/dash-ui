@@ -48,6 +48,7 @@ import {RelationEvents} from "@/state/relations/event/relation-events";
 // Do not remove - required for table macros to work
 import "@/state/relations/sql/table-macros";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {RelationActions} from "@/state/relations/actions/static-actions";
 
 
 export interface RelationZustand {
@@ -67,7 +68,7 @@ export interface DefaultRelationZustandActions {
 interface RelationZustandActions extends DefaultRelationZustandActions {
     mergeState: (state: RelationZustand, openDashboards: boolean) => void,
     /* relation actions */
-    addNewRelation: (connectionId: string, editorPath: string[], relation?: RelationState) => void,
+    addNewRelation: (connectionId: string, editorPath: string[], relation: RelationState) => void,
     relationExists: (relationId: string) => boolean,
     showRelationFromSource: (connectionId: string, source: RelationSource, editorPath: string[]) => void,
 
@@ -344,20 +345,9 @@ export const useRelationsState = createWithEqualityFn(
                     get().showEntity('dashboards', local_dashboard, editorPath);
                 },
 
-                addNewRelation: async (connectionId: string, editorPath: string[], relation?: RelationState) => {
-                    const baseQuery = "SELECT 'Hello, World! 🦆' AS message;";
-                    if (!relation) {
-                        const local_source: RelationSource = {
-                            type: "query",
-                            baseQuery: baseQuery,
-                            id: getRandomId(),
-                            name: "New Query"
-                        }
-                        get().showRelationFromSource(connectionId, local_source, editorPath);
-                    } else {
-                        // make sure that this relation is not already in the state
-                        get().showEntity('relations', relation, editorPath);
-                    }
+                addNewRelation: async (connectionId: string, editorPath: string[], relation: RelationState) => {
+                    // make sure that this relation is not already in the state
+                    get().showEntity('relations', relation, editorPath);
                 },
 
                 setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => {
@@ -389,9 +379,7 @@ export const useRelationsState = createWithEqualityFn(
                     if (existingRelation) {
                         get().showEntity('relations', existingRelation, editorPath);
                     } else {
-                        // update state with empty (loading) relation
-                        const defaultQueryParams = getInitialParams('table');
-                        const relationState = getRelationStateFromSource(connectionId, source, defaultQueryParams, {state: 'running'});
+                        const relationState = RelationActions.create(source);
                         const actions = getRelationActions({relationState, updateRelation: get().updateRelation});
                         get().showEntity('relations', relationState, editorPath);
                         await actions.updateRelationDataWithBaseQuery(relationState.query.baseQuery);

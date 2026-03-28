@@ -3,7 +3,7 @@ import {
     RelationState,
     resetQueryParams,
     returnEmptyErrorState,
-    setRelationLoading,
+    setRelationRunning,
     ViewQueryParameters
 } from "@/model/relation-state";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
@@ -101,7 +101,7 @@ async function updateAndExecuteRelation(
         relation.query.activeBaseQuery = baseQuery;
     }
 
-    const loadingRelationState = setRelationLoading(relation); // Set it loading
+    const loadingRelationState = setRelationRunning(relation); // Set it loading
     update(loadingRelationState);
 
     try {

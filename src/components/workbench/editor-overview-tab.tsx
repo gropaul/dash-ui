@@ -27,6 +27,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/compon
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {deepClone} from "@/platform/object-utils";
+import {RelationActions} from "@/state/relations/actions/static-actions";
 
 
 interface RenameState {
@@ -294,24 +295,8 @@ ${relationNames.join(', ')}`;
 
         if (tree.type === 'relations') {
             const relation = relations[tree.id];
-            const newSource: RelationSource = {
-                type: 'query',
-                id: getRandomId(),
-                name: 'New Query',
-                baseQuery: relation.query.baseQuery
-            };
-            const newRelation: RelationState = {
-                ...relation,
-                id: getRelationIdFromSource(relation.connectionId, newSource),
-                name: relation.name + ' (Copy)',
-                viewState: {
-                    ...relation.viewState,
-                    displayName: relation.viewState.displayName + ' (Copy)'
-                },
-                source: newSource
-            }
-            // add the relation to the parent path
-            addNewRelation(MAIN_CONNECTION_ID, parentPath, newRelation);
+            const copy = RelationActions.copy(relation);
+            addNewRelation(MAIN_CONNECTION_ID, parentPath, copy);
         } else if (tree.type === 'dashboards') {
             const dashboard = dashboards[tree.id];
             const newDashboard = {
@@ -338,7 +323,7 @@ ${relationNames.join(', ')}`;
     }
 
     function onAddNewRelation(path: string[], tree: TreeNode) {
-        addNewRelation(MAIN_CONNECTION_ID, path, undefined);
+        addNewRelation(MAIN_CONNECTION_ID, path, RelationActions.create());
     }
 
     function onAddNewDashboard(path: string[], tree: TreeNode) {
@@ -398,7 +383,7 @@ ${relationNames.join(', ')}`;
                             <Folder size={16} className="mr-2"/>
                             <span>New Folder</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addNewRelation(MAIN_CONNECTION_ID, [], undefined)}>
+                        <DropdownMenuItem onClick={() => addNewRelation(MAIN_CONNECTION_ID, [], RelationActions.create())}>
                             <Sheet size={16} className="mr-2"/>
                             <span>New Query</span>
                         </DropdownMenuItem>

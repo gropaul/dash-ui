@@ -233,7 +233,7 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export function getRelationStateFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters, state: TaskExecutionState): RelationState {
+export function getRelationStateFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters): RelationState {
 
     const name = getRelationNameFromSource(source);
     const relation: Relation = {
@@ -250,7 +250,9 @@ export function getRelationStateFromSource(connectionId: string, source: Relatio
             activeBaseQuery: baseQuery,
             viewParameters: viewParams,
         },
-        executionState: state,
+        executionState: {
+            state: 'not-started',
+        }
     }
     const showCode = source.type === 'query';
 
@@ -537,7 +539,7 @@ export async function buildQueryWithCheck(relation: RelationState, inputManager?
     };
 }
 
-export function setRelationLoading(relation: RelationState): RelationState {
+export function setRelationRunning(relation: RelationState): RelationState {
     return {
         ...relation,
         executionState: {

@@ -3,7 +3,7 @@ import {
     executeQueryOfRelation,
     RelationState,
     returnEmptyErrorState,
-    setRelationLoading,
+    setRelationRunning,
 } from '@/model/relation-state';
 import {registerRelationMacro} from './table-macros';
 import {RelationBlockData} from '@/components/editor/tools/relation.tool';
@@ -163,7 +163,7 @@ export async function refreshDownstream(
 
         try {
             // Set loading state
-            const loadingState = setRelationLoading(relation);
+            const loadingState = setRelationRunning(relation);
             update(loadingState);
 
             // Execute the query
@@ -175,7 +175,7 @@ export async function refreshDownstream(
             const params = relation.viewState.parametersState?.parameters;
             await registerRelationMacro(displayName, relation.query.baseQuery, params);
         } catch (e) {
-            const errorState = returnEmptyErrorState(setRelationLoading(relation), e);
+            const errorState = returnEmptyErrorState(setRelationRunning(relation), e);
             update(errorState);
         }
     }

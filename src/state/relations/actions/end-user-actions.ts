@@ -3,7 +3,7 @@ import {
     RelationState,
     resetQueryParams,
     returnEmptyErrorState,
-    setRelationLoading,
+    setRelationRunning,
     ViewQueryParameters
 } from "@/model/relation-state";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
