@@ -7,6 +7,9 @@ import {useChatState} from "@/state/chat.state";
 import {ChatWindowProps} from "@/components/chat/chat-wrapper";
 import {Alert, AlertTitle} from "@/components/ui/alert";
 import {ChatInput} from "@/components/chat/chat-input";
+import {ModelDownloadBanner} from "@/components/chat/model-download-banner";
+import {useLanguageModelState} from "@/state/language-model.state";
+import {getProviderRegistry} from "@/components/chat/providers";
 
 
 export function ChatContentMessages({
@@ -20,9 +23,11 @@ export function ChatContentMessages({
                                     }: ChatWindowProps) {
 
     const messages = useChatState((state) => state.getMessages(sessionId));
+    const activeProviderId = useLanguageModelState((s) => s.activeProviderId);
+    const isLocalProvider = !!getProviderRegistry().getProvider(activeProviderId)?.prepareModel;
 
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const atBottomRef = useRef(true); // ← tracks live “at-bottom” state
+    const atBottomRef = useRef(true); // ← tracks live "at-bottom" state
 
     /* ───────────── track user scroll position ───────────── */
     const handleScroll = useCallback(() => {
@@ -82,9 +87,13 @@ export function ChatContentMessages({
                         <div className="text-muted-foreground">
                             How can I help you today?
                         </div>
-                        <div className="text-amber-500 dark:text-amber-400 text-xs max-w-md mx-auto">
-                            Warning: While using the assistant, your messages and data can be shared with the provider! The agent can read, write and *delete* your data.
+                        <div className="text-amber-500 dark:text-amber-400 text-s max-w-md mx-auto">
+                            {!isLocalProvider
+                                ? "Warning: While using the assistant, your messages and data can be shared with the provider! The agent can read, write and *delete* your data."
+                                : "Warning: The agent can read, write and *delete* your data."
+                            }
                         </div>
+                        <ModelDownloadBanner/>
                     </div>
                     {messages.map((m, index) => (
                         <ChatMessagePart showSystemMessage={showSystemMessage} key={index} message={m}/>

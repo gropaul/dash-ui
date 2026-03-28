@@ -1,4 +1,4 @@
-import {convertToCoreMessages, Message, streamText, StreamTextResult, Tool as VercelTool,} from 'ai';
+import {convertToModelMessages, UIMessage, streamText, StreamTextResult, ToolSet, stepCountIs,} from 'ai';
 
 import {DataEngAssistantPrompt} from "@/components/chat/model/promts";
 import {
@@ -10,21 +10,21 @@ import {
     ShowTable
 } from "@/components/chat/model/tools";
 import {useLanguageModelState} from "@/state/language-model.state";
+import {getProviderRegistry} from "@/components/chat/providers";
 
 export interface ChatSession {
     // initialPrompt?: UIMessage; // Optional initial prompt for the session
     id: string; // Unique identifier for the session
     name: string; // Optional name for the session
     dateTimeCreated: string; // Date and time when the session was created, formatted as iSO string
-    messages: Message[];
+    messages: UIMessage[];
 }
 
 export function GetNewChatSession(): ChatSession {
 
-    const initialPrompt: Message =  {
+    const initialPrompt: UIMessage =  {
     id: crypto.randomUUID().toString(),
         role: 'system',
-        content: '',
         parts: [{
             text: DataEngAssistantPrompt,
             type: 'text',
@@ -41,23 +41,31 @@ export function GetNewChatSession(): ChatSession {
 }
 
 class LlmService {
-    private readonly tools: Record<string, VercelTool>;
+    private readonly tools: ToolSet;
 
-    constructor(tools: Record<string, VercelTool>) {
+    constructor(tools: ToolSet) {
         this.tools = tools;
     }
 
-    streamText(messages: Message[]): StreamTextResult<any, any> {
+    async prepareModel(onProgress: (progress: number) => void): Promise<void> {
+        const state = useLanguageModelState.getState();
+        const provider = getProviderRegistry().getProvider(state.activeProviderId);
+        if (provider?.prepareModel) {
+            await provider.prepareModel(onProgress);
+        }
+    }
+
+    async streamText(messages: UIMessage[]): Promise<StreamTextResult<any, any>> {
 
         // Get the current language model from state
         const model = useLanguageModelState.getState().getLanguageModel();
 
         return streamText({
             model: model,
-            messages: convertToCoreMessages(messages),
+            messages: await convertToModelMessages(messages),
             tools: this.tools,
-            maxSteps: 8,
-        })
+            stopWhen: stepCountIs(8),
+        });
     }
 }
 

@@ -26,3 +26,4 @@
 - Tailwind CSS
 - shadcn/ui components
 - @xyflow/react for workflow canvas
+- pnpm for package management

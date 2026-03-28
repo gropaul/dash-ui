@@ -83,7 +83,7 @@ export class OllamaProvider implements LanguageModelProviderInterface {
         });
         return ollama(this.config.model, {
             simulateStreaming: true
-        });
+        }) as unknown as LanguageModel;
     }
 
     updateConfig(config: Partial<OllamaConfig>): void {

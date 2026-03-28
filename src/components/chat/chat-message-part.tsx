@@ -1,12 +1,11 @@
 import React from "react";
 import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
-import {Message} from "ai";
-import {ReasoningUIPart, TextUIPart} from "@ai-sdk/ui-utils";
+import {UIMessage, ReasoningUIPart, TextUIPart, isToolUIPart} from "ai";
 import {ToolInvocationPart} from "@/components/chat/chat-message-part-tool";
 
 interface ChatMessageItemProps {
-    message: Message;
+    message: UIMessage;
     showSystemMessage?: boolean;
 }
 
@@ -42,18 +41,16 @@ export function ChatMessagePart({message, showSystemMessage}: ChatMessageItemPro
     return (
         <>
             {message.parts.map((part, index) => {
+                if (isToolUIPart(part)) {
+                    return <ToolInvocationPart key={index} part={part} role={'tool'}/>;
+                }
                 switch (part.type) {
-                    case "tool-invocation":
-                        return <ToolInvocationPart key={index} part={part} role={'tool'}/>;
                     case "text":
                         return <TextPart key={index} part={part} role={role}/>;
                     case "reasoning":
                         return <ReasoningPart key={index} part={part} role={role}/>;
                     default:
-                        return null; // or handle unsupported part types
-                        return  <div key={index} className={cn("p-2 bg-red-100 text-red-800 rounded-lg")}>
-                            Unsupported part type: {part.type}
-                        </div>;
+                        return null;
                 }
             })}
         </>
@@ -92,7 +89,7 @@ function ReasoningPart({part, role}: ReasoningPartProps) {
         <div className={cn("w-full", parentRoleStyles[role as keyof typeof parentRoleStyles])}>
             <div className={cn("p-2 rounded-lg", roleStyles[role as keyof typeof roleStyles])}>
                 <MarkdownRenderer
-                    markdown={part.reasoning}
+                    markdown={part.text}
                     codeStyle={{
                         fontSize: "0.85em",
                         backgroundColor: "white",

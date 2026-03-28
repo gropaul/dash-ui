@@ -63,4 +63,10 @@ export interface LanguageModelProviderInterface {
    * @returns A promise that resolves to a boolean indicating whether the provider is working
    */
   getStatus(): Promise<ValidationStatus>;
+
+  /**
+   * Optional: Prepare the model before use (e.g., download weights).
+   * @param onProgress Callback with progress value between 0 and 1
+   */
+  prepareModel?(onProgress: (progress: number) => void): Promise<void>;
 }

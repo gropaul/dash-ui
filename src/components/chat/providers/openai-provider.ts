@@ -80,7 +80,6 @@ export class OpenAIProvider implements LanguageModelProviderInterface {
 
     getModel(): LanguageModel {
         const openai = createOpenAI({
-            compatibility: 'strict',
             apiKey: this.config.token,
         });
         return openai(this.config.model);

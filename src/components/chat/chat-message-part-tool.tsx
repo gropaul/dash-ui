@@ -10,7 +10,7 @@ import {
 import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 import React from "react";
-import {ToolInvocationUIPart} from "@ai-sdk/ui-utils";
+import {ToolUIPart, DynamicToolUIPart, getToolName} from "ai";
 import {parentRoleStyles, roleStyles, RoleType} from "@/components/chat/chat-message-part";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {JsonViewer} from "@/components/ui/json-viewer";
@@ -37,25 +37,22 @@ export function ToolIcon({ toolName, className }: ToolIconProps) {
     }
 }
 interface ToolInvocationPartProps {
-    part: ToolInvocationUIPart;
+    part: ToolUIPart | DynamicToolUIPart;
     role: RoleType;
 }
 
 
 export function ToolInvocationPart({part, role}: ToolInvocationPartProps) {
 
-    const toolName = part.toolInvocation.toolName as ToolName;
+    const toolName = getToolName(part) as ToolName;
 
     if (toolName === 'showTable' || toolName === 'showChart') {
 
-        if (part.toolInvocation.state === 'result' && part.toolInvocation.result) {
-            if (typeof part.toolInvocation.result === 'string') {
+        if (part.state === 'output-available' && part.output) {
+            if (typeof part.output === 'string') {
                 return <></>
-                // return <div className={cn("p-2 bg-red-100 text-red-800 rounded-lg")}>
-                //     Error: {part.toolInvocation.result}
-                // </div>;
             }
-            return <RelationPart initialState={part.toolInvocation.result} />;
+            return <RelationPart initialState={part.output as any} />;
         } else {
             return <div className={cn("p-2 bg-yellow-100 text-yellow-800 rounded-lg")}>
                 Still executing query...
@@ -79,14 +76,14 @@ export function ToolInvocationPart({part, role}: ToolInvocationPartProps) {
                             </div>
                         </AccordionTrigger>
                         <AccordionContent className="p-2 flex flex-col gap-4 text-balance">
-                            {part.toolInvocation.args && (
+                            {part.input != null && (
                                 <JsonViewer
-                                    json={part.toolInvocation.args}
+                                    json={part.input as Record<string, any>}
                                     className="w-full"
                                 />
                             )}
-                            {part.toolInvocation.state === "result" && (
-                                <MarkdownRenderer markdown={part.toolInvocation.result || ""}/>
+                            {part.state === "output-available" && (
+                                <MarkdownRenderer markdown={String(part.output ?? "")}/>
                             )}
                         </AccordionContent>
                     </AccordionItem>
@@ -95,4 +92,3 @@ export function ToolInvocationPart({part, role}: ToolInvocationPartProps) {
         </div>
     );
 }
-

@@ -1,16 +1,8 @@
 import React, {useState} from "react";
 import {ChatWrapper} from "./chat-wrapper";
 import {aiService} from "@/components/chat/model/llm-service";
-import {appendResponseMessages, Message} from "ai";
+import {UIMessage, UIMessagePart, DynamicToolUIPart} from "ai";
 import {useChatState} from "@/state/chat.state";
-import {
-    FileUIPart,
-    ReasoningUIPart,
-    SourceUIPart,
-    StepStartUIPart,
-    TextUIPart,
-    ToolInvocationUIPart
-} from "@ai-sdk/ui-utils";
 import {deepClone} from "@/platform/object-utils";
 import {getErrorMessage} from "@/platform/error-handling";
 
@@ -59,10 +51,9 @@ export function ChatTab({className}: ChatProps) {
 
             const messages = useChatState.getState().getMessages(state.session_id);
 
-            const userMessage: Message = {
+            const userMessage: UIMessage = {
                 id: crypto.randomUUID().toString(),
                 role: 'user',
-                content: '',
                 parts: [{
                     text: content,
                     type: 'text',
@@ -80,26 +71,15 @@ export function ChatTab({className}: ChatProps) {
                 state: 'inferring',
             });
 
-            type MessagePart =
-                TextUIPart
-                | ReasoningUIPart
-                | ToolInvocationUIPart
-                | SourceUIPart
-                | FileUIPart
-                | StepStartUIPart;
-
-            const result = aiService.streamText(messageWithUserMessage);
-            let currentMessage: Message;
-            let currentMessageParts: MessagePart[] = [];
-            let currentMessagePart: MessagePart | undefined = undefined;
-
-            const messageWithUserMessageAndAnswers = [...messageWithUserMessage];
+            const result = await aiService.streamText(messageWithUserMessage);
+            let currentMessage: UIMessage;
+            let currentMessageParts: UIMessagePart<any, any>[] = [];
+            let currentMessagePart: UIMessagePart<any, any> | undefined = undefined;
 
             function createNewEmptyMessage(id: string) {
                 currentMessage = {
                     id: id,
                     role: 'assistant',
-                    content: '',
                     parts: currentMessageParts,
                 };
                 if (!state.session_id) {
@@ -164,30 +144,21 @@ export function ChatTab({className}: ChatProps) {
                     }
 
                     switch (streamPart.type) {
-                        case 'step-start':
-                            createNewEmptyMessage(streamPart.messageId);
+                        case 'start-step':
+                            createNewEmptyMessage(crypto.randomUUID().toString());
                             break;
-                        // case 'tool-call':
-                        //     const toolCallPart: ToolInvocationUIPart = {
-                        //         type: 'tool-invocation',
-                        //         toolInvocation: {
-                        //             state: 'call',
-                        //             ...streamPart,
-                        //         }
-                        //     }
-                        //     currentMessageParts.push(toolCallPart);
-                        //     break;
                         case 'tool-result':
-                            let toolResultPart: ToolInvocationUIPart = {
-                                type: 'tool-invocation',
-                                toolInvocation: {
-                                    state: 'result',
-                                    ...streamPart,
-                                }
+                            const toolResultPart: DynamicToolUIPart = {
+                                type: 'dynamic-tool',
+                                toolCallId: streamPart.toolCallId,
+                                toolName: streamPart.toolName,
+                                state: 'output-available',
+                                input: streamPart.input,
+                                output: streamPart.output,
                             };
                             currentMessageParts.push(toolResultPart);
                             break;
-                        case 'step-finish':
+                        case 'finish-step':
                             finishCurrentMessage();
                             break;
                         case 'text-delta':
@@ -200,7 +171,7 @@ export function ChatTab({className}: ChatProps) {
                             } else if (currentMessagePart.type !== 'text') {
                                 throw new Error('Text delta received but current message part is not text');
                             }
-                            currentMessagePart.text += streamPart.textDelta;
+                            (currentMessagePart as { type: 'text'; text: string }).text += streamPart.text;
                             updateGUIWithUnfinishedLastPart()
                             break
                     }
@@ -220,24 +191,6 @@ export function ChatTab({className}: ChatProps) {
                 state: 'done',
             });
 
-            try {
-                // safety: if anything went wrong during streaming, this will overwrite it
-                const response = await result.response;
-                const newMessagesInferred = appendResponseMessages({
-                    messages: messageWithUserMessageAndAnswers,
-                    responseMessages: response.messages,
-                });
-
-
-                setMessages(newMessagesInferred, state.session_id);
-            } catch (responseError) {
-                console.error('Error getting final response:', responseError);
-                setState({
-                    ...state,
-                    state: 'done',
-                    error: responseError instanceof Error ? responseError.message : 'Failed to get response from the language model',
-                });
-            }
         } catch (error) {
             console.error('Error in handleSendMessage:', error);
             setState({

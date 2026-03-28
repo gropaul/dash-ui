@@ -17,7 +17,7 @@ import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 
 export const QueryDatabaseTool = tool({
     description: SQLTollDescription,
-    parameters: z.object({
+    inputSchema: z.object({
         query: z.string().describe('The SQL query to execute.'),
     }).describe('Parameters for the SQL query execution.'),
     execute: async ({query}): Promise<string> => {
@@ -194,7 +194,7 @@ export async function getTableBlockData(args: TableViewDataArgs): Promise<Relati
 
 export const AddMarkdownToDashboard = tool({
     description: 'Adds a markdown element to the dashboard.',
-    parameters: z.object({
+    inputSchema: z.object({
         markdown: z.string().describe('The markdown content to add to the dashboard.')
     }).describe('Parameters for adding markdown to the dashboard.'),
     execute: async ({markdown}) => {
@@ -224,7 +224,7 @@ export const AddMarkdownToDashboard = tool({
 
 export const AddInputToDashboard = tool({
     description: 'Adds an input element to the dashboard. The input can be used in other queries for interactivity. Usage example: `SELECT * FROM table WHERE column = {{input_id}}`.',
-    parameters: z.object({
+    inputSchema: z.object({
         input_id: z.string().describe('The id of the input element.'),
         inputType: z.enum(['text-select', 'text-field']).describe('Type of the input element: "text-select" for a select input, "text-field" for a text input.'),
     }).describe('Parameters for adding an input to the dashboard.'),
@@ -234,7 +234,7 @@ export const AddInputToDashboard = tool({
 export const AddChartToDashboard = tool({
 
     description: 'Adds an chart element to the dashboard.',
-    parameters: z.object({
+    inputSchema: z.object({
         sql: z.string().describe('The SQL query to execute for the chart.'),
         chartType: z.enum(['bar', 'line', 'pie']).describe('The type of chart to create.'),
         xAxis: z.string().describe('The column to use for the x-axis.'),
@@ -293,7 +293,7 @@ export const AddChartToDashboard = tool({
 export const ShowChart = tool({
 
     description: 'Shows the result of a SQL query as a chart in the chat. Dont summarize the data again, the chart is shown directly.',
-    parameters: z.object({
+    inputSchema: z.object({
         sql: z.string().describe('The SQL query to execute for the chart.'),
         chartType: z.enum(['bar', 'line', 'pie']).describe('The type of chart to create.'),
         xAxis: z.string().describe('The column to use for the x-axis.'),
@@ -328,7 +328,7 @@ export const ShowChart = tool({
 export const AddTableToDashboard = tool({
 
     description: 'Adds a table element to the dashboard.',
-    parameters: z.object({
+    inputSchema: z.object({
         sql: z.string().describe('The SQL query to execute for the table content.'),
         showNumberOfRows: z.enum(['5', '10', '50']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
     }).describe('Parameters for adding a chart to the dashboard.'),
@@ -377,7 +377,7 @@ export const AddTableToDashboard = tool({
 export const ShowTable = tool({
 
     description: 'Shows the result of a SQL query as a table in the chat. Dont summarize the data again, the table is shown directly.',
-    parameters: z.object({
+    inputSchema: z.object({
         sql: z.string().describe('The SQL query to execute for the table content.'),
         showNumberOfRows: z.enum(['5', '10', '50']).optional().describe('The number of rows to show in the table on one page. Defaults to 10.'),
     }).describe('Parameters for adding a chart to the dashboard.'),

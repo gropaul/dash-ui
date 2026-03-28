@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import {createJSONStorage, persist} from 'zustand/middleware';
 import {ChatSession, GetNewChatSession} from "@/components/chat/model/llm-service";
-import {Message} from "ai";
+import {UIMessage} from "ai";
 import {deepClone} from "@/platform/object-utils";
 
 export interface ChatZustand {
@@ -13,11 +13,11 @@ export interface ChatZustandActions {
     updateSession: (sessionId: string, session: ChatSession) => void;
     deleteSession: (sessionId: string) => void;
     getSession: (sessionId: string) => ChatSession | undefined;
-    getMessages: (sessionId?: string) => Message[]; // If sessionId is not provided, return empty array
-    setMessages: (messages: Message[], sessionId?: string) => string;
-    addMessages: (messages: Message[], sessionId: string) => void; // If sessionId is not provided, create a new session
+    getMessages: (sessionId?: string) => UIMessage[]; // If sessionId is not provided, return empty array
+    setMessages: (messages: UIMessage[], sessionId?: string) => string;
+    addMessages: (messages: UIMessage[], sessionId: string) => void; // If sessionId is not provided, create a new session
     // Replace the last message in the session with the new message
-    updateLastMessage: (message: Message, sessionId: string) => void;
+    updateLastMessage: (message: UIMessage, sessionId: string) => void;
 }
 
 export const useChatState = create<ChatZustand & ChatZustandActions>()(
