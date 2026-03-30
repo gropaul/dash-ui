@@ -13,7 +13,7 @@ import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components
 import {NavigationBarContent, NavigationBarDesktop} from "@/components/layout/navigation-bar-desktop";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {useGUIState} from "@/state/gui.state";
-import {WorkflowTab} from "@/components/workflow/workflow-tab";
+import {CanvasTab} from "@/components/canvas/canvas-tab";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {NavigationBarMobile} from "@/components/layout/navigation-bar-mobile";
 import {cn} from "@/lib/utils";
@@ -151,8 +151,8 @@ const factory = (node: TabNode) => {
     if (component === 'DashboardComponent') {
         return <DashboardTab dashboardId={node.getConfig().dashboardId}/>;
     }
-    if (component === 'WorkflowComponent') {
-        return <WorkflowTab workflowId={node.getConfig().workflowId}/>;
+    if (component === 'CanvasComponent') {
+        return <CanvasTab canvasId={node.getConfig().canvasId}/>;
     }
 
     return null;
@@ -200,7 +200,7 @@ const iconFactory = (node: TabNode) => {
         </div>;
     }
 
-    if (component === 'WorkflowComponent') {
+    if (component === 'CanvasComponent') {
         return <div style={{width: 16, height: 16}}>
             <WorkflowIcon size={16}/>
         </div>;

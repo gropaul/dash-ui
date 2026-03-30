@@ -11,7 +11,7 @@ import {
     Type
 } from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
-import {NodeTemplate} from "@/components/workflow/flow";
+import {NodeTemplate} from "@/components/canvas/flow";
 import {ReactNode} from "react";
 import {
     CanvasState,
@@ -20,7 +20,7 @@ import {
     DEFAULT_TEXT_SIZE,
     DrawSettings,
     DrawToolVariant
-} from "@/components/workflow/logic/models";
+} from "@/components/canvas/logic/models";
 
 function getToolVariantIcon(variant: DrawToolVariant) {
     switch (variant) {
@@ -32,7 +32,7 @@ function getToolVariantIcon(variant: DrawToolVariant) {
             return <Highlighter size={20} strokeWidth={1.5}/>;
     }
 }
-import {FreeDrawToolbar} from "@/components/workflow/free-draw-toolbar";
+import {FreeDrawToolbar} from "@/components/canvas/free-draw-toolbar";
 
 interface NodePaletteProps {
     canvasState: CanvasState;

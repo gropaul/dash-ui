@@ -13,7 +13,7 @@ export interface RelationTitleWithActionsProps {
 
 /**
  * Shared component for relation title with edit and copy macro buttons.
- * Used in both the relation view header and workflow canvas header.
+ * Used in both the relation view header and canvas canvas header.
  * Shows edit and copy buttons on hover.
  */
 export function RelationTitleWithActions({

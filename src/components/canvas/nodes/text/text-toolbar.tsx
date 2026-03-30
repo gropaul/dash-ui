@@ -1,5 +1,5 @@
 import {NodeToolbar, Position, useReactFlow} from '@xyflow/react';
-import {useWorkflowState} from "@/components/workflow/workflow-context";
+import {useCanvasState} from "@/components/canvas/canvas-context";
 import {Button} from "@/components/ui/button";
 import {
     AlignCenter,
@@ -62,7 +62,7 @@ interface TextToolbarProps {
 
 export function TextToolbar({nodeId, isVisible, data}: TextToolbarProps) {
     const {deleteElements} = useReactFlow();
-    const {setNodes} = useWorkflowState();
+    const {setNodes} = useCanvasState();
 
     const updateNodeData = (updates: Partial<TextNodeData>) => {
         setNodes((nodes) =>

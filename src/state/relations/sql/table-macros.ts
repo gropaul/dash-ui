@@ -187,7 +187,7 @@ export function sqlContainsMacroCall(sql: string, macroName: string): boolean {
 
 /**
  * Find all relations whose SQL references the given macro name.
- * Searches across standalone relations, workflow nodes, and dashboard blocks.
+ * Searches across standalone relations, canvas nodes, and dashboard blocks.
  */
 export function findMacroReferences(macroName: string, excludeId: string): MacroReference[] {
     const allRelations = getAllRelations();
@@ -216,7 +216,7 @@ export function renameMacroInSql(sql: string, oldMacroName: string, newMacroName
 }
 
 /**
- * Rename all macro references across all relations (standalone, workflow, dashboard).
+ * Rename all macro references across all relations (standalone, canvas, dashboard).
  * Only replaces the macro name itself, not its arguments.
  */
 export function renameAllMacroReferences(oldMacroName: string, newMacroName: string, excludeId: string): void {

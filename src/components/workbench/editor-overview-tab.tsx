@@ -121,7 +121,7 @@ export function EditorOverviewTab() {
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
     const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
 
-    const addNewWorkflow = useRelationsState((state) => state.addNewWorkflow);
+    const addNewCanvas = useRelationsState((state) => state.addNewCanvas);
 
     const deleteEntity = useRelationsState((state) => state.deleteEntity);
     const getEntityDisplayName = useRelationsState((state) => state.getEntityDisplayName);
@@ -347,9 +347,9 @@ ${relationNames.join(', ')}`;
                             <LayoutDashboard size={16} className="mr-2"/>
                             <span>New Dashboard</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addNewWorkflow()}>
+                        <DropdownMenuItem onClick={() => addNewCanvas()}>
                             <Workflow size={16} className="mr-2"/>
-                            <span>New Workflow (dev)</span>
+                            <span>New Canvas 🛠️</span>
                         </DropdownMenuItem>
                         { /* only in development */}
                         {process.env.NODE_ENV === 'development' && (

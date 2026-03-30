@@ -8,16 +8,16 @@ type SetEdges = (edgesOrUpdater: Edge[] | ((edges: Edge[]) => Edge[])) => void;
 type GetNodes = () => Node[];
 type GetEdges = () => Edge[];
 
-interface WorkflowContextValue {
+interface CanvasContextValue {
     setNodes: SetNodes;
     setEdges: SetEdges;
     getNodes: GetNodes;
     getEdges: GetEdges;
 }
 
-const WorkflowContext = createContext<WorkflowContextValue | null>(null);
+const CanvasContext = createContext<CanvasContextValue | null>(null);
 
-export function WorkflowProvider({
+export function CanvasProvider({
     children,
     setNodes,
     setEdges,
@@ -31,9 +31,9 @@ export function WorkflowProvider({
     getEdges: GetEdges;
 }) {
     return (
-        <WorkflowContext.Provider value={{setNodes, setEdges, getNodes, getEdges}}>
+        <CanvasContext.Provider value={{setNodes, setEdges, getNodes, getEdges}}>
             {children}
-        </WorkflowContext.Provider>
+        </CanvasContext.Provider>
     );
 }
 
@@ -41,10 +41,10 @@ export function WorkflowProvider({
  * Use this instead of useReactFlow().setNodes/setEdges to ensure
  * changes go through the undoable state management.
  */
-export function useWorkflowState() {
-    const context = useContext(WorkflowContext);
+export function useCanvasState() {
+    const context = useContext(CanvasContext);
     if (!context) {
-        throw new Error('useWorkflowState must be used within a WorkflowProvider');
+        throw new Error('useCanvasState must be used within a CanvasProvider');
     }
     return context;
 }

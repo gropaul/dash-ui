@@ -25,5 +25,5 @@
 - TypeScript
 - Tailwind CSS
 - shadcn/ui components
-- @xyflow/react for workflow canvas
+- @xyflow/react for canvas canvas
 - pnpm for package management

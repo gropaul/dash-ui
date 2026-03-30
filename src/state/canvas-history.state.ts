@@ -3,44 +3,44 @@ import {Edge, Node} from "@xyflow/react";
 
 const MAX_HISTORY_SIZE = 100;
 
-export interface WorkflowSnapshot {
+export interface CanvasSnapshot {
     nodes: Node[];
     edges: Edge[];
 }
 
-interface WorkflowHistoryEntry {
-    past: WorkflowSnapshot[];
-    future: WorkflowSnapshot[];
+interface CanvasHistoryEntry {
+    past: CanvasSnapshot[];
+    future: CanvasSnapshot[];
 }
 
-interface WorkflowHistoryState {
-    // Map of workflowId -> history
-    histories: Record<string, WorkflowHistoryEntry>;
+interface CanvasHistoryState {
+    // Map of canvasId -> history
+    histories: Record<string, CanvasHistoryEntry>;
 
     // Actions
-    takeSnapshot: (workflowId: string, nodes: Node[], edges: Edge[]) => void;
-    undo: (workflowId: string, currentNodes: Node[], currentEdges: Edge[]) => WorkflowSnapshot | null;
-    redo: (workflowId: string, currentNodes: Node[], currentEdges: Edge[]) => WorkflowSnapshot | null;
-    canUndo: (workflowId: string) => boolean;
-    canRedo: (workflowId: string) => boolean;
-    clearHistory: (workflowId: string) => void;
+    takeSnapshot: (canvasId: string, nodes: Node[], edges: Edge[]) => void;
+    undo: (canvasId: string, currentNodes: Node[], currentEdges: Edge[]) => CanvasSnapshot | null;
+    redo: (canvasId: string, currentNodes: Node[], currentEdges: Edge[]) => CanvasSnapshot | null;
+    canUndo: (canvasId: string) => boolean;
+    canRedo: (canvasId: string) => boolean;
+    clearHistory: (canvasId: string) => void;
 }
 
 const getOrCreateHistory = (
-    histories: Record<string, WorkflowHistoryEntry>,
-    workflowId: string
-): WorkflowHistoryEntry => {
-    return histories[workflowId] ?? {past: [], future: []};
+    histories: Record<string, CanvasHistoryEntry>,
+    canvasId: string
+): CanvasHistoryEntry => {
+    return histories[canvasId] ?? {past: [], future: []};
 };
 
-export const useWorkflowHistoryState = createWithEqualityFn<WorkflowHistoryState>(
+export const useCanvasHistoryState = createWithEqualityFn<CanvasHistoryState>(
     (set, get) => ({
         histories: {},
 
-        takeSnapshot: (workflowId, nodes, edges) => {
+        takeSnapshot: (canvasId, nodes, edges) => {
             set((state) => {
-                const history = getOrCreateHistory(state.histories, workflowId);
-                const snapshot: WorkflowSnapshot = {
+                const history = getOrCreateHistory(state.histories, canvasId);
+                const snapshot: CanvasSnapshot = {
                     nodes: structuredClone(nodes),
                     edges: structuredClone(edges),
                 };
@@ -53,7 +53,7 @@ export const useWorkflowHistoryState = createWithEqualityFn<WorkflowHistoryState
                 return {
                     histories: {
                         ...state.histories,
-                        [workflowId]: {
+                        [canvasId]: {
                             past: newPast,
                             future: [], // Clear redo stack on new action
                         },
@@ -62,14 +62,14 @@ export const useWorkflowHistoryState = createWithEqualityFn<WorkflowHistoryState
             });
         },
 
-        undo: (workflowId, currentNodes, currentEdges) => {
-            const history = getOrCreateHistory(get().histories, workflowId);
+        undo: (canvasId, currentNodes, currentEdges) => {
+            const history = getOrCreateHistory(get().histories, canvasId);
             if (history.past.length === 0) return null;
 
             const newPast = [...history.past];
             const previous = newPast.pop()!;
 
-            const currentSnapshot: WorkflowSnapshot = {
+            const currentSnapshot: CanvasSnapshot = {
                 nodes: structuredClone(currentNodes),
                 edges: structuredClone(currentEdges),
             };
@@ -77,7 +77,7 @@ export const useWorkflowHistoryState = createWithEqualityFn<WorkflowHistoryState
             set((state) => ({
                 histories: {
                     ...state.histories,
-                    [workflowId]: {
+                    [canvasId]: {
                         past: newPast,
                         future: [currentSnapshot, ...history.future],
                     },
@@ -87,14 +87,14 @@ export const useWorkflowHistoryState = createWithEqualityFn<WorkflowHistoryState
             return previous;
         },
 
-        redo: (workflowId, currentNodes, currentEdges) => {
-            const history = getOrCreateHistory(get().histories, workflowId);
+        redo: (canvasId, currentNodes, currentEdges) => {
+            const history = getOrCreateHistory(get().histories, canvasId);
             if (history.future.length === 0) return null;
 
             const newFuture = [...history.future];
             const next = newFuture.shift()!;
 
-            const currentSnapshot: WorkflowSnapshot = {
+            const currentSnapshot: CanvasSnapshot = {
                 nodes: structuredClone(currentNodes),
                 edges: structuredClone(currentEdges),
             };
@@ -102,7 +102,7 @@ export const useWorkflowHistoryState = createWithEqualityFn<WorkflowHistoryState
             set((state) => ({
                 histories: {
                     ...state.histories,
-                    [workflowId]: {
+                    [canvasId]: {
                         past: [...history.past, currentSnapshot],
                         future: newFuture,
                     },
@@ -112,21 +112,21 @@ export const useWorkflowHistoryState = createWithEqualityFn<WorkflowHistoryState
             return next;
         },
 
-        canUndo: (workflowId) => {
-            const history = get().histories[workflowId];
+        canUndo: (canvasId) => {
+            const history = get().histories[canvasId];
             return history ? history.past.length > 0 : false;
         },
 
-        canRedo: (workflowId) => {
-            const history = get().histories[workflowId];
+        canRedo: (canvasId) => {
+            const history = get().histories[canvasId];
             return history ? history.future.length > 0 : false;
         },
 
-        clearHistory: (workflowId) => {
+        clearHistory: (canvasId) => {
             set((state) => ({
                 histories: {
                     ...state.histories,
-                    [workflowId]: {past: [], future: []},
+                    [canvasId]: {past: [], future: []},
                 },
             }));
         },

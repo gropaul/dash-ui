@@ -1,7 +1,7 @@
 import {RelationViewType} from "@/model/relation-view-state";
 import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files/icon-factories";
 
-import {HEADER_HEIGHT} from "@/components/workflow/logic/models";
+import {HEADER_HEIGHT} from "@/components/canvas/logic/models";
 import {RelationState} from "@/model/relation-state";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
 

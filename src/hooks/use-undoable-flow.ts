@@ -1,7 +1,7 @@
 import {useCallback, useRef} from 'react';
 import {Edge, Node, Viewport, applyNodeChanges, applyEdgeChanges, OnNodesChange, OnEdgesChange} from '@xyflow/react';
 import {useRelationsState} from '@/state/relations.state';
-import {useWorkflowHistoryState} from '@/state/workflow-history.state';
+import {useCanvasHistoryState} from '@/state/canvas-history.state';
 import {shallow} from 'zustand/shallow';
 
 const SNAPSHOT_DEBOUNCE_MS = 1000;
@@ -9,14 +9,14 @@ const VIEWPORT_DEBOUNCE_MS = 300;
 
 const DEFAULT_VIEWPORT: Viewport = {x: 0, y: 0, zoom: 1};
 
-export function useUndoableFlow(workflowId: string) {
-    const workflow = useRelationsState((state) => state.workflows[workflowId], shallow);
-    const updateWorkflowState = useRelationsState((state) => state.updateWorkflowState);
-    const {takeSnapshot, undo, redo, canUndo, canRedo} = useWorkflowHistoryState();
+export function useUndoableFlow(canvasId: string) {
+    const canvas = useRelationsState((state) => state.canvas[canvasId], shallow);
+    const updateCanvasState = useRelationsState((state) => state.updateCanvasState);
+    const {takeSnapshot, undo, redo, canUndo, canRedo} = useCanvasHistoryState();
 
-    const nodes = workflow?.nodes ?? [];
-    const edges = workflow?.edges ?? [];
-    const viewport = workflow?.viewport ?? DEFAULT_VIEWPORT;
+    const nodes = canvas?.nodes ?? [];
+    const edges = canvas?.edges ?? [];
+    const viewport = canvas?.viewport ?? DEFAULT_VIEWPORT;
 
     // Track last snapshot time to debounce
     const lastSnapshotTime = useRef<number>(0);
@@ -30,52 +30,52 @@ export function useUndoableFlow(workflowId: string) {
     const maybeSnapshot = useCallback(() => {
         const now = Date.now();
         if (now - lastSnapshotTime.current > SNAPSHOT_DEBOUNCE_MS) {
-            takeSnapshot(workflowId, lastNodesRef.current, lastEdgesRef.current);
+            takeSnapshot(canvasId, lastNodesRef.current, lastEdgesRef.current);
             lastSnapshotTime.current = now;
         }
-    }, [workflowId, takeSnapshot]);
+    }, [canvasId, takeSnapshot]);
 
     const setNodes = useCallback((nodesOrUpdater: Node[] | ((nodes: Node[]) => Node[])) => {
         maybeSnapshot();
         const newNodes = typeof nodesOrUpdater === 'function'
             ? nodesOrUpdater(lastNodesRef.current)
             : nodesOrUpdater;
-        updateWorkflowState(workflowId, {nodes: newNodes});
-    }, [workflowId, updateWorkflowState, maybeSnapshot]);
+        updateCanvasState(canvasId, {nodes: newNodes});
+    }, [canvasId, updateCanvasState, maybeSnapshot]);
 
     const setEdges = useCallback((edgesOrUpdater: Edge[] | ((edges: Edge[]) => Edge[])) => {
         maybeSnapshot();
         const newEdges = typeof edgesOrUpdater === 'function'
             ? edgesOrUpdater(lastEdgesRef.current)
             : edgesOrUpdater;
-        updateWorkflowState(workflowId, {edges: newEdges});
-    }, [workflowId, updateWorkflowState, maybeSnapshot]);
+        updateCanvasState(canvasId, {edges: newEdges});
+    }, [canvasId, updateCanvasState, maybeSnapshot]);
 
     const onNodesChange: OnNodesChange = useCallback((changes) => {
         maybeSnapshot();
         const newNodes = applyNodeChanges(changes, lastNodesRef.current);
-        updateWorkflowState(workflowId, {nodes: newNodes});
-    }, [workflowId, updateWorkflowState, maybeSnapshot]);
+        updateCanvasState(canvasId, {nodes: newNodes});
+    }, [canvasId, updateCanvasState, maybeSnapshot]);
 
     const onEdgesChange: OnEdgesChange = useCallback((changes) => {
         maybeSnapshot();
         const newEdges = applyEdgeChanges(changes, lastEdgesRef.current);
-        updateWorkflowState(workflowId, {edges: newEdges});
-    }, [workflowId, updateWorkflowState, maybeSnapshot]);
+        updateCanvasState(canvasId, {edges: newEdges});
+    }, [canvasId, updateCanvasState, maybeSnapshot]);
 
     const handleUndo = useCallback(() => {
-        const snapshot = undo(workflowId, lastNodesRef.current, lastEdgesRef.current);
+        const snapshot = undo(canvasId, lastNodesRef.current, lastEdgesRef.current);
         if (snapshot) {
-            updateWorkflowState(workflowId, {nodes: snapshot.nodes, edges: snapshot.edges});
+            updateCanvasState(canvasId, {nodes: snapshot.nodes, edges: snapshot.edges});
         }
-    }, [workflowId, undo, updateWorkflowState]);
+    }, [canvasId, undo, updateCanvasState]);
 
     const handleRedo = useCallback(() => {
-        const snapshot = redo(workflowId, lastNodesRef.current, lastEdgesRef.current);
+        const snapshot = redo(canvasId, lastNodesRef.current, lastEdgesRef.current);
         if (snapshot) {
-            updateWorkflowState(workflowId, {nodes: snapshot.nodes, edges: snapshot.edges});
+            updateCanvasState(canvasId, {nodes: snapshot.nodes, edges: snapshot.edges});
         }
-    }, [workflowId, redo, updateWorkflowState]);
+    }, [canvasId, redo, updateCanvasState]);
 
     // Debounce viewport updates
     const viewportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -85,9 +85,9 @@ export function useUndoableFlow(workflowId: string) {
             clearTimeout(viewportTimeoutRef.current);
         }
         viewportTimeoutRef.current = setTimeout(() => {
-            updateWorkflowState(workflowId, {viewport: newViewport});
+            updateCanvasState(canvasId, {viewport: newViewport});
         }, VIEWPORT_DEBOUNCE_MS);
-    }, [workflowId, updateWorkflowState]);
+    }, [canvasId, updateCanvasState]);
 
     return {
         nodes,
@@ -100,7 +100,7 @@ export function useUndoableFlow(workflowId: string) {
         onViewportChange,
         undo: handleUndo,
         redo: handleRedo,
-        canUndo: canUndo(workflowId),
-        canRedo: canRedo(workflowId),
+        canUndo: canUndo(canvasId),
+        canRedo: canRedo(canvasId),
     };
 }

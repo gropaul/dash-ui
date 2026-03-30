@@ -1,27 +1,27 @@
 import {getRandomId} from "@/platform/id-utils";
 import {Edge, Node, Viewport} from "@xyflow/react";
 
-export interface WorkflowState {
+export interface CanvasState {
     id: string;
-    viewState: WorkflowViewState;
+    viewState: CanvasViewState;
     nodes: Node[];
     edges: Edge[];
     viewport?: Viewport;
 }
 
-export interface WorkflowViewState {
+export interface CanvasViewState {
     displayName: string;
 }
 
-export function GetWorkflowId(workflow: WorkflowState): string {
-    return `workflow-${workflow.id}`;
+export function GetCanvasId(canvas: CanvasState): string {
+    return `canvas-${canvas.id}`;
 }
 
-export function GetInitialWorkflowState(): WorkflowState {
+export function GetInitialCanvasState(): CanvasState {
     return {
         id: getRandomId(),
         viewState: {
-            displayName: "New Workflow"
+            displayName: "New Canvas"
         },
         nodes: [],
         edges: [],

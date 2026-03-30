@@ -1,8 +1,9 @@
 import {RelationState} from "@/model/relation-state";
 import {useRelationsState} from "@/state/relations.state";
 import {isRelationState} from "@/components/editor/tools/utils";
+import {CanvasState} from "@/model/canvas-state";
 
-export type RelationOrigin = 'relation' | 'workflow' | 'dashboard';
+export type RelationOrigin = 'relation' | 'canvas' | 'dashboard';
 
 export interface RelationWithOrigin {
     relation: RelationState;
@@ -11,7 +12,7 @@ export interface RelationWithOrigin {
 }
 
 /**
- * Collect all RelationStates across top-level relations, workflow nodes, and dashboard blocks.
+ * Collect all RelationStates across top-level relations, canvas nodes, and dashboard blocks.
  * Each entry includes an updateRelation callback for context-aware mutation.
  * Reads directly from the zustand store (no hooks).
  */
@@ -30,21 +31,21 @@ export function getAllRelations(): RelationWithOrigin[] {
         });
     }
 
-    // Relations inside workflow nodes
-    for (const [workflowId, workflow] of Object.entries(state.workflows)) {
-        for (const node of workflow.nodes) {
+    // Relations inside canvas nodes
+    for (const [canvasId, canvas] of Object.entries(state.canvas)) {
+        for (const node of canvas.nodes) {
             if (node.type === 'relationNode') {
                 const relationData = (node.data as { relationData?: RelationState }).relationData;
                 if (relationData) {
                     const nodeId = node.id;
                     result.push({
                         relation: relationData,
-                        origin: 'workflow',
+                        origin: 'canvas',
                         updateRelation: (newRelation) => {
                             const currentState = useRelationsState.getState();
-                            const currentWorkflow = currentState.workflows[workflowId];
-                            if (!currentWorkflow) return;
-                            const newNodes = currentWorkflow.nodes.map((n) => {
+                            const currentCanvas: CanvasState = currentState.canvas[canvasId];
+                            if (!currentCanvas) return;
+                            const newNodes = currentCanvas.nodes.map((n) => {
                                 if (n.id !== nodeId) return n;
                                 return {
                                     ...n,
@@ -54,7 +55,7 @@ export function getAllRelations(): RelationWithOrigin[] {
                                     }
                                 };
                             });
-                            currentState.updateWorkflowState(workflowId, {nodes: newNodes});
+                            currentState.updateCanvasState(canvasId, {nodes: newNodes});
                         },
                     });
                 }

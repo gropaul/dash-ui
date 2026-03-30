@@ -12,11 +12,11 @@ import {
     useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import {RelationNode} from "@/components/workflow/nodes/relation-node";
-import {FreeDrawNode} from "@/components/workflow/nodes/free-draw-node";
-import {TextNode} from "@/components/workflow/nodes/text-node";
-import FloatingEdge from "@/components/workflow/edge/floating-edge";
-import {FlowPalette} from "@/components/workflow/flow-palette";
+import {RelationNode} from "@/components/canvas/nodes/relation-node";
+import {FreeDrawNode} from "@/components/canvas/nodes/free-draw-node";
+import {TextNode} from "@/components/canvas/nodes/text-node";
+import FloatingEdge from "@/components/canvas/edge/floating-edge";
+import {FlowPalette} from "@/components/canvas/flow-palette";
 import {
     createIsValidConnection,
     createOnConnect,
@@ -25,29 +25,29 @@ import {
     createOnNodeMouseEnter,
     createOnNodeMouseLeave,
     EdgeHandlerContext,
-} from "@/components/workflow/logic/flow-edge-functions";
+} from "@/components/canvas/logic/flow-edge-functions";
 import {
     getCursorStyle,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
     PointerHandlerContext,
-} from "@/components/workflow/logic/flow-pointer-functions";
+} from "@/components/canvas/logic/flow-pointer-functions";
 
 import './flow-theme.css';
-import {CanvasState, CanvasStateFreeDraw, GRID_SIZE, INITIAL_CANVAS_STATE} from "@/components/workflow/logic/models";
-import {NodePreview} from "@/components/workflow/previews/node-preview";
-import {FreeDrawPreview} from "@/components/workflow/previews/free-draw-preview";
+import {CanvasState, CanvasStateFreeDraw, GRID_SIZE, INITIAL_CANVAS_STATE} from "@/components/canvas/logic/models";
+import {NodePreview} from "@/components/canvas/previews/node-preview";
+import {FreeDrawPreview} from "@/components/canvas/previews/free-draw-preview";
 import {useTheme} from "next-themes";
 import {useFlowShortcuts} from "@/hooks/use-flow-shortcuts";
-import {useHelperLines} from "@/components/workflow/helpers/use-helper-lines";
-import {HelperLines} from "@/components/workflow/helpers/helper-lines";
+import {useHelperLines} from "@/components/canvas/helpers/use-helper-lines";
+import {HelperLines} from "@/components/canvas/helpers/helper-lines";
 import {useUndoableFlow} from "@/hooks/use-undoable-flow";
-import {WorkflowProvider} from "@/components/workflow/workflow-context";
+import {CanvasProvider} from "@/components/canvas/canvas-context";
 import {useRelationDataState} from "@/state/relations-data.state";
 
 export interface FlowProps {
-    workflowId: string;
+    canvasId: string;
 }
 
 
@@ -74,7 +74,7 @@ export interface NodeTemplate {
     size: { width: number; height: number };
 }
 
-export function Flow({workflowId}: FlowProps) {
+export function Flow({canvasId}: FlowProps) {
     const {
         nodes,
         edges,
@@ -86,7 +86,7 @@ export function Flow({workflowId}: FlowProps) {
         onViewportChange,
         undo,
         redo,
-    } = useUndoableFlow(workflowId);
+    } = useUndoableFlow(canvasId);
 
     const [canvasState, setCanvasState] = useState<CanvasState>(INITIAL_CANVAS_STATE);
     const {screenToFlowPosition, getIntersectingNodes, getNodes, getEdges} = useReactFlow();
@@ -198,7 +198,7 @@ export function Flow({workflowId}: FlowProps) {
     }, []);
 
     return (
-        <WorkflowProvider setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges}>
+        <CanvasProvider setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges}>
             <div
                 style={{width: '100%', height: '100%'}}
                 onPointerMove={(e) => handlePointerMove(e, pointerCtx)}
@@ -255,6 +255,6 @@ export function Flow({workflowId}: FlowProps) {
                 <FlowPalette canvasState={canvasState} setCanvasState={setCanvasState}/>
                 </ReactFlow>
             </div>
-        </WorkflowProvider>
+        </CanvasProvider>
     );
 }

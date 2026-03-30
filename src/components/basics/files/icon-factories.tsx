@@ -87,8 +87,8 @@ export const defaultIconFactory = (type: string): ReactNode => {
         case 'dashboard':
         case 'dashboards':
             return <LayoutDashboard size={iconSize} />
-        case 'workflow':
-        case 'workflows':
+        case 'canvas':
+        case 'canvas':
             return <WorkflowIcon size={iconSize} />
         case 'schema':
         case 'schemas':

@@ -1,4 +1,4 @@
-import {NodePaletteItem} from "@/components/workflow/flow-palette";
+import {NodePaletteItem} from "@/components/canvas/flow-palette";
 
 
 export const GRID_SIZE: number = 20;

@@ -1,19 +1,19 @@
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
-import {Flow} from "@/components/workflow/flow";
+import {Flow} from "@/components/canvas/flow";
 import {ReactFlowProvider} from "@xyflow/react";
 
 
 export interface WorkflowTabProps {
-    workflowId: string;
+    canvasId: string;
 }
 
-export function WorkflowTab(props: WorkflowTabProps) {
+export function CanvasTab(props: WorkflowTabProps) {
 
-    const workflow = useRelationsState((state) => state.getWorkflowState(props.workflowId), shallow);
+    const workflow = useRelationsState((state) => state.getCanvasState(props.canvasId), shallow);
 
     if (!workflow) {
-        return <div>Workflow not found: {props.workflowId}</div>
+        return <div>Workflow not found: {props.canvasId}</div>
     }
 
     return (
@@ -22,7 +22,7 @@ export function WorkflowTab(props: WorkflowTabProps) {
                 {workflow.viewState.displayName}
             </div>
             <ReactFlowProvider>
-                <Flow workflowId={props.workflowId} />
+                <Flow canvasId={props.canvasId} />
             </ReactFlowProvider>
         </div>
     )

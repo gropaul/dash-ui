@@ -8,7 +8,7 @@ import {
     useInternalNode,
     useReactFlow
 } from '@xyflow/react';
-import {getEdgeParams} from "@/components/workflow/edge/utils";
+import {getEdgeParams} from "@/components/canvas/edge/utils";
 import {
     ContextMenu,
     ContextMenuCheckboxItem,

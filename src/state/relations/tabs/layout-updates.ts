@@ -61,14 +61,14 @@ export function focusTab(model: Model, tabId: string): void {
     model.doAction(Actions.selectTab(tabId));
 }
 
-type Components = 'RelationComponent' | 'DatabaseComponent' | 'DashboardComponent' | 'WorkflowComponent' | 'SchemaComponent';
+type Components = 'RelationComponent' | 'DatabaseComponent' | 'DashboardComponent' | 'CanvasComponent' | 'SchemaComponent';
 
 const RELATION_COMPONENT_MAP: Record<RelationZustandEntityType, Components> = {
     'relations': 'RelationComponent',
     'schemas': 'SchemaComponent',
     'databases': 'DatabaseComponent',
     'dashboards': 'DashboardComponent',
-    'workflows': 'WorkflowComponent',
+    'canvas': 'CanvasComponent',
 }
 
 const RELATION_ID_NAME: Record<RelationZustandEntityType, string> = {
@@ -76,7 +76,7 @@ const RELATION_ID_NAME: Record<RelationZustandEntityType, string> = {
     'schemas': 'schemaId',
     'databases': 'databaseId',
     'dashboards': 'dashboardId',
-    'workflows': 'workflowId',
+    'canvas': 'canvasId',
 }
 
 export function truncateString(str: string, maxLength: number = 30): string {

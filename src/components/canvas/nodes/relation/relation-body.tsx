@@ -1,8 +1,8 @@
 import {ReactNode} from "react";
 import {NodeResizer} from "@xyflow/react";
 import {cn} from "@/lib/utils";
-import {ConnectionHoverState} from "@/components/workflow/logic/models";
-import {RelationNodeHeader} from "@/components/workflow/nodes/relation/relation-header";
+import {ConnectionHoverState} from "@/components/canvas/logic/models";
+import {RelationNodeHeader} from "@/components/canvas/nodes/relation/relation-header";
 import {RelationViewType} from "@/model/relation-view-state";
 import {RelationState} from "@/model/relation-state";
 

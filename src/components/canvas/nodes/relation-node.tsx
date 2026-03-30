@@ -1,15 +1,15 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
-import {RelationNodeBody} from "@/components/workflow/nodes/relation/relation-body";
+import {RelationNodeBody} from "@/components/canvas/nodes/relation/relation-body";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
-import {RelationToolbar} from "@/components/workflow/nodes/relation/relation-toolbar";
-import {ConditionalHandles} from "@/components/workflow/nodes/relation/conditional-handles";
+import {RelationToolbar} from "@/components/canvas/nodes/relation/relation-toolbar";
+import {ConditionalHandles} from "@/components/canvas/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
-import {FullscreenDialog} from "@/components/workflow/nodes/relation/fullscreen-dialog";
-import {extractNodeRefs, diffEdges, createAutoEdge} from "@/components/workflow/logic/ref-detection";
+import {FullscreenDialog} from "@/components/canvas/nodes/relation/fullscreen-dialog";
+import {extractNodeRefs, diffEdges, createAutoEdge} from "@/components/canvas/logic/ref-detection";
 import {refreshDownstream} from "@/state/relations/sql/dag-execution";
 
 
@@ -18,10 +18,10 @@ import {
     DEFAULT_CODE_VIEW_HEIGHT,
     DEFAULT_NODE_HEIGHT,
     roundToGrid
-} from "@/components/workflow/logic/models";
+} from "@/components/canvas/logic/models";
 import {WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE} from "@/platform/global-data";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
-import {useWorkflowState} from "@/components/workflow/workflow-context";
+import {useCanvasState} from "@/components/canvas/canvas-context";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationState} from "@/model/relation-state";
 
@@ -35,7 +35,7 @@ type RelationNodeProps = {
 type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
 
 export function RelationNode(props: NodeProps<RelationNodeType>) {
-    const {setNodes, setEdges, getNodes, getEdges} = useWorkflowState();
+    const {setNodes, setEdges, getNodes, getEdges} = useCanvasState();
 
     // Get relation data from node props, merge with defaults
     const rawData = props.data as RelationNodeProps;

@@ -81,7 +81,7 @@ function setEdgeAnimationStates(
 }
 
 /**
- * Update a workflow node's relation data.
+ * Update a canvas node's relation data.
  */
 function updateNodeRelationData(
     nodeId: string,
@@ -103,7 +103,7 @@ function updateNodeRelationData(
 }
 
 /**
- * Get the relation data for a workflow node.
+ * Get the relation data for a canvas node.
  */
 function getNodeRelationData(nodeId: string, getNodes: GetNodes): RelationState | null {
     const node = getNodes().find(n => n.id === nodeId);

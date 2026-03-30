@@ -22,7 +22,7 @@ import {RemoveNodeAction, RenameNodeActions} from "@/components/basics/files/tre
 import {useGUIState} from "@/state/gui.state";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
-import {GetInitialWorkflowState, WorkflowState} from "@/model/workflow-state";
+import {GetInitialCanvasState, CanvasState} from "@/model/canvas-state";
 import {
     AddIfNotExists,
     deleteFromEntityCollection,
@@ -50,7 +50,7 @@ export interface RelationZustand {
     schemas: { [key: string]: SchemaState };
     databases: { [key: string]: DatabaseState };
     dashboards: { [key: string]: DashboardState };
-    workflows: { [key: string]: WorkflowState };
+    canvas: { [key: string]: CanvasState };
 }
 
 export interface DefaultRelationZustandActions {
@@ -80,10 +80,10 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     // **unsafe in terms of adding, renaming, and deleting dashboards**
     setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => void,
 
-    /* workflow actions */
-    addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => void,
-    getWorkflowState: (workflowId: string) => WorkflowState,
-    updateWorkflowState: (workflowId: string, workflow: Partial<WorkflowState>) => void,
+    /* canvas actions */
+    addNewCanvas: (canvas?: CanvasState, editorPath?: string[]) => void,
+    getCanvasState: (canvasId: string) => CanvasState,
+    updateCanvasState: (canvasId: string, canvas: Partial<CanvasState>) => void,
 
     /* entity actions */
     deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
@@ -125,7 +125,7 @@ export const INIT: RelationZustand = {
     schemas: {},
     databases: {},
     dashboards: {},
-    workflows: {},
+    canvas: {},
     editorElements: [],
 };
 
@@ -191,24 +191,24 @@ export const useRelationsState = createWithEqualityFn(
                     }
                 },
 
-                addNewWorkflow: (workflow?: WorkflowState, editorPath?: string[]) => {
-                    const local_workflow = workflow ?? GetInitialWorkflowState();
+                addNewCanvas: (canvas?: CanvasState, editorPath?: string[]) => {
+                    const local_canvas = canvas ?? GetInitialCanvasState();
                     const local_editorPath = editorPath ?? [];
-                    get().showEntity('workflows', local_workflow, local_editorPath);
+                    get().showEntity('canvas', local_canvas, local_editorPath);
                 },
-                getWorkflowState: (workflowId: string) => {
-                    const workflow = get().workflows[workflowId];
-                    if (!workflow) {
-                        throw new Error(`Workflow with id ${workflowId} not found`);
+                getCanvasState: (canvasId: string) => {
+                    const canvas = get().canvas[canvasId];
+                    if (!canvas) {
+                        throw new Error(`Canvas with id ${canvasId} not found`);
                     }
-                    return workflow;
+                    return canvas;
                 },
-                updateWorkflowState: (workflowId: string, updates: Partial<WorkflowState>) => {
+                updateCanvasState: (canvasId: string, updates: Partial<CanvasState>) => {
                     set((state) => ({
-                        workflows: {
-                            ...state.workflows,
-                            [workflowId]: {
-                                ...state.workflows[workflowId],
+                        canvas: {
+                            ...state.canvas,
+                            [canvasId]: {
+                                ...state.canvas[canvasId],
                                 ...updates,
                             },
                         },
@@ -374,7 +374,7 @@ export const useRelationsState = createWithEqualityFn(
 
                 updateRelation: (newRelation: RelationState) => {
                     // Note: RelationActions dispatch is handled by useRelationActions hook
-                    // to work uniformly across standalone, workflow, and dashboard contexts.
+                    // to work uniformly across standalone, canvas, and dashboard contexts.
                     set((state) => ({
                         relations: {
                             ...state.relations,

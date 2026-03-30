@@ -8,7 +8,7 @@ import {ParameterDefinition} from "@/model/relation-view-state/parameters";
  *
  * Use this to wrap an updateRelation callback so that macro registration
  * and other action subscribers stay in sync across all contexts
- * (standalone, workflow, dashboard).
+ * (standalone, canvas, dashboard).
  */
 export function processRelationUpdateEvent(
     oldState: RelationState,

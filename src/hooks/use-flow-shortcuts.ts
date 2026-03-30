@@ -8,9 +8,9 @@ import {
     cloneEdgesForClipboard,
     cloneNodes,
     cloneEdges,
-} from '@/components/workflow/logic/clipboard-utils';
+} from '@/components/canvas/logic/clipboard-utils';
 
-import {GRID_SIZE} from "@/components/workflow/logic/models";
+import {GRID_SIZE} from "@/components/canvas/logic/models";
 
 interface ClipboardData {
     nodes: Node[];

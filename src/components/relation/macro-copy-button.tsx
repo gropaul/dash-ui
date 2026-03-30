@@ -105,7 +105,7 @@ export function getMacroPythonExample(relationName: string, sql: string, paramDe
 
 /**
  * A button that shows macro info on hover and copies on click.
- * Can be used in both relation view header and workflow canvas header.
+ * Can be used in both relation view header and canvas canvas header.
  */
 export function MacroCopyButton({
     relationName,

@@ -1,8 +1,8 @@
 import {NodeProps, NodeResizer} from '@xyflow/react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {TextToolbar} from "./text/text-toolbar";
-import {useWorkflowState} from "@/components/workflow/workflow-context";
-import {GRID_SIZE} from "@/components/workflow/logic/models";
+import {useCanvasState} from "@/components/canvas/canvas-context";
+import {GRID_SIZE} from "@/components/canvas/logic/models";
 
 export type TextStyle = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body' | 'code';
 
@@ -52,7 +52,7 @@ export function TextNode({id, data, selected, width, height}: NodeProps) {
     const nodeData = {...DEFAULT_TEXT_NODE_DATA, ...rawData};
     const {text, textStyle, fontStyle, textAlign, verticalAlign, color} = nodeData;
     const styleConfig = TEXT_STYLES[textStyle];
-    const {setNodes} = useWorkflowState();
+    const {setNodes} = useCanvasState();
 
     const [isEditing, setIsEditing] = useState(false);
     const [localText, setLocalText] = useState(text);

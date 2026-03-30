@@ -1,6 +1,6 @@
 import {RelationZustand} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
-import {WorkflowState} from "@/model/workflow-state";
+import {CanvasState} from "@/model/canvas-state";
 import {DatabaseState} from "@/model/database-state";
 import {SchemaState} from "@/model/schema-state";
 import {DashboardState} from "@/model/dashboard-state";
@@ -8,24 +8,24 @@ import {deepClone} from "@/platform/object-utils";
 import {copyAndApplyTreeActions, findNodeInTrees, TreeNode} from "@/components/basics/files/tree-utils";
 import {AddEntityActions} from "@/components/basics/files/tree-action-utils";
 
-export type RelationZustandEntityType = 'relations' | 'schemas' | 'databases' | 'dashboards' | 'workflows';
+export type RelationZustandEntityType = 'relations' | 'schemas' | 'databases' | 'dashboards' | 'canvas';
 
 export type RelationZustandEntity =
     RelationState |
     SchemaState |
     DatabaseState |
     DashboardState |
-    WorkflowState;
+    CanvasState;
 
 export type RelationZustandEntityCollections =
     { [key: string]: RelationState } |
     { [key: string]: SchemaState } |
     { [key: string]: DatabaseState } |
     { [key: string]: DashboardState } |
-    { [key: string]: WorkflowState };
+    { [key: string]: CanvasState };
 
 export function IsEntityType(entityType: string): entityType is RelationZustandEntityType {
-    return ['relations', 'schemas', 'databases', 'dashboards', 'workflows'].includes(entityType);
+    return ['relations', 'schemas', 'databases', 'dashboards', 'canvas'].includes(entityType);
 }
 
 const AddFolderForEntityType: Record<RelationZustandEntityType, boolean> = {
@@ -33,7 +33,7 @@ const AddFolderForEntityType: Record<RelationZustandEntityType, boolean> = {
     schemas: false,
     databases: false,
     dashboards: true,
-    workflows: true
+    canvas: true
 }
 
 export function GetEntityTypeDisplayName(entityType: RelationZustandEntityType): string {
@@ -46,8 +46,8 @@ export function GetEntityTypeDisplayName(entityType: RelationZustandEntityType):
             return 'Database';
         case 'dashboards':
             return 'Dashboard';
-        case 'workflows':
-            return 'Workflow';
+        case 'canvas':
+            return 'Canvas';
         default:
             throw new Error(`Unknown entity type: ${entityType}`);
     }
