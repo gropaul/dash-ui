@@ -14,6 +14,7 @@ import {RelationViewAPIProps} from "@/components/relation/relation-view";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
 import {processRelationUpdateEvent} from "@/state/relations/event/relation-events-update-dispatch";
+import {RelationEvents} from "@/state/relations/event/relation-events";
 
 export type UpdateRelationFunction = (relation: RelationState) => void;
 
@@ -111,18 +112,20 @@ async function updateAndExecuteRelation(
     const loadingRelationState = setRelationRunning(relation); // Set it loading
     update(loadingRelationState);
 
+    let result;
     try {
         const updatedRelationState = {...relation}
         relation.query.viewParameters = viewQueryParameters;
-        const executedRelationState = await executeQueryOfRelation(updatedRelationState, inputManager);
-        // update state with new data and completed state
-        update(executedRelationState);
+        result = await executeQueryOfRelation(updatedRelationState, inputManager);
     } catch (e) {
         // if error update with error state
-        const errorState = returnEmptyErrorState(loadingRelationState, e)
-        update(errorState);
-
+        result = returnEmptyErrorState(loadingRelationState, e)
     }
+    update(result);
+    // Defer event so React can flush the state update before listeners read nodes
+    // todo: this a hack to let the state update propagate before any listeners read the updated relation state,
+    // we should find a better way to handle this in the future
+    setTimeout(() => RelationEvents.queryRunFinished(result), 0);
 }
 
 

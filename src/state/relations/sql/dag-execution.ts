@@ -140,7 +140,6 @@ export async function refreshDownstream(
     if (queue.length === 0) return;
 
     for (const nodeId of queue) {
-        // wait 1s for debug
 
         // Cancellation: if a new run started, clear all animations and stop
         if (runId !== currentRunId) {

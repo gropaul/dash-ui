@@ -13,12 +13,16 @@ import {RelationState} from "@/model/relation-state";
  *
  *   // Or subscribe to specific event types only:
  *   const unsubscribe = onRelationEvent((event) => { ... }, ['CREATE', 'DELETE']);
+ *
+ *   // Or subscribe to events for a specific relation:
+ *   const unsubscribe = onRelationEvent((event) => { ... }, undefined, relationId);
  */
 
 export type RelationEventType =
     | 'CREATE'        // New relation created
     | 'DELETE'        // Relation deleted
     | 'RENAME'        // Relation renamed
+    | 'QUERY_RUN_FINISHED'     // Relation query executed
     | 'UPDATE_SQL'    // SQL query changed
     | 'UPDATE_PARAMS'; // Parameters changed
 
@@ -31,16 +35,17 @@ export interface RelationEvent {
 export type RelationEventListener = (event: RelationEvent) => void;
 
 // Internal state
-const listeners = new Set<{ listener: RelationEventListener; types?: RelationEventType[] }>();
+const listeners = new Set<{ listener: RelationEventListener; types?: RelationEventType[]; relationId?: string }>();
 
 /**
  * Subscribe to relation events.
  * @param listener - Callback for events
  * @param types - Optional list of event types to subscribe to. If omitted, receives all events.
+ * @param relationId - Optional relation ID to filter on. If omitted, receives events for all relations.
  * @returns Unsubscribe function
  */
-export function onRelationEvent(listener: RelationEventListener, types?: RelationEventType[]): () => void {
-    const entry = { listener, types };
+export function onRelationEvent(listener: RelationEventListener, types?: RelationEventType[], relationId?: string): () => void {
+    const entry = { listener, types, relationId };
     listeners.add(entry);
     return () => {
         listeners.delete(entry);
@@ -51,8 +56,10 @@ export function onRelationEvent(listener: RelationEventListener, types?: Relatio
  * Dispatch a relation event to all subscribers.
  */
 function dispatchRelationEvent(event: RelationEvent): void {
+    const eventRelationId = event.new?.id ?? event.old?.id;
     for (const entry of listeners) {
         if (entry.types && !entry.types.includes(event.type)) continue;
+        if (entry.relationId && entry.relationId !== eventRelationId) continue;
         try {
             entry.listener(event);
         } catch (error) {
@@ -69,6 +76,11 @@ export const RelationEvents = {
 
     delete(state: RelationState): void {
         dispatchRelationEvent({ type: 'DELETE', old: state });
+    },
+
+    // This event will fire after a query is executed, and the relation state is updated with new data
+    queryRunFinished(state: RelationState): void {
+        dispatchRelationEvent({ type: 'QUERY_RUN_FINISHED', old: state, new: state });
     },
 
     updateDisplayName(oldState: RelationState, newState: RelationState): void {

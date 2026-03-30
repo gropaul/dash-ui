@@ -4,22 +4,22 @@ import {Flow} from "@/components/canvas/flow";
 import {ReactFlowProvider} from "@xyflow/react";
 
 
-export interface CanvasTabProps {
+export interface WorkflowTabProps {
     canvasId: string;
 }
 
-export function CanvasTab(props: CanvasTabProps) {
+export function CanvasTab(props: WorkflowTabProps) {
 
-    const canvas = useRelationsState((state) => state.getCanvasState(props.canvasId), shallow);
+    const workflow = useRelationsState((state) => state.getCanvasState(props.canvasId), shallow);
 
-    if (!canvas) {
-        return <div>Canvas not found: {props.canvasId}</div>
+    if (!workflow) {
+        return <div>Workflow not found: {props.canvasId}</div>
     }
 
     return (
         <div className="w-full h-full flex flex-col">
             <div className="flex-1 overflow-auto relative">
-                {canvas.viewState.displayName}
+                {workflow.viewState.displayName}
             </div>
             <ReactFlowProvider>
                 <Flow canvasId={props.canvasId} />

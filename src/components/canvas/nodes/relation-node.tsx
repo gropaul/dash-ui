@@ -9,7 +9,7 @@ import {RelationToolbar} from "@/components/canvas/nodes/relation/relation-toolb
 import {ConditionalHandles} from "@/components/canvas/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
 import {FullscreenDialog} from "@/components/canvas/nodes/relation/fullscreen-dialog";
-import {extractNodeRefs, diffEdges, createAutoEdge} from "@/components/canvas/logic/ref-detection";
+import {createAutoEdge, diffEdges, extractNodeRefs} from "@/components/canvas/logic/ref-detection";
 import {refreshDownstream} from "@/state/relations/sql/dag-execution";
 
 
@@ -24,6 +24,7 @@ import {RelationContextProvider} from "@/components/relation/chart/chart-export-
 import {useCanvasState} from "@/components/canvas/canvas-context";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationState} from "@/model/relation-state";
+import {onRelationEvent} from "@/state/relations/event/relation-events";
 
 const DEFAULT_RELATION_DATA = RelationActions.create();
 
@@ -61,6 +62,13 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
             })
         );
     }, [setNodes, props.id]);
+
+    // Refresh downstream nodes when this relation's query finishes
+    useEffect(() => {
+        return onRelationEvent(() => {
+            refreshDownstream(props.id, {getNodes, getEdges, setNodes, setEdges});
+        }, ["QUERY_RUN_FINISHED"], data.id);
+    }, [props.id, getNodes, getEdges, setNodes, setEdges]);
 
     // Simple data-only updater for compatibility with actions
     const updateRelation = useCallback((updater: RelationState | ((prev: RelationState) => RelationState)) => {
@@ -164,7 +172,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
 
     const handleRun = useCallback(async () => {
         await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
-        await refreshDownstream(props.id, {getNodes, getEdges, setNodes, setEdges});
     }, [actions, data.query.baseQuery, props.id, getNodes, getEdges, setNodes, setEdges]);
 
     const viewProps: RelationViewProps = {
