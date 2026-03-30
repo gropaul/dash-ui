@@ -4,8 +4,7 @@ import {cn} from "@/lib/utils";
 import {ConnectionHoverState} from "@/components/workflow/logic/models";
 import {RelationNodeHeader} from "@/components/workflow/nodes/relation/relation-header";
 import {RelationViewType} from "@/model/relation-view-state";
-import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
-import {ParameterDefinition} from "@/model/relation-view-state/parameters";
+import {RelationState} from "@/model/relation-state";
 
 export interface NodeBodyProps {
     children?: ReactNode;
@@ -13,13 +12,9 @@ export interface NodeBodyProps {
     selected: boolean;
     connectionHover?: ConnectionHoverState | null;
     showHeader?: boolean;
+    relationState: RelationState;
+    updateRelation: (newRelation: RelationState) => void;
     viewType: RelationViewType;
-    displayName: string;
-    sql: string;
-    parameters?: ParameterDefinition[];
-    onUpdateTitle?: (newTitle: string) => void;
-    executionState: TaskExecutionState;
-    lastExecutionMetaData?: QueryExecutionMetaData;
 }
 
 const INVALID_MESSAGES: Record<string, string> = {
@@ -38,7 +33,7 @@ const shakeKeyframes = `
 `;
 
 export function RelationNodeBody(props: NodeBodyProps) {
-    const {children, connectionHover, showHeader = true, viewType, displayName, sql, parameters, onUpdateTitle} = props;
+    const {children, connectionHover, showHeader = true, viewType} = props;
 
     const isConnectionHovered = !!connectionHover;
     const isValidConnection = connectionHover?.isValid ?? true;
@@ -102,13 +97,9 @@ export function RelationNodeBody(props: NodeBodyProps) {
                     {showHeader && (
                         <div className="flex-shrink-0">
                             <RelationNodeHeader
-                                executionState={props.executionState}
-                                lastExecutionMetaData={props.lastExecutionMetaData}
+                                relationState={props.relationState}
+                                updateRelation={props.updateRelation}
                                 viewType={viewType}
-                                displayName={displayName}
-                                sql={sql}
-                                parameters={parameters}
-                                onUpdateTitle={onUpdateTitle}
                             />
                         </div>
                     )}

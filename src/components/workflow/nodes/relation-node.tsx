@@ -184,13 +184,9 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     selected={props.selected}
                     connectionHover={props.data.connectionHover}
                     showHeader={data.viewState.showHeader}
+                    relationState={data}
+                    updateRelation={setData}
                     viewType={data.viewState.selectedView}
-                    displayName={data.viewState.displayName}
-                    sql={data.query.baseQuery}
-                    parameters={data.viewState.parametersState?.parameters}
-                    lastExecutionMetaData={data.lastExecutionMetaData}
-                    executionState={data.executionState}
-                    onUpdateTitle={viewProps.setDisplayName}
                 >
                     <RelationToolbar
                         isVisible={props.selected}

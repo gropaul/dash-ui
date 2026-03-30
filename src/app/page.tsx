@@ -3,6 +3,7 @@
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {TabbedLayout} from "@/components/layout/tabbed-layout";
 import React, {useEffect, useState} from "react";
+import {RenameDialog} from "@/components/workbench/rename-dialog";
 import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
 import {AlertDialog} from "@radix-ui/react-alert-dialog";
 import {
@@ -75,6 +76,7 @@ export default function Home() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            <RenameDialog/>
         </>
     );
 }

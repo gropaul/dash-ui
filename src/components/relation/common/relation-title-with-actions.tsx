@@ -1,21 +1,14 @@
-import {useState} from "react";
 import {Pencil} from "lucide-react";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {MacroCopyButton} from "@/components/relation/macro-copy-button";
 import {RelationExecutionInfo} from "@/components/relation/common/relation-execution-info";
-import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
-import {ParameterDefinition} from "@/model/relation-view-state/parameters";
+import {RelationState} from "@/model/relation-state";
+import {useRenameDialogStore} from "@/state/rename-dialog.state";
 
 export interface RelationTitleWithActionsProps {
-    displayName: string;
-    sql: string;
-    parameters?: ParameterDefinition[];
-    onUpdateTitle?: (newTitle: string) => void;
+    relationState: RelationState;
+    updateRelation: (newRelation: RelationState) => void;
     className?: string;
-    executionState?: TaskExecutionState;
-    lastExecutionMetaData?: QueryExecutionMetaData;
     executionInfoClassName?: string;
 }
 
@@ -25,95 +18,59 @@ export interface RelationTitleWithActionsProps {
  * Shows edit and copy buttons on hover.
  */
 export function RelationTitleWithActions({
-                                             displayName,
-                                             sql,
-                                             parameters,
-                                             onUpdateTitle,
+                                             relationState,
+                                             updateRelation,
                                              className,
-                                             executionState,
-                                             lastExecutionMetaData,
                                              executionInfoClassName,
                                          }: RelationTitleWithActionsProps) {
-    const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-    const [renameValue, setRenameValue] = useState('');
+
+    const displayName = relationState.viewState.displayName;
+    const sql = relationState.query.baseQuery;
+    const parameters = relationState.viewState.parametersState?.parameters;
+    const executionState = relationState.executionState;
+    const lastExecutionMetaData = relationState.lastExecutionMetaData;
 
     const handleOpenRename = () => {
-        setRenameValue(displayName || '');
-        setIsRenameDialogOpen(true);
-    };
-
-    const handleSaveRename = () => {
-        onUpdateTitle?.(renameValue);
-        setIsRenameDialogOpen(false);
+        useRenameDialogStore.getState().openRelationRenameDialog({
+            relationState,
+            updateRelation,
+        });
     };
 
     return (
-        <>
-            <div className={`group/title flex items-center gap-1.5 min-w-0 ${className ?? ''}`}>
-                <div className="flex flex-row items-end gap-1.5 min-w-0">
+        <div className={`group/title flex items-center gap-1.5 min-w-0 ${className ?? ''}`}>
+            <div className="flex flex-row items-end gap-1.5 min-w-0">
                     <span
                         className="leading-none font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
                     >
                         {displayName}
                     </span>
-                    {executionState && (
-                        <RelationExecutionInfo
-                            executionState={executionState}
-                            lastExecutionMetaData={lastExecutionMetaData}
-                            className={executionInfoClassName}
-                        />
-                    )}
-                </div>
-                {onUpdateTitle && (
-                    <Button
-                        className="opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenRename();
-                        }}
-                        variant="ghost"
-                        size="icon"
-                    >
-                        <Pencil size={12}/>
-                    </Button>
+                {executionState && (
+                    <RelationExecutionInfo
+                        executionState={executionState}
+                        lastExecutionMetaData={lastExecutionMetaData}
+                        className={executionInfoClassName}
+                    />
                 )}
-
-                <MacroCopyButton
-                    relationName={displayName}
-                    sql={sql}
-                    parameters={parameters}
-                    className="opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0"
-                />
             </div>
+            <Button
+                className="opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenRename();
+                }}
+                variant="ghost"
+                size="icon"
+            >
+                <Pencil size={12}/>
+            </Button>
 
-            {onUpdateTitle && (
-                <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
-                    <DialogContent className="sm:max-w-[400px]" onClick={(e) => e.stopPropagation()}>
-                        <DialogHeader>
-                            <DialogTitle>Rename</DialogTitle>
-                        </DialogHeader>
-                        <Input
-                            value={renameValue}
-                            onChange={(e) => setRenameValue(e.target.value)}
-                            placeholder="Enter name"
-                            autoFocus
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSaveRename();
-                                }
-                            }}
-                        />
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button onClick={handleSaveRename}>
-                                Save
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
-        </>
+            <MacroCopyButton
+                relationName={displayName}
+                sql={sql}
+                parameters={parameters}
+                className="opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0"
+            />
+        </div>
     );
 }

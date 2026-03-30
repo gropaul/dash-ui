@@ -6,7 +6,7 @@ import {Button} from "@/components/ui/button";
 import {Folder, LayoutDashboard, Plus, Sheet, Workflow} from "lucide-react";
 import {TreeExplorer} from "@/components/basics/files/tree-explorer";
 import {IterateAll, TreeActionUpdate, TreeNode} from "@/components/basics/files/tree-utils";
-import {RenameDialog} from "@/components/workbench/rename-dialog";
+import {useRenameDialogStore} from "@/state/rename-dialog.state";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {DeleteDialog} from "@/components/workbench/delete-dialog";
 import {RelationState} from "@/model/relation-state";
@@ -26,17 +26,8 @@ import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {deepClone} from "@/platform/object-utils";
 import {RelationActions} from "@/state/relations/actions/static-actions";
-import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 
-interface RenameState {
-    title?: string;
-    description?: string;
-    isOpen: boolean;
-    path?: string[];
-    currentNode?: TreeNode;
-    currentName?: string;
-}
 
 interface DeleteState {
     isOpen: boolean;
@@ -114,7 +105,6 @@ export function onAddToDashboardSelected(relation_: RelationState, dashboard: Da
 export function EditorOverviewTab() {
 
     const [storageInfo, setStorageInfo] = useState<StateStorageInfo>(DefaultStateStorageInfo());
-    const [renameState, setRenameState] = useState<RenameState>({isOpen: false});
     const [deleteState, setDeleteState] = useState<DeleteState>({isOpen: false});
     const [selectedNodeIds, setSelectedNodeIds] = useState<string[][]>([]);
     const [dashboardCommand, setDashboardCommand] = useState<DashboardCommandState>({open: false});
@@ -127,7 +117,6 @@ export function EditorOverviewTab() {
 
     const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
 
-    const updateEditorElements = useRelationsState((state) => state.updateEditorElements);
     const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
     const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
@@ -136,7 +125,6 @@ export function EditorOverviewTab() {
 
     const deleteEntity = useRelationsState((state) => state.deleteEntity);
     const getEntityDisplayName = useRelationsState((state) => state.getEntityDisplayName);
-    const setEntityDisplayName = useRelationsState((state) => state.setEntityDisplayName);
     const showEntityFromId = useRelationsState((state) => state.showEntityFromId);
 
     useEffect(() => {
@@ -194,56 +182,18 @@ export function EditorOverviewTab() {
 
     function onRename(path: string[], tree: TreeNode) {
         let displayName = tree.name;
-        let title = 'Rename';
-        let description = 'Enter a new name';
-
-
         const type = tree.type;
 
         if (IsEntityType(type)) {
-            const typeDisplayName = GetEntityTypeDisplayName(type);
-            displayName = getEntityDisplayName( type, tree.id,);
-            title = `Rename ${typeDisplayName}`;
-            description = `Enter a new name for the ${typeDisplayName.toLowerCase()} "${displayName}".`;
-        } else if (type === 'folder') {
-            displayName = tree.name;
-            title = 'Rename Folder';
-            description = 'Enter a new name for the folder.';
+            displayName = getEntityDisplayName(type, tree.id);
         }
 
-        setRenameState({
-            title: title,
-            description: description,
+        useRenameDialogStore.getState().openRenameDialog({
+            entityType: type as any,
+            entityId: tree.id,
+            currentName: displayName,
             path: path,
-            isOpen: true,
-            currentNode: tree,
-            currentName: displayName
         });
-    }
-
-    function onRenameConfirmed(newName: string) {
-        if (!renameState.currentNode) {
-            return;
-        }
-
-        const type = renameState.currentNode.type;
-        if (IsEntityType(type)) {
-            if (type === 'relations') {
-                const actions = getRelationActions({
-                    relationState: relations[renameState.currentNode.id],
-                    updateRelation: useRelationsState.getState().updateRelation,
-                })
-                actions.setDisplayName(newName, renameState.path);
-            } else {
-                setEntityDisplayName(type, renameState.currentNode.id,  newName, renameState.path!);
-            }
-        } else if (type === 'folder') {
-            const newFolder = {
-                ...renameState.currentNode,
-                name: newName
-            }
-            updateEditorElements(renameState.path!, newFolder);
-        }
     }
 
     function onDelete(path: string[], tree: TreeNode) {
@@ -422,14 +372,6 @@ ${relationNames.join(', ')}`;
                     contextMenuFactory={(path, tree) => ContextMenuFactory(path, tree, onDelete, onRename, onDuplicate, onAddToDashboard, onAddNewRelation, onAddNewDashboard, onAddNewFolder)}
                 />
             </div>
-            <RenameDialog
-                title={renameState.title || 'Rename'}
-                description={renameState.description}
-                isOpen={renameState.isOpen}
-                onOpenChange={(isOpen) => setRenameState({...renameState, isOpen})}
-                onRename={onRenameConfirmed}
-                currentName={renameState.currentName || ''}
-            />
             <DeleteDialog
                 title={deleteState.title}
                 description={deleteState.description}

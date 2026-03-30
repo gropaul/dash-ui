@@ -91,18 +91,11 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         relationId: relationId
     });
 
-    const handleUpdateTitle = (newTitle: string) => {
-        advancedActions.setDisplayName(newTitle, []);
-    };
 
     const titleComponent = (
         <RelationTitleWithActions
-            displayName={viewState.displayName}
-            sql={props.relationState.query.baseQuery}
-            parameters={parametersState.parameters}
-            onUpdateTitle={handleUpdateTitle}
-            executionState={props.relationState.executionState}
-            lastExecutionMetaData={props.relationState.lastExecutionMetaData}
+            relationState={inputProps.relationState}
+            updateRelation={inputProps.updateRelation}
             executionInfoClassName=""
         />
     );

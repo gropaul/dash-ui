@@ -2,22 +2,17 @@ import {RelationViewType} from "@/model/relation-view-state";
 import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files/icon-factories";
 
 import {HEADER_HEIGHT} from "@/components/workflow/logic/models";
-import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
+import {RelationState} from "@/model/relation-state";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
-import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 
 export interface RelationNodeHeaderProps {
+    relationState: RelationState;
+    updateRelation: (newRelation: RelationState) => void;
     viewType: RelationViewType;
-    displayName: string;
-    sql: string;
-    parameters?: ParameterDefinition[];
-    onUpdateTitle?: (newTitle: string) => void;
-    executionState: TaskExecutionState;
-    lastExecutionMetaData?: QueryExecutionMetaData;
 }
 
 export function RelationNodeHeader(props: RelationNodeHeaderProps) {
-    const {viewType, displayName, sql, parameters, onUpdateTitle} = props;
+    const {relationState, updateRelation, viewType} = props;
     const viewTypeColor = defaultColorFactory(viewType);
 
     return (
@@ -46,12 +41,8 @@ export function RelationNodeHeader(props: RelationNodeHeaderProps) {
             </div>
             <div className="flex flex-row min-w-0 gap-1.5 items-center flex-1">
                 <RelationTitleWithActions
-                    displayName={displayName}
-                    sql={sql}
-                    parameters={parameters}
-                    onUpdateTitle={onUpdateTitle}
-                    executionState={props.executionState}
-                    lastExecutionMetaData={props.lastExecutionMetaData}
+                    relationState={relationState}
+                    updateRelation={updateRelation}
                     executionInfoClassName="text-md"
                 />
             </div>

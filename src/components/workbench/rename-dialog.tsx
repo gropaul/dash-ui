@@ -9,40 +9,44 @@ import {
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import React from "react";
+import {
+    getRenameDialogDescription,
+    getRenameDialogTitle,
+    useRenameDialogStore
+} from "@/state/rename-dialog.state";
 
 
-interface RenameDialogProps {
-    title: string;
-    description?: string;
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
-    onRename: (newName: string) => void;
-    currentName: string;
-}
+export function RenameDialog() {
+    const isOpen = useRenameDialogStore((s) => s.isOpen);
+    const entityType = useRenameDialogStore((s) => s.entityType);
+    const currentName = useRenameDialogStore((s) => s.currentName);
+    const confirmRename = useRenameDialogStore((s) => s.confirmRename);
+    const close = useRenameDialogStore((s) => s.close);
 
-export function RenameDialog(props: RenameDialogProps) {
-    const [newName, setNewName] = React.useState(props.currentName);
+    const [newName, setNewName] = React.useState(currentName ?? '');
 
     React.useEffect(() => {
-        setNewName(props.currentName);
-    }, [props.currentName]);
+        setNewName(currentName ?? '');
+    }, [currentName]);
+
+    const title = getRenameDialogTitle(entityType);
+    const description = getRenameDialogDescription(entityType, currentName);
 
     function handleRename() {
-        props.onRename(newName);
-        props.onOpenChange(false);
+        confirmRename(newName);
     }
 
     function handleSubmit(e: React.FormEvent) {
-        e.preventDefault(); // Prevents default form submission behavior
+        e.preventDefault();
         handleRename();
     }
 
     return (
-        <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
+        <Dialog open={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{props.title}</DialogTitle>
-                    {props.description && <DialogDescription>{props.description}</DialogDescription>}
+                    <DialogTitle>{title}</DialogTitle>
+                    {description && <DialogDescription>{description}</DialogDescription>}
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -55,7 +59,7 @@ export function RenameDialog(props: RenameDialogProps) {
                         <Button
                             variant="secondary"
                             type="button"
-                            onClick={() => props.onOpenChange(false)}
+                            onClick={close}
                         >
                             Cancel
                         </Button>
