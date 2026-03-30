@@ -8,14 +8,18 @@ import {
 } from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
 import React from "react";
 import {getRenameDialogDescription, getRenameDialogTitle, useRenameDialogStore} from "@/state/rename-dialog.state";
-import {getMacroName, MacroReference} from "@/state/relations/sql/table-macros";
+import {findMacroReferences, getMacroName, MacroReference} from "@/state/relations/sql/table-macros";
+import {getAllRelations} from "@/state/relations/all-relation-utils";
 
-function MacroInfo({currentMacroName, newName, references}: {
+function MacroInfo({currentMacroName, newName, references, updateReferences, onUpdateReferencesChange}: {
     currentMacroName: string;
     newName: string;
     references: MacroReference[];
+    updateReferences: boolean;
+    onUpdateReferencesChange: (checked: boolean) => void;
 }) {
     const newMacroName = getMacroName(newName);
     const macroChanged = currentMacroName !== newMacroName;
@@ -36,11 +40,18 @@ function MacroInfo({currentMacroName, newName, references}: {
                     </>
                 )}
             </div>
-            {references.length > 0 && (
-                <div className="rounded-md border p-2 space-y-1">
-                    <p className="text-muted-foreground font-medium">
-                        Referenced by {references.length} relation{references.length > 1 ? 's' : ''}:
-                    </p>
+            {references.length > 0 && macroChanged && (
+                <div className="rounded-md border p-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="update-references"
+                            checked={updateReferences}
+                            onCheckedChange={(checked) => onUpdateReferencesChange(checked === true)}
+                        />
+                        <label htmlFor="update-references" className="text-sm cursor-pointer">
+                            Update {references.length} reference{references.length > 1 ? 's' : ''} in other queries
+                        </label>
+                    </div>
                     <ul className="list-disc list-inside text-muted-foreground">
                         {references.map((ref) => (
                             <li key={ref.relation.relation.id} className="text-xs">
@@ -58,23 +69,36 @@ function MacroInfo({currentMacroName, newName, references}: {
 export function RenameDialog() {
     const isOpen = useRenameDialogStore((s) => s.isOpen);
     const entityType = useRenameDialogStore((s) => s.entityType);
+    const entityId = useRenameDialogStore((s) => s.entityId);
     const currentName = useRenameDialogStore((s) => s.currentName);
-    const macroName = useRenameDialogStore((s) => s.macroName);
-    const macroReferences = useRenameDialogStore((s) => s.macroReferences);
     const confirmRename = useRenameDialogStore((s) => s.confirmRename);
     const close = useRenameDialogStore((s) => s.close);
 
     const [newName, setNewName] = React.useState(currentName ?? '');
+    const [updateReferences, setUpdateReferences] = React.useState(true);
 
     React.useEffect(() => {
         setNewName(currentName ?? '');
+        setUpdateReferences(true);
     }, [currentName]);
+
+    // Compute macro info locally for relations
+    const isRelation = entityType === 'relations';
+    const macroName = React.useMemo(
+        () => isRelation && currentName ? getMacroName(currentName) : undefined,
+        [isRelation, currentName]
+    );
+    const macroReferences = React.useMemo(
+        () => macroName && entityId ? findMacroReferences(macroName, entityId) : [],
+        [macroName, entityId]
+    );
 
     const title = getRenameDialogTitle(entityType);
     const description = getRenameDialogDescription(entityType, currentName);
 
     function handleRename() {
-        confirmRename(newName);
+        if (!isValid) return;
+        confirmRename(trimmedName, macroName, updateReferences);
     }
 
     function handleSubmit(e: React.FormEvent) {
@@ -82,7 +106,21 @@ export function RenameDialog() {
         handleRename();
     }
 
-    const isRelation = entityType === 'relations' && macroName;
+    const trimmedName = newName.trim();
+
+    // Check for macro name conflict with other relations
+    const macroConflict = React.useMemo(() => {
+        if (!macroName || !trimmedName) return undefined;
+        const newMacroName = getMacroName(trimmedName);
+        if (newMacroName === macroName) return undefined;
+        const conflict = getAllRelations().find(
+            e => e.relation.id !== entityId && getMacroName(e.relation.viewState.displayName) === newMacroName
+        );
+        if (!conflict) return undefined;
+        return conflict.relation.viewState.displayName;
+    }, [macroName, trimmedName, entityId]);
+
+    const isValid = trimmedName.length > 0 && !macroConflict;
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
@@ -98,12 +136,19 @@ export function RenameDialog() {
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                     />
-                    {isRelation && (
+                    {macroName && (
                         <MacroInfo
                             currentMacroName={macroName}
                             newName={newName}
                             references={macroReferences}
+                            updateReferences={updateReferences}
+                            onUpdateReferencesChange={setUpdateReferences}
                         />
+                    )}
+                    {macroConflict && (
+                        <p className="text-sm text-destructive">
+                            Macro name conflicts with &quot;{macroConflict}&quot;
+                        </p>
                     )}
                     <DialogFooter>
                         <Button
@@ -113,7 +158,7 @@ export function RenameDialog() {
                         >
                             Cancel
                         </Button>
-                        <Button type="submit">
+                        <Button type="submit" disabled={!isValid}>
                             Confirm
                         </Button>
                     </DialogFooter>

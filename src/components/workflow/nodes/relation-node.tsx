@@ -63,7 +63,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
     }, [setNodes, props.id]);
 
     // Simple data-only updater for compatibility with actions
-    const setData = useCallback((updater: RelationState | ((prev: RelationState) => RelationState)) => {
+    const updateRelation = useCallback((updater: RelationState | ((prev: RelationState) => RelationState)) => {
         updateNodeData(prev => typeof updater === 'function' ? updater(prev) : updater);
     }, [updateNodeData]);
 
@@ -130,12 +130,12 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
     const actions = useMemo(() => {
         const inputProps: RelationViewAPIProps = {
             relationState: data,
-            updateRelation: setData,
+            updateRelation: updateRelation,
             inputManager: manager,
             embedded: true
         }
         return getRelationActions(inputProps)
-    }, [data, setData, manager])
+    }, [data, updateRelation, manager])
 
     const handleToggleCode = useCallback(() => {
         const isCurrentlyShowing = data.viewState.codeFenceState.show;
@@ -185,7 +185,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     connectionHover={props.data.connectionHover}
                     showHeader={data.viewState.showHeader}
                     relationState={data}
-                    updateRelation={setData}
                     viewType={data.viewState.selectedView}
                 >
                     <RelationToolbar
@@ -214,7 +213,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     <div className={'w-full h-full bg-background relative'}>
                         <RelationStateView
                             relationState={data}
-                            updateRelation={setData}
+                            updateRelation={updateRelation}
                             inputManager={manager}
                             embedded={false}
                             configDisplayMode={'dialog'}
@@ -231,7 +230,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     isOpen={isFullscreen}
                     onOpenChange={setIsFullscreen}
                     relationState={data}
-                    updateRelation={setData}
+                    updateRelation={updateRelation}
                     inputManager={manager}
                 />
             </RelationContextProvider>

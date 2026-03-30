@@ -9,7 +9,7 @@ const debug = require('debug')('sql-strip-comments');
 // nested comments are not supported
 // inspired: https://larrysteinle.com/2011/02/09/use-regular-expressions-to-clean-sql-statements/
 
-function removeComments(sql: string) {
+export function removeComments(sql: string) {
     sql = sql.replace(/("(""|[^"])*")|('(''|[^'])*')|(--[^\n\r]*)|(\/\*[\w\W]*?(?=\*\/)\*\/)/gm, (match) => {
         if (
             (match[0] === '"' && match[match.length - 1] === '"')

@@ -7,7 +7,6 @@ import {useRenameDialogStore} from "@/state/rename-dialog.state";
 
 export interface RelationTitleWithActionsProps {
     relationState: RelationState;
-    updateRelation: (newRelation: RelationState) => void;
     className?: string;
     executionInfoClassName?: string;
 }
@@ -19,7 +18,6 @@ export interface RelationTitleWithActionsProps {
  */
 export function RelationTitleWithActions({
                                              relationState,
-                                             updateRelation,
                                              className,
                                              executionInfoClassName,
                                          }: RelationTitleWithActionsProps) {
@@ -31,10 +29,7 @@ export function RelationTitleWithActions({
     const lastExecutionMetaData = relationState.lastExecutionMetaData;
 
     const handleOpenRename = () => {
-        useRenameDialogStore.getState().openRelationRenameDialog({
-            relationState,
-            updateRelation,
-        });
+        useRenameDialogStore.getState().openRelationRenameDialog(relationState);
     };
 
     return (

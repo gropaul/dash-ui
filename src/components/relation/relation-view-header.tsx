@@ -95,7 +95,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
     const titleComponent = (
         <RelationTitleWithActions
             relationState={inputProps.relationState}
-            updateRelation={inputProps.updateRelation}
             executionInfoClassName=""
         />
     );

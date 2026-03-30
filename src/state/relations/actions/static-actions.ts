@@ -4,11 +4,13 @@ import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {RelationSource} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {RelationViewType} from "@/model/relation-view-state";
+import {getMacroName} from "@/state/relations/sql/table-macros";
 
 
 function isDisplayNameTaken(displayName: string, excludeRelationId?: string): boolean {
+    const macro = getMacroName(displayName);
     return getAllRelations().some(
-        ({relation}) => relation.viewState.displayName === displayName && relation.id !== excludeRelationId
+        ({relation}) => relation.id !== excludeRelationId && getMacroName(relation.viewState.displayName) === macro
     );
 }
 
@@ -36,7 +38,12 @@ export class RelationActions {
         }
         const source = param_source || local_source;
         const defaultQueryParams = getInitialParams(view_type || 'table');
-        return getRelationStateFromSource(DATABASE_CONNECTION_ID_DUCKDB_LOCAL, source, defaultQueryParams);
+        const relation = getRelationStateFromSource(DATABASE_CONNECTION_ID_DUCKDB_LOCAL, source, defaultQueryParams);
+        const uniqueName = RelationActions.getUniqueDisplayName(relation.viewState.displayName);
+        if (uniqueName !== relation.viewState.displayName) {
+            relation.viewState = {...relation.viewState, displayName: uniqueName};
+        }
+        return relation;
     }
 
     static getUniqueDisplayName = (desiredName: string, excludeRelationId?: string): string => {

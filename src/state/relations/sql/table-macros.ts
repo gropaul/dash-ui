@@ -4,6 +4,7 @@ import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
+import {removeComments} from "@/platform/sql-utils";
 
 /**
  * Check if the database is in read-only mode.
@@ -150,7 +151,8 @@ export function generateDropMacroSQL(relationName: string): string {
  *
  * "SELECT * FROM node_employees(), node_departments()" → ["employees", "departments"]
  */
-export function extractMacroRefs(sql: string): string[] {
+export function extractMacroRefs(sqlRaw: string): string[] {
+    const sql = removeComments(sqlRaw)
     const refs: string[] = [];
     const re = new RegExp(`\\b${TABLE_MACRO_PREFIX}(\\w+)\\s*\\(`, 'g');
     for (const match of sql.matchAll(re)) {
@@ -165,6 +167,25 @@ export interface MacroReference {
 }
 
 /**
+ * Build a regex that matches a macro name followed by '(' (with optional whitespace).
+ * Ensures exact match: node_a() won't match node_ab().
+ */
+function macroCallRegex(macroName: string, flags: string = 'g'): RegExp {
+    return new RegExp(`\\b${escapeRegExp(macroName)}\\s*\\(`, flags);
+}
+
+function escapeRegExp(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Check if SQL contains an exact macro call (not a prefix match).
+ */
+export function sqlContainsMacroCall(sql: string, macroName: string): boolean {
+    return macroCallRegex(macroName).test(sql);
+}
+
+/**
  * Find all relations whose SQL references the given macro name.
  * Searches across standalone relations, workflow nodes, and dashboard blocks.
  */
@@ -175,12 +196,44 @@ export function findMacroReferences(macroName: string, excludeId: string): Macro
     for (const entry of allRelations) {
         if (entry.relation.id === excludeId) continue;
         const sql = entry.relation.query.baseQuery;
-        if (sql && sql.includes(macroName)) {
+        if (sql && sqlContainsMacroCall(sql, macroName)) {
             references.push({relation: entry, macroName});
         }
     }
 
     return references;
+}
+
+/**
+ * Rename a macro reference in SQL, replacing only the macro name, not its arguments.
+ * E.g. "FROM node_old_name(x, y)" → "FROM node_new_name(x, y)"
+ * Matches node_old_name followed by '(' to avoid prefix collisions.
+ */
+export function renameMacroInSql(sql: string, oldMacroName: string, newMacroName: string): string {
+    // Match "node_old_name(" and replace only the name part, keeping "("
+    const re = new RegExp(`\\b${escapeRegExp(oldMacroName)}(\\s*\\()`, 'g');
+    return sql.replace(re, `${newMacroName}$1`);
+}
+
+/**
+ * Rename all macro references across all relations (standalone, workflow, dashboard).
+ * Only replaces the macro name itself, not its arguments.
+ */
+export function renameAllMacroReferences(oldMacroName: string, newMacroName: string, excludeId: string): void {
+    for (const entry of getAllRelations()) {
+        if (entry.relation.id === excludeId) continue;
+        const sql = entry.relation.query.baseQuery;
+        if (!sql || !sqlContainsMacroCall(sql, oldMacroName)) continue;
+        const newSql = renameMacroInSql(sql, oldMacroName, newMacroName);
+        if (newSql !== sql) {
+            console.log(`Renaming macro reference in relation "${entry.relation.viewState.displayName}": ${oldMacroName} → ${newMacroName}`);
+
+            entry.updateRelation({
+                ...entry.relation,
+                query: {...entry.relation.query, baseQuery: newSql},
+            });
+        }
+    }
 }
 
 /**

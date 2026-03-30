@@ -7,12 +7,11 @@ import {RelationTitleWithActions} from "@/components/relation/common/relation-ti
 
 export interface RelationNodeHeaderProps {
     relationState: RelationState;
-    updateRelation: (newRelation: RelationState) => void;
     viewType: RelationViewType;
 }
 
 export function RelationNodeHeader(props: RelationNodeHeaderProps) {
-    const {relationState, updateRelation, viewType} = props;
+    const {relationState, viewType} = props;
     const viewTypeColor = defaultColorFactory(viewType);
 
     return (
@@ -42,7 +41,6 @@ export function RelationNodeHeader(props: RelationNodeHeaderProps) {
             <div className="flex flex-row min-w-0 gap-1.5 items-center flex-1">
                 <RelationTitleWithActions
                     relationState={relationState}
-                    updateRelation={updateRelation}
                     executionInfoClassName="text-md"
                 />
             </div>

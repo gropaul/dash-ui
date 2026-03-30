@@ -13,7 +13,6 @@ export interface NodeBodyProps {
     connectionHover?: ConnectionHoverState | null;
     showHeader?: boolean;
     relationState: RelationState;
-    updateRelation: (newRelation: RelationState) => void;
     viewType: RelationViewType;
 }
 
@@ -98,7 +97,6 @@ export function RelationNodeBody(props: NodeBodyProps) {
                         <div className="flex-shrink-0">
                             <RelationNodeHeader
                                 relationState={props.relationState}
-                                updateRelation={props.updateRelation}
                                 viewType={viewType}
                             />
                         </div>
