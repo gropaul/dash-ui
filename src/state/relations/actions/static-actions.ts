@@ -1,10 +1,12 @@
 import {getInitialParams, getRelationStateFromSource, RelationState} from "@/model/relation-state";
 import {getRandomId} from "@/platform/id-utils";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
-import {RelationSource} from "@/model/relation";
+import {Relation, RelationSource, RelationSourceQuery} from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
-import {RelationViewType} from "@/model/relation-view-state";
+import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
 import {getMacroName} from "@/state/relations/sql/table-macros";
+import {getInitialAxisDecoration} from "@/model/relation-view-state/chart";
+import {RelationEvents} from "@/state/relations/event/relation-events";
 
 
 function isDisplayNameTaken(displayName: string, excludeRelationId?: string): boolean {
@@ -29,21 +31,62 @@ export class RelationActions {
         };
     }
 
-    static create(param_source?: RelationSource, view_type?: RelationViewType): RelationState {
-        const local_source: RelationSource = {
+    static create(options?: { source?: RelationSource; viewType?: RelationViewType }): RelationState {
+        const viewType = options?.viewType ?? 'table';
+        const randomId = getRandomId();
+        const baseQuery = viewType === 'table' ?
+            "SELECT 'Hello, World! 🦆' AS message;" :
+            "SELECT range as x, x * x as y FROM range(-10,11);";
+
+        const baseSource: RelationSourceQuery = {
             type: "query",
-            baseQuery: "SELECT 'Hello, World! 🦆' AS message;",
-            id: getRandomId(),
+            baseQuery: baseQuery,
+            id: randomId,
             name: "New Query"
         }
-        const source = param_source || local_source;
-        const defaultQueryParams = getInitialParams(view_type || 'table');
-        const relation = getRelationStateFromSource(DATABASE_CONNECTION_ID_DUCKDB_LOCAL, source, defaultQueryParams);
-        const uniqueName = RelationActions.getUniqueDisplayName(relation.viewState.displayName);
-        if (uniqueName !== relation.viewState.displayName) {
-            relation.viewState = {...relation.viewState, displayName: uniqueName};
+        const source = options?.source ?? baseSource;
+        const defaultQueryParams = getInitialParams(viewType);
+        const relation: Relation = {
+            connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, source: source
         }
-        return relation;
+
+        const uniqueName = RelationActions.getUniqueDisplayName('Element');
+        const viewState =  getInitViewState(
+            uniqueName,
+            undefined,
+            [],
+            true
+        );
+        viewState.selectedView = viewType;
+        if (viewType === 'chart') {
+            viewState.chartState.chart.plot.cartesian.xAxis = {
+                label: 'x',
+                columnId: 'x',
+                decoration: getInitialAxisDecoration(0)
+            }
+            viewState.chartState.chart.plot.cartesian.yAxes = [{
+                label: 'y',
+                columnId: 'y',
+                decoration: getInitialAxisDecoration(1)
+            }];
+            viewState.chartState.chart.plot.type = 'line';
+            viewState.chartState.chart.plot.cartesian.xAxisType = 'value';
+            viewState.chartState.view.showConfig = false;
+        }
+        const relationState: RelationState = {
+            ...relation,
+            query: {
+                baseQuery: baseQuery,
+                activeBaseQuery: baseQuery,
+                viewParameters: defaultQueryParams
+            },
+            viewState,
+            executionState: {
+                state: "not-started"
+            }
+        };
+        RelationEvents.create(relationState);
+        return relationState;
     }
 
     static getUniqueDisplayName = (desiredName: string, excludeRelationId?: string): string => {

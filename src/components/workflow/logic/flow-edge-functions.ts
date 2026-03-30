@@ -13,7 +13,7 @@ import {CanvasState, DEFAULT_NODE_SIZE} from "@/components/workflow/logic/models
 import {getMacroName} from "@/state/relations/sql/table-macros";
 import {injectNodeRef} from "@/components/workflow/logic/ref-detection";
 import {RelationState} from "@/model/relation-state";
-import {getInitialDataElement} from "@/model/dashboard-state";
+import {RelationActions} from "@/state/relations/actions/static-actions";
 
 export interface ConnectionValidity {
     isValid: boolean;
@@ -252,19 +252,42 @@ export function createOnConnectEnd(ctx: EdgeHandlerContext) {
             const displayName = sourceData?.relationData?.viewState?.displayName;
             if (displayName) {
                 const macroName = getMacroName(displayName);
-                const initialData = getInitialDataElement('table');
+                const initialData = RelationActions.create();
                 const newSql = `SELECT * FROM ${macroName}()`;
                 initialData.query.baseQuery = newSql;
                 initialData.query.activeBaseQuery = newSql;
 
                 const newNodeId = `n-${Date.now()}`;
+
+                // Position new node so cursor is at center of the near edge
+                const sourceW = sourceNode.width ?? DEFAULT_NODE_SIZE.width;
+                const sourceH = sourceNode.height ?? DEFAULT_NODE_SIZE.height;
+                const sourceCenterX = sourceNode.position.x + sourceW / 2;
+                const sourceCenterY = sourceNode.position.y + sourceH / 2;
+                const dx = dropPosition.x - sourceCenterX;
+                const dy = dropPosition.y - sourceCenterY;
+
+                let newX: number;
+                let newY: number;
+
+                if (Math.abs(dx) >= Math.abs(dy)) {
+                    // Horizontal: cursor at center of left/right edge
+                    newY = dropPosition.y - DEFAULT_NODE_SIZE.height / 2;
+                    newX = dx >= 0
+                        ? dropPosition.x
+                        : dropPosition.x - DEFAULT_NODE_SIZE.width;
+                } else {
+                    // Vertical: cursor at center of top/bottom edge
+                    newX = dropPosition.x - DEFAULT_NODE_SIZE.width / 2;
+                    newY = dy >= 0
+                        ? dropPosition.y
+                        : dropPosition.y - DEFAULT_NODE_SIZE.height;
+                }
+
                 const newNode: Node = {
                     id: newNodeId,
                     type: 'relationNode',
-                    position: {
-                        x: dropPosition.x - DEFAULT_NODE_SIZE.width / 2,
-                        y: dropPosition.y - DEFAULT_NODE_SIZE.height / 2,
-                    },
+                    position: {x: newX, y: newY},
                     width: DEFAULT_NODE_SIZE.width,
                     height: DEFAULT_NODE_SIZE.height,
                     selected: true,

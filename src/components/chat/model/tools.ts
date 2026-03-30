@@ -86,7 +86,7 @@ export function getDefaultRelationBockData(sql: string, viewType: RelationViewTy
         name: "New Query"
     }
 
-    const state = RelationActions.create(source, viewType);
+    const state = RelationActions.create({source, viewType});
     state.viewState.codeFenceState.show = false;
     return state;
 }

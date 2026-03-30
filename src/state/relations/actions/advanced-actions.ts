@@ -13,7 +13,7 @@ import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationViewAPIProps} from "@/components/relation/relation-view";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
-import {processRelationUpdateEvent} from "@/state/relations/event/relation-event-update-dispatch";
+import {processRelationUpdateEvent} from "@/state/relations/event/relation-events-update-dispatch";
 
 export type UpdateRelationFunction = (relation: RelationState) => void;
 

@@ -4,7 +4,7 @@ import React, {useEffect, useState} from 'react';
 
 import {RelationState, ViewQueryParameters} from '@/model/relation-state';
 import {DashboardDataView} from '@/components/dashboard/dashboard-data-view';
-import {getInitialDataElement} from "@/model/dashboard-state";
+import {RelationActions} from "@/state/relations/actions/static-actions";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {RelationViewType} from "@/model/relation-view-state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
@@ -68,7 +68,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
         config: any
     }, blockName: string) {
         if (!isRelationState(data)) {
-            data = getInitialDataElement('table');
+            data = RelationActions.create();
         }
         super({data, api, readOnly, config}, RELATION_BLOCK_NAME);
     }

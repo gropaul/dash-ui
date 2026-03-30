@@ -365,7 +365,7 @@ export const useRelationsState = createWithEqualityFn(
                     if (existingRelation) {
                         get().showEntity('relations', existingRelation, editorPath);
                     } else {
-                        const relationState = RelationActions.create(source);
+                        const relationState = RelationActions.create({source});
                         const actions = getRelationActions({relationState, updateRelation: get().updateRelation});
                         get().showEntity('relations', relationState, editorPath);
                         await actions.updateRelationDataWithBaseQuery(relationState.query.baseQuery);

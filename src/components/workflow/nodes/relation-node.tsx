@@ -2,7 +2,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
 import {RelationNodeBody} from "@/components/workflow/nodes/relation/relation-body";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {getInitialDataElement} from "@/model/dashboard-state";
+import {RelationActions} from "@/state/relations/actions/static-actions";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import {RelationToolbar} from "@/components/workflow/nodes/relation/relation-toolbar";
@@ -25,7 +25,7 @@ import {useWorkflowState} from "@/components/workflow/workflow-context";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationState} from "@/model/relation-state";
 
-const DEFAULT_RELATION_DATA = getInitialDataElement('table');
+const DEFAULT_RELATION_DATA = RelationActions.create();
 
 type RelationNodeProps = {
     relationData?: RelationState;
