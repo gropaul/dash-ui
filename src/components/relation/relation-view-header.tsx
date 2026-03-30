@@ -106,7 +106,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
             onUpdateTitle={handleUpdateTitle}
             executionState={props.relationState.executionState}
             lastExecutionMetaData={props.relationState.lastExecutionMetaData}
-            executionInfoClassName="text-sm"
+            executionInfoClassName=""
         />
     );
 

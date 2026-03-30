@@ -187,7 +187,7 @@ export const useRelationsState = createWithEqualityFn(
 
                     // Register macros for newly merged relations
                     Object.values(relations).forEach((relation) => {
-                        RelationEvents.create(relation.id, relation.viewState.displayName, relation.query.baseQuery);
+                        RelationEvents.create(relation);
                     });
 
                     if (openDashboards) {
@@ -232,7 +232,7 @@ export const useRelationsState = createWithEqualityFn(
                         useRelationDataState.getState().deleteData(entityId);
                         const relation = get().relations[entityId];
                         if (relation) {
-                            RelationEvents.delete(entityId, relation.viewState.displayName);
+                            RelationEvents.delete(relation);
                         }
                     }
                     // if it is a dashboard, we have to delete the blocks' cache as well
@@ -263,7 +263,11 @@ export const useRelationsState = createWithEqualityFn(
                     if (entityType === 'relations') {
                         const relation = get().relations[entityId];
                         if (relation) {
-                            RelationEvents.rename(entityId, relation.viewState.displayName, displayName, relation.query.baseQuery);
+                            const renamedRelation = {
+                                ...relation,
+                                viewState: { ...relation.viewState, displayName },
+                            };
+                            RelationEvents.rename(relation, renamedRelation);
                         }
                     }
 
@@ -449,7 +453,7 @@ export const useRelationsState = createWithEqualityFn(
                             }
                             const relation = get().relations[node.id];
                             if (relation) {
-                                RelationEvents.delete(node.id, relation.viewState.displayName);
+                                RelationEvents.delete(relation);
                             }
                             delete newRelations[node.id];
                         }

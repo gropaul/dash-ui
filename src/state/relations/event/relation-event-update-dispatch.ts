@@ -4,7 +4,7 @@ import { ParameterDefinition } from "@/model/relation-view-state/parameters";
 
 /**
  * Compares old and new relation state and dispatches the appropriate
- * RelationActions when relevant fields change.
+ * relation events when relevant fields change.
  *
  * Use this to wrap an updateRelation callback so that macro registration
  * and other action subscribers stay in sync across all contexts
@@ -14,21 +14,20 @@ export function processRelationUpdateEvent(
     oldState: RelationState,
     newState: RelationState
 ): void {
-    const name = newState.viewState.displayName;
     const oldQuery = oldState.query.baseQuery;
     const newQuery = newState.query.baseQuery;
-    const oldParams = oldState.viewState.parametersState?.parameters;
-    const newParams = newState.viewState.parametersState?.parameters;
 
     // SQL changed
     if (oldQuery !== newQuery) {
-        RelationEvents.updateSql(newState.id, name, newQuery, newParams);
+        RelationEvents.updateSql(oldState, newState);
         return;
     }
 
     // Parameters changed (defaults, types, descriptions)
+    const oldParams = oldState.viewState.parametersState?.parameters;
+    const newParams = newState.viewState.parametersState?.parameters;
     if (!parametersEqual(oldParams, newParams)) {
-        RelationEvents.updateParams(newState.id, name, newQuery, newParams ?? []);
+        RelationEvents.updateParams(oldState, newState);
     }
 }
 

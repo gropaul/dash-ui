@@ -76,9 +76,9 @@ async function updateRelationViewState(relation: RelationState, partialUpdate: D
     const currentViewState = deepClone(relation.viewState);
 
     // the display name may not be updated here, as it is managed outside of the view state
-    if (partialUpdate.displayName !== undefined) {
-        throw new Error("Display name cannot be updated via view state update, use setEntityDisplayName ");
-    }
+    // if (partialUpdate.displayName !== undefined) {
+    //     throw new Error("Display name cannot be updated via view state update, use setEntityDisplayName ");
+    // }
 
     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
     const updatedRelation = {

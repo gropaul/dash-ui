@@ -185,21 +185,21 @@ export async function dropRelationMacro(relationName: string): Promise<void> {
 function handleRelationAction(action: RelationEvent): void {
     switch (action.type) {
         case 'CREATE':
-            registerRelationMacro(action.relationName, action.sql, action.parameters);
-            break;
         case 'UPDATE_SQL':
-            registerRelationMacro(action.relationName, action.sql, action.parameters);
+        case 'UPDATE_PARAMS': {
+            const s = action.new!;
+            registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters);
             break;
-        case 'UPDATE_PARAMS':
-            registerRelationMacro(action.relationName, action.sql, action.parameters);
-            break;
+        }
         case 'DELETE':
-            dropRelationMacro(action.relationName);
+            dropRelationMacro(action.old!.viewState.displayName);
             break;
-        case 'RENAME':
-            dropRelationMacro(action.oldName);
-            registerRelationMacro(action.relationName, action.sql, action.parameters);
+        case 'RENAME': {
+            dropRelationMacro(action.old!.viewState.displayName);
+            const s = action.new!;
+            registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters);
             break;
+        }
     }
 }
 

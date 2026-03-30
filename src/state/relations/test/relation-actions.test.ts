@@ -4,22 +4,35 @@ import {
     RelationEvents,
     RelationEvent,
 } from '../event/relation-events';
+import { RelationState } from '@/model/relation-state';
 
-describe('relation-actions', () => {
-    describe('onRelationAction', () => {
-        it('should subscribe and receive dispatched actions', () => {
+function mockRelationState(overrides: Partial<RelationState> & { id: string }): RelationState {
+    return {
+        source: { type: 'sql', connectionId: 'conn-1' },
+        query: { baseQuery: 'SELECT 1', activeBaseQuery: 'SELECT 1', viewParameters: {} },
+        executionState: { state: 'idle' },
+        viewState: {
+            displayName: overrides.id,
+            viewType: 'table',
+            tableViewState: { queryParameters: { offset: 0, limit: 20, sorting: {}, filters: {} } },
+        },
+        ...overrides,
+    } as RelationState;
+}
+
+describe('relation-events', () => {
+    describe('onRelationEvent', () => {
+        it('should subscribe and receive dispatched events', () => {
             const listener = vi.fn();
             const unsubscribe = onRelationEvent(listener);
 
-            RelationEvents.create('test-id', 'test', 'SELECT 1');
-
+            const state = mockRelationState({ id: 'test-id' });
+            RelationEvents.create(state);
 
             expect(listener).toHaveBeenCalledTimes(1);
             expect(listener).toHaveBeenCalledWith({
                 type: 'CREATE',
-                relationId: 'test-id',
-                relationName: 'test',
-                sql: 'SELECT 1',
+                new: state,
             });
 
             unsubscribe();
@@ -30,8 +43,7 @@ describe('relation-actions', () => {
             const unsubscribe = onRelationEvent(listener);
 
             unsubscribe();
-            RelationEvents.delete('test-id','test');
-
+            RelationEvents.delete(mockRelationState({ id: 'test-id' }));
 
             expect(listener).not.toHaveBeenCalled();
         });
@@ -43,7 +55,7 @@ describe('relation-actions', () => {
             const unsub1 = onRelationEvent(listener1);
             const unsub2 = onRelationEvent(listener2);
 
-            RelationEvents.delete('test-id','test');
+            RelationEvents.delete(mockRelationState({ id: 'test-id' }));
 
             expect(listener1).toHaveBeenCalledTimes(1);
             expect(listener2).toHaveBeenCalledTimes(1);
@@ -61,26 +73,42 @@ describe('relation-actions', () => {
             const unsub1 = onRelationEvent(errorListener);
             const unsub2 = onRelationEvent(normalListener);
 
-            // Should not throw
-            RelationEvents.delete('test-id','test');
+            RelationEvents.delete(mockRelationState({ id: 'test-id' }));
 
-            // Both listeners should be called despite error
             expect(errorListener).toHaveBeenCalled();
             expect(normalListener).toHaveBeenCalled();
 
             unsub1();
             unsub2();
         });
+
+        it('should filter by event types when specified', () => {
+            const listener = vi.fn();
+            const unsubscribe = onRelationEvent(listener, ['CREATE', 'DELETE']);
+
+            const state = mockRelationState({ id: 'id-1' });
+            const state2 = mockRelationState({ id: 'id-2' });
+
+            RelationEvents.create(state);
+            RelationEvents.updateSql(state, state2);
+            RelationEvents.delete(state);
+
+            expect(listener).toHaveBeenCalledTimes(2);
+            expect(listener).toHaveBeenCalledWith({ type: 'CREATE', new: state });
+            expect(listener).toHaveBeenCalledWith({ type: 'DELETE', old: state });
+
+            unsubscribe();
+        });
     });
 
-    describe('RelationActions helpers', () => {
-        let receivedActions: RelationEvent[];
+    describe('RelationEvents helpers', () => {
+        let receivedEvents: RelationEvent[];
         let unsubscribe: () => void;
 
         beforeEach(() => {
-            receivedActions = [];
-            unsubscribe = onRelationEvent((action) => {
-                receivedActions.push(action);
+            receivedEvents = [];
+            unsubscribe = onRelationEvent((event) => {
+                receivedEvents.push(event);
             });
         });
 
@@ -88,52 +116,42 @@ describe('relation-actions', () => {
             unsubscribe();
         });
 
-        it('should dispatch CREATE action', () => {
-            RelationEvents.create('id-1', 'my_relation', 'SELECT * FROM users');
+        it('should dispatch CREATE event', () => {
+            const state = mockRelationState({ id: 'id-1' });
+            RelationEvents.create(state);
 
-            expect(receivedActions).toHaveLength(1);
-            expect(receivedActions[0]).toEqual({
-                type: 'CREATE',
-                relationId: 'id-1',
-                relationName: 'my_relation',
-                sql: 'SELECT * FROM users',
-            });
+            expect(receivedEvents).toHaveLength(1);
+            expect(receivedEvents[0]).toEqual({ type: 'CREATE', new: state });
         });
 
-        it('should dispatch DELETE action', () => {
-            RelationEvents.delete('id-1', 'my_relation');
+        it('should dispatch DELETE event', () => {
+            const state = mockRelationState({ id: 'id-1' });
+            RelationEvents.delete(state);
 
-            expect(receivedActions).toHaveLength(1);
-            expect(receivedActions[0]).toEqual({
-                type: 'DELETE',
-                relationId: 'id-1',
-                relationName: 'my_relation',
-            });
+            expect(receivedEvents).toHaveLength(1);
+            expect(receivedEvents[0]).toEqual({ type: 'DELETE', old: state });
         });
 
-        it('should dispatch RENAME action', () => {
-            RelationEvents.rename('id-1', 'old_name', 'new_name', 'SELECT 1');
+        it('should dispatch RENAME event', () => {
+            const oldState = mockRelationState({ id: 'id-1' });
+            const newState = mockRelationState({ id: 'id-1' });
+            (newState.viewState as any).displayName = 'new_name';
 
-            expect(receivedActions).toHaveLength(1);
-            expect(receivedActions[0]).toEqual({
-                type: 'RENAME',
-                relationId: 'id-1',
-                relationName: 'new_name',
-                oldName: 'old_name',
-                sql: 'SELECT 1',
-            });
+            RelationEvents.rename(oldState, newState);
+
+            expect(receivedEvents).toHaveLength(1);
+            expect(receivedEvents[0]).toEqual({ type: 'RENAME', old: oldState, new: newState });
         });
 
-        it('should dispatch UPDATE_SQL action', () => {
-            RelationEvents.updateSql('id-1', 'my_relation', 'SELECT 2');
+        it('should dispatch UPDATE_SQL event', () => {
+            const oldState = mockRelationState({ id: 'id-1' });
+            const newState = mockRelationState({ id: 'id-1' });
+            (newState.query as any).baseQuery = 'SELECT 2';
 
-            expect(receivedActions).toHaveLength(1);
-            expect(receivedActions[0]).toEqual({
-                type: 'UPDATE_SQL',
-                relationId: 'id-1',
-                relationName: 'my_relation',
-                sql: 'SELECT 2',
-            });
+            RelationEvents.updateSql(oldState, newState);
+
+            expect(receivedEvents).toHaveLength(1);
+            expect(receivedEvents[0]).toEqual({ type: 'UPDATE_SQL', old: oldState, new: newState });
         });
     });
 });

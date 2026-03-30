@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Pencil } from "lucide-react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { MacroCopyButton } from "@/components/relation/macro-copy-button";
-import { RelationExecutionInfo } from "@/components/relation/common/relation-execution-info";
-import { QueryExecutionMetaData, TaskExecutionState } from "@/model/relation-state";
-import { ParameterDefinition } from "@/model/relation-view-state/parameters";
+import {useState} from "react";
+import {Pencil} from "lucide-react";
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {MacroCopyButton} from "@/components/relation/macro-copy-button";
+import {RelationExecutionInfo} from "@/components/relation/common/relation-execution-info";
+import {QueryExecutionMetaData, TaskExecutionState} from "@/model/relation-state";
+import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 
 export interface RelationTitleWithActionsProps {
     displayName: string;
@@ -25,15 +25,15 @@ export interface RelationTitleWithActionsProps {
  * Shows edit and copy buttons on hover.
  */
 export function RelationTitleWithActions({
-    displayName,
-    sql,
-    parameters,
-    onUpdateTitle,
-    className,
-    executionState,
-    lastExecutionMetaData,
-    executionInfoClassName,
-}: RelationTitleWithActionsProps) {
+                                             displayName,
+                                             sql,
+                                             parameters,
+                                             onUpdateTitle,
+                                             className,
+                                             executionState,
+                                             lastExecutionMetaData,
+                                             executionInfoClassName,
+                                         }: RelationTitleWithActionsProps) {
     const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
     const [renameValue, setRenameValue] = useState('');
 
@@ -50,18 +50,20 @@ export function RelationTitleWithActions({
     return (
         <>
             <div className={`group/title flex items-center gap-1.5 min-w-0 ${className ?? ''}`}>
-                <span
-                    className="leading-none font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
-                >
-                    {displayName}
-                </span>
-                {executionState && (
-                    <RelationExecutionInfo
-                        executionState={executionState}
-                        lastExecutionMetaData={lastExecutionMetaData}
-                        className={executionInfoClassName}
-                    />
-                )}
+                <div className="flex flex-row items-end gap-1.5 min-w-0">
+                    <span
+                        className="leading-none font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
+                    >
+                        {displayName}
+                    </span>
+                    {executionState && (
+                        <RelationExecutionInfo
+                            executionState={executionState}
+                            lastExecutionMetaData={lastExecutionMetaData}
+                            className={executionInfoClassName}
+                        />
+                    )}
+                </div>
                 {onUpdateTitle && (
                     <Button
                         className="opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0"
@@ -72,7 +74,7 @@ export function RelationTitleWithActions({
                         variant="ghost"
                         size="icon"
                     >
-                        <Pencil size={12} />
+                        <Pencil size={12}/>
                     </Button>
                 )}
 

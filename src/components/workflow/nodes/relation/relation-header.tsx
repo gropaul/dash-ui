@@ -52,7 +52,7 @@ export function RelationNodeHeader(props: RelationNodeHeaderProps) {
                     onUpdateTitle={onUpdateTitle}
                     executionState={props.executionState}
                     lastExecutionMetaData={props.lastExecutionMetaData}
-                    executionInfoClassName="text-[12px]"
+                    executionInfoClassName="text-md"
                 />
             </div>
         </div>
