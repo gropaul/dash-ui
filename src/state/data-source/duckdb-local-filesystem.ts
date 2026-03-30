@@ -18,7 +18,7 @@ import {getDuckDBCurrentPath} from "@/state/data-source/duckdb-helper";
 export async function getDuckDBLocalFilesystem(): Promise<DataSourceConnection> {
     return new DuckdbLocalFilesystem(SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM, {
         rootPath: undefined,
-        name: 'File System',
+        name: 'Local Filesystem',
         showHiddenFiles: false
     });
 }
