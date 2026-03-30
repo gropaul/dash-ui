@@ -65,7 +65,11 @@ export function getRelationActions(props: RelationViewAPIProps): EndUserRelation
             advancedActions.updateRelationViewState({
                 displayName: name,
             });
-            useRelationsState.getState().setEntityDisplayName('relations', relationState.id, name, path);
+            try {
+                useRelationsState.getState().setEntityDisplayName('relations', relationState.id, name, path);
+            } catch (e) {
+                console.error("Failed to set display name in entity collection", e);
+            }
         }
     }
 }
