@@ -92,7 +92,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
     });
 
     const handleUpdateTitle = (newTitle: string) => {
-        advancedActions.setDisplayName(newTitle, true, []);
+        advancedActions.setDisplayName(newTitle, []);
     };
 
     const titleComponent = (
