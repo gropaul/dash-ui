@@ -45,6 +45,8 @@ import {HelperLines} from "@/components/canvas/helpers/helper-lines";
 import {useUndoableFlow} from "@/hooks/use-undoable-flow";
 import {CanvasProvider} from "@/components/canvas/canvas-context";
 import {useRelationDataState} from "@/state/relations-data.state";
+import {RelationState} from "@/model/relation-state";
+import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface FlowProps {
     canvasId: string;
@@ -92,6 +94,22 @@ export function Flow({canvasId}: FlowProps) {
     const {screenToFlowPosition, getIntersectingNodes, getNodes, getEdges} = useReactFlow();
     const connectingFrom = useRef<OnConnectStartParams | null>(null);
     const {resolvedTheme} = useTheme();
+
+    const runSelectedNode = useCallback(() => {
+        console.log("Run selected nodes")
+        console.log('nodes', nodes)
+        const selected = nodes.find(n => n.selected && n.type === 'relationNode');
+        if (!selected) return;
+        const relationData = (selected.data as { relationData?: RelationState })?.relationData;
+        if (!relationData) return;
+        const updateRelation = (newRelation: RelationState) => {
+            setNodes(nds => nds.map(n => n.id !== selected.id ? n : {
+                ...n, data: {...n.data, relationData: newRelation},
+            }));
+        };
+        const actions = getRelationActions({relationState: relationData, updateRelation});
+        actions.updateRelationDataWithBaseQuery(relationData.query.baseQuery);
+    }, [nodes, setNodes]);
 
     useFlowShortcuts({
         nodes,
@@ -201,6 +219,13 @@ export function Flow({canvasId}: FlowProps) {
         <CanvasProvider setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges}>
             <div
                 style={{width: '100%', height: '100%'}}
+                onKeyDownCapture={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        runSelectedNode();
+                    }
+                }}
                 onPointerMove={(e) => handlePointerMove(e, pointerCtx)}
                 onPointerDown={(e) => handlePointerDown(e, pointerCtx)}
                 onPointerUp={(e) => handlePointerUp(e, pointerCtx)}
