@@ -1,9 +1,9 @@
-import { TABLE_MACRO_PREFIX } from "@/platform/global-data";
-import { ConnectionsService } from "@/state/connections/connections-service";
-import { onRelationEvent, RelationEvent } from "../event/relation-events";
-import { StateStorageInfoLoaded } from "@/model/database-connection";
-import { ParameterDefinition } from "@/model/relation-view-state/parameters";
-import { getAllRelations } from "@/state/relations/all-relation-utils";
+import {TABLE_MACRO_PREFIX} from "@/platform/global-data";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {onRelationEvent, RelationEvent} from "../event/relation-events";
+import {StateStorageInfoLoaded} from "@/model/database-connection";
+import {ParameterDefinition} from "@/model/relation-view-state/parameters";
+import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
 
 /**
  * Check if the database is in read-only mode.
@@ -142,6 +142,45 @@ export function generateCreateMacroSQL(
 export function generateDropMacroSQL(relationName: string): string {
     const macroName = getMacroName(relationName);
     return `DROP MACRO IF EXISTS ${macroName}`;
+}
+
+/**
+ * Extract node_xxx() macro references from SQL.
+ * Returns the sanitized name parts (deduplicated).
+ *
+ * "SELECT * FROM node_employees(), node_departments()" → ["employees", "departments"]
+ */
+export function extractMacroRefs(sql: string): string[] {
+    const refs: string[] = [];
+    const re = new RegExp(`\\b${TABLE_MACRO_PREFIX}(\\w+)\\s*\\(`, 'g');
+    for (const match of sql.matchAll(re)) {
+        refs.push(match[1]);
+    }
+    return [...new Set(refs)];
+}
+
+export interface MacroReference {
+    relation: RelationWithOrigin;
+    macroName: string;
+}
+
+/**
+ * Find all relations whose SQL references the given macro name.
+ * Searches across standalone relations, workflow nodes, and dashboard blocks.
+ */
+export function findMacroReferences(macroName: string, excludeId: string): MacroReference[] {
+    const allRelations = getAllRelations();
+    const references: MacroReference[] = [];
+
+    for (const entry of allRelations) {
+        if (entry.relation.id === excludeId) continue;
+        const sql = entry.relation.query.baseQuery;
+        if (sql && sql.includes(macroName)) {
+            references.push({relation: entry, macroName});
+        }
+    }
+
+    return references;
 }
 
 /**

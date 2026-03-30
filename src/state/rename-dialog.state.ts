@@ -4,6 +4,7 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 import {RelationState} from "@/model/relation-state";
+import {findMacroReferences, getMacroName, MacroReference} from "@/state/relations/sql/table-macros";
 
 export type RenameEntityType = RelationZustandEntityType | 'folder';
 
@@ -25,9 +26,11 @@ interface RenameDialogState {
     entityId?: string;
     currentName?: string;
     path?: string[];
-    // Stored internally for relation renames — context-aware update callback
+    // Relation-specific state
     _relationState?: RelationState;
     _updateRelation?: (newRelation: RelationState) => void;
+    macroName?: string;
+    macroReferences: MacroReference[];
 }
 
 interface RenameDialogActions {
@@ -41,6 +44,7 @@ export type RenameDialogStore = RenameDialogState & RenameDialogActions;
 
 export const useRenameDialogStore = create<RenameDialogStore>((set, get) => ({
     isOpen: false,
+    macroReferences: [],
 
     openRenameDialog: (params: RenameDialogParams) => {
         set({
@@ -51,19 +55,27 @@ export const useRenameDialogStore = create<RenameDialogStore>((set, get) => ({
             path: params.path ?? [],
             _relationState: undefined,
             _updateRelation: undefined,
+            macroName: undefined,
+            macroReferences: [],
         });
     },
 
     openRelationRenameDialog: (params: OpenRelationRenameParams) => {
         const {relationState, updateRelation} = params;
+        const displayName = relationState.viewState.displayName;
+        const macroName = getMacroName(displayName);
+        const references = findMacroReferences(macroName, relationState.id);
+
         set({
             isOpen: true,
             entityType: 'relations',
             entityId: relationState.id,
-            currentName: relationState.viewState.displayName,
+            currentName: displayName,
             path: [],
             _relationState: relationState,
             _updateRelation: updateRelation,
+            macroName,
+            macroReferences: references,
         });
     },
 
@@ -90,11 +102,11 @@ export const useRenameDialogStore = create<RenameDialogStore>((set, get) => ({
             relationsState.setEntityDisplayName(entityType, entityId, newName, path ?? []);
         }
 
-        set({isOpen: false, _relationState: undefined, _updateRelation: undefined});
+        set({isOpen: false, _relationState: undefined, _updateRelation: undefined, macroName: undefined, macroReferences: []});
     },
 
     close: () => {
-        set({isOpen: false, _relationState: undefined, _updateRelation: undefined});
+        set({isOpen: false, _relationState: undefined, _updateRelation: undefined, macroName: undefined, macroReferences: []});
     },
 }));
 

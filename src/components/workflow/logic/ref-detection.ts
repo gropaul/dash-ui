@@ -1,21 +1,14 @@
 import {Edge, MarkerType, Node} from '@xyflow/react';
-import {sanitizeMacroName, getMacroName} from '../../../state/relations/sql/table-macros';
 import {RelationState} from "@/model/relation-state";
 import {minifySQL} from "@/platform/sql-utils";
+import {extractMacroRefs, sanitizeMacroName} from "@/state/relations/sql/table-macros";
 
 /**
  * Extract node references from SQL.
- * Matches `node_xxx(` patterns and returns the xxx parts (deduplicated).
- *
- * "SELECT * FROM node_employees(), node_departments()" → ["employees", "departments"]
+ * Delegates to extractMacroRefs in table-macros.ts.
  */
 export function extractNodeRefs(sql: string): string[] {
-    const refs: string[] = [];
-    const re = /\bnode_(\w+)\s*\(/g;
-    for (const match of sql.matchAll(re)) {
-        refs.push(match[1]);
-    }
-    return [...new Set(refs)];
+    return extractMacroRefs(sql);
 }
 
 /**
