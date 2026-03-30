@@ -1,14 +1,7 @@
 import {getRelationIdFromSource, RelationSource} from "@/model/relation";
-import {
-    executeQueryOfRelation,
-    getInitialParams,
-    getRelationStateFromSource,
-    RelationState,
-} from "@/model/relation-state";
-import {RelationViewState} from "@/model/relation-view-state";
+import {RelationState,} from "@/model/relation-state";
 import {SchemaState} from "@/model/schema-state";
 import {DatabaseState} from "@/model/database-state";
-import {DeepPartial} from "@/platform/object-utils";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {DashboardState, getInitDashboardViewState} from "@/model/dashboard-state";
@@ -25,7 +18,7 @@ import {
     TreeAction,
     updateNode
 } from "@/components/basics/files/tree-utils";
-import {AddEntityActions, RemoveNodeAction, RenameNodeActions} from "@/components/basics/files/tree-action-utils";
+import {RemoveNodeAction, RenameNodeActions} from "@/components/basics/files/tree-action-utils";
 import {useGUIState} from "@/state/gui.state";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
@@ -259,17 +252,6 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => {
-                    // Dispatch rename action for macro re-registration
-                    if (entityType === 'relations') {
-                        const relation = get().relations[entityId];
-                        if (relation) {
-                            const renamedRelation = {
-                                ...relation,
-                                viewState: { ...relation.viewState, displayName },
-                            };
-                            RelationEvents.rename(relation, renamedRelation);
-                        }
-                    }
 
                     const newEntity = SetEntityDisplayName(entityId, entityType, displayName, get());
                     useGUIState.getState().renameTab(entityId, displayName);

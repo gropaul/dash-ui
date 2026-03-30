@@ -1,4 +1,4 @@
-import { RelationState } from "@/model/relation-state";
+import {RelationState} from "@/model/relation-state";
 
 /**
  * Relation Events API
@@ -71,7 +71,7 @@ export const RelationEvents = {
         dispatchRelationEvent({ type: 'DELETE', old: state });
     },
 
-    rename(oldState: RelationState, newState: RelationState): void {
+    updateDisplayName(oldState: RelationState, newState: RelationState): void {
         dispatchRelationEvent({ type: 'RENAME', old: oldState, new: newState });
     },
 

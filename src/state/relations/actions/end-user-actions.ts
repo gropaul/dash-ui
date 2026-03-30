@@ -1,19 +1,6 @@
-import {
-    executeQueryOfRelation,
-    RelationState,
-    resetQueryParams,
-    returnEmptyErrorState,
-    setRelationRunning,
-    ViewQueryParameters
-} from "@/model/relation-state";
-import {DefaultRelationZustandActions} from "@/state/relations.state";
-import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
-import {RelationViewState, RelationViewType} from "@/model/relation-view-state";
-import {InputManager} from "@/components/editor/inputs/input-manager";
+import {useRelationsState} from "@/state/relations.state";
+import {RelationViewType} from "@/model/relation-view-state";
 import {RelationViewAPIProps} from "@/components/relation/relation-view";
-import {ConnectionsService} from "@/state/connections/connections-service";
-import {toast} from "sonner";
-import {processRelationUpdateEvent} from "@/state/relations/event/relation-event-update-dispatch";
 import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/actions/advanced-actions";
 
 export interface EndUserRelationActions extends AdvancedRelationActions {
@@ -27,7 +14,7 @@ export interface EndUserRelationActions extends AdvancedRelationActions {
     showChartSettings: (show: boolean) => void,
 
     // set display name
-    setDisplayName: (name: string) => void,
+    setDisplayName: (name: string, path?: string[] ) => void,
 }
 
 export function getRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
@@ -74,10 +61,11 @@ export function getRelationActions(props: RelationViewAPIProps): EndUserRelation
                 }
             });
         },
-        setDisplayName: (name: string) => {
+        setDisplayName: (name: string, path: string[] = []) => {
             advancedActions.updateRelationViewState({
                 displayName: name,
             });
+            useRelationsState.getState().setEntityDisplayName('relations', relationState.id, name, path);
         }
     }
 }

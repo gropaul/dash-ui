@@ -1,10 +1,6 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import {
-    onRelationEvent,
-    RelationEvents,
-    RelationEvent,
-} from '../event/relation-events';
-import { RelationState } from '@/model/relation-state';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {onRelationEvent, RelationEvent, RelationEvents,} from '../event/relation-events';
+import {RelationState} from '@/model/relation-state';
 
 function mockRelationState(overrides: Partial<RelationState> & { id: string }): RelationState {
     return {
@@ -137,7 +133,7 @@ describe('relation-events', () => {
             const newState = mockRelationState({ id: 'id-1' });
             (newState.viewState as any).displayName = 'new_name';
 
-            RelationEvents.rename(oldState, newState);
+            RelationEvents.updateDisplayName(oldState, newState);
 
             expect(receivedEvents).toHaveLength(1);
             expect(receivedEvents[0]).toEqual({ type: 'RENAME', old: oldState, new: newState });

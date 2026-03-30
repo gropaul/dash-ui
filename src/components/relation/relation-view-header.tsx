@@ -25,7 +25,6 @@ import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/rel
 import {RelationSettings} from "@/components/relation/relation-settings";
 import {RelationViewTypeSwitcher} from "@/components/relation/settings/relation-view-type-switcher";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
-import {useRelationsState} from "@/state/relations.state";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface RelationViewHeaderProps extends RelationViewAPIProps {
@@ -92,10 +91,8 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         relationId: relationId
     });
 
-    const setEntityDisplayName = useRelationsState((state) => state.setEntityDisplayName);
-
     const handleUpdateTitle = (newTitle: string) => {
-        setEntityDisplayName('relations', relationId, newTitle, []);
+        advancedActions.setDisplayName(newTitle, []);
     };
 
     const titleComponent = (

@@ -1,6 +1,6 @@
-import { RelationState } from "@/model/relation-state";
-import { RelationEvents } from "@/state/relations/event/relation-events";
-import { ParameterDefinition } from "@/model/relation-view-state/parameters";
+import {RelationState} from "@/model/relation-state";
+import {RelationEvents} from "@/state/relations/event/relation-events";
+import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 
 /**
  * Compares old and new relation state and dispatches the appropriate
@@ -20,7 +20,13 @@ export function processRelationUpdateEvent(
     // SQL changed
     if (oldQuery !== newQuery) {
         RelationEvents.updateSql(oldState, newState);
-        return;
+    }
+
+    // Rename (displayName changed but not SQL)
+    const oldName = oldState.viewState.displayName;
+    const newName = newState.viewState.displayName;
+    if (oldName !== newName) {
+        RelationEvents.updateDisplayName(oldState, newState);
     }
 
     // Parameters changed (defaults, types, descriptions)

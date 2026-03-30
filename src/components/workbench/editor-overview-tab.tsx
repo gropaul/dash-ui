@@ -11,7 +11,6 @@ import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {DeleteDialog} from "@/components/workbench/delete-dialog";
 import {RelationState} from "@/model/relation-state";
 import {getRandomId} from "@/platform/id-utils";
-import {getRelationIdFromSource, RelationSource} from "@/model/relation";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {toast} from "sonner";
@@ -27,6 +26,7 @@ import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {deepClone} from "@/platform/object-utils";
 import {RelationActions} from "@/state/relations/actions/static-actions";
+import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 
 interface RenameState {
@@ -228,8 +228,15 @@ export function EditorOverviewTab() {
 
         const type = renameState.currentNode.type;
         if (IsEntityType(type)) {
-
-            setEntityDisplayName(type, renameState.currentNode.id,  newName, renameState.path!);
+            if (type === 'relations') {
+                const actions = getRelationActions({
+                    relationState: relations[renameState.currentNode.id],
+                    updateRelation: useRelationsState.getState().updateRelation,
+                })
+                actions.setDisplayName(newName, renameState.path);
+            } else {
+                setEntityDisplayName(type, renameState.currentNode.id,  newName, renameState.path!);
+            }
         } else if (type === 'folder') {
             const newFolder = {
                 ...renameState.currentNode,
