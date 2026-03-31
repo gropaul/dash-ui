@@ -33,15 +33,18 @@ export class RelationActions {
 
     static create(options?: { source?: RelationSource; viewType?: RelationViewType }): RelationState {
         const viewType = options?.viewType ?? 'table';
-        const randomId = getRandomId();
+        const randomId = 'relation-' + getRandomId();
+        // relation prefix is important as it is e.g. used in
+        // src/components/chat/model/chat-context.ts
         const baseQuery = viewType === 'table' ?
             "SELECT 'Hello, World! 🦆' AS message;" :
             "SELECT range as x, x * x as y FROM range(-10,11);";
 
+
         const baseSource: RelationSourceQuery = {
             type: "query",
             baseQuery: baseQuery,
-            id: randomId,
+            id: randomId    ,
             name: "New Query"
         }
         const source = options?.source ?? baseSource;
@@ -86,6 +89,7 @@ export class RelationActions {
             }
         };
         RelationEvents.create(relationState);
+        console.log('Created relation', relationState);
         return relationState;
     }
 

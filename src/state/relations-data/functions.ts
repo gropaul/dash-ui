@@ -28,12 +28,6 @@ export async function loadCache(id: string): Promise<RelationData | undefined> {
         const viewName = GetFullViewNameEscaped(id);
         return await ConnectionsService.getInstance().executeQuery(`SELECT * FROM ${viewName};`);
     } catch (error) {
-        console.error(`Failed to load cache for relation ${id}:`, error);
-        ConnectionsService.getInstance().executeQuery("SHOW ALL TABLES;").then((tables) => {
-            console.log(tables);
-        }).catch((e) => {
-            console.error('Failed to list tables:', e);
-        });
         return Promise.resolve(undefined);
     }
 }

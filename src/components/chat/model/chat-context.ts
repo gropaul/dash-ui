@@ -43,7 +43,7 @@ export function getAvailableTargets(): Target[] {
 
     layoutModel.visitNodes((node) => {
         const nodeId = node.getId();
-
+        console.log(nodeId);
         if (nodeId.startsWith('dashboard-')) {
             const dashboard = relationsState.dashboards[nodeId];
             if (dashboard) {
