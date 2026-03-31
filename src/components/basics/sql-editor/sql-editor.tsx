@@ -13,6 +13,7 @@ import "@/styles/editor-monaco.css";
 import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
 import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
 import {registerInputCompletion} from "@/components/basics/sql-editor/regsiter-input-completion";
+import {registerAiCompletion} from "@/components/basics/sql-editor/register-ai-completion";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
 
@@ -83,6 +84,7 @@ export function SqlEditor(
 
     // Use refs to avoid stale closures in debounced callbacks
     const editorRef = useRef<any>(null);
+    const aiCompletionRef = useRef<ReturnType<typeof registerAiCompletion> | null>(null);
     const onCodeChangeRef = useRef(onCodeChange);
     const onRunRef = useRef(onRun);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -127,12 +129,13 @@ export function SqlEditor(
         }
     }
 
-    // Cleanup debounce timer on unmount
+    // Cleanup debounce timer and AI completion on unmount
     useEffect(() => {
         return () => {
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
             }
+            aiCompletionRef.current?.deregister();
         };
     }, []);
 
@@ -172,6 +175,12 @@ export function SqlEditor(
         registerHotkeys(editor, monaco, () => onRunRef.current?.());
         registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
+
+        if (!readOnly) {
+            // disabled until we have https://huggingface.co/stabilityai/stable-code-3b available in the WebLLM provider,
+            // as the completions are currently very low quality and we don't want to set that expectation for users
+            // aiCompletionRef.current = registerAiCompletion(editor, monaco);
+        }
     }
 
     return (
@@ -216,6 +225,7 @@ export function SqlEditor(
                         verticalScrollbarSize: 4
                     },
                     renderLineHighlight: "none",
+                    inlineSuggest: { enabled: true },
                 }}
                 onChange={onLocalCodeChange}
                 onMount={onMount}

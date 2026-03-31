@@ -16,6 +16,8 @@ const webllmInitialConfig: WebLLMConfig = {
 export class WebLLMProvider implements LanguageModelProviderInterface {
     private config: WebLLMConfig;
     private worker: Worker | null = null;
+    private cachedModel: LanguageModel | null = null;
+    private cachedModelId: string | null = null;
 
     private readonly modelOptions = [
         {value: "Llama-3.2-3B-Instruct-q4f16_1-MLC", label: "Llama 3.2 3B Instruct"},
@@ -80,10 +82,19 @@ export class WebLLMProvider implements LanguageModelProviderInterface {
     }
 
     getModel(): LanguageModel {
+        console.log('WebLLMProvider getModel called with config:', this.config);
         const modelId = this.config.model === 'other' ? this.config.customModel : this.config.model;
-        return webLLM(modelId, {
+        if (this.cachedModel && this.cachedModelId === modelId) {
+            console.log('Returning cached model for modelId:', modelId);
+            return this.cachedModel;
+        }
+        console.log('Loading new model for modelId:', modelId);
+        this.cachedModel = webLLM(modelId, {
             worker: this.getOrCreateWorker(),
         }) as unknown as LanguageModel;
+        this.cachedModelId = modelId;
+        console.log('Model loaded and cached for modelId:', modelId);
+        return this.cachedModel;
     }
 
     updateConfig(config: Partial<WebLLMConfig>): void {
@@ -91,6 +102,9 @@ export class WebLLMProvider implements LanguageModelProviderInterface {
             ...this.config,
             ...config,
         };
+        // Invalidate cached model so the next getModel() call creates a fresh one
+        this.cachedModel = null;
+        this.cachedModelId = null;
     }
 
     getConfig(): WebLLMConfig {

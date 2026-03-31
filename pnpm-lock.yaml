@@ -206,6 +206,9 @@ importers:
       marked:
         specifier: ^15.0.12
         version: 15.0.12
+      monacopilot:
+        specifier: ^1.2.12
+        version: 1.2.12(monaco-editor@0.52.2)
       next:
         specifier: 15.4.8
         version: 15.4.8(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1088,6 +1091,9 @@ packages:
       monaco-editor: '>= 0.25.0 < 1'
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+
+  '@monacopilot/core@1.2.12':
+    resolution: {integrity: sha512-x+CNsZMGf/Wv5qekhQqeCBtLxB+XartKOcBPY9OIIGtDnkgGvu+K59IO7ux9cpQ/mW0seunZB2tcvvspgK7WOw==}
 
   '@next/env@15.1.6':
     resolution: {integrity: sha512-d9AFQVPEYNr+aqokIiPLNK/MTyt3DWa/dpKveiAaVccUadFbhFEvY6FXYX2LJO2Hv7PHnLBu2oWwB4uBuHjr/w==}
@@ -4487,6 +4493,11 @@ packages:
   monaco-editor@0.52.2:
     resolution: {integrity: sha512-GEQWEZmfkOGLdd3XK8ryrfWz3AIP8YymVXiPHEdewrUq7mh0qrKrfHLNCXcbB6sTnMLnOZ3ztSiKcciFUkIJwQ==}
 
+  monacopilot@1.2.12:
+    resolution: {integrity: sha512-FyFs8cFw/PnmmhkVPTbfTOGgGhxxBD3r0HoeDNFSjdDuA2bBl/vOMN2Vb6aPU8nO8pglRHyeLz8igiskRWKXug==}
+    peerDependencies:
+      monaco-editor: '>=0.41.0'
+
   moo@0.5.2:
     resolution: {integrity: sha512-iSAJLHYKnX41mKcJKjqvnAN9sf0LMDTXDEvFv+ffuRR9a1MIuXLjMNL6EsnDHSkKLTWNqQQ5uo61P4EbU4NU+Q==}
 
@@ -6642,6 +6653,8 @@ snapshots:
       monaco-editor: 0.52.2
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+
+  '@monacopilot/core@1.2.12': {}
 
   '@next/env@15.1.6': {}
 
@@ -10587,6 +10600,11 @@ snapshots:
   minipass@7.1.2: {}
 
   monaco-editor@0.52.2: {}
+
+  monacopilot@1.2.12(monaco-editor@0.52.2):
+    dependencies:
+      '@monacopilot/core': 1.2.12
+      monaco-editor: 0.52.2
 
   moo@0.5.2: {}
 
