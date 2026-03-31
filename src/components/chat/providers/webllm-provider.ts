@@ -15,6 +15,7 @@ const webllmInitialConfig: WebLLMConfig = {
 
 export class WebLLMProvider implements LanguageModelProviderInterface {
     private config: WebLLMConfig;
+    private worker: Worker | null = null;
 
     private readonly modelOptions = [
         {value: "Llama-3.2-3B-Instruct-q4f16_1-MLC", label: "Llama 3.2 3B Instruct"},
@@ -69,9 +70,20 @@ export class WebLLMProvider implements LanguageModelProviderInterface {
         };
     }
 
+    private getOrCreateWorker(): Worker {
+        if (!this.worker) {
+            this.worker = new Worker(new URL('./webllm-worker.ts', import.meta.url), {
+                type: 'module',
+            });
+        }
+        return this.worker;
+    }
+
     getModel(): LanguageModel {
         const modelId = this.config.model === 'other' ? this.config.customModel : this.config.model;
-        return webLLM(modelId) as unknown as LanguageModel;
+        return webLLM(modelId, {
+            worker: this.getOrCreateWorker(),
+        }) as unknown as LanguageModel;
     }
 
     updateConfig(config: Partial<WebLLMConfig>): void {
