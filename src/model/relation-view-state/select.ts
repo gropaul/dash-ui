@@ -9,6 +9,7 @@ export interface InputTextViewState {
     value?: string;
     placeholder?: string;
     showConfig?: boolean;
+    multiSelect?: boolean; // defaults to true
 }
 
 export function getInitialSelectViewState(relationData: RelationData): InputTextViewState {

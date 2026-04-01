@@ -1,49 +1,41 @@
 "use client"
 
 import * as React from "react"
-import {Check, ChevronsUpDown, Settings} from "lucide-react"
+import {Check, ChevronsUpDown} from "lucide-react"
 
 import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command"
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
-import {TextInputConfigDialog} from "@/components/relation/text-input/text-input-config-dialog"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 import {registerRelationMacro} from "@/state/relations/sql/table-macros";
 import {RelationEvents} from "@/state/relations/event/relation-events";
 import {SelectionState} from "@/model/relation-view-state/selection";
+
+function getSelectedIndices(selectionState?: SelectionState): Set<number> {
+    return new Set(selectionState?.selectedIndices ?? []);
+}
 
 export function TextSelect(props: RelationViewContentProps) {
     const [open, setOpen] = React.useState(false)
     const data = props.data;
 
     const relationState = props.relationState
-    const showConfig = relationState.viewState.inputTextState.showConfig || false
     const placeholder = relationState.viewState.inputTextState.placeholder || "Select..."
-    const value = relationState.viewState.inputTextState.value;
-
-    const setShowConfig = (show: boolean) => {
-        props.updateRelationViewState( {
-            inputTextState: {
-                showConfig: show,
-            }
-        })
-    }
+    const multiSelect = relationState.viewState.inputTextState.multiSelect !== false; // defaults to true
+    const selectedIndices = getSelectedIndices(relationState.viewState.selectionState);
 
     const items = data?.rows.map((row, index) => ({
         index,
         label: row[0].toString(),
     })) || []
 
-    const onSelect = (selectedLabel: string) => {
-        const isDeselecting = selectedLabel === value;
-        const newValue = isDeselecting ? "" : selectedLabel;
-        const rowIndex = items.findIndex(item => item.label === selectedLabel);
-        const selection: SelectionState | undefined = isDeselecting || rowIndex < 0
-            ? undefined
-            : {selectedIndices: [rowIndex]};
+    const applySelection = (selection: SelectionState | undefined) => {
+        // Build the value string from selected labels
+        const newValue = selection
+            ? selection.selectedIndices.map(i => items[i]?.label).filter(Boolean).join(', ')
+            : "";
 
-        // Update both the input value and selection state
         props.updateRelationViewState({
             inputTextState: {
                 value: newValue,
@@ -71,6 +63,42 @@ export function TextSelect(props: RelationViewContentProps) {
         });
     }
 
+    const onSelect = (selectedLabel: string) => {
+        const rowIndex = items.findIndex(item => item.label === selectedLabel);
+        if (rowIndex < 0) return;
+
+        if (multiSelect) {
+            const newIndices = new Set(selectedIndices);
+            if (newIndices.has(rowIndex)) {
+                newIndices.delete(rowIndex);
+            } else {
+                newIndices.add(rowIndex);
+            }
+
+            const selection: SelectionState | undefined = newIndices.size > 0
+                ? {selectedIndices: [...newIndices].sort((a, b) => a - b)}
+                : undefined;
+
+            applySelection(selection);
+        } else {
+            // Single select: toggle or replace
+            const isDeselecting = selectedIndices.has(rowIndex) && selectedIndices.size === 1;
+            const selection: SelectionState | undefined = isDeselecting
+                ? undefined
+                : {selectedIndices: [rowIndex]};
+
+            applySelection(selection);
+            setOpen(false);
+        }
+    }
+
+    const selectedLabels = [...selectedIndices].map(i => items[i]?.label).filter(Boolean);
+    const displayText = selectedLabels.length === 0
+        ? placeholder
+        : selectedLabels.length <= 2
+            ? selectedLabels.join(', ')
+            : `${selectedLabels.slice(0, 2).join(', ')} + ${selectedLabels.length - 2} more`;
+
     return (
         <div className='pt-0.5 pb-0.5 flex flex-row w-full gap-2 items-center justify-start group'>
             <Popover open={open} onOpenChange={setOpen}>
@@ -81,7 +109,7 @@ export function TextSelect(props: RelationViewContentProps) {
                         aria-expanded={open}
                         className="w-full justify-between relative"
                     >
-                        {value || placeholder}
+                        <span className="truncate">{displayText}</span>
                         <ChevronsUpDown className="opacity-50"/>
                     </Button>
                 </PopoverTrigger>
@@ -97,14 +125,13 @@ export function TextSelect(props: RelationViewContentProps) {
                                         value={item.label}
                                         onSelect={(currentValue) => {
                                             onSelect(currentValue)
-                                            setOpen(false)
                                         }}
                                     >
                                         {item.label}
                                         <Check
                                             className={cn(
                                                 "ml-auto",
-                                                value === item.label ? "opacity-100" : "opacity-0"
+                                                selectedIndices.has(item.index) ? "opacity-100" : "opacity-0"
                                             )}
                                         />
                                     </CommandItem>
@@ -114,19 +141,6 @@ export function TextSelect(props: RelationViewContentProps) {
                     </Command>
                 </PopoverContent>
             </Popover>
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowConfig(true)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-            >
-                <Settings className="h-4 w-4"/>
-            </Button>
-            <TextInputConfigDialog
-                isOpen={showConfig}
-                onOpenChange={setShowConfig}
-                {...props}
-            />
         </div>
     )
 }
