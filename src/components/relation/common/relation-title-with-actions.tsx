@@ -4,6 +4,7 @@ import {MacroCopyButton} from "@/components/relation/macro-copy-button";
 import {RelationExecutionInfo} from "@/components/relation/common/relation-execution-info";
 import {RelationState} from "@/model/relation-state";
 import {useRenameDialogStore} from "@/state/rename-dialog.state";
+import {useEffect, useRef, useState} from "react";
 
 export interface RelationTitleWithActionsProps {
     relationState: RelationState;
@@ -28,24 +29,39 @@ export function RelationTitleWithActions({
     const executionState = relationState.executionState;
     const lastExecutionMetaData = relationState.lastExecutionMetaData;
 
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [showExecInfo, setShowExecInfo] = useState(true);
+
+    useEffect(() => {
+        const parent = containerRef.current?.parentElement;
+        if (!parent) return;
+        const observer = new ResizeObserver(() => {
+            setShowExecInfo(parent.offsetWidth >= 200);
+        });
+        observer.observe(parent);
+        return () => observer.disconnect();
+    }, []);
+
     const handleOpenRename = () => {
         useRenameDialogStore.getState().openRelationRenameDialog(relationState);
     };
 
     return (
-        <div className={`group/title flex items-center gap-1.5 min-w-0 ${className ?? ''}`}>
-            <div className="flex flex-row items-end gap-1.5 min-w-0">
+        <div ref={containerRef} className={`group/title flex items-center gap-1.5 min-w-0 overflow-hidden ${className ?? ''}`}>
+            <div className="flex flex-row items-end gap-1.5 min-w-0 overflow-hidden whitespace-nowrap">
                     <span
-                        className="leading-none font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
+                        className="leading-none font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis min-w-0 flex-shrink-0"
                     >
                         {displayName}
                     </span>
-                {executionState && (
-                    <RelationExecutionInfo
-                        executionState={executionState}
-                        lastExecutionMetaData={lastExecutionMetaData}
-                        className={executionInfoClassName}
-                    />
+                {showExecInfo && executionState && (
+                    <span className="overflow-hidden text-ellipsis min-w-0 flex-shrink">
+                        <RelationExecutionInfo
+                            executionState={executionState}
+                            lastExecutionMetaData={lastExecutionMetaData}
+                            className={`${executionInfoClassName ?? ''} whitespace-nowrap`}
+                        />
+                    </span>
                 )}
             </div>
             <Button
