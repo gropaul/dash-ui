@@ -92,7 +92,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                                         id="query"
                                         order={0}
                                         defaultSize={codePercentage}
-                                        minSize={20}
+                                        minSize={10}
                                     >
                                         <RelationViewQueryView
                                             statics={inputProps}
@@ -109,7 +109,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                                 className={'bg-inherit'}
                                 defaultSize={showQuery ? 100 - codePercentage : 100}
                                 onResize={setCodeFenceState}
-                                minSize={40}
+                                minSize={10}
                             >
                                 <ContentWrapper {...props}/>
                             </ResizablePanel>

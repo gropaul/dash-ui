@@ -10,6 +10,7 @@ import {LayoutDashboard, Settings} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {ChartSettingsContent} from "@/components/relation/chart/chart-settings-content";
+import {TextDisplaySettingsContent} from "@/components/relation/text-display/text-display-settings-content";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import React, {useState} from "react";
 import {DashboardCommandState, onAddToDashboardSelected} from "@/components/workbench/editor-overview-tab";
@@ -63,6 +64,8 @@ export function RelationSettingsContent(props: RelationSettingsProps) {
             return <TableSettingsContent {...props}/>
         case "chart":
             return <ChartSettingsContent {...props}/>
+        case "text":
+            return <TextDisplaySettingsContent {...props}/>
         default:
             return <></>
     }

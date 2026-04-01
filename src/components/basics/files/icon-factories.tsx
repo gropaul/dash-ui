@@ -15,7 +15,7 @@ import {
     SquareChevronDown,
     Table2,
     Text,
-    ToggleLeft,
+    ToggleLeft, Type,
     View,
     WorkflowIcon
 } from "lucide-react";
@@ -39,6 +39,7 @@ const relationViewTypeColors: Record<RelationViewType, ViewTypeColor> = {
     chart: { background: 'rgba(59, 130, 246, 0.1)', foreground: '#3b82f6' },  // blue
     map: { background: 'rgba(34, 197, 94, 0.1)', foreground: '#22c55e' },     // green
     select: { background: 'rgba(249, 115, 22, 0.1)', foreground: '#f97316' }, // orange
+    text: { background: 'rgba(236, 72, 153, 0.1)', foreground: '#ec4899' },   // pink
 };
 
 export const defaultColorFactory = (type: RelationViewType): ViewTypeColor => {
@@ -57,6 +58,8 @@ const relationViewTypeIconFactory = (type: RelationViewType): ReactNode | null =
             return <Sheet size={iconSize} />
         case 'select':
             return <SquareChevronDown size={iconSize}/>
+        case 'text':
+            return <Type size={iconSize}/>
     }
     return null;
 }
@@ -87,7 +90,6 @@ export const defaultIconFactory = (type: string): ReactNode => {
         case 'dashboard':
         case 'dashboards':
             return <LayoutDashboard size={iconSize} />
-        case 'canvas':
         case 'canvas':
             return <WorkflowIcon size={iconSize} />
         case 'schema':

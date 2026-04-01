@@ -4,6 +4,7 @@ import {Chart} from "@/components/relation/chart/chart";
 import {TextSelect} from "@/components/relation/text-input/text-select";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {TextField} from "@/components/relation/text-input/text-field";
+import {TextDisplay} from "@/components/relation/text-display/text-display";
 import {RelationData} from "@/model/relation";
 import {useRelationData} from "@/state/relations-data.state";
 import {RelationViewContentEmpty} from "@/components/relation/relation-view-content-empty";
@@ -65,6 +66,10 @@ export const RelationViewContent = memo(function RelationViewContent(props: Rela
                     </div>
                 );
         }
+    } else if (selectedView === 'text') {
+        return (
+            <TextDisplay {...contentProps}/>
+        );
     } else {
         return (
             <div>Unknown view type: "{selectedView}"</div>

@@ -17,6 +17,11 @@ import {
     InputTextViewState
 } from "@/model/relation-view-state/select";
 import {
+    getInitialTextViewState,
+    getInitialTextViewStateEmpty,
+    TextDisplayViewState
+} from "@/model/relation-view-state/text-display";
+import {
     getInitialParametersState,
     ParametersState
 } from "@/model/relation-view-state/parameters";
@@ -51,18 +56,19 @@ export interface RelationViewState extends RelationViewBaseState {
     tableState: TableViewState
     chartState: ChartViewState
     inputTextState: InputTextViewState
+    textDisplayState: TextDisplayViewState
     parametersState: ParametersState
     schema: Column[];
 }
 
 
-export type RelationViewType = 'table' | 'chart' | 'map' | 'select';
+export type RelationViewType = 'table' | 'chart' | 'map' | 'select' | 'text';
 export type RelationViewSizing = 'fit' | 'full'; // fit: take the height of the content, full: take all available height
 
 
 const RELATION_SIZE_REQUIREMENTS: Record<RelationViewSizing, RelationViewType[]> = {
     'fit': ['select'],
-    'full': ['table', 'chart', 'map'],
+    'full': ['table', 'chart', 'map', 'text'],
 }
 
 // only used for HeightType = fit as for resizable the height of the element is static anyway
@@ -107,6 +113,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
             chartState: getInitialChartViewStateEmpty(),
             tableState: getInitialTableDisplayStateEmpty(),
             inputTextState: getInitialSelectViewStateEmpty(),
+            textDisplayState: getInitialTextViewStateEmpty(),
             parametersState: getInitialParametersState(),
             schema: [],
         };
@@ -117,6 +124,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
         chartState: getInitialChartViewState(data),
         tableState: getInitialTableDisplayState(data),
         inputTextState: getInitialSelectViewState(data),
+        textDisplayState: getInitialTextViewState(data),
         parametersState: getInitialParametersState(),
         schema: schemaColumns ?? data.columns,
     };

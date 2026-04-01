@@ -70,8 +70,11 @@ export function resetQueryParams(queryData: QueryData): ViewQueryParameters {
         return {
             ...oldParams,
         };
-    }
-    else {
+    } else if (oldParams.type === 'text') {
+        return {
+            ...oldParams,
+        };
+    } else {
         throw new Error(`Unknown view type during reset query parameters: ${oldParams.type}`);
     }
 }
@@ -392,7 +395,8 @@ export function buildQuery(
         schemaQuery = lSchemaQuery;
     } else if (viewParameters.type === 'select') {
         viewQuery = finalQueryAsSubQuery;
-
+    } else if (viewParameters.type === 'text') {
+        viewQuery = `SELECT * FROM ${finalQueryAsSubQuery} LIMIT 1`;
     } else {
         throw new Error(`Unknown view type for building a view query: ${viewParameters.type}`);
     }

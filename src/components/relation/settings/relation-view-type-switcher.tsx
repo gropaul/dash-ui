@@ -13,6 +13,7 @@ export function RelationViewTypeSwitcher({ currentView, onViewChange }: ViewSwit
     const views: {id: RelationViewType, label: string}[] = [
         { id: 'table', label: 'Table' },
         { id: 'chart', label: 'Chart' },
+        { id: 'text', label: 'Text' },
         { id: 'select', label: 'Input: Select' },
         { id: 'map', label: 'Map' },
     ] as const;
