@@ -67,7 +67,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
     useEffect(() => {
         return onRelationEvent(() => {
             refreshDownstream(props.id, {getNodes, getEdges, setNodes, setEdges});
-        }, ["QUERY_RUN_FINISHED"], data.id);
+        }, ["QUERY_RUN_FINISHED", "UPDATE_SELECTION"], data.id);
     }, [props.id, getNodes, getEdges, setNodes, setEdges]);
 
     // Simple data-only updater for compatibility with actions

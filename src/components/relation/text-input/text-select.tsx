@@ -9,16 +9,18 @@ import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandL
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {TextInputConfigDialog} from "@/components/relation/text-input/text-input-config-dialog"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
+import {registerRelationMacro} from "@/state/relations/sql/table-macros";
+import {RelationEvents} from "@/state/relations/event/relation-events";
+import {SelectionState} from "@/model/relation-view-state/selection";
 
 export function TextSelect(props: RelationViewContentProps) {
     const [open, setOpen] = React.useState(false)
     const data = props.data;
 
-    const relationId = props.relationState.id
-    const viewState = props.relationState
-    const showConfig = viewState.viewState.inputTextState.showConfig || false
-    const placeholder = viewState.viewState.inputTextState.placeholder || "Select..."
-    const value = viewState.viewState.inputTextState.value;
+    const relationState = props.relationState
+    const showConfig = relationState.viewState.inputTextState.showConfig || false
+    const placeholder = relationState.viewState.inputTextState.placeholder || "Select..."
+    const value = relationState.viewState.inputTextState.value;
 
     const setShowConfig = (show: boolean) => {
         props.updateRelationViewState( {
@@ -28,19 +30,46 @@ export function TextSelect(props: RelationViewContentProps) {
         })
     }
 
-    const setValue = (value: string) => {
-        props.updateRelationViewState({
-            inputTextState: {
-                value: value,
-            }
-        })
-    }
-
-    const items = data?.rows.map(row => ({
-        value: row[0].toString(),
+    const items = data?.rows.map((row, index) => ({
+        index,
         label: row[0].toString(),
     })) || []
 
+    const onSelect = (selectedLabel: string) => {
+        const isDeselecting = selectedLabel === value;
+        const newValue = isDeselecting ? "" : selectedLabel;
+        const rowIndex = items.findIndex(item => item.label === selectedLabel);
+        const selection: SelectionState | undefined = isDeselecting || rowIndex < 0
+            ? undefined
+            : {selectedIndices: [rowIndex]};
+
+        // Update both the input value and selection state
+        props.updateRelationViewState({
+            inputTextState: {
+                value: newValue,
+            },
+            selectionState: selection,
+        })
+
+        // Re-register macro with filtered query and trigger downstream refresh
+        const displayName = relationState.viewState.displayName;
+        const baseQuery = relationState.query.baseQuery;
+        const paramDefs = relationState.viewState.parametersState?.parameters;
+        registerRelationMacro(displayName, baseQuery, paramDefs, selection).then(() => {
+            const updatedState = {
+                ...relationState,
+                viewState: {
+                    ...relationState.viewState,
+                    selectionState: selection,
+                    inputTextState: {
+                        ...relationState.viewState.inputTextState,
+                        value: newValue,
+                    },
+                },
+            };
+            RelationEvents.updateSelection(relationState, updatedState);
+        });
+    }
 
     return (
         <div className='pt-0.5 pb-0.5 flex flex-row w-full gap-2 items-center justify-start group'>
@@ -52,9 +81,7 @@ export function TextSelect(props: RelationViewContentProps) {
                         aria-expanded={open}
                         className="w-full justify-between relative"
                     >
-                        {value
-                            ? items.find((item) => item.value === value)?.label
-                            : placeholder}
+                        {value || placeholder}
                         <ChevronsUpDown className="opacity-50"/>
                     </Button>
                 </PopoverTrigger>
@@ -66,10 +93,10 @@ export function TextSelect(props: RelationViewContentProps) {
                             <CommandGroup>
                                 {items.map((item) => (
                                     <CommandItem
-                                        key={item.value}
-                                        value={item.value}
+                                        key={item.index}
+                                        value={item.label}
                                         onSelect={(currentValue) => {
-                                            setValue(currentValue === value ? "" : currentValue)
+                                            onSelect(currentValue)
                                             setOpen(false)
                                         }}
                                     >
@@ -77,7 +104,7 @@ export function TextSelect(props: RelationViewContentProps) {
                                         <Check
                                             className={cn(
                                                 "ml-auto",
-                                                value === item.value ? "opacity-100" : "opacity-0"
+                                                value === item.label ? "opacity-100" : "opacity-0"
                                             )}
                                         />
                                     </CommandItem>

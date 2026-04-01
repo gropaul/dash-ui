@@ -24,7 +24,8 @@ export type RelationEventType =
     | 'RENAME'        // Relation renamed
     | 'QUERY_RUN_FINISHED'     // Relation query executed
     | 'UPDATE_SQL'    // SQL query changed
-    | 'UPDATE_PARAMS'; // Parameters changed
+    | 'UPDATE_PARAMS' // Parameters changed
+    | 'UPDATE_SELECTION'; // View selection changed (e.g. dropdown, table row, chart point)
 
 export interface RelationEvent {
     type: RelationEventType;
@@ -93,5 +94,9 @@ export const RelationEvents = {
 
     updateParams(oldState: RelationState, newState: RelationState): void {
         dispatchRelationEvent({ type: 'UPDATE_PARAMS', old: oldState, new: newState });
+    },
+
+    updateSelection(oldState: RelationState, newState: RelationState): void {
+        dispatchRelationEvent({ type: 'UPDATE_SELECTION', old: oldState, new: newState });
     },
 };

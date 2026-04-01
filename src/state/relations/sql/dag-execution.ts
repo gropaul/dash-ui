@@ -171,7 +171,7 @@ export async function refreshDownstream(
             // Register the macro so further downstream nodes can use it
             const displayName = relation.viewState.displayName;
             const params = relation.viewState.parametersState?.parameters;
-            await registerRelationMacro(displayName, relation.query.baseQuery, params);
+            await registerRelationMacro(displayName, relation.query.baseQuery, params, relation.viewState.selectionState);
         } catch (e) {
             const errorState = returnEmptyErrorState(setRelationRunning(relation), e);
             update(errorState);

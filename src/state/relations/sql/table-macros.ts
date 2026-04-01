@@ -5,6 +5,8 @@ import {StateStorageInfoLoaded} from "@/model/database-connection";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
 import {removeComments} from "@/platform/sql-utils";
+import {SelectionState} from "@/model/relation-view-state/selection";
+import {buildSelectionFilteredQuery} from "@/state/relations/sql/selection-query";
 
 /**
  * Check if the database is in read-only mode.
@@ -244,10 +246,12 @@ export function renameAllMacroReferences(oldMacroName: string, newMacroName: str
 export async function registerRelationMacro(
     relationName: string,
     baseQuery: string,
-    paramDefs?: ParameterDefinition[]
+    paramDefs?: ParameterDefinition[],
+    selection?: SelectionState
 ): Promise<void> {
     const isReadonly = isDatabaseReadonly();
-    const sql = generateCreateMacroSQL(relationName, baseQuery, isReadonly, paramDefs);
+    const effectiveQuery = buildSelectionFilteredQuery(baseQuery, selection);
+    const sql = generateCreateMacroSQL(relationName, effectiveQuery, isReadonly, paramDefs);
 
     try {
         await ConnectionsService.getInstance().executeQuery(sql);
@@ -278,9 +282,10 @@ function handleRelationAction(action: RelationEvent): void {
     switch (action.type) {
         case 'CREATE':
         case 'UPDATE_SQL':
-        case 'UPDATE_PARAMS': {
+        case 'UPDATE_PARAMS':
+        case 'UPDATE_SELECTION': {
             const s = action.new!;
-            registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters);
+            registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters, s.viewState.selectionState);
             break;
         }
         case 'DELETE':
@@ -289,7 +294,7 @@ function handleRelationAction(action: RelationEvent): void {
         case 'RENAME': {
             dropRelationMacro(action.old!.viewState.displayName);
             const s = action.new!;
-            registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters);
+            registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters, s.viewState.selectionState);
             break;
         }
     }
@@ -309,8 +314,9 @@ async function reregisterAllMacros(): Promise<void> {
         const name = relation.viewState.displayName;
         const sql = relation.query.baseQuery;
         const params = relation.viewState.parametersState?.parameters;
+        const selection = relation.viewState.selectionState;
         if (name && sql) {
-            await registerRelationMacro(name, sql, params);
+            await registerRelationMacro(name, sql, params, selection);
         }
     }
 }

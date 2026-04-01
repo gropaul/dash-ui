@@ -49,6 +49,8 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps): Adva
             if (relationState.query.baseQuery === baseQuery) {
                 query = resetQueryParams(relationState.query);
             }
+            // Clear selection state when re-running query (indices are invalidated)
+            relationState.viewState.selectionState = undefined;
             return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager, baseQuery);
 
         },
