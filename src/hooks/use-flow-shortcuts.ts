@@ -39,12 +39,14 @@ export function useFlowShortcuts<E extends Edge = Edge>({
 
     const hotkeyOptions = {
         enableOnFormTags: false as const,
-        preventDefault: true,
+        preventDefault: false,
     };
 
-    const copySelectedNodes = useCallback(() => {
+    const copySelectedNodes = useCallback((e?: KeyboardEvent) => {
         const selectedNodes = getSelectedNodes(nodes);
         if (selectedNodes.length === 0) return;
+
+        e?.preventDefault();
 
         const selectedNodeIds = new Set(selectedNodes.map(n => n.id));
         const internalEdges = getInternalEdges(edges, selectedNodeIds);
@@ -57,8 +59,10 @@ export function useFlowShortcuts<E extends Edge = Edge>({
         pasteCountRef.current = 0;
     }, [nodes, edges]);
 
-    const pasteNodes = useCallback(() => {
+    const pasteNodes = useCallback((e?: KeyboardEvent) => {
         if (!clipboardRef.current || clipboardRef.current.nodes.length === 0) return;
+
+        e?.preventDefault();
 
         pasteCountRef.current += 1;
         const offset = {
@@ -82,9 +86,11 @@ export function useFlowShortcuts<E extends Edge = Edge>({
         ]);
     }, [setNodes, setEdges]);
 
-    const duplicateSelectedNodes = useCallback(() => {
+    const duplicateSelectedNodes = useCallback((e?: KeyboardEvent) => {
         const selectedNodes = getSelectedNodes(nodes);
         if (selectedNodes.length === 0) return;
+
+        e?.preventDefault();
 
         const selectedNodeIds = new Set(selectedNodes.map(n => n.id));
         const internalEdges = getInternalEdges(edges, selectedNodeIds);
@@ -107,7 +113,7 @@ export function useFlowShortcuts<E extends Edge = Edge>({
 
     useHotkeys('ctrl+c,mod+c', copySelectedNodes, hotkeyOptions);
     useHotkeys('ctrl+v,mod+v', pasteNodes, hotkeyOptions);
-    useHotkeys('ctrl+d,mod+d', duplicateSelectedNodes, hotkeyOptions);
-    useHotkeys('ctrl+z,mod+z', () => onUndo?.(), hotkeyOptions);
-    useHotkeys('ctrl+shift+z,mod+shift+z,ctrl+y,mod+y', () => onRedo?.(), hotkeyOptions);
+    useHotkeys('ctrl+d,mod+d', duplicateSelectedNodes, {...hotkeyOptions, preventDefault: true});
+    useHotkeys('ctrl+z,mod+z', (e) => { if (onUndo) { e.preventDefault(); onUndo(); } }, hotkeyOptions);
+    useHotkeys('ctrl+shift+z,mod+shift+z,ctrl+y,mod+y', (e) => { if (onRedo) { e.preventDefault(); onRedo(); } }, hotkeyOptions);
 }
