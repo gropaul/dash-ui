@@ -1,6 +1,6 @@
 import { Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getMacroName, extractParameters } from "@/state/relations/sql/table-macros";
 import {
     Popover,
@@ -117,6 +117,19 @@ export function MacroCopyButton({
 }: MacroCopyButtonProps) {
     const [copied, setCopied] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const handleMouseEnter = () => {
+        hoverTimerRef.current = setTimeout(() => setIsOpen(true), 500);
+    };
+
+    const handleMouseLeave = () => {
+        if (hoverTimerRef.current) {
+            clearTimeout(hoverTimerRef.current);
+            hoverTimerRef.current = null;
+        }
+        setIsOpen(false);
+    };
 
     const usageExample = getMacroUsageExample(relationName, sql, paramDefs);
     const pythonExample = getMacroPythonExample(relationName, sql, paramDefs);
@@ -140,8 +153,8 @@ export function MacroCopyButton({
                     size={size}
                     className={className}
                     onClick={handleCopy}
-                    onMouseEnter={() => setIsOpen(true)}
-                    onMouseLeave={() => setIsOpen(false)}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                 >
                     {copied ? (
                         <Check className="h-4 w-4 text-green-500" />
@@ -156,7 +169,7 @@ export function MacroCopyButton({
                 sideOffset={0}
                 className="w-auto"
                 onMouseEnter={() => setIsOpen(true)}
-                onMouseLeave={() => setIsOpen(false)}
+                onMouseLeave={handleMouseLeave}
             >
                 <div className="space-y-3">
                     <div className="space-y-1">
