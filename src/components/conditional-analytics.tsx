@@ -24,7 +24,9 @@ export function ConditionalAnalytics() {
 
     function beforeSend(event: BeforeSendEvent): BeforeSendEvent {
         if (previewMode) {
-            return {...event, url: event.url + (event.url.includes('?') ? '&' : '?') + 'preview=true'};
+            const url = new URL(event.url, window.location.origin);
+            url.hostname = 'preview.' + url.hostname;
+            return {...event, url: url.toString()};
         }
         return event;
     }
