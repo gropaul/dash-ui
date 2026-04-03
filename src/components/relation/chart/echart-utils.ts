@@ -97,7 +97,7 @@ export function toEChartOptions(
                 },
                 label: dec.showLabels ? {
                     formatter: "{b}: {c}",
-                    color: dec.label.color,
+                    color: dec.label.color || textColor,
                     fontSize: dec.label.fontSize,
                     fontFamily: dec.label.fontFamily,
                 } : {show: false},
