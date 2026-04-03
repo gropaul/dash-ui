@@ -105,6 +105,12 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  /* Safari-only: top border to blend with browser chrome */
+  @supports (hanging-punctuation: first) and (-webkit-appearance: none) {
+    body {
+      @apply border-t overflow-hidden;
+    }
+  }
 }
 
 .icon-smaller {
@@ -151,4 +157,5 @@ body {
   background-color: rgba(155, 155, 155, 0.5);
   border-radius: 3px;
 }
+
 

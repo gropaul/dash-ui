@@ -1,6 +1,5 @@
 'use client';
 
-import {useEffect, useState} from "react";
 import {Analytics, type BeforeSendEvent} from "@vercel/analytics/next";
 import {getPreviewMode} from "@/components/settings/about-content";
 
@@ -12,13 +11,8 @@ function isLocalhost(): boolean {
 }
 
 export function ConditionalAnalytics() {
-    const [isDev, setIsDev] = useState(false);
-    const [previewMode, setPreviewMode] = useState(false);
-
-    useEffect(() => {
-        setIsDev(isLocalhost());
-        setPreviewMode(getPreviewMode());
-    }, []);
+    const isDev = isLocalhost();
+    const previewMode = getPreviewMode();
 
     if (isDev) return null;
 
