@@ -236,34 +236,6 @@ export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | u
     }
 }
 
-export function getRelationStateFromSource(connectionId: string, source: RelationSource, viewParams: ViewQueryParameters): RelationState {
-
-    const displayName = getRelationNameFromSource(source);
-    const relation: Relation = {
-        id: getRelationIdFromSource(connectionId, source),
-        source: source,
-        connectionId: connectionId,
-    }
-    const baseQuery = getBaseQueryFromSource(source);
-    const relationWithQuery: RelationWithQuery = {
-        ...relation,
-        query: {
-            baseQuery: baseQuery,
-            activeBaseQuery: baseQuery,
-            viewParameters: viewParams,
-        },
-        executionState: {
-            state: 'not-started',
-        }
-    }
-    const showCode = source.type === 'query';
-
-    return {
-        ...relationWithQuery,
-        viewState: getInitViewState(displayName, undefined, undefined, showCode),
-    };
-}
-
 export function getBaseQueryFromSource(source: RelationSource): string {
     if (source.type === 'table') {
         return minifySQL(`SELECT *
