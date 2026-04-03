@@ -14,7 +14,8 @@ export function plotUsesGroup(plot: PlotConfig) {
 
 export function toEChartOptions(
     config: ChartConfig,
-    data: RelationData
+    data: RelationData,
+    textColor: string = '#333'
 ): EChartsOption {
 
     const {plot} = config;
@@ -23,7 +24,8 @@ export function toEChartOptions(
         title: {
             text: plot.title ? plot.title : null,
             left: 'center',
-            top: 4, // You can also use '10px' or a number like 10
+            top: 4,
+            textStyle: {color: textColor},
         },
         tooltip: {trigger: 'axis'},
         legend: {
@@ -31,6 +33,7 @@ export function toEChartOptions(
             selectedMode: true,
             orient: 'horizontal',
             top: plot.title ? '32px' : '8px',
+            textStyle: {color: textColor},
         },
         grid: {
             containLabel: true,
@@ -136,8 +139,10 @@ export function toEChartOptions(
 
         const xAxis: any = {
             type: xAxisType,
-            boundaryGap: plot.type === "bar", // true for bar charts, false for others (boundary between first value and y-axis)
-            data: xData
+            boundaryGap: plot.type === "bar",
+            data: xData,
+            axisLabel: {color: textColor},
+            nameTextStyle: {color: textColor},
         };
         if (cartesian.xLabel) {
             xAxis.name = cartesian.xLabel
@@ -156,12 +161,17 @@ export function toEChartOptions(
         }
         if (cartesian?.xLabelRotation) {
             xAxis.axisLabel = {
+                ...xAxis.axisLabel,
                 interval: 0,
                 rotate: cartesian.xLabelRotation,
             }
         }
 
-        const yAxis: any = {type: "value"};
+        const yAxis: any = {
+            type: "value",
+            axisLabel: {color: textColor},
+            nameTextStyle: {color: textColor},
+        };
         if (cartesian.yLabel) {
             yAxis.name = cartesian.yLabel;
         }
@@ -177,6 +187,7 @@ export function toEChartOptions(
         }
         if (cartesian?.yLabelRotation) {
             yAxis.axisLabel = {
+                ...yAxis.axisLabel,
                 align: 'left',
                 rotate: cartesian.yLabelRotation,
             }
