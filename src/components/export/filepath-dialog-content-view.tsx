@@ -15,7 +15,7 @@ import {FilepathDialogProps} from "@/components/export/filepath-dialog";
 
 
 export interface FilepathDialogContentViewProps extends FilepathDialogProps {
-    dialogTriggerRef: React.RefObject<HTMLButtonElement>;
+    dialogTriggerRef: React.RefObject<HTMLButtonElement | null>;
     basePath?: string;
     onFilePathSelected?: (filePath: string) => void;
 }

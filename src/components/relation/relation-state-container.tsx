@@ -10,7 +10,7 @@ import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface RelationStateContainerProps extends RelationViewAPIProps {
-    codeFenceRef?: RefObject<HTMLDivElement>;
+    codeFenceRef?: RefObject<HTMLDivElement | null>;
 }
 
 export function RelationStateContainer(inputProps: RelationStateContainerProps) {

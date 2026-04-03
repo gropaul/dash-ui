@@ -57,7 +57,7 @@ export interface CustomFormProps {
     submitButtonLabel?: string,
     buttonBarLeading?: ReactNode,
     onCancel?: () => void,
-    formWrapper?: React.FC<{ children: React.ReactElement }>
+    formWrapper?: (props: { children: React.ReactElement<any> }) => React.ReactElement
     className?: string
     validateSubmit?: (formData: { [key: string]: any }) => Promise<ValidationStatus>;
 }

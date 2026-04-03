@@ -268,7 +268,7 @@ export interface ConnectionConfigProps {
     onSpecSave?: (spec: DBConnectionSpec) => void;
 }
 
-export const FormWrapper: FC<{ children: ReactElement }> = ({children}) => (
+export const FormWrapper = ({children}: { children: ReactElement<any> }): ReactElement => (
     <div className="rounded-md border-separate border p-4 mb-4">
         {children}
     </div>

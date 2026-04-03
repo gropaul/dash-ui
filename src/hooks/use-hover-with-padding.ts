@@ -1,6 +1,6 @@
 import {RefObject, useEffect, useRef, useState} from 'react';
 
-export function useHoverWithPadding<T extends HTMLElement>(padding: number = 32): [RefObject<T>, boolean] {
+export function useHoverWithPadding<T extends HTMLElement>(padding: number = 32): [RefObject<T | null>, boolean] {
     const ref = useRef<T>(null);
     const [isHovered, setIsHovered] = useState(false);
 

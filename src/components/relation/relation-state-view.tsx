@@ -6,7 +6,7 @@ import {RelationLoadingView} from "@/components/relation/relation-loading-view";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
-    codeFenceRef?: RefObject<HTMLDivElement>;
+    codeFenceRef?: RefObject<HTMLDivElement | null>;
 }
 
 export function RelationStateView(inputProps: RelationStateViewProps) {

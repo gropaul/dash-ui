@@ -8,7 +8,7 @@ import {useGUIState} from "@/state/gui.state";
 import {useInitState} from "@/state/init.state";
 
 interface ConnectionsProviderProps {
-    children: React.ReactElement | React.ReactElement[];
+    children: React.ReactElement<any> | React.ReactElement<any>[];
 }
 
 

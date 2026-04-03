@@ -9,7 +9,7 @@ export interface EditableTextProps {
     className?: string;
     focused?: boolean;
 
-    contentRef?: RefObject<HTMLDivElement>;
+    contentRef?: RefObject<HTMLDivElement | null>;
 
     onFocused?: () => void;
     onEnter?: () => void;
