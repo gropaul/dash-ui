@@ -169,7 +169,7 @@ export interface PieAxisDecoration {
      * Label style
      */
     label: {
-        color: string;
+        color?: string; // this variable is not in use anywhere
         fontSize: number;
         fontFamily: string;
     };
@@ -265,7 +265,6 @@ export function getInitialAxisDecoration(yIndex: number): AxisDecoration {
             cornerRadius: 0,
             showLabels: true,
             label: {
-                color: '#000000',
                 fontSize: 12,
                 fontFamily: 'Urbanist, sans-serif',
             },
