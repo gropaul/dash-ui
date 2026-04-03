@@ -1,7 +1,7 @@
 import React from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
-import {BookOpen, Database, Folder, Info, Settings, Wand2} from "lucide-react";
+import {BookOpen, Database, Folder, Info, Settings, Star, Wand2} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
@@ -65,18 +65,18 @@ export function NavigationBarDesktop(props: NavigationBarProps) {
             <div className={'flex-1'}/>
 
 
+            <a href="https://github.com/gropaul/dash" target="_blank" rel="noopener noreferrer">
+                <Button variant={'ghost'} size={'icon'}>
+                    <Star/>
+                </Button>
+            </a>
+            <div className={'h-2'}/>
             <ExportDatabaseButton/>
             <div className={'h-2'}/>
 
             <Button variant={'ghost'} size={'icon'} onClick={() => {
                 openSettingsTab('documentation');
             }}>                <BookOpen/>
-            </Button>
-            <div className={'h-2'}/>
-            <Button variant={'ghost'} size={'icon'} onClick={() => {
-                openSettingsTab('about');
-            }}>
-                <Info/>
             </Button>
             <div className={'h-2'}/>
             <Button variant={'ghost'} size={'icon'} onClick={() => {

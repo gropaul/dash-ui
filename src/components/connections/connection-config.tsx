@@ -16,7 +16,7 @@ const DUCKDB_WASM_DESCRIPTION =
     "However, it's limited by single-thread performance, a 1GB memory cap, and restricted local file access.";
 
 const DUCKDB_WASM_MOTHERDUCK_DESCRIPTION =
-    "This configuration uses DuckDB WASM in the browser and allows you to connect to a MotherDuck. You can then " +
+    "This configuration uses DuckDB WASM in the browser and allows you to connect to MotherDuck. You can then " +
     "effectively query data that is both available in the browser and via MotherDuck. "
 
 const DUCKDB_LOCAL_DESCRIPTION =
