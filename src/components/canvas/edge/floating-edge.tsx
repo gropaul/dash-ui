@@ -5,6 +5,7 @@ import {
     getBezierPath,
     getSmoothStepPath,
     getStraightPath,
+    Position,
     useInternalNode,
     useReactFlow
 } from '@xyflow/react';
@@ -49,27 +50,45 @@ function FloatingEdge({id, source, target, style, selected, data, interactionWid
     const animationState = edgeData?.animationState;
     const {sx, sy, tx, ty, sourcePos, targetPos} = getEdgeParams(sourceNode, targetNode, snapToCenter);
 
+    const isActive = selected || isHovered;
+    const strokeWidth = isActive ? 2 : 1.5;
+    const arrowLen = 5 * strokeWidth;
+
+    // Offset target so the line ends at the arrow base, not underneath it
+    let adjTx = tx;
+    let adjTy = ty;
+    switch (targetPos) {
+        case Position.Left: adjTx = tx - arrowLen; break;
+        case Position.Right: adjTx = tx + arrowLen; break;
+        case Position.Top: adjTy = ty - arrowLen; break;
+        case Position.Bottom: adjTy = ty + arrowLen; break;
+    }
+
     const pathParams = {
         sourceX: sx,
         sourceY: sy,
         sourcePosition: sourcePos,
         targetPosition: targetPos,
-        targetX: tx,
-        targetY: ty,
+        targetX: adjTx,
+        targetY: adjTy,
     };
 
     let edgePath: string;
-    switch (edgeStyle) {
-        case 'bezier':
-            [edgePath] = getBezierPath(pathParams);
-            break;
-        case 'straight':
-            [edgePath] = getStraightPath(pathParams);
-            break;
-        case 'smoothstep':
-        default:
-            [edgePath] = getSmoothStepPath(pathParams);
-            break;
+    if (snapToCenter) {
+        [edgePath] = getStraightPath(pathParams);
+    } else {
+        switch (edgeStyle) {
+            case 'bezier':
+                [edgePath] = getBezierPath(pathParams);
+                break;
+            case 'straight':
+                [edgePath] = getStraightPath(pathParams);
+                break;
+            case 'smoothstep':
+            default:
+                [edgePath] = getSmoothStepPath(pathParams);
+                break;
+        }
     }
 
     const toggleSnapToCenter = () => {
@@ -96,7 +115,6 @@ function FloatingEdge({id, source, target, style, selected, data, interactionWid
         setEdges((edges) => edges.filter((edge) => edge.id !== id));
     };
 
-    const isActive = selected || isHovered;
     const isAnimated = !!animationState;
 
     const baseStroke = selected ? '#8b5cf6' : isHovered ? '#a78bfa' : (style?.stroke ?? '#b1b1b7');
@@ -113,17 +131,17 @@ function FloatingEdge({id, source, target, style, selected, data, interactionWid
                     <defs>
                         <marker
                             id={`arrow-${id}`}
-                            markerWidth="30"
-                            markerHeight="30"
+                            markerWidth="20"
+                            markerHeight="20"
                             viewBox="-10 -10 20 20"
                             markerUnits="strokeWidth"
                             orient="auto-start-reverse"
-                            refX="0"
+                            refX="-5"
                             refY="0"
                         >
-                            <polyline
-                                points="-5,-4 0,0 -5,4"
-                                style={{stroke: baseStroke, strokeWidth: 1, fill: 'none'}}
+                            <polygon
+                                points="-5,-2.5 0,0 -5,2.5"
+                                style={{stroke: baseStroke, strokeWidth: 1, fill: baseStroke}}
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                             />

@@ -20,6 +20,7 @@ export function RelationTab(props: RelationTabProps) {
 
 
     return <RelationView
+        height={'fit'}
         relationState={relationsState}
         updateRelation={updateRelation}
     />;

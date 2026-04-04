@@ -27,6 +27,7 @@ export interface RelationViewAPIProps extends DefaultRelationZustandActions, Sta
     relationState: RelationState;
     inputManager?: InputManager;
     className?: string;
+    breadcrumbPrefix?: { label: string; onClick: () => void };
 }
 
 

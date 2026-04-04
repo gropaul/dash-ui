@@ -50,6 +50,7 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface FlowProps {
     canvasId: string;
+    openFullscreen: (nodeId: string) => void;
 }
 
 
@@ -76,7 +77,7 @@ export interface NodeTemplate {
     size: { width: number; height: number };
 }
 
-export function Flow({canvasId}: FlowProps) {
+export function Flow({canvasId, openFullscreen}: FlowProps) {
     const {
         nodes,
         edges,
@@ -216,7 +217,7 @@ export function Flow({canvasId}: FlowProps) {
     }, []);
 
     return (
-        <CanvasProvider setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges}>
+        <CanvasProvider canvasId={canvasId} setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges} openFullscreen={openFullscreen}>
             <div
                 style={{width: '100%', height: '100%'}}
                 onKeyDownCapture={(e) => {

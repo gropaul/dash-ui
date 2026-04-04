@@ -9,29 +9,35 @@ type GetNodes = () => Node[];
 type GetEdges = () => Edge[];
 
 interface CanvasContextValue {
+    canvasId: string;
     setNodes: SetNodes;
     setEdges: SetEdges;
     getNodes: GetNodes;
     getEdges: GetEdges;
+    openFullscreen: (nodeId: string) => void;
 }
 
 const CanvasContext = createContext<CanvasContextValue | null>(null);
 
 export function CanvasProvider({
     children,
+    canvasId,
     setNodes,
     setEdges,
     getNodes,
     getEdges,
+    openFullscreen,
 }: {
     children: ReactNode;
+    canvasId: string;
     setNodes: SetNodes;
     setEdges: SetEdges;
     getNodes: GetNodes;
     getEdges: GetEdges;
+    openFullscreen: (nodeId: string) => void;
 }) {
     return (
-        <CanvasContext.Provider value={{setNodes, setEdges, getNodes, getEdges}}>
+        <CanvasContext.Provider value={{canvasId, setNodes, setEdges, getNodes, getEdges, openFullscreen}}>
             {children}
         </CanvasContext.Provider>
     );

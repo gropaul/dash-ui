@@ -8,7 +8,6 @@ import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/rel
 import {RelationToolbar} from "@/components/canvas/nodes/relation/relation-toolbar";
 import {ConditionalHandles} from "@/components/canvas/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
-import {FullscreenDialog} from "@/components/canvas/nodes/relation/fullscreen-dialog";
 import {createAutoEdge, diffEdges, extractNodeRefs} from "@/components/canvas/logic/ref-detection";
 import {refreshDownstream} from "@/state/relations/sql/dag-execution";
 
@@ -36,7 +35,7 @@ type RelationNodeProps = {
 type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
 
 export function RelationNode(props: NodeProps<RelationNodeType>) {
-    const {setNodes, setEdges, getNodes, getEdges} = useCanvasState();
+    const {openFullscreen, setNodes, setEdges, getNodes, getEdges} = useCanvasState();
 
     // Get relation data from node props, merge with defaults
     const rawData = props.data as RelationNodeProps;
@@ -103,7 +102,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
 
     const [manager] = useState(() => new InputManager())
     const [closestHandle, setClosestHandle] = useState<Position | undefined>()
-    const [isFullscreen, setIsFullscreen] = useState(false)
     const [lastCodeHeight, setLastCodeHeight] = useState(DEFAULT_CODE_VIEW_HEIGHT)
     const codeFenceRef = useRef<HTMLDivElement>(null!);
 
@@ -203,7 +201,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         onToggleCode={handleToggleCode}
                         viewProps={viewProps}
                         onViewChange={actions.setRelationViewType}
-                        onFullscreen={() => setIsFullscreen(true)}
+                        onFullscreen={() => openFullscreen(props.id)}
                         onToggleHeader={viewProps.toggleShowHeader}
                         showParams={data.viewState.parametersState?.panelState?.show ?? false}
                         onToggleParams={
@@ -233,13 +231,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     <ConditionalHandles type="source" isHovered={isHovered} closestHandle={closestHandle}
                                         isSelected={props.selected ?? false}/>
                 </RelationNodeBody>
-                <FullscreenDialog
-                    isOpen={isFullscreen}
-                    onOpenChange={setIsFullscreen}
-                    relationState={data}
-                    updateRelation={updateRelation}
-                    inputManager={manager}
-                />
             </RelationContextProvider>
         </div>
     );
