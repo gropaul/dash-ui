@@ -112,7 +112,7 @@ export function RelationExecutionInfo(props: RelationExecutionInfoProps) {
 
     return (
         <span className={cn("text-muted-foreground text-left", className, "leading-none")}>
-            {duration}{lastExecutedAt && ` · ${lastExecutedAt}`}
+            · {duration}{lastExecutedAt && ` · ${lastExecutedAt}`}
         </span>
     );
 }

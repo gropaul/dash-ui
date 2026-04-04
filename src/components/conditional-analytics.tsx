@@ -3,18 +3,19 @@
 import {Analytics, type BeforeSendEvent} from "@vercel/analytics/next";
 import {getPreviewMode} from "@/components/settings/about-content";
 
-function isLocalhost(): boolean {
+function checkIsDev(): boolean {
     if (typeof window === 'undefined') return false;
     const hostname = window.location.hostname;
     const port = parseInt(window.location.port, 10);
-    return (hostname === 'localhost' || hostname === '127.0.0.1') && port >= 3000 && port <= 3003;
+    const isLocalhost = (hostname === 'localhost' || hostname === '127.0.0.1') && port >= 3000 && port <= 3003;
+    const isVercelPreview = hostname.endsWith('.vercel.app');
+    return isLocalhost || isVercelPreview;
 }
 
 export function ConditionalAnalytics() {
-    const isDev = isLocalhost();
     const previewMode = getPreviewMode();
 
-    if (isDev) return null;
+    if ( checkIsDev()) return null;
 
     function beforeSend(event: BeforeSendEvent): BeforeSendEvent {
         if (previewMode) {
