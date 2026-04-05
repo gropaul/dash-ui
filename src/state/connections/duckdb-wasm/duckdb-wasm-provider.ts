@@ -239,9 +239,7 @@ export class DuckdbWasmProvider {
 
         try {
             const sqlMarco = getJsonMacro();
-            console.log(sqlMarco);
             const data = await connection.query(sqlMarco);
-            console.log(data);
         } catch (e) {
             console.error('Failed to create or verify the JSON macro:', e);
             throw e;

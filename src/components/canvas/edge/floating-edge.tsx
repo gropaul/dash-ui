@@ -141,6 +141,7 @@ function FloatingEdge({id, source, target, style, selected, data, interactionWid
                         >
                             <polygon
                                 points="-5,-2.5 0,0 -5,2.5"
+                                className={'pointer-events-auto'}
                                 style={{stroke: baseStroke, strokeWidth: 1, fill: baseStroke}}
                                 strokeLinecap="round"
                                 strokeLinejoin="round"

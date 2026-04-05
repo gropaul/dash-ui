@@ -1,3 +1,27 @@
 .monaco-editor {
     outline: 0;
 }
+
+.sql-table-highlight,
+.sql-column-highlight {
+    border-radius: 3px;
+}
+
+@keyframes sql-highlight-fade-in {
+    from { background-color: transparent; }
+    to   { background-color: var(--sql-highlight-color); }
+}
+
+.sql-table-highlight-active {
+    --sql-highlight-color: hsl(var(--chart-1) / 0.15);
+    background-color: hsl(var(--chart-1) / 0.15);
+    border-radius: 3px;
+    animation: sql-highlight-fade-in 0.2s ease forwards;
+}
+
+.sql-column-highlight-active {
+    --sql-highlight-color: hsl(var(--muted-foreground) / 0.12);
+    background-color: hsl(var(--muted-foreground) / 0.12);
+    border-radius: 3px;
+    animation: sql-highlight-fade-in 0.2s ease forwards;
+}

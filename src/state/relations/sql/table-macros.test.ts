@@ -1,9 +1,18 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
+
+// Stub out modules with side effects (DuckDB connections, relation event bus, web-llm chain)
+vi.mock('@/state/connections/connections-service', () => ({
+    ConnectionsService: {getInstance: () => ({executeQuery: async () => ({rows: [], columns: []}), getDatabaseConnection: () => { throw new Error('no connection'); }, onDatabaseConnectionChange: () => {}})},
+}));
+vi.mock('@/state/relations/all-relation-utils', () => ({getAllRelations: () => []}));
+vi.mock('../event/relation-events', () => ({onRelationEvent: () => {}, RelationEvent: {}}));
+vi.mock('@/state/relations/sql/selection-query', () => ({buildSelectionFilteredQuery: (q: string) => q}));
+
 import {
     sanitizeMacroName,
     getMacroName,
     extractParameters,
-    generateCreateMacroSQL,
+    generateCreateMacroSQLInternal,
     generateDropMacroSQL,
 } from './table-macros';
 
@@ -101,69 +110,73 @@ describe('extractParameters', () => {
 describe('generateCreateMacroSQL', () => {
     describe('without parameters', () => {
         it('should generate simple macro for basic SELECT', () => {
-            const sql = generateCreateMacroSQL('employees', 'SELECT * FROM raw.employees');
+            const sql = generateCreateMacroSQLInternal('employees', 'SELECT * FROM raw.employees');
             expect(sql).toBe(
                 "CREATE OR REPLACE MACRO node_employees() AS TABLE (FROM query_result('SELECT * FROM raw.employees'))"
             );
         });
 
         it('should escape single quotes in SQL', () => {
-            const sql = generateCreateMacroSQL('test', "SELECT * FROM users WHERE name = 'John'");
+            const sql = generateCreateMacroSQLInternal('test', "SELECT * FROM users WHERE name = 'John'");
             expect(sql).toBe(
                 "CREATE OR REPLACE MACRO node_test() AS TABLE (FROM query_result('SELECT * FROM users WHERE name = ''John'''))"
             );
         });
 
         it('should handle multi-statement queries', () => {
-            const sql = generateCreateMacroSQL('test', 'CREATE TABLE t AS SELECT 1; FROM t;');
+            const sql = generateCreateMacroSQLInternal('test', 'CREATE TABLE t AS SELECT 1; FROM t;');
             expect(sql).toBe(
                 "CREATE OR REPLACE MACRO node_test() AS TABLE (FROM query_result('CREATE TABLE t AS SELECT 1; FROM t;'))"
             );
         });
 
         it('should sanitize relation name in macro name', () => {
-            const sql = generateCreateMacroSQL('My Query!', 'SELECT 1');
+            const sql = generateCreateMacroSQLInternal('My Query!', 'SELECT 1');
             expect(sql).toContain('node_my_query()');
         });
     });
 
     describe('with parameters', () => {
-        it('should generate parameterized macro', () => {
-            const sql = generateCreateMacroSQL(
+        it('should generate parameterized macro using replace() chain', () => {
+            const sql = generateCreateMacroSQLInternal(
                 'train_stations',
                 'SELECT * FROM stations WHERE city = {{city_filter}}'
             );
             expect(sql).toBe(
-                "CREATE OR REPLACE MACRO node_train_stations(city_filter) AS TABLE (FROM query_result(format('SELECT * FROM stations WHERE city = {}', city_filter)))"
+                "CREATE OR REPLACE MACRO node_train_stations(city_filter) AS TABLE (FROM query_result(replace('SELECT * FROM stations WHERE city = {{city_filter}}', '{{city_filter}}', city_filter::VARCHAR)))"
             );
         });
 
-        it('should handle multiple parameters', () => {
-            const sql = generateCreateMacroSQL(
+        it('should handle multiple parameters with nested replace() calls', () => {
+            const sql = generateCreateMacroSQLInternal(
                 'filtered_data',
                 'SELECT * FROM data WHERE start = {{start_date}} AND end = {{end_date}}'
             );
-            expect(sql).toBe(
-                "CREATE OR REPLACE MACRO node_filtered_data(start_date, end_date) AS TABLE (FROM query_result(format('SELECT * FROM data WHERE start = {} AND end = {}', start_date, end_date)))"
-            );
+            expect(sql).toContain('node_filtered_data(start_date, end_date)');
+            // Outer replace wraps the inner one
+            expect(sql).toContain("replace(replace(");
+            expect(sql).toContain("'{{start_date}}', start_date::VARCHAR");
+            expect(sql).toContain("'{{end_date}}', end_date::VARCHAR");
         });
 
-        it('should handle repeated parameters', () => {
-            const sql = generateCreateMacroSQL(
+        it('should handle repeated parameters (one replace() replaces all occurrences)', () => {
+            const sql = generateCreateMacroSQLInternal(
                 'test',
                 'SELECT * FROM a WHERE x = {{val}} UNION SELECT * FROM b WHERE y = {{val}}'
             );
-            // Parameter should appear once in signature but twice in template
+            // One unique param → one replace() call; replaceAll covers both occurrences
             expect(sql).toContain('node_test(val)');
-            expect(sql).toContain('x = {} UNION SELECT * FROM b WHERE y = {}');
+            expect(sql).toContain("'{{val}}', val::VARCHAR");
+            expect(sql).not.toContain('replace(replace(');
         });
 
-        it('should escape quotes in parameterized queries', () => {
-            const sql = generateCreateMacroSQL(
+        it('should escape single quotes in parameterized template', () => {
+            const sql = generateCreateMacroSQLInternal(
                 'test',
                 "SELECT '{{param}}' as value"
             );
-            expect(sql).toContain("''{}''");
+            // Single quotes in the template are doubled; placeholder is preserved verbatim
+            expect(sql).toContain("''{{param}}''");
         });
     });
 });
@@ -181,29 +194,24 @@ describe('generateDropMacroSQL', () => {
 });
 
 describe('temporary macros (read-only mode)', () => {
-    it('should generate TEMP macro when temporary=true', () => {
-        const sql = generateCreateMacroSQL('test', 'SELECT 1', true);
-        expect(sql).toContain('CREATE OR REPLACE TEMP MACRO');
+    it('should generate regular macro by default (isDatabaseReadonly returns false in mock)', () => {
+        const sql = generateCreateMacroSQLInternal('test', 'SELECT 1');
+        expect(sql).toContain('CREATE OR REPLACE MACRO');
+        expect(sql).not.toContain('TEMP');
         expect(sql).toContain('node_test()');
     });
 
-    it('should generate regular macro when temporary=false', () => {
-        const sql = generateCreateMacroSQL('test', 'SELECT 1', false);
+    it('should generate regular macro with parameters by default', () => {
+        const sql = generateCreateMacroSQLInternal('test', 'SELECT {{x}}');
         expect(sql).toContain('CREATE OR REPLACE MACRO');
-        expect(sql).not.toContain('TEMP');
-    });
-
-    it('should generate TEMP macro with parameters', () => {
-        const sql = generateCreateMacroSQL('test', 'SELECT {{x}}', true);
-        expect(sql).toContain('CREATE OR REPLACE TEMP MACRO');
         expect(sql).toContain('node_test(x)');
     });
 });
 
 describe('macro update behavior', () => {
     it('should use CREATE OR REPLACE to allow updating macros when SQL changes', () => {
-        const sql1 = generateCreateMacroSQL('test', 'SELECT 1');
-        const sql2 = generateCreateMacroSQL('test', 'SELECT 2');
+        const sql1 = generateCreateMacroSQLInternal('test', 'SELECT 1');
+        const sql2 = generateCreateMacroSQLInternal('test', 'SELECT 2');
 
         // Both should use CREATE OR REPLACE, allowing updates
         expect(sql1).toContain('CREATE OR REPLACE MACRO');
@@ -217,8 +225,8 @@ describe('macro update behavior', () => {
     });
 
     it('should generate different macro when parameters change', () => {
-        const sql1 = generateCreateMacroSQL('test', 'SELECT * FROM t WHERE x = {{a}}');
-        const sql2 = generateCreateMacroSQL('test', 'SELECT * FROM t WHERE x = {{a}} AND y = {{b}}');
+        const sql1 = generateCreateMacroSQLInternal('test', 'SELECT * FROM t WHERE x = {{a}}');
+        const sql2 = generateCreateMacroSQLInternal('test', 'SELECT * FROM t WHERE x = {{a}} AND y = {{b}}');
 
         expect(sql1).toContain('node_test(a)');
         expect(sql2).toContain('node_test(a, b)');

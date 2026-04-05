@@ -91,22 +91,25 @@ function formatDefaultValue(param: ParameterDefinition): string {
  * Uses chained replace() instead of format() to handle parameters that appear multiple times.
  * Supports default parameter values from ParameterDefinition.
  *
- * @param temporary - If true, creates a TEMP macro (for read-only databases)
+ * @param relationName
+ * @param baseQuery
  * @param paramDefs - Optional parameter definitions with default values
+ * @param selection
  */
-export function generateCreateMacroSQL(
+export function generateCreateMacroSQLInternal(
     relationName: string,
     baseQuery: string,
-    temporary: boolean = false,
-    paramDefs?: ParameterDefinition[]
+    paramDefs?: ParameterDefinition[],
+    selection?: SelectionState
 ): string {
+    const effectiveQuery = buildSelectionFilteredQuery(baseQuery, selection);
     const macroName = getMacroName(relationName);
-    const paramNames = extractParameters(baseQuery);
-    const createKeyword = temporary ? 'CREATE OR REPLACE TEMP MACRO' : 'CREATE OR REPLACE MACRO';
+    const paramNames = extractParameters(effectiveQuery);
+    const createKeyword = isDatabaseReadonly() ? 'CREATE OR REPLACE TEMP MACRO' : 'CREATE OR REPLACE MACRO';
 
     if (paramNames.length === 0) {
         // No parameters - simple case
-        const escapedQuery = escapeSqlString(baseQuery);
+        const escapedQuery = escapeSqlString(effectiveQuery);
         return `${createKeyword} ${macroName}() AS TABLE (FROM query_result('${escapedQuery}'))`;
     } else {
         // Build parameter definitions map for quick lookup
@@ -126,7 +129,7 @@ export function generateCreateMacroSQL(
         const paramList = paramListParts.join(', ');
 
         // Has parameters - use chained replace() to handle multiple occurrences
-        const escapedTemplate = escapeSqlString(baseQuery);
+        const escapedTemplate = escapeSqlString(effectiveQuery);
 
         // Build nested replace() calls: replace(replace(template, '{{p1}}', p1::VARCHAR), '{{p2}}', p2::VARCHAR)
         let replaceExpr = `'${escapedTemplate}'`;
@@ -249,9 +252,7 @@ export async function registerRelationMacro(
     paramDefs?: ParameterDefinition[],
     selection?: SelectionState
 ): Promise<void> {
-    const isReadonly = isDatabaseReadonly();
-    const effectiveQuery = buildSelectionFilteredQuery(baseQuery, selection);
-    const sql = generateCreateMacroSQL(relationName, effectiveQuery, isReadonly, paramDefs);
+    const sql = generateCreateMacroSQLInternal(relationName, baseQuery,  paramDefs, selection);
 
     try {
         await ConnectionsService.getInstance().executeQuery(sql);
@@ -259,6 +260,7 @@ export async function registerRelationMacro(
         // Silent fail - macro registration should not break the main flow
     }
 }
+
 
 /**
  * Drop a relation's table macro from DuckDB.
@@ -309,6 +311,7 @@ onRelationEvent(handleRelationAction);
  */
 async function reregisterAllMacros(): Promise<void> {
     const entries = getAllRelations();
+    const create_macro_sqls: string[] = [];
     for (const { relation, origin } of entries) {
         if (origin === 'dashboard') continue;
         const name = relation.viewState.displayName;
@@ -316,9 +319,14 @@ async function reregisterAllMacros(): Promise<void> {
         const params = relation.viewState.parametersState?.parameters;
         const selection = relation.viewState.selectionState;
         if (name && sql) {
-            await registerRelationMacro(name, sql, params, selection);
+            const macro_sql = generateCreateMacroSQLInternal(name, sql,  params, selection);
+            create_macro_sqls.push(macro_sql);
         }
     }
+    const big_query = create_macro_sqls.join(';\n');
+    await ConnectionsService.getInstance().executeQuery(big_query);
+
+
 }
 
 // Re-register all macros when the database connection changes

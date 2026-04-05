@@ -14,8 +14,11 @@ import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
 import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
 import {registerInputCompletion} from "@/components/basics/sql-editor/regsiter-input-completion";
 import {registerAiCompletion} from "@/components/basics/sql-editor/register-ai-completion";
+import {registerHighlighting} from "@/components/basics/sql-editor/register-highlighting";
+import {configureMonaco} from "@/components/basics/sql-editor/register-autocomplete";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
+import {useDatabaseState} from "@/state/database.state";
 
 export type SupportedLanguages = "sql" | "plaintext";
 
@@ -89,6 +92,26 @@ export function SqlEditor(
     const onRunRef = useRef(onRun);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastExternalCodeRef = useRef(displayCode);
+
+    // Render Monaco overflow widgets (autocomplete, hover) on document.body so they are
+    // outside xyflow's CSS-transformed viewport. Without this, position:fixed widgets
+    // are relative to the nearest transformed ancestor (the canvas) instead of the viewport,
+    // causing wrong positions at any zoom level other than 1.
+    const [overflowContainer] = React.useState<HTMLDivElement | null>(() => {
+        if (typeof document === 'undefined') return null;
+        const el = document.createElement('div');
+        // monaco-editor class is required so widget CSS selectors still match.
+        // position:fixed at (0,0) ensures getBoundingClientRect() returns {top:0,left:0}
+        // so Monaco's widget coordinate calculation (cursor_y - container_top) is correct.
+        el.className = 'monaco-editor';
+        el.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;z-index:9999;';
+        document.body.appendChild(el);
+        return el;
+    });
+
+    useEffect(() => {
+        return () => { overflowContainer?.remove(); };
+    }, [overflowContainer]);
 
     // Keep the callback refs up to date
     useEffect(() => {
@@ -176,7 +199,13 @@ export function SqlEditor(
         registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
 
+        useDatabaseState.getState().refresh().then(() => {
+            registerHighlighting(editor, monaco);
+        })
+        configureMonaco(monaco);
+
         if (!readOnly) {
+
             // disabled until we have https://huggingface.co/stabilityai/stable-code-3b available in the WebLLM provider,
             // as the completions are currently very low quality and we don't want to set that expectation for users
             // aiCompletionRef.current = registerAiCompletion(editor, monaco);
@@ -226,6 +255,8 @@ export function SqlEditor(
                     },
                     renderLineHighlight: "none",
                     inlineSuggest: { enabled: true },
+                    fixedOverflowWidgets: true,
+
                 }}
                 onChange={onLocalCodeChange}
                 onMount={onMount}

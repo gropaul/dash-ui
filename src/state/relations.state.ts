@@ -37,9 +37,6 @@ import {useInitState} from "@/state/init.state";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {isInteractiveBlock} from "@/components/editor/inputs/input-manager";
 import {RelationEvents} from "@/state/relations/event/relation-events";
-// Side-effect import: initializes macro registration subscription
-// Do not remove - required for table macros to work
-import "@/state/relations/sql/table-macros";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 
