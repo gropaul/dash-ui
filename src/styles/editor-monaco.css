@@ -2,6 +2,93 @@
     outline: 0;
 }
 
+/* Re-enable pointer events on widgets rendered in the body-level overflow container */
+body > .monaco-editor .overflowingContentWidgets,
+body > .monaco-editor .overflowingContentWidgets * {
+    pointer-events: auto;
+}
+
+/*!* ── Shadcn-style hover widget ─────────────────────────────────────────── *!*/
+/*.monaco-editor .monaco-resizable-hover {*/
+/*    border: none !important;*/
+/*}*/
+
+/*.monaco-editor .monaco-hover {*/
+/*    border: 1px solid hsl(var(--border)) !important;*/
+/*    border-radius: 0.5rem !important;*/
+/*    background-color: hsl(var(--popover)) !important;*/
+/*    color: hsl(var(--popover-foreground)) !important;*/
+/*    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;*/
+/*    padding: 0 !important;*/
+/*    overflow: hidden !important;*/
+/*}*/
+
+/*.monaco-editor .monaco-hover .hover-row .hover-contents {*/
+/*    padding: 0.5rem 0.75rem !important;*/
+/*    font-size: 0.8125rem !important;*/
+/*    line-height: 1.5 !important;*/
+/*}*/
+
+/*.monaco-editor .monaco-hover .hover-row .hover-contents p {*/
+/*    margin: 0 !important;*/
+/*}*/
+
+/*.monaco-editor .monaco-hover .hover-row .hover-contents code {*/
+/*    font-size: 0.75rem !important;*/
+/*    background-color: hsl(var(--muted)) !important;*/
+/*    padding: 0.125rem 0.25rem !important;*/
+/*    border-radius: 0.25rem !important;*/
+/*}*/
+
+/*.monaco-editor .monaco-hover hr {*/
+/*    border-color: hsl(var(--border)) !important;*/
+/*    margin: 0 !important;*/
+/*}*/
+
+/* ── Shadcn-style suggest / autocomplete widget ────────────────────────── */
+.monaco-editor .suggest-widget {
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 0.5rem !important;
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+    overflow: hidden !important;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row {
+    font-size: 0.8125rem !important;
+    line-height: 1.5 !important;
+    padding: 0.125rem 0.5rem !important;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused {
+    background-color: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+}
+
+.monaco-editor .suggest-widget .suggest-status-bar {
+    border-top: 1px solid hsl(var(--border)) !important;
+    background-color: hsl(var(--popover)) !important;
+}
+
+.monaco-editor .suggest-details {
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 0.5rem !important;
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+/* ── Shadcn-style parameter hints widget ───────────────────────────────── */
+.monaco-editor .parameter-hints-widget {
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 0.5rem !important;
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+/* ── SQL syntax highlighting decorations ───────────────────────────────── */
 .sql-table-highlight,
 .sql-column-highlight {
     border-radius: 3px;

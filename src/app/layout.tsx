@@ -23,6 +23,7 @@ export default function RootLayout({
             className={cn(
                 "min-100dvh bg-background antialiased",
             )}
+            suppressHydrationWarning
         >
         <main>
             <div className="w-full min-h-[100dvh] supports-[height:100dvh]:min-h-dvh">

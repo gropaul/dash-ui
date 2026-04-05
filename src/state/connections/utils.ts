@@ -9,7 +9,7 @@ export function enqueueStatements(sql: string, queue: AsyncQueue<string, Relatio
     if (!lastQuery){
         throw Error("SQL does not contain any query")
     }
-    for (const query in queries){
+    for (const query of queries){
         queue.add(query) // no await as we don't want other queries to sneak in!
     }
     return queue.add(lastQuery);

@@ -21,8 +21,13 @@ import {useInitState} from "@/state/init.state";
 export default function Home() {
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
 
+    const [mounted, setMounted] = useState(false);
     const initComplete = useInitState(state => state.initializationComplete());
     const label = useInitState(state => state.getCurrentStepLabel());
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         StorageDuckAPI.getInstance().then((duckdb) => {
@@ -46,7 +51,7 @@ export default function Home() {
                 </Avatar>
 
                 <div className={'text-muted-foreground'}> Loading...</div>
-                <div className={'text-muted-foreground'}>{label}</div>
+                <div className={'text-muted-foreground'}>{mounted ? label : '\u00A0'}</div>
             </div>
 
         </div>;

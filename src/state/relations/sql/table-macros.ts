@@ -102,7 +102,8 @@ export function generateCreateMacroSQLInternal(
     paramDefs?: ParameterDefinition[],
     selection?: SelectionState
 ): string {
-    const effectiveQuery = buildSelectionFilteredQuery(baseQuery, selection);
+    const queryWithoutComments = removeComments(baseQuery);
+    const effectiveQuery = buildSelectionFilteredQuery(queryWithoutComments, selection);
     const macroName = getMacroName(relationName);
     const paramNames = extractParameters(effectiveQuery);
     const createKeyword = isDatabaseReadonly() ? 'CREATE OR REPLACE TEMP MACRO' : 'CREATE OR REPLACE MACRO';
@@ -309,24 +310,81 @@ onRelationEvent(handleRelationAction);
  * Re-register all existing relation macros.
  * Called when the database connection changes, since macros are not persistent across connections.
  */
+/**
+ * Build a dependency map for a set of macros.
+ * For each key, returns the list of other keys it depends on (references in its SQL).
+ * Only includes dependencies that exist in the provided set.
+ */
+export function buildMacroDependencies(macros: { key: string; baseSql: string }[]): Map<string, string[]> {
+    const allKeys = new Set(macros.map(m => m.key));
+    const deps = new Map<string, string[]>();
+    for (const { key, baseSql } of macros) {
+        const refs = extractMacroRefs(baseSql).filter(ref => allKeys.has(ref) && ref !== key);
+        deps.set(key, refs);
+    }
+    return deps;
+}
+
+/**
+ * Topological sort of keys given a dependency map.
+ * Returns keys ordered so that dependencies come before dependents.
+ * Cycles are broken gracefully (the back-edge is skipped).
+ */
+export function topologicalSort(keys: string[], deps: Map<string, string[]>): string[] {
+    const ordered: string[] = [];
+    const visited = new Set<string>();
+    const visiting = new Set<string>();
+
+    function visit(key: string) {
+        if (visited.has(key)) return;
+        if (visiting.has(key)) return; // cycle — break it
+        visiting.add(key);
+        for (const dep of deps.get(key) ?? []) {
+            visit(dep);
+        }
+        visiting.delete(key);
+        visited.add(key);
+        ordered.push(key);
+    }
+
+    for (const key of keys) {
+        visit(key);
+    }
+
+    return ordered;
+}
+
+/**
+ * Order macro SQL statements so that dependencies are created first.
+ * Returns CREATE MACRO statements in dependency order.
+ */
+export function orderMacroStatements(macros: { key: string; baseSql: string; createSql: string }[]): string[] {
+    const deps = buildMacroDependencies(macros);
+    const ordered = topologicalSort(macros.map(m => m.key), deps);
+    const sqlByKey = new Map(macros.map(m => [m.key, m.createSql]));
+    return ordered.map(key => sqlByKey.get(key)!);
+}
+
 async function reregisterAllMacros(): Promise<void> {
     const entries = getAllRelations();
-    const create_macro_sqls: string[] = [];
+
+    const macros: { key: string; baseSql: string; createSql: string }[] = [];
     for (const { relation, origin } of entries) {
         if (origin === 'dashboard') continue;
         const name = relation.viewState.displayName;
-        const sql = relation.query.baseQuery;
+        const baseSql = relation.query.baseQuery;
         const params = relation.viewState.parametersState?.parameters;
         const selection = relation.viewState.selectionState;
-        if (name && sql) {
-            const macro_sql = generateCreateMacroSQLInternal(name, sql,  params, selection);
-            create_macro_sqls.push(macro_sql);
+        if (name && baseSql) {
+            const key = sanitizeMacroName(name);
+            const createSql = generateCreateMacroSQLInternal(name, baseSql, params, selection);
+            macros.push({ key, baseSql, createSql });
         }
     }
-    const big_query = create_macro_sqls.join(';\n');
+
+    const orderedSqls = orderMacroStatements(macros);
+    const big_query = orderedSqls.join(';\n');
     await ConnectionsService.getInstance().executeQuery(big_query);
-
-
 }
 
 // Re-register all macros when the database connection changes

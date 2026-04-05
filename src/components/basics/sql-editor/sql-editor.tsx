@@ -97,14 +97,12 @@ export function SqlEditor(
     // outside xyflow's CSS-transformed viewport. Without this, position:fixed widgets
     // are relative to the nearest transformed ancestor (the canvas) instead of the viewport,
     // causing wrong positions at any zoom level other than 1.
+    // The container must span the full viewport so Monaco can correctly clamp widget positions.
     const [overflowContainer] = React.useState<HTMLDivElement | null>(() => {
         if (typeof document === 'undefined') return null;
         const el = document.createElement('div');
-        // monaco-editor class is required so widget CSS selectors still match.
-        // position:fixed at (0,0) ensures getBoundingClientRect() returns {top:0,left:0}
-        // so Monaco's widget coordinate calculation (cursor_y - container_top) is correct.
         el.className = 'monaco-editor';
-        el.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;z-index:9999;';
+        el.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;overflow:visible;pointer-events:none;z-index:9999;';
         document.body.appendChild(el);
         return el;
     });
@@ -254,8 +252,10 @@ export function SqlEditor(
                         verticalScrollbarSize: 4
                     },
                     renderLineHighlight: "none",
+                    acceptSuggestionOnEnter: "smart",
                     inlineSuggest: { enabled: true },
                     fixedOverflowWidgets: true,
+                    overflowWidgetsDomNode: overflowContainer ?? undefined,
 
                 }}
                 onChange={onLocalCodeChange}

@@ -12,8 +12,12 @@ import {
     sanitizeMacroName,
     getMacroName,
     extractParameters,
+    extractMacroRefs,
     generateCreateMacroSQLInternal,
     generateDropMacroSQL,
+    buildMacroDependencies,
+    topologicalSort,
+    orderMacroStatements,
 } from './table-macros';
 
 describe('sanitizeMacroName', () => {
@@ -230,5 +234,138 @@ describe('macro update behavior', () => {
 
         expect(sql1).toContain('node_test(a)');
         expect(sql2).toContain('node_test(a, b)');
+    });
+});
+
+describe('extractMacroRefs', () => {
+    it('should extract macro references from SQL', () => {
+        expect(extractMacroRefs('SELECT * FROM node_employees()')).toEqual(['employees']);
+    });
+
+    it('should extract multiple references', () => {
+        expect(extractMacroRefs('SELECT * FROM node_a() JOIN node_b() ON 1=1')).toEqual(['a', 'b']);
+    });
+
+    it('should deduplicate references', () => {
+        expect(extractMacroRefs('SELECT * FROM node_x() UNION SELECT * FROM node_x()')).toEqual(['x']);
+    });
+
+    it('should handle whitespace before parens', () => {
+        expect(extractMacroRefs('SELECT * FROM node_test ()')).toEqual(['test']);
+    });
+
+    it('should return empty for no references', () => {
+        expect(extractMacroRefs('SELECT * FROM employees')).toEqual([]);
+    });
+});
+
+describe('buildMacroDependencies', () => {
+    it('should detect dependency between macros', () => {
+        const deps = buildMacroDependencies([
+            { key: 'a', baseSql: 'SELECT * FROM node_b()' },
+            { key: 'b', baseSql: 'SELECT 1' },
+        ]);
+        expect(deps.get('a')).toEqual(['b']);
+        expect(deps.get('b')).toEqual([]);
+    });
+
+    it('should ignore self-references', () => {
+        const deps = buildMacroDependencies([
+            { key: 'a', baseSql: 'SELECT * FROM node_a()' },
+        ]);
+        expect(deps.get('a')).toEqual([]);
+    });
+
+    it('should ignore references to unknown macros', () => {
+        const deps = buildMacroDependencies([
+            { key: 'a', baseSql: 'SELECT * FROM node_unknown()' },
+        ]);
+        expect(deps.get('a')).toEqual([]);
+    });
+
+    it('should handle multiple dependencies', () => {
+        const deps = buildMacroDependencies([
+            { key: 'c', baseSql: 'SELECT * FROM node_a() JOIN node_b()' },
+            { key: 'a', baseSql: 'SELECT 1' },
+            { key: 'b', baseSql: 'SELECT 2' },
+        ]);
+        expect(deps.get('c')).toEqual(['a', 'b']);
+    });
+});
+
+describe('topologicalSort', () => {
+    it('should return single item', () => {
+        const deps = new Map([['a', []]]);
+        expect(topologicalSort(['a'], deps)).toEqual(['a']);
+    });
+
+    it('should order dependency before dependent', () => {
+        const deps = new Map([['a', ['b']], ['b', []]]);
+        const result = topologicalSort(['a', 'b'], deps);
+        expect(result.indexOf('b')).toBeLessThan(result.indexOf('a'));
+    });
+
+    it('should handle a chain: c -> b -> a', () => {
+        const deps = new Map([['c', ['b']], ['b', ['a']], ['a', []]]);
+        const result = topologicalSort(['c', 'b', 'a'], deps);
+        expect(result).toEqual(['a', 'b', 'c']);
+    });
+
+    it('should handle independent items in input order', () => {
+        const deps = new Map([['x', []], ['y', []], ['z', []]]);
+        expect(topologicalSort(['x', 'y', 'z'], deps)).toEqual(['x', 'y', 'z']);
+    });
+
+    it('should handle a diamond: d -> b,c -> a', () => {
+        const deps = new Map([
+            ['d', ['b', 'c']],
+            ['b', ['a']],
+            ['c', ['a']],
+            ['a', []],
+        ]);
+        const result = topologicalSort(['d', 'b', 'c', 'a'], deps);
+        expect(result.indexOf('a')).toBeLessThan(result.indexOf('b'));
+        expect(result.indexOf('a')).toBeLessThan(result.indexOf('c'));
+        expect(result.indexOf('b')).toBeLessThan(result.indexOf('d'));
+        expect(result.indexOf('c')).toBeLessThan(result.indexOf('d'));
+    });
+
+    it('should break cycles gracefully', () => {
+        const deps = new Map([['a', ['b']], ['b', ['a']]]);
+        const result = topologicalSort(['a', 'b'], deps);
+        // Both should appear exactly once
+        expect(result).toHaveLength(2);
+        expect(result).toContain('a');
+        expect(result).toContain('b');
+    });
+});
+
+describe('orderMacroStatements', () => {
+    it('should order create statements by dependency', () => {
+        const result = orderMacroStatements([
+            { key: 'report', baseSql: 'SELECT * FROM node_employees()', createSql: 'CREATE MACRO node_report...' },
+            { key: 'employees', baseSql: 'SELECT * FROM raw.emp', createSql: 'CREATE MACRO node_employees...' },
+        ]);
+        expect(result).toEqual([
+            'CREATE MACRO node_employees...',
+            'CREATE MACRO node_report...',
+        ]);
+    });
+
+    it('should handle three-level chain', () => {
+        const result = orderMacroStatements([
+            { key: 'top', baseSql: 'FROM node_mid()', createSql: 'SQL_TOP' },
+            { key: 'mid', baseSql: 'FROM node_base()', createSql: 'SQL_MID' },
+            { key: 'base', baseSql: 'SELECT 1', createSql: 'SQL_BASE' },
+        ]);
+        expect(result).toEqual(['SQL_BASE', 'SQL_MID', 'SQL_TOP']);
+    });
+
+    it('should preserve order for independent macros', () => {
+        const result = orderMacroStatements([
+            { key: 'a', baseSql: 'SELECT 1', createSql: 'SQL_A' },
+            { key: 'b', baseSql: 'SELECT 2', createSql: 'SQL_B' },
+        ]);
+        expect(result).toEqual(['SQL_A', 'SQL_B']);
     });
 });

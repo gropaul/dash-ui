@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Dialog, DialogContent} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogTitle} from "@/components/ui/dialog";
 import {connectionToSpec, DBConnectionSpec, getDefaultSpec} from "@/state/connections/configs";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
@@ -127,6 +127,7 @@ export function SettingsDialog(props: SettingsViewProps) {
 
         >
             <DialogContent  className={cn("flex p-0 gap-0", dialogClass)}>
+                <DialogTitle className="sr-only">Settings</DialogTitle>
                 <SettingsContent
                     tabs={tabs}
                     activeTab={activeTab}
@@ -212,9 +213,10 @@ export function TabForceOpenIcon(props: TabForceOpenIconProps) {
         return (
             <TooltipProvider>
                 <Tooltip>
-                    <TooltipTrigger>
-                        <AlertCircle className="pl-2 text-red-500">
-                        </AlertCircle>
+                    <TooltipTrigger asChild>
+                        <span>
+                            <AlertCircle className="pl-2 text-red-500" />
+                        </span>
                     </TooltipTrigger>
                     <TooltipContent>
                         <div className="max-w-xs">

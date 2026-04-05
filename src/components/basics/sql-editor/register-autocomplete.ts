@@ -224,7 +224,7 @@ export function configureMonaco(monaco: Monaco) {
                         });
                     }
 
-                    if (ctx.isTypingDatabase || db.escapedName === ctxDb) {
+                    if (ctx.isTypingDatabase || db.escapedName === ctxDb || true) {
                         db.children.forEach((table: Table) => {
                             if (!ctxTable || table.escapedName.startsWith(ctxTable)) {
                                 suggestions.push({

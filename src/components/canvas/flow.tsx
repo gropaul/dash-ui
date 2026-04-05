@@ -266,6 +266,7 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
                 edgesFocusable={true}
                 defaultEdgeOptions={{interactionWidth: 20}}
                 deleteKeyCode={['Delete', 'Backspace']}
+                panActivationKeyCode={null}
             >
                 <Background
                     offset={GRID_SIZE}

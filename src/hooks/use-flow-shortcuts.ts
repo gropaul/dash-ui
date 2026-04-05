@@ -42,7 +42,21 @@ export function useFlowShortcuts<E extends Edge = Edge>({
         preventDefault: false,
     };
 
+    const hasTextSelection = () => {
+        const selection = window.getSelection();
+        return selection !== null && selection.toString().length > 0;
+    };
+
+    const isTextInput = (e?: KeyboardEvent) =>
+        e?.target instanceof HTMLElement && (
+            e.target instanceof HTMLInputElement ||
+            e.target instanceof HTMLTextAreaElement ||
+            e.target.isContentEditable ||
+            e.target.closest('.monaco-editor') !== null
+        );
+
     const copySelectedNodes = useCallback((e?: KeyboardEvent) => {
+        if (hasTextSelection() || isTextInput(e)) return;
         const selectedNodes = getSelectedNodes(nodes);
         if (selectedNodes.length === 0) return;
 
@@ -60,6 +74,7 @@ export function useFlowShortcuts<E extends Edge = Edge>({
     }, [nodes, edges]);
 
     const pasteNodes = useCallback((e?: KeyboardEvent) => {
+        if (isTextInput(e)) return;
         if (!clipboardRef.current || clipboardRef.current.nodes.length === 0) return;
 
         e?.preventDefault();
@@ -87,6 +102,7 @@ export function useFlowShortcuts<E extends Edge = Edge>({
     }, [setNodes, setEdges]);
 
     const duplicateSelectedNodes = useCallback((e?: KeyboardEvent) => {
+        if (isTextInput(e)) return;
         const selectedNodes = getSelectedNodes(nodes);
         if (selectedNodes.length === 0) return;
 
@@ -114,6 +130,6 @@ export function useFlowShortcuts<E extends Edge = Edge>({
     useHotkeys('ctrl+c,mod+c', copySelectedNodes, hotkeyOptions);
     useHotkeys('ctrl+v,mod+v', pasteNodes, hotkeyOptions);
     useHotkeys('ctrl+d,mod+d', duplicateSelectedNodes, {...hotkeyOptions, preventDefault: true});
-    useHotkeys('ctrl+z,mod+z', (e) => { if (onUndo) { e.preventDefault(); onUndo(); } }, hotkeyOptions);
-    useHotkeys('ctrl+shift+z,mod+shift+z,ctrl+y,mod+y', (e) => { if (onRedo) { e.preventDefault(); onRedo(); } }, hotkeyOptions);
+    useHotkeys('ctrl+z,mod+z', (e) => { if (isTextInput(e)) return; if (onUndo) { e.preventDefault(); onUndo(); } }, hotkeyOptions);
+    useHotkeys('ctrl+shift+z,mod+shift+z,ctrl+y,mod+y', (e) => { if (isTextInput(e)) return; if (onRedo) { e.preventDefault(); onRedo(); } }, hotkeyOptions);
 }
