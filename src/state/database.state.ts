@@ -12,10 +12,6 @@ import {
     Table
 } from "@/components/basics/sql-editor/get-schema";
 
-// Re-export so existing imports from database.state still work
-export {binarySearchByName};
-import {getAllRelations} from "@/state/relations/all-relation-utils";
-import {getMacroName} from "@/state/relations/sql/table-macros";
 import {ConnectionsService} from "@/state/connections/connections-service";
 
 

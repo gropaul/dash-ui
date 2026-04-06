@@ -1,6 +1,12 @@
 import {Monaco} from "@monaco-editor/react";
-import {Column, Database, normalizeIdentifier, Table} from "@/components/basics/sql-editor/get-schema";
-import {binarySearchByName, useDatabaseState} from "@/state/database.state";
+import {
+    binarySearchByName,
+    Column,
+    Database,
+    normalizeIdentifier,
+    Table
+} from "@/components/basics/sql-editor/schema-utils";
+import {useDatabaseState} from "@/state/database.state";
 
 function isKnownDatabase(structure: Database[], token: string): boolean {
     return binarySearchByName(structure, token) !== -1;

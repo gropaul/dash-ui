@@ -1,6 +1,6 @@
 // the time in milliseconds to wait before showing the loading spinner
 
-import {StorageDestination} from "../model/database-connection";
+import {StorageDestination} from "@/model/database-connection";
 
 export const DASH_STORAGE_VERSION = 1 // increment this if there are breaking changes to the storage format
 export const LOADING_TIMER_OFFSET_MS = 150; // how long the query needs to run before showing the loading spinner [ms]

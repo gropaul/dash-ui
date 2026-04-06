@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {binarySearchByName, normalizeIdentifier} from './get-schema';
+import {binarySearchByName, normalizeIdentifier} from './schema-utils';
 
 describe('normalizeIdentifier', () => {
     it('lowercases plain names', () => {

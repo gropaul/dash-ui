@@ -1,7 +1,7 @@
 import {Monaco} from "@monaco-editor/react";
 import {AstCache, AstHighlight, getOrComputeAst, offsetToMonacoPosition, walkAst} from "./register-ast-utils";
 import {binarySearchByName, useDatabaseState} from "@/state/database.state";
-import {normalizeIdentifier} from "@/components/basics/sql-editor/get-schema";
+import {normalizeIdentifier} from "@/components/basics/sql-editor/schema-utils";
 
 // Highlights and caches stored per model URI so the global hover provider can read them
 const modelHighlights = new Map<string, AstHighlight[]>();
