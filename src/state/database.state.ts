@@ -13,12 +13,13 @@ import {
 } from "@/components/basics/sql-editor/get-schema";
 
 import {ConnectionsService} from "@/state/connections/connections-service";
-
+import {DATABASE_STATE_REFRESH_INTERVAL_MS} from "@/platform/global-data";
 
 interface DatabaseZustand {
     structure: Database[];
     functions: DatabaseFunction[];
     keywords: DatabaseKeyword[];
+    lastRefreshedAt: number | null;
     refresh: (areas?: RefreshArea[]) => Promise<void>;
     /** Find a table by name across all databases using binary search. */
     getTableByName: (name: string) => Table | undefined;
@@ -32,6 +33,10 @@ ConnectionsService.getInstance().onDatabaseConnectionChange(async (connection) =
     }
 });
 
+setInterval(() => {
+    void useDatabaseState.getState().refresh();
+}, DATABASE_STATE_REFRESH_INTERVAL_MS);
+
 export type RefreshArea = 'structure' | 'functions' | 'keywords';
 
 export const useDatabaseState = create<DatabaseZustand>()(
@@ -40,7 +45,11 @@ export const useDatabaseState = create<DatabaseZustand>()(
             structure: [],
             functions: [],
             keywords: [],
+            lastRefreshedAt: null,
             refresh: async (areas: RefreshArea[] = ['structure', 'functions', 'keywords']) => {
+                const now = Date.now();
+                const {lastRefreshedAt} = get();
+                if (lastRefreshedAt !== null && now - lastRefreshedAt < 30_000) return;
                 const [structure, macros, functions, keywords] = await Promise.all([
                     areas.includes('structure') ? getDatabaseStructure() : get().structure,
                     areas.includes('structure') ? getDatabaseMacros() : [] as Table[],
@@ -62,7 +71,7 @@ export const useDatabaseState = create<DatabaseZustand>()(
                 }
                 functions.sort((a, b) => a.name.localeCompare(b.name));
                 // keywords already ORDER BY keyword_name from the SQL query
-                set({structure, functions, keywords});
+                set({structure, functions, keywords, lastRefreshedAt: Date.now()});
             },
             getTableByName: (name: string) => {
                 const {structure} = get();
@@ -88,6 +97,7 @@ export const useDatabaseState = create<DatabaseZustand>()(
                 structure: state.structure,
                 functions: state.functions,
                 keywords: state.keywords,
+                lastRefreshedAt: state.lastRefreshedAt,
             }),
             onRehydrateStorage: () => (state) => {
                 // Refresh in background after rehydration to pick up any schema changes

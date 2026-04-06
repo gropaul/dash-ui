@@ -75,3 +75,5 @@ export const TABLE_MACRO_PREFIX = 'node_';
 
 // SQL editor debounce time for local code changes in milliseconds
 export const SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS = 300;
+
+export const DATABASE_STATE_REFRESH_INTERVAL_MS = 30_000;
