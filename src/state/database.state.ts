@@ -7,10 +7,8 @@ import {
     DatabaseFunction,
     DatabaseKeyword,
     getDatabaseFunctions,
-    getDatabaseKeywords,
+    getDatabaseKeywords, getDatabaseMacros,
     getDatabaseStructure,
-    getMacroColumns,
-    normalizeIdentifier,
     Table
 } from "@/components/basics/sql-editor/get-schema";
 
@@ -18,18 +16,27 @@ import {
 export {binarySearchByName};
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {getMacroName} from "@/state/relations/sql/table-macros";
+import {ConnectionsService} from "@/state/connections/connections-service";
 
 
 interface DatabaseZustand {
     structure: Database[];
     functions: DatabaseFunction[];
     keywords: DatabaseKeyword[];
-    refresh: () => Promise<void>;
+    refresh: (areas?: RefreshArea[]) => Promise<void>;
     /** Find a table by name across all databases using binary search. */
     getTableByName: (name: string) => Table | undefined;
     /** Find a column by name within a list of tables using binary search. */
     getColumnByName: (tables: Table[], columnName: string) => Column | undefined;
 }
+
+ConnectionsService.getInstance().onDatabaseConnectionChange(async (connection) => {
+    if (connection) {
+        await useDatabaseState.getState().refresh();
+    }
+});
+
+export type RefreshArea = 'structure' | 'functions' | 'keywords';
 
 export const useDatabaseState = create<DatabaseZustand>()(
     persist(
@@ -37,37 +44,18 @@ export const useDatabaseState = create<DatabaseZustand>()(
             structure: [],
             functions: [],
             keywords: [],
-            refresh: async () => {
-                const [structure, functions, keywords] = await Promise.all([
-                    getDatabaseStructure(),
-                    getDatabaseFunctions(),
-                    getDatabaseKeywords(),
+            refresh: async (areas: RefreshArea[] = ['structure', 'functions', 'keywords']) => {
+                const [structure, macros, functions, keywords] = await Promise.all([
+                    areas.includes('structure') ? getDatabaseStructure() : get().structure,
+                    areas.includes('structure') ? getDatabaseMacros() : [] as Table[],
+                    areas.includes('functions') ? getDatabaseFunctions() : get().functions,
+                    areas.includes('keywords') ? getDatabaseKeywords() : get().keywords,
                 ]);
-                // Merge canvas/dashboard relations as dash_node tables
-                const macroTables: Table[] = getAllRelations()
-                    .filter(r => r.origin !== 'dashboard' && r.relation.query.baseQuery)
-                    .map(r => {
-                        const macroName = getMacroName(r.relation.viewState.displayName);
-                        return {
-                            name: macroName,
-                            escapedName: normalizeIdentifier(macroName),
-                            type: 'dash_node' as const,
-                            displayName: r.relation.viewState.displayName,
-                            query: r.relation.query.baseQuery,
-                            children: [],
-                        };
-                    });
-                // Populate columns for each macro via DESCRIBE
-                const macroColumns = await getMacroColumns(macroTables.map(t => t.name));
-                for (const t of macroTables) {
-                    t.children = macroColumns.get(t.name) ?? [];
-                }
 
-                macroTables.sort((a, b) => a.escapedName.localeCompare(b.escapedName));
-                if (macroTables.length > 0) {
-                    structure.push({name: 'canvas', escapedName: 'canvas', type: 'dash_node', children: macroTables});
+                macros.sort((a, b) => a.escapedName.localeCompare(b.escapedName));
+                if (macros.length > 0) {
+                    structure.push({name: 'canvas', escapedName: 'canvas', type: 'dash_node', children: macros});
                 }
-
                 // Sort all levels by escapedName so binary search works correctly
                 structure.sort((a, b) => a.escapedName.localeCompare(b.escapedName));
                 for (const db of structure) {

@@ -15,10 +15,10 @@ import {registerFormatter} from "@/components/basics/sql-editor/register-formatt
 import {registerInputCompletion} from "@/components/basics/sql-editor/regsiter-input-completion";
 import {registerAiCompletion} from "@/components/basics/sql-editor/register-ai-completion";
 import {registerHighlighting} from "@/components/basics/sql-editor/register-highlighting";
-import {configureMonaco} from "@/components/basics/sql-editor/register-autocomplete";
+import {registerCompletionDuckDB} from "@/components/basics/sql-editor/register-autocomplete";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
-import {useDatabaseState} from "@/state/database.state";
+import {useMonacoState} from "@/state/monaco.state";
 
 export type SupportedLanguages = "sql" | "plaintext";
 
@@ -187,6 +187,7 @@ export function SqlEditor(
     function onMount(editor: any, monaco: Monaco) {
         // Store editor reference
         editorRef.current = editor;
+        useMonacoState.getState().setMonaco(monaco);
 
         // add the custom theme
         monaco.editor.defineTheme('customTheme', customTheme);
@@ -197,10 +198,8 @@ export function SqlEditor(
         registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
 
-        useDatabaseState.getState().refresh().then(() => {
-            registerHighlighting(editor, monaco);
-        })
-        configureMonaco(monaco);
+        registerHighlighting(editor, monaco);
+        registerCompletionDuckDB(monaco);
 
         if (!readOnly) {
 

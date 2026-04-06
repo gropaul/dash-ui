@@ -1,6 +1,8 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {GetCacheViewPrefix} from "@/state/relations-data/functions";
 import {TABLE_MACRO_PREFIX} from "@/platform/global-data";
+import {getAllRelations} from "@/state/relations/all-relation-utils";
+import {getMacroName} from "@/state/relations/sql/table-macros";
 
 export interface DatabaseFunction {
     name: string;
@@ -93,6 +95,29 @@ export async function getDatabaseKeywords(): Promise<DatabaseKeyword[]> {
     }
 }
 
+export async function getDatabaseMacros(): Promise<Table[]> {
+    // Merge canvas/dashboard relations as dash_node tables
+    const macroTables: Table[] = getAllRelations()
+        .filter(r => r.origin !== 'dashboard' && r.relation.query.baseQuery)
+        .map(r => {
+            const macroName = getMacroName(r.relation.viewState.displayName);
+            return {
+                name: macroName,
+                escapedName: normalizeIdentifier(macroName),
+                type: 'dash_node' as const,
+                displayName: r.relation.viewState.displayName,
+                query: r.relation.query.baseQuery,
+                children: [],
+            };
+        });
+    // Populate columns for each macro via DESCRIBE
+    const macroColumns = await getMacroColumns(macroTables.map(t => t.name));
+    for (const t of macroTables) {
+        t.children = macroColumns.get(t.name) ?? [];
+    }
+    return macroTables;
+}
+
 /**
  * For each macro name in the list, fetch its output columns via DESCRIBE.
  * Uses a single batched SELECT:
@@ -100,7 +125,7 @@ export async function getDatabaseKeywords(): Promise<DatabaseKeyword[]> {
  * Returns a map from macro name → Column[].
  * Macros that fail to describe (e.g. invalid SQL) are omitted from the map.
  */
-export async function getMacroColumns(macroNames: string[]): Promise<Map<string, Column[]>> {
+async function getMacroColumns(macroNames: string[]): Promise<Map<string, Column[]>> {
     if (macroNames.length === 0) return new Map();
     try {
         const selects = macroNames
@@ -167,7 +192,9 @@ export async function getDatabaseStructure(): Promise<Database[]> {
                 children: columns,
             })),
         }));
-    } catch {
+    } catch (error) {
+        console.error('Error fetching database structure');
+        console.error(error);
         return [];
     }
 }

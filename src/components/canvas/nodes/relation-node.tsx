@@ -64,8 +64,8 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
 
     // Refresh downstream nodes when this relation's query finishes
     useEffect(() => {
-        return onRelationEvent(() => {
-            refreshDownstream(props.id, {getNodes, getEdges, setNodes, setEdges});
+        return onRelationEvent(async () => {
+            await refreshDownstream(props.id, {getNodes, getEdges, setNodes, setEdges});
         }, ["QUERY_RUN_FINISHED", "UPDATE_SELECTION"], data.id);
     }, [props.id, getNodes, getEdges, setNodes, setEdges]);
 

@@ -6,14 +6,6 @@ function isKnownDatabase(structure: Database[], token: string): boolean {
     return binarySearchByName(structure, token) !== -1;
 }
 
-function findTableByName(structure: Database[], name: string): Table | undefined {
-    for (const db of structure) {
-        const idx = binarySearchByName(db.children, name);
-        if (idx !== -1) return db.children[idx];
-    }
-    return undefined;
-}
-
 // ---------------------------------------------------------------------------
 // Comment stripping — replaces comment text with spaces to preserve offsets
 // ---------------------------------------------------------------------------
@@ -70,6 +62,8 @@ export function extractReferencedTableNames(cleanSql: string): string[] {
 interface QueryContext {
     /** Tables actually referenced in the full SQL (resolved from structure). */
     referencedTables: Table[];
+    /** Escaped names of databases that own at least one referenced table. */
+    referencedDatabases: Set<string>;
     /** Database token being typed at the cursor (e.g. `mydb.` → `mydb`). */
     database?: string;
     /** Table token the cursor is inside (e.g. `mydb.orders` → `orders`). */
@@ -84,9 +78,16 @@ function parseQueryContext(query: string, position: any, structure: Database[]):
     // Resolve all FROM/JOIN table references against the known structure
     const tableNames = extractReferencedTableNames(clean);
     const referencedTables: Table[] = [];
+    const referencedDatabases = new Set<string>();
     for (const name of tableNames) {
-        const t = findTableByName(structure, name);
-        if (t) referencedTables.push(t);
+        for (const db of structure) {
+            const idx = binarySearchByName(db.children, name);
+            if (idx !== -1) {
+                referencedTables.push(db.children[idx]);
+                referencedDatabases.add(db.escapedName);
+                break;
+            }
+        }
     }
 
     // Determine what the user is actively typing at the cursor
@@ -125,7 +126,169 @@ function parseQueryContext(query: string, position: any, structure: Database[]):
         }
     }
 
-    return {referencedTables, database, table, isTypingDatabase};
+    return {referencedTables, referencedDatabases, database, table, isTypingDatabase};
+}
+
+// ---------------------------------------------------------------------------
+// Suggestion relevance levels
+// ---------------------------------------------------------------------------
+
+type SuggestionLevel = 'current' | 'referenced' | 'other';
+
+function levelRank(level: SuggestionLevel): '1' | '2' | '3' {
+    if (level === 'current') return '1';
+    if (level === 'referenced') return '2';
+    return '3';
+}
+
+function makeSortText(level: SuggestionLevel, name: string): string {
+    return `${levelRank(level)}_${name}`;
+}
+
+function getDatabaseLevel(db: Database, ctx: QueryContext): SuggestionLevel {
+    if (ctx.database && db.escapedName === normalizeIdentifier(ctx.database)) return 'current';
+    if (ctx.referencedDatabases.has(db.escapedName)) return 'referenced';
+    return 'other';
+}
+
+function getTableLevel(table: Table, ctx: QueryContext): SuggestionLevel {
+    if (ctx.table && table.escapedName === normalizeIdentifier(ctx.table)) return 'current';
+    if (ctx.referencedTables.includes(table)) return 'referenced';
+    return 'other';
+}
+
+function getColumnLevel(table: Table, ctx: QueryContext): SuggestionLevel {
+    if (ctx.table && table.escapedName === normalizeIdentifier(ctx.table)) return 'current';
+    if (ctx.referencedTables.includes(table)) return 'referenced';
+    return 'other';
+}
+
+// ---------------------------------------------------------------------------
+// Suggestion builders
+// ---------------------------------------------------------------------------
+
+function buildColumnSuggestions(
+    table: Table,
+    level: SuggestionLevel,
+    range: any,
+    monaco: Monaco,
+): any[] {
+    return table.children.map((col: Column) => ({
+        label: col.name,
+        kind: monaco.languages.CompletionItemKind.Field,
+        insertText: col.name,
+        filterText: col.escapedName,
+        sortText: makeSortText(level, col.escapedName),
+        detail: `${col.type} · ${table.name}`,
+        range,
+    }));
+}
+
+function buildTableSuggestions(
+    db: Database,
+    ctx: QueryContext,
+    range: any,
+    monaco: Monaco,
+): any[] {
+    const ctxTable = ctx.table ? normalizeIdentifier(ctx.table) : undefined;
+    const suggestions: any[] = [];
+
+    for (const table of db.children) {
+        if (ctxTable && !table.escapedName.startsWith(ctxTable)) continue;
+
+        const tableLevel = getTableLevel(table, ctx);
+        suggestions.push({
+            label: table.name,
+            kind: monaco.languages.CompletionItemKind.Struct,
+            insertText: table.type == 'dash_node' ? table.name + "()": table.name,
+            filterText: table.escapedName,
+            sortText: makeSortText(tableLevel, table.escapedName),
+            detail: `Table in ${db.name}`,
+            range,
+        });
+
+        // Also expand columns when this table is the active typing target
+        if (ctxTable && table.escapedName === ctxTable) {
+            suggestions.push(...buildColumnSuggestions(table, 'current', range, monaco));
+        }
+    }
+
+    return suggestions;
+}
+
+function buildDatabaseSuggestions(
+    structure: Database[],
+    ctx: QueryContext,
+    range: any,
+    monaco: Monaco,
+): any[] {
+    const ctxDb = ctx.database ? normalizeIdentifier(ctx.database) : undefined;
+    const suggestions: any[] = [];
+
+    for (const db of structure) {
+        if (ctxDb && !db.escapedName.startsWith(ctxDb)) continue;
+
+        const dbLevel = getDatabaseLevel(db, ctx);
+
+        if (ctx.isTypingDatabase || !ctxDb) {
+            suggestions.push({
+                label: db.name,
+                kind: monaco.languages.CompletionItemKind.Module,
+                insertText: db.name,
+                filterText: db.escapedName,
+                sortText: makeSortText(dbLevel, db.escapedName),
+                detail: 'Database',
+                range,
+            });
+        }
+
+        suggestions.push(...buildTableSuggestions(db, ctx, range, monaco));
+    }
+
+    return suggestions;
+}
+
+function buildReferencedColumnSuggestions(
+    ctx: QueryContext,
+    range: any,
+    monaco: Monaco,
+): any[] {
+    const suggestions: any[] = [];
+    for (const table of ctx.referencedTables) {
+        const level = getColumnLevel(table, ctx);
+        suggestions.push(...buildColumnSuggestions(table, level, range, monaco));
+    }
+    return suggestions;
+}
+
+function buildKeywordSuggestions(
+    keywords: {name: string}[],
+    adapt: (s: string) => string,
+    range: any,
+    monaco: Monaco,
+): any[] {
+    return keywords.map((kw) => ({
+        label: adapt(kw.name),
+        kind: monaco.languages.CompletionItemKind.Keyword,
+        insertText: adapt(kw.name),
+        sortText: `4_${kw.name}`,
+        range,
+    }));
+}
+
+function buildFunctionSuggestions(
+    functions: {name: string}[],
+    adapt: (s: string) => string,
+    range: any,
+    monaco: Monaco,
+): any[] {
+    return functions.map((fn) => ({
+        label: adapt(fn.name),
+        kind: monaco.languages.CompletionItemKind.Function,
+        insertText: `${adapt(fn.name)}()`,
+        sortText: `5_${fn.name}`,
+        range,
+    }));
 }
 
 // ---------------------------------------------------------------------------
@@ -134,25 +297,10 @@ function parseQueryContext(query: string, position: any, structure: Database[]):
 
 let configured = false;
 
-export function configureMonaco(monaco: Monaco) {
-    if (configured) return;
-    configured = true;
-
-    monaco.languages.register({id: "sql"});
-
-    monaco.languages.setLanguageConfiguration("sql", {
-        brackets: [["(", ")"], ["[", "]"]],
-        autoClosingPairs: [
-            {open: "(", close: ")"},
-            {open: "[", close: "]"},
-            {open: '"', close: '"'},
-            {open: "'", close: "'"},
-        ],
-    });
-
+export function refreshMonacoTokenizer(monaco: Monaco) {
     monaco.languages.setMonarchTokensProvider("sql", {
         keywords: useDatabaseState.getState().keywords
-            .filter(kw => kw.type ==='reserved')
+            .filter(kw => kw.type === 'reserved')
             .map(kw => kw.name),
         operators: ["=", ">", "<", "<=", ">=", "<>", "!=", "AND", "OR", "NOT", "LIKE", "IN", "BETWEEN"],
         tokenizer: {
@@ -169,6 +317,23 @@ export function configureMonaco(monaco: Monaco) {
             comment: [[/[^-]+/, "comment"], [/--/, "comment"]],
         },
     });
+}
+
+export function registerCompletionDuckDB(monaco: Monaco) {
+    if (configured) return;
+    configured = true;
+
+    monaco.languages.register({id: "sql"});
+
+    monaco.languages.setLanguageConfiguration("sql", {
+        brackets: [["(", ")"], ["[", "]"]],
+        autoClosingPairs: [
+            {open: "(", close: ")"},
+            {open: "[", close: "]"},
+            {open: '"', close: '"'},
+            {open: "'", close: "'"},
+        ],
+    });
 
     monaco.languages.registerCompletionItemProvider("sql", {
         provideCompletionItems: (model: any, position: any) => {
@@ -180,97 +345,25 @@ export function configureMonaco(monaco: Monaco) {
                 endColumn: word.endColumn,
             };
 
-            const {structure, functions, keywords, refresh} = useDatabaseState.getState();
-            void refresh(); // keep cache warm for next call
+            const {structure, functions, keywords} = useDatabaseState.getState();
 
-            // Detect casing preference from the current word so suggestions match the user's style
             const currentWord = word.word;
             const upperCase = currentWord.length > 0 && currentWord === currentWord.toUpperCase();
             const adapt = (s: string) => upperCase ? s.toUpperCase() : s.toLowerCase();
 
             const ctx = parseQueryContext(model.getValue(), position, structure);
-            const suggestions: any[] = [];
 
-            // Columns from all tables referenced in this query (unqualified typing)
-            if (!ctx.database && !ctx.table) {
-                for (const table of ctx.referencedTables) {
-                    for (const col of table.children) {
-                        suggestions.push({
-                            label: col.name,
-                            kind: monaco.languages.CompletionItemKind.Field,
-                            insertText: col.name,
-                            sortText: `0_${col.name}`,
-                            detail: `${col.type} · ${table.name}`,
-                            range,
-                        });
-                    }
-                }
-            }
+            const suggestions: any[] = [
+                // Unqualified column typing — columns from referenced tables
+                ...(!ctx.database && !ctx.table ? buildReferencedColumnSuggestions(ctx, range, monaco) : []),
+                // Databases and their tables/columns
+                ...buildDatabaseSuggestions(structure, ctx, range, monaco),
+                // Keywords and functions
+                ...buildKeywordSuggestions(keywords, adapt, range, monaco),
+                ...buildFunctionSuggestions(functions, adapt, range, monaco),
+            ];
 
-            const ctxDb = ctx.database ? normalizeIdentifier(ctx.database) : undefined;
-            const ctxTable = ctx.table ? normalizeIdentifier(ctx.table) : undefined;
-
-            structure.forEach((db: Database) => {
-                if (!ctxDb || db.escapedName.startsWith(ctxDb)) {
-                    // Suggest database names when no qualifier is typed yet
-                    if (ctx.isTypingDatabase || !ctxDb) {
-                        suggestions.push({
-                            label: db.name,
-                            kind: monaco.languages.CompletionItemKind.Module,
-                            insertText: db.name,
-                            sortText: `0_${db.escapedName}`,
-                            detail: "Database",
-                            range,
-                        });
-                    }
-
-                    if (ctx.isTypingDatabase || db.escapedName === ctxDb || true) {
-                        db.children.forEach((table: Table) => {
-                            if (!ctxTable || table.escapedName.startsWith(ctxTable)) {
-                                suggestions.push({
-                                    label: table.name,
-                                    kind: monaco.languages.CompletionItemKind.Struct,
-                                    insertText: table.name,
-                                    sortText: `0_${table.escapedName}`,
-                                    detail: `Table in ${db.name}`,
-                                    range,
-                                });
-
-                                if (ctxTable && table.escapedName === ctxTable) {
-                                    table.children.forEach((col: Column) => {
-                                        suggestions.push({
-                                            label: col.name,
-                                            kind: monaco.languages.CompletionItemKind.Field,
-                                            insertText: col.name,
-                                            sortText: `0_${col.escapedName}`,
-                                            detail: `${table.name} · ${col.type}`,
-                                            range,
-                                        });
-                                    });
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-
-            const keywordSuggestions = keywords.map((kw) => ({
-                label: adapt(kw.name),
-                kind: monaco.languages.CompletionItemKind.Keyword,
-                insertText: adapt(kw.name),
-                sortText: `1_${kw.name}`,
-                range,
-            }));
-
-            const functionSuggestions = functions.map((fn) => ({
-                label: adapt(fn.name),
-                kind: monaco.languages.CompletionItemKind.Function,
-                insertText: `${adapt(fn.name)}()`,
-                sortText: `2_${fn.name}`,
-                range,
-            }));
-
-            return {suggestions: [...suggestions, ...keywordSuggestions, ...functionSuggestions]};
+            return {suggestions};
         },
     });
 }

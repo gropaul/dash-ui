@@ -7,6 +7,7 @@ import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relatio
 import {removeComments} from "@/platform/sql-utils";
 import {SelectionState} from "@/model/relation-view-state/selection";
 import {buildSelectionFilteredQuery} from "@/state/relations/sql/selection-query";
+import {useDatabaseState} from "@/state/database.state";
 
 /**
  * Check if the database is in read-only mode.
@@ -281,26 +282,27 @@ export async function dropRelationMacro(relationName: string): Promise<void> {
  * Handle relation actions for macro management.
  * Note: SQL editor already debounces onCodeChange (300ms), so no extra debouncing needed here.
  */
-function handleRelationAction(action: RelationEvent): void {
+async function handleRelationAction(action: RelationEvent): Promise<void> {
     switch (action.type) {
         case 'CREATE':
         case 'UPDATE_SQL':
         case 'UPDATE_PARAMS':
         case 'UPDATE_SELECTION': {
             const s = action.new!;
-            registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters, s.viewState.selectionState);
+            await registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters, s.viewState.selectionState);
             break;
         }
         case 'DELETE':
-            dropRelationMacro(action.old!.viewState.displayName);
+            await dropRelationMacro(action.old!.viewState.displayName);
             break;
         case 'RENAME': {
-            dropRelationMacro(action.old!.viewState.displayName);
+            await dropRelationMacro(action.old!.viewState.displayName);
             const s = action.new!;
-            registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters, s.viewState.selectionState);
+            await registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters, s.viewState.selectionState);
             break;
         }
     }
+    await useDatabaseState.getState().refresh(['structure']);
 }
 
 // Subscribe to relation actions
