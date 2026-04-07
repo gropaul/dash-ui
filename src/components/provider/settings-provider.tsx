@@ -14,10 +14,11 @@ interface ConnectionsProviderProps {
 
 export default function SettingsProvider({children}: ConnectionsProviderProps) {
 
-    const [settingsOpen, settingsTab, setSettingsOpen, forceOpenReasons] = useGUIState(state => [
+    const [settingsOpen, settingsTab, setSettingsOpen, setSettingsCurrentTab, forceOpenReasons] = useGUIState(state => [
         state.settings.isOpen,
         state.settings.currentTab,
         state.setSettingsOpen,
+        state.setSettingsCurrentTab,
         state.settings.forceOpenReasons,
     ]);
 
@@ -31,7 +32,8 @@ export default function SettingsProvider({children}: ConnectionsProviderProps) {
                 forceOpenReasons={forceOpenReasons}
                 onOpenChange={setSettingsOpen}
                 onSpecSave={onSpecSelected}
-                initialTab={settingsTab}
+                activeTab={settingsTab}
+                onActiveTabChange={setSettingsCurrentTab}
             />
         </>
     );

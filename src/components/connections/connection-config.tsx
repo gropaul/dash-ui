@@ -1,6 +1,6 @@
 import React, {FC, ReactElement, useEffect, useRef, useState} from "react";
 import {CustomForm, FormDefinition} from "@/components/basics/input/custom-form";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField} from "@/state/connections/duckdb-over-http/widgets";
 import {DBConnectionSpec, getDefaultSpec, specToConnection, typeToLabel} from "@/state/connections/configs";
@@ -23,53 +23,6 @@ const DUCKDB_LOCAL_DESCRIPTION =
     "This setup uses a local DuckDB via HTTP, giving full machine power and file access. DuckDB must be running locally.";
 
 const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
-    "duckdb-over-http": {
-        fields: [
-            {
-                type: 'description',
-                label: DUCKDB_LOCAL_DESCRIPTION,
-                key: 'description'
-            },
-            {
-                type: 'text',
-                label: 'URL',
-                key: 'url',
-                required: true,
-                validation: (rawValue: string) => validateUrl(rawValue, 'port_required')
-            },
-            {
-                type: 'boolean',
-                label: 'Authentication',
-                key: 'useToken',
-                required: false,
-            },
-            {
-                type: 'password',
-                label: 'Token',
-                key: 'token',
-                required: true,
-                shouldBeVisible: (formData) => formData.useToken === true
-            },
-            {
-                type: 'custom',
-                label: 'Connection String',
-                key: 'connectionString',
-                required: false,
-                shouldBeVisible: formData => !validateUrl(formData.url, 'port_required'),
-                customField: {
-                    render: ConnectionStringField
-                }
-            },
-            {
-                type: 'custom',
-                key: 'connectionCheck',
-                customField: {
-                    render: (data) => ConnectionChecker({formData: data.formData, type: 'duckdb-over-http'})
-                },
-
-            },
-        ]
-    },
     "duckdb-wasm": {
         fields: [
             {
@@ -118,7 +71,54 @@ const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
                 },
             },
         ]
-    }
+    },
+    "duckdb-over-http": {
+        fields: [
+            {
+                type: 'description',
+                label: DUCKDB_LOCAL_DESCRIPTION,
+                key: 'description'
+            },
+            {
+                type: 'text',
+                label: 'URL',
+                key: 'url',
+                required: true,
+                validation: (rawValue: string) => validateUrl(rawValue, 'port_required')
+            },
+            {
+                type: 'boolean',
+                label: 'Authentication',
+                key: 'useToken',
+                required: false,
+            },
+            {
+                type: 'password',
+                label: 'Token',
+                key: 'token',
+                required: true,
+                shouldBeVisible: (formData) => formData.useToken === true
+            },
+            {
+                type: 'custom',
+                label: 'Connection String',
+                key: 'connectionString',
+                required: false,
+                shouldBeVisible: formData => !validateUrl(formData.url, 'port_required'),
+                customField: {
+                    render: ConnectionStringField
+                }
+            },
+            {
+                type: 'custom',
+                key: 'connectionCheck',
+                customField: {
+                    render: (data) => ConnectionChecker({formData: data.formData, type: 'duckdb-over-http'})
+                },
+
+            },
+        ]
+    },
 }
 
 export function ClearOpfsButton() {
@@ -298,19 +298,16 @@ export function ConnectionConfig({spec, onSpecChange, onSpecSave}: ConnectionCon
     return (
         <div className="w-full h-full">
             <div className="flex items-center flex-col justify-between h-full w-full">
-                <div className="min-w-full">
-                    <Select value={spec.type} onValueChange={(v) => onTypeChange(v as DBConnectionType)}>
-                        <SelectTrigger className="mb-4">
-                            <SelectValue placeholder="DuckDB instance"/>
-                        </SelectTrigger>
-                        <SelectContent>
+                <div className="min-w-full mb-4">
+                    <Tabs value={spec.type} onValueChange={(v) => onTypeChange(v as DBConnectionType)}>
+                        <TabsList className="w-full">
                             {Object.keys(FROM_DEFINITIONS).map((type) => (
-                                <SelectItem key={type} value={type as DBConnectionType}>
+                                <TabsTrigger key={type} value={type} className="flex-1">
                                     {typeToLabel(type as DBConnectionType)}
-                                </SelectItem>
+                                </TabsTrigger>
                             ))}
-                        </SelectContent>
-                    </Select>
+                        </TabsList>
+                    </Tabs>
                 </div>
                 <div className="w-full flex-grow">
                     <CustomForm

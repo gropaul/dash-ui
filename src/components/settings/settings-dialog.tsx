@@ -42,7 +42,8 @@ export interface SettingsViewProps {
     forceOpenReasons: ForceOpenReason[];
     onOpenChange: (open: boolean) => void;
     onSpecSave?: (spec: DBConnectionSpec) => void;
-    initialTab?: SettingsTab;
+    activeTab?: SettingsTab;
+    onActiveTabChange: (tab: SettingsTab | undefined) => void;
 }
 
 export function getCurrentSpec(): DBConnectionSpec {
@@ -55,7 +56,6 @@ export function getCurrentSpec(): DBConnectionSpec {
 }
 
 export function SettingsDialog(props: SettingsViewProps) {
-    const [activeTab, setActiveTab] = useState<SettingsTab | undefined>(props.initialTab);
     const [currentSpec, setCurrentSpec] = useState<DBConnectionSpec>(getCurrentSpec());
 
     // Reset the current spec when the dialog is opened
@@ -64,11 +64,6 @@ export function SettingsDialog(props: SettingsViewProps) {
             setCurrentSpec(getCurrentSpec());
         }
     }, [props.open]);
-
-    // Update the active tab when initialTab prop changes
-    React.useEffect(() => {
-        setActiveTab(props.initialTab);
-    }, [props.initialTab]);
 
     function onLocalOpenChange(open: boolean) {
         const forceOpen = props.forceOpenReasons.length > 0;
@@ -130,8 +125,8 @@ export function SettingsDialog(props: SettingsViewProps) {
                 <DialogTitle className="sr-only">Settings</DialogTitle>
                 <SettingsContent
                     tabs={tabs}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
+                    activeTab={props.activeTab}
+                    setActiveTab={props.onActiveTabChange}
                     onLocalOpenChange={onLocalOpenChange}
                     {...props}
                 />

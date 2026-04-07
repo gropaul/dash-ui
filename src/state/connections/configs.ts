@@ -31,7 +31,7 @@ export interface DBConnectionSpec {
     config: DatabaseConfigMap[DatabaseConnectionType];
 }
 
-export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"): DBConnectionSpec {
+export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-wasm"): DBConnectionSpec {
     // console.log("getDefaultSpec", type);
     switch (type) {
         case "duckdb-over-http":
@@ -52,7 +52,6 @@ export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-over-http"
                 },
             };
         case "duckdb-wasm-motherduck":
-            console.log("getDefaultSpec motherduck");
             return {
                 type: "duckdb-wasm-motherduck",
                 config: {
