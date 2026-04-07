@@ -1,59 +1,24 @@
-import {WindowSplitter} from "@/components/ui/window-splitter";
 import {ChartConfigView} from "@/components/relation/chart/chart-config-view";
-import {cn} from "@/lib/utils";
-import {ChartConfigDialog} from "@/components/relation/chart/chart-config-dialog";
 import {ChartContentWrapper} from "@/components/relation/chart/chart-content-wrapper";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
+import {WidgetConfigShell} from "@/components/relation/widget-config-shell";
 
 export function Chart(props: RelationViewContentProps) {
+    const configState = props.relationState.viewState.configState;
+    const configDisplayMode = props.configDisplayMode ?? configState?.configDisplayMode ?? (props.embedded ? 'dialog' : 'inline');
 
-    function updateConfigRatio(ratio: number) {
-        props.updateRelationViewState( {
-            chartState: {
-                view: {
-                    configPlotRatio: ratio,
-                }
-            }
-        });
-    }
-
-    const config = props.relationState.viewState.chartState;
-
-    const configDisplayMode = props.configDisplayMode ?? (props.embedded ? 'dialog' : 'inline');
-    const isEmbedded = props.embedded ?? false;
-    const paddingClass = isEmbedded ? 'p-0' : ' p-2';
-
-    const isResizable = props.height === 'resizable';
-    const heightClass = isResizable ? 'h-fit' : 'h-full';
-    const overflowClass = isResizable ? 'overflow-hidden' : 'overflow-auto';
     return (
-        <>
-            <div className={cn('group w-full relative overflow-hidden', heightClass)}>
-                <WindowSplitter
-                    ratio={config.view.configPlotRatio}
-                    layout={config.view.layout}
-                    onChange={updateConfigRatio}
-                    child2Active={config.view.showConfig && configDisplayMode == 'inline'}
-                >
-                    <div className={cn(paddingClass, heightClass, overflowClass, 'relative')}>
-                        <ChartContentWrapper {...props}/>
-                    </div>
-                    {configDisplayMode == 'inline' ? <div className={'px-4 py-3 w-full h-full overflow-y-auto'}>
-                        <ChartConfigView {...props} />
-                    </div> : <div/>}
-                </WindowSplitter>
-            </div>
-            <ChartConfigDialog
-                isOpen={config.view.showConfig && configDisplayMode == 'dialog'}
-                onOpenChange={(open) => props.updateRelationViewState({
-                    chartState: {
-                        view: {
-                            showConfig: open
-                        }
-                    }
-                })}
-                {...props}
-            />
-        </>
-    )
+        <WidgetConfigShell
+            showConfig={configState?.showConfig ?? true}
+            configDisplayMode={configDisplayMode}
+            splitRatio={configState?.configSplitRatio ?? 0.5}
+            splitLayout={configState?.configSplitLayout ?? 'column'}
+            onSplitRatioChange={(r) => props.updateRelationViewState({configState: {configSplitRatio: r}})}
+            onOpenChange={(open) => props.updateRelationViewState({configState: {showConfig: open}})}
+            embedded={props.embedded}
+            height={props.height}
+            content={<ChartContentWrapper {...props}/>}
+            configPanel={<ChartConfigView {...props}/>}
+        />
+    );
 }

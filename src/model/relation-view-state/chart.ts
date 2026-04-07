@@ -1,4 +1,3 @@
-import {Layout} from "@/model/relation-view-state";
 import {RelationData} from "@/model/relation";
 import {CHART_QUERY_LIMIT, DEFAULT_COLORS} from "@/platform/global-data";
 
@@ -361,15 +360,8 @@ export interface ChartConfig {
     plot: PlotConfig;
 }
 
-export interface ConfigViewState {
-    showConfig: boolean;
-    configPlotRatio: number;
-    layout: Layout,
-}
-
 export interface ChartViewState {
     chart: ChartConfig;
-    view: ConfigViewState;
 }
 
 export function getInitialChartViewStateEmpty(): ChartViewState {
@@ -392,11 +384,6 @@ export function getInitialChartViewStateEmpty(): ChartViewState {
                 }
             }
         },
-        view: {
-            showConfig: true,
-            configPlotRatio: 0.5,
-            layout: 'column',
-        }
     }
 }
 
@@ -420,11 +407,6 @@ export function getInitialChartViewState(data: RelationData): ChartViewState {
                 }
             }
         },
-        view: {
-            showConfig: true,
-            configPlotRatio: 0.5,
-            layout: 'column',
-        }
     }
 }
 

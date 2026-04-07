@@ -50,6 +50,7 @@ export interface GUIZustandActions {
     setRelationFileDropEnabled: (enabled: boolean) => void;
 
     setSettingsOpen: (open: boolean) => void;
+    setSettingsCurrentTab: (tab: SettingsTab | undefined) => void;
     addSettingForceOpenReason: (reason: ForceOpenReason) => void;
     removeSettingForceOpenReason: (reason: ForceOpenReason, closeSettingsIfLast?: boolean) => void;
     openSettingsTab: (tab: SettingsTab | undefined) => void;
@@ -112,6 +113,15 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                     settings: {
                         ...get().settings,
                         isOpen: open,
+                    }
+                });
+            },
+
+            setSettingsCurrentTab: (tab: SettingsTab | undefined) => {
+                set({
+                    settings: {
+                        ...get().settings,
+                        currentTab: tab,
                     }
                 });
             },

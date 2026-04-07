@@ -141,11 +141,6 @@ function getChartViewState(args: ChartViewDataArgs): ChartViewState {
                 }
             }
         },
-        view: {
-            showConfig: false,
-            configPlotRatio: 0.5,
-            layout: 'column',
-        }
     }
 }
 
@@ -200,6 +195,9 @@ function chartInputToPartialRelation(input: z.infer<typeof ChartToolInputSchema>
         viewState: {
             selectedView: 'chart',
             chartState: chartViewState,
+            configState: {
+                showConfig: false,
+            },
         }
     };
 }

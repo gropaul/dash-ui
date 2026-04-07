@@ -88,7 +88,7 @@ export class RelationActions {
             }];
             viewState.chartState.chart.plot.type = 'line';
             viewState.chartState.chart.plot.cartesian.xAxisType = 'value';
-            viewState.chartState.view.showConfig = false;
+            viewState.configState.showConfig = false;
         }
         const baseQuery = getBaseQueryFromSource(source);
         const relationState: RelationState = {

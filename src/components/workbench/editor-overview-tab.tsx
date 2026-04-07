@@ -58,12 +58,9 @@ export function onAddToDashboardSelected(relation_: RelationState, dashboard: Da
         ...copy,
         viewState: {
             ...copy.viewState,
-            chartState: {
-                ...copy.viewState.chartState,
-                view: {
-                    ...copy.viewState.chartState.view,
-                    showConfig: false,
-                }
+            configState: {
+                ...copy.viewState.configState,
+                showConfig: false,
             },
             codeFenceState: {
                 sizePercentage: 50.0,

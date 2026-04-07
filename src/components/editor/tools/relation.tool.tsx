@@ -76,7 +76,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
     public renderSettings(): HTMLElement | MenuConfig {
 
         const superSettings = super.renderSettings();
-        const chartSettingsVisible = this.data.viewState.chartState.view.showConfig;
+        const chartSettingsVisible = this.data.viewState.configState?.showConfig ?? false;
         const chartSettingsText = chartSettingsVisible ? 'Hide Chart Settings' : 'Show Chart Settings';
 
         const selectedView = this.data.viewState.selectedView;
@@ -108,7 +108,7 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
                 icon: chartSettingsVisible ? ICON_CAPTIONS_OFF : ICON_SETTING,
                 closeOnActivate: true,
                 onActivate: () => {
-                    this.getActions().showChartSettings(!chartSettingsVisible);
+                    this.getActions().toggleWidgetConfig();
                 }
             }] : []
         ]

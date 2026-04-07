@@ -31,6 +31,22 @@ import {SelectionState} from "@/model/relation-view-state/selection";
 
 export type Layout = 'row' | 'column';
 
+export interface WidgetConfigShellState {
+    showConfig: boolean;
+    configDisplayMode: 'inline' | 'dialog';
+    configSplitRatio: number;
+    configSplitLayout: Layout;
+}
+
+export function getInitialWidgetConfigShellState(defaults?: Partial<WidgetConfigShellState>): WidgetConfigShellState {
+    return {
+        showConfig: defaults?.showConfig ?? false,
+        configDisplayMode: defaults?.configDisplayMode ?? 'inline',
+        configSplitRatio: defaults?.configSplitRatio ?? 0.5,
+        configSplitLayout: defaults?.configSplitLayout ?? 'column',
+    };
+}
+
 export interface CodeFenceViewState {
     show: boolean;
     sizePercentage: number; // percentage, 0-100
@@ -60,6 +76,7 @@ export interface RelationViewState extends RelationViewBaseState {
     textDisplayState: TextDisplayViewState
     parametersState: ParametersState
     selectionState?: SelectionState
+    configState: WidgetConfigShellState
     schema: Column[];
 }
 
@@ -109,6 +126,13 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
         showHeader: true,
     }
 
+    const defaultConfigState: WidgetConfigShellState = getInitialWidgetConfigShellState({
+        showConfig: true,
+        configDisplayMode: 'inline',
+        configSplitRatio: 0.5,
+        configSplitLayout: 'column',
+    });
+
     if (!data) {
         return {
             ...baseState,
@@ -117,6 +141,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
             inputTextState: getInitialSelectViewStateEmpty(),
             textDisplayState: getInitialTextViewStateEmpty(),
             parametersState: getInitialParametersState(),
+            configState: defaultConfigState,
             schema: [],
         };
     }
@@ -128,6 +153,7 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
         inputTextState: getInitialSelectViewState(data),
         textDisplayState: getInitialTextViewState(data),
         parametersState: getInitialParametersState(),
+        configState: defaultConfigState,
         schema: schemaColumns ?? data.columns,
     };
 }

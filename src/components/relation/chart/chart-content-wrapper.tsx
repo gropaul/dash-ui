@@ -54,14 +54,12 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
     const isEmbedded = props.embedded ?? false;
     const showOverlay = props.showOverlay ?? true;
 
-    const showChartSettings = props.relationState.viewState.chartState.view.showConfig;
+    const showChartSettings = props.relationState.viewState.configState?.showConfig ?? false;
 
     function updateShowConfig() {
         props.updateRelationViewState({
-            chartState: {
-                view: {
-                    showConfig: !showChartSettings,
-                },
+            configState: {
+                showConfig: !showChartSettings,
             },
         });
     }

@@ -20,14 +20,12 @@ export function ChartSettingsContent(props: RelationSettingsProps) {
 
     const chartExport = useRelationContext();
 
-    const showChartSettings = props.relationState.viewState.chartState.view.showConfig;
+    const showChartSettings = props.relationState.viewState.configState?.showConfig ?? false;
 
     function updateShowConfig() {
         props.updateRelationViewState({
-            chartState: {
-                view: {
-                    showConfig: !showChartSettings,
-                },
+            configState: {
+                showConfig: !showChartSettings,
             },
         });
     }

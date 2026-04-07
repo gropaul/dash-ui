@@ -70,6 +70,32 @@ To start the production server:
 pnpm start
 ```
 
+## Testing
+
+This project uses [Playwright](https://playwright.dev/) for end-to-end testing. Tests are located in the `./test` directory.
+
+### Run tests
+
+```bash
+pnpm exec playwright test
+```
+
+### Record a new test
+
+Make sure the dev server is running, then:
+
+```bash
+pnpm exec playwright codegen http://localhost:3000
+```
+
+This opens a browser where you interact with the app, and Playwright records your actions as test code. Copy the generated code into a new file under `./test/`.
+
+### View test report
+
+```bash
+pnpm exec playwright show-report
+```
+
 ## DuckDB Extension
 
 There is a DuckDB extension for Dash available [here](https://github.com/gropaul/dash).

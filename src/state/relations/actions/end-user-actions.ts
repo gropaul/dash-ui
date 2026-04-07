@@ -4,17 +4,16 @@ import {RelationViewAPIProps} from "@/components/relation/relation-view";
 import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/actions/advanced-actions";
 
 export interface EndUserRelationActions extends AdvancedRelationActions {
-    // toggle show code
     toggleShowCode: () => void,
     toggleShowHeader: () => void,
     toggleShowParameters: () => void,
-    // set view type
     setRelationViewType: (view: RelationViewType) => void,
-    // show chart settings
-    showChartSettings: (show: boolean) => void,
 
-    // set display name
-    setDisplayName: (name: string, path?: string[] ) => void,
+    // Shared widget config panel actions (used by chart, slider, date, text display, …)
+    toggleWidgetConfig: () => void,
+    setWidgetConfigDisplayMode: (mode: 'inline' | 'dialog') => void,
+
+    setDisplayName: (name: string, path?: string[]) => void,
 }
 
 export function getRelationActions(props: RelationViewAPIProps): EndUserRelationActions {
@@ -52,13 +51,19 @@ export function getRelationActions(props: RelationViewAPIProps): EndUserRelation
                 selectedView: view,
             });
         },
-        showChartSettings(show: boolean) {
+        toggleWidgetConfig: () => {
+            const current = relationState.viewState.configState?.showConfig ?? false;
             advancedActions.updateRelationViewState({
-                chartState: {
-                    view: {
-                        showConfig: show,
-                    }
-                }
+                configState: {
+                    showConfig: !current,
+                },
+            });
+        },
+        setWidgetConfigDisplayMode: (mode: 'inline' | 'dialog') => {
+            advancedActions.updateRelationViewState({
+                configState: {
+                    configDisplayMode: mode,
+                },
             });
         },
         setDisplayName: (name: string, path: string[] = []) => {
