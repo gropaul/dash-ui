@@ -17,6 +17,7 @@ import {getAvailableTargets, isTargetEnabled} from "@/components/chat/model/chat
 import {TableViewConfigSchema} from "@/model/relation-view-state/table";
 import {deepClone, DeepPartial} from "@/platform/object-utils";
 import {updateRelationWithPartial} from "@/state/relations/actions/advanced-actions";
+import {useLanguageModelState} from "@/state/language-model.state";
 
 
 // --- Query Tool (unchanged) ---
@@ -35,9 +36,8 @@ export const QueryDatabaseTool = tool({
             return 'Error: No database connection available.';
         }
 
-        const db = connection.getDatabaseConnection();
         try {
-            const result = await db.executeQuery(query);
+            const result = await connection.executeQuery(query, useLanguageModelState.getState().isReadOnly());
 
             // Limit rows for very large result sets
             if (result.rows.length > 200) {
@@ -265,6 +265,8 @@ function GetBase(targetId: string, sql: string, viewType: RelationViewType): Rel
 
 async function RouteAndApplyTarget(target: string, data: RelationState): Promise<string | RelationState> {
 
+    const readOnly = useLanguageModelState.getState().isReadOnly();
+
     // Guard: reject targets the user has disabled in the context bar
     if (target !== 'chat' && !isTargetEnabled(target)) {
         return `Error: Target "${target}" is not enabled. The user has disabled this target in the context bar.`;
@@ -272,7 +274,7 @@ async function RouteAndApplyTarget(target: string, data: RelationState): Promise
 
     switch (getTargetType(target)) {
         case 'chat':
-            const executed = await executeQueryOfRelation(data);
+            const executed = await executeQueryOfRelation(data, undefined, readOnly);
             if (executed.executionState.state === 'error') {
                 return `Error executing query: ${JSON.stringify(executed.executionState.error, null, 2)}`;
             } else {
@@ -289,14 +291,15 @@ async function RouteAndApplyTarget(target: string, data: RelationState): Promise
             await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
             return `Relation was updated successfully.`;
         case 'dashboard': {
-            const error = insertBlockIntoDashboard(target, RELATION_BLOCK_NAME, data);
-            return error || `Table was added successfully to the dashboard.`;
+            throw new Error('Dashboard target not implemented yet, readonly is not supported yet.');
+            // const error = insertBlockIntoDashboard(target, RELATION_BLOCK_NAME, data);
+            // return error || `Table was added successfully to the dashboard.`;
         }
     }
 }
 
 export const TableTool = tool({
-    description: 'Creates a table from a SQL query. Can show it in chat, add it to a dashboard, or update a relation tab.',
+    description: 'Runs a SQL query and renders the result as a table. Targets: chat (inlined automatically, no need to put the data in the chat again), dashboard, or relation tab.',
     inputSchema: TableToolInputSchema,
     execute: async (props) => {
         const {target, sql} = props;

@@ -26,17 +26,26 @@ export const obfuscatedStorage: StateStorage = {
     },
 };
 
+export type AgentQueryMode = 'read-only' | 'all';
+
+export interface AgentSettings {
+    queryMode: AgentQueryMode;
+}
+
 export interface LanguageModelState {
     activeProviderId: LanguageModelProvider;
     providerConfigs: Record<string, Record<string, any>>;
+    settings: AgentSettings;
 }
 
 export interface LanguageModelActions {
     setActiveProvider: (providerId: LanguageModelProvider) => void;
     updateProviderConfig: (providerId: string, config: Record<string, any>) => void;
+    updateSettings: (settings: Partial<AgentSettings>) => void;
     getLanguageModel: () => LanguageModel;
     getCurrentProviderStatus: () => Promise<ValidationStatus>;
     getProviderStatus: (providerId?: string) => Promise<ValidationStatus>;
+    isReadOnly: () => boolean;
 }
 
 // Initialize the registry with default providers
@@ -47,6 +56,7 @@ export const useLanguageModelState = create<LanguageModelState & LanguageModelAc
         (set, get) => ({
             activeProviderId: 'openai',
             providerConfigs: ProviderRegistry.getInstance().getInitialConfigs(),
+            settings: { queryMode: 'read-only' },
             setActiveProvider: (providerId) => {
                 set({activeProviderId: providerId});
             },
@@ -66,6 +76,11 @@ export const useLanguageModelState = create<LanguageModelState & LanguageModelAc
                 if (provider) {
                     provider.updateConfig(config);
                 }
+            },
+            updateSettings: (settings) => {
+                set((state) => ({
+                    settings: { ...state.settings, ...settings },
+                }));
             },
             getLanguageModel: () => {
                 const state = get();
@@ -90,6 +105,9 @@ export const useLanguageModelState = create<LanguageModelState & LanguageModelAc
                 }
 
                 return await provider.getStatus();
+            },
+            isReadOnly: () => {
+                return get().settings.queryMode === 'read-only';
             },
         }),
         {

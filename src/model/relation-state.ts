@@ -542,7 +542,7 @@ export function returnEmptyErrorState(relation: RelationState, error: unknown): 
 }
 
 // builds and executes the query and updates the view state
-export async function executeQueryOfRelation(input: RelationState, inputManager?: InputManager): Promise<RelationState> {
+export async function executeQueryOfRelation(input: RelationState, inputManager?: InputManager, readOnly: boolean = false): Promise<RelationState> {
 
     const buildResult = await buildQueryWithCheck(input, inputManager);
 
@@ -552,7 +552,7 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
     // first execute the initial queries
     for (const query of buildResult.initialQueries) {
         try {
-            await ConnectionsService.getInstance().executeQuery(query);
+            await ConnectionsService.getInstance().executeQuery(query, readOnly);
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }
@@ -563,7 +563,7 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
 
     if (buildResult.viewQuery) {
         try {
-            const cacheResult = await useRelationDataState.getState().updateDataFromQuery(input, buildResult.viewQuery);
+            const cacheResult = await useRelationDataState.getState().updateDataFromQuery(input, buildResult.viewQuery, readOnly);
             viewData = cacheResult.data;
         } catch (e) {
             return returnEmptyErrorState(input, e);
@@ -580,7 +580,7 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
     let schemaColumns = [];
     if (buildResult.schemaQuery) {
         try {
-            const schemaData = await ConnectionsService.getInstance().executeQuery(buildResult.schemaQuery);
+            const schemaData = await ConnectionsService.getInstance().executeQuery(buildResult.schemaQuery, readOnly);
             schemaColumns = schemaData.columns;
 
         } catch (e) {
@@ -592,7 +592,7 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
 
     if (buildResult.countQuery) {
         try {
-            countData = await ConnectionsService.getInstance().executeQuery(buildResult.countQuery);
+            countData = await ConnectionsService.getInstance().executeQuery(buildResult.countQuery, readOnly);
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }

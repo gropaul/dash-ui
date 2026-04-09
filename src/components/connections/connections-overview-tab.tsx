@@ -67,7 +67,7 @@ export function ConnectionsOverviewTab() {
                 return;
             }
 
-            attachDatabase(fileName, (query) => db.executeQuery(query)).then(() => {
+            attachDatabase(fileName, (query) => db.executeQuery(query, false)).then(() => {
                 toast.success(`Database ${fileName} attached successfully.`);
             }).catch((error) => {
                 toast.error(`Failed to attach database from ${fileName}: ${error.message}`);

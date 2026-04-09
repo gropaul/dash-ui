@@ -20,7 +20,7 @@ export async function maybeAttachDatabaseFromUrlParam(): Promise<void> {
             // remove the file extension from the file name (database.duckdb -> database)
             const fileNameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
             const query = await getImportQuery(decodedDatabaseUrl, fileNameWithoutExtension, 'database', true);
-            await ConnectionsService.getInstance().getDatabaseConnection().executeQuery(query);
+            await ConnectionsService.getInstance().executeQuery(query);
 
             // copy cached relations from the attached database to the current relations state
             await copyCacheFromAttachedDB(fileNameWithoutExtension);
@@ -47,7 +47,7 @@ export async function copyCacheFromAttachedDB(database_name: string): Promise<vo
     `;
 
     const connection = ConnectionsService.getInstance().getDatabaseConnection();
-    const tables = await connection.executeQuery(query);
+    const tables = await ConnectionsService.getInstance().executeQuery(query);
 
     if (connection.storageInfo.state !== 'loaded') {
         throw new Error('Storage info is not loaded');
@@ -60,7 +60,7 @@ export async function copyCacheFromAttachedDB(database_name: string): Promise<vo
         const targetName = `"${table[0]}"."${table[1]}"."${table[2]}"`;
         const destName = `"${destDatabaseName}"."${destSchemaName}"."${table[2]}"`;
         const CTASQuery = `CREATE TABLE IF NOT EXISTS ${destName} AS (FROM ${targetName});`;
-        await connection.executeQuery(CTASQuery);
+        await connection.executeQuery(CTASQuery, false);
     }
 
 

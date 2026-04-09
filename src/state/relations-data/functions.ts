@@ -39,7 +39,7 @@ export async function deleteCache(id: string): Promise<RelationData> {
 }
 
 // the query *must* be a select query, otherwise it will not work
-export async function updateCache(id: string, query: string): Promise<CacheResult> {
+export async function updateCache(id: string, query: string, readOnly: boolean = false): Promise<CacheResult> {
 
     const connectionsService = ConnectionsService.getInstance();
 
@@ -49,6 +49,15 @@ export async function updateCache(id: string, query: string): Promise<CacheResul
         throw new Error('Database connection is not ready or not loaded.');
     }
     const isReadonly = con.storageInfo.databaseReadonly;
+
+    // In read-only mode, skip caching (which requires CREATE TABLE) and execute directly
+    if (readOnly) {
+        const data = await connectionsService.executeQuery(query, true);
+        return {
+            data: data,
+            wasCached: false
+        };
+    }
 
     // try to create the materialized view, this can fail if the query is not a select query
     try {

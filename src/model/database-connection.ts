@@ -60,7 +60,7 @@ export interface DatabaseConnection {
 
     updateConfig: (config: Partial<DataConnectionConfig>) => void;
 
-    executeQuery: (query: string) => Promise<RelationData>;
+    executeQuery: (query: string, readOnly: boolean ) => Promise<RelationData>;
     // returns true if the query was successfully aborted, false otherwise (e.g. if there was no query to abort)
     abortQuery: () => Promise<boolean>;
 

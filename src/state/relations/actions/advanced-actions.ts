@@ -24,7 +24,7 @@ export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     updateRelationDataWithParams: (query: ViewQueryParameters) => Promise<void>,
     // This will reset the query parameters to default and re-run the base query, which might have changed
     // between this and the last call
-    updateRelationDataWithBaseQuery: (baseQuery: string) => Promise<void>,
+    updateRelationDataWithBaseQuery: (baseQuery: string, readonly?: boolean) => Promise<void>,
     // Cancels the currently running query, returns whether the cancellation was successful
     cancelQuery: () => Promise<boolean>,
     // Deleting elements from an object does not work with partial updates, use updateRelation directly for that
@@ -34,7 +34,8 @@ export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     updateRelationWithPartial: (partialRelation: DeepPartial<RelationState>) => void,
 }
 
-export function createAdvancedRelationActions(props: RelationViewAPIProps): AdvancedRelationActions {
+export function createAdvancedRelationActions(props: RelationViewAPIProps, readOnlyParam?: boolean): AdvancedRelationActions {
+    const readOnly = readOnlyParam ?? false;
     const {updateRelation: rawUpdateRelation, relationState} = props;
 
     const updateRelation: UpdateRelationFunction = (newRelation: RelationState) => {
@@ -51,17 +52,17 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps): Adva
             }
             // Clear selection state when re-running query (indices are invalidated)
             relationState.viewState.selectionState = undefined;
-            return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager, baseQuery);
+            return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, props.inputManager, baseQuery);
 
         },
         cancelQuery: async () => {
             return cancelQuery(relationState, updateRelation);
         },
         updateRelationDataWithParams: async (query: ViewQueryParameters) => {
-            return updateAndExecuteRelation(relationState, query, updateRelation, props.inputManager);
+            return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, props.inputManager);
         },
         updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => {
-            return updateRelationViewState(relationState, viewState, updateRelation);
+            return updateRelationViewState(relationState, viewState, updateRelation, readOnly);
         },
         updateRelationWithPartial: (partialRelation: DeepPartial<RelationState>) => {
             return updateRelationWithPartial(relationState, partialRelation);
@@ -75,7 +76,7 @@ export function updateRelationWithPartial(relation: RelationState, partialRelati
     return updatedRelation;
 }
 
-async function updateRelationViewState(relation: RelationState, partialUpdate: DeepPartial<RelationViewState>, update: UpdateRelationFunction) {
+async function updateRelationViewState(relation: RelationState, partialUpdate: DeepPartial<RelationViewState>, update: UpdateRelationFunction, readOnly: boolean) {
     const currentViewState = deepClone(relation.viewState);
 
     safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
@@ -92,7 +93,7 @@ async function updateRelationViewState(relation: RelationState, partialUpdate: D
             ...viewParameters,
             type: partialUpdate.selectedView
         };
-        await updateAndExecuteRelation(updatedRelation, newViewParameters, update, undefined);
+        await updateAndExecuteRelation(updatedRelation, newViewParameters, update, readOnly );
     }
 }
 
@@ -100,6 +101,7 @@ async function updateAndExecuteRelation(
     relation: RelationState,
     viewQueryParameters: ViewQueryParameters,
     update: UpdateRelationFunction,
+    readOnly: boolean,
     inputManager?: InputManager,
     // the base query is only provided when rerunning the query from the play button, not if e.g.
     // the view type changes
@@ -118,7 +120,7 @@ async function updateAndExecuteRelation(
     try {
         const updatedRelationState = {...relation}
         relation.query.viewParameters = viewQueryParameters;
-        result = await executeQueryOfRelation(updatedRelationState, inputManager);
+        result = await executeQueryOfRelation(updatedRelationState, inputManager, readOnly);
     } catch (e) {
         // if error update with error state
         result = returnEmptyErrorState(loadingRelationState, e)

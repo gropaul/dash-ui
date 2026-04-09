@@ -22,6 +22,10 @@ export interface DuckDBWasmConfig {
     [key: string]: string | number | boolean | undefined; // index signature
 }
 
+export interface QueryInput {
+    query: string;
+    readOnly: boolean;
+}
 
 export class DuckDBWasm implements DatabaseConnection {
 
@@ -33,7 +37,7 @@ export class DuckDBWasm implements DatabaseConnection {
     dataSources: DataSource[];
     config: DuckDBWasmConfig;
 
-    queue: AsyncQueue<string, RelationData>;
+    queue: AsyncQueue<QueryInput, RelationData>;
 
     constructor(config: DuckDBWasmConfig, id: string) {
         this.id = id;
@@ -44,7 +48,7 @@ export class DuckDBWasm implements DatabaseConnection {
 
         // to be able to use connection.send, we need to create a proper queue in order to avoid
         // sending multiple queries at the same time
-        this.queue = new AsyncQueue<string, RelationData>((input) => this.executeQueryInternal(input));
+        this.queue = new AsyncQueue<QueryInput, RelationData>((input) => this.executeQueryInternal(input));
     }
 
 
@@ -73,8 +77,8 @@ export class DuckDBWasm implements DatabaseConnection {
         return success;
     }
 
-    async executeQuery(sql: string): Promise<RelationData> {
-        return enqueueStatements(sql, this.queue);
+    async executeQuery(sql: string, readOnly: boolean): Promise<RelationData> {
+        return enqueueStatements({query: sql, readOnly}, this.queue);
     }
 
     polishColumn(column: Column) : Column {
@@ -85,12 +89,16 @@ export class DuckDBWasm implements DatabaseConnection {
         }
     }
 
-    async executeQueryInternal(query: string): Promise<RelationData> {
-        // console.log("Execute query: ", query);
+    async executeQueryInternal(input: QueryInput): Promise<RelationData> {
+        const {query, readOnly} = input;
+        console.log("Execute query: ", query);
         try {
             // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
             const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
-            const query_escaped = escapeSQLForStringLiteral(query);
+            let query_escaped = escapeSQLForStringLiteral(query);
+            if (readOnly) {
+                query_escaped = 'BEGIN TRANSACTION READ ONLY; ' + query_escaped + ';';
+            }
             const materialize_json_query = `FROM query_result_json('${query_escaped}')`;
             const result = await con.send(materialize_json_query, true);
             const data = await result.readAll();
@@ -112,6 +120,7 @@ export class DuckDBWasm implements DatabaseConnection {
                     throw new Error(ERROR_MESSAGE_QUERY_ABORTED);
                 }
             }
+            console.error("Error executing query: ", e);
             throw e;
         }
     }
@@ -132,12 +141,12 @@ export class DuckDBWasm implements DatabaseConnection {
     async checkConnectionState(): Promise<ConnectionStatus> {
 
         try {
-            const versionResult = await this.executeQuery("select version();");
+            const versionResult = await this.executeQuery("select version();", false);
             const version = versionResult.rows[0][0] as string;
             console.log('DuckDB WASM version: ', version);
             this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this.executeQuery.bind(this));
             // print the names of all the tables in the database using information_schema.tables, this is useful for debugging and to check if the database is accessible
-            const tablesResult = await this.executeQuery("SELECT table_name FROM information_schema.tables;");
+            const tablesResult = await this.executeQuery("SELECT table_name FROM information_schema.tables;", false);
             const tableNames = tablesResult.rows.map(row => row[0]);
             console.log('Tables in DuckDB WASM database: ', tableNames);
             this.connectionStatus = {state: 'connected', message: `Connected to DuckDB WASM. Version: ${version}`};

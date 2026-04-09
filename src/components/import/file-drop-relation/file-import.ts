@@ -35,13 +35,13 @@ export const handleFileImport = async (
             // Process the file with the selected format
             const tableName = file.name.replace(/\.[^/.]+$/, '');
             const query = await getImportQuery(file.name, tableName, format);
-            await connection.executeQuery(query);
+            await connection.executeQuery(query, false);
 
             const refreshConnection = useDataSourcesState.getState().refreshConnection;
             await refreshConnection(connection.id);
 
             const showRelation = useRelationsState.getState().showRelationFromSource;
-            const catalog = await connection.executeQuery(`SELECT current_catalog();`);
+            const catalog = await connection.executeQuery(`SELECT current_catalog();`, false);
             const dbName = catalog.rows[0][0];
 
             let source: RelationSource = {
@@ -103,7 +103,7 @@ export const handleFileDrop = async (
 
                 const tableName = file.name.replace(/\.[^/.]+$/, '');
                 const query = await getImportQuery(file.name, tableName, fileFormat);
-                await connection.executeQuery(query);
+                await connection.executeQuery(query, false);
                 tableNames.push(tableName);
                 tableFormats.push(fileFormat);
             }
@@ -112,7 +112,7 @@ export const handleFileDrop = async (
             await refreshConnection(connection.id);
 
             const showRelation = useRelationsState.getState().showRelationFromSource;
-            const catalog = await connection.executeQuery(`SELECT current_catalog();`);
+            const catalog = await connection.executeQuery(`SELECT current_catalog();`, false);
             const dbName = catalog.rows[0][0];
             tableNames.forEach((name, index) => {
                 let source: RelationSource = {

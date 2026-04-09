@@ -14,11 +14,11 @@ export function GetFullNameDestination(destination: StorageDestination) {
     }
 }
 
-export async function GetStateStorageStatus(destination: StorageDestination, executeQuery: (query: string) => Promise<RelationData>): Promise<StateStorageInfoLoaded> {
+export async function GetStateStorageStatus(destination: StorageDestination, executeQuery: (query: string, readOnly: boolean) => Promise<RelationData>): Promise<StateStorageInfoLoaded> {
     const current_database_query = `SELECT (path IS NOT null) as persistent, readonly, database_name
                                     FROM duckdb_databases()
                                     WHERE database_name = current_catalog();`;
-    const current_database_result = await executeQuery(current_database_query)
+    const current_database_result = await executeQuery(current_database_query, false)
     const persistent = current_database_result.rows[0][0];
     const readonly = current_database_result.rows[0][1];
 
@@ -133,7 +133,7 @@ export class StorageDuckAPI {
 
     async executeQuery(query: string): Promise<RelationData> {
         const connection = await this.getOrWaitForConnection();
-        return connection.executeQuery(query);
+        return connection.executeQuery(query, false);
     }
 
     static async getInstance(): Promise<StorageDuckAPI> {

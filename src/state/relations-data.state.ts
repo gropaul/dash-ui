@@ -21,7 +21,7 @@ export interface RelationDataZustandActions {
     getColumnsForRelation: (relationState: RelationState) => Column[] | undefined;
     updateData: (relationId: string, data: RelationData) => RelationData;
     updateDataFromCache: (relationId: string) => Promise<RelationData | undefined>;
-    updateDataFromQuery: (input: RelationState, query: string) => Promise<CacheResult>;
+    updateDataFromQuery: (input: RelationState, query: string, readOnly?: boolean) => Promise<CacheResult>;
     deleteData: (relationId: string) => void;
 
     getStats: (relationId: string) => RelationStats;
@@ -144,8 +144,8 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
             return get().updateData(relationId, data);
         },
 
-        updateDataFromQuery: async (input: RelationState, query: string) => {
-            const result = await updateCache(input.id, query);
+        updateDataFromQuery: async (input: RelationState, query: string, readOnly: boolean = false) => {
+            const result = await updateCache(input.id, query, readOnly);
             get().updateData(input.id, result.data);
             return result;
         },

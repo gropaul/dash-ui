@@ -5,6 +5,8 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {toast} from "sonner";
 import {FormWrapper} from "@/components/connections/connection-config";
 import {getProviderRegistry, ValidationStatus} from "@/components/chat/providers";
+import {AgentQueryMode} from "@/state/language-model.state";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 
 export function LanguageModelContent() {
@@ -50,12 +52,30 @@ export function LanguageModelContent() {
         }
     };
 
+    const {settings, updateSettings} = useLanguageModelState();
+
     return (
         <div className="p-4">
             <h5 className="text-lg font-bold">Assistant Settings</h5>
             <p className="text-muted-foreground mb-2">
                 You can bring your own language model to Dash. Select a provider below to configure it.
             </p>
+
+            <div className="mb-4">
+                <label className="text-sm font-medium mb-1 block">Query Permissions</label>
+                <Select value={settings.queryMode} onValueChange={(value) => updateSettings({ queryMode: value as AgentQueryMode })}>
+                    <SelectTrigger className="w-48">
+                        <SelectValue/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Queries</SelectItem>
+                        <SelectItem value="read-only">Read-Only</SelectItem>
+                    </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                    When set to read-only, the assistant can only run SELECT queries and cannot modify data.
+                </p>
+            </div>
 
             <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as LanguageModelProvider)}>
                 <TabsList className="mb-1">

@@ -35,26 +35,26 @@ export const handleDatabaseImport = async (
             if (importType === 'temporary') {
                 // Temporary attachment - just attach the database
                 const query = await getImportQuery(file.name, databaseName, 'database');
-                await connection.executeQuery(query);
+                await connection.executeQuery(query, false);
             } else {
                 // Permanent import - copy all tables into the current database
                 console.log('Permanent import of database', file.name);
 
                 // Attach the database temporarily
                 const query = await getImportQuery(file.name, databaseName, 'database');
-                await connection.executeQuery(query);
+                await connection.executeQuery(query, false);
 
                 // get current catalog
-                const currentCatalogData = await connection.executeQuery(`SELECT current_catalog();`);
+                const currentCatalogData = await connection.executeQuery(`SELECT current_catalog();`, false);
                 const currentCatalog = currentCatalogData.rows[0][0];
 
                 // Copy all tables from the attached database to the current database
                 const copyQuery = `COPY FROM DATABASE ${databaseName} TO ${currentCatalog};`;
-                await connection.executeQuery(copyQuery);
+                await connection.executeQuery(copyQuery, false);
 
                 // Detach the database
                 const detachQuery = `DETACH DATABASE ${databaseName};`;
-                await connection.executeQuery(detachQuery);
+                await connection.executeQuery(detachQuery, false);
             }
 
             const refreshConnection = useDataSourcesState.getState().refreshConnection;
@@ -65,7 +65,11 @@ export const handleDatabaseImport = async (
 
             const dashState = await getDashStateIfExits(connection, databaseName);
             if (dashState) {
-                setFileUploadState({state: 'database_found_dash_state', message: 'Found Dashboards in imported Database', dashState: dashState});
+                setFileUploadState({
+                    state: 'database_found_dash_state',
+                    message: 'Found Dashboards in imported Database',
+                    dashState: dashState
+                });
             } else {
                 setFileUploadState({state: 'done', message: 'Database imported successfully!'});
                 toast.success('Database imported successfully!');
@@ -84,11 +88,12 @@ export async function getDashStateIfExits(
     database_name: string,
 ): Promise<RelationZustand | undefined> {
     // get the schema now with the new database, look for schema dash and table relationState
-    const tables = await connection.executeQuery(` SELECT table_catalog, table_schema, table_name
-                                                   FROM information_schema.tables
-                                                   WHERE table_catalog = '${database_name}'
-                                                     AND table_schema = 'dash'
-                                                     AND table_name = 'relationState'`);
+    const query = ` SELECT table_catalog, table_schema, table_name
+                    FROM information_schema.tables
+                    WHERE table_catalog = '${database_name}'
+                      AND table_schema = 'dash'
+                      AND table_name = 'relationState'`
+    const tables = await connection.executeQuery(query, false);
 
     if (tables.rows.length > 0) {
         const table = tables.rows[0];
@@ -97,7 +102,8 @@ export async function getDashStateIfExits(
         const tableName = table[2] as string;
 
         // get the relationState
-        const relationState = await connection.executeQuery(`SELECT id, value, version FROM ${tableCatalog}.${tableSchema}.${tableName}`);
+        const relationState = await connection.executeQuery(`SELECT id, value, version
+                                                             FROM ${tableCatalog}.${tableSchema}.${tableName}`, false);
         const json_value_string = relationState.rows[0][1] as string;
 
         const json_value = JSON.parse(json_value_string);

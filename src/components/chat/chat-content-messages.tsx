@@ -26,6 +26,15 @@ export function ChatContentMessages({
     const activeProviderId = useLanguageModelState((s) => s.activeProviderId);
     const isLocalProvider = !!getProviderRegistry().getProvider(activeProviderId)?.prepareModel;
 
+    const isReadOnly = useLanguageModelState((s) => s.isReadOnly());
+    const warningMessageShare = isLocalProvider ?
+        "Local model — your data stays on your device." :
+        "3rd-party model — your data will be shared with the provider.";
+
+    const warningMessageRead = isReadOnly ?
+        "Read-only mode — no writes or deletes. Change this in settings." :
+        "Full access — the agent can read, write, and *delete* your data."
+
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const atBottomRef = useRef(true); // ← tracks live "at-bottom" state
 
@@ -88,10 +97,8 @@ export function ChatContentMessages({
                             How can I help you today?
                         </div>
                         <div className="text-amber-500 dark:text-amber-400 text-s max-w-md mx-auto">
-                            {!isLocalProvider
-                                ? "Warning: While using the assistant, your messages and data can be shared with the provider! The agent can read, write and *delete* your data."
-                                : "Warning: The agent can read, write and *delete* your data."
-                            }
+                            {warningMessageShare} <br/>
+                            {warningMessageRead}
                         </div>
                         <ModelDownloadBanner/>
                     </div>

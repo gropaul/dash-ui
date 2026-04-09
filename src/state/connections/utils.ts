@@ -1,16 +1,18 @@
 import {splitSQL} from "@/platform/sql-utils";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
+import {QueryInput} from "@/state/connections/duckdb-wasm";
 
 
-export function enqueueStatements(sql: string, queue: AsyncQueue<string, RelationData>): Promise<RelationData> {
-    const queries = splitSQL(sql)
+export function enqueueStatements(input: QueryInput, queue: AsyncQueue<QueryInput, RelationData>): Promise<RelationData> {
+    const {query, readOnly} = input;
+    const queries = splitSQL(query)
     const lastQuery = queries.pop();
     if (!lastQuery){
         throw Error("SQL does not contain any query")
     }
-    for (const query of queries){
-        queue.add(query) // no await as we don't want other queries to sneak in!
+    for (const statement of queries){
+        queue.add({query: statement, readOnly});
     }
-    return queue.add(lastQuery);
+    return queue.add({query: lastQuery, readOnly});
 }

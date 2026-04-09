@@ -13,6 +13,8 @@ import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
 import {AsyncQueue} from "@/platform/async-queue";
 import {enqueueStatements} from "@/state/connections/utils";
+import {QueryInput} from "@/state/connections/duckdb-wasm";
+import {escapeSQLForStringLiteral} from "@/platform/sql-utils";
 
 export interface DuckDBOverHttpConfig {
     name: string;
@@ -34,14 +36,14 @@ export class DuckDBOverHttp implements DatabaseConnection {
 
 
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
-    queue: AsyncQueue<string, RelationData>;
+    queue: AsyncQueue<QueryInput, RelationData>;
 
     constructor(config: DuckDBOverHttpConfig, id: string) {
         this.id = id;
         this.config = config;
         this.type = 'duckdb-over-http';
 
-        this.queue = new AsyncQueue<string, RelationData>((input) => this.executeQueryInternal(input));
+        this.queue = new AsyncQueue<QueryInput, RelationData>((input) => this.executeQueryInternal(input));
     }
 
     async abortQuery(): Promise<boolean> {
@@ -82,14 +84,15 @@ export class DuckDBOverHttp implements DatabaseConnection {
 
     async sendPing(): Promise<string | null> {
         try {
-            const versionResult = await this.executeQuery("select version();");
+            const versionResult = await this.executeQuery("select version();", false);
             return versionResult.rows[0][0] as string;
         } catch (e) {
             return null;
         }
     }
 
-    async executeQueryInternal(query: string): Promise<RelationData> {
+    async executeQueryInternal(input: QueryInput): Promise<RelationData> {
+        const {query, readOnly} = input;
         const headers: Record<string, string> = {
             'Content-Type': 'application/json'
         };
@@ -99,10 +102,14 @@ export class DuckDBOverHttp implements DatabaseConnection {
         }
 
         try {
+            let altered_query = query;
+            if (readOnly) {
+                altered_query = 'BEGIN TRANSACTION READ ONLY; ' + altered_query + ';';
+            }
             const response = await fetch(this.config.url + "/query", {
                 method: 'POST',
                 body: JSON.stringify({
-                    query: query,
+                    query: altered_query,
                     format: "compact_json"
                 }),
                 headers,
@@ -130,8 +137,8 @@ export class DuckDBOverHttp implements DatabaseConnection {
     }
 
 
-    executeQuery = (sql: string): Promise<RelationData> => {
-        return enqueueStatements(sql, this.queue);
+    executeQuery = async (query: string, readOnly: boolean): Promise<RelationData> => {
+        return enqueueStatements({query, readOnly}, this.queue);
     };
 
     mountFiles = async (files: File[]): Promise<void> => {

@@ -1,6 +1,7 @@
 import {DataSourceConnection} from "@/model/data-source-connection";
 import {removeSemicolon} from "@/platform/sql-utils";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
+import {read} from "node:fs";
 
 type DatabaseConnectionCallback = (connection: DatabaseConnection | undefined) => void;
 
@@ -79,11 +80,11 @@ export class ConnectionsService {
         this.source_connections = {};
     }
 
-    async executeQuery(query: string) {
+    async executeQuery(query: string, readOnly: boolean = false) {
         if (!this.database_connection) {
             throw new Error('No active database connection');
         }
-        return await this.database_connection.executeQuery(query);
+        return await this.database_connection.executeQuery(query, readOnly);
     }
 
     async abortQuery(): Promise<boolean> {

@@ -44,19 +44,19 @@ export function getAvailableTargets(): Target[] {
     layoutModel.visitNodes((node) => {
         const nodeId = node.getId();
         console.log(nodeId);
-        if (nodeId.startsWith('dashboard-')) {
-            const dashboard = relationsState.dashboards[nodeId];
-            if (dashboard) {
-                const blockCount = dashboard.elementState?.blocks?.length ?? 0;
-                targets.push({
-                    id: nodeId,
-                    type: 'dashboard',
-                    name: dashboard.viewState.displayName ?? dashboard.name,
-                    description: blockCount > 0
-                        ? `Dashboard with ${blockCount} block${blockCount !== 1 ? 's' : ''}`
-                        : 'Empty dashboard',
-                });
-            }
+        if (nodeId.startsWith('dashboard-') && false) { // disable dasboards because of read only
+            // const dashboard = relationsState.dashboards[nodeId];
+            // if (dashboard) {
+            //     const blockCount = dashboard.elementState?.blocks?.length ?? 0;
+            //     targets.push({
+            //         id: nodeId,
+            //         type: 'dashboard',
+            //         name: dashboard.viewState.displayName ?? dashboard.name,
+            //         description: blockCount > 0
+            //             ? `Dashboard with ${blockCount} block${blockCount !== 1 ? 's' : ''}`
+            //             : 'Empty dashboard',
+            //     });
+            // }
         } else if (nodeId.startsWith('relation')) {
             const relation = relationsState.relations[nodeId];
             if (relation) {
