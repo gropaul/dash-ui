@@ -33,18 +33,8 @@ export type Layout = 'row' | 'column';
 
 export interface WidgetConfigShellState {
     showConfig: boolean;
-    configDisplayMode: 'inline' | 'dialog';
     configSplitRatio: number;
     configSplitLayout: Layout;
-}
-
-export function getInitialWidgetConfigShellState(defaults?: Partial<WidgetConfigShellState>): WidgetConfigShellState {
-    return {
-        showConfig: defaults?.showConfig ?? false,
-        configDisplayMode: defaults?.configDisplayMode ?? 'inline',
-        configSplitRatio: defaults?.configSplitRatio ?? 0.5,
-        configSplitLayout: defaults?.configSplitLayout ?? 'column',
-    };
 }
 
 export interface CodeFenceViewState {
@@ -52,6 +42,43 @@ export interface CodeFenceViewState {
     sizePercentage: number; // percentage, 0-100
     layout: Layout;
 }
+
+/** UI-only state that is scoped per rendering mode (embedded vs fullscreen). */
+export interface RelationSessionState {
+    codeFenceState: CodeFenceViewState;
+    configState: WidgetConfigShellState;
+}
+
+/**
+ * The two modes in which a relation view can be rendered.
+ * - 'embedded': inside a canvas node (small, minimal UI)
+ * - 'fullscreen': editor tab, canvas fullscreen, or chat view (full UI)
+ */
+export type RelationViewMode = 'embedded' | 'fullscreen';
+
+export function getDefaultSessionState(mode: RelationViewMode, show_code: boolean = false): RelationSessionState {
+    const codeFenceState: CodeFenceViewState = {show: show_code, sizePercentage: 30, layout: 'row'};
+    if (mode === 'fullscreen') {
+        return {
+            codeFenceState,
+            configState: {
+                showConfig: true,
+                configSplitRatio: 0.5,
+                configSplitLayout: 'column'
+            },
+        };
+    }
+    // embedded
+    return {
+        codeFenceState,
+        configState: {
+            showConfig: false,
+            configSplitRatio: 0.5,
+            configSplitLayout: 'column'
+        },
+    };
+}
+
 
 export interface TabViewBaseState {
     displayName: string;
@@ -64,7 +91,6 @@ export function getInitialTabViewBaseState(displayName: string): TabViewBaseStat
 }
 
 export interface RelationViewBaseState extends TabViewBaseState {
-    codeFenceState: CodeFenceViewState;
     selectedView: RelationViewType;
     showHeader: boolean;
 }
@@ -76,8 +102,11 @@ export interface RelationViewState extends RelationViewBaseState {
     textDisplayState: TextDisplayViewState
     parametersState: ParametersState
     selectionState?: SelectionState
-    configState: WidgetConfigShellState
     schema: Column[];
+    /** Session state for embedded mode (canvas node). Optional for backwards compat. */
+    embeddedSessionState?: RelationSessionState;
+    /** Session state for fullscreen mode (editor tab, canvas fullscreen). Optional for backwards compat. */
+    fullscreenSessionState?: RelationSessionState;
 }
 
 
@@ -117,21 +146,9 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
 
     const baseState: RelationViewBaseState = {
         ...getInitialTabViewBaseState(displayName),
-        codeFenceState: {
-            show: showCode,
-            sizePercentage: 30,
-            layout: 'row',
-        },
         selectedView: 'table',
         showHeader: true,
     }
-
-    const defaultConfigState: WidgetConfigShellState = getInitialWidgetConfigShellState({
-        showConfig: true,
-        configDisplayMode: 'inline',
-        configSplitRatio: 0.5,
-        configSplitLayout: 'column',
-    });
 
     if (!data) {
         return {
@@ -141,8 +158,9 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
             inputTextState: getInitialSelectViewStateEmpty(),
             textDisplayState: getInitialTextViewStateEmpty(),
             parametersState: getInitialParametersState(),
-            configState: defaultConfigState,
             schema: [],
+            embeddedSessionState: getDefaultSessionState('embedded', showCode),
+            fullscreenSessionState: getDefaultSessionState('fullscreen', showCode)
         };
     }
 
@@ -153,7 +171,11 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
         inputTextState: getInitialSelectViewState(data),
         textDisplayState: getInitialTextViewState(data),
         parametersState: getInitialParametersState(),
-        configState: defaultConfigState,
         schema: schemaColumns ?? data.columns,
+        embeddedSessionState: getDefaultSessionState('embedded'),
+        fullscreenSessionState: {
+            ...getDefaultSessionState('fullscreen'),
+            codeFenceState: {show: showCode, sizePercentage: 30, layout: 'row'},
+        },
     };
 }

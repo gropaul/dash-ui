@@ -97,8 +97,6 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     const {resolvedTheme} = useTheme();
 
     const runSelectedNode = useCallback(() => {
-        console.log("Run selected nodes")
-        console.log('nodes', nodes)
         const selected = nodes.find(n => n.selected && n.type === 'relationNode');
         if (!selected) return;
         const relationData = (selected.data as { relationData?: RelationState })?.relationData;
@@ -108,7 +106,7 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
                 ...n, data: {...n.data, relationData: newRelation},
             }));
         };
-        const actions = getRelationActions({relationState: relationData, updateRelation});
+        const actions = getRelationActions({mode: 'embedded', relationState: relationData, updateRelation});
         actions.updateRelationDataWithBaseQuery(relationData.query.baseQuery);
     }, [nodes, setNodes]);
 

@@ -15,11 +15,15 @@ import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/ed
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN} from "@/components/editor/tools/icons";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {EndUserRelationActions, getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {RelationViewMode} from "@/model/relation-view-state";
 
 /**
  * Base class for block tools that share common functionality
  * Implements common methods and properties used by both SelectBlockTool and RelationBlockTool
  */
+
+const VIEW_MODE: RelationViewMode = 'embedded'
+
 export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlock {
     protected readonly api: API;
     protected data: RelationState;
@@ -72,7 +76,6 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
                 if (otherRelationId === this.data.id) {
                     console.log("Found another block with the same relation id, creating a copy of the relation for this block", block.name, block.id);
                     this.data = RelationActions.copy(this.data);
-                    console.log("New relation id for block", block.name, block.id, "is", this.data.id);
                 }
             }
 
@@ -106,6 +109,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
 
     getActions(): EndUserRelationActions {
         return getRelationActions({
+            mode: VIEW_MODE,
             relationState: this.data,
             updateRelation: this.updateAndRender.bind(this),
             inputManager: this.inputManager,
@@ -161,13 +165,14 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
 
     // Common method to set code fence visibility
     public setShowCodeFence(show: boolean) {
+        const session = this.getActions().getSessionState(VIEW_MODE);
         this.data = {
             ...this.data,
             viewState: {
                 ...this.data.viewState,
-                codeFenceState: {
-                    ...this.data.viewState.codeFenceState,
-                    show,
+                fullscreenSessionState: {
+                    ...session,
+                    codeFenceState: {...session.codeFenceState, show},
                 }
             }
         }
@@ -213,7 +218,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
     public renderSettings(): HTMLElement | any {
 
 
-        const codeVisibility = this.data.viewState.codeFenceState.show;
+        const codeVisibility = this.getActions().getSessionState(VIEW_MODE).codeFenceState.show;
         const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
 
         return [

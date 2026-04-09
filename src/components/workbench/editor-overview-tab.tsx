@@ -24,7 +24,6 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
-import {deepClone} from "@/platform/object-utils";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 
 
@@ -42,34 +41,8 @@ export interface DashboardCommandState {
     relation?: RelationState;
 }
 
-export function onAddToDashboardSelected(relation_: RelationState, dashboard: DashboardState) {
-
-    const copy = deepClone(relation_);
-
-    // update relation ui
-    copy.viewState.codeFenceState.layout = 'row';
-    copy.viewState.codeFenceState.show = false;
-
-    // set new id (todo: we also need to copy the cache then!)
-    // copy.id = getRandomId();
-
-
-    const newElementData: RelationState = {
-        ...copy,
-        viewState: {
-            ...copy.viewState,
-            configState: {
-                ...copy.viewState.configState,
-                showConfig: false,
-            },
-            codeFenceState: {
-                sizePercentage: 50.0,
-                layout: 'row',
-                show: false
-            }
-        }
-    }
-
+export function onAddToDashboardSelected(original: RelationState, dashboard: DashboardState) {
+    const newElementData = RelationActions.copy(original);
     const newState: DashboardState = {
         ...dashboard,
         elementState: {
@@ -96,7 +69,7 @@ export function onAddToDashboardSelected(relation_: RelationState, dashboard: Da
         const setDashboardStateUnsafe = useRelationsState.getState().setDashboardStateUnsafe;
         setDashboardStateUnsafe(dashboard.id, newState);
     }
-    toast.success(`Added "${copy.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
+    toast.success(`Added "${newElementData.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
 }
 
 export function EditorOverviewTab() {

@@ -20,16 +20,18 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
         ...advancedActions,
     };
 
-    const codeFenceState = props.relationState.viewState.codeFenceState;
+    const codeFenceState = props.getSessionState(props.mode).codeFenceState;
     const parametersState = props.relationState.viewState.parametersState ?? { panelState: { show: false, sizePercentage: 30 }, parameters: [] };
     const [codeHeight, setCodeHeight] = useState(64 * 3);
 
     function setCodeFenceState(sizePercentage: number) {
-        props.updateRelationViewState({
-            codeFenceState: {
-                ...codeFenceState,
-                sizePercentage: 100 - sizePercentage,
-            }
+        // on collapse, don't propate the size as we want it to reuse it when we open again
+        const codeFencePercentage = 100 - sizePercentage;
+        if (codeFencePercentage < 10) {
+            return;
+        }
+        advancedActions.updateSessionState(props.mode, {
+            codeFenceState: {sizePercentage: codeFencePercentage},
         });
     }
 

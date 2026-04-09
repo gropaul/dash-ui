@@ -10,15 +10,16 @@ import {ErrorBoundary} from "@/components/basics/error-bundary";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {EditorPanelPosition} from "@/components/basics/sql-editor/sql-editor";
 import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
+import {RelationViewMode} from "@/model/relation-view-state";
 
 // If resizable, the relation view will have a draggable handle to adjust its height, if
 // fit, it will adjust to the parent height.
 export type HeightType = 'resizable' | 'fit';
 
 export interface StaticDisplayProps {
-    embedded?: boolean; // if embedded, some UI elements may be hidden for a cleaner look
+    mode: RelationViewMode;
+    embedded?: boolean; // if embedded, some UI elements may be hidden for a cleaner look, todo: this becomes obsolete by mode
     height?: HeightType;
-    configDisplayMode?: 'inline' | 'dialog'; // if inline, the config panel will be displayed next to the relation view, otherwise in a dialog
     sqlEditorShowRunButton?: boolean; // whether to show the run button in the sql editor, defaults to true
     sqlEditorPanelMode?: EditorPanelPosition; // whether the sql editor should be displayed in an overlay or a panel, defaults to overlay
 }

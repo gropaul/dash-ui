@@ -524,14 +524,15 @@ export function setRelationRunning(relation: RelationState): RelationState {
 }
 
 export function returnEmptyErrorState(relation: RelationState, error: unknown): RelationState {
+    // Show the code fence in both modes so the user can see/fix the query
+    const fs = relation.viewState.fullscreenSessionState;
+    const em = relation.viewState.embeddedSessionState;
     return {
         ...relation,
         viewState: {
             ...relation.viewState,
-            codeFenceState: {
-                ...relation.viewState.codeFenceState,
-                show: true,
-            },
+            fullscreenSessionState: fs ? {...fs, codeFenceState: {...fs.codeFenceState, show: true}} : undefined,
+            embeddedSessionState: em ? {...em, codeFenceState: {...em.codeFenceState, show: true}} : undefined,
         },
         executionState: {
             state: 'error',

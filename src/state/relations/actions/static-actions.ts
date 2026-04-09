@@ -38,8 +38,9 @@ export class RelationActions {
         };
     }
 
-    static create(options?: { connectionId?: string, source?: RelationSource; viewType?: RelationViewType }): RelationState {
+    static create(options?: { connectionId?: string, source?: RelationSource; viewType?: RelationViewType, showCode?: boolean}): RelationState {
 
+        const showCode = options?.showCode ?? false;
         const viewType = options?.viewType ?? 'table';
         // relation prefix is important as it is e.g. used in
         // src/components/chat/model/chat-context.ts
@@ -72,7 +73,7 @@ export class RelationActions {
             uniqueName,
             undefined,
             [],
-            true
+            showCode
         );
         viewState.selectedView = viewType;
         if (viewType === 'chart') {
@@ -88,7 +89,6 @@ export class RelationActions {
             }];
             viewState.chartState.chart.plot.type = 'line';
             viewState.chartState.chart.plot.cartesian.xAxisType = 'value';
-            viewState.configState.showConfig = false;
         }
         const baseQuery = getBaseQueryFromSource(source);
         const relationState: RelationState = {
@@ -104,7 +104,6 @@ export class RelationActions {
             }
         };
         RelationEvents.create(relationState);
-        console.log('Created relation', relationState);
         return relationState;
     }
 

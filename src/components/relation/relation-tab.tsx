@@ -20,6 +20,7 @@ export function RelationTab(props: RelationTabProps) {
 
 
     return <RelationView
+        mode='fullscreen'
         height={'fit'}
         relationState={relationsState}
         updateRelation={updateRelation}

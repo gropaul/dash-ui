@@ -59,7 +59,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         }
     }
 
-    const codeFenceState = viewState.codeFenceState;
+    const codeFenceState = props.getSessionState(props.mode).codeFenceState;
     const parametersState = viewState.parametersState ?? {
         panelState: {show: false, sizePercentage: 30},
         parameters: []
@@ -147,7 +147,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                         </DropdownMenuPortal>
                                     </DropdownMenuSub>
                                     <DropdownMenuItem
-                                        onClick={props.toggleShowCode}
+                                        onClick={() => advancedActions.updateSessionState(props.mode, {codeFenceState: {show: !codeFenceState.show}})}
                                         title={queryToggleText}
                                     >
                                         <span>{queryToggleText}</span>
@@ -192,7 +192,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                         <>
                             <Separator orientation={'vertical'}/>
                             <Toggle
-                                onClick={props.toggleShowCode}
+                                onClick={() => advancedActions.updateSessionState(props.mode, {codeFenceState: {show: !codeFenceState.show}})}
                                 pressed={codeFenceState.show}
                                 title={queryToggleText}
                             >

@@ -86,9 +86,7 @@ export function getDefaultRelationBockData(sql: string, viewType: RelationViewTy
         name: "New Query"
     }
 
-    const state = RelationActions.create({source, viewType});
-    state.viewState.codeFenceState.show = false;
-    return state;
+    return RelationActions.create({source, viewType, showCode: false});
 }
 
 function getChartViewState(args: ChartViewDataArgs): ChartViewState {
@@ -195,8 +193,9 @@ function chartInputToPartialRelation(input: z.infer<typeof ChartToolInputSchema>
         viewState: {
             selectedView: 'chart',
             chartState: chartViewState,
-            configState: {
-                showConfig: false,
+            fullscreenSessionState: {
+                codeFenceState: {show: false, sizePercentage: 30, layout: 'row'},
+                configState: {showConfig: false, configSplitRatio: 0.5, configSplitLayout: 'column'},
             },
         }
     };
@@ -282,6 +281,7 @@ async function RouteAndApplyTarget(target: string, data: RelationState): Promise
         case 'relation':
             const updateRelation = useRelationsState.getState().updateRelation;
             const actions = getRelationActions({
+                mode: 'fullscreen',
                 relationState: data,
                 updateRelation: updateRelation
             });

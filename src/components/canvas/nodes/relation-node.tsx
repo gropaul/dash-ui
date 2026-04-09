@@ -23,6 +23,7 @@ import {RelationContextProvider} from "@/components/relation/chart/chart-export-
 import {useCanvasState} from "@/components/canvas/canvas-context";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationState} from "@/model/relation-state";
+import {getDefaultSessionState, RelationViewMode} from "@/model/relation-view-state";
 import {onRelationEvent} from "@/state/relations/event/relation-events";
 
 const DEFAULT_RELATION_DATA = RelationActions.create();
@@ -33,6 +34,8 @@ type RelationNodeProps = {
 }
 
 type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
+
+const VIEW_MODE: RelationViewMode = 'embedded';
 
 export function RelationNode(props: NodeProps<RelationNodeType>) {
     const {openFullscreen, setNodes, setEdges, getNodes, getEdges} = useCanvasState();
@@ -74,6 +77,16 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         updateNodeData(prev => typeof updater === 'function' ? updater(prev) : updater);
     }, [updateNodeData]);
 
+    const actions = useMemo(() => {
+        const inputProps: RelationViewAPIProps = {
+            mode: VIEW_MODE,
+            relationState: data,
+            updateRelation: updateRelation,
+            embedded: true
+        }
+        return getRelationActions(inputProps)
+    }, [data, updateRelation])
+
     // Auto-detect node_xxx() references in SQL and sync edges
     const sql = data.query.baseQuery;
     useEffect(() => {
@@ -100,7 +113,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         });
     }, [sql, props.id, setEdges, getEdges, getNodes]);
 
-    const [manager] = useState(() => new InputManager())
     const [closestHandle, setClosestHandle] = useState<Position | undefined>()
     const [lastCodeHeight, setLastCodeHeight] = useState(DEFAULT_CODE_VIEW_HEIGHT)
     const codeFenceRef = useRef<HTMLDivElement>(null!);
@@ -133,18 +145,10 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         }
     };
 
-    const actions = useMemo(() => {
-        const inputProps: RelationViewAPIProps = {
-            relationState: data,
-            updateRelation: updateRelation,
-            inputManager: manager,
-            embedded: true
-        }
-        return getRelationActions(inputProps)
-    }, [data, updateRelation, manager])
+    const isCodeShowing = actions.getSessionState(VIEW_MODE).codeFenceState.show;
 
     const handleToggleCode = useCallback(() => {
-        const isCurrentlyShowing = data.viewState.codeFenceState.show;
+        const isCurrentlyShowing = isCodeShowing;
 
         let heightDelta: number;
         if (isCurrentlyShowing) {
@@ -157,22 +161,29 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         }
 
         updateNodeData(
-            (prev) => ({
-                ...prev,
-                viewState: {
-                    ...prev.viewState,
-                    codeFenceState: {...prev.viewState.codeFenceState, show: !isCurrentlyShowing},
-                },
-            }),
+            (prev) => {
+                const prevSession = prev.viewState.embeddedSessionState ?? getDefaultSessionState('embedded');
+                return {
+                    ...prev,
+                    viewState: {
+                        ...prev.viewState,
+                        embeddedSessionState: {
+                            ...prevSession,
+                            codeFenceState: {...prevSession.codeFenceState, show: !isCurrentlyShowing},
+                        },
+                    },
+                };
+            },
             (node) => ({height: roundToGrid((node.height ?? DEFAULT_NODE_HEIGHT) + heightDelta)})
         );
-    }, [data.viewState.codeFenceState.show, updateNodeData, lastCodeHeight]);
+    }, [isCodeShowing, updateNodeData, lastCodeHeight]);
 
     const handleRun = useCallback(async () => {
         await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
     }, [actions, data.query.baseQuery, props.id, getNodes, getEdges, setNodes, setEdges]);
 
     const viewProps: RelationViewProps = {
+        mode: VIEW_MODE,
         relationState: data,
         ...actions
     }
@@ -194,7 +205,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                 >
                     <RelationToolbar
                         isVisible={props.selected}
-                        showCode={data.viewState.codeFenceState.show}
+                        showCode={isCodeShowing}
                         runState={data.executionState}
                         onRun={handleRun}
                         onStopRun={actions.cancelQuery}
@@ -217,11 +228,10 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     />
                     <div className={'w-full h-full bg-background relative'}>
                         <RelationStateView
+                            mode={VIEW_MODE}
                             relationState={data}
                             updateRelation={updateRelation}
-                            inputManager={manager}
                             embedded={false}
-                            configDisplayMode={'dialog'}
                             sqlEditorShowRunButton={false}
                             sqlEditorPanelMode={'overlay'}
                             height={'fit'}

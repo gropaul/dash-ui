@@ -15,6 +15,7 @@ export function RelationPart(props: ChatTablePartProps) {
         return (
             <div className={"w-full h-full flex flex-col p-0 m-0 bg-background "}>
                 <RelationStateView
+                    mode='embedded'
                     relationState={relationState}
                     updateRelation={setRelationState}
                     embedded={true}

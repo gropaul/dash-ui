@@ -149,7 +149,7 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
 
     public renderSettings(): HTMLElement | MenuConfig {
 
-        const codeVisibility = this.data.viewState.codeFenceState.show;
+        const codeVisibility = this.getActions().getSessionState('fullscreen').codeFenceState.show;
         const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
 
 

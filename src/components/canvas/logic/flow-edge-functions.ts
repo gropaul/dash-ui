@@ -252,7 +252,7 @@ export function createOnConnectEnd(ctx: EdgeHandlerContext) {
             const displayName = sourceData?.relationData?.viewState?.displayName;
             if (displayName) {
                 const macroName = getMacroName(displayName);
-                const initialData = RelationActions.create();
+                const initialData = RelationActions.create({showCode: true});
                 const newSql = `SELECT * FROM ${macroName}()`;
                 initialData.query.baseQuery = newSql;
                 initialData.query.activeBaseQuery = newSql;

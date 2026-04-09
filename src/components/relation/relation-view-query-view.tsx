@@ -15,7 +15,7 @@ interface RelationViewQueryProps extends EndUserRelationActions{
 
 export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQueryProps>(function RelationViewQueryView(props, ref) {
 
-    const codeFenceState = props.relationState.viewState.codeFenceState;
+    const codeFenceState = props.getSessionState(props.statics.mode).codeFenceState;
     const queryString = props.relationState.query.baseQuery;
     const executionState = props.relationState.executionState;
 
@@ -82,11 +82,7 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
                 showLayoutButton={false}
                 currentLayout={codeFenceState.layout}
                 onLayoutChange={(layout) => {
-                    props.updateRelationViewState( {
-                        codeFenceState: {
-                            layout: layout
-                        }
-                    });
+                    props.updateSessionState(props.statics.mode, {codeFenceState: {layout}});
                 }}
             />
         </div>

@@ -63,6 +63,7 @@
     "@radix-ui/react-toggle": "^1.1.1",
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.6",
+    "@radix-ui/react-visually-hidden": "^1.2.4",
     "@tanstack/react-virtual": "^3.13.12",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@uiw/react-md-editor": "4.1.0",

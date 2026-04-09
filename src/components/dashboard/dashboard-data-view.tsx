@@ -13,6 +13,7 @@ export interface DashboardDataViewProps {
 export function DashboardDataView(props: DashboardDataViewProps) {
 
     return <RelationStateView
+        mode='embedded'
         embedded
         height={'resizable'}
         relationState={props.relation}

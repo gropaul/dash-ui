@@ -51,17 +51,10 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isEmbedded = props.embedded ?? false;
-    const showOverlay = props.showOverlay ?? true;
-
-    const showChartSettings = props.relationState.viewState.configState?.showConfig ?? false;
+    const showChartSettings = props.getSessionState(props.mode).configState.showConfig;
 
     function updateShowConfig() {
-        props.updateRelationViewState({
-            configState: {
-                showConfig: !showChartSettings,
-            },
-        });
+        props.updateSessionState(props.mode, {configState: {showConfig: !showChartSettings}});
     }
 
     return (

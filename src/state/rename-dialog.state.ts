@@ -81,7 +81,7 @@ export const useRenameDialogStore = create<RenameDialogStore>((set, get) => ({
             // useUndoableFlow.setNodes which uses a stale lastNodesRef, overwriting macro reference changes.
             const entry = getAllRelations().find(e => e.relation.id === entityId);
             if (entry) {
-                const actions = getRelationActions({relationState: entry.relation, updateRelation: entry.updateRelation});
+                const actions = getRelationActions({mode: 'fullscreen', relationState: entry.relation, updateRelation: entry.updateRelation});
                 actions.setDisplayName(newName, path);
             }
         } else if (IsEntityType(entityType)) {

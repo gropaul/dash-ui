@@ -29,7 +29,7 @@ export function CanvasTab(props: WorkflowTabProps) {
 
     if (fullscreenNodeId) {
         const node = canvas.nodes.find(n => n.id === fullscreenNodeId);
-        const relationData = node ? (node.data as {relationData?: RelationState}).relationData : undefined;
+        const relationData = (node?.data as {relationData?: RelationState} | undefined)?.relationData;
 
         if (relationData) {
             const updateRelation = (newRelation: RelationState) => {
@@ -43,13 +43,14 @@ export function CanvasTab(props: WorkflowTabProps) {
             };
 
             return (
-                    <RelationView
-                        relationState={relationData}
-                        updateRelation={updateRelation}
-                        inputManager={manager}
-                        height={'fit'}
-                        breadcrumbPrefix={{label: canvas.viewState.displayName, onClick: onBackToCanvas}}
-                    />
+                <RelationView
+                    mode='fullscreen'
+                    relationState={relationData}
+                    updateRelation={updateRelation}
+                    inputManager={manager}
+                    height={'fit'}
+                    breadcrumbPrefix={{label: canvas.viewState.displayName, onClick: onBackToCanvas}}
+                />
             );
         }
     }
