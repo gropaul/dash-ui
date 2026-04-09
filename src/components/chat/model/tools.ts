@@ -1,5 +1,5 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {SQLTollDescription} from "@/components/chat/model/promts";
+import {SQLToolDescription} from "@/components/chat/model/promts";
 import {EditorsService} from "@/state/editor.state";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
@@ -23,7 +23,7 @@ import {useLanguageModelState} from "@/state/language-model.state";
 // --- Query Tool (unchanged) ---
 
 export const QueryDatabaseTool = tool({
-    description: SQLTollDescription,
+    description: SQLToolDescription,
     inputSchema: z.object({
         query: z.string().describe('The SQL query to execute.'),
     }).describe('Parameters for the SQL query execution.'),

@@ -83,18 +83,21 @@ export function buildTargetContextPrompt(targets: Target[]): string {
         '## Available Targets',
         'You can target your output to any of these destinations using the `target` parameter:',
         '',
+        '| target | type | name | details |',
+        '|--------|------|------|---------|',
     ];
 
     for (const target of targets) {
         switch (target.type) {
             case 'chat':
-                lines.push(`- target: "chat" — Show inline in the chat conversation`);
+                lines.push(`| "chat" | chat | — | Show inline in the chat conversation |`);
                 break;
             case 'dashboard':
-                lines.push(`- target: "${target.id}" — Dashboard "${target.name}" (${target.description})`);
+                lines.push(`| "${target.id}" | dashboard | ${target.name} | ${target.description} |`);
                 break;
             case 'relation':
-                lines.push(`- target: "${target.id}" — Relation "${target.name}" (${target.description}, current query: \`${target.query}\`)`);
+                const querySmall = target.query.slice(0, 100);
+                lines.push(`| "${target.id}" | relation | ${target.name} | ${target.description} — query: ${querySmall} |`);
                 break;
         }
     }
