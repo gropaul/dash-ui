@@ -88,7 +88,6 @@ export class RelationActions {
                 decoration: getInitialAxisDecoration(1)
             }];
             viewState.chartState.chart.plot.type = 'line';
-            viewState.chartState.chart.plot.cartesian.xAxisType = 'value';
         }
         const baseQuery = getBaseQueryFromSource(source);
         const relationState: RelationState = {

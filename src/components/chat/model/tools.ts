@@ -9,7 +9,6 @@ import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-st
 import z from 'zod';
 import {tool} from "ai";
 import {parseMarkdownToBlocks} from "@/components/editor/parse-markdown";
-import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {useRelationsState} from "@/state/relations.state";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
