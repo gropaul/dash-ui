@@ -33,8 +33,10 @@ ConnectionsService.getInstance().onDatabaseConnectionChange(async (connection) =
     }
 });
 
-setInterval(() => {
-    void useDatabaseState.getState().refresh();
+setInterval(async () => {
+    if (ConnectionsService.getInstance().hasDatabaseConnection()) {
+        await useDatabaseState.getState().refresh();
+    }
 }, DATABASE_STATE_REFRESH_INTERVAL_MS);
 
 export type RefreshArea = 'structure' | 'functions' | 'keywords';
@@ -99,10 +101,6 @@ export const useDatabaseState = create<DatabaseZustand>()(
                 keywords: state.keywords,
                 lastRefreshedAt: state.lastRefreshedAt,
             }),
-            onRehydrateStorage: () => (state) => {
-                // Refresh in background after rehydration to pick up any schema changes
-                if (state) void state.refresh();
-            },
         },
     ),
 );

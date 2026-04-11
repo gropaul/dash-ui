@@ -26,8 +26,6 @@ import {RelationState} from "@/model/relation-state";
 import {getDefaultSessionState, RelationViewMode} from "@/model/relation-view-state";
 import {onRelationEvent} from "@/state/relations/event/relation-events";
 
-const DEFAULT_RELATION_DATA = RelationActions.create();
-
 type RelationNodeProps = {
     relationData?: RelationState;
     connectionHover?: ConnectionHoverState | null;
@@ -37,12 +35,19 @@ type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
 
 const VIEW_MODE: RelationViewMode = 'embedded';
 
+function getRelationState(props: RelationNodeProps): RelationState {
+    const maybeRelationData = props.relationData;
+    if (!maybeRelationData) {
+        return RelationActions.create();
+    }
+    return maybeRelationData;
+}
+
 export function RelationNode(props: NodeProps<RelationNodeType>) {
     const {openFullscreen, setNodes, setEdges, getNodes, getEdges} = useCanvasState();
 
-    // Get relation data from node props, merge with defaults
-    const rawData = props.data as RelationNodeProps;
-    const data: RelationState = rawData.relationData ?? DEFAULT_RELATION_DATA;
+    // Get relation data from node props, merge with defaults if missing (e.g. on first load)
+    const data = getRelationState(props.data as RelationNodeProps);
 
     // Update relation data in node, optionally with node-level updates (height, etc.)
     const updateNodeData = useCallback((
@@ -52,7 +57,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         setNodes((nodes) =>
             nodes.map((node) => {
                 if (node.id !== props.id) return node;
-                const currentData = (node.data as RelationNodeProps).relationData ?? DEFAULT_RELATION_DATA;
+                const currentData = getRelationState(node.data as RelationNodeProps);
                 return {
                     ...node,
                     ...(nodeUpdater?.(node) ?? {}),

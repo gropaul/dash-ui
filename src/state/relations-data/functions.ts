@@ -26,9 +26,23 @@ function getMaterializedViewFromQuery(id: string, query: string, readonly: boole
 export async function loadCache(id: string): Promise<RelationData | undefined> {
     try {
         const viewName = GetFullViewNameEscaped(id);
+
         return await ConnectionsService.getInstance().executeQuery(`SELECT * FROM ${viewName};`);
     } catch (error) {
         return Promise.resolve(undefined);
+    }
+}
+
+export async function listCachedIds(): Promise<string[]> {
+    try {
+        const prefix = GetCacheViewPrefix();
+        const result = await ConnectionsService.getInstance().executeQuery(
+            `SELECT table_name FROM information_schema.tables WHERE table_catalog = '${DASH_CACHE_DATABASE_CATALOG}' AND table_schema = 'main' AND table_name LIKE '${prefix}%';`
+        );
+        return result.rows.map((row: unknown[]) => (row[0] as string).slice(prefix.length));
+    } catch (error) {
+        console.error('Failed to list cached tables:', error);
+        return [];
     }
 }
 

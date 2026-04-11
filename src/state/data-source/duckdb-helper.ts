@@ -166,6 +166,7 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
                     name: table,
                     children: columns.map(([column, type]: [string, string]) => {
                         return {
+                            id: column,
                             name: column,
                             type: duckDBTypeToValueType(type),
                             children: null,

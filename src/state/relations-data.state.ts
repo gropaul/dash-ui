@@ -1,7 +1,7 @@
 import {RelationData} from "@/model/relation";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
-import {deleteCache, loadCache, updateCache} from "@/state/relations-data/functions";
+import {deleteCache, listCachedIds, loadCache, updateCache} from "@/state/relations-data/functions";
 import {GetRelationStatsLoading, RelationState, RelationStats} from "@/model/relation-state";
 import {LRUList} from "@/platform/lru";
 import {N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
@@ -212,6 +212,21 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
 
         loadLastUsed: async () => {
             const ids_to_hydrate = useCacheStore.getState().cache.getElements();
+            const ids_to_hydrate_set = new Set(ids_to_hydrate);
+
+            // Delete cache tables that are no longer in the LRU list
+            const allCachedIds = await listCachedIds();
+            for (const cachedId of allCachedIds) {
+                if (!ids_to_hydrate_set.has(cachedId)) {
+                    console.log(`Deleting stale cache table for relation ${cachedId}`);
+                    try {
+                        await deleteCache(cachedId);
+                    } catch (e) {
+                        console.error(`Failed to delete stale cache for relation ${cachedId}:`, e);
+                    }
+                }
+            }
+
             const keysLoadFailed = [];
             for (const relationId of ids_to_hydrate) {
                 if (!get().data[relationId]) {

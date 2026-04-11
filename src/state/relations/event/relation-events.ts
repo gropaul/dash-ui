@@ -1,4 +1,5 @@
 import {RelationState} from "@/model/relation-state";
+import {ConnectionsService} from "@/state/connections/connections-service";
 
 /**
  * Relation Events API
@@ -58,6 +59,9 @@ export function onRelationEvent(listener: RelationEventListener, types?: Relatio
  */
 function dispatchRelationEvent(event: RelationEvent): void {
     const eventRelationId = event.new?.id ?? event.old?.id;
+    if (!ConnectionsService.getInstance().hasDatabaseConnection()){
+        throw new Error('No database connection available');
+    }
     for (const entry of listeners) {
         if (entry.types && !entry.types.includes(event.type)) continue;
         if (entry.relationId && entry.relationId !== eventRelationId) continue;

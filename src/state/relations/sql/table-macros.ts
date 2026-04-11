@@ -390,8 +390,11 @@ async function reregisterAllMacros(): Promise<void> {
 }
 
 // Re-register all macros when the database connection changes
-ConnectionsService.getInstance().onDatabaseConnectionChange((connection) => {
+ConnectionsService.getInstance().onDatabaseConnectionChange(async (connection) => {
     if (connection) {
-        reregisterAllMacros();
+        const state = await connection.checkConnectionState();
+        if (state.state === 'connected') {
+            await reregisterAllMacros();
+        }
     }
 });
