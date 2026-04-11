@@ -52,7 +52,8 @@ export function minifySQL(sql: string) {
     return sql.trim();
 }
 
-export function splitSQL(sql: string, keepSemicolon: boolean = false): string[] {
+export function splitSQL(sql_: string, keepSemicolon: boolean = false): string[] {
+    const sql = removeComments(sql_);
     const stmts: string[] = [];
     let current = '';
 

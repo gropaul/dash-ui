@@ -10,6 +10,7 @@ export const STORAGE_THROTTLE_TIME_MS = 2_000; // how long to wait before saving
 export const DASH_DOMAIN = 'app.dash.builders'
 
 export const DASH_CACHE_DATABASE_NAME = 'dash_cache.duckdb'
+export const DASH_CACHE_DATABASE_CATALOG = 'dash_cache' // catalog name used after ATTACHing the cache database
 
 // connection ids
 export const DATABASE_CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';
@@ -54,7 +55,7 @@ export const DEFAULT_LLM_SETTINGS: LLMSettings = {
     maxMessagesToPrompt: 8, // always + 1 if there is a system prompt
 }
 
-export const N_RELATIONS_DATA_TO_LOAD = 20;
+export const N_RELATIONS_DATA_TO_LOAD = 30;
 
 export const DEFAULT_RELATION_VIEW_PATH =[]
 

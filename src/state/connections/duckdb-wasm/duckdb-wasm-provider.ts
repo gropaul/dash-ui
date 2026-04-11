@@ -3,7 +3,7 @@ import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, DuckDBDataProtocol, LogLevel} from '@duckdb/duckdb-wasm';
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
 import {getJsonMacro} from "@/state/connections/duckdb-wasm/utils";
-import {DASH_CACHE_DATABASE_NAME} from "@/platform/global-data";
+import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_DATABASE_NAME} from "@/platform/global-data";
 
 export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
 
@@ -229,6 +229,7 @@ export class DuckdbWasmProvider {
 
         try {
             await registerAdditionalDatabase(db, DASH_CACHE_DATABASE_NAME);
+            await connection.query(`ATTACH IF NOT EXISTS 'opfs://${DASH_CACHE_DATABASE_NAME}' AS ${DASH_CACHE_DATABASE_CATALOG};`);
         } catch (e) {
             console.error('Failed to register the database:', e);
             throw e;

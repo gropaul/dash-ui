@@ -50,6 +50,19 @@ describe('splitSQL', () => {
                 'INSERT INTO logs VALUES (1)'
             ]);
         });
+
+        it('realive example', () => {
+            const sql = `
+                ATTACH IF NOT EXISTS 'opfs://dash_cache.duckdb' AS dash_cache;
+                -- CREATE TABLE IF NOT EXISTS dash_cache.file_test AS FROM range(20);
+                -- CHECKPOINT;
+                -- FROM  dash_cache.file_test;
+                `;
+            const result = splitSQL(sql);
+            expect(result).toEqual([
+                "ATTACH IF NOT EXISTS 'opfs://dash_cache.duckdb' AS dash_cache"
+            ]);
+        })
     });
 
     describe('single quote strings', () => {
@@ -126,30 +139,29 @@ describe('splitSQL', () => {
     });
 
     describe('line comments', () => {
-        it('should split on semicolons even with line comments after', () => {
+        it('should split on semicolons and strip line comments', () => {
             const sql = 'SELECT * FROM users; -- this is a comment with ; semicolon\nSELECT * FROM orders;';
             const result = splitSQL(sql);
             expect(result).toEqual([
                 'SELECT * FROM users',
-                '-- this is a comment with ; semicolon\nSELECT * FROM orders'
+                'SELECT * FROM orders'
             ]);
         });
 
-        it('should split on semicolon with comment after and no following statement', () => {
+        it('should strip trailing line comment with no following statement', () => {
             const sql = 'SELECT * FROM users; -- final comment';
             const result = splitSQL(sql);
             expect(result).toEqual([
-                'SELECT * FROM users',
-                '-- final comment'
+                'SELECT * FROM users'
             ]);
         });
 
-        it('should handle multiple line comments across statements', () => {
+        it('should strip all line comments and split remaining statements', () => {
             const sql = '-- first comment\nSELECT * FROM users; -- inline comment\n-- another comment\nSELECT * FROM orders;';
             const result = splitSQL(sql);
             expect(result).toEqual([
-                '-- first comment\nSELECT * FROM users',
-                '-- inline comment\n-- another comment\nSELECT * FROM orders'
+                'SELECT * FROM users',
+                'SELECT * FROM orders'
             ]);
         });
 
@@ -163,16 +175,16 @@ describe('splitSQL', () => {
     });
 
     describe('block comments', () => {
-        it('should split on semicolons even with block comments after', () => {
+        it('should split on semicolons and strip block comments', () => {
             const sql = 'SELECT * FROM users; /* comment with ; semicolon */ SELECT * FROM orders;';
             const result = splitSQL(sql);
             expect(result).toEqual([
                 'SELECT * FROM users',
-                '/* comment with ; semicolon */ SELECT * FROM orders'
+                'SELECT * FROM orders'
             ]);
         });
 
-        it('should split on semicolon with multiline block comment after', () => {
+        it('should split on semicolon with multiline block comment stripped', () => {
             const sql = `SELECT *
                          FROM users;
 /* This is a
@@ -183,7 +195,7 @@ describe('splitSQL', () => {
             const result = splitSQL(sql);
             expect(result).toEqual([
                 'SELECT *\n                         FROM users',
-                '/* This is a\n   multiline comment\n   with ; semicolon */\n            SELECT *\n            FROM orders'
+                'SELECT *\n            FROM orders'
             ]);
         });
 
@@ -195,11 +207,11 @@ describe('splitSQL', () => {
             ]);
         });
 
-        it('should handle block comment at start of SQL', () => {
+        it('should strip block comment at start of SQL', () => {
             const sql = '/* header comment */ SELECT * FROM users;';
             const result = splitSQL(sql);
             expect(result).toEqual([
-                '/* header comment */ SELECT * FROM users'
+                'SELECT * FROM users'
             ]);
         });
     });
@@ -351,12 +363,12 @@ SELECT * FROM "users;table";`;
             ]);
         });
 
-        it('should handle comments with keepSemicolon=true', () => {
+        it('should strip comments with keepSemicolon=true', () => {
             const sql = 'SELECT * FROM users; -- comment\nSELECT * FROM orders;';
             const result = splitSQL(sql, true);
             expect(result).toEqual([
                 'SELECT * FROM users;',
-                '-- comment\nSELECT * FROM orders;'
+                'SELECT * FROM orders;'
             ]);
         });
 

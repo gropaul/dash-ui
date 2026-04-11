@@ -91,7 +91,6 @@ export class DuckDBWasm implements DatabaseConnection {
 
     async executeQueryInternal(input: QueryInput): Promise<RelationData> {
         const {query, readOnly} = input;
-        console.log("Execute query: ", query);
         try {
             // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
             const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();

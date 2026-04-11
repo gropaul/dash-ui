@@ -1,5 +1,5 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {GetCacheViewPrefix} from "@/state/relations-data/functions";
+import {DASH_CACHE_DATABASE_CATALOG} from "@/platform/global-data";
 import {TABLE_MACRO_PREFIX} from "@/platform/global-data";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {getMacroName} from "@/state/relations/sql/table-macros";
@@ -96,12 +96,11 @@ async function getMacroColumns(macroNames: string[]): Promise<Map<string, Column
 
 export async function getDatabaseStructure(): Promise<Database[]> {
     try {
-        const cachePrefix = GetCacheViewPrefix();
         const result = await ConnectionsService.getInstance().executeQuery(
             `SELECT c.table_catalog, c.table_schema, c.table_name, c.column_name, c.data_type
              FROM information_schema.columns c
              WHERE c.table_schema NOT IN ('information_schema', 'pg_catalog')
-               AND c.table_name NOT LIKE '${cachePrefix}%'
+               AND c.table_catalog != '${DASH_CACHE_DATABASE_CATALOG}'
              ORDER BY c.table_catalog, c.table_schema, c.table_name, c.ordinal_position`
         );
 

@@ -36,7 +36,7 @@ You should always asked twice if the user wants you to delete or write something
 export const SQLToolDescription = `
 Executes a SQL query against duckdb, a postgreSQL-compatible database. 
 Schema information is in the information_schema.tables (columns: table_name, ..., Tables can be in all schemas, not just public!),
-If you search the schema, filter out the dash_cache_ tables by doing \`WHERE  table_name NOT LIKE 'dash_cache_%'\` in your query. Column information is in
+If you search the schema, filter out the cache database by doing \`WHERE table_catalog != 'dash_cache'\` in your query. Column information is in
 information_schema.columns ( column_name, data_type, table_name, ...), 
 functions in duckdb_functions() (columns: function_name, description, function_type, ...).
 Example find function: 

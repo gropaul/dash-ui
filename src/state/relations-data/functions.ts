@@ -1,16 +1,16 @@
 import {RelationData} from "@/model/relation";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DEFAULT_STATE_SCHEMA_NAME} from "@/platform/global-data";
+import {DASH_CACHE_DATABASE_CATALOG, DEFAULT_STATE_SCHEMA_NAME} from "@/platform/global-data";
 import {CacheResult} from "@/state/relations-data.state";
 import {removeSemicolon} from "@/platform/sql-utils";
 
 
-export function GetCacheViewPrefix(): string {
+function GetCacheViewPrefix(): string {
     return`${DEFAULT_STATE_SCHEMA_NAME}_cache_`;
 }
 
 function GetFullViewNameEscaped(id: string): string {
-    return '"' + GetCacheViewPrefix() + id + '"';
+    return `${DASH_CACHE_DATABASE_CATALOG}.main."${GetCacheViewPrefix()}${id}"`;
 }
 
 function getMaterializedViewFromQuery(id: string, query: string, readonly: boolean): string {
