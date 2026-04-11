@@ -85,12 +85,12 @@ export class DeepseekProvider implements LanguageModelProviderInterface {
         };
     }
 
-    getModel(): LanguageModel {
+    getModel(): Promise<LanguageModel> {
         const deepseek = createOpenAI({
             apiKey: this.config.token,
             baseURL: this.config.apiEndpoint,
         });
-        return deepseek(this.config.model);
+        return Promise.resolve(deepseek(this.config.model));
     }
 
     updateConfig(config: Partial<DeepseekConfig>): void {

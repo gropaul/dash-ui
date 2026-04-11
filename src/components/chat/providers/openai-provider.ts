@@ -78,11 +78,11 @@ export class OpenAIProvider implements LanguageModelProviderInterface {
         };
     }
 
-    getModel(): LanguageModel {
+    getModel(): Promise<LanguageModel> {
         const openai = createOpenAI({
             apiKey: this.config.token,
         });
-        return openai(this.config.model);
+        return  Promise.resolve(openai(this.config.model));
     }
 
     updateConfig(config: Partial<OpenAIConfig>): void {

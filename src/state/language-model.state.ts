@@ -42,7 +42,7 @@ export interface LanguageModelActions {
     setActiveProvider: (providerId: LanguageModelProvider) => void;
     updateProviderConfig: (providerId: string, config: Record<string, any>) => void;
     updateSettings: (settings: Partial<AgentSettings>) => void;
-    getLanguageModel: () => LanguageModel;
+    getLanguageModel: () => Promise<LanguageModel>;
     getCurrentProviderStatus: () => Promise<ValidationStatus>;
     getProviderStatus: (providerId?: string) => Promise<ValidationStatus>;
     isReadOnly: () => boolean;
@@ -82,7 +82,7 @@ export const useLanguageModelState = create<LanguageModelState & LanguageModelAc
                     settings: { ...state.settings, ...settings },
                 }));
             },
-            getLanguageModel: () => {
+            getLanguageModel: async () => {
                 const state = get();
                 const provider = registry.getProvider(state.activeProviderId);
 

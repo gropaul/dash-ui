@@ -13,7 +13,6 @@ import "@/styles/editor-monaco.css";
 import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
 import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
 import {registerInputCompletion} from "@/components/basics/sql-editor/regsiter-input-completion";
-import {registerAiCompletion} from "@/components/basics/sql-editor/register-ai-completion";
 import {registerHighlighting} from "@/components/basics/sql-editor/register-highlighting";
 import {registerCompletionDuckDB} from "@/components/basics/sql-editor/register-autocomplete";
 import {InputManager} from "@/components/editor/inputs/input-manager";
@@ -87,7 +86,7 @@ export function SqlEditor(
 
     // Use refs to avoid stale closures in debounced callbacks
     const editorRef = useRef<any>(null);
-    const aiCompletionRef = useRef<ReturnType<typeof registerAiCompletion> | null>(null);
+    // const aiCompletionRef = useRef<ReturnType<typeof registerAiCompletion> | null>(null);
     const onCodeChangeRef = useRef(onCodeChange);
     const onRunRef = useRef(onRun);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -161,7 +160,7 @@ export function SqlEditor(
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
             }
-            aiCompletionRef.current?.deregister();
+            // aiCompletionRef.current?.deregister();
         };
     }, []);
 

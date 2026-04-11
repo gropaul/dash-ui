@@ -1,5 +1,4 @@
 import {LanguageModel} from 'ai';
-import {webLLM} from '@browser-ai/web-llm';
 import {FormDefinition} from '@/components/basics/input/custom-form';
 import {LanguageModelProviderInterface, ValidationStatus} from './language-model-provider.interface';
 
@@ -81,7 +80,7 @@ export class WebLLMProvider implements LanguageModelProviderInterface {
         return this.worker;
     }
 
-    getModel(): LanguageModel {
+    async getModel(): Promise<LanguageModel> {
         console.log('WebLLMProvider getModel called with config:', this.config);
         const modelId = this.config.model === 'other' ? this.config.customModel : this.config.model;
         if (this.cachedModel && this.cachedModelId === modelId) {
@@ -89,6 +88,7 @@ export class WebLLMProvider implements LanguageModelProviderInterface {
             return this.cachedModel;
         }
         console.log('Loading new model for modelId:', modelId);
+        const {webLLM} = await import('@browser-ai/web-llm');
         this.cachedModel = webLLM(modelId, {
             worker: this.getOrCreateWorker(),
         }) as unknown as LanguageModel;
@@ -119,6 +119,7 @@ export class WebLLMProvider implements LanguageModelProviderInterface {
 
     async prepareModel(onProgress: (progress: number) => void): Promise<void> {
         const modelId = this.config.model === 'other' ? this.config.customModel : this.config.model;
+        const {webLLM} = await import('@browser-ai/web-llm');
         const model = webLLM(modelId);
         const availability = await model.availability();
 
@@ -142,6 +143,7 @@ export class WebLLMProvider implements LanguageModelProviderInterface {
                 };
             }
 
+            const {webLLM} = await import('@browser-ai/web-llm');
             const model = webLLM(modelId);
             const availability = await model.availability();
 

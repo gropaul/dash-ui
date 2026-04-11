@@ -57,7 +57,7 @@ class LlmService {
     async streamText(messages: UIMessage[]): Promise<StreamTextResult<any, any>> {
 
         // Get the current language model from state
-        const model = useLanguageModelState.getState().getLanguageModel();
+        const model = await useLanguageModelState.getState().getLanguageModel();
 
         return streamText({
             model: model,

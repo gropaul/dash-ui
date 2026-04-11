@@ -77,13 +77,13 @@ export class OllamaProvider implements LanguageModelProviderInterface {
         };
     }
 
-    getModel(): LanguageModel {
+    getModel(): Promise<LanguageModel> {
         const ollama = createOllama({
             baseURL: this.config.apiEndpoint,
         });
-        return ollama(this.config.model, {
+        return Promise.resolve(ollama(this.config.model, {
             simulateStreaming: true
-        }) as unknown as LanguageModel;
+        }) as unknown as LanguageModel);
     }
 
     updateConfig(config: Partial<OllamaConfig>): void {
@@ -140,7 +140,6 @@ export class OllamaProvider implements LanguageModelProviderInterface {
                 },
                 body: JSON.stringify({name: modelId}),
             });
-
 
 
             if (!modelResponse.ok) {

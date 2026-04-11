@@ -4,7 +4,12 @@ import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm'
 
 import rehypeKatex from 'rehype-katex';
-import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
+import {PrismLight as SyntaxHighlighter} from 'react-syntax-highlighter';
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
+
+SyntaxHighlighter.registerLanguage('sql', sql);
+SyntaxHighlighter.registerLanguage('python', python);
 import {Check, Copy} from 'lucide-react';
 import {cn} from "@/lib/utils";
 import {fontMono} from "@/components/relation/table/table-content";

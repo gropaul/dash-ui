@@ -39,7 +39,7 @@ export interface LanguageModelProviderInterface {
   /**
    * Get the language model instance
    */
-  getModel(): LanguageModel;
+  getModel(): Promise<LanguageModel>;
 
   /**
    * Update the provider configuration

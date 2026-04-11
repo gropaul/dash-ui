@@ -27,7 +27,7 @@ export function registerAiCompletion(editor: any, monaco: Monaco) {
         requestHandler: async ({ body }) => {
             try {
                 console.log('AI completion request received with metadata:', body.completionMetadata);
-                const model = completionProvider.getModel();
+                const model = await completionProvider.getModel();
                 const { textBeforeCursor, textAfterCursor } =  body.completionMetadata;
                 const systemPrompt = `You are a code completion assistant. Complete the SQL at the cursor position (marked with <CURSOR>). Output ONLY the completion text to insert — no explanation, no markdown, no backticks. If no meaningful completion exists, output an empty string. You will get a snipped {textBeforeCursor}CURSOR{textAfterCursor}`;
                 const prompt = `${textBeforeCursor}<CURSOR>${textAfterCursor}`;
