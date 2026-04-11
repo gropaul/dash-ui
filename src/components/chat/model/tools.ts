@@ -171,7 +171,7 @@ const ChartToolInputSchema = z.object({
     xLabelRotation: z.number().optional().describe('Rotation of x-axis labels. For long labels like names, use -30.'),
     yRangeMin: z.enum(['min', 'zero']).optional().describe('For values like counts etc. that have a reference to zero, use "zero". For other values, use "min".'),
     yAxes: z.array(z.string()).describe('The columns to use for the y-axes.'),
-    title: z.string().optional().describe('The title of the chart.')
+    title: z.string().optional().describe('The title of the chart. Keep it short!')
 });
 
 function chartInputToPartialRelation(input: z.infer<typeof ChartToolInputSchema>): DeepPartial<RelationState> {

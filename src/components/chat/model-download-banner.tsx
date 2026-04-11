@@ -42,11 +42,6 @@ export function ModelDownloadBanner() {
                     </p>
                 </>
             )}
-            {downloadState === 'done' && (
-                <p className="text-xs text-muted-foreground text-center">
-                    Running locally in your browser. Your data never leaves your device.
-                </p>
-            )}
             {downloadState === 'error' && (
                 <p className="text-xs text-red-500 text-center">{errorMsg}</p>
             )}

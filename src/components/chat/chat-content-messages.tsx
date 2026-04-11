@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useRef} from "react";
 import {Button} from "@/components/ui/button";
-import {X} from "lucide-react";
+import {Lock, LockOpen, Shield, ShieldAlert, X} from "lucide-react";
 import {ChatMessagePart} from "./chat-message-part";
 
 import {useChatState} from "@/state/chat.state";
 import {ChatWindowProps} from "@/components/chat/chat-wrapper";
 import {Alert, AlertTitle} from "@/components/ui/alert";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {ChatInput} from "@/components/chat/chat-input";
 import {ModelDownloadBanner} from "@/components/chat/model-download-banner";
 import {useLanguageModelState} from "@/state/language-model.state";
@@ -27,13 +28,6 @@ export function ChatContentMessages({
     const isLocalProvider = !!getProviderRegistry().getProvider(activeProviderId)?.prepareModel;
 
     const isReadOnly = useLanguageModelState((s) => s.isReadOnly());
-    const warningMessageShare = isLocalProvider ?
-        "Local model — your data stays on your device." :
-        "3rd-party model — your data will be shared with the provider.";
-
-    const warningMessageRead = isReadOnly ?
-        "Read-only mode — no writes or deletes. Change this in settings." :
-        "Full access — the agent can read, write, and *delete* your data."
 
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const atBottomRef = useRef(true); // ← tracks live "at-bottom" state
@@ -96,10 +90,46 @@ export function ChatContentMessages({
                         <div className="text-muted-foreground">
                             How can I help you today?
                         </div>
-                        <div className="text-amber-500 dark:text-amber-400 text-s max-w-md mx-auto">
-                            {warningMessageShare} <br/>
-                            {warningMessageRead}
-                        </div>
+                        <TooltipProvider>
+                            <div className="flex gap-2 justify-center flex-wrap">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        {isLocalProvider ? (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-muted text-muted-foreground cursor-default">
+                                                <Shield className="h-3 w-3"/>&nbsp;Local model
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800 cursor-default">
+                                                <ShieldAlert className="h-3 w-3"/>&nbsp;Data shared with provider
+                                            </span>
+                                        )}
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {isLocalProvider
+                                            ? "Your data stays on your device."
+                                            : "Your data will be sent to the 3rd-party model provider."}
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        {isReadOnly ? (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-muted text-muted-foreground cursor-default">
+                                                <Lock className="h-3 w-3"/>&nbsp;Read-only
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800 cursor-default">
+                                                <LockOpen className="h-3 w-3"/>&nbsp;Full access (read/write/delete)
+                                            </span>
+                                        )}
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {isReadOnly
+                                            ? "No writes or deletes. Change this in settings."
+                                            : "The agent can read, write, and delete your data."}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
+                        </TooltipProvider>
                         <ModelDownloadBanner/>
                     </div>
                     {messages.map((m, index) => (

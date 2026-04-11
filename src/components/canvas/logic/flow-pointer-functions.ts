@@ -269,8 +269,9 @@ function getDefaultNodeData(type: string): Record<string, unknown> {
         case 'textNode':
             return {...DEFAULT_TEXT_NODE_DATA};
         case 'relationNode':
+            return {relationData: RelationActions.create({showCode: true, viewType: 'table'})};
         case 'chartNode':
-            return {relationData: RelationActions.create({showCode: true})};
+            return {relationData: RelationActions.create({showCode: true, viewType: 'chart'})};
         default:
             return {};
     }

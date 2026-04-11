@@ -11,7 +11,13 @@ import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {DeleteDialog} from "@/components/workbench/delete-dialog";
 import {RelationState} from "@/model/relation-state";
 import {getRandomId} from "@/platform/id-utils";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel, DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
@@ -256,6 +262,10 @@ ${relationNames.join(', ')}`;
         addNewDashboard(MAIN_CONNECTION_ID, path, undefined);
     }
 
+    function onAddNewCanvas(path: string[], tree: TreeNode) {
+        addNewCanvas(undefined, path);
+    }
+
     function onAddNewFolder(path?: string[], tree?: TreeNode) {
         const actions = AddFolderActions(path || [], tree);
         applyEditorElementsActions(actions);
@@ -305,21 +315,23 @@ ${relationNames.join(', ')}`;
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
+                        <DropdownMenuLabel className="text-primary">New ...</DropdownMenuLabel>
+                        <DropdownMenuSeparator/>
                         <DropdownMenuItem onClick={() => onAddNewFolder()}>
                             <Folder size={16} className="mr-2"/>
-                            <span>New Folder</span>
+                            <span>Folder</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => addNewRelation(MAIN_CONNECTION_ID, [], RelationActions.create())}>
                             <Sheet size={16} className="mr-2"/>
-                            <span>New Query</span>
+                            <span>Query</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => addNewDashboard(MAIN_CONNECTION_ID, [], undefined)}>
                             <LayoutDashboard size={16} className="mr-2"/>
-                            <span>New Dashboard</span>
+                            <span>Dashboard</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => addNewCanvas()}>
                             <Workflow size={16} className="mr-2"/>
-                            <span>New Canvas 🛠️</span>
+                            <span>Canvas️</span>
                         </DropdownMenuItem>
                         { /* only in development */}
                         {process.env.NODE_ENV === 'development' && (
@@ -339,7 +351,7 @@ ${relationNames.join(', ')}`;
                     onPointerDown={onTreeElementPointerDown}
                     onClick={onTreeElementClick}
                     onExpandedChange={onExpandChange}
-                    contextMenuFactory={(path, tree) => ContextMenuFactory(path, tree, onDelete, onRename, onDuplicate, onAddToDashboard, onAddNewRelation, onAddNewDashboard, onAddNewFolder)}
+                    contextMenuFactory={(path, tree) => ContextMenuFactory(path, tree, onDelete, onRename, onDuplicate, onAddToDashboard, onAddNewRelation, onAddNewDashboard, onAddNewFolder, onAddNewCanvas)}
                 />
             </div>
             <DeleteDialog

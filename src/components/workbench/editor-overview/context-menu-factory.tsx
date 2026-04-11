@@ -1,5 +1,5 @@
 import {TreeNode} from "@/components/basics/files/tree-utils";
-import {Copy, Folder, LayoutDashboard, PencilLine, Plus, Sheet, Trash} from "lucide-react";
+import {Copy, Folder, LayoutDashboard, PencilLine, Plus, Sheet, Trash, Workflow} from "lucide-react";
 import React from "react";
 import {
     ResponsiveMenuItem,
@@ -8,6 +8,7 @@ import {
     ResponsiveMenuSubContent,
     ResponsiveMenuSubTrigger
 } from "@/components/basics/responsive-menu/responsive-menu";
+import {DropdownMenuItem} from "@/components/ui/dropdown-menu";
 
 export function ContextMenuFactory(
     path: string[],
@@ -18,7 +19,8 @@ export function ContextMenuFactory(
     onAddRelationToDashboard: (path: string[], tree: TreeNode) => void,
     onAddNewRelation: (path: string[], tree: TreeNode) => void,
     onAddNewDashboard: (path: string[], tree: TreeNode) => void,
-    onAddNewFolder: (path: string[], tree: TreeNode) => void
+    onAddNewFolder: (path: string[], tree: TreeNode) => void,
+    onAddNewCanvas: (path: string[], tree: TreeNode) => void
 ) {
     return (
         <>
@@ -41,6 +43,10 @@ export function ContextMenuFactory(
                             <ResponsiveMenuItem onClick={() => onAddNewDashboard(path, tree)}>
                                 <LayoutDashboard size={16} className="mr-2"/>
                                 <span>Dashboard</span>
+                            </ResponsiveMenuItem>
+                            <ResponsiveMenuItem onClick={() => onAddNewCanvas(path, tree)}>
+                                <Workflow size={16} className="mr-2"/>
+                                <span>Canvas</span>
                             </ResponsiveMenuItem>
                         </ResponsiveMenuSubContent>
                     </ResponsiveMenuSub>

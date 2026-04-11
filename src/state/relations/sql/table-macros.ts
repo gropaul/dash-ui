@@ -258,8 +258,8 @@ export async function registerRelationMacro(
 
     try {
         await ConnectionsService.getInstance().executeQuery(sql);
-    } catch {
-        // Silent fail - macro registration should not break the main flow
+    } catch (error) {
+        console.error(`Failed to register relation as table macro: ${relationName}`, error);
     }
 }
 
