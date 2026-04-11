@@ -9,6 +9,8 @@ export const STORAGE_THROTTLE_TIME_MS = 2_000; // how long to wait before saving
 
 export const DASH_DOMAIN = 'app.dash.builders'
 
+export const DASH_CACHE_DATABASE_NAME = 'dash_cache.duckdb'
+
 // connection ids
 export const DATABASE_CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';
 export const DATABASE_CONNECTION_ID_DUCKDB_LOCAL = 'duckdb-local';

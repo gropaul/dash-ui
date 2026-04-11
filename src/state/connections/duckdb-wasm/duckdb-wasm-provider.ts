@@ -1,11 +1,11 @@
 // Example imports – adjust to match your local setup
 import * as duckdb from '@duckdb/duckdb-wasm';
-import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, LogLevel} from '@duckdb/duckdb-wasm';
+import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, DuckDBDataProtocol, LogLevel} from '@duckdb/duckdb-wasm';
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
 import {getJsonMacro} from "@/state/connections/duckdb-wasm/utils";
+import {DASH_CACHE_DATABASE_NAME} from "@/platform/global-data";
 
 export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
-
 
 export async function clearOPFS(): Promise<void> {
 
@@ -226,12 +226,13 @@ export class DuckdbWasmProvider {
         // Finally, create a connection
         const connection = await db.connect();
         console.log("New connection to DuckDB-Wasm established: ID ", connection);
-        // await db.registerOPFSFileName('opfs://attached.duckdb');
-        // console.log('Registered OPFS file name');
-        // // try to attach a second database
-        // await connection.query("ATTACH DATABASE 'opfs://attached.duckdb' AS attached;");
-        // console.log('Attached database');
 
+        try {
+            await registerAdditionalDatabase(db, DASH_CACHE_DATABASE_NAME);
+        } catch (e) {
+            console.error('Failed to register the database:', e);
+            throw e;
+        }
         // check if we have write access
         await connection.query("CREATE OR REPLACE TABLE dash_write_test_table AS SELECT 1 as a;");
         // drop the test table
@@ -246,4 +247,19 @@ export class DuckdbWasmProvider {
         }
         return {db, con: connection};
     }
+}
+
+
+async function registerAdditionalDatabase(db: AsyncDuckDB, name: string) {
+    // Get the root directory handle
+    const root = await navigator.storage.getDirectory();
+    const wal_name = name + '.wal';
+    // Get/create a file handle
+    const fileHandle = await root.getFileHandle(name, { create: true });
+    const fileHandleWal = await root.getFileHandle(wal_name, { create: true });
+    // const writable = await fileHandle.createWritable();
+    // first get an OPFS handle for the database
+    await db.registerFileHandle('opfs://' + name, fileHandle, DuckDBDataProtocol.BROWSER_FSACCESS, true);
+    await db.registerFileHandle('opfs://' + wal_name, fileHandleWal, DuckDBDataProtocol.BROWSER_FSACCESS, true);
+
 }
