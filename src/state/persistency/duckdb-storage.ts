@@ -15,16 +15,23 @@ export function GetFullNameDestination(destination: StorageDestination) {
 }
 
 export async function GetStateStorageStatus(destination: StorageDestination, executeQuery: (query: string, readOnly: boolean) => Promise<RelationData>): Promise<StateStorageInfoLoaded> {
-    const current_database_query = `SELECT (path IS NOT null) as persistent, readonly, database_name
-                                    FROM duckdb_databases()
-                                    WHERE database_name = current_catalog();`;
+    const targetDatabase = destination.databaseName;
+    const current_database_query = targetDatabase
+        ? `SELECT (path IS NOT null) as persistent, readonly, database_name
+           FROM duckdb_databases()
+           WHERE database_name = '${targetDatabase}';`
+        : `SELECT (path IS NOT null) as persistent, readonly, database_name
+           FROM duckdb_databases()
+           WHERE database_name = current_catalog();`;
     const current_database_result = await executeQuery(current_database_query, false)
     const persistent = current_database_result.rows[0][0];
     const readonly = current_database_result.rows[0][1];
 
     // copy the destination to ensure we don't modify the original
     const destination_copy = {...destination};
-    destination_copy.databaseName = current_database_result.rows[0][2];
+    if (!targetDatabase) {
+        destination_copy.databaseName = current_database_result.rows[0][2];
+    }
 
     return {
         state: 'loaded',
@@ -80,11 +87,6 @@ export class StorageDuckAPI {
 
     async createTableIfNotExists(storageInfo: StateStorageInfoLoaded) {
 
-        // if we are in readonly mode, do not create the table
-        if (storageInfo.databaseReadonly) {
-            return;
-        }
-
         const tableName = GetFullNameDestination(storageInfo.destination);
         // create table if not exists
         if (!this.createdTables.includes(tableName)) {
@@ -101,7 +103,10 @@ export class StorageDuckAPI {
             }
 
             // create schema dash if not exists
-            await this.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${storageInfo.destination.schemaName};`);
+            const schemaFullName = storageInfo.destination.databaseName
+                ? `"${storageInfo.destination.databaseName}"."${storageInfo.destination.schemaName}"`
+                : storageInfo.destination.schemaName;
+            await this.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${schemaFullName};`);
 
             const createTableQuery = `CREATE TABLE IF NOT EXISTS ${tableName}
                                       (
@@ -202,11 +207,6 @@ export class StorageDuckAPI {
 
         console.log("Setting item in storage with throttling. Value length: ", input.value.length, ". Last version: ", this.lastVersionCode);
         const storageInfo = await this.getActiveStorageInfo();
-
-        // not allowed to write in readonly mode
-        if (storageInfo.databaseReadonly) {
-            return;
-        }
 
         let {value} = input;
         // escape single quotes in value

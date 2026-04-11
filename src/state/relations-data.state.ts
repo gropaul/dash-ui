@@ -4,9 +4,11 @@ import {createWithEqualityFn} from "zustand/traditional";
 import {deleteCache, listCachedIds, loadCache, updateCache} from "@/state/relations-data/functions";
 import {GetRelationStatsLoading, RelationState, RelationStats} from "@/model/relation-state";
 import {LRUList} from "@/platform/lru";
-import {N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
+import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_DATABASE_NAME, N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
 import {GetColumnStats} from "@/model/column-stats";
 import {Column} from "@/model/data-source-connection";
+import {ConnectionsService} from "@/state/connections/connections-service";
+import {attachDatabase} from "@/state/connections/utils";
 
 
 export interface CacheResult {
@@ -211,6 +213,15 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
         },
 
         loadLastUsed: async () => {
+
+            // first try to attach the cache database to the connection
+            if (!ConnectionsService.getInstance().hasDatabaseConnection()) {
+                throw new Error('loadLastUsed: No database connection available');
+            }
+
+            const con = ConnectionsService.getInstance().getDatabaseConnection();
+            await attachDatabase(con, DASH_CACHE_DATABASE_NAME, DASH_CACHE_DATABASE_CATALOG);
+
             const ids_to_hydrate = useCacheStore.getState().cache.getElements();
             const ids_to_hydrate_set = new Set(ids_to_hydrate);
 

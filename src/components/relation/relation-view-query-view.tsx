@@ -20,9 +20,9 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
     const executionState = props.relationState.executionState;
 
     const relationId = props.relationState.id;
-    async function onRunQuery() {
+    async function onRunQuery(code: string) {
         // we need to reset the view params as they could be columns removed now that had filters before!
-        await props.updateRelationDataWithBaseQuery(props.relationState.query.baseQuery);
+        await props.updateRelationDataWithBaseQuery(code);
     }
 
     function onCodeChange(code: string) {

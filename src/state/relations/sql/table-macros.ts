@@ -1,4 +1,4 @@
-import {TABLE_MACRO_PREFIX} from "@/platform/global-data";
+import {DASH_CACHE_DATABASE_CATALOG, TABLE_MACRO_PREFIX} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
@@ -42,7 +42,7 @@ export function sanitizeMacroName(name: string): string {
  * "My Query" -> "node_my_query"
  */
 export function getMacroName(relationName: string): string {
-    return `${TABLE_MACRO_PREFIX}${sanitizeMacroName(relationName)}`;
+    return `${DASH_CACHE_DATABASE_CATALOG}.${TABLE_MACRO_PREFIX}${sanitizeMacroName(relationName)}`;
 }
 
 /**
@@ -385,8 +385,13 @@ async function reregisterAllMacros(): Promise<void> {
     }
 
     const orderedSqls = orderMacroStatements(macros);
-    const big_query = orderedSqls.join(';\n');
-    await ConnectionsService.getInstance().executeQuery(big_query);
+    for (const sql of orderedSqls) {
+        try {
+            await ConnectionsService.getInstance().executeQuery(sql);
+        } catch (error) {
+            console.error(`Failed to re-register relation macro: ${sql}`, error);
+        }
+    }
 }
 
 // Re-register all macros when the database connection changes

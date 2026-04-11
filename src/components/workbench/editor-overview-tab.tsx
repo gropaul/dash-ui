@@ -255,7 +255,7 @@ ${relationNames.join(', ')}`;
     }
 
     function onAddNewRelation(path: string[], tree: TreeNode) {
-        addNewRelation(MAIN_CONNECTION_ID, path, RelationActions.create());
+        addNewRelation(MAIN_CONNECTION_ID, path, RelationActions.create({showCode: true}));
     }
 
     function onAddNewDashboard(path: string[], tree: TreeNode) {
@@ -321,7 +321,7 @@ ${relationNames.join(', ')}`;
                             <Folder size={16} className="mr-2"/>
                             <span>Folder</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addNewRelation(MAIN_CONNECTION_ID, [], RelationActions.create())}>
+                        <DropdownMenuItem onClick={() => addNewRelation(MAIN_CONNECTION_ID, [], RelationActions.create({showCode: true}))}>
                             <Sheet size={16} className="mr-2"/>
                             <span>Query</span>
                         </DropdownMenuItem>

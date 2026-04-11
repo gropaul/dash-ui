@@ -40,7 +40,7 @@ export interface SqlEditorProps {
     executionState?: TaskExecutionState;
     showRunButton?: boolean;
     runText?: string;
-    onRun?: () => void;
+    onRun?: (code: string) => void;
 
     showLayoutButton?: boolean;
     currentLayout?: Layout;
@@ -150,6 +150,11 @@ export function SqlEditor(
         }
     }
 
+    function handleRun() {
+        const code = editorRef.current?.getValue() ?? displayCode;
+        onRunRef.current?.(code);
+    }
+
     // Cleanup debounce timer and AI completion on unmount
     useEffect(() => {
         return () => {
@@ -194,7 +199,7 @@ export function SqlEditor(
         monaco.editor.defineTheme('customThemeDark', customThemeDark);
         monaco.editor.setTheme(editorTheme);
 
-        registerHotkeys(editor, monaco, () => onRunRef.current?.());
+        registerHotkeys(editor, monaco, () => handleRun());
         registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
 
@@ -220,7 +225,7 @@ export function SqlEditor(
                     showCopyButton={showCopyButton}
                     copyCode={copyCode}
                     showRunButton={showRunButton}
-                    onRun={onRun}
+                    onRun={onRun ? handleRun : undefined}
                     runText={runText}
                     executionState={executionState}
                 />
@@ -266,7 +271,7 @@ export function SqlEditor(
                     showCopyButton={showCopyButton}
                     copyCode={copyCode}
                     showRunButton={showRunButton}
-                    onRun={onRun}
+                    onRun={onRun ? handleRun : undefined}
                     executionState={executionState}
                     runText={runText}
                 />

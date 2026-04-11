@@ -10,9 +10,9 @@ import {
 import {DatabaseConnectionType} from "@/state/connections/configs";
 import {toast} from "sonner";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
-import {DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
+import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_DATABASE_NAME, DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
 import {AsyncQueue} from "@/platform/async-queue";
-import {enqueueStatements} from "@/state/connections/utils";
+import {attachDatabase, enqueueStatements} from "@/state/connections/utils";
 import {QueryInput} from "@/state/connections/duckdb-wasm";
 import {escapeSQLForStringLiteral} from "@/platform/sql-utils";
 
@@ -149,6 +149,7 @@ export class DuckDBOverHttp implements DatabaseConnection {
         const version = await this.sendPing();
         if (version) {
             this.connectionStatus = {state: 'connected', version: version, message: `Connected to ${this.config.url}, version: ${version}`};
+            await attachDatabase(this, DASH_CACHE_DATABASE_NAME, DASH_CACHE_DATABASE_CATALOG);
             this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this.executeQuery.bind(this));
         } else {
             this.connectionStatus = {state: 'error', message: `Failed to ping ${this.config.url}`, version: undefined};

@@ -9,8 +9,8 @@ export const STORAGE_THROTTLE_TIME_MS = 2_000; // how long to wait before saving
 
 export const DASH_DOMAIN = 'app.dash.builders'
 
-export const DASH_CACHE_DATABASE_NAME = 'dash_cache.duckdb'
-export const DASH_CACHE_DATABASE_CATALOG = 'dash_cache' // catalog name used after ATTACHing the cache database
+export const DASH_CACHE_DATABASE_NAME = 'dash_data.duckdb'
+export const DASH_CACHE_DATABASE_CATALOG = 'dash' // catalog name used after ATTACHing the cache database
 
 // connection ids
 export const DATABASE_CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';
@@ -59,11 +59,12 @@ export const N_RELATIONS_DATA_TO_LOAD = 30;
 
 export const DEFAULT_RELATION_VIEW_PATH =[]
 
-export const DEFAULT_STATE_SCHEMA_NAME = 'dash';
+export const DASH_CACHE_TABLE_PREFIX = 'dash_cache_';
 
 export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
     tableName: 'relationState',
-    schemaName: DEFAULT_STATE_SCHEMA_NAME,
+    schemaName: 'main',
+    databaseName: DASH_CACHE_DATABASE_CATALOG,
 }
 
 export const ERROR_MESSAGE_QUERY_ABORTED = 'Query aborted by user';
@@ -74,9 +75,9 @@ export const TABLE_FOOTER_SMALL_WIDTH_THRESHOLD = 512;
 export const WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE = 64;
 
 // Table macro configuration
-export const TABLE_MACRO_PREFIX = 'node_';
+export const TABLE_MACRO_PREFIX = 'ref_';
 
 // SQL editor debounce time for local code changes in milliseconds
-export const SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS = 300;
+export const SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS = 100;
 
 export const DATABASE_STATE_REFRESH_INTERVAL_MS = 30_000;

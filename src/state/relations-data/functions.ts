@@ -1,12 +1,12 @@
 import {RelationData} from "@/model/relation";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DASH_CACHE_DATABASE_CATALOG, DEFAULT_STATE_SCHEMA_NAME} from "@/platform/global-data";
+import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_TABLE_PREFIX} from "@/platform/global-data";
 import {CacheResult} from "@/state/relations-data.state";
 import {removeSemicolon} from "@/platform/sql-utils";
 
 
 function GetCacheViewPrefix(): string {
-    return`${DEFAULT_STATE_SCHEMA_NAME}_cache_`;
+    return`${DASH_CACHE_TABLE_PREFIX}`;
 }
 
 function GetFullViewNameEscaped(id: string): string {
@@ -62,20 +62,10 @@ export async function updateCache(id: string, query: string, readOnly: boolean =
     if (con.storageInfo.state !== 'loaded') {
         throw new Error('Database connection is not ready or not loaded.');
     }
-    const isReadonly = con.storageInfo.databaseReadonly;
-
-    // In read-only mode, skip caching (which requires CREATE TABLE) and execute directly
-    if (readOnly) {
-        const data = await connectionsService.executeQuery(query, true);
-        return {
-            data: data,
-            wasCached: false
-        };
-    }
 
     // try to create the materialized view, this can fail if the query is not a select query
     try {
-        const materializedViewQuery = getMaterializedViewFromQuery(id, query, isReadonly);
+        const materializedViewQuery = getMaterializedViewFromQuery(id, query, false);
         await connectionsService.executeQuery(materializedViewQuery);
         await connectionsService.executeQuery("CHECKPOINT;"); // ensure that the data is written to disk, this is important for the WASM backend
         const cacheData = await loadCache(id);

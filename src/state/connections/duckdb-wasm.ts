@@ -11,9 +11,9 @@ import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections/duckdb-was
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
-import {DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
+import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_DATABASE_NAME, DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
 import {AsyncQueue} from "@/platform/async-queue";
-import {enqueueStatements} from "@/state/connections/utils";
+import {attachDatabase, enqueueStatements} from "@/state/connections/utils";
 import {escapeSQLForStringLiteral} from "@/platform/sql-utils";
 
 export interface DuckDBWasmConfig {
@@ -143,6 +143,7 @@ export class DuckDBWasm implements DatabaseConnection {
             const versionResult = await this.executeQuery("select version();", false);
             const version = versionResult.rows[0][0] as string;
             console.log('DuckDB WASM version: ', version);
+            await attachDatabase(this, DASH_CACHE_DATABASE_NAME, DASH_CACHE_DATABASE_CATALOG);
             this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this.executeQuery.bind(this));
             // print the names of all the tables in the database using information_schema.tables, this is useful for debugging and to check if the database is accessible
             const tablesResult = await this.executeQuery("SELECT table_name FROM information_schema.tables;", false);
