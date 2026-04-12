@@ -94,7 +94,7 @@ export function Table(props: RelationViewContentProps) {
                 <div className={cn("bg-inherit flex flex-row", contentClasses)}>
                     <TableContent {...props} columnViewIndices={columnViewIndices} data={data}/>
                 </div>
-                <TableFooter {...props}/>
+                <TableFooter {...props} dataRowCount={data.rows.length}/>
             </div>
             <ColumnDragOverlay activeId={activeId}/>
         </DndContext>

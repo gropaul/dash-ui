@@ -81,3 +81,7 @@ export const TABLE_MACRO_PREFIX = 'ref_';
 export const SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS = 100;
 
 export const DATABASE_STATE_REFRESH_INTERVAL_MS = 30_000;
+
+// If the view query takes longer than this threshold, execute the count query separately.
+// For fast queries, the row count from the view query result is used instead.
+export const COUNT_QUERY_THRESHOLD_MS = 2_000;

@@ -15,16 +15,41 @@ import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 import {TABLE_FOOTER_SMALL_WIDTH_THRESHOLD} from "@/platform/global-data";
 
+interface TableFooterProps extends RelationViewProps {
+    dataRowCount: number;
+}
+
+function formatNumberNullable(number?: number): string {
+    if (number === undefined) {
+        return '?';
+    }
+    return formatNumber(number);
+}
+
 function formatNumber(num: number): string {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-export function TableFooter(props: RelationViewProps) {
+function getLastResultCount(props: TableFooterProps){
+    let lastResultCount = props.relationState.lastExecutionMetaData?.lastResultCount;
+    const limit = props.relationState.query.viewParameters.table.limit;
+    const dataRowCount = props.dataRowCount ?? 0;
 
-    const lastResultCount = props.relationState.lastExecutionMetaData?.lastResultCount || 0;
+    if (dataRowCount < limit) {
+        lastResultCount = props.relationState.query.viewParameters.table.offset + dataRowCount;
+    }
+    return lastResultCount;
+}
 
+export function TableFooter(props: TableFooterProps) {
+
+
+    const lastResultCount = getLastResultCount(props);
     const startIndex = props.relationState.query.viewParameters.table.offset + 1;
-    const endIndex = Math.min(props.relationState.query.viewParameters.table.offset + props.relationState.query.viewParameters.table.limit, lastResultCount);
+    let endIndex = undefined;
+    if (lastResultCount){
+        endIndex = Math.min(props.relationState.query.viewParameters.table.offset + props.relationState.query.viewParameters.table.limit, lastResultCount);
+    }
 
     const [footerWidth, setFooterWidth] = React.useState<number>(0);
     const footerRef = React.useRef<HTMLDivElement>(null);
@@ -45,9 +70,9 @@ export function TableFooter(props: RelationViewProps) {
     const isSmallWidth = footerWidth < TABLE_FOOTER_SMALL_WIDTH_THRESHOLD;
     const isMobile = useIsMobile();
 
-    let testShowingRange = `${formatNumber(startIndex)} to ${formatNumber(endIndex)}`;
+    let testShowingRange = `${formatNumber(startIndex)} to ${formatNumberNullable(endIndex)}`;
     if (!isMobile && !isSmallWidth){
-        testShowingRange += ` of ${formatNumber(lastResultCount)}`;
+        testShowingRange += ` of ${formatNumberNullable(lastResultCount)}`;
     }
 
     const wrapperClass = isMobile ? 'p-2 space-x-2 p-0.5' : 'p-2 space-x-4';
@@ -65,23 +90,23 @@ export function TableFooter(props: RelationViewProps) {
     );
 }
 
-export function RelationViewPageController(props: RelationViewProps & { footerWidth: number }) {
+export function RelationViewPageController(props: TableFooterProps & { footerWidth: number }) {
     const {relationState, footerWidth} = props;
 
-    const totalCount = relationState.lastExecutionMetaData?.lastResultCount;
-
-    if (!totalCount) {
-        return null;
-    }
+    const totalCount = getLastResultCount(props);
 
     const currentPageIndex = Math.floor(relationState.query.viewParameters.table.offset / relationState.query.viewParameters.table.limit);
-    const maxPageIndex = Math.floor((totalCount - 1) / relationState.query.viewParameters.table.limit);
+    let maxPageIndex = undefined;
+    if (totalCount){
+        maxPageIndex = (Math.floor((totalCount - 1) / relationState.query.viewParameters.table.limit))
+    }
+
     const minPageIndex = 0;
 
     const isSmallWidth = footerWidth < TABLE_FOOTER_SMALL_WIDTH_THRESHOLD;
     const text = isSmallWidth
-        ? `${formatNumber(currentPageIndex + 1)}/${formatNumber(maxPageIndex + 1)}`
-        : `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumber(maxPageIndex + 1)}`;
+        ? `${formatNumber(currentPageIndex + 1)}/${formatNumberNullable(maxPageIndex ? maxPageIndex + 1 : undefined)}`
+        : `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumberNullable(maxPageIndex ? maxPageIndex + 1 : undefined)}`;
 
     const iconSize = 16;
     const isFirstPage = currentPageIndex === 0;
@@ -165,15 +190,15 @@ export function RelationViewPageController(props: RelationViewProps & { footerWi
             <div>{text}</div>
             <button
                 className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted active:bg-muted-foreground'}`}
-                onClick={() => handleUpdateRange(Math.min(maxPageIndex, currentPageIndex + 1))}
+                onClick={() => handleUpdateRange(currentPageIndex + 1)}
                 disabled={isLastPage}
             >
                 <ChevronRight size={iconSize}/>
             </button>
             <button
                 className={`transition-all rounded ${isLastPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted active:bg-muted-foreground'}`}
-                onClick={() => handleUpdateRange(maxPageIndex)}
-                disabled={isLastPage}
+                onClick={maxPageIndex ? () => handleUpdateRange(maxPageIndex) : undefined}
+                disabled={isLastPage || maxPageIndex === undefined}
             >
                 <ChevronLast size={iconSize}/>
             </button>

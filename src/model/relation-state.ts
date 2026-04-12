@@ -16,7 +16,7 @@ import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationDataState} from "@/state/relations-data.state";
-import {CHART_QUERY_LIMIT} from "@/platform/global-data";
+import {CHART_QUERY_LIMIT, COUNT_QUERY_THRESHOLD_MS} from "@/platform/global-data";
 import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getQuerySchema} from "@/model/schema-utils";
@@ -111,7 +111,7 @@ export type TaskExecutionState = {
 // idle: no query is running, running: query is running, success: query was successful, error: query failed
 export interface QueryExecutionMetaData {
     lastExecutionDuration: number; // in s
-    lastResultCount: number;
+    lastResultCount?: number;
     lastResultOffset?: number;
     lastExecutedAt?: number; // timestamp in ms
 }
@@ -560,11 +560,12 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
     }
 
     let viewData: RelationData;
-    let countData;
-
+    let viewQueryDurationMs = 0;
     if (buildResult.viewQuery) {
         try {
+            const viewQueryStart = performance.now();
             const cacheResult = await useRelationDataState.getState().updateDataFromQuery(input, buildResult.viewQuery, readOnly);
+            viewQueryDurationMs = performance.now() - viewQueryStart;
             viewData = cacheResult.data;
         } catch (e) {
             return returnEmptyErrorState(input, e);
@@ -574,8 +575,6 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
             columns: [],
             rows: [],
         };
-
-        useRelationDataState.getState().updateData(input.id, viewData);
     }
 
     let schemaColumns = [];
@@ -592,20 +591,16 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
         schemaColumns = viewData.columns;
     }
 
-    if (buildResult.countQuery) {
+    let count = undefined;
+    if (buildResult.countQuery && viewQueryDurationMs <= COUNT_QUERY_THRESHOLD_MS) {
         try {
-            countData = await ConnectionsService.getInstance().executeQuery(buildResult.countQuery, readOnly);
+            const countData = await ConnectionsService.getInstance().executeQuery(buildResult.countQuery, readOnly);
+            count = Number(countData.rows[0][0]);
         } catch (e) {
             return returnEmptyErrorState(input, e);
         }
-    } else {
-        countData = {
-            columns: [],
-            rows: [[0]],
-        };
     }
-
-    const count = Number(countData.rows[0][0]);
+    console.log(`View query executed in ${viewQueryDurationMs.toFixed(2)} ms. Count query executed: ${count !== undefined}`);
 
     // stop the timer, get duration in s
     const end = performance.now();
