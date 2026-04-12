@@ -19,6 +19,7 @@ import {useRelationDataState} from "@/state/relations-data.state";
 import {CHART_QUERY_LIMIT} from "@/platform/global-data";
 import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
+import {getQuerySchema} from "@/model/schema-utils";
 
 export function getInitialTableQueryParameters(limit: number = 20): TableViewQueryParameters {
     return {
@@ -580,8 +581,9 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
     let schemaColumns = [];
     if (buildResult.schemaQuery) {
         try {
-            const schemaData = await ConnectionsService.getInstance().executeQuery(buildResult.schemaQuery, readOnly);
-            schemaColumns = schemaData.columns;
+            // const schemaData = await ConnectionsService.getInstance().executeQuery(buildResult.schemaQuery, readOnly);
+            // schemaColumns = schemaData.columns;
+            schemaColumns = await getQuerySchema(buildResult.schemaQuery);
 
         } catch (e) {
             return returnEmptyErrorState(input, e);

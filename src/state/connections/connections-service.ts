@@ -115,7 +115,6 @@ export class ConnectionsService {
         const preparedSQL = removeSemicolon(sql)
         const explainQuery = `EXPLAIN ${preparedSQL}`
 
-
         try {
             const _result = await this.executeQuery(explainQuery);
             return true;

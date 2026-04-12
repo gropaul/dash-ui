@@ -1,4 +1,4 @@
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 import { getMacroName, extractParameters } from "@/state/relations/sql/table-macros";
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { CodeFence } from "@/components/basics/code-fence/code-fence";
 import { ParameterDefinition } from "@/model/relation-view-state/parameters";
+import { splitSQL } from "@/platform/sql-utils";
 
 export interface MacroCopyButtonProps {
     relationName: string;
@@ -134,6 +135,7 @@ export function MacroCopyButton({
     const usageExample = getMacroUsageExample(relationName, sql, paramDefs);
     const pythonExample = getMacroPythonExample(relationName, sql, paramDefs);
     const paramNames = extractParameters(sql);
+    const hasMultipleStatements = splitSQL(sql).length > 1;
 
     async function handleCopy() {
         try {
@@ -197,6 +199,12 @@ export function MacroCopyButton({
                         <p className="text-xs text-muted-foreground">
                             <span className="font-medium">Parameters: </span>
                             {paramNames.join(', ')}
+                        </p>
+                    )}
+                    {hasMultipleStatements && (
+                        <p className="text-xs text-yellow-600 dark:text-yellow-500 flex items-start gap-1.5">
+                            <TriangleAlert className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                            <span>This SQL contains multiple statements. Referencing it as a macro may lead to reduced performance.</span>
                         </p>
                     )}
                 </div>
