@@ -600,7 +600,7 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
             return returnEmptyErrorState(input, e);
         }
     }
-    console.log(`View query executed in ${viewQueryDurationMs.toFixed(2)} ms. Count query executed: ${count !== undefined}`);
+    // console.log(`View query executed in ${viewQueryDurationMs.toFixed(2)} ms. Count query executed: ${count !== undefined}`);
 
     // stop the timer, get duration in s
     const end = performance.now();

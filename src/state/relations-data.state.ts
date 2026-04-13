@@ -240,11 +240,9 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
 
             const keysLoadFailed = [];
             for (const relationId of ids_to_hydrate) {
-                if (!get().data[relationId]) {
-                    const data = await get().updateDataFromCache(relationId);
-                    if (!data) {
-                        keysLoadFailed.push(relationId);
-                    }
+                const data = await get().updateDataFromCache(relationId);
+                if (!data) {
+                    keysLoadFailed.push(relationId);
                 }
             }
             if (keysLoadFailed.length > 0) {

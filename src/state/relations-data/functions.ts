@@ -67,7 +67,7 @@ export async function updateCache(id: string, query: string, readOnly: boolean =
     try {
         const materializedViewQuery = getMaterializedViewFromQuery(id, query, false);
         await connectionsService.executeQuery(materializedViewQuery);
-        await connectionsService.executeQuery("CHECKPOINT;"); // ensure that the data is written to disk, this is important for the WASM backend
+        await connectionsService.executeQuery(`CHECKPOINT ${DASH_CACHE_DATABASE_CATALOG};`); // ensure that the data is written to disk, this is important for the WASM backend
         const cacheData = await loadCache(id);
         if (!cacheData) {
             throw new Error('Failed to load cache data after creating materialized view.');
