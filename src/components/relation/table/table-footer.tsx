@@ -32,6 +32,9 @@ function formatNumber(num: number): string {
 
 function getLastResultCount(props: TableFooterProps){
     let lastResultCount = props.relationState.lastExecutionMetaData?.lastResultCount;
+    if (lastResultCount) {
+        return lastResultCount;
+    }
     const limit = props.relationState.query.viewParameters.table.limit;
     const dataRowCount = props.dataRowCount ?? 0;
 
@@ -100,13 +103,12 @@ export function RelationViewPageController(props: TableFooterProps & { footerWid
     if (totalCount){
         maxPageIndex = (Math.floor((totalCount - 1) / relationState.query.viewParameters.table.limit))
     }
-
     const minPageIndex = 0;
 
     const isSmallWidth = footerWidth < TABLE_FOOTER_SMALL_WIDTH_THRESHOLD;
     const text = isSmallWidth
-        ? `${formatNumber(currentPageIndex + 1)}/${formatNumberNullable(maxPageIndex ? maxPageIndex + 1 : undefined)}`
-        : `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumberNullable(maxPageIndex ? maxPageIndex + 1 : undefined)}`;
+        ? `${formatNumber(currentPageIndex + 1)}/${formatNumberNullable(maxPageIndex !== undefined ? maxPageIndex + 1 : undefined)}`
+        : `Page ${formatNumber(currentPageIndex + 1)} of ${formatNumberNullable(maxPageIndex !== undefined ? maxPageIndex + 1 : undefined)}`;
 
     const iconSize = 16;
     const isFirstPage = currentPageIndex === 0;
