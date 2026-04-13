@@ -3,6 +3,7 @@ import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
 import {QueryInput} from "@/state/connections/duckdb-wasm";
 import {DatabaseConnection} from "@/model/database-connection";
+import {getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 
 
 export async function attachDatabase(
@@ -11,7 +12,12 @@ export async function attachDatabase(
     dbName: string,
     readonly?: boolean
 ): Promise<void> {
-    const pathPrefix = connection.type === 'duckdb-wasm' || connection.type === 'duckdb-wasm-motherduck' ? 'opfs://' : '';
+    const isWasm = connection.type === 'duckdb-wasm' || connection.type === 'duckdb-wasm-motherduck';
+    if (isWasm && getStorageMode() === 'memory') {
+        await connection.executeQuery(`ATTACH IF NOT EXISTS ':memory:' AS ${dbName};`, false);
+        return;
+    }
+    const pathPrefix = isWasm ? 'opfs://' : '';
     const readonlyClause = readonly ? ' (READ_ONLY)' : '(READ_WRITE)';
     await connection.executeQuery(`ATTACH IF NOT EXISTS '${pathPrefix}${fileName}' AS ${dbName}${readonlyClause};`, false);
 }

@@ -8,7 +8,7 @@ import {
 } from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections/configs";
 import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections/duckdb-wasm/utils";
-import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
+import {DuckdbWasmProvider, getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {duckDBTypeToValueType} from "@/model/value-type";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_DATABASE_NAME, DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
@@ -126,6 +126,9 @@ export class DuckDBWasm implements DatabaseConnection {
 
 
     async downloadDatabase(): Promise<void> {
+        if (getStorageMode() === 'memory') {
+            throw new Error('Database export is not available in temporary (in-memory) mode.');
+        }
         const opfs_path = DuckdbWasmProvider.getDatabasePath();
         // download the opfs database
         await downloadOPFSFile(opfs_path);

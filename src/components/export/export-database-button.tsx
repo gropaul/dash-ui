@@ -4,11 +4,13 @@ import React, {useEffect} from "react";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckDBWasm} from "@/state/connections/duckdb-wasm";
 import {DatabaseConnection} from "@/model/database-connection";
+import {getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 
 
 function shouldShowExportButton(connection?: DatabaseConnection): boolean {
     if (connection) {
-        return connection.type === 'duckdb-wasm-motherduck' || connection.type === 'duckdb-wasm';
+        const isWasm = connection.type === 'duckdb-wasm-motherduck' || connection.type === 'duckdb-wasm';
+        return isWasm && getStorageMode() !== 'memory';
     } else {
         return false;
     }

@@ -7,7 +7,15 @@ import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_DATABASE_NAME} from "@/platform/
 
 export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
 
+export type StorageMode = 'opfs' | 'memory';
+let _storageMode: StorageMode = 'opfs';
+export function getStorageMode(): StorageMode { return _storageMode; }
+
 export async function clearOPFS(): Promise<void> {
+    if (_storageMode === 'memory') {
+        await DuckdbWasmProvider.getInstance().destroy();
+        return;
+    }
 
     await DuckdbWasmProvider.getInstance().destroy();
 
@@ -20,15 +28,13 @@ export async function clearOPFS(): Promise<void> {
 }
 
 /**
- * Ensures the environment can use the Origin‑Private File System (OPFS)
- * which DuckDB‑Wasm relies on when the "opfs" bundle is selected.
+ * Checks whether the environment can use the Origin‑Private File System (OPFS).
+ * Returns false (instead of throwing) when OPFS is unavailable so the caller
+ * can fall back to an in‑memory database.
  *
- * Throws an Error if:
- *  – the code is executed during SSR (nowindow)
- *  – the page is not asecure context (neither HTTPS nor localhost)
- *  – the browser lacks the StorageManager.getDirectory() API
+ * Still throws if called during SSR — there is no recovery path on the server.
  */
-export function assertOPFSSupported(): void {
+export function isOPFSSupported(): boolean {
     /* 1– Next.js pages can run on the server; bail out there. */
     if (typeof window === "undefined") {
         throw new Error(
@@ -44,12 +50,11 @@ export function assertOPFSSupported(): void {
         hostname === "127.0.0.1" ||
         hostname.endsWith(".localhost");
 
-
     if (!window.isSecureContext && !isLocalhost && protocol !== "https:") {
-        throw new Error(
-            "OPFS is only available in secure contexts (HTTPS or localhost). " +
-            `Current origin: ${protocol}//${hostname}`
+        console.warn(
+            `OPFS unavailable: not a secure context. Origin: ${protocol}//${hostname}`
         );
+        return false;
     }
 
     /* 3– Basic feature‑detection for the OPFS entry‑point. */
@@ -59,11 +64,11 @@ export function assertOPFSSupported(): void {
         "getDirectory" in navigator.storage;
 
     if (!hasOPFS) {
-        throw new Error(
-            "This browser does not implement the Origin‑Private File System API " +
-            "(navigator.storage.getDirectory). DuckDB‑Wasm cannot use OPFS here."
-        );
+        console.warn("OPFS unavailable: navigator.storage.getDirectory not implemented");
+        return false;
     }
+
+    return true;
 }
 
 
@@ -112,6 +117,9 @@ export class DuckdbWasmProvider {
     }
 
     public static getDatabasePath(): string {
+        if (_storageMode === 'memory') {
+            return ':memory:';
+        }
         return `opfs://${DUCKDB_WASM_BASE_TABLE_PATH}`;
     }
 
@@ -152,31 +160,59 @@ export class DuckdbWasmProvider {
         return this.initPromise;
     }
 
-    private async _initDuckDBWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
-
-        // check if OPFS is supported
-        assertOPFSSupported();
-
-        // Make sure no other tab is using the database connection
-        if (!(await this.coordinator.requestOwnership())) {
-            // someone else owns it; wait and retry
-            this.coordinator.noteServerConflict('Another tab is using the database');
-
-            await this.coordinator.waitForRelease();
-            if (!(await this.coordinator.requestOwnership())) {
-                console.error('Failed to acquire ownership of the DuckDB-Wasm database after waiting for release.');
-            } else {
-                console.log('Acquired ownership of the DuckDB-Wasm database after waiting for release.');
-            }
+    private async _createWorker(bundle: duckdb.DuckDBBundle): Promise<Worker> {
+        if (!bundle.mainWorker) {
+            throw new Error('No worker URL in DuckDB bundle');
         }
 
-        // Register a handler to release ownership when asked for it
-        const unsubscribe = this.coordinator.subscribe(async (isOwner) => {
-            if (!isOwner && this.asyncDuckDBState === 'initialised') {
-                await this.destroy();
-                unsubscribe();
+        try {
+            // Standard approach: Blob URL with importScripts
+            const workerUrl = URL.createObjectURL(
+                new Blob([`importScripts("${bundle.mainWorker}");`], {type: 'text/javascript'})
+            );
+            const worker = new Worker(workerUrl);
+            URL.revokeObjectURL(workerUrl);
+            return worker;
+        } catch (e) {
+            // Fallback for mobile Safari: importScripts inside Blob workers can fail
+            // due to opaque origin restrictions. Fetch the script and inline it.
+            console.warn('Blob+importScripts worker failed, fetching worker script directly', e);
+            const response = await fetch(bundle.mainWorker);
+            const scriptText = await response.text();
+            const workerUrl = URL.createObjectURL(
+                new Blob([scriptText], {type: 'text/javascript'})
+            );
+            const worker = new Worker(workerUrl);
+            URL.revokeObjectURL(workerUrl);
+            return worker;
+        }
+    }
+
+    private async _initDuckDBWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
+
+        let useOPFS = isOPFSSupported();
+
+        // Multi-tab coordination is only needed for OPFS (exclusive file locks)
+        if (useOPFS) {
+            if (!(await this.coordinator.requestOwnership())) {
+                this.coordinator.noteServerConflict('Another tab is using the database');
+
+                await this.coordinator.waitForRelease();
+                if (!(await this.coordinator.requestOwnership())) {
+                    console.error('Failed to acquire ownership of the DuckDB-Wasm database after waiting for release.');
+                } else {
+                    console.log('Acquired ownership of the DuckDB-Wasm database after waiting for release.');
+                }
             }
-        });
+
+            // Register a handler to release ownership when asked for it
+            const unsubscribe = this.coordinator.subscribe(async (isOwner) => {
+                if (!isOwner && this.asyncDuckDBState === 'initialised') {
+                    await this.destroy();
+                    unsubscribe();
+                }
+            });
+        }
 
         // Grab available bundles
         const bundles: DuckDBBundles = duckdb.getJsDelivrBundles();
@@ -184,69 +220,84 @@ export class DuckdbWasmProvider {
         // Automatically pick a bundle compatible with the current browser
         const bundle = await duckdb.selectBundle(bundles);
 
-        // Build a temporary worker script using importScripts
-        const workerUrl = URL.createObjectURL(
-            new Blob([`importScripts("${bundle.mainWorker}");`], {type: 'text/javascript'})
-        );
-
-        // Create the worker
-        const worker = new Worker(workerUrl);
+        const queryConfig = {
+            castBigIntToDouble: true,
+            castTimestampToDate: true,
+            castDecimalToDouble: true,
+            castDurationToTime64: true,
+        };
 
         // (Optional) Provide a console logger
         const IS_DEBUG = process.env.NODE_ENV === 'development';
         const logLevel = IS_DEBUG ? LogLevel.ERROR : LogLevel.ERROR;
         const logger = new duckdb.ConsoleLogger(logLevel);
 
-        // Create the DuckDB instance
-        const db = new duckdb.AsyncDuckDB(logger, worker);
+        // Helper to create and instantiate a DuckDB instance
+        const createInstance = async (): Promise<AsyncDuckDB> => {
+            const worker = await this._createWorker(bundle);
+            const db = new duckdb.AsyncDuckDB(logger, worker);
+            await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+            return db;
+        };
 
-        // Start up the WASM engine
-        await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+        let db: AsyncDuckDB;
+        let connection: AsyncDuckDBConnection;
 
-        // We no longer need the workerUrl, so revoke it
-        URL.revokeObjectURL(workerUrl);
+        if (useOPFS) {
+            try {
+                db = await createInstance();
+                await db.open({
+                    path: `opfs://${DUCKDB_WASM_BASE_TABLE_PATH}`,
+                    accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
+                    query: queryConfig,
+                });
 
-        try {
-            // Open a DB, adjusting config as necessary
+                connection = await db.connect();
+                console.log("New connection to DuckDB-Wasm established (OPFS): ", connection);
+
+                await registerAdditionalDatabase(db, DASH_CACHE_DATABASE_NAME);
+                await connection.query(`ATTACH IF NOT EXISTS 'opfs://${DASH_CACHE_DATABASE_NAME}' AS ${DASH_CACHE_DATABASE_CATALOG};`);
+
+                _storageMode = 'opfs';
+            } catch (e) {
+                console.warn('OPFS initialization failed, falling back to in-memory mode:', e);
+                // Clean up the failed OPFS attempt
+                try { await db!.terminate(); } catch { /* ignore cleanup errors */ }
+                this.coordinator.releaseOwnership();
+                useOPFS = false;
+            }
+        }
+
+        if (!useOPFS) {
+            _storageMode = 'memory';
+            console.log('Initializing DuckDB-Wasm in in-memory mode (no persistence)');
+
+            db = await createInstance();
             await db.open({
-                path: DuckdbWasmProvider.getDatabasePath(),
-                accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
-                query: {
-                    castBigIntToDouble: true,
-                    castTimestampToDate: true,
-                    castDecimalToDouble: true,
-                    castDurationToTime64: true,
-                },
+                path: ':memory:',
+                query: queryConfig,
             });
-        } catch (e) {
-            console.error('Failed to open or create the database:', e);
-            throw e;
+
+            connection = await db.connect();
+            console.log("New connection to DuckDB-Wasm established (in-memory): ", connection);
+
+            // Attach an in-memory database with the same catalog name so downstream code works
+            await connection.query(`ATTACH ':memory:' AS ${DASH_CACHE_DATABASE_CATALOG};`);
         }
 
-        // Finally, create a connection
-        const connection = await db.connect();
-        console.log("New connection to DuckDB-Wasm established: ID ", connection);
-
-        try {
-            await registerAdditionalDatabase(db, DASH_CACHE_DATABASE_NAME);
-            await connection.query(`ATTACH IF NOT EXISTS 'opfs://${DASH_CACHE_DATABASE_NAME}' AS ${DASH_CACHE_DATABASE_CATALOG};`);
-        } catch (e) {
-            console.error('Failed to register the database:', e);
-            throw e;
-        }
         // check if we have write access
-        await connection.query("CREATE OR REPLACE TABLE dash_write_test_table AS SELECT 1 as a;");
+        await connection!.query("CREATE OR REPLACE TABLE dash_write_test_table AS SELECT 1 as a;");
         // drop the test table
-        await connection.query("DROP TABLE dash_write_test_table;");
+        await connection!.query("DROP TABLE dash_write_test_table;");
 
         try {
             const sqlMarco = getJsonMacro();
-            const data = await connection.query(sqlMarco);
+            const data = await connection!.query(sqlMarco);
         } catch (e) {
             console.error('Failed to create or verify the JSON macro:', e);
             throw e;
         }
-        return {db, con: connection};
+        return {db: db!, con: connection!};
     }
 }
 
