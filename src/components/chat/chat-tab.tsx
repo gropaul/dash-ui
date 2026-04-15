@@ -1,12 +1,33 @@
-import React, {useState} from "react";
+import React, {useRef, useState} from "react";
 import {ChatWrapper} from "./chat-wrapper";
 import {aiService} from "@/components/chat/model/llm-service";
 import {UIMessage, UIMessagePart, DynamicToolUIPart} from "ai";
 import {useChatState} from "@/state/chat.state";
 import {deepClone} from "@/platform/object-utils";
-import {getErrorMessage} from "@/platform/error-handling";
 import {buildTargetContextPrompt, getEnabledTargets} from "@/components/chat/model/chat-context";
 
+
+class StreamError extends Error {
+    constructor(error: unknown) {
+        super(StreamError.extractMessage(error));
+        this.name = 'StreamError';
+    }
+
+    private static extractMessage(error: unknown): string {
+        if (error == null) return 'An error occurred in the stream';
+        // Handle nested provider errors like {error: {message: "...", code: "..."}}
+        if (typeof error === 'object') {
+            const obj = error as Record<string, unknown>;
+            if (typeof obj.message === 'string') return obj.message;
+            if (typeof obj.error === 'object' && obj.error !== null) {
+                const inner = obj.error as Record<string, unknown>;
+                if (typeof inner.message === 'string') return inner.message;
+            }
+        }
+        if (typeof error === 'string') return error;
+        return 'An error occurred in the stream';
+    }
+}
 
 interface ChatProps {
     className?: string;
@@ -32,6 +53,7 @@ export function ChatTab({className}: ChatProps) {
     const addMessages = useChatState().addMessages;
     const updateLastMessage = useChatState().updateLastMessage;
     const [state, setState] = useState<ChatTabState>(getInitialChatTabState());
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     const onHistoricSessionSelect = (sessionId?: string) => {
         setState({
@@ -42,6 +64,10 @@ export function ChatTab({className}: ChatProps) {
         });
     }
 
+    const handleStop = () => {
+        abortControllerRef.current?.abort();
+    };
+
     const handleSendMessage = async (content: string) => {
         try {
             // Reset any previous errors
@@ -49,6 +75,9 @@ export function ChatTab({className}: ChatProps) {
                 ...state,
                 error: undefined,
             });
+
+            const abortController = new AbortController();
+            abortControllerRef.current = abortController;
 
             const messages = useChatState.getState().getMessages(state.session_id);
 
@@ -81,7 +110,7 @@ export function ChatTab({className}: ChatProps) {
             };
             const messagesWithContext = [messageWithUserMessage[0], contextMessage, ...messageWithUserMessage.slice(1)];
 
-            const result = await aiService.streamText(messagesWithContext);
+            const result = await aiService.streamText(messagesWithContext, abortController.signal);
             let currentMessage: UIMessage;
             let currentMessageParts: UIMessagePart<any, any>[] = [];
             let currentMessagePart: UIMessagePart<any, any> | undefined = undefined;
@@ -145,12 +174,14 @@ export function ChatTab({className}: ChatProps) {
                 updateLastMessage(currentMessageClone, state.session_id);
             }
 
+            let streamError: StreamError | undefined;
+
             try {
                 for await (const streamPart of result.fullStream) {
-
-                    // Check for error in stream part
                     if (streamPart.type === 'error') {
-                        throw new Error(getErrorMessage(streamPart.error).message || 'An error occurred in the stream');
+                        console.error('Error in stream part:', streamPart.error);
+                        streamError = new StreamError(streamPart.error);
+                        break;
                     }
 
                     switch (streamPart.type) {
@@ -172,27 +203,33 @@ export function ChatTab({className}: ChatProps) {
                             finishCurrentMessage();
                             break;
                         case 'text-delta':
-                            // if the currentMessagePart is undefined, create a new one
                             if (!currentMessagePart) {
                                 currentMessagePart = {
                                     type: 'text',
                                     text: '',
                                 };
-                            } else if (currentMessagePart.type !== 'text') {
-                                throw new Error('Text delta received but current message part is not text');
                             }
                             (currentMessagePart as { type: 'text'; text: string }).text += streamPart.text;
                             updateGUIWithUnfinishedLastPart()
                             break
                     }
                 }
-            } catch (streamError) {
-                console.error('Error in stream:', streamError);
-                setState({
-                    ...state,
-                    state: 'done',
-                    error: streamError instanceof Error ? streamError.message : 'An error occurred in the stream',
-                });
+            } catch (caught) {
+                if (abortController.signal.aborted) {
+                    // Flush any partial content that was streamed before abort
+                    if (currentMessage! && currentMessagePart && state.session_id) {
+                        currentMessageParts.push(currentMessagePart);
+                        currentMessage!.parts = currentMessageParts;
+                        updateLastMessage(currentMessage!, state.session_id);
+                    }
+                    setState({...state, state: 'done'});
+                    return;
+                }
+                streamError = new StreamError(caught);
+            }
+
+            if (streamError) {
+                setState({...state, state: 'done', error: streamError.message});
                 return;
             }
 
@@ -218,6 +255,7 @@ export function ChatTab({className}: ChatProps) {
                 onSessionSelect={onHistoricSessionSelect}
                 sessionId={state.session_id}
                 onSendMessage={handleSendMessage}
+                onStop={handleStop}
                 isLoading={state.state === 'inferring' || state.state === 'calling_tool'}
                 error={state.error}
                 onHideError={() => setState({...state, error: undefined})}

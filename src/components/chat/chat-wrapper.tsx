@@ -15,6 +15,7 @@ export interface ChatWindowProps {
     sessionId?: string;
     onSessionSelect: (sessionId?: string) => void;
     onSendMessage: (content: string) => void;
+    onStop?: () => void;
     isLoading?: boolean;
     showSystemMessage?: boolean;
     error?: string;

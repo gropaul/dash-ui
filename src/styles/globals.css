@@ -158,4 +158,22 @@ body {
   border-radius: 3px;
 }
 
+@keyframes spin-border {
+  to { rotate: 360deg; }
+}
 
+.animate-spin-border {
+  position: relative;
+  border: none;
+}
+
+.animate-spin-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid hsl(var(--border));
+  border-top-color: hsl(var(--foreground));
+  animation: spin-border 0.8s linear infinite;
+  pointer-events: none;
+}

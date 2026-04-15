@@ -17,6 +17,7 @@ export function ChatContentMessages({
                                         className,
                                         sessionId,
                                         onSendMessage,
+                                        onStop,
                                         isLoading = false,
                                         showSystemMessage = true,
                                         error,
@@ -62,7 +63,7 @@ export function ChatContentMessages({
                         <AlertTitle>
                             <div className="flex items-start justify-between w-full">
                                   <span>
-                                    {error} Please check your provider settings.
+                                    {error.toString()} Please check your provider settings.
                                   </span>
                                 <Button
                                     variant="ghost"
@@ -142,6 +143,7 @@ export function ChatContentMessages({
             <ChatInput
                 className={'flex-none'}
                 onSendMessage={onSendMessage}
+                onStop={onStop}
                 isLoading={isLoading}
             />
         </div>

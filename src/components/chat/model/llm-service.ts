@@ -54,7 +54,7 @@ class LlmService {
         }
     }
 
-    async streamText(messages: UIMessage[]): Promise<StreamTextResult<any, any>> {
+    async streamText(messages: UIMessage[], abortSignal?: AbortSignal): Promise<StreamTextResult<any, any>> {
 
         // Get the current language model from state
         const model = await useLanguageModelState.getState().getLanguageModel();
@@ -64,6 +64,7 @@ class LlmService {
             messages: await convertToModelMessages(messages),
             tools: this.tools,
             stopWhen: stepCountIs(8),
+            abortSignal,
         });
     }
 }
