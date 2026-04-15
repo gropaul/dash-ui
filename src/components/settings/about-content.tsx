@@ -4,10 +4,16 @@ import {Label} from "@/components/ui/label";
 import {Switch} from "@/components/ui/switch";
 
 const PREVIEW_MODE_KEY = 'dash-preview-mode';
+const LOG_QUERIES_KEY = 'dash-log-queries';
 
 export function getPreviewMode(): boolean {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(PREVIEW_MODE_KEY) === 'true';
+}
+
+export function getLogQueries(): boolean {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(LOG_QUERIES_KEY) === 'true';
 }
 
 export function AboutContent() {
@@ -17,15 +23,22 @@ export function AboutContent() {
     const commitHash = process.env.NEXT_PUBLIC_COMMIT_HASH ?? 'unknown';
 
     const [previewMode, setPreviewMode] = useState(false);
+    const [logQueries, setLogQueries] = useState(false);
 
     useEffect(() => {
         setPreviewMode(getPreviewMode());
+        setLogQueries(getLogQueries());
     }, []);
 
     function handlePreviewToggle(enabled: boolean) {
         localStorage.setItem(PREVIEW_MODE_KEY, String(enabled));
         setPreviewMode(enabled);
         window.location.reload();
+    }
+
+    function handleLogQueriesToggle(enabled: boolean) {
+        localStorage.setItem(LOG_QUERIES_KEY, String(enabled));
+        setLogQueries(enabled);
     }
 
     return (
@@ -60,6 +73,16 @@ export function AboutContent() {
                     id="preview-toggle"
                     checked={previewMode}
                     onCheckedChange={handlePreviewToggle}
+                />
+            </div>
+            <div className="mt-2 flex items-center justify-between rounded-md border p-3">
+                <Label htmlFor="log-queries-toggle" className="text-sm">
+                    Log executed queries
+                </Label>
+                <Switch
+                    id="log-queries-toggle"
+                    checked={logQueries}
+                    onCheckedChange={handleLogQueriesToggle}
                 />
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
