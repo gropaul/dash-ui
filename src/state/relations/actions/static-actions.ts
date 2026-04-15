@@ -106,6 +106,29 @@ export class RelationActions {
         return relationState;
     }
 
+    static renameInQuery(relationState: RelationState, oldStr: string, newStr: string): RelationState {
+        const {baseQuery, activeBaseQuery} = relationState.query;
+        if (!baseQuery.includes(oldStr) && !activeBaseQuery.includes(oldStr)) return relationState;
+        return {
+            ...relationState,
+            query: {
+                ...relationState.query,
+                baseQuery: baseQuery.replaceAll(oldStr, newStr),
+                activeBaseQuery: activeBaseQuery.replaceAll(oldStr, newStr),
+            },
+        };
+    }
+
+    static renameInAllQueries(oldStr: string, newStr: string, excludeId: string): void {
+        for (const entry of getAllRelations()) {
+            if (entry.relation.id === excludeId) continue;
+            const updated = RelationActions.renameInQuery(entry.relation, oldStr, newStr);
+            if (updated !== entry.relation) {
+                entry.updateRelation(updated);
+            }
+        }
+    }
+
     static getUniqueDisplayName = (desiredName: string, excludeRelationId?: string): string => {
         if (!isDisplayNameTaken(desiredName, excludeRelationId)) {
             return desiredName;

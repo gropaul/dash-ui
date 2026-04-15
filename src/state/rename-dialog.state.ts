@@ -4,7 +4,8 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 import {RelationState} from "@/model/relation-state";
-import {getMacroName, renameAllMacroReferences} from "@/state/relations/sql/table-macros";
+import {getMacroName} from "@/state/relations/sql/table-macros";
+import {RelationActions} from "@/state/relations/actions/static-actions";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 
 export type RenameEntityType = RelationZustandEntityType | 'folder';
@@ -72,7 +73,7 @@ export const useRenameDialogStore = create<RenameDialogStore>((set, get) => ({
             if (updateReferences && macroName) {
                 const newMacroName = getMacroName(newName);
                 if (macroName !== newMacroName) {
-                    renameAllMacroReferences(macroName, newMacroName, entityId);
+                    RelationActions.renameInAllQueries(macroName, newMacroName, entityId);
                 }
             }
 

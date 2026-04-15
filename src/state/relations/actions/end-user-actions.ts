@@ -61,7 +61,7 @@ export function getRelationActions(props: RelationViewAPIProps): EndUserRelation
             try {
                 useRelationsState.getState().setEntityDisplayName('relations', relationState.id, name, path);
             } catch (e) {
-                console.error("Failed to set display name in entity collection", e);
+                console.info("Failed to set display name in entity collection. this may be fine if this is a canvas node", e);
             }
         }
     }

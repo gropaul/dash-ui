@@ -26,15 +26,15 @@ function MacroInfo({currentMacroName, newName, references, updateReferences, onU
 
     return (
         <div className="text-sm space-y-2">
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
                 <span>Macro:</span>
-                <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">
+                <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs break-all">
                     {currentMacroName}
                 </code>
                 {macroChanged && (
                     <>
                         <span>&rarr;</span>
-                        <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">
+                        <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs break-all">
                             {newMacroName}
                         </code>
                     </>

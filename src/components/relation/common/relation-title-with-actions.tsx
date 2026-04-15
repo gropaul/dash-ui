@@ -47,10 +47,10 @@ export function RelationTitleWithActions({
     };
 
     return (
-        <div ref={containerRef} className={`group/title flex items-center gap-1.5 min-w-0 overflow-hidden ${className ?? ''}`}>
+        <div ref={containerRef} className={`group/title flex items-center min-w-0 flex-1 ${className ?? ''}`}>
             <div className="flex flex-row items-center gap-1.5 min-w-0 overflow-hidden whitespace-nowrap">
                     <span
-                        className="leading-none font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis min-w-0 flex-shrink-0"
+                        className="leading-none font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
                     >
                         {displayName}
                     </span>
@@ -64,24 +64,26 @@ export function RelationTitleWithActions({
                     </span>
                 )}
             </div>
-            <Button
-                className="opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenRename();
-                }}
-                variant="ghost"
-                size="icon"
-            >
-                <Pencil size={12}/>
-            </Button>
+            <div className="flex items-center gap-1 flex-shrink-0 overflow-hidden max-w-0 opacity-0 group-hover/title:max-w-16 group-hover/title:opacity-100 transition-all duration-200 ease-out">
+                <Button
+                    className="h-6 w-6 flex-shrink-0 ml-1.5"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenRename();
+                    }}
+                    variant="ghost"
+                    size="icon"
+                >
+                    <Pencil size={12}/>
+                </Button>
 
-            <MacroCopyButton
-                relationName={displayName}
-                sql={sql}
-                parameters={parameters}
-                className="opacity-0 group-hover/title:opacity-100 transition-opacity h-6 w-6 flex-shrink-0"
-            />
+                <MacroCopyButton
+                    relationName={displayName}
+                    sql={sql}
+                    parameters={parameters}
+                    className="h-6 w-6 flex-shrink-0"
+                />
+            </div>
         </div>
     );
 }

@@ -148,6 +148,7 @@ export async function refreshDownstream(
         }
 
         const relation = getNodeRelationData(nodeId, getNodes);
+        console.log("relation", relation)
         if (!relation) continue;
 
         // Mark current node as executing, remaining as queued

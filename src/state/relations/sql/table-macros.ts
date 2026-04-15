@@ -212,38 +212,6 @@ export function findMacroReferences(macroName: string, excludeId: string): Macro
 }
 
 /**
- * Rename a macro reference in SQL, replacing only the macro name, not its arguments.
- * E.g. "FROM node_old_name(x, y)" → "FROM node_new_name(x, y)"
- * Matches node_old_name followed by '(' to avoid prefix collisions.
- */
-export function renameMacroInSql(sql: string, oldMacroName: string, newMacroName: string): string {
-    // Match "node_old_name(" and replace only the name part, keeping "("
-    const re = new RegExp(`\\b${escapeRegExp(oldMacroName)}(\\s*\\()`, 'g');
-    return sql.replace(re, `${newMacroName}$1`);
-}
-
-/**
- * Rename all macro references across all relations (standalone, canvas, dashboard).
- * Only replaces the macro name itself, not its arguments.
- */
-export function renameAllMacroReferences(oldMacroName: string, newMacroName: string, excludeId: string): void {
-    for (const entry of getAllRelations()) {
-        if (entry.relation.id === excludeId) continue;
-        const sql = entry.relation.query.baseQuery;
-        if (!sql || !sqlContainsMacroCall(sql, oldMacroName)) continue;
-        const newSql = renameMacroInSql(sql, oldMacroName, newMacroName);
-        if (newSql !== sql) {
-            console.log(`Renaming macro reference in relation "${entry.relation.viewState.displayName}": ${oldMacroName} → ${newMacroName}`);
-
-            entry.updateRelation({
-                ...entry.relation,
-                query: {...entry.relation.query, baseQuery: newSql},
-            });
-        }
-    }
-}
-
-/**
  * Register a relation as a table macro in DuckDB.
  * Uses TEMP macro if database is read-only.
  * Fails silently - macro registration is a convenience feature.
