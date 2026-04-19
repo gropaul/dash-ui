@@ -30,7 +30,6 @@ export function TourSlide({videoSrc, title, description, isActive}: TourSlidePro
                     muted
                     loop
                     playsInline
-                    preload="metadata"
                     className="w-full h-full object-cover"
                 />
                 {/* Bottom gradient fade */}

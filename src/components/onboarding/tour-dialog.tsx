@@ -220,7 +220,6 @@ function FinalSlide({onImportClick}: { onImportClick: () => void }) {
                     muted
                     loop
                     playsInline
-                    preload="metadata"
                     className="w-full h-full object-cover opacity-20"
                 />
             </div>
