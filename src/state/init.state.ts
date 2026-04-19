@@ -149,8 +149,8 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
             // we are done!
             get().setStep('complete');
 
-            // some final steps that need no sync at this point
-            await showExampleQuery()
+            // // some final steps that need no sync at this point
+            // await showExampleQuery()
         },
 
         // *** META FUNCTIONS ***

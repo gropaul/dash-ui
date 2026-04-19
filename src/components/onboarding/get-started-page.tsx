@@ -1,13 +1,20 @@
 import React, {useRef} from "react";
-import {Upload, BookOpen, Play} from "lucide-react";
+import {Upload, BookOpen, Play, Sheet, LayoutDashboard, Workflow, Database} from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
 import {FileTypePill} from "@/components/onboarding/file-type-pill";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {handleFileDrop} from "@/components/import/file-drop-relation/file-import";
 import {FileUploadState} from "@/components/import/file-drop-relation/file-drop-overlay";
+import {useRelationsState} from "@/state/relations.state";
+import {MAIN_CONNECTION_ID} from "@/platform/global-data";
+import {RelationActions} from "@/state/relations/actions/static-actions";
+import {showExampleQueryInternal} from "@/state/init/show-example-query";
 
 export function GetStartedPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const addNewRelation = useRelationsState((state) => state.addNewRelation);
+    const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
+    const addNewCanvas = useRelationsState((state) => state.addNewCanvas);
 
     const onImportClick = () => {
         fileInputRef.current?.click();
@@ -29,6 +36,22 @@ export function GetStartedPage() {
 
     const onTourClick = () => {
         useOnboardingState.getState().openWelcomeTour();
+    };
+
+    const onNewQuery = () => {
+        addNewRelation(MAIN_CONNECTION_ID, [], RelationActions.create({showCode: true}));
+    };
+
+    const onNewDashboard = () => {
+        addNewDashboard(MAIN_CONNECTION_ID, [], undefined);
+    };
+
+    const onNewCanvas = () => {
+        addNewCanvas();
+    };
+
+    const onExampleQuery = () => {
+        showExampleQueryInternal(MAIN_CONNECTION_ID);
     };
 
     return (
@@ -94,6 +117,48 @@ export function GetStartedPage() {
                             <span className="text-sm text-muted-foreground">Learn how to use Dash</span>
                         </CardContent>
                     </Card>
+                </div>
+
+                <div className="w-full mt-2">
+                    <p className="text-sm text-muted-foreground text-center mb-3">Or start from scratch</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                        <Card
+                            className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
+                            onClick={onNewQuery}
+                        >
+                            <CardContent className="flex flex-col items-center text-center p-4 space-y-2">
+                                <Sheet className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
+                                <span className="text-sm font-medium text-foreground">New Query</span>
+                            </CardContent>
+                        </Card>
+                        <Card
+                            className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
+                            onClick={onNewDashboard}
+                        >
+                            <CardContent className="flex flex-col items-center text-center p-4 space-y-2">
+                                <LayoutDashboard className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
+                                <span className="text-sm font-medium text-foreground">New Dashboard</span>
+                            </CardContent>
+                        </Card>
+                        <Card
+                            className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
+                            onClick={onNewCanvas}
+                        >
+                            <CardContent className="flex flex-col items-center text-center p-4 space-y-2">
+                                <Workflow className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
+                                <span className="text-sm font-medium text-foreground">New Canvas</span>
+                            </CardContent>
+                        </Card>
+                        <Card
+                            className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
+                            onClick={onExampleQuery}
+                        >
+                            <CardContent className="flex flex-col items-center text-center p-4 space-y-2">
+                                <Database className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
+                                <span className="text-sm font-medium text-foreground">Example Query</span>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </div>
