@@ -17,7 +17,7 @@ import {CanvasTab} from "@/components/canvas/canvas-tab";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {NavigationBarMobile} from "@/components/layout/navigation-bar-mobile";
 import {cn} from "@/lib/utils";
-
+import {GetStartedPage} from "@/components/onboarding/get-started-page";
 
 export function TabbedLayout() {
     const layoutModel = useGUIState(state => state.layoutModel);
@@ -45,6 +45,7 @@ interface LayoutProps {
 export function MobileLayout(props: LayoutProps) {
     const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
+    const hasOpenTabs = useGUIState(state => state.hasOpenTabs);
     const hasSelectedTabs = selectedTabs.length > 0;
     return <div className="flex flex-col h-full w-full">
         <div className="flex-1 min-h-0 w-full relative">
@@ -60,6 +61,11 @@ export function MobileLayout(props: LayoutProps) {
                         onAction={onLayoutModelChange}
                         onModelChange={useGUIState.getState().persistState}
                     />
+                    {!hasOpenTabs && (
+                        <div className="absolute inset-0 top-[41px]">
+                            <GetStartedPage/>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -80,6 +86,7 @@ export function DesktopLayout(props: LayoutProps) {
 
     const selectedTabs = useGUIState(state => state.selectedSidebarTabs);
     const setSelectedTabs = useGUIState(state => state.setSelectedSidebarTabs);
+    const hasOpenTabs = useGUIState(state => state.hasOpenTabs);
 
     let hasNonEmptyTabs = selectedTabs.length > 0;
 
@@ -121,6 +128,11 @@ export function DesktopLayout(props: LayoutProps) {
                     onAction={onLayoutModelChange}
                     onModelChange={useGUIState.getState().persistState}
                 />
+                {!hasOpenTabs && (
+                    <div className="absolute inset-0 top-[41px]">
+                        <GetStartedPage/>
+                    </div>
+                )}
             </ResizablePanel>
         </ResizablePanelGroup>
     </>;

@@ -12,7 +12,7 @@ import {ForceOpenReason} from "@/components/settings/settings-dialog";
 import {RelationZustandEntity, RelationZustandEntityType} from "@/state/entities/entity-functions";
 
 export type AvailableTab = 'connections' | 'relations' | 'chat'
-export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation'
+export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation' | 'get-started'
 
 export interface SettingsGUIZustand {
     isOpen: boolean;
@@ -33,6 +33,7 @@ export interface GUIZustand {
     sideBarTabsSizeRatios: number[];
     selectedSidebarTabs: AvailableTab[];
     number: number;
+    hasOpenTabs: boolean;
     settings: SettingsGUIZustand;
 }
 
@@ -98,6 +99,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             layoutModel: getInitialLayoutModel(),
             selectedTabId: undefined,
             number: 0,
+            hasOpenTabs: false,
             mainBarSizeRatio: 25,
             selectedSidebarTabs: ['relations'],
             sideBarTabsSizeRatios: [70],
@@ -247,8 +249,13 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             },
 
             persistState: () => {
-                // trigger persistence of the layout
-                set((state) => ({number: state.number + 1}));
+                // trigger persistence of the layout and recompute hasOpenTabs
+                const model = get().layoutModel;
+                let found = false;
+                model.visitNodes(node => {
+                    if (node.getType() === 'tab') found = true;
+                });
+                set((state) => ({number: state.number + 1, hasOpenTabs: found}));
             },
         }),
         {

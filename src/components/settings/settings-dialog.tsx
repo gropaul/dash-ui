@@ -5,17 +5,18 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";
-import {AlertCircle, BookOpen, Database, Info, Share2, Wand2} from "lucide-react";
+import {AlertCircle, BookOpen, Database, Info, Rocket, Share2, Wand2} from "lucide-react";
 import {ShareContent} from "@/components/settings/share-content";
 import {LanguageModelContent} from "@/components/settings/language-model-content";
 import {DocumentationContent} from "@/components/settings/documentation-content";
+import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 import {MobileAppBar} from "@/components/layout/mobile-app-bar";
 
 // Define the tab types
-export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation';
+export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation' | 'get-started';
 
 export interface ForceOpenReason {
     tab: SettingsTab;
@@ -78,6 +79,12 @@ export function SettingsDialog(props: SettingsViewProps) {
     // Define the tabs - this makes it easy to add new tabs in the future
     const tabs: SettingsTabDefinition[] = [
         {
+            id: 'get-started',
+            label: 'Get Started',
+            icon: <Rocket className="h-4 w-4 mr-1 sm:mr-2"/>,
+            content: <GetStartedPage/>
+        },
+        {
             id: 'connection',
             label: 'Connections',
             icon: <Database className="h-4 w-4 mr-1 sm:mr-2"/>,
@@ -111,6 +118,7 @@ export function SettingsDialog(props: SettingsViewProps) {
             icon: <BookOpen className="h-4 w-4 mr-1 sm:mr-2"/>,
             content: <DocumentationContent/>
         },
+
     ];
 
     const isMobile = useIsMobile();

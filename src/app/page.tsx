@@ -2,7 +2,7 @@
 
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {TabbedLayout} from "@/components/layout/tabbed-layout";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {RenameDialog} from "@/components/workbench/rename-dialog";
 import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
 import {AlertDialog} from "@radix-ui/react-alert-dialog";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {useInitState} from "@/state/init.state";
+import {TourDialog} from "@/components/onboarding/tour-dialog";
+import {useOnboardingState} from "@/state/onboarding.state";
 
 
 export default function Home() {
@@ -24,10 +26,20 @@ export default function Home() {
     const [mounted, setMounted] = useState(false);
     const initComplete = useInitState(state => state.initializationComplete());
     const label = useInitState(state => state.getCurrentStepLabel());
+    const hasAutoOpened = useRef(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    useEffect(() => {
+        if (!initComplete || hasAutoOpened.current) return;
+        const {hasSeenWelcome, openTour} = useOnboardingState.getState();
+        if (!hasSeenWelcome) {
+            hasAutoOpened.current = true;
+            openTour();
+        }
+    }, [initComplete]);
 
     useEffect(() => {
         StorageDuckAPI.getInstance().then((duckdb) => {
@@ -82,6 +94,7 @@ export default function Home() {
                 </AlertDialogContent>
             </AlertDialog>
             <RenameDialog/>
+            <TourDialog/>
         </>
     );
 }

@@ -1,13 +1,14 @@
 import React from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
-import {BookOpen, Database, Folder, Info, Settings, Star, Wand2} from "lucide-react";
+import {BookOpen, Database, Folder, HelpCircle, Settings, Star, Wand2} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {AvailableTab, useGUIState} from "@/state/gui.state";
 import {Button} from "@/components/ui/button";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
+import {useOnboardingState} from "@/state/onboarding.state";
 import {ChatTab} from "@/components/chat/chat-tab";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 
@@ -77,6 +78,12 @@ export function NavigationBarDesktop(props: NavigationBarProps) {
             <Button variant={'ghost'} size={'icon'} onClick={() => {
                 openSettingsTab('documentation');
             }}>                <BookOpen/>
+            </Button>
+            <div className={'h-2'}/>
+            <Button variant={'ghost'} size={'icon'} onClick={() => {
+                useOnboardingState.getState().openTour();
+            }}>
+                <HelpCircle/>
             </Button>
             <div className={'h-2'}/>
             <Button variant={'ghost'} size={'icon'} onClick={() => {
