@@ -22,7 +22,6 @@ import {useOnboardingState} from "@/state/onboarding.state";
 
 export default function Home() {
     const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
-
     const [mounted, setMounted] = useState(false);
     const initComplete = useInitState(state => state.initializationComplete());
     const label = useInitState(state => state.getCurrentStepLabel());
@@ -34,11 +33,6 @@ export default function Home() {
 
     useEffect(() => {
         if (!initComplete || hasAutoOpened.current) return;
-        const {hasSeenWelcome, openTour} = useOnboardingState.getState();
-        if (!hasSeenWelcome) {
-            hasAutoOpened.current = true;
-            openTour();
-        }
     }, [initComplete]);
 
     useEffect(() => {
@@ -61,7 +55,6 @@ export default function Home() {
                 >
                     <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
                 </Avatar>
-
                 <div className={'text-muted-foreground'}> Loading...</div>
                 <div className={'text-muted-foreground'}>{mounted ? label : '\u00A0'}</div>
             </div>
@@ -94,7 +87,6 @@ export default function Home() {
                 </AlertDialogContent>
             </AlertDialog>
             <RenameDialog/>
-            <TourDialog/>
         </>
     );
 }

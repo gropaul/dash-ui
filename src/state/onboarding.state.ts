@@ -1,23 +1,40 @@
 import {createWithEqualityFn} from "zustand/traditional";
-import {persist} from "zustand/middleware";
+
+const STORAGE_KEY = 'dash-onboarding-seen';
+
+function getHasSeenWelcome(): boolean {
+    try {
+        return localStorage.getItem(STORAGE_KEY) === 'true';
+    } catch {
+        return false;
+    }
+}
+
+function setHasSeenWelcome() {
+    try {
+        localStorage.setItem(STORAGE_KEY, 'true');
+    } catch {}
+}
 
 export interface OnboardingZustand {
     hasSeenWelcome: boolean;
     isTourOpen: boolean;
     currentSlide: number;
 
-    openTour: () => void;
+    openWelcomeTour: () => void;
     closeTour: () => void;
     setCurrentSlide: (slide: number) => void;
     completeTour: () => void;
+    markAsSeen: () => void;
 }
 
-export const useOnboardingState = createWithEqualityFn(persist<OnboardingZustand>((set) => ({
-    hasSeenWelcome: false,
+export const useOnboardingState = createWithEqualityFn<OnboardingZustand>((set, get) => ({
+    hasSeenWelcome: getHasSeenWelcome(),
     isTourOpen: false,
     currentSlide: 0,
 
-    openTour: () => {
+    openWelcomeTour: () => {
+        if (get().isTourOpen) return;
         set({isTourOpen: true, currentSlide: 0});
     },
 
@@ -30,9 +47,12 @@ export const useOnboardingState = createWithEqualityFn(persist<OnboardingZustand
     },
 
     completeTour: () => {
+        setHasSeenWelcome();
         set({hasSeenWelcome: true, isTourOpen: false, currentSlide: 0});
     },
-}), {
-    name: 'dash-onboarding',
-    partialize: (state) => ({hasSeenWelcome: state.hasSeenWelcome}) as OnboardingZustand,
+
+    markAsSeen: () => {
+        setHasSeenWelcome();
+        set({hasSeenWelcome: true});
+    }
 }));

@@ -1,5 +1,5 @@
 import {findWorkingConnection} from "@/components/provider/config-utils";
-import {DASH_DOMAIN} from "@/platform/global-data";
+import {DASH_DOMAIN, ENABLE_AUTOLOAD_IN_DEBUG} from "@/platform/global-data";
 import {DBConnectionSpec, getDefaultSpec, specToConnection} from "@/state/connections/configs";
 import {toast} from "sonner";
 import {DatabaseConnection} from "@/model/database-connection";
@@ -27,7 +27,7 @@ export async function tryInitializingConnectionFromHistory(history: DBConnection
     if (!connection) {
 
         // if the url of the page is on the default dash domain, use a wasm connection
-        if (window.location.hostname === DASH_DOMAIN) {
+        if (window.location.hostname === DASH_DOMAIN || (ENABLE_AUTOLOAD_IN_DEBUG && window.location.hostname === 'localhost')) {
             const spec = getDefaultSpec('duckdb-wasm');
             const wasmConnection = specToConnection(spec);
             const result = await wasmConnection.initialise();

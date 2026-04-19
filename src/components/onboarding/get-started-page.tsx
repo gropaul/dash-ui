@@ -28,7 +28,7 @@ export function GetStartedPage() {
     };
 
     const onTourClick = () => {
-        useOnboardingState.getState().openTour();
+        useOnboardingState.getState().openWelcomeTour();
     };
 
     return (
@@ -52,6 +52,18 @@ export function GetStartedPage() {
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-4">
+                    <Card
+                        className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
+                        onClick={onTourClick}
+                    >
+                        <CardContent className="flex flex-col items-center text-center p-6 space-y-3">
+                            <div className="bg-secondary rounded-xl p-3 group-hover:bg-primary/15 transition-colors">
+                                <Play className="h-6 w-6 text-primary group-hover:scale-110 transition-transform"/>
+                            </div>
+                            <span className="font-semibold text-foreground">Take a Tour</span>
+                            <span className="text-sm text-muted-foreground">See the key features</span>
+                        </CardContent>
+                    </Card>
                     <Card
                         className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
                         onClick={onImportClick}
@@ -80,19 +92,6 @@ export function GetStartedPage() {
                             </div>
                             <span className="font-semibold text-foreground">Documentation</span>
                             <span className="text-sm text-muted-foreground">Learn how to use Dash</span>
-                        </CardContent>
-                    </Card>
-
-                    <Card
-                        className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
-                        onClick={onTourClick}
-                    >
-                        <CardContent className="flex flex-col items-center text-center p-6 space-y-3">
-                            <div className="bg-secondary rounded-xl p-3 group-hover:bg-primary/15 transition-colors">
-                                <Play className="h-6 w-6 text-primary group-hover:scale-110 transition-transform"/>
-                            </div>
-                            <span className="font-semibold text-foreground">Take a Tour</span>
-                            <span className="text-sm text-muted-foreground">See the key features</span>
                         </CardContent>
                     </Card>
                 </div>

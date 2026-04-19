@@ -71,7 +71,7 @@ export function ChatContentMessages({
                                     className="h-7 w-7 rounded-full"
                                     onClick={onHideError}
                                 >
-                                    <X className="h-4 w-4"/>
+                                    <X className="h-3 w-3"/>
                                 </Button>
                             </div>
                         </AlertTitle>

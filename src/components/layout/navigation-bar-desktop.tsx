@@ -81,7 +81,7 @@ export function NavigationBarDesktop(props: NavigationBarProps) {
             </Button>
             <div className={'h-2'}/>
             <Button variant={'ghost'} size={'icon'} onClick={() => {
-                useOnboardingState.getState().openTour();
+                useOnboardingState.getState().openWelcomeTour();
             }}>
                 <HelpCircle/>
             </Button>

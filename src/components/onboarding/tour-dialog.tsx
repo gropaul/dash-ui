@@ -38,6 +38,7 @@ const TOTAL_SLIDES = TOUR_SLIDES.length + 1; // +1 for the final Get Started sli
 
 export function TourDialog() {
     const isTourOpen = useOnboardingState(s => s.isTourOpen);
+    const markAsSeen = useOnboardingState(s => s.markAsSeen);
     const currentSlide = useOnboardingState(s => s.currentSlide);
     const setCurrentSlide = useOnboardingState(s => s.setCurrentSlide);
     const closeTour = useOnboardingState(s => s.closeTour);
@@ -49,6 +50,7 @@ export function TourDialog() {
     const isLastSlide = currentSlide === TOTAL_SLIDES - 1;
 
     const goNext = useCallback(() => {
+        markAsSeen();
         if (currentSlide < TOTAL_SLIDES - 1) {
             setDirection(1);
             setCurrentSlide(currentSlide + 1);
@@ -56,6 +58,7 @@ export function TourDialog() {
     }, [currentSlide, setCurrentSlide]);
 
     const goPrev = useCallback(() => {
+        markAsSeen();
         if (currentSlide > 0) {
             setDirection(-1);
             setCurrentSlide(currentSlide - 1);
