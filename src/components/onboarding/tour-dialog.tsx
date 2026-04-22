@@ -10,25 +10,26 @@ import {handleFileDrop} from "@/components/import/file-drop-relation/file-import
 import {FileUploadState} from "@/components/import/file-drop-relation/file-drop-overlay";
 import {cn} from "@/lib/utils";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
+import {DASH_VIDEO_BASE_URL} from "@/platform/global-data";
 
 const TOUR_SLIDES = [
     {
-        videoSrc: "/img/docs/demo_canvas_big_example.mp4",
+        videoSrc: `${DASH_VIDEO_BASE_URL}/demo_canvas_big_example.mp4`,
         title: "Welcome to Dash 👋",
         description: "Dash is a local-first data exploration tool. Drop in your files, write SQL, and build interactive canvases — everything runs in your browser.",
     },
     {
-        videoSrc: "/img/docs/demo_canvas_different_views.mp4",
+        videoSrc: `${DASH_VIDEO_BASE_URL}/demo_canvas_different_views.mp4`,
         title: "Explore Any Way You Like",
         description: "Every query node can display its results as a table, chart, or input control. ",
     },
     {
-        videoSrc: "/img/docs/demo_canvas_dependent_table.mp4",
+        videoSrc: `${DASH_VIDEO_BASE_URL}/demo_canvas_dependent_table.mp4`,
         title: "Chain Queries Together",
         description: "Canvas nodes can depend on each other using table macros. When you update an upstream node, all downstream nodes update too.",
     },
     {
-        videoSrc: "/img/docs/demo_canvas_dependent_select.mp4",
+        videoSrc: `${DASH_VIDEO_BASE_URL}/demo_canvas_dependent_select.mp4`,
         title: "Build Interactive Canvases",
         description: "Downstream nodes will only contain the selected rows of the upstream node. This makes it easy to build interactive canvases.",
     },
@@ -216,7 +217,8 @@ function FinalSlide({onImportClick}: { onImportClick: () => void }) {
             <div className="absolute inset-0 overflow-hidden rounded-lg">
                 <video
                     ref={videoRef}
-                    src="/img/docs/demo_canvas_big_example.mp4"
+                    src={`${DASH_VIDEO_BASE_URL}/demo_canvas_big_example.mp4`}
+                    crossOrigin="anonymous"
                     muted
                     loop
                     playsInline

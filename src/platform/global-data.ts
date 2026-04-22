@@ -9,6 +9,7 @@ export const STORAGE_THROTTLE_TIME_MS = 2_000; // how long to wait before saving
 
 export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'
+export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-storage.com/videos/canvas'
 
 export const DASH_CACHE_DATABASE_NAME = 'dash_data.duckdb'
 export const DASH_CACHE_DATABASE_CATALOG = 'dash' // catalog name used after ATTACHing the cache database

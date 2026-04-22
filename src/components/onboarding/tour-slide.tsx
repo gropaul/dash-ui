@@ -27,6 +27,7 @@ export function TourSlide({videoSrc, title, description, isActive}: TourSlidePro
                 <video
                     ref={videoRef}
                     src={videoSrc}
+                    crossOrigin="anonymous"
                     muted
                     loop
                     playsInline
