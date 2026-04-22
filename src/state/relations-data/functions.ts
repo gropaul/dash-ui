@@ -1,6 +1,6 @@
 import {RelationData} from "@/model/relation";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_TABLE_PREFIX} from "@/platform/global-data";
+import {DASH_CATALOG, DASH_CACHE_SCHEMA, DASH_CACHE_TABLE_PREFIX} from "@/platform/global-data";
 import {CacheResult} from "@/state/relations-data.state";
 import {removeSemicolon} from "@/platform/sql-utils";
 
@@ -10,7 +10,7 @@ function GetCacheViewPrefix(): string {
 }
 
 function GetFullViewNameEscaped(id: string): string {
-    return `${DASH_CACHE_DATABASE_CATALOG}.main."${GetCacheViewPrefix()}${id}"`;
+    return `${DASH_CATALOG}.${DASH_CACHE_SCHEMA}."${GetCacheViewPrefix()}${id}"`;
 }
 
 function getMaterializedViewFromQuery(id: string, query: string, readonly: boolean): string {
@@ -37,7 +37,7 @@ export async function listCachedIds(): Promise<string[]> {
     try {
         const prefix = GetCacheViewPrefix();
         const result = await ConnectionsService.getInstance().executeQuery(
-            `SELECT table_name FROM information_schema.tables WHERE table_catalog = '${DASH_CACHE_DATABASE_CATALOG}' AND table_schema = 'main' AND table_name LIKE '${prefix}%';`
+            `SELECT table_name FROM information_schema.tables WHERE table_catalog = '${DASH_CATALOG}' AND table_schema = 'main' AND table_name LIKE '${prefix}%';`
         );
         return result.rows.map((row: unknown[]) => (row[0] as string).slice(prefix.length));
     } catch (error) {
@@ -67,7 +67,7 @@ export async function updateCache(id: string, query: string, readOnly: boolean =
     try {
         const materializedViewQuery = getMaterializedViewFromQuery(id, query, false);
         await connectionsService.executeQuery(materializedViewQuery);
-        await connectionsService.executeQuery(`CHECKPOINT ${DASH_CACHE_DATABASE_CATALOG};`); // ensure that the data is written to disk, this is important for the WASM backend
+        await connectionsService.executeQuery(`CHECKPOINT ${DASH_CATALOG};`); // ensure that the data is written to disk, this is important for the WASM backend
         const cacheData = await loadCache(id);
         if (!cacheData) {
             throw new Error('Failed to load cache data after creating materialized view.');

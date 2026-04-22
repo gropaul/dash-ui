@@ -3,7 +3,7 @@ import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, DuckDBDataProtocol, LogLevel} from '@duckdb/duckdb-wasm';
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
 import {getJsonMacro} from "@/state/connections/duckdb-wasm/utils";
-import {DASH_CACHE_DATABASE_CATALOG, DASH_CACHE_DATABASE_NAME} from "@/platform/global-data";
+import {DASH_CATALOG, DASH_DATABASE_NAME} from "@/platform/global-data";
 
 export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
 
@@ -255,8 +255,8 @@ export class DuckdbWasmProvider {
                 connection = await db.connect();
                 console.log("New connection to DuckDB-Wasm established (OPFS): ", connection);
 
-                await registerAdditionalDatabase(db, DASH_CACHE_DATABASE_NAME);
-                await connection.query(`ATTACH IF NOT EXISTS 'opfs://${DASH_CACHE_DATABASE_NAME}' AS ${DASH_CACHE_DATABASE_CATALOG};`);
+                await registerAdditionalDatabase(db, DASH_DATABASE_NAME);
+                await connection.query(`ATTACH IF NOT EXISTS 'opfs://${DASH_DATABASE_NAME}' AS ${DASH_CATALOG};`);
 
                 _storageMode = 'opfs';
             } catch (e) {
@@ -282,7 +282,7 @@ export class DuckdbWasmProvider {
             console.log("New connection to DuckDB-Wasm established (in-memory): ", connection);
 
             // Attach an in-memory database with the same catalog name so downstream code works
-            await connection.query(`ATTACH ':memory:' AS ${DASH_CACHE_DATABASE_CATALOG};`);
+            await connection.query(`ATTACH ':memory:' AS ${DASH_CATALOG};`);
         }
 
         // check if we have write access

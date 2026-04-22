@@ -1,4 +1,4 @@
-import {DASH_CACHE_DATABASE_CATALOG, TABLE_MACRO_SCHEMA} from "@/platform/global-data";
+import {DASH_CATALOG, DASH_REFS_SCHEMA} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
@@ -42,7 +42,7 @@ export function sanitizeMacroName(name: string): string {
  * "My Query" -> "dash.refs.my_query"
  */
 export function getMacroName(relationName: string): string {
-    return `${DASH_CACHE_DATABASE_CATALOG}.${TABLE_MACRO_SCHEMA}.${sanitizeMacroName(relationName)}`;
+    return `${DASH_CATALOG}.${DASH_REFS_SCHEMA}.${sanitizeMacroName(relationName)}`;
 }
 
 /**
@@ -162,7 +162,7 @@ export function generateDropMacroSQL(relationName: string): string {
 export function extractMacroRefs(sqlRaw: string): string[] {
     const sql = removeComments(sqlRaw)
     const refs: string[] = [];
-    const re = new RegExp(`(?:${DASH_CACHE_DATABASE_CATALOG}\\.)?${TABLE_MACRO_SCHEMA}\\.(\\w+)\\s*\\(`, 'g');
+    const re = new RegExp(`(?:${DASH_CATALOG}\\.)?${DASH_REFS_SCHEMA}\\.(\\w+)\\s*\\(`, 'g');
     for (const match of sql.matchAll(re)) {
         refs.push(match[1]);
     }
@@ -220,7 +220,7 @@ async function ensureRefsSchema(): Promise<void> {
     if (refsSchemaEnsured) return;
     try {
         await ConnectionsService.getInstance().executeQuery(
-            `CREATE SCHEMA IF NOT EXISTS ${DASH_CACHE_DATABASE_CATALOG}.${TABLE_MACRO_SCHEMA}`
+            `CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG}.${DASH_REFS_SCHEMA}`
         );
         refsSchemaEnsured = true;
     } catch (error) {
