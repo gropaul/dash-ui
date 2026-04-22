@@ -11,7 +11,7 @@ export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'
 export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-storage.com/videos/canvas'
 
-export const WASM_DATABASE_FILE_NAME = 'wasm.duckdb'
+export const WASM_DATABASE_FILE_NAME = 'local.duckdb'
 export const DASH_DATABASE_FILE_NAME = 'dash.duckdb'
 export const DASH_CATALOG = 'dash' // catalog name used after ATTACHing the cache database
 

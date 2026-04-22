@@ -8,10 +8,11 @@ import {
 } from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
+import {Loader2} from "lucide-react";
 import {Checkbox} from "@/components/ui/checkbox";
 import React from "react";
 import {getRenameDialogDescription, getRenameDialogTitle, useRenameDialogStore} from "@/state/rename-dialog.state";
-import {findMacroReferences, getMacroName, MacroReference} from "@/state/relations/sql/table-macros";
+import {checkMacroName, findMacroReferences, getMacroName, MacroReference} from "@/state/relations/sql/table-macros";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 
 function MacroInfo({currentMacroName, newName, references, updateReferences, onUpdateReferencesChange}: {
@@ -76,10 +77,13 @@ export function RenameDialog() {
 
     const [newName, setNewName] = React.useState(currentName ?? '');
     const [updateReferences, setUpdateReferences] = React.useState(true);
+    const [macroError, setMacroError] = React.useState<string | null>(null);
+    const [isValidating, setIsValidating] = React.useState(false);
 
     React.useEffect(() => {
         setNewName(currentName ?? '');
         setUpdateReferences(true);
+        setMacroError(null);
     }, [currentName]);
 
     // Compute macro info locally for relations
@@ -96,16 +100,6 @@ export function RenameDialog() {
     const title = getRenameDialogTitle(entityType);
     const description = getRenameDialogDescription(entityType, currentName);
 
-    function handleRename() {
-        if (!isValid) return;
-        confirmRename(trimmedName, macroName, updateReferences);
-    }
-
-    function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        handleRename();
-    }
-
     const trimmedName = newName.trim();
 
     // Check for macro name conflict with other relations
@@ -120,7 +114,27 @@ export function RenameDialog() {
         return conflict.relation.viewState.displayName;
     }, [macroName, trimmedName, entityId]);
 
-    const isValid = trimmedName.length > 0 && !macroConflict;
+    const isValid = trimmedName.length > 0 && !macroConflict && !isValidating;
+
+    async function handleRename() {
+        if (!isValid) return;
+        if (isRelation) {
+            setIsValidating(true);
+            const error = await checkMacroName(trimmedName);
+            setIsValidating(false);
+            if (error) {
+                setMacroError(error);
+                return;
+            }
+        }
+        setMacroError(null);
+        confirmRename(trimmedName, macroName, updateReferences);
+    }
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        handleRename();
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
@@ -134,7 +148,7 @@ export function RenameDialog() {
                     <Input
                         placeholder="Enter new name"
                         value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
+                        onChange={(e) => { setNewName(e.target.value); setMacroError(null); }}
                     />
                     {macroName && (
                         <MacroInfo
@@ -150,6 +164,9 @@ export function RenameDialog() {
                             Macro name conflicts with &quot;{macroConflict}&quot;
                         </p>
                     )}
+                    {macroError && (
+                        <p className="text-sm text-destructive">{macroError}</p>
+                    )}
                     <DialogFooter>
                         <Button
                             variant="secondary"
@@ -159,6 +176,7 @@ export function RenameDialog() {
                             Cancel
                         </Button>
                         <Button type="submit" disabled={!isValid}>
+                            {isValidating && <Loader2 className="animate-spin" />}
                             Confirm
                         </Button>
                     </DialogFooter>

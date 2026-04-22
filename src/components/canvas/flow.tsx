@@ -267,6 +267,7 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
                 panActivationKeyCode={null}
             >
                 <Background
+                    id={canvasId}
                     offset={GRID_SIZE}
                     gap={GRID_SIZE}
                 />

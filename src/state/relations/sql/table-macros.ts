@@ -26,6 +26,32 @@ function isDatabaseReadonly(): boolean {
 }
 
 /**
+ * DuckDB reserved keywords that cannot be used as macro names without quoting.
+ * References like `refs.from()` fail because the parser treats them as SQL keywords.
+ */
+const DUCKDB_RESERVED_KEYWORDS = new Set([
+    'all', 'analyse', 'analyze', 'and', 'any', 'array', 'as', 'asc', 'asymmetric',
+    'both', 'case', 'cast', 'check', 'collate', 'column', 'constraint', 'create',
+    'cross', 'default', 'deferrable', 'desc', 'distinct', 'do', 'else', 'end',
+    'except', 'false', 'fetch', 'for', 'foreign', 'from', 'full', 'grant', 'group',
+    'having', 'in', 'initially', 'inner', 'intersect', 'into', 'is', 'join',
+    'lateral', 'leading', 'left', 'like', 'limit', 'localtime', 'localtimestamp',
+    'natural', 'not', 'null', 'offset', 'on', 'only', 'or', 'order', 'outer',
+    'overlaps', 'placing', 'primary', 'references', 'returning', 'right', 'select',
+    'session_user', 'similar', 'some', 'symmetric', 'table', 'then', 'to',
+    'trailing', 'true', 'union', 'unique', 'user', 'using', 'variadic', 'verbose',
+    'when', 'where', 'window', 'with',
+]);
+
+/**
+ * Check if a sanitized macro name is a reserved SQL keyword that DuckDB cannot
+ * use as a function/macro identifier.
+ */
+export function isReservedMacroName(sanitized: string): boolean {
+    return DUCKDB_RESERVED_KEYWORDS.has(sanitized);
+}
+
+/**
  * Sanitize relation name for use as a macro name.
  * Converts "My Query!" -> "my_query" and MyQuery -> "myquery"
  */
@@ -210,6 +236,17 @@ export function findMacroReferences(macroName: string, excludeId: string): Macro
     }
 
     return references;
+}
+
+export async function checkMacroName(relationName: string): Promise<string | null> {
+    const sql = generateCreateMacroSQLInternal(relationName, "FROM range(10)");
+    try {
+        await ConnectionsService.getInstance().executeQuery(sql);
+        await ConnectionsService.getInstance().executeQuery(generateDropMacroSQL(relationName));
+        return null;
+    } catch (error) {
+        return error instanceof Error ? error.message : String(error);
+    }
 }
 
 /**
