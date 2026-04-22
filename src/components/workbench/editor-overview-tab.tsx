@@ -24,13 +24,13 @@ import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import {DashboardState} from "@/model/dashboard-state";
 import {useEditorStore} from "@/state/editor.state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
-import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
 import {DefaultStateStorageInfo, StateStorageInfo} from "@/model/database-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
+import {openCreateCanvasDialog, openCreateDashboardDialog, openCreateFolderDialog, openCreateRelationDialog} from "@/components/workbench/create-entity-dialogs";
 
 
 
@@ -96,8 +96,6 @@ export function EditorOverviewTab() {
     const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
     const resetEditorElements = useRelationsState((state) => state.resetEditorElements);
-
-    const addNewCanvas = useRelationsState((state) => state.addNewCanvas);
 
     const deleteEntity = useRelationsState((state) => state.deleteEntity);
     const getEntityDisplayName = useRelationsState((state) => state.getEntityDisplayName);
@@ -255,20 +253,19 @@ ${relationNames.join(', ')}`;
     }
 
     function onAddNewRelation(path: string[], tree: TreeNode) {
-        addNewRelation(MAIN_CONNECTION_ID, path, RelationActions.create({showCode: true}));
+        openCreateRelationDialog(path);
     }
 
     function onAddNewDashboard(path: string[], tree: TreeNode) {
-        addNewDashboard(MAIN_CONNECTION_ID, path, undefined);
+        openCreateDashboardDialog(path);
     }
 
     function onAddNewCanvas(path: string[], tree: TreeNode) {
-        addNewCanvas(undefined, path);
+        openCreateCanvasDialog(path);
     }
 
     function onAddNewFolder(path?: string[], tree?: TreeNode) {
-        const actions = AddFolderActions(path || [], tree);
-        applyEditorElementsActions(actions);
+        openCreateFolderDialog(path, tree);
     }
 
     function onExpandChange(path: string[], tree: TreeNode, expanded: boolean) {
@@ -321,15 +318,15 @@ ${relationNames.join(', ')}`;
                             <Folder size={16} className="mr-2"/>
                             <span>Folder</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addNewRelation(MAIN_CONNECTION_ID, [], RelationActions.create({showCode: true}))}>
+                        <DropdownMenuItem onClick={() => openCreateRelationDialog([])}>
                             <Sheet size={16} className="mr-2"/>
                             <span>Query</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addNewDashboard(MAIN_CONNECTION_ID, [], undefined)}>
+                        <DropdownMenuItem onClick={() => openCreateDashboardDialog([])}>
                             <LayoutDashboard size={16} className="mr-2"/>
                             <span>Dashboard</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addNewCanvas()}>
+                        <DropdownMenuItem onClick={() => openCreateCanvasDialog([])}>
                             <Workflow size={16} className="mr-2"/>
                             <span>Canvas️</span>
                         </DropdownMenuItem>

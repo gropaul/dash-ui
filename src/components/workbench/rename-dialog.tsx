@@ -11,7 +11,7 @@ import {Button} from "@/components/ui/button";
 import {Loader2} from "lucide-react";
 import {Checkbox} from "@/components/ui/checkbox";
 import React from "react";
-import {getRenameDialogDescription, getRenameDialogTitle, useRenameDialogStore} from "@/state/rename-dialog.state";
+import {getCreateDialogTitle, getRenameDialogDescription, getRenameDialogTitle, useRenameDialogStore} from "@/state/rename-dialog.state";
 import {checkMacroName, findMacroReferences, getMacroName, MacroReference} from "@/state/relations/sql/table-macros";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 
@@ -69,50 +69,58 @@ function MacroInfo({currentMacroName, newName, references, updateReferences, onU
 
 export function RenameDialog() {
     const isOpen = useRenameDialogStore((s) => s.isOpen);
+    const mode = useRenameDialogStore((s) => s.mode);
     const entityType = useRenameDialogStore((s) => s.entityType);
     const entityId = useRenameDialogStore((s) => s.entityId);
     const currentName = useRenameDialogStore((s) => s.currentName);
+    const onCreate = useRenameDialogStore((s) => s.onCreate);
     const confirmRename = useRenameDialogStore((s) => s.confirmRename);
     const close = useRenameDialogStore((s) => s.close);
 
-    const [newName, setNewName] = React.useState(currentName ?? '');
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const [newName, setNewName] = React.useState('');
     const [updateReferences, setUpdateReferences] = React.useState(true);
     const [macroError, setMacroError] = React.useState<string | null>(null);
     const [isValidating, setIsValidating] = React.useState(false);
 
     React.useEffect(() => {
-        setNewName(currentName ?? '');
-        setUpdateReferences(true);
-        setMacroError(null);
-    }, [currentName]);
+        if (isOpen) {
+            setNewName(currentName ?? '');
+            setUpdateReferences(true);
+            setMacroError(null);
+            setIsValidating(false);
+            setTimeout(() => inputRef.current?.focus(), 0);
+        }
+    }, [isOpen]);
 
-    // Compute macro info locally for relations
+    // Compute macro info locally for relations (rename mode only)
     const isRelation = entityType === 'relations';
     const macroName = React.useMemo(
-        () => isRelation && currentName ? getMacroName(currentName) : undefined,
-        [isRelation, currentName]
+        () => mode === 'rename' && isRelation && currentName ? getMacroName(currentName) : undefined,
+        [mode, isRelation, currentName]
     );
     const macroReferences = React.useMemo(
         () => macroName && entityId ? findMacroReferences(macroName, entityId) : [],
         [macroName, entityId]
     );
 
-    const title = getRenameDialogTitle(entityType);
-    const description = getRenameDialogDescription(entityType, currentName);
+    const title = mode === 'create' ? getCreateDialogTitle(entityType) : getRenameDialogTitle(entityType);
+    const description = mode === 'create' ? undefined : getRenameDialogDescription(entityType, currentName);
 
     const trimmedName = newName.trim();
 
     // Check for macro name conflict with other relations
     const macroConflict = React.useMemo(() => {
-        if (!macroName || !trimmedName) return undefined;
+        if (!isRelation || !trimmedName) return undefined;
         const newMacroName = getMacroName(trimmedName);
-        if (newMacroName === macroName) return undefined;
+        // In rename mode, skip if the name is unchanged
+        if (mode === 'rename' && macroName && newMacroName === macroName) return undefined;
         const conflict = getAllRelations().find(
-            e => e.relation.id !== entityId && getMacroName(e.relation.viewState.displayName) === newMacroName
+            e => (mode === 'create' || e.relation.id !== entityId)
+              && getMacroName(e.relation.viewState.displayName) === newMacroName
         );
-        if (!conflict) return undefined;
-        return conflict.relation.viewState.displayName;
-    }, [macroName, trimmedName, entityId]);
+        return conflict?.relation.viewState.displayName;
+    }, [isRelation, mode, macroName, trimmedName, entityId]);
 
     const isValid = trimmedName.length > 0 && !macroConflict && !isValidating;
 
@@ -128,7 +136,12 @@ export function RenameDialog() {
             }
         }
         setMacroError(null);
-        confirmRename(trimmedName, macroName, updateReferences);
+        if (mode === 'create' && onCreate) {
+            onCreate(trimmedName);
+            close();
+        } else {
+            confirmRename(trimmedName, macroName, updateReferences);
+        }
     }
 
     function handleSubmit(e: React.FormEvent) {
@@ -146,11 +159,12 @@ export function RenameDialog() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
-                        placeholder="Enter new name"
+                        ref={inputRef}
+                        placeholder="Enter a name"
                         value={newName}
                         onChange={(e) => { setNewName(e.target.value); setMacroError(null); }}
                     />
-                    {macroName && (
+                    {mode === 'rename' && macroName && (
                         <MacroInfo
                             currentMacroName={macroName}
                             newName={newName}
@@ -177,7 +191,7 @@ export function RenameDialog() {
                         </Button>
                         <Button type="submit" disabled={!isValid}>
                             {isValidating && <Loader2 className="animate-spin" />}
-                            Confirm
+                            {mode === 'create' ? 'Create' : 'Confirm'}
                         </Button>
                     </DialogFooter>
                 </form>

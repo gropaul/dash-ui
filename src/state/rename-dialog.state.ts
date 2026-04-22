@@ -19,15 +19,18 @@ interface RenameDialogParams {
 
 interface RenameDialogState {
     isOpen: boolean;
+    mode: 'rename' | 'create';
     entityType?: RenameEntityType;
     entityId?: string;
     currentName?: string;
     path?: string[];
+    onCreate?: (name: string) => void;
 }
 
 interface RenameDialogActions {
     openRenameDialog: (params: RenameDialogParams) => void;
     openRelationRenameDialog: (relationState: RelationState) => void;
+    openCreateDialog: (entityType: RenameEntityType, onCreate: (name: string) => void) => void;
     confirmRename: (newName: string, macroName?: string, updateReferences?: boolean) => void;
     close: () => void;
 }
@@ -36,24 +39,41 @@ export type RenameDialogStore = RenameDialogState & RenameDialogActions;
 
 export const useRenameDialogStore = create<RenameDialogStore>((set, get) => ({
     isOpen: false,
+    mode: 'rename',
 
     openRenameDialog: (params: RenameDialogParams) => {
         set({
             isOpen: true,
+            mode: 'rename',
             entityType: params.entityType,
             entityId: params.entityId,
             currentName: params.currentName,
             path: params.path ?? [],
+            onCreate: undefined,
         });
     },
 
     openRelationRenameDialog: (relationState: RelationState) => {
         set({
             isOpen: true,
+            mode: 'rename',
             entityType: 'relations',
             entityId: relationState.id,
             currentName: relationState.viewState.displayName,
             path: [],
+            onCreate: undefined,
+        });
+    },
+
+    openCreateDialog: (entityType: RenameEntityType, onCreate: (name: string) => void) => {
+        set({
+            isOpen: true,
+            mode: 'create',
+            entityType,
+            entityId: undefined,
+            currentName: '',
+            path: [],
+            onCreate,
         });
     },
 
@@ -96,6 +116,21 @@ export const useRenameDialogStore = create<RenameDialogStore>((set, get) => ({
         set({isOpen: false});
     },
 }));
+
+/**
+ * Get the create dialog title based on entity type.
+ */
+export function getCreateDialogTitle(entityType?: RenameEntityType): string {
+    if (!entityType) return 'New Item';
+    if (entityType === 'folder') return 'New Folder';
+    if (entityType === 'relations') return 'New Query';
+    if (entityType === 'dashboards') return 'New Dashboard';
+    if (entityType === 'canvas') return 'New Canvas';
+    if (IsEntityType(entityType)) {
+        return `New ${GetEntityTypeDisplayName(entityType)}`;
+    }
+    return 'New Item';
+}
 
 /**
  * Get the dialog title based on entity type.

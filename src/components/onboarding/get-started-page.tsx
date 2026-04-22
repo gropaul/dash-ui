@@ -5,16 +5,12 @@ import {FileTypePill} from "@/components/onboarding/file-type-pill";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {handleFileDrop} from "@/components/import/file-drop-relation/file-import";
 import {FileUploadState} from "@/components/import/file-drop-relation/file-drop-overlay";
-import {useRelationsState} from "@/state/relations.state";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
-import {RelationActions} from "@/state/relations/actions/static-actions";
 import {showExampleQueryInternal} from "@/state/init/show-example-query";
+import {openCreateCanvasDialog, openCreateDashboardDialog, openCreateRelationDialog} from "@/components/workbench/create-entity-dialogs";
 
 export function GetStartedPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const addNewRelation = useRelationsState((state) => state.addNewRelation);
-    const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
-    const addNewCanvas = useRelationsState((state) => state.addNewCanvas);
 
     const onImportClick = () => {
         fileInputRef.current?.click();
@@ -38,17 +34,9 @@ export function GetStartedPage() {
         useOnboardingState.getState().openWelcomeTour();
     };
 
-    const onNewQuery = () => {
-        addNewRelation(MAIN_CONNECTION_ID, [], RelationActions.create({showCode: true}));
-    };
-
-    const onNewDashboard = () => {
-        addNewDashboard(MAIN_CONNECTION_ID, [], undefined);
-    };
-
-    const onNewCanvas = () => {
-        addNewCanvas();
-    };
+    const onNewQuery = () => openCreateRelationDialog();
+    const onNewDashboard = () => openCreateDashboardDialog();
+    const onNewCanvas = () => openCreateCanvasDialog();
 
     const onExampleQuery = () => {
         showExampleQueryInternal(MAIN_CONNECTION_ID);
