@@ -164,11 +164,11 @@ export function RenameDialog() {
                         value={newName}
                         onChange={(e) => { setNewName(e.target.value); setMacroError(null); }}
                     />
-                    {mode === 'rename' && macroName && (
+                    {isRelation && trimmedName.length > 0 && (
                         <MacroInfo
-                            currentMacroName={macroName}
+                            currentMacroName={mode === 'create' ? getMacroName(trimmedName) : macroName!}
                             newName={newName}
-                            references={macroReferences}
+                            references={mode === 'create' ? [] : macroReferences}
                             updateReferences={updateReferences}
                             onUpdateReferencesChange={setUpdateReferences}
                         />
