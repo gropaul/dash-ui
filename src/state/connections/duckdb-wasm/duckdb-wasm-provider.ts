@@ -3,9 +3,7 @@ import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, DuckDBDataProtocol, LogLevel} from '@duckdb/duckdb-wasm';
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
 import {getJsonMacro} from "@/state/connections/duckdb-wasm/utils";
-import {DASH_CATALOG, DASH_DATABASE_NAME} from "@/platform/global-data";
-
-export const DUCKDB_WASM_BASE_TABLE_PATH = 'local.duckdb';
+import {DASH_CATALOG, DASH_DATABASE_FILE_NAME, WASM_DATABASE_FILE_NAME} from "@/platform/global-data";
 
 export type StorageMode = 'opfs' | 'memory';
 let _storageMode: StorageMode = 'opfs';
@@ -20,10 +18,10 @@ export async function clearOPFS(): Promise<void> {
     await DuckdbWasmProvider.getInstance().destroy();
 
     // clear main.duckdb and its wal
-    const walPath = `${DUCKDB_WASM_BASE_TABLE_PATH}.wal`;
+    const walPath = `${DASH_DATABASE_FILE_NAME}.wal`;
 
     const rootHandle = await navigator.storage.getDirectory();
-    await rootHandle.removeEntry(DUCKDB_WASM_BASE_TABLE_PATH);
+    await rootHandle.removeEntry(DASH_DATABASE_FILE_NAME);
     await rootHandle.removeEntry(walPath);
 }
 
@@ -120,7 +118,7 @@ export class DuckdbWasmProvider {
         if (_storageMode === 'memory') {
             return ':memory:';
         }
-        return `opfs://${DUCKDB_WASM_BASE_TABLE_PATH}`;
+        return `opfs://${DASH_DATABASE_FILE_NAME}`;
     }
 
     public async getCurrentWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
@@ -247,7 +245,7 @@ export class DuckdbWasmProvider {
             try {
                 db = await createInstance();
                 await db.open({
-                    path: `opfs://${DUCKDB_WASM_BASE_TABLE_PATH}`,
+                    path: `opfs://${WASM_DATABASE_FILE_NAME}`,
                     accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
                     query: queryConfig,
                 });
@@ -255,8 +253,8 @@ export class DuckdbWasmProvider {
                 connection = await db.connect();
                 console.log("New connection to DuckDB-Wasm established (OPFS): ", connection);
 
-                await registerAdditionalDatabase(db, DASH_DATABASE_NAME);
-                await connection.query(`ATTACH IF NOT EXISTS 'opfs://${DASH_DATABASE_NAME}' AS ${DASH_CATALOG};`);
+                await registerAdditionalDatabase(db, DASH_DATABASE_FILE_NAME);
+                await connection.query(`ATTACH IF NOT EXISTS 'opfs://${DASH_DATABASE_FILE_NAME}' AS ${DASH_CATALOG};`);
 
                 _storageMode = 'opfs';
             } catch (e) {

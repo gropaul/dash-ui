@@ -4,6 +4,7 @@ import {RelationData} from "@/model/relation";
 import {throttleLatest} from "@/lib/throttle-latest";
 import {DatabaseConnection, StateStorageInfoLoaded, StorageDestination} from "@/model/database-connection";
 import {DASH_STORAGE_VERSION, STORAGE_THROTTLE_TIME_MS, VERSION_CONFLICT_ERROR} from "@/platform/global-data";
+import {initDashCatalog} from "@/state/connections/utils";
 
 
 export function GetFullNameDestination(destination: StorageDestination) {
@@ -14,7 +15,10 @@ export function GetFullNameDestination(destination: StorageDestination) {
     }
 }
 
-export async function GetStateStorageStatus(destination: StorageDestination, executeQuery: (query: string, readOnly: boolean) => Promise<RelationData>): Promise<StateStorageInfoLoaded> {
+export async function GetStateStorageStatus(destination: StorageDestination, connection: DatabaseConnection): Promise<StateStorageInfoLoaded> {
+
+    await initDashCatalog(connection);
+
     const targetDatabase = destination.databaseName;
     const current_database_query = targetDatabase
         ? `SELECT (path IS NOT null) as persistent, readonly, database_name
@@ -23,7 +27,7 @@ export async function GetStateStorageStatus(destination: StorageDestination, exe
         : `SELECT (path IS NOT null) as persistent, readonly, database_name
            FROM duckdb_databases()
            WHERE database_name = current_catalog();`;
-    const current_database_result = await executeQuery(current_database_query, false)
+    const current_database_result = await connection.executeQuery(current_database_query, false)
     const persistent = current_database_result.rows[0][0];
     const readonly = current_database_result.rows[0][1];
 

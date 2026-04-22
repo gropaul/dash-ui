@@ -213,22 +213,6 @@ export function findMacroReferences(macroName: string, excludeId: string): Macro
 }
 
 /**
- * Ensure the refs schema exists in the cache database.
- */
-let refsSchemaEnsured = false;
-async function ensureRefsSchema(): Promise<void> {
-    if (refsSchemaEnsured) return;
-    try {
-        await ConnectionsService.getInstance().executeQuery(
-            `CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG}.${DASH_REFS_SCHEMA}`
-        );
-        refsSchemaEnsured = true;
-    } catch (error) {
-        console.error('Failed to create refs schema', error);
-    }
-}
-
-/**
  * Register a relation as a table macro in DuckDB.
  * Uses TEMP macro if database is read-only.
  * Fails silently - macro registration is a convenience feature.
@@ -239,7 +223,6 @@ export async function registerRelationMacro(
     paramDefs?: ParameterDefinition[],
     selection?: SelectionState
 ): Promise<void> {
-    await ensureRefsSchema();
     const sql = generateCreateMacroSQLInternal(relationName, baseQuery,  paramDefs, selection);
 
     try {
@@ -354,7 +337,6 @@ export function orderMacroStatements(macros: { key: string; baseSql: string; cre
 }
 
 async function reregisterAllMacros(): Promise<void> {
-    await ensureRefsSchema();
     const entries = getAllRelations();
 
     const macros: { key: string; baseSql: string; createSql: string }[] = [];
@@ -383,7 +365,6 @@ async function reregisterAllMacros(): Promise<void> {
 
 // Re-register all macros when the database connection changes
 ConnectionsService.getInstance().onDatabaseConnectionChange(async (connection) => {
-    refsSchemaEnsured = false;
     if (connection) {
         const state = await connection.checkConnectionState();
         if (state.state === 'connected') {

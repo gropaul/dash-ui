@@ -8,8 +8,7 @@ import {
 } from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections/configs";
 import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
-import {attachDatabase} from "@/state/connections/utils";
-import {DASH_CATALOG, DASH_DATABASE_NAME, DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
+import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {MdWasmConfig, MdWasmProvider, resultToRelationData} from "@/state/connections/md-wasm/md-wasm-provider";
 
 export interface MdWasmConnectionConfig extends MdWasmConfig {
@@ -69,8 +68,7 @@ export class MdWasm implements DatabaseConnection {
             const versionResult = await this.executeQuery("select version();");
             const version = versionResult.rows[0][0] as string;
             console.log('DuckDB WASM version: ', version);
-            await attachDatabase(this, DASH_DATABASE_NAME, DASH_CATALOG);
-            this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this.executeQuery.bind(this));
+            this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this);
             this.connectionStatus = {state: 'connected', message: `Connected to Motherduck WASM. Version: ${version}`};
         } catch (e: any) {
             const message = e.message;

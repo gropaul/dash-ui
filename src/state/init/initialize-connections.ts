@@ -46,7 +46,7 @@ export async function setDatabaseConnection(connection: DatabaseConnection): Pro
 
     useInitState.getState().addConnectionToHistory(connection);
 
-    ConnectionsService.getInstance().setDatabaseConnection(connection);
+    await ConnectionsService.getInstance().setDatabaseConnection(connection);
     // add sources, but clear the previous ones
     const sourceState = useDataSourcesState.getState();
     sourceState.clearSourceConnections();
