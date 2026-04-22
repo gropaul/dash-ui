@@ -1,6 +1,6 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DASH_CACHE_DATABASE_CATALOG} from "@/platform/global-data";
-import {TABLE_MACRO_PREFIX} from "@/platform/global-data";
+import {TABLE_MACRO_SCHEMA} from "@/platform/global-data";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {getMacroName} from "@/state/relations/sql/table-macros";
 
@@ -14,8 +14,8 @@ export async function getDatabaseFunctions(): Promise<DatabaseFunction[]> {
         const result = await ConnectionsService.getInstance().executeQuery(
             `SELECT DISTINCT function_name, function_type
                     FROM duckdb_functions()
-                    -- filter out dash table macros
-                    WHERE NOT (function_type = 'table_macro' AND internal = false AND function_name LIKE '${TABLE_MACRO_PREFIX}%')
+                    -- filter out dash table macros (they live in the refs schema)
+                    WHERE NOT (function_type = 'table_macro' AND database_name = '${DASH_CACHE_DATABASE_CATALOG}' AND schema_name = '${TABLE_MACRO_SCHEMA}')
                     ORDER BY ALL`
         );
         return result.rows.map(row => ({name: row[0] as string, type: row[1] as string}));

@@ -60,14 +60,14 @@ describe('sanitizeMacroName', () => {
 });
 
 describe('getMacroName', () => {
-    it('should add node_ prefix', () => {
-        expect(getMacroName('employees')).toBe('node_employees');
-        expect(getMacroName('My Query')).toBe('node_my_query');
+    it('should use refs schema', () => {
+        expect(getMacroName('employees')).toBe('dash.refs.employees');
+        expect(getMacroName('My Query')).toBe('dash.refs.my_query');
     });
 
-    it('should sanitize the name before adding prefix', () => {
-        expect(getMacroName('My Query!')).toBe('node_my_query');
-        expect(getMacroName('TEST Query 123')).toBe('node_test_query_123');
+    it('should sanitize the name', () => {
+        expect(getMacroName('My Query!')).toBe('dash.refs.my_query');
+        expect(getMacroName('TEST Query 123')).toBe('dash.refs.test_query_123');
     });
 });
 
@@ -116,27 +116,27 @@ describe('generateCreateMacroSQL', () => {
         it('should generate simple macro for basic SELECT', () => {
             const sql = generateCreateMacroSQLInternal('employees', 'SELECT * FROM raw.employees');
             expect(sql).toBe(
-                "CREATE OR REPLACE MACRO node_employees() AS TABLE (FROM query_result('SELECT * FROM raw.employees'))"
+                "CREATE OR REPLACE MACRO dash.refs.employees() AS TABLE (FROM query_result('SELECT * FROM raw.employees'))"
             );
         });
 
         it('should escape single quotes in SQL', () => {
             const sql = generateCreateMacroSQLInternal('test', "SELECT * FROM users WHERE name = 'John'");
             expect(sql).toBe(
-                "CREATE OR REPLACE MACRO node_test() AS TABLE (FROM query_result('SELECT * FROM users WHERE name = ''John'''))"
+                "CREATE OR REPLACE MACRO dash.refs.test() AS TABLE (FROM query_result('SELECT * FROM users WHERE name = ''John'''))"
             );
         });
 
         it('should handle multi-statement queries', () => {
             const sql = generateCreateMacroSQLInternal('test', 'CREATE TABLE t AS SELECT 1; FROM t;');
             expect(sql).toBe(
-                "CREATE OR REPLACE MACRO node_test() AS TABLE (FROM query_result('CREATE TABLE t AS SELECT 1; FROM t;'))"
+                "CREATE OR REPLACE MACRO dash.refs.test() AS TABLE (FROM query_result('CREATE TABLE t AS SELECT 1; FROM t;'))"
             );
         });
 
         it('should sanitize relation name in macro name', () => {
             const sql = generateCreateMacroSQLInternal('My Query!', 'SELECT 1');
-            expect(sql).toContain('node_my_query()');
+            expect(sql).toContain('dash.refs.my_query()');
         });
     });
 
@@ -147,7 +147,7 @@ describe('generateCreateMacroSQL', () => {
                 'SELECT * FROM stations WHERE city = {{city_filter}}'
             );
             expect(sql).toBe(
-                "CREATE OR REPLACE MACRO node_train_stations(city_filter) AS TABLE (FROM query_result(replace('SELECT * FROM stations WHERE city = {{city_filter}}', '{{city_filter}}', city_filter::VARCHAR)))"
+                "CREATE OR REPLACE MACRO dash.refs.train_stations(city_filter) AS TABLE (FROM query_result(replace('SELECT * FROM stations WHERE city = {{city_filter}}', '{{city_filter}}', city_filter::VARCHAR)))"
             );
         });
 
@@ -156,7 +156,7 @@ describe('generateCreateMacroSQL', () => {
                 'filtered_data',
                 'SELECT * FROM data WHERE start = {{start_date}} AND end = {{end_date}}'
             );
-            expect(sql).toContain('node_filtered_data(start_date, end_date)');
+            expect(sql).toContain('dash.refs.filtered_data(start_date, end_date)');
             // Outer replace wraps the inner one
             expect(sql).toContain("replace(replace(");
             expect(sql).toContain("'{{start_date}}', start_date::VARCHAR");
@@ -169,7 +169,7 @@ describe('generateCreateMacroSQL', () => {
                 'SELECT * FROM a WHERE x = {{val}} UNION SELECT * FROM b WHERE y = {{val}}'
             );
             // One unique param → one replace() call; replaceAll covers both occurrences
-            expect(sql).toContain('node_test(val)');
+            expect(sql).toContain('dash.refs.test(val)');
             expect(sql).toContain("'{{val}}', val::VARCHAR");
             expect(sql).not.toContain('replace(replace(');
         });
@@ -188,12 +188,12 @@ describe('generateCreateMacroSQL', () => {
 describe('generateDropMacroSQL', () => {
     it('should generate DROP MACRO statement', () => {
         const sql = generateDropMacroSQL('employees');
-        expect(sql).toBe('DROP MACRO IF EXISTS node_employees');
+        expect(sql).toBe('DROP MACRO IF EXISTS dash.refs.employees');
     });
 
     it('should sanitize relation name', () => {
         const sql = generateDropMacroSQL('My Query!');
-        expect(sql).toBe('DROP MACRO IF EXISTS node_my_query');
+        expect(sql).toBe('DROP MACRO IF EXISTS dash.refs.my_query');
     });
 });
 
@@ -202,13 +202,13 @@ describe('temporary macros (read-only mode)', () => {
         const sql = generateCreateMacroSQLInternal('test', 'SELECT 1');
         expect(sql).toContain('CREATE OR REPLACE MACRO');
         expect(sql).not.toContain('TEMP');
-        expect(sql).toContain('node_test()');
+        expect(sql).toContain('dash.refs.test()');
     });
 
     it('should generate regular macro with parameters by default', () => {
         const sql = generateCreateMacroSQLInternal('test', 'SELECT {{x}}');
         expect(sql).toContain('CREATE OR REPLACE MACRO');
-        expect(sql).toContain('node_test(x)');
+        expect(sql).toContain('dash.refs.test(x)');
     });
 });
 
@@ -222,8 +222,8 @@ describe('macro update behavior', () => {
         expect(sql2).toContain('CREATE OR REPLACE MACRO');
 
         // Same macro name, different SQL
-        expect(sql1).toContain('node_test()');
-        expect(sql2).toContain('node_test()');
+        expect(sql1).toContain('dash.refs.test()');
+        expect(sql2).toContain('dash.refs.test()');
         expect(sql1).toContain("'SELECT 1'");
         expect(sql2).toContain("'SELECT 2'");
     });
@@ -232,26 +232,30 @@ describe('macro update behavior', () => {
         const sql1 = generateCreateMacroSQLInternal('test', 'SELECT * FROM t WHERE x = {{a}}');
         const sql2 = generateCreateMacroSQLInternal('test', 'SELECT * FROM t WHERE x = {{a}} AND y = {{b}}');
 
-        expect(sql1).toContain('node_test(a)');
-        expect(sql2).toContain('node_test(a, b)');
+        expect(sql1).toContain('dash.refs.test(a)');
+        expect(sql2).toContain('dash.refs.test(a, b)');
     });
 });
 
 describe('extractMacroRefs', () => {
     it('should extract macro references from SQL', () => {
-        expect(extractMacroRefs('SELECT * FROM node_employees()')).toEqual(['employees']);
+        expect(extractMacroRefs('SELECT * FROM refs.employees()')).toEqual(['employees']);
+    });
+
+    it('should extract with full catalog prefix', () => {
+        expect(extractMacroRefs('SELECT * FROM dash.refs.employees()')).toEqual(['employees']);
     });
 
     it('should extract multiple references', () => {
-        expect(extractMacroRefs('SELECT * FROM node_a() JOIN node_b() ON 1=1')).toEqual(['a', 'b']);
+        expect(extractMacroRefs('SELECT * FROM refs.a() JOIN refs.b() ON 1=1')).toEqual(['a', 'b']);
     });
 
     it('should deduplicate references', () => {
-        expect(extractMacroRefs('SELECT * FROM node_x() UNION SELECT * FROM node_x()')).toEqual(['x']);
+        expect(extractMacroRefs('SELECT * FROM refs.x() UNION SELECT * FROM refs.x()')).toEqual(['x']);
     });
 
     it('should handle whitespace before parens', () => {
-        expect(extractMacroRefs('SELECT * FROM node_test ()')).toEqual(['test']);
+        expect(extractMacroRefs('SELECT * FROM refs.test ()')).toEqual(['test']);
     });
 
     it('should return empty for no references', () => {
@@ -262,7 +266,7 @@ describe('extractMacroRefs', () => {
 describe('buildMacroDependencies', () => {
     it('should detect dependency between macros', () => {
         const deps = buildMacroDependencies([
-            { key: 'a', baseSql: 'SELECT * FROM node_b()' },
+            { key: 'a', baseSql: 'SELECT * FROM refs.b()' },
             { key: 'b', baseSql: 'SELECT 1' },
         ]);
         expect(deps.get('a')).toEqual(['b']);
@@ -271,21 +275,21 @@ describe('buildMacroDependencies', () => {
 
     it('should ignore self-references', () => {
         const deps = buildMacroDependencies([
-            { key: 'a', baseSql: 'SELECT * FROM node_a()' },
+            { key: 'a', baseSql: 'SELECT * FROM refs.a()' },
         ]);
         expect(deps.get('a')).toEqual([]);
     });
 
     it('should ignore references to unknown macros', () => {
         const deps = buildMacroDependencies([
-            { key: 'a', baseSql: 'SELECT * FROM node_unknown()' },
+            { key: 'a', baseSql: 'SELECT * FROM refs.unknown()' },
         ]);
         expect(deps.get('a')).toEqual([]);
     });
 
     it('should handle multiple dependencies', () => {
         const deps = buildMacroDependencies([
-            { key: 'c', baseSql: 'SELECT * FROM node_a() JOIN node_b()' },
+            { key: 'c', baseSql: 'SELECT * FROM refs.a() JOIN refs.b()' },
             { key: 'a', baseSql: 'SELECT 1' },
             { key: 'b', baseSql: 'SELECT 2' },
         ]);
@@ -343,19 +347,19 @@ describe('topologicalSort', () => {
 describe('orderMacroStatements', () => {
     it('should order create statements by dependency', () => {
         const result = orderMacroStatements([
-            { key: 'report', baseSql: 'SELECT * FROM node_employees()', createSql: 'CREATE MACRO node_report...' },
-            { key: 'employees', baseSql: 'SELECT * FROM raw.emp', createSql: 'CREATE MACRO node_employees...' },
+            { key: 'report', baseSql: 'SELECT * FROM refs.employees()', createSql: 'CREATE MACRO refs.report...' },
+            { key: 'employees', baseSql: 'SELECT * FROM raw.emp', createSql: 'CREATE MACRO refs.employees...' },
         ]);
         expect(result).toEqual([
-            'CREATE MACRO node_employees...',
-            'CREATE MACRO node_report...',
+            'CREATE MACRO refs.employees...',
+            'CREATE MACRO refs.report...',
         ]);
     });
 
     it('should handle three-level chain', () => {
         const result = orderMacroStatements([
-            { key: 'top', baseSql: 'FROM node_mid()', createSql: 'SQL_TOP' },
-            { key: 'mid', baseSql: 'FROM node_base()', createSql: 'SQL_MID' },
+            { key: 'top', baseSql: 'FROM refs.mid()', createSql: 'SQL_TOP' },
+            { key: 'mid', baseSql: 'FROM refs.base()', createSql: 'SQL_MID' },
             { key: 'base', baseSql: 'SELECT 1', createSql: 'SQL_BASE' },
         ]);
         expect(result).toEqual(['SQL_BASE', 'SQL_MID', 'SQL_TOP']);

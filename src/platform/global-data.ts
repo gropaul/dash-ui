@@ -11,7 +11,7 @@ export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'
 export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-storage.com/videos/canvas'
 
-export const DASH_CACHE_DATABASE_NAME = 'dash_data.duckdb'
+export const DASH_CACHE_DATABASE_NAME = 'dash.duckdb'
 export const DASH_CACHE_DATABASE_CATALOG = 'dash' // catalog name used after ATTACHing the cache database
 
 // connection ids
@@ -76,8 +76,8 @@ export const TABLE_FOOTER_SMALL_WIDTH_THRESHOLD = 512;
 // minimum distance from node center for relation handles to become active, in pixels
 export const WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE = 64;
 
-// Table macro configuration
-export const TABLE_MACRO_PREFIX = 'ref_';
+// Table macro configuration — macros live in the `refs` schema inside the cache database
+export const TABLE_MACRO_SCHEMA = 'refs';
 
 // SQL editor debounce time for local code changes in milliseconds
 export const SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS = 100;

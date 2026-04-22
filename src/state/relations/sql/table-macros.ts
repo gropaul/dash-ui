@@ -1,4 +1,4 @@
-import {DASH_CACHE_DATABASE_CATALOG, TABLE_MACRO_PREFIX} from "@/platform/global-data";
+import {DASH_CACHE_DATABASE_CATALOG, TABLE_MACRO_SCHEMA} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
@@ -38,11 +38,11 @@ export function sanitizeMacroName(name: string): string {
 }
 
 /**
- * Get the full macro name with prefix.
- * "My Query" -> "node_my_query"
+ * Get the full macro name using the refs schema.
+ * "My Query" -> "dash.refs.my_query"
  */
 export function getMacroName(relationName: string): string {
-    return `${DASH_CACHE_DATABASE_CATALOG}.${TABLE_MACRO_PREFIX}${sanitizeMacroName(relationName)}`;
+    return `${DASH_CACHE_DATABASE_CATALOG}.${TABLE_MACRO_SCHEMA}.${sanitizeMacroName(relationName)}`;
 }
 
 /**
@@ -153,15 +153,16 @@ export function generateDropMacroSQL(relationName: string): string {
 }
 
 /**
- * Extract node_xxx() macro references from SQL.
+ * Extract refs.xxx() macro references from SQL.
  * Returns the sanitized name parts (deduplicated).
+ * Matches both "refs.name()" and "dash.refs.name()".
  *
- * "SELECT * FROM node_employees(), node_departments()" → ["employees", "departments"]
+ * "SELECT * FROM refs.employees(), refs.departments()" → ["employees", "departments"]
  */
 export function extractMacroRefs(sqlRaw: string): string[] {
     const sql = removeComments(sqlRaw)
     const refs: string[] = [];
-    const re = new RegExp(`\\b${TABLE_MACRO_PREFIX}(\\w+)\\s*\\(`, 'g');
+    const re = new RegExp(`(?:${DASH_CACHE_DATABASE_CATALOG}\\.)?${TABLE_MACRO_SCHEMA}\\.(\\w+)\\s*\\(`, 'g');
     for (const match of sql.matchAll(re)) {
         refs.push(match[1]);
     }
@@ -212,6 +213,22 @@ export function findMacroReferences(macroName: string, excludeId: string): Macro
 }
 
 /**
+ * Ensure the refs schema exists in the cache database.
+ */
+let refsSchemaEnsured = false;
+async function ensureRefsSchema(): Promise<void> {
+    if (refsSchemaEnsured) return;
+    try {
+        await ConnectionsService.getInstance().executeQuery(
+            `CREATE SCHEMA IF NOT EXISTS ${DASH_CACHE_DATABASE_CATALOG}.${TABLE_MACRO_SCHEMA}`
+        );
+        refsSchemaEnsured = true;
+    } catch (error) {
+        console.error('Failed to create refs schema', error);
+    }
+}
+
+/**
  * Register a relation as a table macro in DuckDB.
  * Uses TEMP macro if database is read-only.
  * Fails silently - macro registration is a convenience feature.
@@ -222,6 +239,7 @@ export async function registerRelationMacro(
     paramDefs?: ParameterDefinition[],
     selection?: SelectionState
 ): Promise<void> {
+    await ensureRefsSchema();
     const sql = generateCreateMacroSQLInternal(relationName, baseQuery,  paramDefs, selection);
 
     try {
@@ -336,6 +354,7 @@ export function orderMacroStatements(macros: { key: string; baseSql: string; cre
 }
 
 async function reregisterAllMacros(): Promise<void> {
+    await ensureRefsSchema();
     const entries = getAllRelations();
 
     const macros: { key: string; baseSql: string; createSql: string }[] = [];
@@ -364,6 +383,7 @@ async function reregisterAllMacros(): Promise<void> {
 
 // Re-register all macros when the database connection changes
 ConnectionsService.getInstance().onDatabaseConnectionChange(async (connection) => {
+    refsSchemaEnsured = false;
     if (connection) {
         const state = await connection.checkConnectionState();
         if (state.state === 'connected') {
