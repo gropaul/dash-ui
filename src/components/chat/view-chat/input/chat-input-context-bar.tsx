@@ -3,7 +3,7 @@ import {Badge} from "@/components/ui/badge";
 import {LayoutDashboard, Table2} from "lucide-react";
 import {cn} from "@/lib/utils";
 
-export function ChatContextBar() {
+export function ChatInputContextBar() {
     const {targets, disabled} = useTargetsWithEnabled();
 
     // Filter out the "chat" target — only show real tabs

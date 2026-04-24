@@ -12,10 +12,10 @@ import {cn} from "@/lib/utils";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 import React from "react";
 import {ToolUIPart, DynamicToolUIPart, getToolName} from "ai";
-import {parentRoleStyles, roleStyles, RoleType} from "@/components/chat/chat-message-part";
+import {parentRoleStyles, roleStyles, RoleType} from "@/components/chat/view-chat/chat-message-part";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {JsonViewer} from "@/components/ui/json-viewer";
-import {RelationPart} from "@/components/chat/chat-message-part-tool-relation";
+import {RelationPart} from "@/components/chat/view-chat/chat-message-part-tool-relation";
 
 export interface ToolIconProps {
     toolName: ToolName;

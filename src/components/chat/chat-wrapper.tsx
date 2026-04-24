@@ -2,8 +2,8 @@ import React, {useEffect} from "react";
 import {Button} from "@/components/ui/button";
 import {AlertCircle, History, Plus, Settings} from "lucide-react";
 import {cn} from "@/lib/utils";
-import {ChatContentHistory} from "@/components/chat/chat-content-history";
-import {ChatContentMessages} from "@/components/chat/chat-content-messages";
+import {ChatContentHistory} from "@/components/chat/view-history/chat-content-history";
+import {ChatViewStateLayout} from "@/components/chat/view-chat/chat-view-state-layout";
 import {Badge} from "@/components/ui/badge";
 import {useLanguageModelState} from "@/state/language-model.state";
 import {useGUIState} from "@/state/gui.state";
@@ -117,7 +117,7 @@ export function ChatWrapper(props: ChatWindowProps) {
                 {showHistory ?
                     <ChatContentHistory {...props} onSessionSelect={localSessionSelected}/>
                     :
-                    <ChatContentMessages {...props}/>
+                    <ChatViewStateLayout {...props}/>
                 }
             </div>
         </div>

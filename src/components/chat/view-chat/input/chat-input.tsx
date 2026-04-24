@@ -2,7 +2,7 @@ import {Button} from "@/components/ui/button";
 import {Send, Square} from "lucide-react";
 import React from "react";
 import {cn} from "@/lib/utils";
-import {ChatContextBar} from "@/components/chat/chat-context-bar";
+import {ChatInputContextBar} from "@/components/chat/view-chat/input/chat-input-context-bar";
 
 
 interface ChatInputProps {
@@ -27,7 +27,7 @@ export function ChatInput({onSendMessage, onStop, isLoading, className}: ChatInp
 
     return <div className={cn(className, 'px-2 pb-2 pt-2 border-t border-border/70')}>
         {/* Context Bar */}
-        <ChatContextBar/>
+        <ChatInputContextBar/>
 
         <div className="flex items-center bg-muted/50 rounded-[20px] focus-within:ring-1 focus-within:ring-primary">
               <textarea
