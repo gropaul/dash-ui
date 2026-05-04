@@ -10,10 +10,10 @@ import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 import {registerRelationMacro} from "@/state/relations/sql/table-macros";
 import {RelationEvents} from "@/state/relations/event/relation-events";
-import {SelectionState} from "@/model/relation-view-state/selection";
+import {SelectSelectionSate} from "@/model/relation-view-state/selection";
 
-function getSelectedIndices(selectionState?: SelectionState): Set<number> {
-    return new Set(selectionState?.selectedIndices ?? []);
+function getSelectedLabels(selectionState?: SelectSelectionSate): Set<string> {
+    return new Set(selectionState?.selectedValues.map(String) ?? []);
 }
 
 export function TextSelect(props: RelationViewContentProps) {
@@ -23,36 +23,45 @@ export function TextSelect(props: RelationViewContentProps) {
     const relationState = props.relationState
     const placeholder = relationState.viewState.inputTextState.placeholder || "Select..."
     const multiSelect = relationState.viewState.inputTextState.multiSelect !== false; // defaults to true
-    const selectedIndices = getSelectedIndices(relationState.viewState.selectionState);
+    const selectState = relationState.viewState.selectionState?.select;
+    const selectedLabels = getSelectedLabels(selectState);
+
+    const columnName = data?.columns[0]?.name ?? '';
 
     const items = data?.rows.map((row, index) => ({
         index,
         label: row[0].toString(),
+        value: row[0],
     })) || []
 
-    const applySelection = (selection: SelectionState | undefined) => {
+    const applySelection = (selection: SelectSelectionSate | undefined) => {
         // Build the value string from selected labels
         const newValue = selection
-            ? selection.selectedIndices.map(i => items[i]?.label).filter(Boolean).join(', ')
+            ? selection.selectedValues.map(String).join(', ')
             : "";
 
         props.updateRelationViewState({
             inputTextState: {
                 value: newValue,
             },
-            selectionState: selection,
+            selectionState: {
+                select: selection,
+            }
         })
 
         // Re-register macro with filtered query and trigger downstream refresh
         const displayName = relationState.viewState.displayName;
         const baseQuery = relationState.query.baseQuery;
         const paramDefs = relationState.viewState.parametersState?.parameters;
-        registerRelationMacro(displayName, baseQuery, paramDefs, selection).then(() => {
+        registerRelationMacro(displayName, baseQuery, paramDefs, relationState.viewState.selectionState).then(() => {
             const updatedState = {
                 ...relationState,
                 viewState: {
                     ...relationState.viewState,
-                    selectionState: selection,
+                    selectionState: {
+                        ...relationState.viewState.selectionState,
+                        select: selection,
+                    },
                     inputTextState: {
                         ...relationState.viewState.inputTextState,
                         value: newValue,
@@ -64,40 +73,45 @@ export function TextSelect(props: RelationViewContentProps) {
     }
 
     const onSelect = (selectedLabel: string) => {
-        const rowIndex = items.findIndex(item => item.label === selectedLabel);
-        if (rowIndex < 0) return;
+        const item = items.find(item => item.label === selectedLabel);
+        if (!item) return;
 
         if (multiSelect) {
-            const newIndices = new Set(selectedIndices);
-            if (newIndices.has(rowIndex)) {
-                newIndices.delete(rowIndex);
+            const currentValues = selectState?.selectedValues ?? [];
+            const currentLabels = new Set(currentValues.map(String));
+
+            let newValues: any[];
+            if (currentLabels.has(item.label)) {
+                // Remove this value
+                newValues = currentValues.filter(v => String(v) !== item.label);
             } else {
-                newIndices.add(rowIndex);
+                // Add this value
+                newValues = [...currentValues, item.value];
             }
 
-            const selection: SelectionState | undefined = newIndices.size > 0
-                ? {selectedIndices: [...newIndices].sort((a, b) => a - b)}
+            const selection: SelectSelectionSate | undefined = newValues.length > 0
+                ? {columnName, selectedValues: newValues}
                 : undefined;
 
             applySelection(selection);
         } else {
             // Single select: toggle or replace
-            const isDeselecting = selectedIndices.has(rowIndex) && selectedIndices.size === 1;
-            const selection: SelectionState | undefined = isDeselecting
+            const isDeselecting = selectedLabels.has(item.label) && selectedLabels.size === 1;
+            const selection: SelectSelectionSate | undefined = isDeselecting
                 ? undefined
-                : {selectedIndices: [rowIndex]};
+                : {columnName, selectedValues: [item.value]};
 
             applySelection(selection);
             setOpen(false);
         }
     }
 
-    const selectedLabels = [...selectedIndices].map(i => items[i]?.label).filter(Boolean);
-    const displayText = selectedLabels.length === 0
+    const displayLabels = [...selectedLabels];
+    const displayText = displayLabels.length === 0
         ? placeholder
-        : selectedLabels.length <= 2
-            ? selectedLabels.join(', ')
-            : `${selectedLabels.slice(0, 2).join(', ')} + ${selectedLabels.length - 2} more`;
+        : displayLabels.length <= 2
+            ? displayLabels.join(', ')
+            : `${displayLabels.slice(0, 2).join(', ')} + ${displayLabels.length - 2} more`;
 
     return (
         <div className='pt-0.5 pb-0.5 flex flex-row w-full gap-2 items-center justify-start group'>
@@ -131,7 +145,7 @@ export function TextSelect(props: RelationViewContentProps) {
                                         <Check
                                             className={cn(
                                                 "ml-auto",
-                                                selectedIndices.has(item.index) ? "opacity-100" : "opacity-0"
+                                                selectedLabels.has(item.label) ? "opacity-100" : "opacity-0"
                                             )}
                                         />
                                     </CommandItem>

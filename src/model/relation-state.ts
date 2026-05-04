@@ -367,7 +367,7 @@ export function buildQuery(
         viewQuery = lViewQuery;
         schemaQuery = lSchemaQuery;
     } else if (viewParameters.type === 'select') {
-        viewQuery = finalQueryAsSubQuery;
+        viewQuery = `SELECT DISTINCT #1 FROM ${finalQueryAsSubQuery} ORDER BY #1`;
     } else if (viewParameters.type === 'text') {
         viewQuery = `SELECT * FROM ${finalQueryAsSubQuery} LIMIT 1`;
     } else {

@@ -25,7 +25,7 @@ import {
     getInitialParametersState,
     ParametersState
 } from "@/model/relation-view-state/parameters";
-import {SelectionState} from "@/model/relation-view-state/selection";
+import {RelationSelectionState, SelectSelectionSate} from "@/model/relation-view-state/selection";
 
 //
 
@@ -101,7 +101,7 @@ export interface RelationViewState extends RelationViewBaseState {
     inputTextState: InputTextViewState
     textDisplayState: TextDisplayViewState
     parametersState: ParametersState
-    selectionState?: SelectionState
+    selectionState?: RelationSelectionState
     schema: Column[];
     /** Session state for embedded mode (canvas node). Optional for backwards compat. */
     embeddedSessionState?: RelationSessionState;

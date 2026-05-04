@@ -1,24 +1,25 @@
-import {isContiguousRange, SelectionState} from "@/model/relation-view-state/selection";
+import {SelectSelectionSate} from "@/model/relation-view-state/selection";
 import {removeSemicolon} from "@/platform/sql-utils";
 
+function formatValueForSql(v: any): string {
+    if (typeof v === 'number' || typeof v === 'bigint') return String(v);
+    if (typeof v === 'boolean') return v ? 'true' : 'false';
+    return `'${String(v).replace(/'/g, "''")}'`;
+}
+
 /**
- * Wraps a base query with ROW_NUMBER filtering to return only selected rows.
+ * Wraps a base query with a WHERE ... IN filter for the selected values.
  * Returns the plain baseQuery when no selection exists.
  */
 export function buildSelectionFilteredQuery(
     baseQuery: string,
-    selection?: SelectionState
+    selection?: SelectSelectionSate
 ): string {
-    if (!selection || selection.selectedIndices.length === 0) {
+    if (!selection || selection.selectedValues.length === 0) {
         return baseQuery;
     }
 
     const cleanQuery = removeSemicolon(baseQuery);
-    const range = isContiguousRange(selection.selectedIndices);
-
-    const filterClause = range
-        ? `__row_idx BETWEEN ${range.start} AND ${range.end}`
-        : `__row_idx IN (${selection.selectedIndices.join(', ')})`;
-
-    return `SELECT * EXCLUDE (__row_idx) FROM (SELECT *, ROW_NUMBER() OVER () - 1 AS __row_idx FROM (${cleanQuery})) WHERE ${filterClause}`;
+    const vals = selection.selectedValues.map(formatValueForSql).join(', ');
+    return `SELECT * FROM (${cleanQuery}) WHERE "${selection.columnName}" IN (${vals})`;
 }

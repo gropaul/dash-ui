@@ -5,7 +5,7 @@ import {StateStorageInfoLoaded} from "@/model/database-connection";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
 import {removeComments} from "@/platform/sql-utils";
-import {SelectionState} from "@/model/relation-view-state/selection";
+import {RelationSelectionState} from "@/model/relation-view-state/selection";
 import {buildSelectionFilteredQuery} from "@/state/relations/sql/selection-query";
 import {useDatabaseState} from "@/state/database.state";
 
@@ -127,10 +127,10 @@ export function generateCreateMacroSQLInternal(
     relationName: string,
     baseQuery: string,
     paramDefs?: ParameterDefinition[],
-    selection?: SelectionState
+    selection?: RelationSelectionState
 ): string {
     const queryWithoutComments = removeComments(baseQuery);
-    const effectiveQuery = buildSelectionFilteredQuery(queryWithoutComments, selection);
+    const effectiveQuery = buildSelectionFilteredQuery(queryWithoutComments, selection?.select);
     const macroName = getMacroName(relationName);
     const paramNames = extractParameters(effectiveQuery);
     const createKeyword = isDatabaseReadonly() ? 'CREATE OR REPLACE TEMP MACRO' : 'CREATE OR REPLACE MACRO';
@@ -258,7 +258,7 @@ export async function registerRelationMacro(
     relationName: string,
     baseQuery: string,
     paramDefs?: ParameterDefinition[],
-    selection?: SelectionState
+    selection?: RelationSelectionState
 ): Promise<void> {
     const sql = generateCreateMacroSQLInternal(relationName, baseQuery,  paramDefs, selection);
 

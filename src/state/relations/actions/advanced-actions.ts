@@ -50,7 +50,7 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps, readO
             if (relationState.query.baseQuery === baseQuery) {
                 query = resetQueryParams(relationState.query);
             }
-            // Clear selection state when re-running query (indices are invalidated)
+            // Clear selection state when re-running query (selected values may be stale)
             relationState.viewState.selectionState = undefined;
             return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, props.inputManager, baseQuery);
 
