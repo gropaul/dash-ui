@@ -1,5 +1,6 @@
 import {RelationData} from "@/model/relation";
 import {CHART_QUERY_LIMIT, DEFAULT_COLORS} from "@/platform/global-data";
+import {columnExists, isNumeric, isTextType} from "@/model/relation-view-state/column-utils";
 
 export type PlotType = 'bar' | 'area' | 'line' | 'scatter' | 'pie' | 'radar';
 export const AVAILABLE_PLOT_TYPES: PlotType[] = ["bar", "scatter", "line", "area", "pie", "radar"]
@@ -517,28 +518,6 @@ export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationD
     return undefined;
 }
 
-
-/**
- * Check if a column type is numeric (suitable for Y-axis values)
- */
-function isNumericType(type: string): boolean {
-    return type === 'Integer' || type === 'Float';
-}
-
-/**
- * Check if a column type is text/categorical
- */
-function isTextType(type: string): boolean {
-    return type === 'String';
-}
-
-/**
- * Check if a column exists in the available columns
- */
-function columnExists(columnId: string, columns: RelationData['columns']): boolean {
-    return columns.some(col => col.id === columnId);
-}
-
 /**
  * Create an AxisConfig for a column
  */
@@ -679,13 +658,13 @@ export function tryInferChartConfig(
             }
 
             // Find first numeric column for radius (left to right)
-            const radiusColumn = columns.find(col => isNumericType(col.type));
+            const radiusColumn = columns.find(isNumeric);
             if (!radiusColumn) {
                 return undefined; // Can't infer without numeric column
             }
 
             // Find first text column for label, fallback to any non-radius column
-            const labelColumn = columns.find(col => isTextType(col.type))
+            const labelColumn = columns.find(isTextType)
                 ?? columns.find(col => col.id !== radiusColumn.id);
 
             if (!labelColumn) {

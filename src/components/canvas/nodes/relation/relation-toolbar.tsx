@@ -1,8 +1,7 @@
 import {NodeToolbar, Position} from '@xyflow/react';
 import {Button} from "@/components/ui/button";
 import {Code, Maximize, PanelTop} from "lucide-react";
-import {RelationViewTypeSwitcher} from '../../../relation/settings/relation-view-type-switcher';
-import {RelationViewType} from "@/model/relation-view-state";
+import {RelationViewTypeSwitcher, ViewSwitchEntry} from '../../../relation/settings/relation-view-type-switcher';
 import {Toggle} from "@/components/ui/toggle";
 import {RelationSettings} from "@/components/relation/relation-settings";
 import {RelationViewProps} from "@/components/relation/relation-view";
@@ -16,7 +15,7 @@ interface RelationToolbarProps {
     showCode: boolean;
     onToggleCode: () => void;
     viewProps: RelationViewProps,
-    onViewChange: (view: RelationViewType) => void;
+    onViewChange: (entry: ViewSwitchEntry) => void;
     onFullscreen: () => void;
     onToggleHeader?: () => void;
     showParams?: boolean;

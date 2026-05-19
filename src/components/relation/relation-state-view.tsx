@@ -4,6 +4,7 @@ import {LOADING_TIMER_OFFSET_MS} from "@/platform/global-data";
 import {RelationStateContainer} from "@/components/relation/relation-state-container";
 import {RelationLoadingView} from "@/components/relation/relation-loading-view";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {DefaultErrorBoundary} from "@/components/basics/error-bundary";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement | null>;
@@ -32,9 +33,9 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
     }, [executionState.state]);
 
     return (
-        <>
+        <DefaultErrorBoundary>
             <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
             {isLoading && <RelationLoadingView cancelQuery={props.cancelQuery}/>}
-        </>
+        </DefaultErrorBoundary>
     );
 }

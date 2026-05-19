@@ -1,4 +1,4 @@
-import {getBaseQueryFromSource, getInitialParams, RelationState, RelationWithQuery} from "@/model/relation-state";
+import {getBaseQueryFromSource, RelationState} from "@/model/relation-state";
 import {getRandomId} from "@/platform/id-utils";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {
@@ -14,6 +14,7 @@ import {getMacroName} from "@/state/relations/sql/table-macros";
 import {getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {RelationEvents} from "@/state/relations/event/relation-events";
 import {ConnectionsService} from "@/state/connections/connections-service";
+import {ViewManager} from "@/model/relation-state/relation-view";
 
 
 function isDisplayNameTaken(displayName: string, excludeRelationId?: string): boolean {
@@ -62,7 +63,6 @@ export class RelationActions {
         const connectionId = options?.connectionId ?? fallbackConnectionId;
         const relationId = getRelationIdFromSource(connectionId, source);
 
-        const defaultQueryParams = getInitialParams(viewType);
         const relation: Relation = {
             connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: relationId, source: source
         }
@@ -90,12 +90,14 @@ export class RelationActions {
             viewState.chartState.chart.plot.type = 'line';
         }
         const baseQuery = getBaseQueryFromSource(source);
+        let params = ViewManager.instance.getInitialQueryParameters();
+        params.type = viewType;
         const relationState: RelationState = {
             ...relation,
             query: {
                 activeBaseQuery: baseQuery,
                 baseQuery: baseQuery,
-                viewParameters: defaultQueryParams
+                viewParameters: params,
             },
             viewState,
             executionState: {

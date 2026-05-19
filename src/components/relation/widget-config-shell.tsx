@@ -43,11 +43,11 @@ export function WidgetConfigShell(props: WidgetConfigShellProps) {
 
     const paddingClass = isEmbedded ? 'p-0' : 'p-2';
     const heightClass = isResizable ? 'h-fit' : 'h-full';
-    const overflowClass = isResizable ? 'overflow-hidden' : 'overflow-auto';
+    const overflowClass = 'overflow-visible';
 
     return (
         <>
-            <div className={cn('group w-full relative overflow-hidden', heightClass)}>
+            <div className={cn('group w-full relative', heightClass)}>
                 <WindowSplitter
                     ratio={splitRatio}
                     layout={splitLayout}

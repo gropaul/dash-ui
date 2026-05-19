@@ -5,9 +5,11 @@ import {StateStorageInfoLoaded} from "@/model/database-connection";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
 import {removeComments} from "@/platform/sql-utils";
-import {RelationSelectionState} from "@/model/relation-view-state/selection";
-import {buildSelectionFilteredQuery} from "@/state/relations/sql/selection-query";
+
 import {useDatabaseState} from "@/state/database.state";
+import {ViewManager} from "@/model/relation-state/relation-view";
+import {RelationState} from "@/model/relation-state";
+
 
 /**
  * Check if the database is in read-only mode.
@@ -106,32 +108,11 @@ function formatDefaultValue(param: ParameterDefinition): string {
     return value;
 }
 
-/**
- * Generate CREATE MACRO SQL statement.
- *
- * For queries without parameters:
- *   CREATE OR REPLACE MACRO node_x() AS TABLE (FROM query_result('...'))
- *
- * For queries with parameters ({{param}}):
- *   CREATE OR REPLACE MACRO node_x(p1, p2 := 'default') AS TABLE (FROM query_result(replace(...)))
- *
- * Uses chained replace() instead of format() to handle parameters that appear multiple times.
- * Supports default parameter values from ParameterDefinition.
- *
- * @param relationName
- * @param baseQuery
- * @param paramDefs - Optional parameter definitions with default values
- * @param selection
- */
 export function generateCreateMacroSQLInternal(
-    relationName: string,
-    baseQuery: string,
-    paramDefs?: ParameterDefinition[],
-    selection?: RelationSelectionState
+    relationState: RelationState
 ): string {
-    const queryWithoutComments = removeComments(baseQuery);
-    const effectiveQuery = buildSelectionFilteredQuery(queryWithoutComments, selection?.select);
-    const macroName = getMacroName(relationName);
+    let effectiveQuery = ViewManager.instance.buildMacroQuery(relationState)
+    const macroName = getMacroName(relationState.viewState.displayName);
     const paramNames = extractParameters(effectiveQuery);
     const createKeyword = isDatabaseReadonly() ? 'CREATE OR REPLACE TEMP MACRO' : 'CREATE OR REPLACE MACRO';
 
@@ -142,7 +123,7 @@ export function generateCreateMacroSQLInternal(
     } else {
         // Build parameter definitions map for quick lookup
         const paramDefMap = new Map<string, ParameterDefinition>();
-        for (const p of paramDefs ?? []) {
+        for (const p of relationState.viewState.parametersState?.parameters ?? []) {
             paramDefMap.set(p.name, p);
         }
 
@@ -238,15 +219,8 @@ export function findMacroReferences(macroName: string, excludeId: string): Macro
     return references;
 }
 
-export async function checkMacroName(relationName: string): Promise<string | null> {
-    const sql = generateCreateMacroSQLInternal(relationName, "FROM range(10)");
-    try {
-        await ConnectionsService.getInstance().executeQuery(sql);
-        await ConnectionsService.getInstance().executeQuery(generateDropMacroSQL(relationName));
-        return null;
-    } catch (error) {
-        return error instanceof Error ? error.message : String(error);
-    }
+export async function checkMacroName(_relationName: string): Promise<string | null> {
+    return null;
 }
 
 /**
@@ -255,17 +229,13 @@ export async function checkMacroName(relationName: string): Promise<string | nul
  * Fails silently - macro registration is a convenience feature.
  */
 export async function registerRelationMacro(
-    relationName: string,
-    baseQuery: string,
-    paramDefs?: ParameterDefinition[],
-    selection?: RelationSelectionState
+    relationState: RelationState
 ): Promise<void> {
-    const sql = generateCreateMacroSQLInternal(relationName, baseQuery,  paramDefs, selection);
-
+    const sql = generateCreateMacroSQLInternal(relationState);
     try {
         await ConnectionsService.getInstance().executeQuery(sql);
     } catch (error) {
-        console.error(`Failed to register relation as table macro: ${relationName}`, error);
+        console.error(`Failed to register relation as table macro: ${relationState.viewState.displayName}`, error);
     }
 }
 
@@ -294,8 +264,7 @@ async function handleRelationAction(action: RelationEvent): Promise<void> {
         case 'UPDATE_SQL':
         case 'UPDATE_PARAMS':
         case 'UPDATE_SELECTION': {
-            const s = action.new!;
-            await registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters, s.viewState.selectionState);
+            await registerRelationMacro(action.new!);
             break;
         }
         case 'DELETE':
@@ -303,8 +272,7 @@ async function handleRelationAction(action: RelationEvent): Promise<void> {
             break;
         case 'RENAME': {
             await dropRelationMacro(action.old!.viewState.displayName);
-            const s = action.new!;
-            await registerRelationMacro(s.viewState.displayName, s.query.baseQuery, s.viewState.parametersState?.parameters, s.viewState.selectionState);
+            await registerRelationMacro(action.new!);
             break;
         }
     }
@@ -323,11 +291,11 @@ onRelationEvent(handleRelationAction);
  * For each key, returns the list of other keys it depends on (references in its SQL).
  * Only includes dependencies that exist in the provided set.
  */
-export function buildMacroDependencies(macros: { key: string; baseSql: string }[]): Map<string, string[]> {
+export function buildMacroDependencies(macros: { key: string; createSql: string }[]): Map<string, string[]> {
     const allKeys = new Set(macros.map(m => m.key));
     const deps = new Map<string, string[]>();
-    for (const { key, baseSql } of macros) {
-        const refs = extractMacroRefs(baseSql).filter(ref => allKeys.has(ref) && ref !== key);
+    for (const {key, createSql} of macros) {
+        const refs = extractMacroRefs(createSql).filter(ref => allKeys.has(ref) && ref !== key);
         deps.set(key, refs);
     }
     return deps;
@@ -366,7 +334,7 @@ export function topologicalSort(keys: string[], deps: Map<string, string[]>): st
  * Order macro SQL statements so that dependencies are created first.
  * Returns CREATE MACRO statements in dependency order.
  */
-export function orderMacroStatements(macros: { key: string; baseSql: string; createSql: string }[]): string[] {
+export function orderMacroStatements(macros: { key: string; createSql: string }[]): string[] {
     const deps = buildMacroDependencies(macros);
     const ordered = topologicalSort(macros.map(m => m.key), deps);
     const sqlByKey = new Map(macros.map(m => [m.key, m.createSql]));
@@ -376,17 +344,14 @@ export function orderMacroStatements(macros: { key: string; baseSql: string; cre
 async function reregisterAllMacros(): Promise<void> {
     const entries = getAllRelations();
 
-    const macros: { key: string; baseSql: string; createSql: string }[] = [];
-    for (const { relation, origin } of entries) {
+    const macros: { key: string; createSql: string }[] = [];
+    for (const {relation, origin} of entries) {
         if (origin === 'dashboard') continue;
-        const name = relation.viewState.displayName;
-        const baseSql = relation.query.baseQuery;
-        const params = relation.viewState.parametersState?.parameters;
-        const selection = relation.viewState.selectionState;
-        if (name && baseSql) {
-            const key = sanitizeMacroName(name);
-            const createSql = generateCreateMacroSQLInternal(name, baseSql, params, selection);
-            macros.push({ key, baseSql, createSql });
+
+        if (relation.viewState.displayName && relation.query.baseQuery) {
+            const key = sanitizeMacroName(relation.viewState.displayName);
+            const createSql = generateCreateMacroSQLInternal(relation);
+            macros.push({key, createSql});
         }
     }
 

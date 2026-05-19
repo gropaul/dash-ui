@@ -23,9 +23,9 @@ import {
     TEXT_SEARCH_BLOCK_NAME,
     WARNING_TOOL_NAME
 } from "@/components/editor/tool-names";
-import {InputType} from "@/model/relation-view-state/select";
 import {FullTextInputBlockTool, SelectTextInputBlockTool} from "@/components/editor/tools/text.input.tool";
 import RelationChartBlockTool from "@/components/editor/tools/relation-chart.tool";
+import {SelectType} from "@/model/relation-state/relation-view-select";
 
 
 export function getEditorJSTools(getInputManager: (blockName: string) => InputManager | null) {
@@ -50,7 +50,7 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
             inlineToolbar: true,
             config: {
                 ...DEFAULT_CONFIG,
-                type: "select" as InputType,
+                type: "select" as SelectType,
             }
         },
         [TEXT_SEARCH_BLOCK_NAME]: {
@@ -58,7 +58,7 @@ export function getEditorJSTools(getInputManager: (blockName: string) => InputMa
             inlineToolbar: true,
             config: {
                 ...DEFAULT_CONFIG,
-                type: "fulltext" as InputType,
+                type: "fulltext" as SelectType,
             }
         },
         [HEADER_TOOL_NAME] : {

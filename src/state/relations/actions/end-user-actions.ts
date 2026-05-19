@@ -2,8 +2,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {
     getDefaultSessionState,
     RelationSessionState,
-    RelationViewMode,
-    RelationViewType
+    RelationViewMode, RelationViewType,
 } from "@/model/relation-view-state";
 import {RelationViewAPIProps} from "@/components/relation/relation-view";
 import {AdvancedRelationActions, createAdvancedRelationActions} from "@/state/relations/actions/advanced-actions";

@@ -1,9 +1,9 @@
 import {memo} from "react";
 import {Table} from "@/components/relation/table/table";
 import {Chart} from "@/components/relation/chart/chart";
-import {TextSelect} from "@/components/relation/text-input/text-select";
+import {Select} from "@/components/relation/select/select";
 import {RelationViewProps} from "@/components/relation/relation-view";
-import {TextField} from "@/components/relation/text-input/text-field";
+import {Slider} from "@/components/relation/slider/slider";
 import {TextDisplay} from "@/components/relation/text-display/text-display";
 import {RelationData} from "@/model/relation";
 import {useRelationData} from "@/state/relations-data.state";
@@ -41,6 +41,7 @@ export const RelationViewContent = memo(function RelationViewContent(props: Rela
         ...props,
         data: data,
     }
+    const wrapperClass = props.height === 'fit' ? 'p-2 flex items-center h-full w-full' : 'w-full';
 
     if (selectedView === 'table') {
         return (
@@ -51,21 +52,17 @@ export const RelationViewContent = memo(function RelationViewContent(props: Rela
             <Chart {...contentProps}/>
         );
     } else if (selectedView === 'select') {
-        const wrapperClass = props.height === 'fit' ? 'p-2 flex items-center h-full w-full' : 'w-full';
-        switch (props.relationState.viewState.inputTextState.inputType) {
-            case 'select':
-                return (
-                    <div className={wrapperClass}>
-                        <TextSelect {...contentProps} />
-                    </div>
-                );
-            case 'fulltext':
-                return (
-                    <div className={wrapperClass}>
-                        <TextField {...contentProps} />
-                    </div>
-                );
-        }
+        return (
+            <div className={wrapperClass}>
+                <Select {...contentProps} />
+            </div>
+        );
+    } else if (selectedView === 'slider'){
+        return (
+            <div className={wrapperClass}>
+                <Slider {...contentProps} />
+            </div>
+        );
     } else if (selectedView === 'text') {
         return (
             <TextDisplay {...contentProps}/>

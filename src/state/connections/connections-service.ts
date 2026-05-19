@@ -3,6 +3,7 @@ import {removeSemicolon} from "@/platform/sql-utils";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {getLogQueries} from "@/components/settings/about-content";
 import {initDashCatalog} from "@/state/connections/utils";
+import {getQuerySchema} from "@/model/relation-state/query-builder/schema";
 
 type DatabaseConnectionCallback = (connection: DatabaseConnection | undefined) => void;
 
@@ -118,13 +119,13 @@ export class ConnectionsService {
     async checkIfQueryIsExecutable(sql: string) {
 
         const preparedSQL = removeSemicolon(sql)
-        const explainQuery = `EXPLAIN ${preparedSQL}`
+        console.log('Test: prep', preparedSQL)
 
         try {
-            const _result = await this.executeQuery(explainQuery);
+            await getQuerySchema(preparedSQL)
             return true;
         } catch (e) {
-            console.error(e, 'Query is not executable', explainQuery);
+            console.error(e, 'Query is not executable', preparedSQL);
             return false;
         }
     }

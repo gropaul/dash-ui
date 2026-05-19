@@ -10,7 +10,7 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import {RelationViewProps} from "@/components/relation/relation-view";
-import {ViewQueryParameters} from "@/model/relation-state";
+import {RelationQueryParameters} from "@/model/relation-state";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 import {TABLE_FOOTER_SMALL_WIDTH_THRESHOLD} from "@/platform/global-data";
@@ -118,7 +118,7 @@ export function RelationViewPageController(props: TableFooterProps & { footerWid
 
         const offsetForPage = pageIndex * relationState.query.viewParameters.table.limit;
         const currentQueryParams = relationState.query.viewParameters;
-        const updatedQueryParams: ViewQueryParameters = {
+        const updatedQueryParams: RelationQueryParameters = {
             ...currentQueryParams,
             table: {
                 ...currentQueryParams.table,
@@ -133,7 +133,7 @@ export function RelationViewPageController(props: TableFooterProps & { footerWid
     function handlePageSizeChange(value: string) {
         const newPageSize = parseInt(value);
         const currentQueryParams = relationState.query.viewParameters;
-        const updatedQueryParams: ViewQueryParameters = {
+        const updatedQueryParams: RelationQueryParameters = {
             ...currentQueryParams,
             table: {
                 ...currentQueryParams.table,

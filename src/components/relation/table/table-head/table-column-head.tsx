@@ -2,11 +2,8 @@ import React from 'react';
 import {Column} from "@/model/data-source-connection";
 import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
 import {
-    ColumnFilterIn,
-    ColumnSorting,
-    getNextColumnSorting,
     RelationStats,
-    ViewQueryParameters
+    RelationQueryParameters
 } from "@/model/relation-state";
 import {useDraggable, useDroppable} from "@dnd-kit/core";
 import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
@@ -14,6 +11,7 @@ import {ColumnStatsProps, ColumnStatsView} from "@/components/relation/table/tab
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
+import {ColumnFilterIn, ColumnSorting} from "@/model/relation-state/relation-view-table";
 
 
 export interface ColumnHeadProps extends RelationViewTableContentProps {
@@ -23,7 +21,16 @@ export interface ColumnHeadProps extends RelationViewTableContentProps {
     columnIndex: number;
 }
 
-
+function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | undefined {
+    switch (current) {
+        case 'ASC':
+            return 'DESC';
+        case 'DESC':
+            return undefined;
+        case undefined:
+            return 'ASC';
+    }
+}
 
 
 export function TableColumnHead(props: ColumnHeadProps) {
@@ -79,7 +86,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
             }
         }
 
-        const queryParams: ViewQueryParameters = {
+        const queryParams: RelationQueryParameters = {
             ...queryParameters,
             table: {
                 ...queryParameters.table,
@@ -108,7 +115,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
             delete filterCopy[props.column.name];
         }
 
-        const queryParams: ViewQueryParameters = {
+        const queryParams: RelationQueryParameters = {
             ...queryParameters,
             table: {
                 ...queryParameters.table,

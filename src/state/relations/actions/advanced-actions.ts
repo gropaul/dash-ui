@@ -4,7 +4,7 @@ import {
     resetQueryParams,
     returnEmptyErrorState,
     setRelationRunning,
-    ViewQueryParameters
+    RelationQueryParameters
 } from "@/model/relation-state";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
@@ -15,13 +15,14 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
 import {processRelationUpdateEvent} from "@/state/relations/event/relation-events-update-dispatch";
 import {RelationEvents} from "@/state/relations/event/relation-events";
+import {RelationQueryState} from "@/model/relation-query-state";
 
 export type UpdateRelationFunction = (relation: RelationState) => void;
 
 export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     // Updates the relation data based on new query parameters. If the baseQuery changes, it should be provided.
     // here
-    updateRelationDataWithParams: (query: ViewQueryParameters) => Promise<void>,
+    updateRelationDataWithParams: (query: RelationQueryParameters) => Promise<void>,
     // This will reset the query parameters to default and re-run the base query, which might have changed
     // between this and the last call
     updateRelationDataWithBaseQuery: (baseQuery: string, readonly?: boolean) => Promise<void>,
@@ -29,7 +30,9 @@ export interface AdvancedRelationActions extends DefaultRelationZustandActions {
     cancelQuery: () => Promise<boolean>,
     // Deleting elements from an object does not work with partial updates, use updateRelation directly for that
     updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => void,
-
+    updateRelationQueryParams: (params: DeepPartial<RelationQueryParameters>) => void,
+    // This will lead to rerun of macro etc
+    updateRelationQueryState: (queryState: DeepPartial<RelationQueryState>) => void,
     // update relation with deep partial
     updateRelationWithPartial: (partialRelation: DeepPartial<RelationState>) => void,
 }
@@ -51,18 +54,25 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps, readO
                 query = resetQueryParams(relationState.query);
             }
             // Clear selection state when re-running query (selected values may be stale)
-            relationState.viewState.selectionState = undefined;
+            relationState.queryState = {}
             return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, props.inputManager, baseQuery);
-
         },
         cancelQuery: async () => {
             return cancelQuery(relationState, updateRelation);
         },
-        updateRelationDataWithParams: async (query: ViewQueryParameters) => {
+        updateRelationDataWithParams: async (query: RelationQueryParameters) => {
             return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, props.inputManager);
         },
         updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => {
             return updateRelationViewState(relationState, viewState, updateRelation, readOnly);
+        },
+        updateRelationQueryParams: (params: DeepPartial<RelationQueryParameters>) => {
+            const updated = updateRelationWithPartial(relationState, {query: {viewParameters: params}});
+            updateRelation(updated);
+        },
+        updateRelationQueryState: (queryState: DeepPartial<RelationQueryState>) => {
+            const updated = updateRelationWithPartial(relationState, {queryState});
+            updateRelation(updated);
         },
         updateRelationWithPartial: (partialRelation: DeepPartial<RelationState>) => {
             return updateRelationWithPartial(relationState, partialRelation);
@@ -77,29 +87,23 @@ export function updateRelationWithPartial(relation: RelationState, partialRelati
 }
 
 async function updateRelationViewState(relation: RelationState, partialUpdate: DeepPartial<RelationViewState>, update: UpdateRelationFunction, readOnly: boolean) {
-    const currentViewState = deepClone(relation.viewState);
-
-    safeDeepUpdate(currentViewState, partialUpdate); // mutate the clone, not the original
-    const updatedRelation = {
-        ...relation,
-        viewState: currentViewState,
-    };
+    const updatedRelation = updateRelationWithPartial(relation, {viewState: partialUpdate});
     update(updatedRelation);
 
     // if the view mode has been changed, update the query params
     if (partialUpdate.selectedView) {
         const viewParameters = relation.query.viewParameters;
-        const newViewParameters: ViewQueryParameters = {
+        const newViewParameters: RelationQueryParameters = {
             ...viewParameters,
             type: partialUpdate.selectedView
         };
-        await updateAndExecuteRelation(updatedRelation, newViewParameters, update, readOnly );
+        await updateAndExecuteRelation(updatedRelation, newViewParameters, update, readOnly);
     }
 }
 
 async function updateAndExecuteRelation(
     relation: RelationState,
-    viewQueryParameters: ViewQueryParameters,
+    viewQueryParameters: RelationQueryParameters,
     update: UpdateRelationFunction,
     readOnly: boolean,
     inputManager?: InputManager,

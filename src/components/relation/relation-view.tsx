@@ -6,11 +6,11 @@ import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {InputManager} from "@/components/editor/inputs/input-manager";
-import {ErrorBoundary} from "@/components/basics/error-bundary";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {EditorPanelPosition} from "@/components/basics/sql-editor/sql-editor";
 import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationViewMode} from "@/model/relation-view-state";
+import {DefaultErrorBoundary} from "@/components/basics/error-bundary";
 
 // If resizable, the relation view will have a draggable handle to adjust its height, if
 // fit, it will adjust to the parent height.
@@ -41,26 +41,18 @@ export function RelationView(inputProps: RelationViewAPIProps) {
     return (
         <RelationContextProvider>
             <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
-                <ErrorBoundary fallback={(error) => (
-                    <div className="p-4 w-full bg-inherit h-full flex flex-col items-start justify-start">
-                        <div className={'flex bg-inherit flex-row text-red-500 items-center space-x-2 h-6'}>
-                            <TriangleAlert size={16}/>
-                            <span>Error rendering relation view</span>
-                        </div>
-                        <div className="mt-2 text-red-500">
-                            {error.message}
-                        </div>
-                    </div>
-                )}>
+                <DefaultErrorBoundary>
                     <RelationViewHeader {...inputProps}/>
                     <div className={`flex-1 bg-background overflow-auto`}>
-                        <RelationStateView
-                            {...inputProps}
-                            sqlEditorPanelMode={'overlay'}
-                            sqlEditorShowRunButton={false}
-                        />
+                        <DefaultErrorBoundary>
+                            <RelationStateView
+                                {...inputProps}
+                                sqlEditorPanelMode={'overlay'}
+                                sqlEditorShowRunButton={false}
+                            />
+                        </DefaultErrorBoundary>
                     </div>
-                </ErrorBoundary>
+                </DefaultErrorBoundary>
             </div>
         </RelationContextProvider>
     );

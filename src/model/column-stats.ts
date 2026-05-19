@@ -1,9 +1,10 @@
 import {RelationData} from "@/model/relation";
-import {buildQuery, ColumnStatsType, RelationState, RelationStats} from "@/model/relation-state";
+import {ColumnStatsType, RelationState, RelationStats} from "@/model/relation-state";
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {ValueType} from "@/model/value-type";
 import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
+import {ViewManager} from "@/model/relation-state/relation-view";
 
 // export type ValueType =
 //     'Integer'
@@ -104,7 +105,7 @@ interface StatsQueryResult {
     scaleFactor: number
 }
 
-function buildStatsQuery(row_count: number, relation: RelationState, data: RelationData): StatsQueryResult {
+async function buildStatsQuery(row_count: number, relation: RelationState, data: RelationData): Promise<StatsQueryResult> {
     const columns = data.columns;
     const MAX_ROWS = 200_000;
 
@@ -119,7 +120,7 @@ function buildStatsQuery(row_count: number, relation: RelationState, data: Relat
         .join(', ');
 
     // todo: We need the InputManager here for the stats!!
-    const buildResult = buildQuery(relation)
+    const buildResult = await ViewManager.instance.buildQuery(relation);
     const finalQuery = buildResult.finalQuery;
     const query = `
         WITH ${DATA_TABLE_NAME} AS (${finalQuery}),
@@ -186,7 +187,7 @@ export async function GetColumnStats(relation: RelationState, data: RelationData
         return;
     }
 
-    const buildResult = buildStatsQuery(row_count, relation, data);
+    const buildResult = await buildStatsQuery(row_count, relation, data);
 
     const statsData = await ConnectionsService.getInstance().executeQuery(buildResult.query);
 

@@ -10,12 +10,13 @@ import {
 } from "@/components/editor/inputs/input-manager";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationComponent} from "@/components/editor/tools/relation.tool";
-import {getVariablesUsedByQuery, RelationState} from "@/model/relation-state";
+import {RelationState} from "@/model/relation-state";
 import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/editor/inputs/models";
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN} from "@/components/editor/tools/icons";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {EndUserRelationActions, getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationViewMode} from "@/model/relation-view-state";
+import {getVariablesUsedByQuery} from "@/model/relation-state/query-builder/variables";
 
 /**
  * Base class for block tools that share common functionality

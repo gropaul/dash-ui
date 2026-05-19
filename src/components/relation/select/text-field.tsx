@@ -1,3 +1,4 @@
+/*
 import {Button} from "@/components/ui/button";
 import {Settings} from "lucide-react";
 import {TextInputConfigDialog} from "@/components/relation/text-input/text-input-config-dialog";
@@ -8,20 +9,20 @@ import {RelationViewContentProps} from "@/components/relation/relation-view-cont
 export function TextField(props: RelationViewContentProps) {
     const relationId = props.relationState.id;
     const data = props.data;
-    const textSearchState = props.relationState.viewState.inputTextState;
+    const textSearchState = props.relationState.viewState.selectState;
 
     const updateRelationValue = (s: Suggestion) => {
 
         const label = typeof s === "string" ? s : s.label;
 
         props.updateRelationViewState( {
-            inputTextState: {value: label},
+            selectState: {value: label},
         });
     };
 
     const setShowConfig = (show: boolean) => {
         props.updateRelationViewState( {
-            inputTextState: {showConfig: show},
+            selectState: {showConfig: show},
         });
     };
 
@@ -65,3 +66,4 @@ export function TextField(props: RelationViewContentProps) {
         </>
     );
 }
+*/

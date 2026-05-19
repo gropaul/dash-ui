@@ -10,8 +10,8 @@ import {
     LayoutDashboard,
     LoaderCircle,
     Map,
-    Network,
-    Sheet,
+    Network, Settings2,
+    Sheet, Sliders, SlidersHorizontal,
     SquareChevronDown,
     Table2,
     Text,
@@ -35,6 +35,7 @@ export interface ViewTypeColor {
 }
 
 const relationViewTypeColors: Record<RelationViewType, ViewTypeColor> = {
+    slider: { background: 'rgba(234, 179, 8, 0.1)', foreground: '#eab308' },
     table: { background: 'rgba(139, 92, 246, 0.1)', foreground: '#8b5cf6' },  // purple
     chart: { background: 'rgba(59, 130, 246, 0.1)', foreground: '#3b82f6' },  // blue
     map: { background: 'rgba(34, 197, 94, 0.1)', foreground: '#22c55e' },     // green
@@ -60,6 +61,8 @@ const relationViewTypeIconFactory = (type: RelationViewType): ReactNode | null =
             return <SquareChevronDown size={iconSize}/>
         case 'text':
             return <Type size={iconSize}/>
+        case 'slider':
+            return <Settings2 size={iconSize}/>
     }
     return null;
 }

@@ -216,7 +216,11 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         onStopRun={actions.cancelQuery}
                         onToggleCode={handleToggleCode}
                         viewProps={viewProps}
-                        onViewChange={actions.setRelationViewType}
+                        onViewChange={(entry) => {
+                            actions.updateRelationViewState({
+                                selectedView: entry.viewType,
+                            });
+                        }}
                         onFullscreen={() => openFullscreen(props.id)}
                         onToggleHeader={viewProps.toggleShowHeader}
                         showParams={data.viewState.parametersState?.panelState?.show ?? false}

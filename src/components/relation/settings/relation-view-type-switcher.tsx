@@ -4,24 +4,37 @@ import {RelationViewType} from "@/model/relation-view-state";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 
+export interface ViewSwitchEntry {
+    viewType: RelationViewType;
+}
+
 interface ViewSwitcherProps {
     currentView: RelationViewType;
-    onViewChange: (view: RelationViewType) => void;
+    onViewChange: (entry: ViewSwitchEntry) => void;
+}
+
+interface ViewItem {
+    key: string;
+    viewType: RelationViewType;
+    label: string;
+    disabled?: boolean;
+}
+
+const views: ViewItem[] = [
+    { key: 'table', viewType: 'table', label: 'Table' },
+    { key: 'chart', viewType: 'chart', label: 'Chart' },
+    { key: 'text', viewType: 'text', label: 'Text' },
+    { key: 'select', viewType: 'select', label: 'Input: Select' },
+    { key: 'slider', viewType: 'slider', label: 'Input: Slider' },
+    { key: 'map', viewType: 'map', label: 'Map', disabled: true },
+];
+
+function isActive(view: ViewItem, currentView: RelationViewType): boolean {
+    return view.viewType === currentView;
+
 }
 
 export function RelationViewTypeSwitcher({ currentView, onViewChange }: ViewSwitcherProps) {
-    const views: {id: RelationViewType, label: string}[] = [
-        { id: 'table', label: 'Table' },
-        { id: 'chart', label: 'Chart' },
-        { id: 'text', label: 'Text' },
-        { id: 'select', label: 'Input: Select' },
-        { id: 'map', label: 'Map' },
-    ] as const;
-
-    const disabledViews = ['map'];
-
-    const CurrentIcon = defaultIconFactory(currentView);
-
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -29,27 +42,22 @@ export function RelationViewTypeSwitcher({ currentView, onViewChange }: ViewSwit
                     className={'rounded-[0px] w-14 h-10 flex flex-row items-center justify-center'}
                     variant="ghost" size="icon"
                 >
-                    {/*<CurrentIcon className={'p-0'} />*/}
                     {defaultIconFactory(currentView)}
                     <ChevronDown className={'w-2 h-2'}/>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-                {views.map((view) => {
-
-                    return (
-                        <DropdownMenuItem
-                            disabled={disabledViews.includes(view.id)}
-                            key={view.id}
-                            onClick={() => onViewChange(view.id)}
-                            className={currentView === view.id ? 'bg-accent' : ''}
-                        >
-                            {/*<Icon className="mr-2 h-4 w-4" />*/}
-                            {defaultIconFactory(view.id)}
-                            {view.label}
-                        </DropdownMenuItem>
-                    );
-                })}
+                {views.map((view) => (
+                    <DropdownMenuItem
+                        disabled={view.disabled}
+                        key={view.key}
+                        onClick={() => onViewChange({viewType: view.viewType})}
+                        className={isActive(view, currentView) ? 'bg-accent' : ''}
+                    >
+                        {defaultIconFactory(view.viewType)}
+                        {view.label}
+                    </DropdownMenuItem>
+                ))}
             </DropdownMenuContent>
         </DropdownMenu>
     );

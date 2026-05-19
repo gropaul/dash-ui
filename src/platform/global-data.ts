@@ -28,7 +28,7 @@ export const MAIN_CONNECTION_ID = DATABASE_CONNECTION_ID_DUCKDB_LOCAL;
 export const VERSION_CONFLICT_ERROR = 'Version conflict, the data has been modified by another tab or user.'
 
 export const CHART_QUERY_LIMIT = 50_000;
-
+export const SELECT_QUERY_LIMIT = 2_000;
 
 export const DEFAULT_COLORS = [
     "#6366f1",  // Indigo

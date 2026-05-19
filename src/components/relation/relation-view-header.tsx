@@ -23,7 +23,7 @@ import {useState} from "react";
 import {FilepathDialog, FilepathDialogState} from "@/components/export/filepath-dialog";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import {RelationSettings} from "@/components/relation/relation-settings";
-import {RelationViewTypeSwitcher} from "@/components/relation/settings/relation-view-type-switcher";
+import {RelationViewTypeSwitcher, ViewSwitchEntry} from "@/components/relation/settings/relation-view-type-switcher";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
@@ -65,14 +65,10 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         parameters: []
     };
 
-    function onViewChange(selected: string) {
-
-        // only update if something selected
-        if (!selected) {
-            return;
-        }
+    function onViewChange(entry: ViewSwitchEntry) {
+        if (!entry.viewType) return;
         advancedActions.updateRelationViewState({
-            selectedView: selected as RelationViewType,
+            selectedView: entry.viewType,
         });
     }
 
@@ -165,14 +161,14 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     <DropdownMenuItem>Show as</DropdownMenuItem>
                                     <DropdownMenuCheckboxItem
                                         checked={viewState.selectedView === 'table'}
-                                        onCheckedChange={() => onViewChange('table')}
+                                        onCheckedChange={() => onViewChange({viewType: 'table'})}
                                     >
                                         <Sheet className="h-4 w-4"/>
                                         <span className="ml-2">Table</span>
                                     </DropdownMenuCheckboxItem>
                                     <DropdownMenuCheckboxItem
                                         checked={viewState.selectedView === 'chart'}
-                                        onCheckedChange={() => onViewChange('chart')}
+                                        onCheckedChange={() => onViewChange({viewType: 'chart'})}
                                     >
                                         <ChartSpline className="h-4 w-4"/>
                                         <span className="ml-2">Chart</span>
@@ -180,7 +176,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     <DropdownMenuCheckboxItem
                                         checked={viewState.selectedView === 'map'}
                                         disabled={mapDisabled}
-                                        onCheckedChange={() => onViewChange('map')}
+                                        onCheckedChange={() => onViewChange({viewType: 'map'})}
                                     >
                                         <Map className="h-4 w-4"/>
                                         <span className="ml-2">Map</span>

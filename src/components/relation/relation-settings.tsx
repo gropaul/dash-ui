@@ -10,7 +10,7 @@ import {Button} from "@/components/ui/button";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {ChartSettingsContent} from "@/components/relation/chart/chart-settings-content";
 import {TextDisplaySettingsContent} from "@/components/relation/text-display/text-display-settings-content";
-import {TextInputSettingsContent} from "@/components/relation/text-input/text-input-settings-content";
+import {SelectSettingsContent} from "@/components/relation/select/select-settings-content";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import React, {useState} from "react";
 import {DashboardCommandState, onAddToDashboardSelected} from "@/components/workbench/editor-overview-tab";
@@ -67,7 +67,7 @@ export function RelationSettingsContent(props: RelationSettingsProps) {
         case "text":
             return <TextDisplaySettingsContent {...props}/>
         case "select":
-            return <TextInputSettingsContent {...props}/>
+            return <SelectSettingsContent {...props}/>
         default:
             return <></>
     }

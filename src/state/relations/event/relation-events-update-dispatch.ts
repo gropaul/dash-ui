@@ -35,6 +35,11 @@ export function processRelationUpdateEvent(
     if (!parametersEqual(oldParams, newParams)) {
         RelationEvents.updateParams(oldState, newState);
     }
+
+    // Query state changed (e.g. selected values in a dropdown/slider widget)
+    if (JSON.stringify(oldState.queryState) !== JSON.stringify(newState.queryState)) {
+        RelationEvents.updateSelection(oldState, newState);
+    }
 }
 
 function parametersEqual(

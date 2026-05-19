@@ -1,7 +1,7 @@
 // SelectBlockTool.tsx
 import type {BlockToolConstructorOptions} from '@editorjs/editorjs';
 
-import {getInitialParamsTextInput, RelationState} from '@/model/relation-state';
+import {RelationState} from '@/model/relation-state';
 import {MenuConfig} from "@editorjs/editorjs/types/tools";
 import {getInitViewState} from "@/model/relation-view-state";
 import {ICON_SEARCH, ICON_SELECT, ICON_SETTING,} from "@/components/editor/tools/icons";
@@ -13,17 +13,13 @@ import {InputValueChangeParams} from "@/components/editor/inputs/input-manager";
 import {SELECT_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationState} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
-import {InputType} from "@/model/relation-view-state/select";
 
 
-export function getInitialSelectDataElement(inputType: InputType): RelationState {
+export function getInitialSelectDataElement(): RelationState {
 
     let baseQuery = '';
-    if (inputType === 'select') {
-        baseQuery = "SELECT 'Option ' || range + 1 from range(5); -- E.g. SELECT DISTINCT type FROM table";
-    } else if (inputType === 'fulltext') {
-        baseQuery = "SELECT 'Suggestion' LIMIT 0; -- No data initially";
-    }
+    baseQuery = "SELECT 'Option ' || range + 1 from range(5); -- E.g. SELECT DISTINCT type FROM table";
+
 
     const randomId = getRandomId();
 
@@ -34,7 +30,7 @@ export function getInitialSelectDataElement(inputType: InputType): RelationState
         name: "select_" + randomId.substring(0, 8),
     }
     const relation: Relation = {
-        connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId,  source: source
+        connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: randomId, source: source
     }
     const initialViewState = getInitViewState(
         'New Data Element',
@@ -43,27 +39,30 @@ export function getInitialSelectDataElement(inputType: InputType): RelationState
         true
     );
 
-    initialViewState.inputTextState.inputType = inputType;
+    // initialViewState.selectState.selectType = inputType;
 
     initialViewState.selectedView = 'select';
-    return {
-        ...relation,
-        query: {
-            baseQuery: baseQuery,
-            activeBaseQuery: baseQuery,
-            viewParameters: getInitialParamsTextInput()
-        },
-        viewState: initialViewState,
-        executionState: {
-            state: "not-started"
-        }
-    }
+    throw new Error("Not implemented, sorry we don't support this yet");
+    // return {
+    //     ...relation,
+    //     query: {
+    //         baseQuery: baseQuery,
+    //         activeBaseQuery: baseQuery,
+    //         viewParameters: {
+    //
+    //         }
+    //     },
+    //     viewState: initialViewState,
+    //     executionState: {
+    //         state: "not-started"
+    //     }
+    // }
 }
 
 export class TextInputBlockTool extends BaseRelationBlockTool {
 
     private currentSelectValue?: string;
-    private currentSelectName: string;
+    // private currentSelectName: string;
 
 
     public setShowConfig(show: boolean) {
@@ -71,10 +70,6 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
             ...this.data,
             viewState: {
                 ...this.data.viewState,
-                inputTextState: {
-                    ...this.data.viewState.inputTextState,
-                    showConfig: show,
-                }
             }
         }
         this.render();
@@ -83,35 +78,35 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
     constructor({data, api, readOnly, config}: BlockToolConstructorOptions<RelationState>) {
 
         if (!isRelationState(data)) {
-            data = getInitialSelectDataElement(config.type);
+            data = getInitialSelectDataElement();
         }
-
+        //
         super({data, api, readOnly, config}, SELECT_BLOCK_NAME);
-
-        this.currentSelectValue = this.data.viewState.inputTextState.value;
-        this.currentSelectName = this.data.viewState.inputTextState.name;
-
-        if (this.inputManager) {
-            const inputSource: InputSource = {
-                blockId: this.interactiveId,
-                inputName: this.data.viewState.inputTextState.name,
-                inputValue: {
-                    value: this.currentSelectValue
-                }
-            }
-            this.inputManager?.registerInputSource(inputSource)
-        }
+        //
+        // this.currentSelectValue = this.data.viewState.selectState.value;
+        // this.currentSelectName = this.data.viewState.selectState.name;
+        //
+        // if (this.inputManager) {
+        //     const inputSource: InputSource = {
+        //         blockId: this.interactiveId,
+        //         inputName: this.data.viewState.selectState.name,
+        //         inputValue: {
+        //             value: this.currentSelectValue
+        //         }
+        //     }
+        //     this.inputManager?.registerInputSource(inputSource)
+        // }
     }
 
     onValueChanged(value?: string) {
-        const params: InputValueChangeParams = {
-            interactiveId: this.interactiveId,
-            inputName: this.data.viewState.inputTextState.name,
-            inputValue: {
-                value: value
-            }
-        }
-        this.inputManager.onInputValueChange(params);
+        // const params: InputValueChangeParams = {
+        //     interactiveId: this.interactiveId,
+        //     inputName: this.data.viewState.selectState.name,
+        //     inputValue: {
+        //         value: value
+        //     }
+        // }
+        // this.inputManager.onInputValueChange(params);
     }
 
     onInputNameChanged(name: string, oldName: string) {
@@ -134,16 +129,16 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
 
     public onDataChanged(updatedData: RelationState): void {
         super.onDataChanged(updatedData);
-        if (this.data.viewState.inputTextState.value !== this.currentSelectValue) {
-            this.currentSelectValue = this.data.viewState.inputTextState.value;
-            this.onValueChanged(this.currentSelectValue);
-        }
-        if (this.data.viewState.inputTextState.name !== this.currentSelectName && this.currentSelectName) {
-            const oldName = this.currentSelectName;
-            const newName = this.data.viewState.inputTextState.name;
-            this.onInputNameChanged(newName, oldName);
-            this.currentSelectName = this.data.viewState.inputTextState.name;
-        }
+        // if (this.data.viewState.selectState.value !== this.currentSelectValue) {
+        //     this.currentSelectValue = this.data.viewState.selectState.value;
+        //     this.onValueChanged(this.currentSelectValue);
+        // }
+        // if (this.data.viewState.selectState.name !== this.currentSelectName && this.currentSelectName) {
+        //     const oldName = this.currentSelectName;
+        //     const newName = this.data.viewState.selectState.name;
+        //     this.onInputNameChanged(newName, oldName);
+        //     this.currentSelectName = this.data.viewState.selectState.name;
+        // }
     }
 
 
@@ -153,7 +148,8 @@ export class TextInputBlockTool extends BaseRelationBlockTool {
         const codeText = codeVisibility ? 'Hide Query' : 'Show Query';
 
 
-        const showConfig = this.data.viewState.inputTextState.showConfig ?? false;
+        // const showConfig = this.data.viewState.selectState.showConfig ?? false;
+        const showConfig = false;
         const showConfigTest = showConfig ? 'Hide Config' : 'Show Config';
 
         return [

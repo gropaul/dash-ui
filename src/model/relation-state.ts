@@ -1,53 +1,31 @@
 import {
-    getRelationIdFromSource,
-    getRelationNameFromSource,
     Relation,
     RelationData,
     RelationSource
 } from "@/model/relation";
 import {
-    getInitViewState,
     RelationViewState,
     RelationViewType,
     updateRelationViewState
 } from "@/model/relation-view-state";
-import {cleanAndSplitSQL, minifySQL, removeSemicolon, turnQueryIntoSubquery} from "@/platform/sql-utils";
+import {cleanAndSplitSQL, escapeName, minifySQL, removeSemicolon, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {CHART_QUERY_LIMIT, COUNT_QUERY_THRESHOLD_MS} from "@/platform/global-data";
 import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
-import {ParameterDefinition} from "@/model/relation-view-state/parameters";
-import {getQuerySchema} from "@/model/schema-utils";
-
-export function getInitialTableQueryParameters(limit: number = 20): TableViewQueryParameters {
-    return {
-        offset: 0,
-        limit: limit,
-        sorting: {},
-        filters: {},
-    };
-}
-
-export function getInitialParams(type: RelationViewType): ViewQueryParameters {
-    return {
-        type: type,
-        table: getInitialTableQueryParameters(),
-        chart: {},
-    };
-}
-
-export function getInitialParamsTextInput(): ViewQueryParameters {
-    return {
-        type: 'table',
-        table: getInitialTableQueryParameters(1000),
-        chart: {},
-    };
-}
+import {ViewManager} from "@/model/relation-state/relation-view";
+import {ChartQueryParameters} from "@/model/relation-state/relation-view-chart";
+import {TableQueryParameters} from "@/model/relation-state/relation-view-table";
+import {SelectQueryParameters} from "@/model/relation-state/relation-view-select";
+import {TextViewParameters} from "@/model/relation-state/relation-view-text";
+import {SliderQueryParameters} from "@/model/relation-state/relation-view-slider";
+import {Column} from "@/model/data-source-connection";
+import {RelationQueryState} from "@/model/relation-query-state";
 
 //! Is called when the user changes the code and reruns the query -> Reset some view parameters
-export function resetQueryParams(queryData: QueryData): ViewQueryParameters {
+export function resetQueryParams(queryData: QueryData): RelationQueryParameters {
     const oldParams = queryData.viewParameters;
 
     if (oldParams.type === 'table') {
@@ -75,31 +53,23 @@ export function resetQueryParams(queryData: QueryData): ViewQueryParameters {
         return {
             ...oldParams,
         };
+    } else if (oldParams.type === 'slider') {
+        return {
+            ...oldParams,
+        };
     } else {
         throw new Error(`Unknown view type during reset query parameters: ${oldParams.type}`);
     }
 }
 
-
-export interface ViewQueryParameters {
+export interface RelationQueryParameters {
     type: RelationViewType;
-    table: TableViewQueryParameters;
-    chart: ChartTableQueryParameters;
+    table: TableQueryParameters;
+    chart?: ChartQueryParameters;
+    select?: SelectQueryParameters;
+    text?: TextViewParameters;
+    slider?: SliderQueryParameters;
 }
-
-export interface TableViewQueryParameters {
-    offset: number;
-    limit: number;
-    sorting: { [key: string]: ColumnSorting | undefined };
-    filters: { [key: string]: ColumnFilter | undefined };
-}
-
-export interface ChartTableQueryParameters {
-    xAxis?: string;   // the name of the column to use as x-axis
-    yAxes?: string[]; // the names of the columns to use as y-axes
-    groupBy?: string; // the names of the columns to use as group by
-}
-
 
 export type TaskExecutionState = {
     state: 'not-started' | 'running' | 'success'
@@ -201,40 +171,13 @@ export interface RelationWithQuery extends Relation {
 
 export function ShouldUpdateStats(relation: RelationState): boolean {
     return false;
-    return relation.viewState.selectedView === 'table' &&
-        relation.viewState.tableState.showStats === true;
-
+    // return relation.viewState.selectedView === 'table' &&
+    //     relation.viewState.tableState.showStats === true;
 }
 
 export interface RelationState extends RelationWithQuery {
     viewState: RelationViewState;
-}
-
-export type ColumnSorting = 'ASC' | 'DESC';
-
-export type ColumnFilterRange = {
-    type: 'range';
-    min?: number;
-    max?: number;
-};
-
-// will convert into an col IN (val1, ...)
-export type ColumnFilterIn = {
-    type: 'values';
-    values: any[];
-};
-
-export type ColumnFilter = ColumnFilterRange | ColumnFilterIn;
-
-export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | undefined {
-    switch (current) {
-        case 'ASC':
-            return 'DESC';
-        case 'DESC':
-            return undefined;
-        case undefined:
-            return 'ASC';
-    }
+    queryState?: RelationQueryState;
 }
 
 export function getBaseQueryFromSource(source: RelationSource): string {
@@ -242,8 +185,7 @@ export function getBaseQueryFromSource(source: RelationSource): string {
         return minifySQL(`SELECT *
                           FROM "${source.database}"."${source.schema}"."${source.tableName}";`);
     } else if (source.type === 'file') {
-        return minifySQL(`SELECT *
-                          FROM '${source.path}';`);
+        return minifySQL(`SELECT * FROM '${source.path}';`);
     } else if (source.type === 'query') {
         return source.baseQuery;
     } else {
@@ -258,10 +200,11 @@ export interface QueryBuildResult {
     finalQuery: string;
     // The query to get the data for the view
     viewQuery: string;
-    // the query to get the schema for the view, can be undefined if deduced from the view query
-    schemaQuery?: string;
     // the query getting the count for the view Query
     countQuery?: string;
+
+    // the schema of the query created with "DESCRIBE finalQuery"
+    schema: Column[]
 }
 
 export interface QueryData {
@@ -270,223 +213,7 @@ export interface QueryData {
     // the query that all new QueryParams should use as a base. This will be updated from the baseQuery when the user
     // re-runs the query using the Play Button. But only adding an OrderBy or Filter will still use the last activeBaseQuery
     activeBaseQuery: string;
-    viewParameters: ViewQueryParameters;
-}
-
-export const getVariablesUsedByQuery = (query: string): string[] => {
-    // find all matches of {{variable}}
-    const regex = /{{([^}]+)}}/g;
-    const matches = query.match(regex);
-    if (!matches) {
-        return [];
-    }
-
-    // remove the {{ and }} from the matches
-    return matches.map(match => match.replace(/{{|}}/g, '').trim());
-}
-
-const setVariablesInQuery = (query: string, manager?: InputManager, paramDefs?: ParameterDefinition[]): string => {
-
-    // find all matches of {{variable}}
-    const regex = /{{([^}]+)}}/g;
-    const matches = query.match(regex);
-    if (!matches) {
-        return query;
-    }
-
-    // Build a map of parameter definitions for quick lookup
-    const paramDefMap = new Map<string, ParameterDefinition>();
-    for (const p of paramDefs ?? []) {
-        paramDefMap.set(p.name, p);
-    }
-
-    // replace all matches with the value of the variable
-    let newQuery = query;
-    for (const match of matches) {
-        const variable = match.replace(/{{|}}/g, '').trim();
-
-        // First try InputManager
-        if (manager) {
-            try {
-                const value = manager.getInputValue(variable);
-                if (value?.value !== undefined) {
-                    newQuery = newQuery.replace(match, value.value);
-                    continue;
-                }
-            } catch {
-                // InputManager doesn't have this variable, fall through to param defaults
-            }
-        }
-
-        // Fall back to parameter definition default (simple substitution, user handles quoting)
-        const paramDef = paramDefMap.get(variable);
-        if (paramDef?.defaultValue !== undefined) {
-            newQuery = newQuery.replace(match, paramDef.defaultValue);
-            continue;
-        }
-
-        // No value available - throw error
-        throw new Error(`Parameter '${variable}' has no value. Set a default value in the Parameters panel or provide an input.`);
-    }
-    return newQuery;
-}
-
-// 1. A helper that does all the heavy-lifting but doesn't do the async check.
-export function buildQuery(
-    relationState: RelationState,
-    inputManager?: InputManager
-): QueryBuildResult {
-    const paramDefs = relationState.viewState.parametersState?.parameters;
-    const sqlWithVariables = setVariablesInQuery(relationState.query.activeBaseQuery, inputManager, paramDefs);
-    const baseQueries = cleanAndSplitSQL(sqlWithVariables);
-    const viewParameters = relationState.query.viewParameters;
-
-    const initialQueries = baseQueries.slice(0, -1);
-    // console.log('Base Queries:', baseQueries);
-    const finalQuery = removeSemicolon(baseQueries.at(-1) || '');
-    if (!finalQuery) {
-        throw new Error('No final query found in base SQL');
-    }
-
-    // Turn a final query into a subquery
-    const finalQueryAsSubQuery = turnQueryIntoSubquery(finalQuery);
-
-    // Build a count query
-    let countQuery = undefined;
-    let viewQuery;
-    let schemaQuery = undefined;
-    if (viewParameters.type === 'table') {
-        viewQuery = buildTableQuery(viewParameters, finalQueryAsSubQuery);
-        const filterQuery = buildFilterWhereClause(viewParameters.table.filters, 'subquery');
-        countQuery = `
-            SELECT COUNT(*)
-            FROM ${finalQueryAsSubQuery} as subquery ${filterQuery}
-        `;
-    } else if (viewParameters.type === 'chart') {
-        const [lViewQuery, lSchemaQuery] = buildChartQuery(viewParameters, finalQueryAsSubQuery);
-        viewQuery = lViewQuery;
-        schemaQuery = lSchemaQuery;
-    } else if (viewParameters.type === 'select') {
-        viewQuery = `SELECT DISTINCT #1 FROM ${finalQueryAsSubQuery} ORDER BY #1`;
-    } else if (viewParameters.type === 'text') {
-        viewQuery = `SELECT * FROM ${finalQueryAsSubQuery} LIMIT 1`;
-    } else {
-        throw new Error(`Unknown view type for building a view query: ${viewParameters.type}`);
-    }
-
-    return {
-        initialQueries,
-        finalQuery,
-        viewQuery,
-        schemaQuery,
-        countQuery,
-    };
-}
-
-
-export function buildChartQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): [string, string?] {
-    const chartViewParams = viewParams.chart;
-
-    const schemaQuery = `SELECT *
-                         FROM ${finalQueryAsSubQuery}
-                         LIMIT 1;`;
-
-
-    if (chartViewParams.groupBy && chartViewParams.xAxis && chartViewParams.yAxes?.length === 1) {
-        // build group by query
-        const groupBy = chartViewParams.groupBy;
-        const xAxis = chartViewParams.xAxis;
-        const yAxis = chartViewParams.yAxes[0];
-
-        const viewQuery = `
-            WITH data AS (SELECT ${xAxis}, ${groupBy}, ${yAxis}
-                          FROM ${finalQueryAsSubQuery}),
-                 dash_row_number_ids AS (SELECT range as dash_row_number_id FROM range((SELECT COUNT(*) FROM data))),
-                 data_with_ids AS (SELECT d.*, dash_row_number_ids.dash_row_number_id
-                                   FROM data d POSITIONAL JOIN dash_row_number_ids),
-                 data_with_ids_pivot AS (PIVOT data_with_ids
-                ON
-                                         ${groupBy}
-                                         USING
-                                         FIRST
-                                         (
-                                         ${yAxis}
-                                         )
-                                         GROUP BY ${xAxis}
-                                         ORDER BY ${xAxis})
-            SELECT COLUMNS(c -> c NOT LIKE '%dash_row_number_id%')
-            FROM data_with_ids_pivot
-            LIMIT ${CHART_QUERY_LIMIT};
-        `;
-        return [viewQuery, schemaQuery];
-    } else if (chartViewParams.xAxis && chartViewParams.yAxes && chartViewParams.yAxes.length > 0) {
-        // simple select x and y axes
-        const xAxis = chartViewParams.xAxis;
-        const yAxes = chartViewParams.yAxes.join(', ');
-
-        const viewQuery = `
-            SELECT ${xAxis}, ${yAxes}
-            FROM ${finalQueryAsSubQuery}
-            LIMIT ${CHART_QUERY_LIMIT};
-        `
-
-        return [viewQuery, schemaQuery];
-    } else {
-        console.warn('Chart query not fully configured, falling back to table view');
-        return [`SELECT *
-                 FROM ${finalQueryAsSubQuery}
-                 LIMIT ${CHART_QUERY_LIMIT};`, schemaQuery];
-    }
-
-}
-
-export function buildTableQuery(viewParams: ViewQueryParameters, finalQueryAsSubQuery: string): string {
-    const tableViewParams = viewParams.table;
-    const {offset, limit} = tableViewParams;
-
-    // Build "ORDER BY ..." from query.sorting
-    const orderByColumns = Object.entries(tableViewParams.sorting)
-        .map(([column, sorting]) => (sorting ? `"${column}" ${sorting}` : ''))
-        .filter(Boolean)
-        .join(', ');
-
-    const orderByQuery = orderByColumns ? 'ORDER BY ' + orderByColumns : '';
-    const filterQuery = buildFilterWhereClause(tableViewParams.filters, 'subquery');
-    return `
-        SELECT *
-        FROM ${finalQueryAsSubQuery} as subquery ${filterQuery} ${orderByQuery}
-        LIMIT ${limit} OFFSET ${offset};
-    `;
-}
-
-function buildFilterWhereClause(filters?: { [key: string]: ColumnFilter | undefined }, alias?: string): string {
-    if (!filters) return '';
-    const conditions: string[] = [];
-    for (const [column, filter] of Object.entries(filters)) {
-        if (!filter) continue;
-        const colRef = alias ? `${alias}."${column}"` : `"${column}"`;
-        if (filter.type === 'range') {
-            if (filter.min !== undefined) {
-                conditions.push(`${colRef} >= ${filter.min}`);
-            }
-            if (filter.max !== undefined) {
-                conditions.push(`${colRef} <= ${filter.max}`);
-            }
-        } else if (filter.type === 'values') {
-            if (filter.values.length > 0) {
-                const vals = filter.values
-                    .map((v) =>
-                        typeof v === 'number'
-                            ? v
-                            : `'${String(v).replace(/'/g, "''")}'`
-                    )
-                    .join(', ');
-                conditions.push(`${colRef} IN (${vals})`);
-            }
-        }
-    }
-    if (conditions.length === 0) return '';
-    return 'WHERE ' + conditions.join(' AND ');
+    viewParameters: RelationQueryParameters;
 }
 
 // 2. The async version that checks executability
@@ -497,21 +224,23 @@ export async function buildQueryWithCheck(relation: RelationState, inputManager?
         finalQuery,
         viewQuery,
         countQuery,
-        schemaQuery,
-    } = buildQuery(relation, inputManager);
+        schema,
+    } = await ViewManager.instance.buildQuery(relation);
 
     // Then do your async check:
     const executable = await ConnectionsService
         .getInstance()
         .checkIfQueryIsExecutable(viewQuery);
 
+    console.log('Test: Executable:', executable);
+
     // If not executable, fallback
     return {
-        schemaQuery,
         finalQuery,
         countQuery: executable ? countQuery : undefined,
         viewQuery: executable ? viewQuery : finalQuery,
         initialQueries,
+        schema
     };
 }
 
@@ -577,19 +306,7 @@ export async function executeQueryOfRelation(input: RelationState, inputManager?
         };
     }
 
-    let schemaColumns = [];
-    if (buildResult.schemaQuery) {
-        try {
-            // const schemaData = await ConnectionsService.getInstance().executeQuery(buildResult.schemaQuery, readOnly);
-            // schemaColumns = schemaData.columns;
-            schemaColumns = await getQuerySchema(buildResult.schemaQuery);
-
-        } catch (e) {
-            return returnEmptyErrorState(input, e);
-        }
-    } else {
-        schemaColumns = viewData.columns;
-    }
+    let schemaColumns = buildResult.schema;
 
     let count = undefined;
     if (buildResult.countQuery && viewQueryDurationMs <= COUNT_QUERY_THRESHOLD_MS) {

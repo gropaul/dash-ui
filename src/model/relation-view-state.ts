@@ -12,11 +12,6 @@ import {
 } from "@/model/relation-view-state/chart";
 import {Column} from "@/model/data-source-connection";
 import {
-    getInitialSelectViewState,
-    getInitialSelectViewStateEmpty,
-    InputTextViewState
-} from "@/model/relation-view-state/select";
-import {
     getInitialTextViewState,
     getInitialTextViewStateEmpty,
     TextDisplayViewState
@@ -25,9 +20,6 @@ import {
     getInitialParametersState,
     ParametersState
 } from "@/model/relation-view-state/parameters";
-import {RelationSelectionState, SelectSelectionSate} from "@/model/relation-view-state/selection";
-
-//
 
 export type Layout = 'row' | 'column';
 
@@ -96,12 +88,13 @@ export interface RelationViewBaseState extends TabViewBaseState {
 }
 
 export interface RelationViewState extends RelationViewBaseState {
+    // One state per widget type
     tableState: TableViewState
     chartState: ChartViewState
-    inputTextState: InputTextViewState
     textDisplayState: TextDisplayViewState
+
+    // Other view related things
     parametersState: ParametersState
-    selectionState?: RelationSelectionState
     schema: Column[];
     /** Session state for embedded mode (canvas node). Optional for backwards compat. */
     embeddedSessionState?: RelationSessionState;
@@ -109,13 +102,12 @@ export interface RelationViewState extends RelationViewBaseState {
     fullscreenSessionState?: RelationSessionState;
 }
 
-
-export type RelationViewType = 'table' | 'chart' | 'map' | 'select' | 'text';
+export type RelationViewType = 'table' | 'chart' | 'map' | 'select' | 'text' | 'slider';
 export type RelationViewSizing = 'fit' | 'full'; // fit: take the height of the content, full: take all available height
 
 
 const RELATION_SIZE_REQUIREMENTS: Record<RelationViewSizing, RelationViewType[]> = {
-    'fit': ['select'],
+    'fit': ['select', "slider"],
     'full': ['table', 'chart', 'map', 'text'],
 }
 
@@ -126,8 +118,7 @@ export function getViewSizeRequirements(viewType: RelationViewType): RelationVie
             return size as RelationViewSizing;
         }
     }
-    // default to full if not found
-    return 'full';
+    throw new Error(`No size requirements found for view type: ${viewType}`);
 }
 
 
@@ -155,7 +146,6 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
             ...baseState,
             chartState: getInitialChartViewStateEmpty(),
             tableState: getInitialTableDisplayStateEmpty(),
-            inputTextState: getInitialSelectViewStateEmpty(),
             textDisplayState: getInitialTextViewStateEmpty(),
             parametersState: getInitialParametersState(),
             schema: [],
@@ -168,7 +158,6 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
         ...baseState,
         chartState: getInitialChartViewState(data),
         tableState: getInitialTableDisplayState(data),
-        inputTextState: getInitialSelectViewState(data),
         textDisplayState: getInitialTextViewState(data),
         parametersState: getInitialParametersState(),
         schema: schemaColumns ?? data.columns,

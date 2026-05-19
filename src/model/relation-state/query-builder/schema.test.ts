@@ -52,7 +52,7 @@ vi.mock('@/state/connections/connections-service', () => ({
 }));
 
 // Import after mock is set up
-const {getQuerySchema} = await import('@/model/schema-utils');
+const {getQuerySchema} = await import('@/model/relation-state/query-builder/schema');
 
 describe('getQuerySchema', () => {
 

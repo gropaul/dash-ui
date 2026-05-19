@@ -88,7 +88,6 @@ export function RelationNodeBody(props: NodeBodyProps) {
                     style={{
                         borderRadius: "0.5rem",
                         height: "100%",
-                        overflow: "hidden",
                         display: "flex",
                         flexDirection: "column"
                     }}
@@ -101,7 +100,7 @@ export function RelationNodeBody(props: NodeBodyProps) {
                             />
                         </div>
                     )}
-                    <div className={cn("w-full flex-1 min-h-0 overflow-hidden", props.className)}>{children}</div>
+                    <div className={cn("w-full flex-1 min-h-0", props.className)}>{children}</div>
                 </div>
             </div>
         </div>

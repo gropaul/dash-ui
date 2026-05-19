@@ -2,7 +2,7 @@
 import type {API} from '@editorjs/editorjs';
 import React, {useEffect, useState} from 'react';
 
-import {RelationState, ViewQueryParameters} from '@/model/relation-state';
+import {RelationState, RelationQueryParameters} from '@/model/relation-state';
 import {DashboardDataView} from '@/components/dashboard/dashboard-data-view';
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {MenuConfig} from "@editorjs/editorjs/types/tools";

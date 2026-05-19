@@ -1,10 +1,10 @@
-
+export type SelectionMode = 'select' | 'slider';
 
 export interface RelationSelectionState {
-    select?: SelectSelectionSate;
+    mode: SelectionMode;
+    select?: SelectSelectionState;
 }
 
-export interface SelectSelectionSate {
-    columnName: string;        // the column to filter on
-    selectedValues: any[];     // raw values the user picked (preserves JS types from DuckDB)
+export interface SelectSelectionState {
+    columnName: string;
 }

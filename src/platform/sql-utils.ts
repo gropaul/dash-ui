@@ -173,12 +173,23 @@ export function removeSemicolon(sql: string) {
     }
 }
 
+export function escapeName(name: string){
+    return `"${name.replace(/"/g, '""')}"`;
+}
+
 // escape single quotes in the sql string for use in a string literal
 export function escapeSQLForStringLiteral(sql: string): string {
     return sql.replace(/'/g, "''");
 }
 
-export function turnQueryIntoSubquery(sql: string, alias?: string): string {
+
+export function formatValueForSql(v: any): string {
+    if (typeof v === 'number' || typeof v === 'bigint') return String(v);
+    if (typeof v === 'boolean') return v ? 'true' : 'false';
+    return `'${String(v).replace(/'/g, "''")}'`;
+}
+
+export function turnQueryIntoSubquery(sql: string, alias: string): string {
     const statements = splitSQL(sql).map(minifySQL);
 
     // Ensure the SQL is a single statement
@@ -189,10 +200,6 @@ export function turnQueryIntoSubquery(sql: string, alias?: string): string {
 
     // Retrieve the cleaned single SQL statement
     const singleStatement = statements[0];
-
-    if (!alias) {
-        return `(${singleStatement})`;
-    }
 
     // Validate the alias (simple validation for SQL-safe aliases)
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(alias)) {

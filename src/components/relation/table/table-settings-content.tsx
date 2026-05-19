@@ -8,9 +8,9 @@ import {
 import {ChevronRight, Columns3, Hash, RotateCcw} from "lucide-react";
 import {ContentSelectColumns} from "@/components/relation/table/table-column/content-select-columns";
 import {getInitialTableDisplayStateEmpty} from "@/model/relation-view-state/table";
-import {getInitialTableQueryParameters} from "@/model/relation-state";
 import {useRelationColumns} from "@/state/relations-data.state";
 import {RelationSettingsProps} from "@/components/relation/relation-settings";
+import {ViewManager} from "@/model/relation-state/relation-view";
 
 export function TableSettingsContent(props: RelationSettingsProps) {
 
@@ -45,7 +45,7 @@ export function TableSettingsContent(props: RelationSettingsProps) {
 
         await props.updateRelationDataWithParams({
             ...props.relationState.query.viewParameters,
-            table: getInitialTableQueryParameters()
+            table: ViewManager.instance.getInitialQueryParameters().table
         })
     }
 

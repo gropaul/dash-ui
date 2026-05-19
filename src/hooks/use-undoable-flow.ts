@@ -38,7 +38,7 @@ export function useUndoableFlow(canvasId: string) {
     const setNodes = useCallback((nodesOrUpdater: Node[] | ((nodes: Node[]) => Node[])) => {
         maybeSnapshot();
         const newNodes = typeof nodesOrUpdater === 'function'
-            ? nodesOrUpdater(lastNodesRef.current)
+            ? nodesOrUpdater(useRelationsState.getState().canvas[canvasId]?.nodes ?? lastNodesRef.current)
             : nodesOrUpdater;
         updateCanvasState(canvasId, {nodes: newNodes});
     }, [canvasId, updateCanvasState, maybeSnapshot]);
@@ -46,7 +46,7 @@ export function useUndoableFlow(canvasId: string) {
     const setEdges = useCallback((edgesOrUpdater: Edge[] | ((edges: Edge[]) => Edge[])) => {
         maybeSnapshot();
         const newEdges = typeof edgesOrUpdater === 'function'
-            ? edgesOrUpdater(lastEdgesRef.current)
+            ? edgesOrUpdater(useRelationsState.getState().canvas[canvasId]?.edges ?? lastEdgesRef.current)
             : edgesOrUpdater;
         updateCanvasState(canvasId, {edges: newEdges});
     }, [canvasId, updateCanvasState, maybeSnapshot]);

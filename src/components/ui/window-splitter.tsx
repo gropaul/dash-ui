@@ -75,7 +75,7 @@ export function WindowSplitter(props: WindowSplitterProps) {
     return (
         <div ref={containerRef} className={`bg-inherit w-full h-full flex ${flexDirection} items-stretch`}>
             {(props.child1Active ?? true) && (
-                <div className="overflow-auto" style={child1Style}>{child1}</div>
+                <div className="overflow-visible" style={child1Style}>{child1}</div>
             )}
 
             {needHandle && (
