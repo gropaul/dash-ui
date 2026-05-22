@@ -532,7 +532,7 @@ function createAxisConfig(column: {id: string; name: string}, yIndex: number = 0
 /**
  * Remove columns from config that are no longer present in the schema
  */
-function cleanupInvalidColumns(
+export function cleanupInvalidColumns(
     plotConfig: PlotConfig,
     columns: RelationData['columns']
 ): PlotConfig {

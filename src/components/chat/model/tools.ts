@@ -5,7 +5,8 @@ import {getRandomId} from "@/platform/id-utils";
 import {RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
 import {executeQueryOfRelation, RelationState} from "@/model/relation-state";
 import {RelationViewType} from "@/model/relation-view-state";
-import {ChartViewState, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
+import {getInitialAxisDecoration} from "@/model/relation-view-state/chart";
+import {ChartQueryParameters} from "@/model/relation-state/relation-view-chart";
 import z from 'zod';
 import {tool} from "ai";
 import {parseMarkdownToBlocks} from "@/components/editor/parse-markdown";
@@ -88,57 +89,53 @@ export function getDefaultRelationBockData(sql: string, viewType: RelationViewTy
     return RelationActions.create({source, viewType, showCode: false});
 }
 
-function getChartViewState(args: ChartViewDataArgs): ChartViewState {
+function getChartQueryParameters(args: ChartViewDataArgs): ChartQueryParameters {
 
     function dequoteAxisLabel(label: string): string {
         return label.replace(/"/g, '');
     }
 
     return {
-        chart: {
-            plot: {
-                title: args.title,
-                type: args.chartType,
-                cartesian: {
-                    xLabelRotation: args.xLabelRotation,
-                    xAxis: {
+        plot: {
+            title: args.title,
+            type: args.chartType,
+            cartesian: {
+                xLabelRotation: args.xLabelRotation,
+                xAxis: {
+                    label: dequoteAxisLabel(args.xAxis),
+                    columnId: dequoteAxisLabel(args.xAxis),
+                    decoration: getInitialAxisDecoration(0)
+                },
+                yAxes: args.yAxes.map((yAxis, index) => ({
+                    label: dequoteAxisLabel(yAxis),
+                    columnId: dequoteAxisLabel(yAxis),
+                    decoration: getInitialAxisDecoration(index)
+                })),
+                xRange: {},
+                yRange: {
+                    start: args.yRangeMin === 'zero' ? 0 : undefined,
+                },
+                decoration: {
+                    bar: {stacked: false}
+                },
+                groupBy: undefined
+            },
+            pie: {
+                axis: {
+                    label: {
                         label: dequoteAxisLabel(args.xAxis),
                         columnId: dequoteAxisLabel(args.xAxis),
                         decoration: getInitialAxisDecoration(0)
                     },
-                    yAxes: args.yAxes.map((yAxis, index) => ({
-                        label: dequoteAxisLabel(yAxis),
-                        columnId: dequoteAxisLabel(yAxis),
-                        decoration: getInitialAxisDecoration(index)
-                    })),
-                    xRange: {},
-                    yRange: {
-                        start: args.yRangeMin === 'zero' ? 0 : undefined,
-                    },
-                    decoration: {
-                        bar: {
-                            stacked: false
-                        }
-                    },
-                    groupBy: undefined
-                },
-                pie: {
-                    axis: {
-                        label: {
-                            label: dequoteAxisLabel(args.xAxis),
-                            columnId: dequoteAxisLabel(args.xAxis),
-                            decoration: getInitialAxisDecoration(0)
-                        },
-                        radius: {
-                            label: dequoteAxisLabel(args.yAxes[0]),
-                            columnId: dequoteAxisLabel(args.yAxes[0]),
-                            decoration: getInitialAxisDecoration(0)
-                        }
+                    radius: {
+                        label: dequoteAxisLabel(args.yAxes[0]),
+                        columnId: dequoteAxisLabel(args.yAxes[0]),
+                        decoration: getInitialAxisDecoration(0)
                     }
                 }
             }
         },
-    }
+    };
 }
 
 // --- Dashboard insertion helper ---
@@ -175,7 +172,7 @@ const ChartToolInputSchema = z.object({
 });
 
 function chartInputToPartialRelation(input: z.infer<typeof ChartToolInputSchema>): DeepPartial<RelationState> {
-    const chartViewState = getChartViewState({
+    const chartParams = getChartQueryParameters({
         title: input.title,
         sql: input.sql,
         chartType: input.chartType,
@@ -188,10 +185,13 @@ function chartInputToPartialRelation(input: z.infer<typeof ChartToolInputSchema>
         query: {
             baseQuery: input.sql,
             activeBaseQuery: input.sql,
+            viewParameters: {
+                type: 'chart',
+                chart: chartParams,
+            },
         },
         viewState: {
             selectedView: 'chart',
-            chartState: chartViewState,
             fullscreenSessionState: {
                 codeFenceState: {show: false, sizePercentage: 30, layout: 'row'},
                 configState: {showConfig: false, configSplitRatio: 0.5, configSplitLayout: 'column'},

@@ -80,7 +80,7 @@ export function buildMacroQuery<QueryParameters, QueryState>(
     const state = relationView.getQueryStateInternal(relationState) || relationView.getInitialQueryStateInternal();
 
     const {initialQueries, finalQueryAsSubQuery} = splitBaseQuery(relationState.query.baseQuery);
-
+    console.log('Test: Macro Relation State:', relationState);
     let macroQuery = relationView.buildMacroQueryInternal(parameters, state, finalQueryAsSubQuery, QUERY_ALIAS);
     console.log('Test: Macro Query:', macroQuery);
     macroQuery = addSemicolonIfNeeded(macroQuery)

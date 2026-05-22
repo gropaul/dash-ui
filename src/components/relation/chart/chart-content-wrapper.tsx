@@ -6,6 +6,8 @@ import {CanDisplayPlot, tryInferChartConfig} from "@/model/relation-view-state/c
 import {useEffect, useRef} from "react";
 import {useRelationContext} from "@/components/relation/chart/chart-export-context";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
+import {ChartQueryParameters} from "@/model/relation-state/relation-view-chart";
+import {ViewManager} from "@/model/relation-state/relation-view";
 
 export interface ChartContentWrapperProps extends RelationViewContentProps {
     showOverlay?: boolean;
@@ -16,39 +18,47 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
     const chartExport = useRelationContext();
     const data = props.data;
 
-    const originalConfig = props.relationState.viewState.chartState;
+    const originalConfig = ViewManager.instance.chart.getQueryParameters(props.relationState);
 
     // Check if original config has an error
-    const originalError = CanDisplayPlot(originalConfig.chart, data);
+    const originalError = originalConfig ? CanDisplayPlot(originalConfig, data) : {
+        type: 'config-not-complete' as const,
+        message: 'No chart configuration'
+    };
 
     // Only try to infer if original has an error
-    let effectiveChartState = originalConfig;
+    let effectiveConfig = originalConfig;
     let effectiveRelationState = props.relationState;
 
-    if (originalError) {
-        const inferredChart = tryInferChartConfig(originalConfig.chart, data);
+    if (originalError && originalConfig) {
+        const inferredChart = tryInferChartConfig(originalConfig, data);
         if (inferredChart) {
-            const inferredChartState = {...originalConfig, chart: inferredChart};
-            const inferredError = CanDisplayPlot(inferredChart, data);
+            const inferredConfig: ChartQueryParameters = {...originalConfig, plot: inferredChart.plot};
+            const inferredError = CanDisplayPlot(inferredConfig, data);
             // Only use inferred if it has no error
             if (!inferredError) {
-                effectiveChartState = inferredChartState;
+                effectiveConfig = inferredConfig;
                 effectiveRelationState = {
                     ...props.relationState,
-                    viewState: {...props.relationState.viewState, chartState: effectiveChartState}
+                    query: {
+                        ...props.relationState.query,
+                        viewParameters: {
+                            ...props.relationState.query.viewParameters,
+                            chart: effectiveConfig,
+                        }
+                    }
                 };
             }
         }
     }
 
-    const plotDisplayError = CanDisplayPlot(effectiveChartState.chart, data);
+    const plotDisplayError = effectiveConfig ? CanDisplayPlot(effectiveConfig, data) : originalError;
 
     // Register ref with context
     useEffect(() => {
         chartExport?.setExportableChartRef(exportableRef);
-        console.log('setting chart export to', exportableRef);
         return () => chartExport?.setExportableChartRef(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const showChartSettings = props.getSessionState(props.mode).configState.showConfig;
@@ -66,9 +76,9 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
                     showChartSettings={showChartSettings}
                 />
                 :
-                <Exportable ref={exportableRef} fileName={toSnakeCase(effectiveChartState.chart.plot.title ?? 'plot')}>
+                <Exportable ref={exportableRef} fileName={toSnakeCase(effectiveConfig?.plot?.title ?? 'plot')}>
                     <ChartContent
-                        embedded={props.embedded}
+                        {...props}
                         hideTitleIfEmpty={props.embedded}
                         data={data}
                         relationState={effectiveRelationState}

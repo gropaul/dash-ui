@@ -43,7 +43,6 @@ export function resetQueryParams(queryData: QueryData): RelationQueryParameters 
         return {
             ...oldParams,
             type: 'chart',
-            chart: oldParams.chart,
         };
     } else if (oldParams.type === 'select') {
         return {

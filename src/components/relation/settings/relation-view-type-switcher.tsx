@@ -24,8 +24,8 @@ const views: ViewItem[] = [
     { key: 'table', viewType: 'table', label: 'Table' },
     { key: 'chart', viewType: 'chart', label: 'Chart' },
     { key: 'text', viewType: 'text', label: 'Text' },
-    { key: 'select', viewType: 'select', label: 'Input: Select' },
-    { key: 'slider', viewType: 'slider', label: 'Input: Slider' },
+    { key: 'select', viewType: 'select', label: 'Dropdown' },
+    { key: 'slider', viewType: 'slider', label: 'Slider' },
     { key: 'map', viewType: 'map', label: 'Map', disabled: true },
 ];
 

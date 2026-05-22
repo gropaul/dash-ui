@@ -2,6 +2,7 @@ import {AxisConfig, ChartConfig, getInitialAxisDecoration, PlotConfig} from "@/m
 import {RelationData} from "@/model/relation";
 import {EChartsOption} from "echarts-for-react/src/types";
 import {DEFAULT_COLORS} from "@/platform/global-data";
+import {ChartInteractionMode, ChartQueryState} from "@/model/relation-state/relation-view-chart";
 
 
 export function plotIsCartesian(plot: PlotConfig) {
@@ -15,12 +16,15 @@ export function plotUsesGroup(plot: PlotConfig) {
 export function toEChartOptions(
     config: ChartConfig,
     data: RelationData,
-    textColor: string = '#333'
+    textColor: string = '#333',
+    interactionMode: ChartInteractionMode = 'click',
+    queryState: ChartQueryState = {}
 ): EChartsOption {
 
     const {plot} = config;
 
     const baseConfig = {
+        toolbox: {show: false},
         title: {
             text: plot.title ? plot.title : null,
             left: 'center',
@@ -82,6 +86,14 @@ export function toEChartOptions(
             value: row[radiusIdx],
         }));
 
+        const selectedXValues = queryState.selectedXValues;
+        const pieData = (interactionMode === 'click' && selectedXValues && selectedXValues.length > 0)
+            ? seriesData.map(item => ({
+                ...item,
+                itemStyle: {opacity: selectedXValues.includes(item.name) ? 1.0 : 0.25},
+            }))
+            : seriesData;
+
         return {
 
             ...baseConfig,
@@ -91,7 +103,7 @@ export function toEChartOptions(
                 radius: [dec.innerRadius, "60%"],
                 center: ['50%', '60%'],
                 padAngle: dec.padAngle,
-                data: seriesData,
+                data: pieData,
                 itemStyle: {
                     borderRadius: dec.cornerRadius,
                 },
@@ -193,13 +205,36 @@ export function toEChartOptions(
             }
         }
 
-        const series = getSeries(plot, GetColumn, data);
+        let series = getSeries(plot, GetColumn, data);
+
+        // Visual dimming for click mode when values are selected
+        const selectedXValues = queryState.selectedXValues;
+        if (interactionMode === 'click' && selectedXValues && selectedXValues.length > 0) {
+            series = series.map((s: any) => ({
+                ...s,
+                data: s.data.map((point: any) => {
+                    const xVal = Array.isArray(point.value) ? point.value[0] : point.value;
+                    const isSelected = selectedXValues.includes(xVal);
+                    return {
+                        ...point,
+                        itemStyle: {
+                            ...(point.itemStyle ?? {}),
+                            opacity: isSelected ? 1.0 : 0.25,
+                        },
+                    };
+                }),
+            }));
+        }
+
+        // Brush component for range/box modes
+        const brushOption = buildBrushOption(interactionMode);
 
         return {
             ...baseConfig,
             xAxis,
             yAxis,
             series,
+            ...(brushOption ? {brush: brushOption} : {}),
         };
 
     }
@@ -267,6 +302,20 @@ function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], dat
         let vals = GetColumn(axis.columnId);
         return getEChartSeriesFromAxis(axis, vals, plot, yAxisCount, xAxisId, xValues);
     })
+}
+
+
+function buildBrushOption(mode: ChartInteractionMode): object | null {
+    if (mode === 'x-range') {
+        return {toolbox: [], brushType: 'lineX', brushMode: 'single', throttleDelay: 100};
+    }
+    if (mode === 'y-range') {
+        return {toolbox: [], brushType: 'lineY', brushMode: 'single', throttleDelay: 100};
+    }
+    if (mode === 'box') {
+        return {toolbox: [], brushType: 'rect', brushMode: 'single', throttleDelay: 100};
+    }
+    return null;
 }
 
 

@@ -15,6 +15,7 @@ import {getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {RelationEvents} from "@/state/relations/event/relation-events";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {ViewManager} from "@/model/relation-state/relation-view";
+import {getInitialChartQueryParameters} from "@/model/relation-state/relation-view-chart";
 
 
 function isDisplayNameTaken(displayName: string, excludeRelationId?: string): boolean {
@@ -76,22 +77,16 @@ export class RelationActions {
             showCode
         );
         viewState.selectedView = viewType;
-        if (viewType === 'chart') {
-            viewState.chartState.chart.plot.cartesian.xAxis = {
-                label: 'x',
-                columnId: 'x',
-                decoration: getInitialAxisDecoration(0)
-            }
-            viewState.chartState.chart.plot.cartesian.yAxes = [{
-                label: 'y',
-                columnId: 'y',
-                decoration: getInitialAxisDecoration(1)
-            }];
-            viewState.chartState.chart.plot.type = 'line';
-        }
         const baseQuery = getBaseQueryFromSource(source);
         let params = ViewManager.instance.getInitialQueryParameters();
         params.type = viewType;
+        if (viewType === 'chart') {
+            const chartParams = getInitialChartQueryParameters();
+            chartParams.plot.type = 'line';
+            chartParams.plot.cartesian.xAxis = {label: 'x', columnId: 'x', decoration: getInitialAxisDecoration(0)};
+            chartParams.plot.cartesian.yAxes = [{label: 'y', columnId: 'y', decoration: getInitialAxisDecoration(1)}];
+            params.chart = chartParams;
+        }
         const relationState: RelationState = {
             ...relation,
             query: {

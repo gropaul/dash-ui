@@ -11,6 +11,7 @@ import {cn} from "@/lib/utils";
 import {RelationData} from "@/model/relation";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
+import {ViewManager} from "@/model/relation-state/relation-view";
 
 
 export interface ChartConfigProps extends EndUserRelationActions{
@@ -18,35 +19,23 @@ export interface ChartConfigProps extends EndUserRelationActions{
     relationState: RelationState,
     data: RelationData,
     embedded?: boolean,
-
-
 }
 
 export function ChartConfigView(props: ChartConfigProps) {
 
-    const config = props.relationState.viewState.chartState;
+    const config = ViewManager.instance.chart.getQueryParameters(props.relationState);
 
     function updateTitle(title: string) {
-        props.updateRelationViewState({
-            chartState: {
-                chart: {
-                    plot: {
-                        title: title,
-                    },
-                },
-            },
+        if (!config) return;
+        props.updateRelationQueryParams({
+            chart: {...config, plot: {...config.plot, title}},
         });
     }
 
     function updatePlotType(type: PlotType) {
-        props.updateRelationViewState( {
-            chartState: {
-                chart: {
-                    plot: {
-                        type: type,
-                    },
-                },
-            },
+        if (!config) return;
+        props.updateRelationQueryParams({
+            chart: {...config, plot: {...config.plot, type}},
         });
     }
 
@@ -74,7 +63,7 @@ export function ChartConfigView(props: ChartConfigProps) {
                             type="text"
                             id="title"
                             placeholder="Title"
-                            value={config.chart.plot.title}
+                            value={config?.plot?.title}
                             onChange={(e) => updateTitle(e.target.value)}
                         />
 
@@ -83,7 +72,7 @@ export function ChartConfigView(props: ChartConfigProps) {
                             <Muted>Type</Muted>
                         </Label>
                         <ChartTypeSelector
-                            type={config.chart.plot.type}
+                            type={config?.plot?.type ?? 'bar'}
                             onPlotTypeChange={updatePlotType}
                         />
 
@@ -101,8 +90,8 @@ export function ChartConfigView(props: ChartConfigProps) {
 
 
 export function ChartSpecificConfig(props: ChartConfigProps) {
-    const config = props.relationState.viewState.chartState.chart.plot;
-    switch (config.type) {
+    const parameters = ViewManager.instance.chart.getQueryParameters(props.relationState);
+    switch (parameters.plot.type) {
         case 'bar':
         case "radar":
         case "line":
@@ -112,7 +101,7 @@ export function ChartSpecificConfig(props: ChartConfigProps) {
         case "pie":
             return <ConfigViewPie {...props}/>;
         default:
-            throw new Error(`Unsupported plot type: ${config.type}`);
+            return <div> Unsupported plot type: {parameters.plot.type}</div>;
     }
 
 }

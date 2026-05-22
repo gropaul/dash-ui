@@ -79,7 +79,7 @@ export default function ChatMessageList(props: ChatWindowProps) {
                                 {isReadOnly ? (
                                     <span
                                         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-muted text-muted-foreground cursor-default">
-                                                <Lock className="h-3 w-3"/>&nbsp;Read-only
+                                                <Lock className="h-3 w-3"/>&nbsp;Read-only access
                                             </span>
                                 ) : (
                                     <span
@@ -90,7 +90,7 @@ export default function ChatMessageList(props: ChatWindowProps) {
                             </TooltipTrigger>
                             <TooltipContent>
                                 {isReadOnly
-                                    ? "No writes or deletes. Change this in settings."
+                                    ? "No writes or deletes queries allowed. Change this in settings."
                                     : "The agent can read, write, and delete your data."}
                             </TooltipContent>
                         </Tooltip>

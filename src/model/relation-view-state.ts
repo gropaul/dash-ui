@@ -5,11 +5,6 @@ import {
 } from "@/model/relation-view-state/table";
 import {RelationData} from "@/model/relation";
 import {deepEqual} from "@/platform/object-utils";
-import {
-    ChartViewState,
-    getInitialChartViewState,
-    getInitialChartViewStateEmpty
-} from "@/model/relation-view-state/chart";
 import {Column} from "@/model/data-source-connection";
 import {
     getInitialTextViewState,
@@ -90,7 +85,6 @@ export interface RelationViewBaseState extends TabViewBaseState {
 export interface RelationViewState extends RelationViewBaseState {
     // One state per widget type
     tableState: TableViewState
-    chartState: ChartViewState
     textDisplayState: TextDisplayViewState
 
     // Other view related things
@@ -144,7 +138,6 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
     if (!data) {
         return {
             ...baseState,
-            chartState: getInitialChartViewStateEmpty(),
             tableState: getInitialTableDisplayStateEmpty(),
             textDisplayState: getInitialTextViewStateEmpty(),
             parametersState: getInitialParametersState(),
@@ -156,7 +149,6 @@ export function getInitViewState(displayName: string, data?: RelationData, schem
 
     return {
         ...baseState,
-        chartState: getInitialChartViewState(data),
         tableState: getInitialTableDisplayState(data),
         textDisplayState: getInitialTextViewState(data),
         parametersState: getInitialParametersState(),
