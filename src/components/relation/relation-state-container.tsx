@@ -77,7 +77,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                             </div>
                         )}
                         <div className={cn("h-[1px] w-full bg-muted", !showQuery && 'hidden')}/>
-                        <div className="bg-inherit flex-shrink-0">
+                        <div className={cn("bg-inherit", showQuery ? "flex-shrink-0 min-h-24" : "flex-1")}>
                             <ContentWrapper {...props}/>
                         </div>
                     </div>

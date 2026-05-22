@@ -3,21 +3,13 @@
 import * as React from "react"
 import {Slider as SliderUI} from "@/components/ui/slider"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content"
-import {WidgetConfigShell} from "@/components/relation/widget-config-shell"
-import {SliderSettingsContent} from "@/components/relation/slider/slider-settings-content"
 import {isRangeMode} from "@/model/relation-view-state/slider"
 import {ViewManager} from "@/model/relation-state/relation-view"
 import {getRelationActions} from "@/state/relations/actions/end-user-actions"
 import {SliderQueryState} from "@/model/relation-state/relation-view-slider"
 
 export function Slider(props: RelationViewContentProps) {
-    return (
-        <WidgetConfigShell
-            content={<SliderContent {...props} />}
-            configPanel={<SliderSettingsContent {...props} />}
-            {...props}
-        />
-    );
+    return <SliderContent {...props}/>;
 }
 
 function deriveDefaultStep(min: number, max: number): number {

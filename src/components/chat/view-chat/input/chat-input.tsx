@@ -25,7 +25,7 @@ export function ChatInput({onSendMessage, onStop, isLoading, className}: ChatInp
     };
 
 
-    return <div className={cn(className, 'px-2 pb-2 pt-2 border-t border-border/70')}>
+    return <div className={cn(className, 'px-2 pb-4 pt-2 border-t border-border/70')}>
         {/* Context Bar */}
         <ChatInputContextBar/>
 
@@ -35,7 +35,7 @@ export function ChatInput({onSendMessage, onStop, isLoading, className}: ChatInp
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Type your message…"
                   style={{overflowY: 'overlay' as any}}
-                  className="flex-1 px-3 py-2 text-sm bg-transparent rounded-[20px] focus:outline-none resize-none min-h-[38px] max-h-[86px] custom-scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent"
+                  className="flex-1 px-3 py-2 text-sm bg-transparent rounded-[20px] focus:outline-none resize-none min-h-[42px] max-h-[86px] custom-scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent"
                   rows={1}
                   onKeyDown={(e) => {
                       if (
@@ -59,7 +59,7 @@ export function ChatInput({onSendMessage, onStop, isLoading, className}: ChatInp
             ) : (
                 <Button
                     size="icon"
-                    className="h-7 w-7 mr-1 shrink-0 rounded-full"
+                    className="h-8 w-8 mr-1 shrink-0 rounded-full"
                     disabled={!inputValue.trim()}
                     onClick={() =>
                         inputValue.trim() && handleSendMessage(inputValue)
