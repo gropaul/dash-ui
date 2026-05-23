@@ -20,7 +20,7 @@ const TOUR_SLIDES = [
     },
     {
         videoSrc: `${DASH_VIDEO_BASE_URL}/demo_canvas_different_views.mp4`,
-        title: "Explore Any Way You Like",
+        title: "Many display options",
         description: "Every query node can display its results as a table, chart, or input control. ",
     },
     {
