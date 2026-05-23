@@ -3,6 +3,7 @@ import {SELECT_QUERY_LIMIT} from "@/platform/global-data";
 import {Column} from "@/model/data-source-connection";
 import {IRelationView} from "@/model/relation-state/relation-view-abstract";
 import {formatValueForSql} from "@/platform/sql-utils";
+import {SelectConfigView} from "@/components/relation/select/select-config-view";
 
 export type SelectType = 'fulltext' | 'select'
 
@@ -24,6 +25,10 @@ export function getColumnRef(fromAlias: string, column?: string): string {
 }
 
 export class RelationViewSelect extends IRelationView<SelectQueryParameters, SelectQueryState> {
+
+    getSettingsComponent() {
+        return SelectConfigView;
+    }
 
     getInitialQueryParametersInternal(): SelectQueryParameters {
         return {

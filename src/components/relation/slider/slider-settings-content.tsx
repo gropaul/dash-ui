@@ -6,20 +6,27 @@ import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {ScrollArea} from "@/components/ui/scroll-area"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content"
-import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group"
-import {Check} from "lucide-react"
-import {cn} from "@/lib/utils"
-import {ValueIcon} from "@/components/relation/common/value-icon"
+import {Toggle} from "@/components/ui/toggle"
 import {SliderMode} from "@/model/relation-view-state/slider"
 import {isNumeric} from "@/model/relation-view-state/column-utils"
 import {ViewManager} from "@/model/relation-state/relation-view"
 import {getRelationActions} from "@/state/relations/actions/end-user-actions"
+import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector"
+import {AxisConfig, getInitialAxisDecoration} from "@/model/relation-view-state/chart"
 
 function deriveDefaultStep(min: number, max: number): number {
     if (Number.isInteger(min) && Number.isInteger(max)) return 1;
     const rawStep = (max - min) / 100;
     return Math.pow(10, Math.round(Math.log10(rawStep)));
 }
+
+const MODES: { value: SliderMode; label: string }[] = [
+    {value: 'eq', label: '='},
+    {value: 'lower', label: '≤'},
+    {value: 'higher', label: '≥'},
+    {value: 'in_range', label: 'In range'},
+    {value: 'out_range', label: 'Out range'},
+];
 
 export function SliderSettingsContent(props: RelationViewContentProps) {
     const {relationState, data} = props;
@@ -34,8 +41,18 @@ export function SliderSettingsContent(props: RelationViewContentProps) {
 
     const numericColumns = relationState.viewState.schema.filter(isNumeric);
 
-    function setColumn(columnName: string) {
-        actions.updateRelationQueryParams({slider: {column: columnName}});
+    // Bridge: slider stores column by name; ColumnSelector uses AxisConfig with columnId (id === name in schema)
+    const currentColumn = numericColumns.find(col => col.name === params.column);
+    const axis: AxisConfig | undefined = currentColumn
+        ? {columnId: currentColumn.id, label: currentColumn.name, decoration: getInitialAxisDecoration(0)}
+        : undefined;
+
+    async function updateColumn(update: Partial<AxisConfig>) {
+        if (!update.columnId) return;
+        await props.updateRelationDataWithParams({
+            ...relationState.query.viewParameters,
+            slider: {...params, column: update.columnId},
+        });
     }
 
     function setMode(mode: SliderMode) {
@@ -48,6 +65,8 @@ export function SliderSettingsContent(props: RelationViewContentProps) {
             actions.updateRelationQueryParams({slider: {step: num}});
         }
     }
+
+    const currentMode = params.mode ?? 'eq';
 
     return (
         <div className="relative flex h-full min-h-0 flex-col gap-2 overflow-hidden">
@@ -64,29 +83,17 @@ export function SliderSettingsContent(props: RelationViewContentProps) {
                         <Label className="h-3">
                             <Muted>Column</Muted>
                         </Label>
-                        <div className="flex flex-col gap-1">
-                            {numericColumns.length === 0 ? (
-                                <Muted>No numeric columns available</Muted>
-                            ) : (
-                                numericColumns.map(col => (
-                                    <button
-                                        key={col.id}
-                                        className={cn(
-                                            "flex items-center gap-2 px-2 py-1.5 rounded text-sm w-full text-left",
-                                            "hover:bg-accent transition-colors",
-                                            params.column === col.name ? "bg-accent" : "bg-transparent"
-                                        )}
-                                        onClick={() => setColumn(col.name)}
-                                    >
-                                        <div className="w-4 h-4 flex items-center justify-center">
-                                            {params.column === col.name && <Check className="w-3 h-3 text-primary"/>}
-                                        </div>
-                                        <ValueIcon size={14} type={col.type}/>
-                                        <span>{col.name}</span>
-                                    </button>
-                                ))
-                            )}
-                        </div>
+                        {numericColumns.length === 0 ? (
+                            <Muted>No numeric columns available</Muted>
+                        ) : (
+                            <ColumnSelector
+                                plotType="bar"
+                                axisType="slider"
+                                axis={axis}
+                                columns={numericColumns}
+                                updateAxis={updateColumn}
+                            />
+                        )}
 
                         <Separator/>
 
@@ -94,18 +101,36 @@ export function SliderSettingsContent(props: RelationViewContentProps) {
                         <Label className="h-3">
                             <Muted>Mode</Muted>
                         </Label>
-                        <ToggleGroup
-                            type="single"
-                            value={params.mode ?? 'eq'}
-                            onValueChange={(v) => v && setMode(v as SliderMode)}
-                            className="justify-start flex-wrap"
-                        >
-                            <ToggleGroupItem value="eq" className="text-xs">=</ToggleGroupItem>
-                            <ToggleGroupItem value="lower" className="text-xs">&lt;=</ToggleGroupItem>
-                            <ToggleGroupItem value="higher" className="text-xs">&gt;=</ToggleGroupItem>
-                            <ToggleGroupItem value="in_range" className="text-xs">In range</ToggleGroupItem>
-                            <ToggleGroupItem value="out_range" className="text-xs">Out range</ToggleGroupItem>
-                        </ToggleGroup>
+                        <div className="flex flex-col gap-1 w-full">
+                            <div className="grid grid-cols-3 gap-1 w-full">
+                                {MODES.slice(0, 3).map(({value, label}) => (
+                                    <Toggle
+                                        key={value}
+                                        variant="outline"
+                                        size="sm"
+                                        pressed={currentMode === value}
+                                        onPressedChange={() => setMode(value)}
+                                        className="w-full text-xs"
+                                    >
+                                        {label}
+                                    </Toggle>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1 w-full">
+                                {MODES.slice(3).map(({value, label}) => (
+                                    <Toggle
+                                        key={value}
+                                        variant="outline"
+                                        size="sm"
+                                        pressed={currentMode === value}
+                                        onPressedChange={() => setMode(value)}
+                                        className="w-full text-xs"
+                                    >
+                                        {label}
+                                    </Toggle>
+                                ))}
+                            </div>
+                        </div>
 
                         <Separator/>
 

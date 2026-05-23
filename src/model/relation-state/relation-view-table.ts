@@ -3,6 +3,7 @@ import {
 } from "@/model/relation-state";
 import {Column} from "@/model/data-source-connection";
 import {IRelationView} from "@/model/relation-state/relation-view-abstract";
+import {TableConfigView} from "@/components/relation/table/table-config-view";
 
 export type ColumnSorting = 'ASC' | 'DESC';
 
@@ -28,6 +29,10 @@ export interface TableQueryParameters {
 }
 
 export class RelationViewTable extends IRelationView<TableQueryParameters> {
+
+    getSettingsComponent() {
+        return TableConfigView;
+    }
 
     getInitialQueryParametersInternal(): TableQueryParameters {
         return {

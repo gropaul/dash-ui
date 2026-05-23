@@ -6,6 +6,7 @@ import {RelationViewSelect} from "@/model/relation-state/relation-view-select";
 import {IRelationView} from "@/model/relation-state/relation-view-abstract";
 import {RelationViewSlider} from "@/model/relation-state/relation-view-slider";
 import {RelationViewText} from "@/model/relation-state/relation-view-text";
+import type {ComponentType} from "react";
 
 // singleton class, all RelationViews need to be registered here
 export class ViewManager {
@@ -60,5 +61,9 @@ export class ViewManager {
         return this.views[viewType].buildMacroQuery(relation);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getSettingsComponent(viewType: RelationViewType): ComponentType<any> | null {
+        return this.views[viewType].getSettingsComponent();
+    }
 
 }

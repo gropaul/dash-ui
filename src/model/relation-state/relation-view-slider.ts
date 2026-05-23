@@ -4,6 +4,7 @@ import {isNumeric} from "@/model/relation-view-state/column-utils";
 import {QueryBuildError} from "@/model/relation-state/query-builder/build-error";
 import {IRelationView} from "@/model/relation-state/relation-view-abstract";
 import {isRangeMode, SliderMode} from "@/model/relation-view-state/slider";
+import {SliderSettingsContent} from "@/components/relation/slider/slider-settings-content";
 
 // Persistent view config — saved across sessions
 export interface SliderQueryParameters {
@@ -20,6 +21,10 @@ export interface SliderQueryState {
 }
 
 export class RelationViewSlider extends IRelationView<SliderQueryParameters, SliderQueryState> {
+
+    getSettingsComponent() {
+        return SliderSettingsContent;
+    }
 
     getInitialQueryParametersInternal(): SliderQueryParameters {
         return {mode: 'eq', step: 1};

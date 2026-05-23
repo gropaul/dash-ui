@@ -46,8 +46,8 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
     return (
         <DefaultErrorBoundary>
             {showConfig ? (
-                <ResizablePanelGroup direction="horizontal" className="w-full h-full">
-                    <ResizablePanel defaultSize={100 - configSize} minSize={30}>
+                <ResizablePanelGroup direction="horizontal" className="w-full h-full bg-inherit">
+                    <ResizablePanel defaultSize={100 - configSize} minSize={30} className={'bg-inherit'}>
                         <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
                     </ResizablePanel>
                     <ResizableHandle/>

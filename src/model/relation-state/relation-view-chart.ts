@@ -3,6 +3,7 @@ import {CHART_QUERY_LIMIT} from "@/platform/global-data";
 import {Column} from "../data-source-connection";
 import {IRelationView} from "@/model/relation-state/relation-view-abstract";
 import {cleanupInvalidColumns, PlotConfig} from "@/model/relation-view-state/chart";
+import {ChartConfigView} from "@/components/relation/chart/chart-config-view";
 
 export type ChartInteractionMode = 'none' | 'click' | 'x-range' | 'y-range' | 'box';
 
@@ -70,6 +71,10 @@ export class RelationViewChart extends IRelationView<ChartQueryParameters, Chart
 
     getQueryStateInternal(relation: RelationState): ChartQueryState | undefined {
         return relation.queryState?.chart;
+    }
+
+    getSettingsComponent() {
+        return ChartConfigView;
     }
 
     buildMacroQueryInternal(

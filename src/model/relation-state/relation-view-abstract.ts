@@ -1,6 +1,7 @@
 import {QueryBuildResult, RelationState} from "@/model/relation-state";
 import {Column} from "@/model/data-source-connection";
 import {buildMacroQuery, buildQuery} from "@/model/relation-state/query-builder";
+import type {ComponentType} from "react";
 
 /**
  * Base class for all relation view types (table, chart, select, slider, text, etc.).
@@ -63,6 +64,12 @@ export abstract class IRelationView<QueryParameters, QueryState = void> {
     // Optional count query (e.g., for table pagination)
     buildCountQuery(parameters: QueryParameters, fromQuery: string, fromAlias: string): string | undefined {
         return undefined;
+    }
+
+    // The settings panel component for this view, or null if none
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getSettingsComponent(): ComponentType<any> | null {
+        return null;
     }
 
     buildQuery(relation: RelationState): Promise<QueryBuildResult> {

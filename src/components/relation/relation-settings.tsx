@@ -38,9 +38,6 @@ export function RelationSettings(props: RelationSettingsProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align={props.align ?? "start"}>
                 {props.children}
-                {props.children && <DropdownMenuSeparator/>}
-                <RelationSettingsContent {...props}/>
-
                 <DropdownMenuSeparator/>
                 <DropdownMenuItem onClick={() => setDashboardCommand({open: true, relation: props.relationState})}>
                     <LayoutDashboard size={16} className="mr-1"/>
