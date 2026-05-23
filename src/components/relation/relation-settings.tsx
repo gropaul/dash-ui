@@ -1,4 +1,3 @@
-import {TableSettingsContent} from "@/components/relation/table/table-settings-content";
 import {
     DropdownMenu,
     DropdownMenuContent, DropdownMenuItem,
@@ -8,9 +7,6 @@ import {
 import {LayoutDashboard, Settings} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {RelationViewProps} from "@/components/relation/relation-view";
-import {ChartSettingsContent} from "@/components/relation/chart/chart-settings-content";
-import {TextDisplaySettingsContent} from "@/components/relation/text-display/text-display-settings-content";
-import {SelectSettingsContent} from "@/components/relation/select/select-settings-content";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import React, {useState} from "react";
 import {DashboardCommandState, onAddToDashboardSelected} from "@/components/workbench/editor-overview-tab";
@@ -53,19 +49,4 @@ export function RelationSettings(props: RelationSettingsProps) {
             />
         </DropdownMenu>
     );
-}
-
-export function RelationSettingsContent(props: RelationSettingsProps) {
-    switch (props.relationState.viewState.selectedView) {
-        case "table":
-            return <TableSettingsContent {...props}/>
-        case "chart":
-            return <ChartSettingsContent {...props}/>
-        case "text":
-            return <TextDisplaySettingsContent {...props}/>
-        case "select":
-            return <SelectSettingsContent {...props}/>
-        default:
-            return <></>
-    }
 }

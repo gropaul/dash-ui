@@ -1,6 +1,7 @@
 import {RelationState} from "@/model/relation-state";
 import {Column} from "@/model/data-source-connection";
 import {IRelationView} from "@/model/relation-state/relation-view-abstract";
+import {TextConfigView} from "@/components/relation/text-display/text-config-view";
 
 export interface TextViewParameters {
     titleColumn?: string;
@@ -8,6 +9,10 @@ export interface TextViewParameters {
 }
 
 export class RelationViewText extends IRelationView<TextViewParameters> {
+
+    getSettingsComponent() {
+        return TextConfigView;
+    }
 
     getInitialQueryParametersInternal(): TextViewParameters {
         return {};
