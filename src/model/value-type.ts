@@ -9,6 +9,28 @@ export type ValueType =
     | 'Map'
     | 'Unknown';
 
+/** Coarse grouping of value types, e.g. for filter tags in column lists. */
+export type ValueTypeGroup = 'numeric' | 'date' | 'string' | 'nested' | 'other';
+
+export function getValueTypeGroup(type: ValueType): ValueTypeGroup {
+    switch (type) {
+        case 'Integer':
+        case 'Float':
+        case 'Boolean':
+            return 'numeric';
+        case 'Timestamp':
+            return 'date';
+        case 'String':
+            return 'string';
+        case 'Struct':
+        case 'List':
+        case 'Map':
+            return 'nested';
+        default:
+            return 'other';
+    }
+}
+
 export function duckDBTypeToValueType(duckDBType: string): ValueType {
 
     // if the type contains brackets, take everything before the brackets

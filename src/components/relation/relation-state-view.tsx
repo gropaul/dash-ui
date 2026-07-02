@@ -52,7 +52,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                     </ResizablePanel>
                     <ResizableHandle/>
                     <ResizablePanel defaultSize={configSize} onResize={onConfigResize} minSize={15}>
-                        <div className="px-4 py-3 w-full h-full overflow-y-auto">
+                        <div className="pl-3 pr-1 py-3 w-full h-full overflow-y-auto">
                             <ViewSettingsPanel {...props}/>
                         </div>
                     </ResizablePanel>

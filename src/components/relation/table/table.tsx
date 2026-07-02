@@ -7,6 +7,7 @@ import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-s
 import {ColumnDragOverlay} from "@/components/relation/table/table-column/column-drag-overlay";
 import {cn} from "@/lib/utils";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
+import {ScrollArea, ScrollBar} from "@/components/ui/scroll-area";
 
 
 export function Table(props: RelationViewContentProps) {
@@ -83,17 +84,22 @@ export function Table(props: RelationViewContentProps) {
 
     // will the whole height of the screen when not embedded, todo: maybe make max height configurable
     const wrapperClasses = props.height === 'resizable' ? 'h-fit max-h-96' : 'h-full';
-    const scrollbarHoverClasses = '[&::-webkit-scrollbar-thumb]:bg-transparent hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/50 [scrollbar-color:transparent_transparent] hover:[scrollbar-color:hsl(var(--muted-foreground)/0.5)_transparent]';
-    const contentClasses = props.height === 'resizable'
-        ? `overflow-y-auto ${scrollbarHoverClasses}`
-        : `flex-1 overflow-y-auto ${scrollbarHoverClasses}`;
+    // min-h-0 lets the scroll area shrink inside the flex column so the viewport scrolls
+    const contentClasses = props.height === 'resizable' ? 'min-h-0' : 'flex-1 min-h-0';
+    // the radix viewport wraps content in an inline-styled display:table div, which
+    // breaks the sticky header / index column and the bg-inherit chain of the table
+    const viewportFixClasses =
+        '[&>[data-radix-scroll-area-viewport]]:bg-inherit'
+        + ' [&>[data-radix-scroll-area-viewport]>div]:!block'
+        + ' [&>[data-radix-scroll-area-viewport]>div]:bg-inherit';
 
     return (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
             <div className={cn("nowheel flex bg-inherit flex-col w-full overflow-hidden", wrapperClasses)}>
-                <div className={cn("bg-inherit flex flex-row", contentClasses)}>
+                <ScrollArea className={cn("bg-inherit", contentClasses, viewportFixClasses)}>
                     <TableContent {...props} columnViewIndices={columnViewIndices} data={data}/>
-                </div>
+                    <ScrollBar orientation="horizontal"/>
+                </ScrollArea>
                 <TableFooter {...props} dataRowCount={data.rows.length}/>
             </div>
             <ColumnDragOverlay activeId={activeId}/>

@@ -1,10 +1,9 @@
 "use client"
 
 import React from "react"
-import {H5, Muted} from "@/components/ui/typography"
+import {Muted} from "@/components/ui/typography"
 import {Separator} from "@/components/ui/separator"
 import {Label} from "@/components/ui/label"
-import {ScrollArea} from "@/components/ui/scroll-area"
 import {Toggle} from "@/components/ui/toggle"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content"
 import {ViewManager} from "@/model/relation-state/relation-view"
@@ -80,15 +79,7 @@ export function TextConfigView(props: RelationViewContentProps) {
     }
 
     return (
-        <div className="relative flex h-full min-h-0 flex-col gap-2 overflow-hidden">
-            <div className="pb-1 shrink-0 mr-3">
-                <H5>Text Config</H5>
-                <Separator/>
-            </div>
-
-            <div className="flex-1 min-h-0">
-                <ScrollArea className="h-full w-full pr-3">
-                    <div className="flex min-h-full flex-col gap-3 p-0.5">
+        <div className="flex flex-col gap-3">
 
                         {/* Column pickers */}
                         <Label className="h-3"><Muted>Value</Muted></Label>
@@ -218,9 +209,6 @@ export function TextConfigView(props: RelationViewContentProps) {
                         />
 
                         <div className="h-8"/>
-                    </div>
-                </ScrollArea>
-            </div>
         </div>
     )
 }

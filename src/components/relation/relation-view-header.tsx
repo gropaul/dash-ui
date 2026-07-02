@@ -65,12 +65,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         parameters: []
     };
 
-    function onViewChange(entry: ViewSwitchEntry) {
-        if (!entry.viewType) return;
-        advancedActions.updateRelationViewState({
-            selectedView: entry.viewType,
-        });
-    }
 
     const isMobile = useIsMobile();
 
@@ -158,29 +152,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     }
                                     <DropdownMenuSeparator/>
 
-                                    <DropdownMenuItem>Show as</DropdownMenuItem>
-                                    <DropdownMenuCheckboxItem
-                                        checked={viewState.selectedView === 'table'}
-                                        onCheckedChange={() => onViewChange({viewType: 'table'})}
-                                    >
-                                        <Sheet className="h-4 w-4"/>
-                                        <span className="ml-2">Table</span>
-                                    </DropdownMenuCheckboxItem>
-                                    <DropdownMenuCheckboxItem
-                                        checked={viewState.selectedView === 'chart'}
-                                        onCheckedChange={() => onViewChange({viewType: 'chart'})}
-                                    >
-                                        <ChartSpline className="h-4 w-4"/>
-                                        <span className="ml-2">Chart</span>
-                                    </DropdownMenuCheckboxItem>
-                                    <DropdownMenuCheckboxItem
-                                        checked={viewState.selectedView === 'map'}
-                                        disabled={mapDisabled}
-                                        onCheckedChange={() => onViewChange({viewType: 'map'})}
-                                    >
-                                        <Map className="h-4 w-4"/>
-                                        <span className="ml-2">Map</span>
-                                    </DropdownMenuCheckboxItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </>
@@ -195,10 +166,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     <Braces className="h-4 w-4"/>
                                 </Toggle>
                             }
-                            <RelationViewTypeSwitcher
-                                currentView={viewState.selectedView}
-                                onViewChange={onViewChange}
-                            />
                             <Separator orientation={'vertical'}/>
                             <RelationSettings {...props} align={"end"}>
                                 <DropdownMenuItem

@@ -1,36 +1,76 @@
 "use client"
 
 import React from "react"
-import {H5, Muted, Small} from "@/components/ui/typography"
+import {Muted} from "@/components/ui/typography"
 import {Separator} from "@/components/ui/separator"
 import {Label} from "@/components/ui/label"
-import {ScrollArea} from "@/components/ui/scroll-area"
 import {Switch} from "@/components/ui/switch"
 import {Button} from "@/components/ui/button"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content"
-import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector"
 import {ColumnSorting} from "@/model/relation-state/relation-view-table"
 import {ViewManager} from "@/model/relation-state/relation-view"
-import {getInitialAxisDecoration} from "@/model/relation-view-state/chart"
-import {ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronUp, CirclePlus, GripVertical} from "lucide-react"
+import {Braces, Calendar, ChevronDown, GripVertical, Hash, Sparkles, Text, X} from "lucide-react"
+import {ColumnHeadSortingIcon, getNextColumnSorting} from "@/components/relation/table/table-head/table-column-head"
 import {DndContext, closestCenter, DragEndEvent} from "@dnd-kit/core"
 import {SortableContext, arrayMove, useSortable, verticalListSortingStrategy} from "@dnd-kit/sortable"
 import {restrictToVerticalAxis} from "@dnd-kit/modifiers"
 import {Column} from "@/model/data-source-connection"
+import {ColumnConfigList, ColumnFilterTag} from "@/components/relation/common/column-config-list"
+import {ColumnDecorationEditor} from "@/components/relation/common/column-decoration-editor"
+import {AdaptiveEyeOff} from "@/components/relation/common/eye-icon"
+import {ValueIcon} from "@/components/relation/common/value-icon"
+import {cn} from "@/lib/utils"
+import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table"
+import {
+    ColumnDecoration,
+    isDecoratableType,
+    isStyledDecoration,
+} from "@/model/relation-view-state/decoration"
+import {getValueTypeGroup} from "@/model/value-type"
 
-// --- Sortable sort item ---
+// --- Collapsible config section ---
+
+interface ConfigSectionProps {
+    title: string;
+    // shown on the right of the header while the section is collapsed
+    collapsedSummary?: string;
+    children: React.ReactNode;
+}
+
+function ConfigSection({title, collapsedSummary, children}: ConfigSectionProps) {
+    const [open, setOpen] = React.useState(true);
+    return (
+        <div className="flex flex-col gap-2">
+            <div
+                className="flex cursor-pointer items-center gap-1.5"
+                onClick={() => setOpen(!open)}
+            >
+                <ChevronDown
+                    size={14}
+                    className={cn("text-muted-foreground transition-transform", !open && "-rotate-90")}
+                />
+                <Label className="flex-1 cursor-pointer"><Muted>{title}</Muted></Label>
+                {!open && collapsedSummary && (
+                    <span className="text-xs text-muted-foreground">{collapsedSummary}</span>
+                )}
+            </div>
+            {open && children}
+        </div>
+    );
+}
+
+// --- Sortable sort rule (fed from the column list, no column picker) ---
 
 interface SortableSortItemProps {
     colName: string
     direction: ColumnSorting
-    availableColumns: Column[]
+    index: number
     showHandle: boolean
-    onChangeColumn: (oldName: string, newName: string) => void
     onRemove: (colName: string) => void
     onToggleDirection: (colName: string, direction: ColumnSorting) => void
 }
 
-function SortableSortItem({colName, direction, availableColumns, showHandle, onChangeColumn, onRemove, onToggleDirection}: SortableSortItemProps) {
+function SortableSortItem({colName, direction, index, showHandle, onRemove, onToggleDirection}: SortableSortItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id: colName})
 
     const style = {
@@ -42,42 +82,39 @@ function SortableSortItem({colName, direction, availableColumns, showHandle, onC
     }
 
     return (
-        <div ref={setNodeRef} style={style} className="flex items-center gap-1">
-            <div className="flex-1 min-w-0">
-                <ColumnSelector
-                    placeholder={'Add sort column...'}
-                    plotType="bar"
-                    axisType="sort"
-                    axis={{columnId: colName, label: colName, decoration: getInitialAxisDecoration(0)}}
-                    columns={availableColumns}
-                    deleteAxis={() => onRemove(colName)}
-                    updateAxis={(update) => {
-                        if (update.columnId) onChangeColumn(colName, update.columnId);
-                    }}
-
-                prefix={
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-9 shrink-0 bg-card"
-                            onClick={() => onToggleDirection(colName, direction)}
-                        >
-                            {direction === 'ASC' ? <ArrowUp size={14} className="text-indigo-600"/> : <ArrowDown size={14} className="text-indigo-600"/>}
-                        </Button>
-                    }
-                />
-            </div>
+        <div ref={setNodeRef} style={style} className="flex items-center gap-2 rounded-md border bg-card px-2 py-1">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground">
+                {index + 1}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm">{colName}</span>
+            <Button
+                variant="outline"
+                size="sm"
+                className="h-7 shrink-0 gap-1 px-2 text-xs"
+                onClick={() => onToggleDirection(colName, direction)}
+            >
+                <ColumnHeadSortingIcon sorting={direction} iconSize={13} className="text-indigo-600"/>
+                {direction}
+            </Button>
             {showHandle && (
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-7 shrink-0 cursor-grab active:cursor-grabbing touch-none text-muted-foreground"
+                    className="h-7 w-5 shrink-0 cursor-grab active:cursor-grabbing touch-none text-muted-foreground"
                     {...listeners}
                     {...attributes}
                 >
                     <GripVertical size={14}/>
                 </Button>
             )}
+            <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-5 shrink-0 text-muted-foreground"
+                onClick={() => onRemove(colName)}
+            >
+                <X size={14}/>
+            </Button>
         </div>
     )
 }
@@ -90,33 +127,52 @@ export function TableConfigView(props: RelationViewContentProps) {
     const params = ViewManager.instance.table.getQueryParameters(relationState);
     const columns = data.columns;
 
-    const [addingSort, setAddingSort] = React.useState(false);
-
     // --- Column visibility ---
     const hiddenSet = new Set(tableState.columnsHidden ?? []);
-    const visibleColumnIds = columns.filter(c => !hiddenSet.has(c.name)).map(c => c.id);
 
     function setShowIndexColumn(show: boolean) {
         props.updateRelationViewState({tableState: {...tableState, showIndexColumn: show}});
     }
 
-    function toggleColumnVisibility(columnId: string) {
-        const column = columns.find(c => c.id === columnId);
-        if (!column) return;
+    function toggleColumnVisibility(columnName: string) {
         const hidden = tableState.columnsHidden ?? [];
-        const newHidden = hidden.includes(column.name)
-            ? hidden.filter(n => n !== column.name)
-            : [...hidden, column.name];
+        const newHidden = hidden.includes(columnName)
+            ? hidden.filter(n => n !== columnName)
+            : [...hidden, columnName];
         props.updateRelationViewState({tableState: {...tableState, columnsHidden: newHidden}});
+    }
+
+    // hide everything except the given columns (e.g. the current search/filter result)
+    function onlyShowColumns(shown: Column[]) {
+        const shownNames = new Set(shown.map(c => c.name));
+        const newHidden = columns.filter(c => !shownNames.has(c.name)).map(c => c.name);
+        props.updateRelationViewState({tableState: {...tableState, columnsHidden: newHidden}});
+    }
+
+    function showAllColumns() {
+        props.updateRelationViewState({tableState: {...tableState, columnsHidden: []}});
+    }
+
+    // --- Column decorations ---
+
+    function updateColumnDecoration(columnName: string, decoration: ColumnDecoration) {
+        const current = tableState.columnStates[columnName] ?? {...INITIAL_COLUMN_VIEW_STATE};
+        props.updateRelationViewState({
+            tableState: {
+                ...tableState,
+                columnStates: {
+                    ...tableState.columnStates,
+                    [columnName]: {...current, decoration},
+                },
+            },
+        });
     }
 
     // --- Sorting ---
     const activeSorts = (Object.entries(params.sorting) as [string, ColumnSorting | undefined][])
         .filter((entry): entry is [string, ColumnSorting] => entry[1] !== undefined);
 
-    const sortedNameSet = new Set(activeSorts.map(([name]) => name));
-    const unsortedColumns = columns.filter(c => !sortedNameSet.has(c.name));
-    const noSorts = activeSorts.length === 0;
+    const sortPosition = (colName: string) => activeSorts.findIndex(([name]) => name === colName);
 
     async function updateSorting(newSorting: Record<string, ColumnSorting | undefined>) {
         await props.updateRelationDataWithParams({
@@ -125,20 +181,19 @@ export function TableConfigView(props: RelationViewContentProps) {
         });
     }
 
-    async function addSort(columnId: string) {
-        await updateSorting({...params.sorting, [columnId]: 'ASC'});
-    }
-
-    async function changeSortColumn(oldName: string, newName: string) {
-        const newSorting: Record<string, ColumnSorting | undefined> = {};
-        for (const [key, val] of Object.entries(params.sorting)) {
-            newSorting[key === oldName ? newName : key] = val;
-        }
-        await updateSorting(newSorting);
-    }
-
     async function toggleSortDirection(colName: string, current: ColumnSorting) {
         await updateSorting({...params.sorting, [colName]: current === 'ASC' ? 'DESC' : 'ASC'});
+    }
+
+    async function cycleSort(colName: string) {
+        const next = getNextColumnSorting(params.sorting[colName]);
+        const newSorting = {...params.sorting};
+        if (next === undefined) {
+            delete newSorting[colName];
+        } else {
+            newSorting[colName] = next;
+        }
+        await updateSorting(newSorting);
     }
 
     async function removeSort(colName: string) {
@@ -159,87 +214,34 @@ export function TableConfigView(props: RelationViewContentProps) {
         void updateSorting(newSorting);
     }
 
-    return (
-        <div className="relative flex h-full min-h-0 flex-col gap-2 overflow-hidden">
-            <div className="pb-1 shrink-0 mr-3">
-                <H5>Table Config</H5>
-                <Separator/>
+    // --- Column list rendering ---
+
+    const filterTags: ColumnFilterTag[] = [
+        {key: 'numeric', label: 'Numeric', icon: <Hash size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'numeric'},
+        {key: 'date', label: 'Date', icon: <Calendar size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'date'},
+        {key: 'string', label: 'String', icon: <Text size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'string'},
+        {key: 'nested', label: 'Nested', icon: <Braces size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'nested'},
+        {key: 'sorted', label: 'Sorted', icon: <ColumnHeadSortingIcon iconSize={12}/>, predicate: c => sortPosition(c.name) > -1},
+        {key: 'hidden', label: 'Hidden', icon: <AdaptiveEyeOff visible={true} className="h-3 w-3"/>, predicate: c => hiddenSet.has(c.name)},
+        {key: 'styled', label: 'Styled', icon: <Sparkles size={12}/>, predicate: c => isStyledDecoration(tableState.columnStates[c.name]?.decoration)},
+    ];
+
+    function renderExpanded(column: Column) {
+        if (!isDecoratableType(column.type)) return null;
+        return (
+            <div className="pt-1">
+                <ColumnDecorationEditor
+                    columnType={column.type}
+                    decoration={tableState.columnStates[column.name]?.decoration}
+                    onChange={(deco) => updateColumnDecoration(column.name, deco)}
+                />
             </div>
+        );
+    }
 
-            <div className="flex-1 min-h-0">
-                <ScrollArea className="h-full w-full pr-3">
-                    <div className="flex min-h-full flex-col gap-3 p-0.5">
+    return (
+        <div className="flex flex-col gap-3">
 
-
-
-                        {/* Column visibility */}
-                        <Label className="h-3"><Muted>Columns</Muted></Label>
-                        <ColumnSelector
-                            plotType="bar"
-                            axisType="columns"
-                            multiSelect={true}
-                            columns={columns}
-                            selectedColumnIds={visibleColumnIds}
-                            onColumnToggled={toggleColumnVisibility}
-                        />
-
-                        <Separator/>
-
-                        {/* Sorting */}
-                        <Label className="h-3"><Muted>Table Sorting</Muted></Label>
-
-                        <DndContext
-                            collisionDetection={closestCenter}
-                            modifiers={[restrictToVerticalAxis]}
-                            onDragEnd={handleDragEnd}
-                        >
-                            <SortableContext
-                                items={activeSorts.map(([name]) => name)}
-                                strategy={verticalListSortingStrategy}
-                            >
-                                {activeSorts.map(([colName, direction]) => (
-                                    <SortableSortItem
-                                        key={colName}
-                                        colName={colName}
-                                        direction={direction}
-                                        availableColumns={columns.filter(c => c.name === colName || !sortedNameSet.has(c.name))}
-                                        showHandle={activeSorts.length > 1}
-                                        onChangeColumn={changeSortColumn}
-                                        onRemove={removeSort}
-                                        onToggleDirection={toggleSortDirection}
-                                    />
-                                ))}
-                            </SortableContext>
-                        </DndContext>
-
-                        {(noSorts || addingSort) && (
-                            <ColumnSelector
-                                placeholder={'Add sort column...'}
-                                plotType="bar"
-                                axisType="sort"
-                                columns={unsortedColumns}
-                                updateAxis={(update) => {
-                                    if (update.columnId) addSort(update.columnId);
-                                    if (addingSort) setAddingSort(false);
-                                }}
-                            />
-                        )}
-
-                        {!(noSorts || addingSort) && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-auto justify-start px-2 bg-card"
-                                onClick={() => setAddingSort(true)}
-                            >
-                                <div className="w-4 h-4 mr-1 flex items-center justify-center">
-                                    <CirclePlus className="w-4 h-4 text-muted-foreground"/>
-                                </div>
-                                <Small>Add Sort Column</Small>
-                            </Button>
-                        )}
-
-                        <Separator/>
                         {/* Row index toggle */}
                         <div className="flex items-center justify-between">
                             <Label><Muted>Show table row index</Muted></Label>
@@ -249,11 +251,125 @@ export function TableConfigView(props: RelationViewContentProps) {
                             />
                         </div>
 
+                        <Separator/>
+
+                        {/* Sort order — fed from the column list below */}
+                        <ConfigSection
+                            title="Sort Order"
+                            collapsedSummary={activeSorts.length
+                                ? `${activeSorts.length} ${activeSorts.length === 1 ? 'rule' : 'rules'}`
+                                : 'none'}
+                        >
+                            {activeSorts.length === 0 ? (
+                                <Muted className="text-sm">
+                                    Not sorted. Hover a column below and click the sort arrow.
+                                </Muted>
+                            ) : (
+                                <>
+                                    <DndContext
+                                        collisionDetection={closestCenter}
+                                        modifiers={[restrictToVerticalAxis]}
+                                        onDragEnd={handleDragEnd}
+                                    >
+                                        <SortableContext
+                                            items={activeSorts.map(([name]) => name)}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            <div className="flex flex-col gap-1.5">
+                                                {activeSorts.map(([colName, direction], index) => (
+                                                    <SortableSortItem
+                                                        key={colName}
+                                                        colName={colName}
+                                                        direction={direction}
+                                                        index={index}
+                                                        showHandle={activeSorts.length > 1}
+                                                        onRemove={removeSort}
+                                                        onToggleDirection={toggleSortDirection}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </SortableContext>
+                                    </DndContext>
+                                </>
+                            )}
+                        </ConfigSection>
+
+                        <Separator/>
+
+                        {/* Columns — the single source of truth */}
+                        <ConfigSection title="Columns" collapsedSummary={`${columns.length}`}>
+                            <ColumnConfigList
+                                columns={columns}
+                                filterTags={filterTags}
+                                isDimmed={(c) => hiddenSet.has(c.name)}
+                                renderLeading={(c) => (
+                                    <button
+                                        className={cn(
+                                            "shrink-0",
+                                            hiddenSet.has(c.name) ? "text-muted-foreground/70" : "text-muted-foreground",
+                                        )}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleColumnVisibility(c.name);
+                                        }}
+                                    >
+                                        <AdaptiveEyeOff visible={!hiddenSet.has(c.name)} className="h-3.5 w-3.5"/>
+                                    </button>
+                                )}
+                                renderIcon={(c) => (
+                                    <span className={cn(
+                                        "shrink-0",
+                                        isStyledDecoration(tableState.columnStates[c.name]?.decoration)
+                                            ? "text-primary"
+                                            : "text-muted-foreground",
+                                    )}>
+                                        <ValueIcon type={c.type} size={14}/>
+                                    </span>
+                                )}
+                                renderStatus={(c) => {
+                                    const pos = sortPosition(c.name);
+                                    const sorted = pos > -1;
+                                    const direction = sorted ? activeSorts[pos][1] : undefined;
+                                    return (
+                                        <button
+                                            title={sorted ? `Sorted ${direction} — click to change` : 'Sort column'}
+                                            className={cn(
+                                                "shrink-0 items-center gap-0.5 text-xs",
+                                                sorted
+                                                    ? "inline-flex text-indigo-600"
+                                                    : "hidden group-hover:inline-flex text-muted-foreground hover:text-indigo-600",
+                                            )}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                void cycleSort(c.name);
+                                            }}
+                                        >
+                                            <ColumnHeadSortingIcon sorting={direction} iconSize={13}/>
+                                            {sorted && activeSorts.length > 1 && (pos + 1)}
+                                        </button>
+                                    );
+                                }}
+                                renderExpanded={renderExpanded}
+                                renderFooter={(shown) => (
+                                    <div className="flex justify-end gap-3 pt-1">
+                                        <button
+                                            className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                                            onClick={() => onlyShowColumns(shown)}
+                                        >
+                                            Only show selected
+                                        </button>
+                                        <button
+                                            className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                                            onClick={showAllColumns}
+                                        >
+                                            Show all columns
+                                        </button>
+                                    </div>
+                                )}
+                            />
+                        </ConfigSection>
 
                         <div className="h-8"/>
-                    </div>
-                </ScrollArea>
-            </div>
         </div>
     );
 }

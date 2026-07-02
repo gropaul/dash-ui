@@ -1,4 +1,5 @@
 import {RelationData} from "@/model/relation";
+import {ColumnDecoration} from "@/model/relation-view-state/decoration";
 import z from "zod";
 
 /**
@@ -23,6 +24,8 @@ export const TableViewConfigSchema = z.object({
 export interface ColumnViewState {
     width: number;
     wrapContent: boolean;
+    // optional for backwards compatibility with persisted states
+    decoration?: ColumnDecoration;
 }
 
 

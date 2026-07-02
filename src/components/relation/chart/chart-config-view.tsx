@@ -1,6 +1,5 @@
 import {PlotType} from "@/model/relation-view-state/chart";
-import {H5, Muted} from "@/components/ui/typography";
-import {Separator} from "@/components/ui/separator";
+import {Muted} from "@/components/ui/typography";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {ChartTypeSelector} from "@/components/relation/chart/chart-config/chart-type-selector";
@@ -9,7 +8,6 @@ import {ConfigViewPie} from "@/components/relation/chart/chart-config/config-vie
 import {RelationState} from "@/model/relation-state";
 import {cn} from "@/lib/utils";
 import {RelationData} from "@/model/relation";
-import {ScrollArea} from "@/components/ui/scroll-area";
 import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
 import {ViewManager} from "@/model/relation-state/relation-view";
 
@@ -40,22 +38,7 @@ export function ChartConfigView(props: ChartConfigProps) {
     }
 
     return (
-        <div
-            className={cn(
-                // make this section take the available height and allow children to shrink
-                "relative flex h-full min-h-0 flex-col gap-2 overflow-hidden",
-                props.className
-            )}
-        >
-            <div className="pb-1 shrink-0 mr-3">
-                <H5>Chart Config</H5>
-                <Separator />
-            </div>
-
-            {/* Wrapper to ensure the ScrollArea can actually shrink */}
-            <div className="flex-1 min-h-0">
-                <ScrollArea className="h-full w-full pr-3">
-                    <div className="flex min-h-full flex-col gap-2 p-0.5 ">
+        <div className={cn("flex flex-col gap-2", props.className)}>
                         <Label className="h-3">
                             <Muted>Title</Muted>
                         </Label>
@@ -79,10 +62,6 @@ export function ChartConfigView(props: ChartConfigProps) {
                         <ChartSpecificConfig {...props} />
 
                         <div className="h-8" />
-                        <div className="flex-1 shrink"/>
-                    </div>
-                </ScrollArea>
-            </div>
         </div>
     );
 

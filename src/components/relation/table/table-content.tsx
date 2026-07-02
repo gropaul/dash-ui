@@ -7,6 +7,7 @@ import {TableValueCell} from "@/components/relation/table/table-value-cell";
 import {Sometype_Mono} from "next/font/google";
 import {useVirtualizer} from "@tanstack/react-virtual";
 import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
+import {ColumnDecoration, styleNeedsRange, toNumeric} from "@/model/relation-view-state/decoration";
 
 
 export const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
@@ -34,6 +35,34 @@ export const TableContent = React.memo(function TableContent(props: RelationView
         });
     }, [relationState.viewState.tableState, data.columns, columnViewIndices]);
 
+    // Decorations for visible columns (aligned with columnViewIndices)
+    const columnDecorations = React.useMemo(() => {
+        const tableState = relationState.viewState.tableState;
+        return columnViewIndices.map(colIndex => {
+            const col = data.columns[colIndex];
+            return tableState.columnStates[col.name]?.decoration;
+        });
+    }, [relationState.viewState.tableState, data.columns, columnViewIndices]);
+
+    // Page-level min/max per column, only for styles that need a range
+    // (data bar / color scale). Scaled to the loaded rows, not the full result.
+    const columnRanges = React.useMemo(() => {
+        return columnViewIndices.map((colIndex, i) => {
+            const decoration: ColumnDecoration | undefined = columnDecorations[i];
+            if (!decoration || !styleNeedsRange(decoration.style)) return undefined;
+            let min = Infinity;
+            let max = -Infinity;
+            for (const row of rowsSlice) {
+                const num = toNumeric(row[colIndex]);
+                if (num === null || isNaN(num)) continue;
+                if (num < min) min = num;
+                if (num > max) max = num;
+            }
+            if (min === Infinity) return undefined;
+            return {min, max};
+        });
+    }, [rowsSlice, columnViewIndices, columnDecorations]);
+
     const showIndexColumn = relationState.viewState.tableState.showIndexColumn ?? true;
 
     // Calculate total table width: row number column (80px if shown) + visible column widths
@@ -50,11 +79,14 @@ export const TableContent = React.memo(function TableContent(props: RelationView
     // Callback to find and set the scrolling parent
     const setTableRef = React.useCallback((node: HTMLTableElement | null) => {
         if (node) {
-            // Find the scrolling parent (the div with overflow-y-auto)
+            // Find the scrolling parent: either a plain overflow container or a
+            // radix ScrollArea viewport (which only gets overflow: scroll set in
+            // an effect after mount, so check the attribute instead of the style)
             let parent = node.parentElement;
             while (parent) {
                 const overflow = window.getComputedStyle(parent).overflowY;
-                if (overflow === 'auto' || overflow === 'scroll') {
+                if (overflow === 'auto' || overflow === 'scroll'
+                    || parent.hasAttribute('data-radix-scroll-area-viewport')) {
                     setScrollParent(parent);
                     break;
                 }
@@ -119,6 +151,9 @@ export const TableContent = React.memo(function TableContent(props: RelationView
                                         element={row[colIndex]}
                                         column={data.columns[colIndex]}
                                         width={columnWidths[i]}
+                                        decoration={columnDecorations[i]}
+                                        rangeMin={columnRanges[i]?.min}
+                                        rangeMax={columnRanges[i]?.max}
                                     />
                                 ))
                                 }

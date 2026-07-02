@@ -1,6 +1,6 @@
 import React from 'react';
 import {Column} from "@/model/data-source-connection";
-import {ChevronDown, ChevronsUpDown, ChevronUp, Menu} from 'lucide-react';
+import {ArrowDown, ArrowUp, ArrowUpDown, Menu} from 'lucide-react';
 import {
     RelationStats,
     RelationQueryParameters
@@ -22,7 +22,7 @@ export interface ColumnHeadProps extends RelationViewTableContentProps {
     isLast: boolean;
 }
 
-function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | undefined {
+export function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | undefined {
     switch (current) {
         case 'ASC':
             return 'DESC';
@@ -71,8 +71,8 @@ export function TableColumnHead(props: ColumnHeadProps) {
 
     const activeSorting = !columnSorting;
     const sortingClass = activeSorting ?
-        'text-muted-foreground hover:text-primary' :
-        'text-primary';
+        'text-muted-foreground hover:text-indigo-600' :
+        'text-indigo-600';
 
     function onSortClick() {
 
@@ -177,16 +177,16 @@ export function TableColumnHead(props: ColumnHeadProps) {
 }
 
 
-function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize?: number }) {
+export function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize?: number, className?: string }) {
 
     const iconSize = props.iconSize || 16;
 
     if (props.sorting === 'ASC') {
-        return <ChevronUp size={iconSize}/>;
+        return <ArrowUp size={iconSize} className={props.className}/>;
     } else if (props.sorting === 'DESC') {
-        return <ChevronDown size={iconSize}/>;
+        return <ArrowDown size={iconSize} className={props.className}/>;
     } else {
-        return <ChevronsUpDown size={iconSize}/>;
+        return <ArrowUpDown size={iconSize} className={props.className}/>;
     }
 }
 

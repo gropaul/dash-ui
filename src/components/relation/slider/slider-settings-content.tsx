@@ -1,10 +1,9 @@
 "use client"
 
-import {H5, Muted} from "@/components/ui/typography"
+import {Muted} from "@/components/ui/typography"
 import {Separator} from "@/components/ui/separator"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
-import {ScrollArea} from "@/components/ui/scroll-area"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content"
 import {Toggle} from "@/components/ui/toggle"
 import {SliderMode} from "@/model/relation-view-state/slider"
@@ -69,15 +68,7 @@ export function SliderSettingsContent(props: RelationViewContentProps) {
     const currentMode = params.mode ?? 'eq';
 
     return (
-        <div className="relative flex h-full min-h-0 flex-col gap-2 overflow-hidden">
-            <div className="pb-1 shrink-0 mr-3">
-                <H5>Slider Config</H5>
-                <Separator/>
-            </div>
-
-            <div className="flex-1 min-h-0">
-                <ScrollArea className="h-full w-full pr-3">
-                    <div className="flex min-h-full flex-col gap-3 p-0.5">
+        <div className="flex flex-col gap-3">
 
                         {/* Column picker */}
                         <Label className="h-3">
@@ -148,9 +139,6 @@ export function SliderSettingsContent(props: RelationViewContentProps) {
                         />
 
                         <div className="h-8"/>
-                    </div>
-                </ScrollArea>
-            </div>
         </div>
     );
 }
