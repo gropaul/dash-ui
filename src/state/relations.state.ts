@@ -35,10 +35,10 @@ import {
 } from "@/state/entities/entity-functions";
 import {useInitState} from "@/state/init.state";
 import {useRelationDataState} from "@/state/relations-data.state";
-import {isInteractiveBlock} from "@/components/editor/inputs/input-manager";
 import {RelationEvents} from "@/state/relations/event/relation-events";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
+import {migrateV1FlattenRelationState} from "@/state/migrations/v1-flatten-relation-state";
 
 
 export interface RelationZustand {
@@ -58,7 +58,7 @@ export interface DefaultRelationZustandActions {
 interface RelationZustandActions extends DefaultRelationZustandActions {
     mergeState: (state: RelationZustand, openDashboards: boolean) => void,
     /* relation actions */
-    addNewRelation: (connectionId: string, editorPath: string[], relation: RelationState) => void,
+    addNewRelation: (connectionId: string, editorPath: string[], relation: RelationState, openTab?: boolean) => void,
     relationExists: (relationId: string) => boolean,
     showRelationFromSource: (connectionId: string, source: RelationSource, editorPath: string[]) => void,
 
@@ -81,12 +81,11 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     addNewCanvas: (canvas?: CanvasState, editorPath?: string[]) => void,
     getCanvasState: (canvasId: string) => CanvasState,
     updateCanvasState: (canvasId: string, canvas: Partial<CanvasState>) => void,
-
     /* entity actions */
     deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
     getEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string) => string,
     setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => void,
-    showEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, path: string[]) : void,
+    addEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, path: string[], openTab?: boolean) : void,
     showEntityFromId: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
 
     /* editor folder actions */
@@ -183,7 +182,7 @@ export const useRelationsState = createWithEqualityFn(
                     if (openDashboards) {
                         // open all dashboards in the GUI
                         Object.values(dashboards).forEach((dashboard) => {
-                            this.showEntity('dashboards', dashboard, []);
+                            this.addEntity('dashboards', dashboard, []);
                         });
                     }
                 },
@@ -191,7 +190,7 @@ export const useRelationsState = createWithEqualityFn(
                 addNewCanvas: (canvas?: CanvasState, editorPath?: string[]) => {
                     const local_canvas = canvas ?? GetInitialCanvasState();
                     const local_editorPath = editorPath ?? [];
-                    get().showEntity('canvas', local_canvas, local_editorPath);
+                    get().addEntity('canvas', local_canvas, local_editorPath);
                 },
                 getCanvasState: (canvasId: string) => {
                     const canvas = get().canvas[canvasId];
@@ -211,29 +210,18 @@ export const useRelationsState = createWithEqualityFn(
                         },
                     }));
                 },
-
                 deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
                     if (useGUIState.getState().isTabOpen(entityId)) {
                         useGUIState.getState().removeTab(entityId);
                     }
 
-                    // if it is a relation we have to delete the cache and dispatch delete action
+                    // if it is a relation, delete the cache and dispatch delete action
                     if (entityType === 'relations') {
                         useRelationDataState.getState().deleteData(entityId);
                         const relation = get().relations[entityId];
                         if (relation) {
                             RelationEvents.delete(relation);
                         }
-                    }
-                    // if it is a dashboard, we have to delete the blocks' cache as well
-                    if (entityType === 'dashboards') {
-                        const dashboard = get().dashboards[entityId];
-                        dashboard.elementState?.blocks.forEach((block) => {
-                            if (isInteractiveBlock(block.type)) {
-                                const relationId = block.data.id;
-                                useRelationDataState.getState().deleteData(relationId);
-                            }
-                        })
                     }
                     const newCollection = deleteFromEntityCollection(get(), entityType, entityId);
                     const actions = RemoveNodeAction(editorPath);
@@ -277,8 +265,7 @@ export const useRelationsState = createWithEqualityFn(
                     }
                 },
 
-                showEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, editorPath: string[] = []) {
-
+                addEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, editorPath: string[] = [], openInTab: boolean = true) {
 
                     const addResult = AddIfNotExists(entity, entityType, get(), editorPath);
                     const entityId = GetEntityId(entity);
@@ -289,10 +276,12 @@ export const useRelationsState = createWithEqualityFn(
                         }));
                     }
 
-                    if (useGUIState.getState().isTabOpen(entityId)) {
-                        useGUIState.getState().focusTab(entityId);
-                    } else {
-                        useGUIState.getState().addEntityTab(entityType, entity);
+                    if (openInTab) {
+                        if (useGUIState.getState().isTabOpen(entityId)) {
+                            useGUIState.getState().focusTab(entityId);
+                        } else {
+                            useGUIState.getState().addEntityTab(entityType, entity);
+                        }
                     }
                 },
 
@@ -302,7 +291,7 @@ export const useRelationsState = createWithEqualityFn(
                     if (!entity) {
                         throw new Error(`Entity with id ${entityId} not found in ${entityType} collection`);
                     }
-                    get().showEntity(entityType, entity, editorPath);
+                    get().addEntity(entityType, entity, editorPath);
                 },
 
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
@@ -325,12 +314,12 @@ export const useRelationsState = createWithEqualityFn(
                             }
                         }
                     }
-                    get().showEntity('dashboards', local_dashboard, editorPath);
+                    get().addEntity('dashboards', local_dashboard, editorPath);
                 },
 
-                addNewRelation: async (connectionId: string, editorPath: string[], relation: RelationState) => {
+                addNewRelation: async (connectionId: string, editorPath: string[], relation: RelationState, openTab: boolean = true) => {
                     // make sure that this relation is not already in the state
-                    get().showEntity('relations', relation, editorPath);
+                    get().addEntity('relations', relation, editorPath, openTab);
                 },
 
                 setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => {
@@ -360,11 +349,11 @@ export const useRelationsState = createWithEqualityFn(
                     // check if relation already exists
                     const existingRelation = get().relations[relationId];
                     if (existingRelation) {
-                        get().showEntity('relations', existingRelation, editorPath);
+                        get().addEntity('relations', existingRelation, editorPath);
                     } else {
                         const relationState = RelationActions.create({source});
                         const actions = getRelationActions({mode: 'fullscreen', relationState, updateRelation: get().updateRelation});
-                        get().showEntity('relations', relationState, editorPath);
+                        get().addEntity('relations', relationState, editorPath);
                         await actions.updateRelationDataWithBaseQuery(relationState.query.baseQuery);
                     }
                 },
@@ -472,6 +461,9 @@ export const useRelationsState = createWithEqualityFn(
                         useInitState.getState().onRelationStateLoadedFromConnection([])
                         return INIT;
                     }
+
+                    // Apply persisted-state migrations (idempotent)
+                    migrateV1FlattenRelationState(state);
 
                     const hasDuckDBStorage = useRelationsHydrationState.getState().hasDuckDBStorage
                     console.log('Has DuckDB Storage:', hasDuckDBStorage);

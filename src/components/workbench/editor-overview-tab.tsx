@@ -31,6 +31,7 @@ import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {openCreateCanvasDialog, openCreateDashboardDialog, openCreateFolderDialog, openCreateRelationDialog} from "@/components/workbench/create-entity-dialogs";
+import {RelationDeleteDialog, useRelationDeleteDialog} from "@/components/workbench/relation-delete-dialog";
 
 
 
@@ -180,6 +181,17 @@ export function EditorOverviewTab() {
 
 
         const type = tree.type;
+
+        // Relations use the dependency-aware delete dialog
+        if (type === 'relations') {
+            const displayName = getEntityDisplayName(type, tree.id);
+            useRelationDeleteDialog.getState().openForSidebarDelete(
+                tree.id,
+                displayName,
+                () => deleteEntity('relations', tree.id, path),
+            );
+            return;
+        }
 
         if (IsEntityType(type)) {
             const typeDisplayName = GetEntityTypeDisplayName(type);
@@ -358,6 +370,7 @@ ${relationNames.join(', ')}`;
                 onOpenChange={(isOpen) => setDeleteState({...deleteState, isOpen})}
                 onDelete={onDeleteConfirmed}
             />
+            <RelationDeleteDialog/>
             <DashboardCommand
                 dashboards={Object.values(dashboards)}
                 open={dashboardCommand.open}

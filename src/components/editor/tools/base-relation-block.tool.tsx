@@ -15,6 +15,7 @@ import {dependenciesAreEqual, InputDependency, InputValue} from "@/components/ed
 import {ICON_EYE_CLOSE, ICON_EYE_OPEN, ICON_RUN} from "@/components/editor/tools/icons";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {EndUserRelationActions, getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {useRelationsState} from "@/state/relations.state";
 import {RelationViewMode} from "@/model/relation-view-state";
 import {getVariablesUsedByQuery} from "@/model/relation-state/query-builder/variables";
 
@@ -77,6 +78,7 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
                 if (otherRelationId === this.data.id) {
                     console.log("Found another block with the same relation id, creating a copy of the relation for this block", block.name, block.id);
                     this.data = RelationActions.copy(this.data);
+                    useRelationsState.getState().updateRelation(this.data);
                 }
             }
 
@@ -213,6 +215,8 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
             this.getAndUpdateInputDependencies(updatedData.query.baseQuery);
         }
         this.data = updatedData;
+        // Sync to the flat state.relations map
+        useRelationsState.getState().updateRelation(updatedData);
     }
 
     // Abstract method to be implemented by subclasses
@@ -242,9 +246,9 @@ export abstract class BaseRelationBlockTool implements BlockTool, InteractiveBlo
         ]
     }
 
-    // Common save method
-    public save(): RelationState {
-        return this.data;
+    // Save only the relation ID; full state lives in state.relations
+    public save(): {id: string} {
+        return {id: this.data.id};
     }
 
     // Common destroy method

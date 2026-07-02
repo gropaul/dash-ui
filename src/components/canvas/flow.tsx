@@ -44,9 +44,12 @@ import {useHelperLines} from "@/components/canvas/helpers/use-helper-lines";
 import {HelperLines} from "@/components/canvas/helpers/helper-lines";
 import {useUndoableFlow} from "@/hooks/use-undoable-flow";
 import {CanvasProvider} from "@/components/canvas/canvas-context";
-import {useRelationDataState} from "@/state/relations-data.state";
 import {RelationState} from "@/model/relation-state";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {useRelationsState} from "@/state/relations.state";
+import {getRelationDependencies} from "@/state/relations/relation-dependencies";
+import {useRelationDeleteDialog} from "@/components/workbench/relation-delete-dialog";
+import {findPathById} from "@/components/basics/files/tree-utils";
 
 export interface FlowProps {
     canvasId: string;
@@ -99,18 +102,19 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     const runSelectedNode = useCallback(() => {
         const selected = nodes.find(n => n.selected && n.type === 'relationNode');
         if (!selected) return;
-        const relationData = (selected.data as { relationData?: RelationState })?.relationData;
+        const relationId = (selected.data as {relationId?: string}).relationId;
+        if (!relationId) return;
+        const relationData = useRelationsState.getState().relations[relationId];
         if (!relationData) return;
         const updateRelation = (newRelation: RelationState) => {
-            setNodes(nds => nds.map(n => n.id !== selected.id ? n : {
-                ...n, data: {...n.data, relationData: newRelation},
-            }));
+            useRelationsState.getState().updateRelation(newRelation);
         };
         const actions = getRelationActions({mode: 'embedded', relationState: relationData, updateRelation});
         actions.updateRelationDataWithBaseQuery(relationData.query.baseQuery);
-    }, [nodes, setNodes]);
+    }, [nodes]);
 
     useFlowShortcuts({
+        canvasId,
         nodes,
         edges,
         setNodes,
@@ -130,6 +134,7 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     });
 
     const edgeHandlerCtx: EdgeHandlerContext = {
+        canvasId,
         getNodes,
         getEdges,
         setNodes,
@@ -171,11 +176,31 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     );
 
     const onNodesDelete = useCallback((deletedNodes: Node[]) => {
-        for (const node of deletedNodes) {
-            if (node.type === 'relationNode') {
-                const data = node.data as { relationData?: { id?: string } };
-                if (data.relationData?.id) {
-                    useRelationDataState.getState().deleteData(data.relationData.id);
+        const deletedRelationNodes = deletedNodes
+            .filter(n => n.type === 'relationNode')
+            .map(n => ({nodeId: n.id, relationId: (n.data as {relationId?: string}).relationId}))
+            .filter((entry): entry is {nodeId: string; relationId: string} => !!entry.relationId);
+
+        if (deletedRelationNodes.length === 0) return;
+
+        const excludeNodeIds = new Set(deletedRelationNodes.map(n => n.nodeId));
+
+        // For each deleted relation node, check if it's still referenced elsewhere
+        for (const {relationId} of deletedRelationNodes) {
+            const deps = getRelationDependencies(relationId, {canvasNodeIds: excludeNodeIds});
+            if (deps.isOrphan) {
+                const relation = useRelationsState.getState().relations[relationId];
+                if (relation) {
+                    const editorPath = findPathById(useRelationsState.getState().editorElements, relationId);
+                    useRelationDeleteDialog.getState().openForOrphanDelete(
+                        relationId,
+                        relation.viewState.displayName,
+                        () => {
+                            if (editorPath) {
+                                useRelationsState.getState().deleteEntity('relations', relationId, editorPath);
+                            }
+                        },
+                    );
                 }
             }
         }
@@ -195,6 +220,7 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     }, [nodes, canvasState.connectionHover]);
 
     const pointerCtx: PointerHandlerContext = {
+        canvasId,
         canvasState,
         setCanvasState,
         nodes,

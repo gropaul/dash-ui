@@ -55,7 +55,7 @@ export async function onDuckDBDataSourceClick(
         const database = findNodeInTrees(Object.values(dataSources), id_path);
         if (database) {
             const state = GetDatabaseState(connection.id, database.id);
-            return useRelationsState.getState().showEntity('databases', state, [])
+            return useRelationsState.getState().addEntity('databases', state, [])
         }
     }
 
@@ -64,7 +64,7 @@ export async function onDuckDBDataSourceClick(
         const schema = findNodeInTrees(Object.values(dataSources), id_path)  as DataSourceGroup;
         if (schema) {
             const state = GetSchemaState(connection.id, id_path[0], schema);
-            return useRelationsState.getState().showEntity('schemas', state, []);
+            return useRelationsState.getState().addEntity('schemas', state, []);
         }
     }
 

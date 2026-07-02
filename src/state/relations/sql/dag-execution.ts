@@ -6,6 +6,7 @@ import {
     setRelationRunning,
 } from '@/model/relation-state';
 import {registerRelationMacro} from './table-macros';
+import {useRelationsState} from '@/state/relations.state';
 
 type SetNodes = (updater: Node[] | ((nodes: Node[]) => Node[])) => void;
 type SetEdges = (updater: Edge[] | ((edges: Edge[]) => Edge[])) => void;
@@ -81,35 +82,25 @@ function setEdgeAnimationStates(
 }
 
 /**
- * Update a canvas node's relation data.
+ * Update a canvas node's relation data (writes to the flat state.relations map).
  */
 function updateNodeRelationData(
-    nodeId: string,
+    _nodeId: string,
     newRelation: RelationState,
-    setNodes: SetNodes,
+    _setNodes: SetNodes,
 ) {
-    setNodes((nodes) =>
-        nodes.map((n) => {
-            if (n.id !== nodeId) return n;
-            return {
-                ...n,
-                data: {
-                    ...n.data,
-                    relationData: newRelation,
-                },
-            };
-        })
-    );
+    useRelationsState.getState().updateRelation(newRelation);
 }
 
 /**
- * Get the relation data for a canvas node.
+ * Get the relation data for a canvas node (reads from the flat state.relations map).
  */
 function getNodeRelationData(nodeId: string, getNodes: GetNodes): RelationState | null {
     const node = getNodes().find(n => n.id === nodeId);
     if (!node || node.type !== 'relationNode') return null;
-    const data = node.data as { relationData?: RelationState };
-    return data?.relationData ?? null;
+    const relationId = (node.data as {relationId?: string}).relationId;
+    if (!relationId) return null;
+    return useRelationsState.getState().relations[relationId] ?? null;
 }
 
 // Monotonically increasing run ID for cancellation

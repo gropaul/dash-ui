@@ -40,7 +40,7 @@ export async function getDatabaseKeywords(): Promise<DatabaseKeyword[]> {
 export async function getDatabaseMacros(): Promise<Table[]> {
     // Merge canvas/dashboard relations as dash_node tables
     const macroTables: Table[] = getAllRelations()
-        .filter(r => r.origin !== 'dashboard' && r.relation.query.baseQuery)
+        .filter(r => r.relation.query.baseQuery)
         .map(r => {
             const macroName = getMacroName(r.relation.viewState.displayName);
             return {

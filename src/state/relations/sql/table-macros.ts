@@ -345,9 +345,7 @@ async function reregisterAllMacros(): Promise<void> {
     const entries = getAllRelations();
 
     const macros: { key: string; createSql: string }[] = [];
-    for (const {relation, origin} of entries) {
-        if (origin === 'dashboard') continue;
-
+    for (const {relation} of entries) {
         if (relation.viewState.displayName && relation.query.baseQuery) {
             const key = sanitizeMacroName(relation.viewState.displayName);
             const createSql = generateCreateMacroSQLInternal(relation);

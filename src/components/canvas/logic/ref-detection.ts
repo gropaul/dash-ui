@@ -1,7 +1,7 @@
 import {Edge, MarkerType, Node} from '@xyflow/react';
-import {RelationState} from "@/model/relation-state";
 import {minifySQL} from "@/platform/sql-utils";
 import {extractMacroRefs, sanitizeMacroName} from "@/state/relations/sql/table-macros";
+import {useRelationsState} from "@/state/relations.state";
 
 /**
  * Extract node references from SQL.
@@ -17,11 +17,12 @@ export function extractNodeRefs(sql: string): string[] {
  * sanitizeMacroName("Employees") === "employees".
  */
 function findNodeIdByMacroRef(ref: string, allNodes: Node[], excludeNodeId: string): string | null {
+    const relations = useRelationsState.getState().relations;
     for (const node of allNodes) {
         if (node.id === excludeNodeId) continue;
         if (node.type !== 'relationNode') continue;
-        const data = node.data as { relationData?: RelationState };
-        const displayName = data?.relationData?.viewState?.displayName;
+        const relationId = (node.data as {relationId?: string}).relationId;
+        const displayName = relationId ? relations[relationId]?.viewState?.displayName : undefined;
         if (displayName && sanitizeMacroName(displayName) === ref) {
             return node.id;
         }

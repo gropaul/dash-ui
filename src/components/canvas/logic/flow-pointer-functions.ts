@@ -11,8 +11,10 @@ import {NodeTemplate, Position} from "@/components/canvas/flow";
 import {FreeDrawNodeData} from "@/components/canvas/nodes/free-draw-node";
 import {DEFAULT_TEXT_NODE_DATA} from "@/components/canvas/nodes/text-node";
 import {RelationActions} from "@/state/relations/actions/static-actions";
+import {addRelationForCanvas} from "@/components/canvas/logic/canvas-relations";
 
 export interface PointerHandlerContext {
+    canvasId: string;
     canvasState: CanvasState;
     setCanvasState: (state: CanvasState) => void;
     nodes: Node[];
@@ -264,14 +266,20 @@ export function handlePointerUp(
     });
 }
 
-function getDefaultNodeData(type: string): Record<string, unknown> {
+function getDefaultNodeData(type: string, canvasId: string): Record<string, unknown> {
     switch (type) {
         case 'textNode':
             return {...DEFAULT_TEXT_NODE_DATA};
-        case 'relationNode':
-            return {relationData: RelationActions.create({showCode: true, viewType: 'table'})};
-        case 'chartNode':
-            return {relationData: RelationActions.create({showCode: true, viewType: 'chart'})};
+        case 'relationNode': {
+            const relation = RelationActions.create({showCode: true, viewType: 'table'});
+            addRelationForCanvas(canvasId, relation);
+            return {relationId: relation.id};
+        }
+        case 'chartNode': {
+            const relation = RelationActions.create({showCode: true, viewType: 'chart'});
+            addRelationForCanvas(canvasId, relation);
+            return {relationId: relation.id};
+        }
         default:
             return {};
     }
@@ -285,7 +293,7 @@ function createNode(ctx: PointerHandlerContext, template: NodeTemplate, position
         width: template.size.width,
         height: template.size.height,
         selected: true,
-        data: getDefaultNodeData(template.type),
+        data: getDefaultNodeData(template.type, ctx.canvasId),
     };
     // deselect all other nodes
     ctx.setNodes((nds) =>

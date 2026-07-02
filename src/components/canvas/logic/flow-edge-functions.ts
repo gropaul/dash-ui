@@ -14,6 +14,8 @@ import {getMacroName} from "@/state/relations/sql/table-macros";
 import {injectNodeRef} from "@/components/canvas/logic/ref-detection";
 import {RelationState} from "@/model/relation-state";
 import {RelationActions} from "@/state/relations/actions/static-actions";
+import {useRelationsState} from "@/state/relations.state";
+import {addRelationForCanvas} from "@/components/canvas/logic/canvas-relations";
 
 export interface ConnectionValidity {
     isValid: boolean;
@@ -21,6 +23,7 @@ export interface ConnectionValidity {
 }
 
 export interface EdgeHandlerContext {
+    canvasId: string;
     getNodes: () => Node[];
     getEdges: () => Edge[];
     setNodes: Dispatch<SetStateAction<Node[]>>;
@@ -38,7 +41,6 @@ function injectSqlOnConnect(
     sourceNodeId: string,
     targetNodeId: string,
     getNodes: () => Node[],
-    setNodes: Dispatch<SetStateAction<Node[]>>,
 ): void {
     const nodes = getNodes();
     const sourceNode = nodes.find(n => n.id === sourceNodeId);
@@ -47,38 +49,28 @@ function injectSqlOnConnect(
     if (!sourceNode || !targetNode) return;
     if (sourceNode.type !== 'relationNode' || targetNode.type !== 'relationNode') return;
 
-    const sourceData = sourceNode.data as { relationData?: RelationState };
-    const targetData = targetNode.data as { relationData?: RelationState };
-    const displayName = sourceData?.relationData?.viewState?.displayName;
+    const sourceRelationId = (sourceNode.data as {relationId?: string}).relationId;
+    const targetRelationId = (targetNode.data as {relationId?: string}).relationId;
+    if (!sourceRelationId || !targetRelationId) return;
+
+    const storeState = useRelationsState.getState();
+    const sourceRelation = storeState.relations[sourceRelationId];
+    const targetRelation = storeState.relations[targetRelationId];
+    if (!sourceRelation || !targetRelation) return;
+
+    const displayName = sourceRelation.viewState.displayName;
     if (!displayName) return;
 
     const macroName = getMacroName(displayName);
-    const currentSql = targetData?.relationData?.query?.baseQuery ?? '';
+    const currentSql = targetRelation.query.baseQuery ?? '';
     const newSql = injectNodeRef(currentSql, macroName);
 
     if (newSql === currentSql) return;
 
-    setNodes((nodes) =>
-        nodes.map((node) => {
-            if (node.id !== targetNodeId) return node;
-            const data = node.data as { relationData?: RelationState };
-            const relationData = data?.relationData;
-            if (!relationData) return node;
-            return {
-                ...node,
-                data: {
-                    ...node.data,
-                    relationData: {
-                        ...relationData,
-                        query: {
-                            ...relationData.query,
-                            baseQuery: newSql,
-                        },
-                    },
-                },
-            };
-        })
-    );
+    storeState.updateRelation({
+        ...targetRelation,
+        query: {...targetRelation.query, baseQuery: newSql},
+    });
 }
 
 export function checkConnectionValidity(
@@ -154,7 +146,7 @@ export function createOnConnect(ctx: EdgeHandlerContext) {
         );
         // Inject SQL into the target node
         if (connection.source && connection.target) {
-            injectSqlOnConnect(connection.source, connection.target, getNodes, setNodes);
+            injectSqlOnConnect(connection.source, connection.target, getNodes);
         }
     };
 }
@@ -222,7 +214,7 @@ export function createOnConnectEnd(ctx: EdgeHandlerContext) {
                     ),
                 );
                 // Inject SQL into the target node
-                injectSqlOnConnect(sourceNodeId, targetNode.id, getNodes, setNodes);
+                injectSqlOnConnect(sourceNodeId, targetNode.id, getNodes);
                 connectingFrom.current = null;
                 setCanvasState(prev => ({...prev, connectionHover: null}));
             } else {
@@ -248,14 +240,18 @@ export function createOnConnectEnd(ctx: EdgeHandlerContext) {
         // Dropped on empty canvas — create a new relation node with a ref to the source
         const sourceNode = getNodes().find(n => n.id === sourceNodeId);
         if (sourceNode && sourceNode.type === 'relationNode') {
-            const sourceData = sourceNode.data as { relationData?: RelationState };
-            const displayName = sourceData?.relationData?.viewState?.displayName;
+            const sourceRelationId = (sourceNode.data as {relationId?: string}).relationId;
+            const sourceRelation = sourceRelationId ? useRelationsState.getState().relations[sourceRelationId] : undefined;
+            const displayName = sourceRelation?.viewState?.displayName;
             if (displayName) {
                 const macroName = getMacroName(displayName);
                 const initialData = RelationActions.create({showCode: true});
                 const newSql = `SELECT * FROM ${macroName}()`;
                 initialData.query.baseQuery = newSql;
                 initialData.query.activeBaseQuery = newSql;
+
+                // Register new relation in state (added as a sibling of the canvas in the editor tree)
+                addRelationForCanvas(ctx.canvasId, initialData);
 
                 const newNodeId = `n-${Date.now()}`;
 
@@ -291,7 +287,7 @@ export function createOnConnectEnd(ctx: EdgeHandlerContext) {
                     width: DEFAULT_NODE_SIZE.width,
                     height: DEFAULT_NODE_SIZE.height,
                     selected: true,
-                    data: {relationData: initialData},
+                    data: {relationId: initialData.id},
                 };
 
                 setNodes((nds) =>

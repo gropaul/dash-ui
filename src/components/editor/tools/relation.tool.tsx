@@ -12,6 +12,7 @@ import {ICON_CAPTIONS_OFF, ICON_CHART, ICON_SETTING, ICON_TABLE} from "@/compone
 import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {isRelationState} from "@/components/editor/tools/utils";
 import {BaseRelationBlockTool} from "@/components/editor/tools/base-relation-block.tool";
+import {useRelationsState} from "@/state/relations.state";
 
 /**
  * React wrapper that will:
@@ -62,14 +63,23 @@ export default class RelationBlockTool extends BaseRelationBlockTool {
     }
 
     protected constructor({data, api, readOnly, config}: {
-        data: RelationState,
+        data: any,
         api: API,
         readOnly: boolean,
         config: any
     }, blockName: string) {
-        if (!isRelationState(data)) {
+        if (isRelationState(data)) {
+            // Old format: block.data was a full RelationState — migrate it to state.relations
+            useRelationsState.getState().updateRelation(data as RelationState);
+        } else if (data?.id) {
+            // New format: block.data is { id } — load full state from state.relations
+            const loaded = useRelationsState.getState().relations[data.id];
+            data = loaded ?? RelationActions.create();
+        } else {
+            // Brand-new block: create a fresh relation and register it
             data = RelationActions.create();
         }
+        useRelationsState.getState().updateRelation(data as RelationState);
         super({data, api, readOnly, config}, RELATION_BLOCK_NAME);
     }
 

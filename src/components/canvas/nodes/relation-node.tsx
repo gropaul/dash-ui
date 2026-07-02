@@ -25,9 +25,11 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationState} from "@/model/relation-state";
 import {getDefaultSessionState, RelationViewMode} from "@/model/relation-view-state";
 import {onRelationEvent} from "@/state/relations/event/relation-events";
+import {useRelationsState} from "@/state/relations.state";
+import {shallow} from "zustand/shallow";
 
 type RelationNodeProps = {
-    relationData?: RelationState;
+    relationId: string;
     connectionHover?: ConnectionHoverState | null;
 }
 
@@ -35,39 +37,30 @@ type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
 
 const VIEW_MODE: RelationViewMode = 'embedded';
 
-function getRelationState(props: RelationNodeProps): RelationState {
-    const maybeRelationData = props.relationData;
-    if (!maybeRelationData) {
-        return RelationActions.create();
-    }
-    return maybeRelationData;
-}
-
 export function RelationNode(props: NodeProps<RelationNodeType>) {
     const {openFullscreen, setNodes, setEdges, getNodes, getEdges} = useCanvasState();
 
-    // Get relation data from node props, merge with defaults if missing (e.g. on first load)
-    const data = getRelationState(props.data as RelationNodeProps);
+    // Read relation from the flat state map; fall back to a default if missing (e.g. during migration)
+    const data = useRelationsState(
+        s => s.relations[props.data.relationId] ?? RelationActions.create(),
+        shallow,
+    );
+    const storeUpdateRelation = useRelationsState(s => s.updateRelation);
 
-    // Update relation data in node, optionally with node-level updates (height, etc.)
-    const updateNodeData = useCallback((
-        dataUpdater: (prev: RelationState) => RelationState,
-        nodeUpdater?: (node: Node) => Partial<Node>
-    ) => {
-        setNodes((nodes) =>
-            nodes.map((node) => {
-                if (node.id !== props.id) return node;
-                const currentData = getRelationState(node.data as RelationNodeProps);
-                return {
-                    ...node,
-                    ...(nodeUpdater?.(node) ?? {}),
-                    data: {
-                        ...node.data,
-                        relationData: dataUpdater(currentData),
-                    },
-                };
-            })
-        );
+    // Update relation data in Zustand state (no longer touches XyFlow node data)
+    const updateRelation = useCallback((updater: RelationState | ((prev: RelationState) => RelationState)) => {
+        const current = useRelationsState.getState().relations[props.data.relationId];
+        if (!current) return;
+        const newRelation = typeof updater === 'function' ? updater(current) : updater;
+        storeUpdateRelation(newRelation);
+    }, [props.data.relationId, storeUpdateRelation]);
+
+    // Update node-level XyFlow properties (height, etc.) without touching relation data
+    const updateNodeHeight = useCallback((heightDelta: number) => {
+        setNodes((nodes) => nodes.map((node) => {
+            if (node.id !== props.id) return node;
+            return {...node, height: roundToGrid((node.height ?? DEFAULT_NODE_HEIGHT) + heightDelta)};
+        }));
     }, [setNodes, props.id]);
 
     // Refresh downstream nodes when this relation's query finishes
@@ -76,11 +69,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
             await refreshDownstream(props.id, {getNodes, getEdges, setNodes, setEdges});
         }, ["QUERY_RUN_FINISHED", "UPDATE_SELECTION"], data.id);
     }, [props.id, getNodes, getEdges, setNodes, setEdges]);
-
-    // Simple data-only updater for compatibility with actions
-    const updateRelation = useCallback((updater: RelationState | ((prev: RelationState) => RelationState)) => {
-        updateNodeData(prev => typeof updater === 'function' ? updater(prev) : updater);
-    }, [updateNodeData]);
 
     const actions = useMemo(() => {
         const inputProps: RelationViewAPIProps = {
@@ -109,7 +97,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                 updated = updated.filter(e => !removeSet.has(e.id));
             }
             for (const {source, target} of toAdd) {
-                // Avoid duplicates (edge may already exist from manual drag)
                 if (!updated.some(e => e.source === source && e.target === target)) {
                     updated = [...updated, createAutoEdge(source, target)];
                 }
@@ -157,7 +144,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
 
         let heightDelta: number;
         if (isCurrentlyShowing) {
-            // Closing: measure current height and store it
             const currentHeight = roundToGrid(codeFenceRef.current?.offsetHeight ?? lastCodeHeight);
             setLastCodeHeight(currentHeight);
             heightDelta = -currentHeight;
@@ -165,27 +151,25 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
             heightDelta = lastCodeHeight;
         }
 
-        updateNodeData(
-            (prev) => {
-                const prevSession = prev.viewState.embeddedSessionState ?? getDefaultSessionState('embedded');
-                return {
-                    ...prev,
-                    viewState: {
-                        ...prev.viewState,
-                        embeddedSessionState: {
-                            ...prevSession,
-                            codeFenceState: {...prevSession.codeFenceState, show: !isCurrentlyShowing},
-                        },
+        updateRelation((prev) => {
+            const prevSession = prev.viewState.embeddedSessionState ?? getDefaultSessionState('embedded');
+            return {
+                ...prev,
+                viewState: {
+                    ...prev.viewState,
+                    embeddedSessionState: {
+                        ...prevSession,
+                        codeFenceState: {...prevSession.codeFenceState, show: !isCurrentlyShowing},
                     },
-                };
-            },
-            (node) => ({height: roundToGrid((node.height ?? DEFAULT_NODE_HEIGHT) + heightDelta)})
-        );
-    }, [isCodeShowing, updateNodeData, lastCodeHeight]);
+                },
+            };
+        });
+        updateNodeHeight(heightDelta);
+    }, [isCodeShowing, updateRelation, updateNodeHeight, lastCodeHeight]);
 
     const handleRun = useCallback(async () => {
         await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
-    }, [actions, data.query.baseQuery, props.id, getNodes, getEdges, setNodes, setEdges]);
+    }, [actions, data.query.baseQuery]);
 
     const viewProps: RelationViewProps = {
         mode: VIEW_MODE,

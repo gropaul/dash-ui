@@ -61,7 +61,7 @@ export const handleDatabaseImport = async (
             await refreshConnection(connection.id);
 
             const databaseState = GetDatabaseState(connection.id, databaseName);
-            useRelationsState.getState().showEntity('databases', databaseState, []);
+            useRelationsState.getState().addEntity('databases', databaseState, []);
 
             const dashState = await getDashStateIfExits(connection, databaseName);
             if (dashState) {

@@ -19,7 +19,7 @@ interface DatabaseSchemaViewProps {
 export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
 
     const showRelation = useRelationsState((state) => state.showRelationFromSource);
-    const showEntity = useRelationsState((state) => state.showEntity);
+    const showEntity = useRelationsState((state) => state.addEntity);
 
     function onShowSchema() {
         const schemaState = GetSchemaState(props.connectionId, props.databaseId, props.schema);

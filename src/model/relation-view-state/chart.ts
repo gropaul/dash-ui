@@ -415,8 +415,10 @@ export function getTitleForType(type: PlotDisplayErrorType) {
     switch (type) {
         case 'config-not-complete':
             return 'Configuration not complete';
-        case 'missing-data':
-            return 'Missing data';
+        case 'missing-columns':
+            return 'Missing Columns';
+        case "no-data":
+            return 'No data';
         case 'too-much-data':
             return 'Too much data';
     }
@@ -425,7 +427,7 @@ export function getTitleForType(type: PlotDisplayErrorType) {
 }
 
 
-export type PlotDisplayErrorType = 'config-not-complete' | 'missing-data' | 'too-much-data';
+export type PlotDisplayErrorType = 'config-not-complete' | 'missing-columns' | 'too-much-data' | 'no-data'
 
 export interface PlotDisplayError {
     type: PlotDisplayErrorType;
@@ -500,16 +502,22 @@ export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationD
             }
         }
     }
+    
+    // check if we have any data
+    if (relationData.rows.length === 0) {
+        return {
+            type: "no-data",
+            message: "The query zero rows, so there is nothing to show. :( "
+        }
+    }
 
     // check if needed columns are there
     const neededColumns = getNeededColumnsForConfig(chartConfig);
     const missingColumns = neededColumns.filter(columnId => !relationData.columns.find(column => column.id === columnId));
-
+    
     if (missingColumns.length > 0) {
-
-        console.warn(`Missing columns: ${missingColumns.join(', ')}, available columns: ${relationData.columns.map(column => column.id).join(', ')}`)
         return {
-            type: 'missing-data',
+            type: 'missing-columns',
             message: `Missing data columns: ${missingColumns.join(', ')}`
         }
     }
