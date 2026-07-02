@@ -124,7 +124,7 @@ export function updateRelationViewState(currentState: RelationViewState, newData
     }
 }
 
-export function getInitViewState(displayName: string, data?: RelationData, schemaColumns?: Column[], showCode = false): RelationViewState {
+export function getInitViewState(displayName: string, data?: RelationData, schemaColumns?: Column[], showCode = true): RelationViewState {
 
     const baseState: RelationViewBaseState = {
         ...getInitialTabViewBaseState(displayName),

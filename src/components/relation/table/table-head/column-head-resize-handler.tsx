@@ -1,11 +1,13 @@
 import React, {useRef} from "react";
+import {cn} from "@/lib/utils";
 
 interface ColumnHeadResizeHandleProps {
     currentWidth: number;
     updateColumnWidth: (width: number) => void;
+    isLastColumn: boolean;
 }
 
-export function ColumnHeadResizeHandle({currentWidth, updateColumnWidth}: ColumnHeadResizeHandleProps) {
+export function ColumnHeadResizeHandle({currentWidth, updateColumnWidth, isLastColumn}: ColumnHeadResizeHandleProps) {
 
     const initialX = useRef<number | null>(null);
     const widthRef = useRef<number>(currentWidth);
@@ -35,9 +37,10 @@ export function ColumnHeadResizeHandle({currentWidth, updateColumnWidth}: Column
     return (
         <div
             onMouseDown={onMouseDown}
-            className="absolute right-0 top-0 h-full nodrag nopan cursor-col-resize w-2 flex justify-center items-center"
-        >
-            <div className="ml-0.5 h-3 w-1 border-l border-gray-700 dark:border-gray-700"/>
-        </div>
+            className={cn(
+                isLastColumn ? '' : 'border-r',
+                'absolute right-0 top-0 h-full nodrag nopan cursor-col-resize w-2 flex justify-center items-center'
+            )}
+        />
     );
 }

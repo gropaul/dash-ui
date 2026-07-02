@@ -72,23 +72,29 @@ export const TableContent = React.memo(function TableContent(props: RelationView
     });
 
     const virtualItems = rowVirtualizer.getVirtualItems();
+    const totalSize = rowVirtualizer.getTotalSize();
 
     return (
         <table
             ref={setTableRef}
             className={cn(
-                "text-sm bg-inherit text-left rtl:text-right text-muted-foreground h-fit",
+                "text-sm bg-inherit border-r text-left rtl:text-right text-muted-foreground h-fit",
                 styleMarginRight
             )}
             style={{tableLayout: "fixed", width: totalTableWidth}}
         >
             <TableHead {...props} />
-            <tbody className="bg-inherit" style={{position: 'relative'}}>
+            <tbody className="bg-card" style={{position: 'relative'}}>
             {virtualItems.length > 0 && (
                 <>
                     {/* Spacer for rows before visible area */}
-                    {virtualItems[0].index > 0 && (
-                        <tr style={{height: `${virtualItems[0].start}px`}} />
+                    {virtualItems[0].start > 0 && (
+                        <tr>
+                            <td
+                                colSpan={columnViewIndices.length + (showIndexColumn ? 1 : 0)}
+                                style={{height: `${virtualItems[0].start}px`, padding: 0}}
+                            />
+                        </tr>
                     )}
                     {/* Render only visible rows */}
                     {virtualItems.map((virtualRow) => {
@@ -119,6 +125,15 @@ export const TableContent = React.memo(function TableContent(props: RelationView
                             </tr>
                         );
                     })}
+                    {/* Spacer for rows after visible area */}
+                    {virtualItems[virtualItems.length - 1].end < totalSize && (
+                        <tr>
+                            <td
+                                colSpan={columnViewIndices.length + (showIndexColumn ? 1 : 0)}
+                                style={{height: `${totalSize - virtualItems[virtualItems.length - 1].end}px`, padding: 0}}
+                            />
+                        </tr>
+                    )}
                 </>
             )}
             </tbody>

@@ -1,4 +1,4 @@
-import {Braces, ChartSpline, Code, Map, Menu, Sheet} from "lucide-react";
+import {Braces, ChartSpline, Code, LayoutDashboard, Map, Menu, Sheet} from "lucide-react";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {RelationViewType} from "@/model/relation-view-state";
 import {Toggle} from "@/components/ui/toggle"
@@ -19,7 +19,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
-import {useState} from "react";
+import React, {useState} from "react";
 import {FilepathDialog, FilepathDialogState} from "@/components/export/filepath-dialog";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";
 import {RelationSettings} from "@/components/relation/relation-settings";
@@ -186,14 +186,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                         </>
                         :
                         <>
-                            <Separator orientation={'vertical'}/>
-                            <Toggle
-                                onClick={() => advancedActions.updateSessionState(props.mode, {codeFenceState: {show: !codeFenceState.show}})}
-                                pressed={codeFenceState.show}
-                                title={queryToggleText}
-                            >
-                                <Code className="h-4 w-4"/>
-                            </Toggle>
                             {
                                 parametersState.parameters.length != 0 && <Toggle
                                     onClick={props.toggleShowParameters}
@@ -203,18 +195,25 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     <Braces className="h-4 w-4"/>
                                 </Toggle>
                             }
-                            <Separator orientation={'vertical'}/>
                             <RelationViewTypeSwitcher
                                 currentView={viewState.selectedView}
                                 onViewChange={onViewChange}
                             />
                             <Separator orientation={'vertical'}/>
-                            <RelationSettings {...props} align={"end"}/>
-                            <Separator orientation={'vertical'}/>
-                            <HeaderDownloadButton
-                                state={filepathDialogState}
-                                setState={setFilepathDialogState}
-                            />
+                            <RelationSettings {...props} align={"end"}>
+                                <DropdownMenuItem
+                                    onClick={() => advancedActions.updateSessionState(props.mode, {codeFenceState: {show: !codeFenceState.show}})}
+                                >
+                                    <Code size={16} className="mr-1"/>
+                                    {queryToggleText}
+                                </DropdownMenuItem>
+                            </RelationSettings>
+                            {/*<Separator orientation={'vertical'}/>*/}
+                            {/*<HeaderDownloadButton*/}
+                            {/*    state={filepathDialogState}*/}
+                            {/*    setState={setFilepathDialogState}*/}
+                            {/*/>*/}
+                            <div className="w-1"/>
                         </>
                 }
             />

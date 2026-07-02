@@ -63,11 +63,13 @@ export function ContentWrapper(props: RelationViewProps) {
 
     const queryState = props.relationState.executionState;
     return (
-        queryState.state === "error" ? (
-            <RelationViewError error={queryState.error}/>
-        ) : (
-            <RelationViewContent {...props}/>
-        )
+        <>
+            {queryState.state === "error" ? (
+                <RelationViewError error={queryState.error}/>
+            ) : (
+                <RelationViewContent {...props}/>
+            )}
+        </>
     );
 }
 

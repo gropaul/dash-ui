@@ -3,8 +3,9 @@ import React from "react";
 import {ColumnDropDownContent} from "@/components/relation/table/table-column/column-dropdown-content";
 import {Column} from "@/model/data-source-connection";
 import {DropdownMenu, DropdownMenuContent} from "@/components/ui/dropdown-menu";
-import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
+import {fontMono, RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {useRelationDataState} from "@/state/relations-data.state";
+import {cn} from "@/lib/utils";
 
 export function TableHead(props: RelationViewTableContentProps) {
     const [selectedColumn, setSelectedColumn] = React.useState<Column | null>(null);
@@ -21,7 +22,7 @@ export function TableHead(props: RelationViewTableContentProps) {
 
     return (
         <>
-            <thead className="border-0 text-s text-primary bg-inherit sticky top-0 z-[3]">
+            <thead className={cn(fontMono.className, "border-0 text-s text-primary bg-inherit sticky top-0 z-[3]")}>
             <tr className="bg-inherit">
                 {/* Row index / settings column header */}
                 {showIndexColumn && (
@@ -43,6 +44,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                         column={props.data.columns[index]}
                         columnIndex={index}
                         onColumnMenuClick={handleColumnMenuClick}
+                        isLast={index === props.columnViewIndices[props.columnViewIndices.length - 1]}
                     />
                 ))}
             </tr>
@@ -64,6 +66,7 @@ export function TableHead(props: RelationViewTableContentProps) {
                             {...props}
                             column={selectedColumn}
                             columnIndex={0 /* not used in content */}
+                            isLast={false}
                         />
                     )}
                 </DropdownMenuContent>

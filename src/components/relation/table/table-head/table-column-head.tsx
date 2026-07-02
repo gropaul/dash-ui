@@ -19,6 +19,7 @@ export interface ColumnHeadProps extends RelationViewTableContentProps {
     relationStats?: RelationStats;
     onColumnMenuClick?: (column: Column, event: React.MouseEvent) => void;
     columnIndex: number;
+    isLast: boolean;
 }
 
 function getNextColumnSorting(current?: ColumnSorting): ColumnSorting | undefined {
@@ -165,10 +166,9 @@ export function TableColumnHead(props: ColumnHeadProps) {
             </div>
 
             <ColumnHeadResizeHandle
-
                 currentWidth={localColumnWidth}
                 updateColumnWidth={UpdateColumnWidthGlobalState}
-
+                isLastColumn={props.isLast}
             />
         </ColumnHeadWrapper>
 

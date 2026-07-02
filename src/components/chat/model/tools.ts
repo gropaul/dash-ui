@@ -193,7 +193,7 @@ function chartInputToPartialRelation(input: z.infer<typeof ChartToolInputSchema>
         viewState: {
             selectedView: 'chart',
             fullscreenSessionState: {
-                codeFenceState: {show: false, sizePercentage: 30, layout: 'row'},
+                codeFenceState: {show: true, sizePercentage: 30, layout: 'row'},
                 configState: {showConfig: false, configSplitRatio: 0.3},
             },
         }

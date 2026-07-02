@@ -45,6 +45,7 @@ function SortableSortItem({colName, direction, availableColumns, showHandle, onC
         <div ref={setNodeRef} style={style} className="flex items-center gap-1">
             <div className="flex-1 min-w-0">
                 <ColumnSelector
+                    placeholder={'Add sort column...'}
                     plotType="bar"
                     axisType="sort"
                     axis={{columnId: colName, label: colName, decoration: getInitialAxisDecoration(0)}}
@@ -58,7 +59,7 @@ function SortableSortItem({colName, direction, availableColumns, showHandle, onC
                         <Button
                             variant="outline"
                             size="icon"
-                            className="h-9 w-9 shrink-0"
+                            className="h-9 w-9 shrink-0 bg-card"
                             onClick={() => onToggleDirection(colName, direction)}
                         >
                             {direction === 'ASC' ? <ArrowUp size={14} className="text-indigo-600"/> : <ArrowDown size={14} className="text-indigo-600"/>}
@@ -169,16 +170,7 @@ export function TableConfigView(props: RelationViewContentProps) {
                 <ScrollArea className="h-full w-full pr-3">
                     <div className="flex min-h-full flex-col gap-3 p-0.5">
 
-                        {/* Row index toggle */}
-                        <div className="flex items-center justify-between">
-                            <Label><Muted>Row Index</Muted></Label>
-                            <Switch
-                                checked={tableState.showIndexColumn ?? true}
-                                onCheckedChange={setShowIndexColumn}
-                            />
-                        </div>
 
-                        <Separator/>
 
                         {/* Column visibility */}
                         <Label className="h-3"><Muted>Columns</Muted></Label>
@@ -194,7 +186,7 @@ export function TableConfigView(props: RelationViewContentProps) {
                         <Separator/>
 
                         {/* Sorting */}
-                        <Label className="h-3"><Muted>Sort</Muted></Label>
+                        <Label className="h-3"><Muted>Table Sorting</Muted></Label>
 
                         <DndContext
                             collisionDetection={closestCenter}
@@ -222,6 +214,7 @@ export function TableConfigView(props: RelationViewContentProps) {
 
                         {(noSorts || addingSort) && (
                             <ColumnSelector
+                                placeholder={'Add sort column...'}
                                 plotType="bar"
                                 axisType="sort"
                                 columns={unsortedColumns}
@@ -236,7 +229,7 @@ export function TableConfigView(props: RelationViewContentProps) {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="w-auto justify-start px-2"
+                                className="w-auto justify-start px-2 bg-card"
                                 onClick={() => setAddingSort(true)}
                             >
                                 <div className="w-4 h-4 mr-1 flex items-center justify-center">
@@ -245,6 +238,17 @@ export function TableConfigView(props: RelationViewContentProps) {
                                 <Small>Add Sort Column</Small>
                             </Button>
                         )}
+
+                        <Separator/>
+                        {/* Row index toggle */}
+                        <div className="flex items-center justify-between">
+                            <Label><Muted>Show table row index</Muted></Label>
+                            <Switch
+                                checked={tableState.showIndexColumn ?? true}
+                                onCheckedChange={setShowIndexColumn}
+                            />
+                        </div>
+
 
                         <div className="h-8"/>
                     </div>

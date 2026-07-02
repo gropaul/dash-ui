@@ -32,6 +32,7 @@ type MultiSelectProps = {
 }
 
 type ColumnSelectorProps = {
+    placeholder?: string
     plotType: PlotType
     columns: Column[]
     axisType: AxisType
@@ -41,7 +42,6 @@ const PLACEHOLDER = "Select column..."
 
 export function ColumnSelector(props: ColumnSelectorProps) {
     const {columns, axisType} = props
-    const [open, setOpen] = React.useState(false)
 
     if (props.multiSelect) {
         const {selectedColumnIds, onColumnToggled} = props
@@ -51,56 +51,21 @@ export function ColumnSelector(props: ColumnSelectorProps) {
             : `${selectedColumnIds.length} / ${columns.length} visible`
 
         return (
-            <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={open}
-                        className="w-full justify-between"
-                    >
-                        <div className="flex-1 flex items-center gap-2">
-                            <span>{buttonLabel}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <AxisDetails axis={axisType}/>
-                            <ChevronDown/>
-                        </div>
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                    <Command>
-                        <CommandInput placeholder="Search columns..."/>
-                        <CommandList>
-                            <CommandEmpty>No column found.</CommandEmpty>
-                            <CommandGroup>
-                                {columns.map((column) => (
-                                    <CommandItem
-                                        key={column.id}
-                                        value={column.id}
-                                        onSelect={(id) => onColumnToggled(id)}
-                                    >
-                                        <ValueIcon type={column.type}/>
-                                        {column.name}
-                                        <Check
-                                            className={cn(
-                                                "ml-auto",
-                                                selectedColumnIds.includes(column.id) ? "opacity-100" : "opacity-0"
-                                            )}
-                                        />
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        </CommandList>
-                    </Command>
-                </PopoverContent>
-            </Popover>
+            <ColumnCombobox
+                columns={columns}
+                axisType={axisType}
+                triggerContent={<span>{buttonLabel}</span>}
+                inputPlaceholder="Search columns..."
+                isSelected={(id) => selectedColumnIds.includes(id)}
+                onSelect={onColumnToggled}
+            />
         )
     }
 
     // Single-select mode
     const {axis, updateAxis, deleteAxis} = props
     const decorationMenu = props.decorationMenu ?? false
+    const placeholder = props.placeholder ?? PLACEHOLDER
     const currentColumn = columns.find((column) => column.id === axis?.columnId)
 
     function setAxisId(columnId: string) {
@@ -110,6 +75,27 @@ export function ColumnSelector(props: ColumnSelectorProps) {
     function updateAxisDecoration(decoration: AxisDecoration) {
         updateAxis({decoration})
     }
+
+    const triggerContent = (
+        <>
+            {currentColumn && (
+                <ValueIcon size={14} key={currentColumn.id} type={currentColumn.type}/>
+            )}
+            <div>{axis?.columnId ? currentColumn?.name : placeholder}</div>
+        </>
+    )
+
+    const deleteFooter = deleteAxis && (
+        <>
+            <Separator/>
+            <CommandGroup>
+                <CommandItem onSelect={deleteAxis}>
+                    <Trash2/>
+                    <span>Delete</span>
+                </CommandItem>
+            </CommandGroup>
+        </>
+    )
 
     return (
         <div className='flex flex-row gap-2 items-center w-full'>
@@ -125,78 +111,89 @@ export function ColumnSelector(props: ColumnSelectorProps) {
                 </>
             )}
             <div className="flex-1 min-w-0">
-                <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={open}
-                            className="w-full justify-between"
-                        >
-                            <div className="flex-1 flex items-center gap-2">
-                                {currentColumn && (
-                                    <ValueIcon size={14} key={currentColumn.id} type={currentColumn.type}/>
-                                )}
-                                <div>
-                                    {axis?.columnId
-                                        ? columns.find((column) => column.id === axis.columnId)?.name
-                                        : PLACEHOLDER}
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <AxisDetails axis={axisType}/>
-                                <ChevronDown/>
-                            </div>
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
-                        <Command>
-                            <CommandInput placeholder={PLACEHOLDER}/>
-                            <CommandList>
-                                <CommandEmpty>No Column found.</CommandEmpty>
-                                <CommandGroup>
-                                    {columns.map((column) => (
-                                        <CommandItem
-                                            key={column.id}
-                                            value={column.id}
-                                            onSelect={(currentValue) => {
-                                                setAxisId(currentValue);
-                                                setOpen(false);
-                                            }}
-                                        >
-                                            <ValueIcon key={column.id} type={column.type}/>
-                                            {column.name}
-                                            <Check
-                                                className={cn(
-                                                    "ml-auto",
-                                                    axis?.columnId === column.id ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            </CommandList>
-                            {deleteAxis && (
-                                <>
-                                    <Separator/>
-                                    <CommandGroup>
-                                        <CommandItem
-                                            onSelect={() => {
-                                                deleteAxis()
-                                                setOpen(false)
-                                            }}
-                                        >
-                                            <Trash2/>
-                                            <span>Delete</span>
-                                        </CommandItem>
-                                    </CommandGroup>
-                                </>
-                            )}
-                        </Command>
-                    </PopoverContent>
-                </Popover>
+                <ColumnCombobox
+                    columns={columns}
+                    axisType={axisType}
+                    triggerContent={triggerContent}
+                    inputPlaceholder={placeholder}
+                    isSelected={(id) => axis?.columnId === id}
+                    onSelect={setAxisId}
+                    closeOnSelect
+                    footer={deleteFooter}
+                />
             </div>
         </div>
+    )
+}
+
+type ColumnComboboxProps = {
+    columns: Column[]
+    axisType: AxisType
+    triggerContent: React.ReactNode
+    inputPlaceholder: string
+    isSelected: (columnId: string) => boolean
+    onSelect: (columnId: string) => void
+    closeOnSelect?: boolean
+    footer?: React.ReactNode
+}
+
+function ColumnCombobox(props: ColumnComboboxProps) {
+    const {columns, axisType, triggerContent, inputPlaceholder, isSelected, onSelect, closeOnSelect, footer} = props
+    const [open, setOpen] = React.useState(false)
+
+    function handleSelect(columnId: string) {
+        onSelect(columnId)
+        if (closeOnSelect) {
+            setOpen(false)
+        }
+    }
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between bg-card"
+                >
+                    <div className="flex-1 flex items-center gap-2">
+                        {triggerContent}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <AxisDetails axis={axisType}/>
+                        <ChevronDown/>
+                    </div>
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+                <Command>
+                    <CommandInput placeholder={inputPlaceholder}/>
+                    <CommandList>
+                        <CommandEmpty>No column found.</CommandEmpty>
+                        <CommandGroup>
+                            {columns.map((column) => (
+                                <CommandItem
+                                    key={column.id}
+                                    value={column.id}
+                                    onSelect={() => handleSelect(column.id)}
+                                >
+                                    <ValueIcon type={column.type}/>
+                                    {column.name}
+                                    <Check
+                                        className={cn(
+                                            "ml-auto",
+                                            isSelected(column.id) ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                    {footer}
+                </Command>
+            </PopoverContent>
+        </Popover>
     )
 }
 
