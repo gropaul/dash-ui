@@ -5,14 +5,19 @@ import {ColumnSelector} from "@/components/relation/chart/chart-config/column-se
 import {AxisConfig, getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {Column} from "@/model/data-source-connection";
 import {ViewManager} from "@/model/relation-state/relation-view";
+import {Separator} from "@/components/ui/separator";
+import React from "react";
+import {ConfigSection} from "@/components/relation/common/config-section";
 
 
 export function ConfigViewPie(props: ChartConfigProps) {
 
     return (
         <>
-            <Label><Muted>Data</Muted></Label>
-            <ChartColumnSelector {...props} />
+            <Separator/>
+            <ConfigSection title={"Columns to Display"}>
+                <ChartColumnSelector {...props} />
+            </ConfigSection>
         </>
     )
 }

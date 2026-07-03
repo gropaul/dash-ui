@@ -3,6 +3,7 @@ import {ChevronDown} from "lucide-react";
 import {RelationViewType} from "@/model/relation-view-state";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
+import {VIEW_MODES, ViewMode} from "@/components/relation/settings/view-mode-picker";
 
 export interface ViewSwitchEntry {
     viewType: RelationViewType;
@@ -13,23 +14,7 @@ interface ViewSwitcherProps {
     onViewChange: (entry: ViewSwitchEntry) => void;
 }
 
-interface ViewItem {
-    key: string;
-    viewType: RelationViewType;
-    label: string;
-    disabled?: boolean;
-}
-
-const views: ViewItem[] = [
-    { key: 'table', viewType: 'table', label: 'Table' },
-    { key: 'chart', viewType: 'chart', label: 'Chart' },
-    { key: 'text', viewType: 'text', label: 'Text' },
-    { key: 'select', viewType: 'select', label: 'Dropdown' },
-    { key: 'slider', viewType: 'slider', label: 'Slider' },
-    { key: 'map', viewType: 'map', label: 'Map', disabled: true },
-];
-
-function isActive(view: ViewItem, currentView: RelationViewType): boolean {
+function isActive(view: ViewMode, currentView: RelationViewType): boolean {
     return view.viewType === currentView;
 
 }
@@ -47,10 +32,10 @@ export function RelationViewTypeSwitcher({ currentView, onViewChange }: ViewSwit
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-                {views.map((view) => (
+                {VIEW_MODES.map((view) => (
                     <DropdownMenuItem
-                        disabled={view.disabled}
-                        key={view.key}
+                        disabled={!view.ready}
+                        key={view.viewType}
                         onClick={() => onViewChange({viewType: view.viewType})}
                         className={isActive(view, currentView) ? 'bg-accent' : ''}
                     >

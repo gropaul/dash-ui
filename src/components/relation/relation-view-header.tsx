@@ -166,7 +166,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     <Braces className="h-4 w-4"/>
                                 </Toggle>
                             }
-                            <Separator orientation={'vertical'}/>
                             <RelationSettings {...props} align={"end"}>
                                 <DropdownMenuItem
                                     onClick={() => advancedActions.updateSessionState(props.mode, {codeFenceState: {show: !codeFenceState.show}})}

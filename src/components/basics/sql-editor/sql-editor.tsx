@@ -214,7 +214,7 @@ export function SqlEditor(
     }
 
     return (
-        <div className="flex flex-col h-full w-full relative">
+        <div className="flex flex-col h-full w-full relative bg-card">
             {panelMode === "panel" && (
                 <EditorButtonPanel
                     embedded={embedded}

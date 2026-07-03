@@ -36,7 +36,7 @@ body {
 
 @layer base {
   :root {
-    --muted-background: 0 0% 98%;
+    --muted-background: 240 20% 97.0%;
     --background: 240 20% 99.0%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;

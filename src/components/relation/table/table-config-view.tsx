@@ -27,37 +27,9 @@ import {
     isStyledDecoration,
 } from "@/model/relation-view-state/decoration"
 import {getValueTypeGroup} from "@/model/value-type"
+import {ConfigSection} from "@/components/relation/common/config-section";
 
-// --- Collapsible config section ---
 
-interface ConfigSectionProps {
-    title: string;
-    // shown on the right of the header while the section is collapsed
-    collapsedSummary?: string;
-    children: React.ReactNode;
-}
-
-function ConfigSection({title, collapsedSummary, children}: ConfigSectionProps) {
-    const [open, setOpen] = React.useState(true);
-    return (
-        <div className="flex flex-col gap-2">
-            <div
-                className="flex cursor-pointer items-center gap-1.5"
-                onClick={() => setOpen(!open)}
-            >
-                <ChevronDown
-                    size={14}
-                    className={cn("text-muted-foreground transition-transform", !open && "-rotate-90")}
-                />
-                <Label className="flex-1 cursor-pointer"><Muted>{title}</Muted></Label>
-                {!open && collapsedSummary && (
-                    <span className="text-xs text-muted-foreground">{collapsedSummary}</span>
-                )}
-            </div>
-            {open && children}
-        </div>
-    );
-}
 
 // --- Sortable sort rule (fed from the column list, no column picker) ---
 
@@ -243,13 +215,15 @@ export function TableConfigView(props: RelationViewContentProps) {
         <div className="flex flex-col gap-3">
 
                         {/* Row index toggle */}
-                        <div className="flex items-center justify-between">
-                            <Label><Muted>Show table row index</Muted></Label>
-                            <Switch
-                                checked={tableState.showIndexColumn ?? true}
-                                onCheckedChange={setShowIndexColumn}
-                            />
-                        </div>
+                        <ConfigSection title={"Table Config"}>
+                            <div className="flex items-center justify-between">
+                                <Label><Muted>Show table row index</Muted></Label>
+                                <Switch
+                                    checked={tableState.showIndexColumn ?? true}
+                                    onCheckedChange={setShowIndexColumn}
+                                />
+                            </div>
+                        </ConfigSection>
 
                         <Separator/>
 

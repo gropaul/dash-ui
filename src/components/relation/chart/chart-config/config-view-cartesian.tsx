@@ -16,7 +16,7 @@ import {plotUsesGroup} from "@/components/relation/chart/echart-utils";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Column} from "@/model/data-source-connection";
 import {ViewManager} from "@/model/relation-state/relation-view";
-
+import {ConfigSection} from "@/components/relation/common/config-section";
 
 export function ConfigViewCartesian(props: ChartConfigProps) {
 
@@ -110,163 +110,164 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
 
     return (
         <>
-            <Label className={'h-3'}><Muted>Data</Muted></Label>
-            <ColumnSelector
-                plotType={chart.plot.type}
-                axisType={"x"}
-                axis={cartesian.xAxis}
-                columns={columns}
-                deleteAxis={() => updateXAxis(undefined)}
-                updateAxis={(update) => updateXAxis(update)}
-            />
-            {yAxis?.map((yAxis, index) => (
-                <ColumnSelector
-                    decorationMenu={!plotUsesGroup(chart.plot)}
-                    plotType={chart.plot.type}
-                    axisType={"y"}
-                    key={index}
-                    axis={yAxis}
-                    deleteAxis={() => deleteYAxis(index)}
-                    columns={columns}
-                    updateAxis={(update) => updateYAxis(index, update)}
-                />
-            ))}
-            {noYAxes && (
-                <ColumnSelector
-                    decorationMenu={true}
-                    plotType={chart.plot.type}
-                    axisType={"y"}
-                    columns={columns}
-                    updateAxis={(update) =>
-                        updateYAxis(0, {
-                            decoration: getInitialAxisDecoration(0),
-                            ...update,
-                        })
-                    }
-                />
-            )}
-
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={disableAddYAxis}
-                            className="w-auto justify-start px-2"
-                            onClick={() =>
-                                updateYAxis(cartesian.yAxes!.length, {
-                                    decoration: getInitialAxisDecoration(cartesian.yAxes!.length),
-                                })
-                            }
-                        >
-                            <div className="w-4 h-4 mr-1 flex items-center justify-center">
-                                {disableAddYAxis
-                                    ? <Lock className="w-4 h-4 text-muted-foreground"/>
-                                    : <CirclePlus className="w-4 h-4 text-muted-foreground"/>
-                                }
-                            </div>
-                            <Small className="text-gray-500">Add Y-Axis</Small>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <div className="text-sm">
-                            {disableAddYAxis
-                                ? "You can only add one Y-Axis if you have a group by column."
-                                : "Add Y-Axis"}
-                        </div>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-            {showGroupBy && (
+            <Separator/>
+            <ConfigSection title={"Columns to Display"}>
                 <ColumnSelector
                     plotType={chart.plot.type}
-                    axisType={"group"}
-                    axis={cartesian.groupBy}
+                    axisType={"x"}
+                    axis={cartesian.xAxis}
                     columns={columns}
-                    deleteAxis={() => updateGroupAxis(undefined)}
-                    updateAxis={(update) => updateGroupAxis(update)}
+                    deleteAxis={() => updateXAxis(undefined)}
+                    updateAxis={(update) => updateXAxis(update)}
                 />
-            )}
-            {chart.plot.type !== 'radar' && <>
-                <div className={'pb-1'}>
-                    <H5>X-Axis</H5>
-                    <Separator/>
-                </div>
-                <Label className={'h-3'}><Muted>Label</Muted></Label>
-                <Input
-                    type="text"
-                    id="x-axis-label"
-                    placeholder="None"
-                    value={cartesian.xLabel}
-                    onChange={(e) => updateXLabel(e.target.value)}
-                />
-                <AxisRangeWidget
-                    range={cartesian.xRange}
-                    updateRange={(range) => updateAxisRange(range, 'xRange')}
-                />
-                <Label className={'h-3'}><Muted>Tick Angle</Muted></Label>
-                <Input
-                    type="number"
-                    id="x-tick-angle"
-                    min={-90}
-                    max={90}
-                    step={1}
-                    placeholder="0"
-                    value={cartesian.xLabelRotation ?? ''}
-                    onChange={(e) => updateXTickAngle(e.target.value)}
-                />
-                <Label className={'h-3'}><Muted>Axis Type</Muted></Label>
-                <Select
-                    value={cartesian.xAxisType ?? 'auto'}
-                    onValueChange={(value) => updateXAxisType(value === 'auto' ? undefined : value)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Auto"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="auto">Auto</SelectItem>
-                        <SelectItem value="category">Category</SelectItem>
-                        <SelectItem value="time">Time</SelectItem>
-                        <SelectItem value="value">Numeric</SelectItem>
-                    </SelectContent>
-                </Select>
-                {showStackedBars && (
-                    <div className={'flex flex-row gap-2 items-center'}>
-                        <Muted>Stacked Bars</Muted>
-                        <Switch
-                            checked={cartesian.decoration?.bar?.stacked}
-                            onCheckedChange={(checked) => updateBar({stacked: checked})}
-                        />
-                    </div>
+                {yAxis?.map((yAxis, index) => (
+                    <ColumnSelector
+                        decorationMenu={!plotUsesGroup(chart.plot)}
+                        plotType={chart.plot.type}
+                        axisType={"y"}
+                        key={index}
+                        axis={yAxis}
+                        deleteAxis={() => deleteYAxis(index)}
+                        columns={columns}
+                        updateAxis={(update) => updateYAxis(index, update)}
+                    />
+                ))}
+                {noYAxes && (
+                    <ColumnSelector
+                        decorationMenu={true}
+                        plotType={chart.plot.type}
+                        axisType={"y"}
+                        columns={columns}
+                        updateAxis={(update) =>
+                            updateYAxis(0, {
+                                decoration: getInitialAxisDecoration(0),
+                                ...update,
+                            })
+                        }
+                    />
                 )}
-                <div className={'pb-1'}>
-                    <H5>Y-Axis</H5>
-                    <Separator/>
-                </div>
-                <Label className={'h-3'}><Muted>Label</Muted></Label>
-                <Input
-                    type="text"
-                    id="y-axis-label"
-                    placeholder="None"
-                    value={cartesian.yLabel}
-                    onChange={(e) => updateYLabel(e.target.value)}
-                />
-                <AxisRangeWidget
-                    range={cartesian.yRange}
-                    updateRange={(range) => updateAxisRange(range, 'yRange')}
-                />
-                <Label className={'h-3'}><Muted>Tick Angle</Muted></Label>
-                <Input
-                    type="number"
-                    id="y-tick-angle"
-                    min={-90}
-                    max={90}
-                    step={1}
-                    placeholder="0"
-                    value={cartesian.yLabelRotation ?? ''}
-                    onChange={(e) => updateYTickAngle(e.target.value)}
-                />
+
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={disableAddYAxis}
+                                className="w-auto justify-start px-2"
+                                onClick={() =>
+                                    updateYAxis(cartesian.yAxes!.length, {
+                                        decoration: getInitialAxisDecoration(cartesian.yAxes!.length),
+                                    })
+                                }
+                            >
+                                <div className="w-4 h-4 mr-1 flex items-center justify-center">
+                                    {disableAddYAxis
+                                        ? <Lock className="w-4 h-4 text-muted-foreground"/>
+                                        : <CirclePlus className="w-4 h-4 text-muted-foreground"/>
+                                    }
+                                </div>
+                                <Small className="text-gray-500">Add Y-Axis</Small>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <div className="text-sm">
+                                {disableAddYAxis
+                                    ? "You can only add one Y-Axis if you have a group by column."
+                                    : "Add Y-Axis"}
+                            </div>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                {showGroupBy && (
+                    <ColumnSelector
+                        plotType={chart.plot.type}
+                        axisType={"group"}
+                        axis={cartesian.groupBy}
+                        columns={columns}
+                        deleteAxis={() => updateGroupAxis(undefined)}
+                        updateAxis={(update) => updateGroupAxis(update)}
+                    />
+                )}
+            </ConfigSection>
+            {chart.plot.type !== 'radar' && <>
+                <Separator/>
+                <ConfigSection title="X-Axis">
+                    <Label className={'h-3'}><Muted>Label</Muted></Label>
+                    <Input
+                        type="text"
+                        id="x-axis-label"
+                        placeholder="None"
+                        value={cartesian.xLabel}
+                        onChange={(e) => updateXLabel(e.target.value)}
+                    />
+                    <AxisRangeWidget
+                        range={cartesian.xRange}
+                        updateRange={(range) => updateAxisRange(range, 'xRange')}
+                    />
+                    <Label className={'h-3'}><Muted>Tick Angle</Muted></Label>
+                    <Input
+                        type="number"
+                        id="x-tick-angle"
+                        min={-90}
+                        max={90}
+                        step={1}
+                        placeholder="0"
+                        value={cartesian.xLabelRotation ?? ''}
+                        onChange={(e) => updateXTickAngle(e.target.value)}
+                    />
+                    <Label className={'h-3'}><Muted>Axis Type</Muted></Label>
+                    <Select
+                        value={cartesian.xAxisType ?? 'auto'}
+                        onValueChange={(value) => updateXAxisType(value === 'auto' ? undefined : value)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Auto"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="auto">Auto</SelectItem>
+                            <SelectItem value="category">Category</SelectItem>
+                            <SelectItem value="time">Time</SelectItem>
+                            <SelectItem value="value">Numeric</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {showStackedBars && (
+                        <div className={'flex flex-row gap-2 items-center'}>
+                            <Muted>Stacked Bars</Muted>
+                            <Switch
+                                checked={cartesian.decoration?.bar?.stacked}
+                                onCheckedChange={(checked) => updateBar({stacked: checked})}
+                            />
+                        </div>
+                    )}
+                </ConfigSection>
+
+                <Separator/>
+                <ConfigSection title="Y-Axis">
+                    <Label className={'h-3'}><Muted>Label</Muted></Label>
+                    <Input
+                        type="text"
+                        id="y-axis-label"
+                        placeholder="None"
+                        value={cartesian.yLabel}
+                        onChange={(e) => updateYLabel(e.target.value)}
+                    />
+                    <AxisRangeWidget
+                        range={cartesian.yRange}
+                        updateRange={(range) => updateAxisRange(range, 'yRange')}
+                    />
+                    <Label className={'h-3'}><Muted>Tick Angle</Muted></Label>
+                    <Input
+                        type="number"
+                        id="y-tick-angle"
+                        min={-90}
+                        max={90}
+                        step={1}
+                        placeholder="0"
+                        value={cartesian.yLabelRotation ?? ''}
+                        onChange={(e) => updateYTickAngle(e.target.value)}
+                    />
+                </ConfigSection>
             </>}
         </>
     )

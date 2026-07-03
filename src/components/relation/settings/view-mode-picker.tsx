@@ -20,7 +20,7 @@ export const VIEW_MODES: ViewMode[] = [
     {viewType: 'table', label: 'Table', ready: true},
     {viewType: 'chart', label: 'Chart', ready: true},
     {viewType: 'text', label: 'Text', ready: true},
-    {viewType: 'select', label: 'Dropdown', ready: true},
+    {viewType: 'select', label: 'Select', ready: true},
     {viewType: 'slider', label: 'Slider', ready: true},
     {viewType: 'map', label: 'Map', ready: false},
 ];
@@ -33,7 +33,7 @@ interface ViewModePickerProps {
 /** Grid of view tiles ("Display as"). Reflows automatically as modes are added. */
 export function ViewModePicker({currentView, onViewChange}: ViewModePickerProps) {
     return (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(84px,1fr))] gap-2">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(48px,1fr))] gap-2">
             {VIEW_MODES.map(mode => {
                 const active = currentView === mode.viewType;
                 return (
@@ -42,7 +42,7 @@ export function ViewModePicker({currentView, onViewChange}: ViewModePickerProps)
                         disabled={!mode.ready}
                         onClick={() => onViewChange(mode.viewType)}
                         className={cn(
-                            "relative flex flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-3 text-center transition-colors",
+                            "relative flex flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-center transition-colors",
                             active
                                 ? "bg-primary text-primary-foreground"
                                 : "border bg-card text-muted-foreground hover:bg-muted",

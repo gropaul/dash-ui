@@ -10,6 +10,7 @@ import {cn} from "@/lib/utils";
 import {RelationData} from "@/model/relation";
 import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
 import {ViewManager} from "@/model/relation-state/relation-view";
+import {ConfigSection} from "@/components/relation/common/config-section";
 
 
 export interface ChartConfigProps extends EndUserRelationActions{
@@ -39,25 +40,27 @@ export function ChartConfigView(props: ChartConfigProps) {
 
     return (
         <div className={cn("flex flex-col gap-2", props.className)}>
-                        <Label className="h-3">
-                            <Muted>Title</Muted>
-                        </Label>
-                        <Input
-                            type="text"
-                            id="title"
-                            placeholder="Title"
-                            value={config?.plot?.title}
-                            onChange={(e) => updateTitle(e.target.value)}
-                        />
+                        <ConfigSection title={"General"}>
+                            <Label className="h-3">
+                                <Muted>Title</Muted>
+                            </Label>
+                            <Input
+                                type="text"
+                                id="title"
+                                placeholder="Title"
+                                value={config?.plot?.title}
+                                onChange={(e) => updateTitle(e.target.value)}
+                            />
 
 
-                        <Label className="h-3">
-                            <Muted>Type</Muted>
-                        </Label>
-                        <ChartTypeSelector
-                            type={config?.plot?.type ?? 'bar'}
-                            onPlotTypeChange={updatePlotType}
-                        />
+                            <Label className="h-3">
+                                <Muted>Type</Muted>
+                            </Label>
+                            <ChartTypeSelector
+                                type={config?.plot?.type ?? 'bar'}
+                                onPlotTypeChange={updatePlotType}
+                            />
+                        </ConfigSection>
 
                         <ChartSpecificConfig {...props} />
 

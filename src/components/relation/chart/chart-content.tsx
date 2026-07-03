@@ -125,7 +125,7 @@ export function ChartContent(props: MyChartProps) {
     }), []);
 
     return (
-        <div ref={containerRef} className="relative h-full w-full text-foreground">
+        <div ref={containerRef} className="relative h-full w-full text-foreground bg-card">
             {/* Chart — nodrag/nopan prevent ReactFlow from stealing pointer events */}
             <div className="h-full w-full nodrag nopan">
                 <ReactECharts

@@ -23,7 +23,7 @@ export function ChartTypeSelector(props: ChartTypeSelectorProps) {
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between"
+                    className="w-full justify-between bg-card"
                 >
                     <div className="flex-1 flex items-center gap-2">
                         <ChartTypeIcon type={props.type}/>

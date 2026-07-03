@@ -11,6 +11,7 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {Label} from "@/components/ui/label";
 import {Muted} from "@/components/ui/typography";
 import {ScrollArea} from "@/components/ui/scroll-area";
+import {Separator} from "@/components/ui/separator";
 
 export function hasSettingsPanel(viewType: RelationViewType): boolean {
     return ViewManager.instance.getSettingsComponent(viewType) !== null;
@@ -37,11 +38,7 @@ export function ViewSettingsPanel(props: RelationViewProps) {
                 <div className="flex flex-col gap-2 p-0.5">
                     <Label><Muted>Display as</Muted></Label>
                     <ViewModePicker currentView={viewType} onViewChange={onViewChange}/>
-                    {mode && (
-                        <div className="border-t pt-2">
-                            <span className="text-sm font-medium">{mode.label} Config</span>
-                        </div>
-                    )}
+                    <Separator/>
                     <SettingsComponent {...contentProps}/>
                 </div>
             </ScrollArea>
