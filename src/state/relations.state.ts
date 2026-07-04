@@ -4,7 +4,8 @@ import {SchemaState} from "@/model/schema-state";
 import {DatabaseState} from "@/model/database-state";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
-import {DashboardState, getInitDashboardViewState} from "@/model/dashboard-state";
+import {DashboardState, DashboardWidget, getInitDashboardState} from "@/model/dashboard-state";
+import type {ResponsiveLayouts} from "react-grid-layout";
 import {getRandomId} from "@/platform/id-utils";
 import {EditorFolder} from "@/model/editor-folder";
 import {
@@ -39,6 +40,7 @@ import {RelationEvents} from "@/state/relations/event/relation-events";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {migrateV1FlattenRelationState} from "@/state/migrations/v1-flatten-relation-state";
+import {migrateDashboardsToGrid} from "@/state/migrations/v2-dashboards-to-grid";
 
 
 export interface RelationZustand {
@@ -76,6 +78,11 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     getDashboardState: (dashboardId: string) => DashboardState,
     // **unsafe in terms of adding, renaming, and deleting dashboards**
     setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => void,
+    // grid widget/layout actions (targeted, merge-safe against concurrent drags)
+    addDashboardWidget: (dashboardId: string, widget: DashboardWidget, layouts: ResponsiveLayouts) => void,
+    removeDashboardWidget: (dashboardId: string, widgetId: string) => void,
+    updateDashboardWidget: (dashboardId: string, widgetId: string, patch: Partial<DashboardWidget>) => void,
+    setDashboardLayouts: (dashboardId: string, layouts: ResponsiveLayouts) => void,
 
     /* canvas actions */
     addNewCanvas: (canvas?: CanvasState, editorPath?: string[]) => void,
@@ -295,25 +302,7 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
-                    let local_dashboard: DashboardState | undefined = dashboard;
-                    if (!local_dashboard) {
-                        const randomId = `dashboard-${getRandomId()}`;
-                        local_dashboard = {
-                            id: randomId,
-                            name: "New Dashboard",
-                            viewState: getInitDashboardViewState("New Dashboard"),
-                            elementState: {
-                                blocks: [{
-                                    id: getRandomId(),
-                                    type: "header",
-                                    data: {
-                                        "text": "New Dashboard",
-                                        "level": 1
-                                    }
-                                }]
-                            }
-                        }
-                    }
+                    const local_dashboard: DashboardState = dashboard ?? getInitDashboardState();
                     get().addEntity('dashboards', local_dashboard, editorPath);
                 },
 
@@ -332,6 +321,69 @@ export const useRelationsState = createWithEqualityFn(
                 },
                 getDashboardState: (dashboardId: string) => {
                     return get().dashboards[dashboardId];
+                },
+                addDashboardWidget: (dashboardId: string, widget: DashboardWidget, layouts: ResponsiveLayouts) => {
+                    set((state) => {
+                        const dashboard = state.dashboards[dashboardId];
+                        if (!dashboard) return {};
+                        return {
+                            dashboards: {
+                                ...state.dashboards,
+                                [dashboardId]: {
+                                    ...dashboard,
+                                    widgets: {...dashboard.widgets, [widget.id]: widget},
+                                    layouts,
+                                },
+                            },
+                        };
+                    });
+                },
+                removeDashboardWidget: (dashboardId: string, widgetId: string) => {
+                    set((state) => {
+                        const dashboard = state.dashboards[dashboardId];
+                        if (!dashboard) return {};
+                        const widgets = {...dashboard.widgets};
+                        delete widgets[widgetId];
+                        // drop the widget's layout item from every breakpoint
+                        const layouts: ResponsiveLayouts = {};
+                        for (const [bp, items] of Object.entries(dashboard.layouts)) {
+                            layouts[bp] = (items ?? []).filter((item) => item.i !== widgetId);
+                        }
+                        return {
+                            dashboards: {
+                                ...state.dashboards,
+                                [dashboardId]: {...dashboard, widgets, layouts},
+                            },
+                        };
+                    });
+                },
+                updateDashboardWidget: (dashboardId: string, widgetId: string, patch: Partial<DashboardWidget>) => {
+                    set((state) => {
+                        const dashboard = state.dashboards[dashboardId];
+                        const widget = dashboard?.widgets[widgetId];
+                        if (!dashboard || !widget) return {};
+                        return {
+                            dashboards: {
+                                ...state.dashboards,
+                                [dashboardId]: {
+                                    ...dashboard,
+                                    widgets: {...dashboard.widgets, [widgetId]: {...widget, ...patch, id: widgetId}},
+                                },
+                            },
+                        };
+                    });
+                },
+                setDashboardLayouts: (dashboardId: string, layouts: ResponsiveLayouts) => {
+                    set((state) => {
+                        const dashboard = state.dashboards[dashboardId];
+                        if (!dashboard) return {};
+                        return {
+                            dashboards: {
+                                ...state.dashboards,
+                                [dashboardId]: {...dashboard, layouts},
+                            },
+                        };
+                    });
                 },
                 getDatabaseState: (databaseId: string) => {
                     return get().databases[databaseId];
@@ -462,8 +514,9 @@ export const useRelationsState = createWithEqualityFn(
                         return INIT;
                     }
 
-                    // Apply persisted-state migrations (idempotent)
+                    // Apply persisted-state migrations (idempotent), in order.
                     migrateV1FlattenRelationState(state);
+                    migrateDashboardsToGrid(state);
 
                     const hasDuckDBStorage = useRelationsHydrationState.getState().hasDuckDBStorage
                     console.log('Has DuckDB Storage:', hasDuckDBStorage);

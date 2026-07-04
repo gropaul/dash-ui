@@ -21,13 +21,11 @@ import {
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
-import {DashboardState} from "@/model/dashboard-state";
-import {useEditorStore} from "@/state/editor.state";
+import {appendWidgetToLayouts, createRelationWidget, DashboardState} from "@/model/dashboard-state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {DefaultStateStorageInfo, StateStorageInfo} from "@/model/database-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
-import {RELATION_BLOCK_NAME} from "@/components/editor/tool-names";
 import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {openCreateCanvasDialog, openCreateDashboardDialog, openCreateFolderDialog, openCreateRelationDialog} from "@/components/workbench/create-entity-dialogs";
@@ -49,34 +47,11 @@ export interface DashboardCommandState {
 }
 
 export function onAddToDashboardSelected(original: RelationState, dashboard: DashboardState) {
-    const newElementData = RelationActions.copy(original);
-    const newState: DashboardState = {
-        ...dashboard,
-        elementState: {
-            blocks: [
-                ...(dashboard.elementState?.blocks || []),
-                {
-                    type: RELATION_BLOCK_NAME,
-                    data: newElementData,
-                    id: getRandomId()
-                }
-            ]
-        }
-    }
-
-    const editorState = useEditorStore();
-    const dashboardId = dashboard.id;
-    // of there is a ref, update the editor
-    if (editorState.hasEditor(dashboardId)) {
-        const editor = editorState.getEditor(dashboardId);
-        const nBlocks = editor.editor.blocks.getBlocksCount();
-        editor.editor.blocks.insert(RELATION_BLOCK_NAME, newElementData, undefined, nBlocks);
-    } else {
-        // we can use this here as we are not adding, deleting or renaming a dashboard
-        const setDashboardStateUnsafe = useRelationsState.getState().setDashboardStateUnsafe;
-        setDashboardStateUnsafe(dashboard.id, newState);
-    }
-    toast.success(`Added "${newElementData.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
+    // Reference the existing relation by id (no copy) — the relation stays the single source of truth.
+    const widget = createRelationWidget(original.id);
+    const layouts = appendWidgetToLayouts(dashboard.layouts, widget.id);
+    useRelationsState.getState().addDashboardWidget(dashboard.id, widget, layouts);
+    toast.success(`Added "${original.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
 }
 
 export function EditorOverviewTab() {
@@ -291,7 +266,7 @@ ${relationNames.join(', ')}`;
 
     // show a list of the tables, have a light grey background
     return (
-        <div className="h-full w-full flex flex-col">
+        <div className="h-full w-full flex flex-col text-accent-foreground">
             {/* Header Section */}
             <div className="pl-4 pt-2.5 pr-3 pb-2 flex flex-row items-center justify-between overflow-hidden">
                 <div className="text-primary text-nowrap flex flex-row space-x-1 items-center font-bold">

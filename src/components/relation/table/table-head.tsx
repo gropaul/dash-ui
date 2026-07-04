@@ -22,7 +22,7 @@ export function TableHead(props: RelationViewTableContentProps) {
 
     return (
         <>
-            <thead className={cn(fontMono.className, "border-0 text-s text-primary bg-inherit sticky top-0 z-[3]")}>
+            <thead className={cn(fontMono.className, "border-0 text-s text-primary bg-primary-foreground sticky top-0 z-[3]")}>
             <tr className="bg-inherit">
                 {/* Row index / settings column header */}
                 {showIndexColumn && (

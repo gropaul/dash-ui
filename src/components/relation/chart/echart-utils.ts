@@ -23,6 +23,14 @@ export function toEChartOptions(
 
     const {plot} = config;
 
+    const plotHasYAxisLegend = plotIsCartesian(plot) && !!plot.cartesian.yLabel;
+    const plotHasTitle = !!plot.title;
+
+    const titleHeight = plotHasTitle ? 32 : 0;
+    const legendHeight = plotHasYAxisLegend ? 8 : 0;
+    const gridTop = titleHeight + legendHeight + 40;
+
+
     const baseConfig = {
         toolbox: {show: false},
         title: {
@@ -44,7 +52,7 @@ export function toEChartOptions(
             left: '16px',
             right: '16px',
             bottom: '16px',
-            top: plot.title ? '72px' : '40px',
+            top: `${gridTop}px`,
         }
     }
 
@@ -186,6 +194,9 @@ export function toEChartOptions(
         };
         if (cartesian.yLabel) {
             yAxis.name = cartesian.yLabel;
+            yAxis.nameLocation = 'end';
+            yAxis.nameTextStyle = {color: textColor, align: 'left'};
+            yAxis.nameGap = 8;
         }
         if (cartesian.yRange.start !== undefined) {
             yAxis.min = cartesian.yRange.start;
@@ -200,7 +211,7 @@ export function toEChartOptions(
         if (cartesian?.yLabelRotation) {
             yAxis.axisLabel = {
                 ...yAxis.axisLabel,
-                align: 'left',
+                align: 'right',
                 rotate: cartesian.yLabelRotation,
             }
         }

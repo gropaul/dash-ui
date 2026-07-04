@@ -20,14 +20,12 @@ Dash is available at [https://app.dash.builders/](https://app.dash.builders/), a
 
 ## Technologies
 
-Dash is built with modern web technologies:
-
 - **Frontend**: Next.js, React, TypeScript
 - **UI Components**: Radix UI, Tailwind CSS
 - **Data Processing**: DuckDB-WASM for in-browser SQL processing
 - **State Management**: Zustand
-- **Visualization**: ECharts, Recharts
-- **Editor**: EditorJS, Monaco Editor
+- **Visualization**: ECharts
+- **Editor**: Monaco Editor
 
 ## Getting Started
 

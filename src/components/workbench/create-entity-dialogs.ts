@@ -2,9 +2,8 @@ import {useRenameDialogStore} from "@/state/rename-dialog.state";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
-import {getInitDashboardViewState} from "@/model/dashboard-state";
+import {getInitDashboardState} from "@/model/dashboard-state";
 import {GetInitialCanvasState} from "@/model/canvas-state";
-import {getRandomId} from "@/platform/id-utils";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 
@@ -21,15 +20,7 @@ export function openCreateRelationDialog(path: string[] = []) {
 
 export function openCreateDashboardDialog(path: string[] = []) {
     useRenameDialogStore.getState().openCreateDialog('dashboards', (name) => {
-        const randomId = `dashboard-${getRandomId()}`;
-        useRelationsState.getState().addNewDashboard(MAIN_CONNECTION_ID, path, {
-            id: randomId,
-            name: name,
-            viewState: getInitDashboardViewState(name),
-            elementState: {
-                blocks: [{id: getRandomId(), type: 'header', data: {text: name, level: 1}}]
-            }
-        });
+        useRelationsState.getState().addNewDashboard(MAIN_CONNECTION_ID, path, getInitDashboardState(name));
     });
 }
 

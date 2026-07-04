@@ -36,7 +36,7 @@ body {
 
 @layer base {
   :root {
-    --muted-background: 240 20% 97.0%;
+    --muted-background: 240 20% 98.0%;
     --background: 240 20% 99.0%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -74,7 +74,7 @@ body {
     --card-foreground: 210 20% 98%;
     --popover: 220 13% 10%;
     --popover-foreground: 210 20% 98%;
-    --primary: 210 20% 98%;
+    --primary: 210 20% 85%;
     --primary-foreground: 220 13% 10%;
     --secondary: 215 14% 16%;
     --secondary-foreground: 210 20% 98%;
@@ -82,7 +82,7 @@ body {
     --muted-light: 218 14% 12%;
     --muted-foreground: 215 16% 57%;
     --accent: 215 14% 16%;
-    --accent-foreground: 210 20% 98%;
+    --accent-foreground: 210 20% 80%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
     --border: 215 14% 18%;
@@ -177,3 +177,87 @@ body {
   animation: spin-border 0.8s linear infinite;
   pointer-events: none;
 }
+
+/* ── react-grid-layout v2 (themed; the lib ships no CSS) ─────────────────── */
+.react-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
+.react-grid-item {
+  transition: transform 200ms ease, width 200ms ease, height 200ms ease;
+  box-sizing: border-box;
+}
+.react-grid-item.cssTransforms {
+  transition-property: transform, width, height;
+}
+.react-grid-item.resizing,
+.react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 3;
+  will-change: transform;
+}
+.react-grid-item.react-grid-placeholder {
+  background: hsl(var(--primary) / 0.2);
+  border: 1px dashed hsl(var(--primary) / 0.5);
+  border-radius: 0.375rem;
+  transition-duration: 100ms;
+  z-index: 2;
+  user-select: none;
+}
+
+/* resize handle — positioning from react-resizable, visual themed */
+.react-resizable {
+  position: relative;
+}
+.react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+  box-sizing: border-box;
+}
+.react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  /* Offset along the 45° diagonal so the chevron tucks inside the widget's rounded corner
+     (~ the corner radius; widgets use rounded-xl = 12px). */
+  right: 8px;
+  bottom: 8px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid hsl(var(--muted-foreground) / 0.6);
+  border-bottom: 2px solid hsl(var(--muted-foreground) / 0.6);
+}
+/* RGL adds this class when resizing is disabled (e.g. dashboard view mode) — hide the handle. */
+.react-resizable-hide > .react-resizable-handle {
+  display: none;
+}
+
+/* ── markdown styling for dashboard text widgets (Tailwind preflight strips defaults) ── */
+.dashboard-prose { color: hsl(var(--foreground)); line-height: 1.6; word-break: break-word; }
+.dashboard-prose h1 { font-size: 1.5rem; font-weight: 700; margin: 0.5em 0 0.3em; }
+.dashboard-prose h2 { font-size: 1.25rem; font-weight: 700; margin: 0.5em 0 0.3em; }
+.dashboard-prose h3 { font-size: 1.1rem; font-weight: 600; margin: 0.5em 0 0.3em; }
+.dashboard-prose h4, .dashboard-prose h5, .dashboard-prose h6 { font-weight: 600; margin: 0.5em 0 0.3em; }
+.dashboard-prose p { margin: 0.4em 0; }
+.dashboard-prose ul { list-style: disc; padding-left: 1.4em; margin: 0.4em 0; }
+.dashboard-prose ol { list-style: decimal; padding-left: 1.4em; margin: 0.4em 0; }
+.dashboard-prose li { margin: 0.15em 0; }
+.dashboard-prose a { color: hsl(var(--primary)); text-decoration: underline; }
+.dashboard-prose blockquote {
+  border-left: 3px solid hsl(var(--border));
+  padding-left: 0.8em;
+  margin: 0.5em 0;
+  color: hsl(var(--muted-foreground));
+}
+.dashboard-prose code {
+  background: hsl(var(--muted));
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+}
+.dashboard-prose hr { border-color: hsl(var(--border)); margin: 0.8em 0; }
+.dashboard-prose strong { font-weight: 700; }
+.dashboard-prose em { font-style: italic; }

@@ -44,7 +44,7 @@ export function ViewModePicker({currentView, onViewChange}: ViewModePickerProps)
                         className={cn(
                             "relative flex flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-center transition-colors",
                             active
-                                ? "bg-primary text-primary-foreground"
+                                ? "bg-accent text-accent-foreground"
                                 : "border bg-card text-muted-foreground hover:bg-muted",
                             !mode.ready && "cursor-default opacity-60 hover:bg-card",
                         )}

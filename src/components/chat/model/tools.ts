@@ -378,13 +378,17 @@ export const ReadTargetTool = tool({
             case 'dashboard': {
                 const dashboard = useRelationsState.getState().dashboards[targetId];
                 if (!dashboard) return `Error: Dashboard "${targetId}" not found in state.`;
-                const blocks = dashboard.elementState?.blocks ?? [];
-                const blockSummary = blocks.map(b => b.type).join(', ') || 'none';
+                const widgets = Object.values(dashboard.widgets ?? {});
+                const widgetTypes = widgets.map(w => w.type).join(', ') || 'none';
+                const relationIds = widgets
+                    .filter(w => w.type === 'relation' && w.relationId)
+                    .map(w => w.relationId);
                 return JSON.stringify({
                     name: target.name,
                     type: 'dashboard',
-                    blockCount: blocks.length,
-                    blockTypes: blockSummary,
+                    widgetCount: widgets.length,
+                    widgetTypes,
+                    relationIds,
                 });
             }
 

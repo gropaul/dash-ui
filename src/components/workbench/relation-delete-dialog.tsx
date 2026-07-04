@@ -167,8 +167,8 @@ function DependencyList({dependencies}: { dependencies: RelationDependencies }) 
                 <div key={d.dashboardId} className="flex items-center gap-2 text-muted-foreground">
                     <LayoutDashboard size={14}/>
                     <span>{d.dashboardName}</span>
-                    {d.blockIds.length > 1 && (
-                        <span className="text-xs">({d.blockIds.length} blocks)</span>
+                    {d.widgetIds.length > 1 && (
+                        <span className="text-xs">({d.widgetIds.length} widgets)</span>
                     )}
                 </div>
             ))}

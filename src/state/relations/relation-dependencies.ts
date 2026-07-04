@@ -1,5 +1,4 @@
 import {useRelationsState} from "@/state/relations.state";
-import {isInteractiveBlock} from "@/components/editor/inputs/input-manager";
 
 export interface CanvasDependency {
     canvasId: string;
@@ -10,7 +9,7 @@ export interface CanvasDependency {
 export interface DashboardDependency {
     dashboardId: string;
     dashboardName: string;
-    blockIds: string[];
+    widgetIds: string[];
 }
 
 export interface RelationDependencies {
@@ -25,8 +24,8 @@ export interface RelationDependencies {
 export interface ExcludeRefs {
     /** Canvas node IDs to exclude (e.g., nodes being deleted) */
     canvasNodeIds?: Set<string>;
-    /** Dashboard block IDs to exclude */
-    dashboardBlockIds?: Set<string>;
+    /** Dashboard widget IDs to exclude */
+    dashboardWidgetIds?: Set<string>;
 }
 
 /**
@@ -57,22 +56,22 @@ export function getRelationDependencies(relationId: string, exclude?: ExcludeRef
 
     const dashboards: DashboardDependency[] = [];
     for (const [dashboardId, dashboard] of Object.entries(state.dashboards)) {
-        const matchingBlocks = (dashboard.elementState?.blocks ?? [])
-            .filter(b => {
-                if (!b.id || !isInteractiveBlock(b.type) || b.data?.id !== relationId) return false;
-                return !exclude?.dashboardBlockIds?.has(b.id);
+        const matchingWidgets = Object.values(dashboard.widgets ?? {})
+            .filter(w => {
+                if (w.type !== 'relation' || w.relationId !== relationId) return false;
+                return !exclude?.dashboardWidgetIds?.has(w.id);
             });
-        if (matchingBlocks.length > 0) {
+        if (matchingWidgets.length > 0) {
             dashboards.push({
                 dashboardId,
                 dashboardName: dashboard.viewState.displayName,
-                blockIds: matchingBlocks.map(b => b.id!),
+                widgetIds: matchingWidgets.map(w => w.id),
             });
         }
     }
 
     const totalRefs = canvases.reduce((sum, c) => sum + c.nodeIds.length, 0)
-        + dashboards.reduce((sum, d) => sum + d.blockIds.length, 0);
+        + dashboards.reduce((sum, d) => sum + d.widgetIds.length, 0);
 
     return {
         canvases,
