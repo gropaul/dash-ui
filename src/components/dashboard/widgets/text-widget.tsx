@@ -9,11 +9,12 @@ import {cn} from "@/lib/utils";
 export interface TextWidgetProps {
     value: string;
     editable: boolean;
+    compact: boolean;   // small screens: toolbar inside the widget instead of the right gutter
     onChange: (value: string) => void;
     onRemove: () => void;
 }
 
-export function TextWidget({value, editable, onChange, onRemove}: TextWidgetProps) {
+export function TextWidget({value, editable, compact, onChange, onRemove}: TextWidgetProps) {
     // View mode: an empty text widget shows nothing at all.
     if (!editable && !value.trim()) return null;
 
@@ -35,7 +36,11 @@ export function TextWidget({value, editable, onChange, onRemove}: TextWidgetProp
             </div>
             {editable && (
                 <WidgetToolbar
-                    className="absolute top-0 left-full z-10 opacity-0 transition-opacity group-hover/widget:opacity-100"
+                    className={cn(
+                        "absolute top-0 z-10 opacity-0 transition-opacity group-hover/widget:opacity-100",
+                        compact ? "right-0" : "left-full",
+                    )}
+                    compact={compact}
                     draggable
                     onRemove={onRemove}
                 />

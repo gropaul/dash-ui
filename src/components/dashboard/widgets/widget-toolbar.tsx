@@ -4,6 +4,7 @@ import {Button} from "@/components/ui/button";
 import {RelationViewRunButton} from "@/components/relation/settings/relation-view-run-button";
 import {TaskExecutionState} from "@/model/relation-state";
 import {cn} from "@/lib/utils";
+import {Separator} from "@/components/ui/separator";
 
 /**
  * Vertical floating toolbar for a dashboard widget. Every button is optional — it is only rendered
@@ -15,6 +16,9 @@ import {cn} from "@/lib/utils";
  */
 interface WidgetToolbarProps {
     className?: string;
+    // Compact = render inside the widget (top-right) instead of in the right gutter. Used on small
+    // screens where there's no room for the gutter, so the caller also drops the outer padding.
+    compact?: boolean;
     draggable?: boolean;
     runState?: TaskExecutionState;
     onRun?: () => void;
@@ -23,9 +27,7 @@ interface WidgetToolbarProps {
     onRemove?: () => void;
 }
 
-const Divider = () => <div className="h-[1px] w-10 bg-border"/>;
-
-export function WidgetToolbar({className, draggable, runState, onRun, onStopRun, onFullscreen, onRemove}: WidgetToolbarProps) {
+export function WidgetToolbar({className, compact, draggable, runState, onRun, onStopRun, onFullscreen, onRemove}: WidgetToolbarProps) {
     const showRun = !!(onRun && onStopRun && runState);
 
     // Each button keyed by name; a `false` value means its input wasn't provided and it's filtered out.
@@ -65,20 +67,21 @@ export function WidgetToolbar({className, draggable, runState, onRun, onStopRun,
                 to its right. Because it's only as tall as the widget it never extends below a short
                 widget, so hovering the empty space beneath the widget won't reveal the toolbar. It
                 sits below the toolbar in the stack (no z-index), so once the toolbar is shown its
-                buttons still receive the clicks. */}
-            <div aria-hidden className="absolute top-0 left-full h-full w-12"/>
+                buttons still receive the clicks. Only needed for the gutter placement — in compact
+                mode the toolbar sits inside the widget, so hovering the widget already reveals it. */}
+            {!compact && <div aria-hidden className="absolute top-0 left-full h-full w-12"/>}
             {/* The toolbar is `pointer-events-none` until the group is hovered, so its own overflow
                 below a short widget can't trigger `group-hover` — the strip above is the only
                 trigger. Once shown it becomes interactive (buttons below the widget line stay
-                clickable). The `pl-2` is a transparent bridge so the pointer never crosses a dead
-                zone between the widget and the toolbar. */}
-            <div className={cn("pl-2 pointer-events-none group-hover/widget:pointer-events-auto", className)}>
+                clickable). The gutter placement uses `pl-2` as a transparent bridge so the pointer
+                never crosses a dead zone; compact sits inside, so it just insets with `p-1`. */}
+            <div className={cn("pointer-events-none group-hover/widget:pointer-events-auto", compact ? "p-1" : "pl-2", className)}>
                 {/* `overflow-hidden` clips the square buttons to the rounded corners, so the first
                     and last items look right without any per-button rounding. */}
                 <div className="flex flex-col items-center bg-background border rounded-2xl shadow-sm overflow-hidden">
                     {visible.map((key, i) => (
                         <Fragment key={key}>
-                            {i > 0 && <Divider/>}
+                            {i > 0 && <Separator orientation={'horizontal'}/>}
                             {buttons[key]}
                         </Fragment>
                     ))}

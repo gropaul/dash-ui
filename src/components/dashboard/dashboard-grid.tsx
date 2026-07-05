@@ -47,6 +47,11 @@ export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: Dashboard
 
     const widgets = Object.values(dashboard.widgets ?? {});
 
+    // Below `lg` the grid is a single column and there's no room for the right-gutter toolbar, so we
+    // drop the horizontal padding (its only purpose is that gutter) and render the toolbar inside
+    // each widget instead. Same width source RGL uses, so it flips exactly when the layout does.
+    const compact = getBreakpointFromWidth(DASHBOARD_BREAKPOINTS, width) !== 'lg';
+
     // `lg` is the authored desktop layout and the single source of truth. Every smaller breakpoint
     // is derived from it as a full-width single column in reading order (top-to-bottom, then
     // left-to-right). RGL's own auto-generation (correctBounds) does NOT preserve that order, so we
@@ -72,7 +77,7 @@ export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: Dashboard
         // just above the lg breakpoint (1200px) so the 12-col desktop layout can still render.
         // Center with mx-auto (not flex) so the card grows with the grid instead of being stretched
         // to viewport height and clipped.
-        <div className="w-full h-full overflow-auto bg-accent px-12 pb-32 ">
+        <div className={cn("w-full h-full overflow-auto bg-accent pb-32", compact ? "px-0" : "px-12")}>
             <div
                 ref={containerRef}
                 className={cn(
@@ -102,6 +107,7 @@ export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: Dashboard
                                 <RelationWidget
                                     relationId={widget.relationId}
                                     editMode={editMode}
+                                    compact={compact}
                                     onExpand={() => onOpenFullscreen(widget.id)}
                                     onRemove={() => removeDashboardWidget(dashboard.id, widget.id)}
                                 />
@@ -109,6 +115,7 @@ export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: Dashboard
                                 <TextWidget
                                     value={widget.textData ?? ''}
                                     editable={editMode}
+                                    compact={compact}
                                     onChange={(v) => updateDashboardWidget(dashboard.id, widget.id, {textData: v})}
                                     onRemove={() => removeDashboardWidget(dashboard.id, widget.id)}
                                 />
