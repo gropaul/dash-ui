@@ -35,7 +35,12 @@ export interface DashboardState {
     gridConfig: DashboardGridConfig;
 }
 
-export const DASHBOARD_BREAKPOINTS = {lg: 996, md: 996, sm: 768, xs: 480} as const;
+// Must be distinct and descending: RGL picks the highest breakpoint whose width is below the
+// container's. `lg` (the authored, persisted 12-col layout) must win at desktop width; every
+// smaller breakpoint renders the derived single-column layout. A tie (e.g. lg === md) makes the
+// later key win, so the desktop layout would silently render — and persist — as the wrong (derived)
+// breakpoint.
+export const DASHBOARD_BREAKPOINTS = {lg: 996, md: 768, sm: 480, xs: 0} as const;
 export const DASHBOARD_COLS = {lg: 12, md: 8, sm: 4, xs: 1} as const;
 
 /**
