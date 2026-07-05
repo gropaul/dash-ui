@@ -23,28 +23,33 @@ export function toEChartOptions(
 
     const {plot} = config;
 
-    const plotHasYAxisLegend = plotIsCartesian(plot) && !!plot.cartesian.yLabel;
+    const plotHasYAxisName = plotIsCartesian(plot) && !!plot.cartesian.yLabel;
+    const plotHasXAxisName = plotIsCartesian(plot) && !!plot.cartesian.xLabel;
     const plotHasTitle = !!plot.title;
+    const plotCartesianYAxisCount =  plot.cartesian?.yAxes?.length ?? 0;
+    const plotNeedsLegend = plotIsCartesian(plot) && (plotUsesGroup(plot) || plotCartesianYAxisCount > 1);
 
     const titleHeight = plotHasTitle ? 32 : 0;
-    const legendHeight = plotHasYAxisLegend ? 8 : 0;
-    const gridTop = titleHeight + legendHeight + 40;
-
+    const yNameHeight = plotHasYAxisName ? 8 : 0;
+    const legendHeight = plotNeedsLegend ? 24 : 0;
+    const gridTop = titleHeight + yNameHeight + legendHeight + 16;
 
     const baseConfig = {
         toolbox: {show: false},
         title: {
             text: plot.title ? plot.title : null,
-            left: 'center',
-            top: 4,
-            textStyle: {color: textColor},
+            left: '16px',
+            top: '8px',
+            textStyle: {color: textColor, fontSize: 16},
         },
         tooltip: {trigger: 'axis'},
         legend: {
+            show: plotNeedsLegend,
             type: 'scroll',
             selectedMode: true,
             orient: 'horizontal',
             top: plot.title ? '32px' : '8px',
+            left: '16px',
             textStyle: {color: textColor},
         },
         grid: {
@@ -164,10 +169,22 @@ export function toEChartOptions(
             axisLabel: {color: textColor},
             nameTextStyle: {color: textColor},
         };
+        // x-axis label: rendered as a bottom-pinned graphic (not xAxis.name) so it
+        // sits below the tick labels instead of overlapping them.
+        const graphic: any[] = [];
         if (cartesian.xLabel) {
-            xAxis.name = cartesian.xLabel
-            xAxis.nameLocation = 'center';
-            xAxis.nameGap = 30;
+            graphic.push({
+                type: 'text',
+                left: 'center',
+                bottom: 12,
+                style: {
+                    text: cartesian.xLabel,
+                    fill: textColor,
+                    fontSize: 12,
+                    textAlign: 'center',
+
+                },
+            });
         }
         if (cartesian.xRange.start !== undefined) {
             xAxis.min = cartesian.xRange.start;
@@ -195,8 +212,13 @@ export function toEChartOptions(
         if (cartesian.yLabel) {
             yAxis.name = cartesian.yLabel;
             yAxis.nameLocation = 'end';
-            yAxis.nameTextStyle = {color: textColor, align: 'left'};
+            yAxis.nameTextStyle = {
+                color: textColor,
+                align: 'left',
+                verticalAlign: 'bottom',
+            };
             yAxis.nameGap = 8;
+            // yAxis.name.inside = true;
         }
         if (cartesian.yRange.start !== undefined) {
             yAxis.min = cartesian.yRange.start;
@@ -242,9 +264,13 @@ export function toEChartOptions(
 
         return {
             ...baseConfig,
+            // containLabel reserves room for tick labels but not the graphic label, so
+            // add extra bottom padding when an x-label is present.
+            grid: {...baseConfig.grid, bottom: cartesian.xLabel ? '32px' : baseConfig.grid.bottom},
             xAxis,
             yAxis,
             series,
+            graphic,
             ...(brushOption ? {brush: brushOption} : {}),
         };
 

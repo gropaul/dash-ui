@@ -49,16 +49,15 @@ export function RelationWidget({relationId, editMode, onExpand, onRemove}: Relat
                     updateRelation={updateRelation}
                 />
             </div>
-            {editMode && (
-                <WidgetToolbar
-                    className="absolute top-0 left-full z-10 opacity-0 transition-opacity group-hover/widget:opacity-100"
-                    runState={relation.executionState}
-                    onRun={() => actions.updateRelationDataWithBaseQuery(relation.query.baseQuery)}
-                    onStopRun={actions.cancelQuery}
-                    onFullscreen={onExpand}
-                    onRemove={onRemove}
-                />
-            )}
+            <WidgetToolbar
+                className="absolute top-0 left-full z-10 opacity-0 transition-opacity group-hover/widget:opacity-100"
+                draggable={editMode}
+                runState={relation.executionState}
+                onRun={() => actions.updateRelationDataWithBaseQuery(relation.query.baseQuery)}
+                onStopRun={actions.cancelQuery}
+                onFullscreen={onExpand}
+                onRemove={editMode ? onRemove : undefined}
+            />
         </div>
     );
 }

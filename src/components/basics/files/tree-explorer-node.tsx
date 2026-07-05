@@ -136,7 +136,7 @@ export function TreeExplorerNode(props: TreeExplorerNodeProps) {
                         ))}
                         <div
                             style={{paddingLeft: `${depth * 1.5}rem`}}
-                            className={cn('flex items-center p-0.5 rounded-md', classIsSelected, classIsOver)}
+                            className={cn('flex text-accent-foreground items-center p-0.5 rounded-md', classIsSelected, classIsOver)}
                             ref={setDraggableNodeRef}
                             {...listeners}
                         >

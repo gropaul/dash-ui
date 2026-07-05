@@ -36,6 +36,7 @@ export function TextWidget({value, editable, onChange, onRemove}: TextWidgetProp
             {editable && (
                 <WidgetToolbar
                     className="absolute top-0 left-full z-10 opacity-0 transition-opacity group-hover/widget:opacity-100"
+                    draggable
                     onRemove={onRemove}
                 />
             )}

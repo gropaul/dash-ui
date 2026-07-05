@@ -11,6 +11,8 @@ import {RelationViewContentProps} from "@/components/relation/relation-view-cont
 import {ViewManager} from "@/model/relation-state/relation-view";
 import {SelectQueryParameters} from "@/model/relation-state/relation-view-select";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {Label} from "@/components/ui/label";
+import {Separator} from "@/components/ui/separator";
 
 export function getDisplayText(params: SelectQueryParameters, values: string[]): string {
     return values.length === 0
@@ -58,9 +60,17 @@ export function Select(props: RelationViewContentProps) {
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="w-full justify-between relative"
+                        className="w-full justify-between relative flex-row"
                     >
-                        <span className="truncate">{getDisplayText(params, selectedValuesString)}</span>
+                        {params.label && (
+                            <>
+                                <Label className={"w-fit text-muted-foreground"}>
+                                    {params.label}
+                                </Label>
+                                <Separator orientation="vertical" className="mx-2 h-4" />
+                            </>
+                        )}
+                        <div className="truncate flex-grow text-left">{getDisplayText(params, selectedValuesString)}</div>
                         <ChevronsUpDown className="opacity-50"/>
                     </Button>
                 </PopoverTrigger>

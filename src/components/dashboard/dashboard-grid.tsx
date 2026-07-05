@@ -72,7 +72,7 @@ export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: Dashboard
         // just above the lg breakpoint (1200px) so the 12-col desktop layout can still render.
         // Center with mx-auto (not flex) so the card grows with the grid instead of being stretched
         // to viewport height and clipped.
-        <div className="w-full h-full overflow-auto bg-accent px-12">
+        <div className="w-full h-full overflow-auto bg-accent px-12 pb-32 ">
             <div
                 ref={containerRef}
                 className={cn(

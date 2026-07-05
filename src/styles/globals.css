@@ -237,6 +237,7 @@ body {
 
 /* ── markdown styling for dashboard text widgets (Tailwind preflight strips defaults) ── */
 .dashboard-prose { color: hsl(var(--foreground)); line-height: 1.6; word-break: break-word; }
+.dashboard-prose > *:first-child { margin-top: 0; }
 .dashboard-prose h1 { font-size: 1.5rem; font-weight: 700; margin: 0.5em 0 0.3em; }
 .dashboard-prose h2 { font-size: 1.25rem; font-weight: 700; margin: 0.5em 0 0.3em; }
 .dashboard-prose h3 { font-size: 1.1rem; font-weight: 600; margin: 0.5em 0 0.3em; }

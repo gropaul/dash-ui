@@ -55,7 +55,7 @@ export function DashboardTab(props: DashboardViewProps) {
                 relationState={fullscreenRelation}
                 updateRelation={(newRelation: RelationState) => updateRelation(newRelation)}
                 height={'fit'}
-                breadcrumbPrefix={{label: dashboard.name, onClick: onBack}}
+                breadcrumbPrefix={{label: dashboard.viewState.displayName, onClick: onBack}}
             />
         );
     }

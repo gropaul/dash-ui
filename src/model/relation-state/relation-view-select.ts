@@ -11,6 +11,7 @@ export type SelectType = 'fulltext' | 'select'
 export interface SelectQueryParameters {
     column?: string;
     selectType: SelectType;
+    label?: string;
     placeholder?: string;
     multiSelect?: boolean; // defaults to true
 }

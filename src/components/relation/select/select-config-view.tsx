@@ -4,6 +4,7 @@ import {Muted} from "@/components/ui/typography"
 import {Separator} from "@/components/ui/separator"
 import {Label} from "@/components/ui/label"
 import {Switch} from "@/components/ui/switch"
+import {Input} from "@/components/ui/input"
 import {RelationViewContentProps} from "@/components/relation/relation-view-content"
 import {ViewManager} from "@/model/relation-state/relation-view"
 import {ColumnSelector} from "@/components/relation/chart/chart-config/column-selector"
@@ -33,6 +34,10 @@ export function SelectConfigView(props: RelationViewContentProps) {
         props.updateRelationQueryParams({select: {...params, multiSelect}});
     }
 
+    function setLabel(label: string) {
+        props.updateRelationQueryParams({select: {...params, label}});
+    }
+
     return (
         <div className="flex flex-col gap-3">
 
@@ -51,6 +56,19 @@ export function SelectConfigView(props: RelationViewContentProps) {
                                 updateAxis={updateColumn}
                             />
                         )}
+
+                        <Separator/>
+
+                        {/* Label text */}
+                        <Label className="h-3">
+                            <Muted>Label</Muted>
+                        </Label>
+                        <Input
+                            type="text"
+                            placeholder="None"
+                            value={params.label ?? ''}
+                            onChange={(e) => setLabel(e.target.value)}
+                        />
 
                         <Separator/>
 
