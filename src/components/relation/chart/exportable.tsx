@@ -64,10 +64,6 @@ export const Exportable = forwardRef<ExportableRef, ExportableProps>(
                 const width = Math.ceil(rect.width);
                 const height = Math.ceil(rect.height);
 
-                // Load the Urbanist font
-                const fontData = await fetch("/fonts/Urbanist-VariableFont_wght.ttf")
-                    .then((res) => res.arrayBuffer());
-
                 // Generate SVG using Satori
                 const svg = await satori(
                     children,

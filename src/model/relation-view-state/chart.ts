@@ -266,7 +266,7 @@ export function getInitialAxisDecoration(yIndex: number): AxisDecoration {
             showLabels: true,
             label: {
                 fontSize: 12,
-                fontFamily: 'Urbanist, sans-serif',
+                fontFamily: 'Inter, sans-serif',
             },
         },
 

@@ -1,4 +1,3 @@
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 
 export const getVariablesUsedByQuery = (query: string): string[] => {

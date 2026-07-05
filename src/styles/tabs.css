@@ -12,7 +12,7 @@
     --color-drag1-background: rgba(95, 134, 196, 0.1);
     --color-drag2-background: rgba(119, 166, 119, 0.075);
     --font-size: medium;
-    --font-family: Urbanist, sans-serif;
+    --font-family: Inter, sans-serif;
     --font-weight: normal;
     --color-overflow: gray;
     --color-icon: hsl(var(--foreground));

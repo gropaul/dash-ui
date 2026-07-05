@@ -11,7 +11,6 @@ import {
 import {cleanAndSplitSQL, escapeName, minifySQL, removeSemicolon, turnQueryIntoSubquery} from "@/platform/sql-utils";
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {CHART_QUERY_LIMIT, COUNT_QUERY_THRESHOLD_MS} from "@/platform/global-data";
 import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
@@ -216,7 +215,7 @@ export interface QueryData {
 }
 
 // 2. The async version that checks executability
-export async function buildQueryWithCheck(relation: RelationState, inputManager?: InputManager): Promise<QueryBuildResult> {
+export async function buildQueryWithCheck(relation: RelationState): Promise<QueryBuildResult> {
     // Build the queries first
     const {
         initialQueries,
@@ -271,9 +270,9 @@ export function returnEmptyErrorState(relation: RelationState, error: unknown): 
 }
 
 // builds and executes the query and updates the view state
-export async function executeQueryOfRelation(input: RelationState, inputManager?: InputManager, readOnly: boolean = false): Promise<RelationState> {
+export async function executeQueryOfRelation(input: RelationState, readOnly: boolean = false): Promise<RelationState> {
 
-    const buildResult = await buildQueryWithCheck(input, inputManager);
+    const buildResult = await buildQueryWithCheck(input);
 
     // start a timer to measure the query duration
     const start = performance.now();

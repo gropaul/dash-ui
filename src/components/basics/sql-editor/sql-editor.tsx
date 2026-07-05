@@ -12,10 +12,8 @@ import {useTheme} from "next-themes";
 import "@/styles/editor-monaco.css";
 import {registerHotkeys} from "@/components/basics/sql-editor/register-hotkeys";
 import {registerFormatter} from "@/components/basics/sql-editor/register-formatter";
-import {registerInputCompletion} from "@/components/basics/sql-editor/regsiter-input-completion";
 import {registerHighlighting} from "@/components/basics/sql-editor/register-highlighting";
 import {registerCompletionDuckDB} from "@/components/basics/sql-editor/register-autocomplete";
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
 import {useMonacoState} from "@/state/monaco.state";
 
@@ -34,7 +32,6 @@ export interface SqlEditorProps {
     showCopyButton?: boolean;
     panelMode?: EditorPanelPosition;
     alwaysConsumeMouseWheel?: boolean;
-    inputManager?: InputManager;
 
     executionState?: TaskExecutionState;
     showRunButton?: boolean;
@@ -71,7 +68,6 @@ export function SqlEditor(
         showLayoutButton = false,
         currentLayout = 'column',
         onLayoutChange,
-        inputManager,
         path,
     }: SqlEditorProps) {
 
@@ -199,7 +195,6 @@ export function SqlEditor(
         monaco.editor.setTheme(editorTheme);
 
         registerHotkeys(editor, monaco, () => handleRun());
-        registerInputCompletion(editor, monaco, inputManager);
         registerFormatter(monaco);
 
         registerHighlighting(editor, monaco);

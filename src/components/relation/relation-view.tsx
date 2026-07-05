@@ -5,7 +5,6 @@ import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
 import {DefaultRelationZustandActions} from "@/state/relations.state";
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {EditorPanelPosition} from "@/components/basics/sql-editor/sql-editor";
 import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
@@ -26,7 +25,6 @@ export interface StaticDisplayProps {
 
 export interface RelationViewAPIProps extends DefaultRelationZustandActions, StaticDisplayProps {
     relationState: RelationState;
-    inputManager?: InputManager;
     className?: string;
     breadcrumbPrefix?: { label: string; onClick: () => void };
 }
@@ -34,7 +32,6 @@ export interface RelationViewAPIProps extends DefaultRelationZustandActions, Sta
 
 export interface RelationViewProps extends EndUserRelationActions, StaticDisplayProps {
     relationState: RelationState;
-    inputManager?: InputManager;
 }
 
 export function RelationView(inputProps: RelationViewAPIProps) {

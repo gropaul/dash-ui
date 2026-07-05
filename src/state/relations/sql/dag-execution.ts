@@ -157,7 +157,7 @@ export async function refreshDownstream(
             update(loadingState);
 
             // Execute the query
-            const executed = await executeQueryOfRelation({...relation}, undefined);
+            const executed = await executeQueryOfRelation({...relation});
             update(executed);
 
             // Register the macro so further downstream nodes can use it

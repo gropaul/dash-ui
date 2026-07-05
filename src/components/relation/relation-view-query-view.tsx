@@ -1,7 +1,6 @@
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {RelationState} from "@/model/relation-state";
 import {splitSQL} from "@/platform/sql-utils";
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {forwardRef} from "react";
 import {StaticDisplayProps} from "@/components/relation/relation-view";
 import {mergeParameters, parametersEqual} from "@/state/relations/sql/query-parameters";
@@ -10,7 +9,6 @@ import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions
 interface RelationViewQueryProps extends EndUserRelationActions{
     relationState: RelationState,
     statics: StaticDisplayProps,
-    inputManager?: InputManager;
 }
 
 export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQueryProps>(function RelationViewQueryView(props, ref) {
@@ -64,7 +62,6 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
         <div ref={ref} className={"w-full h-full overflow-hidden"}>
             <SqlEditor
                 path={`relation-${relationId}`}
-                inputManager={props.inputManager}
                 embedded={embedded}
                 alwaysConsumeMouseWheel={!embedded}
                 panelMode={props.statics.sqlEditorPanelMode ?? "panel"}

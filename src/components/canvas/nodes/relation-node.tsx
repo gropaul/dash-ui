@@ -1,7 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Node, NodeProps, NodeResizer, Position} from '@xyflow/react';
 import {RelationNodeBody} from "@/components/canvas/nodes/relation/relation-body";
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/relation-view";

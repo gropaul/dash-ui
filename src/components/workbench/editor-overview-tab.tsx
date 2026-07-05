@@ -21,7 +21,7 @@ import {
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {toast} from "sonner";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
-import {appendWidgetToLayouts, createRelationWidget, DashboardState} from "@/model/dashboard-state";
+import {DashboardState} from "@/model/dashboard-state";
 import {ContextMenuFactory} from "@/components/workbench/editor-overview/context-menu-factory";
 import {DefaultStateStorageInfo, StateStorageInfo} from "@/model/database-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
@@ -48,9 +48,7 @@ export interface DashboardCommandState {
 
 export function onAddToDashboardSelected(original: RelationState, dashboard: DashboardState) {
     // Reference the existing relation by id (no copy) — the relation stays the single source of truth.
-    const widget = createRelationWidget(original.id);
-    const layouts = appendWidgetToLayouts(dashboard.layouts, widget.id);
-    useRelationsState.getState().addDashboardWidget(dashboard.id, widget, layouts);
+    useRelationsState.getState().addRelationWidgetToDashboard(dashboard.id, original.id);
     toast.success(`Added "${original.viewState.displayName}" to "${dashboard.viewState.displayName}"`, {duration: 2000});
 }
 

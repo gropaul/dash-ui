@@ -37,7 +37,7 @@ export function Map(props: RelationViewMapProps) {
             zoom: 12,
         },
         font: {
-            family: "Urbanist, sans-serif", // Set font family
+            family: "Inter, sans-serif", // Set font family
             size: 14, // Set font size
             color: "black", // Set font color
         },

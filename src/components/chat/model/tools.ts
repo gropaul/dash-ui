@@ -1,6 +1,5 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {SQLToolDescription} from "@/components/chat/model/promts";
-import {EditorsService} from "@/state/editor.state";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
 import {executeQueryOfRelation, RelationState} from "@/model/relation-state";
@@ -9,7 +8,6 @@ import {getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {ChartQueryParameters} from "@/model/relation-state/relation-view-chart";
 import z from 'zod';
 import {tool} from "ai";
-import {parseMarkdownToBlocks} from "@/components/editor/parse-markdown";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {useRelationsState} from "@/state/relations.state";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
@@ -140,22 +138,6 @@ function getChartQueryParameters(args: ChartViewDataArgs): ChartQueryParameters 
 
 // --- Dashboard insertion helper ---
 
-const DASHBOARD_BLOCK_DEFAULT_CONFIG: any = {
-    placeholder: "Add a new relation",
-    getInputManager: () => null,
-}
-
-function insertBlockIntoDashboard(targetId: string, blockType: string, data: any): string {
-    const hasEditor = EditorsService.getInstance().hasEditor(targetId);
-    if (!hasEditor) {
-        return `Error: No editor found for dashboard "${targetId}". The dashboard tab may not be fully loaded.`;
-    }
-    const editor = EditorsService.getInstance().getEditor(targetId);
-    const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
-    editor.editor.blocks.insert(blockType, data, DASHBOARD_BLOCK_DEFAULT_CONFIG, currentNumberOfBlocks);
-    return '';
-}
-
 const TARGET_DESCRIPTION = 'Where to place the result. Use "chat" to show inline in the chat, or a target ID (e.g. "dashboard-abc123" or "relation-xyz") to add to that tab. Use the readTarget tool to see available targets.';
 
 // --- Chart Tool (unified) ---
@@ -273,7 +255,7 @@ async function RouteAndApplyTarget(target: string, data: RelationState): Promise
 
     switch (getTargetType(target)) {
         case 'chat':
-            const executed = await executeQueryOfRelation(data, undefined, readOnly);
+            const executed = await executeQueryOfRelation(data, readOnly);
             if (executed.executionState.state === 'error') {
                 return `Error executing query: ${JSON.stringify(executed.executionState.error, null, 2)}`;
             } else {
@@ -290,9 +272,14 @@ async function RouteAndApplyTarget(target: string, data: RelationState): Promise
             await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
             return `Relation was updated successfully.`;
         case 'dashboard': {
-            throw new Error('Dashboard target not implemented yet, readonly is not supported yet.');
-            // const error = insertBlockIntoDashboard(target, RELATION_BLOCK_NAME, data);
-            // return error || `Table was added successfully to the dashboard.`;
+            // Persist the built relation, run it, then add a relation widget referencing it —
+            // the same canonical add-to-dashboard path the UI uses.
+            const state = useRelationsState.getState();
+            state.addNewRelation(data.connectionId, [], data, false);
+            const dashActions = getRelationActions({mode: 'embedded', relationState: data, updateRelation: state.updateRelation});
+            await dashActions.updateRelationDataWithBaseQuery(data.query.baseQuery);
+            state.addRelationWidgetToDashboard(target, data.id);
+            return `Added to dashboard "${target}".`;
         }
     }
 }
@@ -332,18 +319,9 @@ export const MarkdownTool = tool({
             return markdown;
         }
 
-        // Dashboard target: insert markdown blocks
+        // Dashboard target: add a text (markdown) widget
         if (target.startsWith('dashboard')) {
-            const hasEditor = EditorsService.getInstance().hasEditor(target);
-            if (!hasEditor) {
-                return `Error: No editor found for dashboard "${target}". The dashboard tab may not be fully loaded.`;
-            }
-            const editor = EditorsService.getInstance().getEditor(target);
-            const blocks = parseMarkdownToBlocks(markdown);
-            for (const block of blocks) {
-                const currentNumberOfBlocks = editor.editor.blocks.getBlocksCount();
-                editor.editor.blocks.insert(block.type, block.data, {}, currentNumberOfBlocks);
-            }
+            useRelationsState.getState().addTextWidgetToDashboard(target, markdown);
             return `Markdown was added successfully to the dashboard.`;
         }
 
@@ -407,14 +385,4 @@ export const ReadTargetTool = tool({
             }
         }
     }
-});
-
-// --- Input Tool (kept as-is, no target param needed) ---
-
-export const AddInputToDashboard = tool({
-    description: 'Adds an input element to the dashboard. The input can be used in other queries for interactivity. Usage example: `SELECT * FROM table WHERE column = {{input_id}}`.',
-    inputSchema: z.object({
-        input_id: z.string().describe('The id of the input element.'),
-        inputType: z.enum(['text-select', 'text-field']).describe('Type of the input element: "text-select" for a select input, "text-field" for a text input.'),
-    }).describe('Parameters for adding an input to the dashboard.'),
 });

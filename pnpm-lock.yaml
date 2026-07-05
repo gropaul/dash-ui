@@ -39,51 +39,6 @@ importers:
       '@duckdb/duckdb-wasm':
         specifier: 1.33.1-dev20.0
         version: 1.33.1-dev20.0
-      '@editorjs/checklist':
-        specifier: ^1.6.0
-        version: 1.6.0
-      '@editorjs/code':
-        specifier: ^2.9.3
-        version: 2.9.3
-      '@editorjs/delimiter':
-        specifier: ^1.4.2
-        version: 1.4.2
-      '@editorjs/editorjs':
-        specifier: ^2.30.8
-        version: 2.30.8
-      '@editorjs/embed':
-        specifier: ^2.7.6
-        version: 2.7.6
-      '@editorjs/header':
-        specifier: ^2.8.8
-        version: 2.8.8
-      '@editorjs/image':
-        specifier: ^2.10.1
-        version: 2.10.1
-      '@editorjs/inline-code':
-        specifier: ^1.5.1
-        version: 1.5.1
-      '@editorjs/link':
-        specifier: ^2.6.2
-        version: 2.6.2
-      '@editorjs/list':
-        specifier: ^2.0.3
-        version: 2.0.4
-      '@editorjs/marker':
-        specifier: ^1.4.0
-        version: 1.4.0
-      '@editorjs/quote':
-        specifier: ^2.7.6
-        version: 2.7.6
-      '@editorjs/simple-image':
-        specifier: ^1.6.0
-        version: 1.6.0
-      '@editorjs/table':
-        specifier: ^2.4.3
-        version: 2.4.3
-      '@editorjs/warning':
-        specifier: ^1.4.1
-        version: 1.4.1
       '@monaco-editor/react':
         specifier: 4.8.0-rc.3
         version: 4.8.0-rc.3(monaco-editor@0.52.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -189,12 +144,6 @@ importers:
       echarts-for-react:
         specifier: ^3.0.2
         version: 3.0.2(echarts@5.6.0)(react@19.2.4)
-      editorjs-drag-drop:
-        specifier: ^1.1.16
-        version: 1.1.16
-      editorjs-undo:
-        specifier: ^2.0.28
-        version: 2.0.28
       file-saver:
         specifier: ^2.0.5
         version: 2.0.5
@@ -590,12 +539,6 @@ packages:
   '@codexteam/icons@0.0.4':
     resolution: {integrity: sha512-V8N/TY2TGyas4wLrPIFq7bcow68b3gu8DfDt1+rrHPtXxcexadKauRJL6eQgfG7Z0LCrN4boLRawR4S9gjIh/Q==}
 
-  '@codexteam/icons@0.0.5':
-    resolution: {integrity: sha512-s6H2KXhLz2rgbMZSkRm8dsMJvyUNZsEjxobBEg9ztdrb1B2H3pEzY6iTwI4XUPJWJ3c3qRKwV4TrO3J5jUdoQA==}
-
-  '@codexteam/icons@0.0.6':
-    resolution: {integrity: sha512-L7Q5PET8PjKcBT5wp7VR+FCjwCi5PUp7rd/XjsgQ0CI5FJz0DphyHGRILMuDUdCW2MQT9NHbVr4QP31vwAkS/A==}
-
   '@codexteam/icons@0.3.3':
     resolution: {integrity: sha512-cp7mkZPgmBuSxigTm3Vb+DtVHYeX7qXfQd7o05vcLD8Ag5WvRlol2QSn5P10k0CDAJwmkH9nQGQLBycErS9lsQ==}
 
@@ -630,59 +573,11 @@ packages:
   '@duckdb/duckdb-wasm@1.33.1-dev20.0':
     resolution: {integrity: sha512-ual3d/WDZnyZHNZ3tGdFvTZY22IDdg63Bh0icSBA6JPOy1u89rNfVH/3wQhtoJPv3Xn7eWVJ/4gpT3wprrisoA==}
 
-  '@editorjs/checklist@1.6.0':
-    resolution: {integrity: sha512-hRNP36DInr73mSK3noHBQeoQb7DA12ANfqTXufEkTgQzx+k4mRJ0HdeGukTIR4JbwjHJ9ecUBnnQqIEGnxCFEg==}
-
-  '@editorjs/code@2.9.3':
-    resolution: {integrity: sha512-nXUrK3CjhpubvShYtcbkpZ9SU15IYwmJOsWZrlWYSzy9unZBRQthii6eABndsCtODzzV0yiSKmTp00RQkFow3Q==}
-
-  '@editorjs/delimiter@1.4.2':
-    resolution: {integrity: sha512-S8q2LpeYdYkVShLp7K8c4HLthDHBevLw+sT+iO0+SH0oMvFmld9SUon3DFzMQ2gG07EOdZGRZ958+sVxyvFjZw==}
-
-  '@editorjs/dom@0.0.5':
-    resolution: {integrity: sha512-SZ78Gwpkp3EUhjBIp0lSojeQ35V9acF8SubJsMeOH/vlOUE40GOnvvwWZnF05lO7bIB0dOHhhJy4N7IIAWxP2w==}
-
   '@editorjs/editorjs@2.30.8':
     resolution: {integrity: sha512-ClFuxI1qZTfXPJTacQfsJtOUP6bKoIe6BQNdAvGsDTDVwMnZEzoaSOwvUpdZEE56xppVfQueNK/1MElV9SJKHg==}
 
-  '@editorjs/embed@2.7.6':
-    resolution: {integrity: sha512-L3agW/23mOI0L+oksUE9UOR5VSNCqapxLH5lma+5j+idjKCC31nxbx07x53MSJ4rlOTO1L7cFVhkqptEdOliJA==}
-
-  '@editorjs/header@2.8.8':
-    resolution: {integrity: sha512-bsMSs34u2hoi0UBuRoc5EGWXIFzJiwYgkFUYQGVm63y5FU+s8zPBmVx5Ip2sw1xgs0fqfDROqmteMvvmbCy62w==}
-
-  '@editorjs/helpers@0.0.4':
-    resolution: {integrity: sha512-ieg3dzo2m1/ELze/RMNADiAiC5amXxIlVXoJ5vvXITOu/p/dPsrF+Oi3h5gBYvtGk9vg5LJUSG5YWU0tBUO1tw==}
-
-  '@editorjs/image@2.10.1':
-    resolution: {integrity: sha512-ECjYQCEuPRzyruKY4+6XOyukQ2sCw4+9O1Jg8sDHyqbHLq0DMe+tgVsuXR+yfOXdocnywBOg4kLsJiP1uUYFcA==}
-
-  '@editorjs/inline-code@1.5.1':
-    resolution: {integrity: sha512-XvKpqw9y1bOYgyuVUHGDuu7KlNWCYIXD5uU1Lpc4s4LJ8VN4TjWFGKJ3sS+LR7zzasWe8hu2ffR1JC6MHIS0EQ==}
-
-  '@editorjs/link@2.6.2':
-    resolution: {integrity: sha512-3cPx6M4ZvwDDvsi0E0fvMR3rvveAV/C0GRo1JLeZJ9cG9QgyoNolj4eu5Eqx3/r1XTC/he54qYEIZ/Dc4Lr4Ow==}
-
-  '@editorjs/list@2.0.4':
-    resolution: {integrity: sha512-KLrm/oti5DSx8coNvbgYOwpog3gsCVALoXquNKMvW7BLHeKTMAtg/tO/v7BipgV/EKk5CT+ocoofPtufDU9Irg==}
-
-  '@editorjs/marker@1.4.0':
-    resolution: {integrity: sha512-5ipEXfL44jTTRzgNp/p/YjMO7jT08S5z4V8qA3FFJTfdhKgQyM3mvP1zpdYKw47ZZpVWMCncvk5Nto3BxihEtg==}
-
   '@editorjs/paragraph@2.11.7':
     resolution: {integrity: sha512-qD6bbWvRc4VvP0mXDOm+hOhzzhUYR9ZjcAvgCuKWcCbUMpCvhVF1s8NX40zdjekPi6JEnuHTamCncTrSzVsVhw==}
-
-  '@editorjs/quote@2.7.6':
-    resolution: {integrity: sha512-D01KUMSDj2r+6Z+xjDkQqI+y6URpeHCvj0+P4pah+GtkG040lWjFb2H4pgHFXuol2cbfyAoraYSw85fuPheCvw==}
-
-  '@editorjs/simple-image@1.6.0':
-    resolution: {integrity: sha512-WvdGfQPlozwZd3PXQrJnRXk6gEYbv1U2vRupYJ6lTd3/UsLInXYUX5jSFcnGB5ZMH3bd0JDZfcb4d4Sv1/1big==}
-
-  '@editorjs/table@2.4.3':
-    resolution: {integrity: sha512-TBLVFA1T6PIZRSWz0gXZUtNrFu4a59FeABM/wS0/Coc/bhOfWBRrf5/Ic5tVHaTazXEo1dYWWrVgg/jRaRnYbw==}
-
-  '@editorjs/warning@1.4.1':
-    resolution: {integrity: sha512-7A+irJ6gIh6li4DC7qw/NiWCThlBgtoPUeeIVdldVjoATAu+a1GjS+w/5L24ReacgQJNPVQPPCoMaS1nB83agw==}
 
   '@emnapi/runtime@1.7.1':
     resolution: {integrity: sha512-PVtJr5CmLwYAU9PZDMITZoR5iAOShYREoR45EyyLrbntV50mdePTgUn4AmOw90Ifcj+x2kRjdzr1HP3RrNiHGA==}
@@ -3350,12 +3245,6 @@ packages:
   echarts@5.6.0:
     resolution: {integrity: sha512-oTbVTsXfKuEhxftHqL5xprgLoc0k7uScAwtryCgWF6hPYFLRwOUHiFmHGCBKP5NPFNkDVopOieyUqYGH8Fa3kA==}
 
-  editorjs-drag-drop@1.1.16:
-    resolution: {integrity: sha512-yOyKZqqZepkdbDQbAw1bZr3mQewkT4a9QgufWW3Aoy1qcTka8uHR01T/dGHqrpyYrF56ykyidPyp0LX79LEHHQ==}
-
-  editorjs-undo@2.0.28:
-    resolution: {integrity: sha512-7MiLdjIsPOXn8+cHDeAt2HapVklg4vcLWWkd2eMMlGI6UVtwYSjdQquDSv9752B/fOEP1C3NMF2sdiCoZV3tTA==}
-
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
@@ -5826,9 +5715,6 @@ packages:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
     hasBin: true
 
-  vanilla-caret-js@1.1.0:
-    resolution: {integrity: sha512-vl3R4Xjqb+xnM0gYyg+wcqWGYwKKnkz58Yj29/FQB+w+yP7R8IR1DGoJnDIs05moEZiGlQUTabPMoEtnQNcrpQ==}
-
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
@@ -6335,10 +6221,6 @@ snapshots:
 
   '@codexteam/icons@0.0.4': {}
 
-  '@codexteam/icons@0.0.5': {}
-
-  '@codexteam/icons@0.0.6': {}
-
   '@codexteam/icons@0.3.3': {}
 
   '@dnd-kit/accessibility@3.1.1(react@19.2.4)':
@@ -6378,77 +6260,11 @@ snapshots:
       apache-arrow: 17.0.0
       qs: 6.15.0
 
-  '@editorjs/checklist@1.6.0':
-    dependencies:
-      '@codexteam/icons': 0.3.3
-
-  '@editorjs/code@2.9.3':
-    dependencies:
-      '@codexteam/icons': 0.3.3
-
-  '@editorjs/delimiter@1.4.2':
-    dependencies:
-      '@codexteam/icons': 0.3.3
-
-  '@editorjs/dom@0.0.5':
-    dependencies:
-      '@editorjs/helpers': 0.0.4
-
   '@editorjs/editorjs@2.30.8': {}
-
-  '@editorjs/embed@2.7.6':
-    dependencies:
-      '@editorjs/editorjs': 2.30.8
-
-  '@editorjs/header@2.8.8':
-    dependencies:
-      '@codexteam/icons': 0.0.5
-      '@editorjs/editorjs': 2.30.8
-
-  '@editorjs/helpers@0.0.4': {}
-
-  '@editorjs/image@2.10.1':
-    dependencies:
-      '@codexteam/icons': 0.3.3
-
-  '@editorjs/inline-code@1.5.1':
-    dependencies:
-      '@codexteam/icons': 0.3.3
-
-  '@editorjs/link@2.6.2':
-    dependencies:
-      '@babel/runtime': 7.26.7
-      '@codexteam/icons': 0.0.4
-
-  '@editorjs/list@2.0.4':
-    dependencies:
-      '@codexteam/icons': 0.3.3
-
-  '@editorjs/marker@1.4.0':
-    dependencies:
-      '@codexteam/icons': 0.0.5
 
   '@editorjs/paragraph@2.11.7':
     dependencies:
       '@codexteam/icons': 0.0.4
-
-  '@editorjs/quote@2.7.6':
-    dependencies:
-      '@codexteam/icons': 0.3.3
-      '@editorjs/dom': 0.0.5
-
-  '@editorjs/simple-image@1.6.0':
-    dependencies:
-      '@codexteam/icons': 0.0.6
-
-  '@editorjs/table@2.4.3':
-    dependencies:
-      '@codexteam/icons': 0.0.6
-
-  '@editorjs/warning@1.4.1':
-    dependencies:
-      '@codexteam/icons': 0.3.3
-      '@editorjs/editorjs': 2.30.8
 
   '@emnapi/runtime@1.7.1':
     dependencies:
@@ -8992,12 +8808,6 @@ snapshots:
     dependencies:
       tslib: 2.3.0
       zrender: 5.6.1
-
-  editorjs-drag-drop@1.1.16: {}
-
-  editorjs-undo@2.0.28:
-    dependencies:
-      vanilla-caret-js: 1.1.0
 
   ee-first@1.1.1: {}
 
@@ -12258,8 +12068,6 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   uuid@10.0.0: {}
-
-  vanilla-caret-js@1.1.0: {}
 
   vary@1.1.2: {}
 

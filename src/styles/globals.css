@@ -17,14 +17,14 @@
 }
 
 @font-face {
-    font-family: 'Urbanist';
-    src: url('/fonts/Urbanist-VariableFont_wght.ttf') format('truetype');
+    font-family: 'Inter';
+    src: url('/fonts/InterVariable.ttf') format('truetype');
     font-weight: 100 900;
     font-style: normal;
 }
 
 body {
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 @layer utilities {

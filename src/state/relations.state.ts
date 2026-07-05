@@ -4,7 +4,14 @@ import {SchemaState} from "@/model/schema-state";
 import {DatabaseState} from "@/model/database-state";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
-import {DashboardState, DashboardWidget, getInitDashboardState} from "@/model/dashboard-state";
+import {
+    appendWidgetToLayouts,
+    createRelationWidget,
+    createTextWidget,
+    DashboardState,
+    DashboardWidget,
+    getInitDashboardState,
+} from "@/model/dashboard-state";
 import type {ResponsiveLayouts} from "react-grid-layout";
 import {getRandomId} from "@/platform/id-utils";
 import {EditorFolder} from "@/model/editor-folder";
@@ -79,6 +86,10 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     // **unsafe in terms of adding, renaming, and deleting dashboards**
     setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => void,
     // grid widget/layout actions (targeted, merge-safe against concurrent drags)
+    // High-level: the single way to add a widget to a dashboard (used by UI + chat tools).
+    addRelationWidgetToDashboard: (dashboardId: string, relationId: string) => void,
+    addTextWidgetToDashboard: (dashboardId: string, text?: string) => void,
+    // Low-level primitive (used internally by the two actions above).
     addDashboardWidget: (dashboardId: string, widget: DashboardWidget, layouts: ResponsiveLayouts) => void,
     removeDashboardWidget: (dashboardId: string, widgetId: string) => void,
     updateDashboardWidget: (dashboardId: string, widgetId: string, patch: Partial<DashboardWidget>) => void,
@@ -321,6 +332,18 @@ export const useRelationsState = createWithEqualityFn(
                 },
                 getDashboardState: (dashboardId: string) => {
                     return get().dashboards[dashboardId];
+                },
+                addRelationWidgetToDashboard: (dashboardId: string, relationId: string) => {
+                    const dashboard = get().dashboards[dashboardId];
+                    if (!dashboard) return;
+                    const widget = createRelationWidget(relationId);
+                    get().addDashboardWidget(dashboardId, widget, appendWidgetToLayouts(dashboard.layouts, widget.id));
+                },
+                addTextWidgetToDashboard: (dashboardId: string, text: string = '') => {
+                    const dashboard = get().dashboards[dashboardId];
+                    if (!dashboard) return;
+                    const widget = createTextWidget(text);
+                    get().addDashboardWidget(dashboardId, widget, appendWidgetToLayouts(dashboard.layouts, widget.id));
                 },
                 addDashboardWidget: (dashboardId: string, widget: DashboardWidget, layouts: ResponsiveLayouts) => {
                     set((state) => {

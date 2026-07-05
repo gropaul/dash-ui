@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationView} from "@/components/relation/relation-view";
 import {RelationState} from "@/model/relation-state";
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {DashboardToolbar} from "@/components/dashboard/dashboard-toolbar";
 import {onRelationEvent} from "@/state/relations/event/relation-events";
 import {refreshDownstreamRelations} from "@/state/relations/sql/relation-dag-refresh";
@@ -25,7 +24,6 @@ export function DashboardTab(props: DashboardViewProps) {
 
     const [editMode, setEditMode] = useState(false);
     const [fullscreenWidgetId, setFullscreenWidgetId] = useState<string | null>(null);
-    const [manager] = useState(() => new InputManager());
 
     const openFullscreen = useCallback((widgetId: string) => setFullscreenWidgetId(widgetId), []);
     const onBack = useCallback(() => setFullscreenWidgetId(null), []);
@@ -56,7 +54,6 @@ export function DashboardTab(props: DashboardViewProps) {
                 mode='fullscreen'
                 relationState={fullscreenRelation}
                 updateRelation={(newRelation: RelationState) => updateRelation(newRelation)}
-                inputManager={manager}
                 height={'fit'}
                 breadcrumbPrefix={{label: dashboard.name, onClick: onBack}}
             />

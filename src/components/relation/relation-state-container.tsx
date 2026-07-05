@@ -71,7 +71,6 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                                 <RelationViewQueryView
                                     statics={inputProps}
                                     ref={inputProps.codeFenceRef}
-                                    inputManager={props.inputManager}
                                     {...props}
                                 />
                             </div>
@@ -138,7 +137,6 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                             statics={inputProps}
                             ref={inputProps.codeFenceRef}
                             {...props}
-                            inputManager={props.inputManager}
                         />
                     </Sizable>
                 )}

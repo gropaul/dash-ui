@@ -119,7 +119,6 @@ async function buildStatsQuery(row_count: number, relation: RelationState, data:
         .filter(part => part !== undefined)
         .join(', ');
 
-    // todo: We need the InputManager here for the stats!!
     const buildResult = await ViewManager.instance.buildQuery(relation);
     const finalQuery = buildResult.finalQuery;
     const query = `

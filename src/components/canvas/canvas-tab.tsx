@@ -3,7 +3,6 @@ import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
 import {Flow} from "@/components/canvas/flow";
 import {ReactFlowProvider} from "@xyflow/react";
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationView} from "@/components/relation/relation-view";
 import {RelationState} from "@/model/relation-state";
 
@@ -18,7 +17,6 @@ export function CanvasTab(props: WorkflowTabProps) {
     const canvas = useRelationsState((state) => state.canvas[canvasId], shallow);
     const updateRelation = useRelationsState(state => state.updateRelation);
     const [fullscreenNodeId, setFullscreenNodeId] = useState<string | null>(null);
-    const [manager] = useState(() => new InputManager());
 
     const openFullscreen = useCallback((nodeId: string) => setFullscreenNodeId(nodeId), []);
     const onBackToCanvas = useCallback(() => setFullscreenNodeId(null), []);
@@ -45,7 +43,6 @@ export function CanvasTab(props: WorkflowTabProps) {
                 mode='fullscreen'
                 relationState={fullscreenRelation}
                 updateRelation={handleUpdateRelation}
-                inputManager={manager}
                 height={'fit'}
                 breadcrumbPrefix={{label: canvas.viewState.displayName, onClick: onBackToCanvas}}
             />

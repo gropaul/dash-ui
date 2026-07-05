@@ -10,12 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {useRelationsState} from "@/state/relations.state";
-import {
-    appendWidgetToLayouts,
-    createRelationWidget,
-    createTextWidget,
-    DashboardState,
-} from "@/model/dashboard-state";
+import {DashboardState} from "@/model/dashboard-state";
 import {
     cancelAllDashboardQueries,
     dashboardRelationIds,
@@ -31,17 +26,9 @@ interface DashboardToolbarProps {
 
 export function DashboardToolbar({dashboard, editMode, onToggleEditMode}: DashboardToolbarProps) {
     const relations = useRelationsState(s => s.relations);
-    const addDashboardWidget = useRelationsState(s => s.addDashboardWidget);
-
-    function addTextWidget() {
-        const widget = createTextWidget();
-        addDashboardWidget(dashboard.id, widget, appendWidgetToLayouts(dashboard.layouts, widget.id));
-    }
-
-    function addRelationWidget(relationId: string) {
-        const widget = createRelationWidget(relationId);
-        addDashboardWidget(dashboard.id, widget, appendWidgetToLayouts(dashboard.layouts, widget.id));
-    }
+    const addTextWidget = () => useRelationsState.getState().addTextWidgetToDashboard(dashboard.id);
+    const addRelationWidget = (relationId: string) =>
+        useRelationsState.getState().addRelationWidgetToDashboard(dashboard.id, relationId);
 
     const relationList = Object.values(relations);
     const hasRelations = dashboardRelationIds(dashboard).length > 0;

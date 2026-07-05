@@ -9,7 +9,6 @@ import {
 import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
-import {InputManager} from "@/components/editor/inputs/input-manager";
 import {RelationViewAPIProps} from "@/components/relation/relation-view";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {toast} from "sonner";
@@ -55,13 +54,13 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps, readO
             }
             // Clear selection state when re-running query (selected values may be stale)
             relationState.queryState = {}
-            return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, props.inputManager, baseQuery);
+            return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, baseQuery);
         },
         cancelQuery: async () => {
             return cancelQuery(relationState, updateRelation);
         },
         updateRelationDataWithParams: async (query: RelationQueryParameters) => {
-            return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, props.inputManager);
+            return updateAndExecuteRelation(relationState, query, updateRelation, readOnly);
         },
         updateRelationViewState: (viewState: DeepPartial<RelationViewState>) => {
             return updateRelationViewState(relationState, viewState, updateRelation, readOnly);
@@ -106,7 +105,6 @@ async function updateAndExecuteRelation(
     viewQueryParameters: RelationQueryParameters,
     update: UpdateRelationFunction,
     readOnly: boolean,
-    inputManager?: InputManager,
     // the base query is only provided when rerunning the query from the play button, not if e.g.
     // the view type changes
     baseQuery?: string
@@ -124,7 +122,7 @@ async function updateAndExecuteRelation(
     try {
         const updatedRelationState = {...relation}
         relation.query.viewParameters = viewQueryParameters;
-        result = await executeQueryOfRelation(updatedRelationState, inputManager, readOnly);
+        result = await executeQueryOfRelation(updatedRelationState, readOnly);
     } catch (e) {
         // if error update with error state
         result = returnEmptyErrorState(loadingRelationState, e)
