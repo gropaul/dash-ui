@@ -94,19 +94,19 @@ export interface RelationViewState extends RelationViewBaseState {
 }
 
 export type RelationViewType = 'table' | 'chart' | 'map' | 'select' | 'text' | 'slider';
-export type RelationViewSizing = 'fit' | 'full'; // fit: take the height of the content, full: take all available height
+export type RelationViewHeight = 'fit' | 'full'; // fit: take the height of the content, full: take all available height
 
 
-const RELATION_SIZE_REQUIREMENTS: Record<RelationViewSizing, RelationViewType[]> = {
+const RELATION_SIZE_REQUIREMENTS: Record<RelationViewHeight, RelationViewType[]> = {
     'fit': ['select', "slider"],
     'full': ['table', 'chart', 'map', 'text'],
 }
 
 // only used for HeightType = fit as for resizable the height of the element is static anyway
-export function getViewSizeRequirements(viewType: RelationViewType): RelationViewSizing {
+export function getViewSizeRequirements(viewType: RelationViewType): RelationViewHeight {
     for (const [size, viewTypes] of Object.entries(RELATION_SIZE_REQUIREMENTS)) {
         if (viewTypes.includes(viewType as RelationViewType)) {
-            return size as RelationViewSizing;
+            return size as RelationViewHeight;
         }
     }
     throw new Error(`No size requirements found for view type: ${viewType}`);

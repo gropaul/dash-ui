@@ -27,7 +27,11 @@ export function toEChartOptions(
     const plotHasXAxisName = plotIsCartesian(plot) && !!plot.cartesian.xLabel;
     const plotHasTitle = !!plot.title;
     const plotCartesianYAxisCount =  plot.cartesian?.yAxes?.length ?? 0;
-    const plotNeedsLegend = plotIsCartesian(plot) && (plotUsesGroup(plot) || plotCartesianYAxisCount > 1);
+    const plotNeedsLegend =
+        (plotIsCartesian(plot) && (plotUsesGroup(plot) || plotCartesianYAxisCount > 1))
+        || (!plotIsCartesian(plot) && plot.type === 'pie');
+
+
 
     const titleHeight = plotHasTitle ? 32 : 0;
     const yNameHeight = plotHasYAxisName ? 8 : 0;
@@ -113,8 +117,8 @@ export function toEChartOptions(
             color: DEFAULT_COLORS,
             series: [{
                 type: "pie",
-                radius: [dec.innerRadius, "60%"],
-                center: ['50%', '60%'],
+                radius: [dec.innerRadius, "65%"],
+                center: ['50%', '58%'],
                 padAngle: dec.padAngle,
                 data: pieData,
                 itemStyle: {

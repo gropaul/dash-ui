@@ -52,21 +52,23 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
     );
 
     const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage : 0;
-    const showQuery = codeFenceState.show;
+    const neverShowQueryEditor = props.neverShowQueryEditor ?? false;
+    const showQueryEditor = codeFenceState.show && !neverShowQueryEditor;
     const layout = codeFenceState.layout;
 
     if (props.height === 'fit' || props.height == null) {
 
-        const sizeRequirement = getViewSizeRequirements(props.relationState.viewState.selectedView);
+        // e.g., sliders only take the height they need, tables fill the space they get
+        const relationHeightRequirement = getViewSizeRequirements(props.relationState.viewState.selectedView);
 
-        switch (sizeRequirement) {
+        switch (relationHeightRequirement) {
             case 'fit':
                 // for fit views, we show the query above the content, the content should just take as much
                 // as it needs and the query should take the remaining height if shown.
                 return (
                     <div className={cn("w-full h-full bg-inherit flex flex-col", inputProps.className)}>
                         {parameterPanelElement}
-                        {showQuery && (
+                        {showQueryEditor && (
                             <div className="flex-1 min-h-8">
                                 <RelationViewQueryView
                                     statics={inputProps}
@@ -75,8 +77,8 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                                 />
                             </div>
                         )}
-                        <div className={cn("h-[1px] w-full bg-muted", !showQuery && 'hidden')}/>
-                        <div className={cn("bg-inherit", showQuery ? "flex-shrink-0 min-h-24" : "flex-1")}>
+                        <div className={cn("h-[1px] w-full bg-muted", !showQueryEditor && 'hidden')}/>
+                        <div className={cn("bg-inherit", showQueryEditor ? "flex-shrink-0 min-h-24" : "flex-1")}>
                             <ContentWrapper {...props}/>
                         </div>
                     </div>
@@ -87,7 +89,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                         {parameterPanelElement}
                         <ResizablePanelGroup className={'bg-inherit flex-1'}
                                              direction={layout == 'row' ? 'vertical' : 'horizontal'}>
-                            {showQuery && (
+                            {showQueryEditor && (
                                 <>
                                     <ResizablePanel
                                         id="query"
@@ -108,7 +110,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                                 id="content"
                                 order={1}
                                 className={'bg-inherit'}
-                                defaultSize={showQuery ? 100 - codePercentage : 100}
+                                defaultSize={showQueryEditor ? 100 - codePercentage : 100}
                                 onResize={setCodeFenceState}
                                 minSize={10}
                             >
@@ -124,7 +126,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
         return (
             <div className={cn("w-full h-fit bg-inherit flex flex-col", inputProps.className)}>
                 {parameterPanelElement}
-                {showQuery && (
+                {showQueryEditor && (
                     <Sizable
                         width={'full'}
                         height={codeHeight}

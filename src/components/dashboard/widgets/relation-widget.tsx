@@ -43,8 +43,9 @@ export function RelationWidget({relationId, editMode, compact, onExpand, onRemov
         <div className="relative w-full h-full group/widget">
             <div className={cn("w-full h-full overflow-hidden bg-card rounded-2xl", editMode && "border")}>
                 <RelationStateView
-                    mode='embedded'
                     embedded
+                    neverShowQueryEditor
+                    mode='embedded'
                     height='fit'
                     relationState={relation}
                     updateRelation={updateRelation}
@@ -52,7 +53,7 @@ export function RelationWidget({relationId, editMode, compact, onExpand, onRemov
             </div>
             <WidgetToolbar
                 className={cn(
-                    "absolute top-0 z-10 opacity-0 transition-opacity group-hover/widget:opacity-100",
+                    "absolute top-0 z-[100] opacity-0 transition-opacity group-hover/widget:opacity-100",
                     compact ? "right-0" : "left-full",
                 )}
                 compact={compact}

@@ -184,16 +184,26 @@ body {
   transition: height 200ms ease;
 }
 .react-grid-item {
+  /* RGL positions items with `transform`, which creates a stacking context on each item —
+     so a child's z-index (e.g. the widget toolbar overflowing into the gutter) can't rise
+     above a neighboring item. The lift must happen on the item itself, and z-index only
+     applies to non-static elements, hence position: relative. */
+  position: relative;
   transition: transform 200ms ease, width 200ms ease, height 200ms ease;
   box-sizing: border-box;
 }
 .react-grid-item.cssTransforms {
   transition-property: transform, width, height;
 }
+/* Lift the hovered widget above its neighbors so its toolbar (which sits in the right gutter,
+   overflowing this item's bounds) isn't covered by the adjacent item painted later. */
+.react-grid-item:hover {
+  z-index: 4;
+}
 .react-grid-item.resizing,
 .react-grid-item.react-draggable-dragging {
   transition: none;
-  z-index: 3;
+  z-index: 10;
   will-change: transform;
 }
 .react-grid-item.react-grid-placeholder {

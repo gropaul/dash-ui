@@ -19,6 +19,7 @@ export interface StaticDisplayProps {
     mode: RelationViewMode;
     embedded?: boolean; // if embedded, some UI elements may be hidden for a cleaner look, todo: this becomes obsolete by mode
     height?: HeightType;
+    neverShowQueryEditor?: boolean; // if true, the sql editor will never be visible, even if the relation state allows it
     sqlEditorShowRunButton?: boolean; // whether to show the run button in the sql editor, defaults to true
     sqlEditorPanelMode?: EditorPanelPosition; // whether the sql editor should be displayed in an overlay or a panel, defaults to overlay
 }
