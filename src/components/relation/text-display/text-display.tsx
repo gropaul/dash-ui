@@ -29,8 +29,6 @@ export const TextDisplay = memo(function TextDisplay({data, relationState}: Rela
                 <div
                     className="whitespace-pre-wrap break-words overflow-hidden w-full text-muted-foreground"
                     style={{
-                        fontSize: `${Math.round(styleConfig.fontSize * 0.45)}px`,
-                        fontFamily: styleConfig.fontFamily,
                         textAlign,
                         lineHeight: styleConfig.lineHeight,
                     }}

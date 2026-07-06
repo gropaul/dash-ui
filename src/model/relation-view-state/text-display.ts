@@ -10,13 +10,13 @@ export interface TextDisplayStyleConfig {
 }
 
 export const TEXT_DISPLAY_STYLES: Record<TextDisplayStyle, TextDisplayStyleConfig> = {
-    h1: {fontSize: 36, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.2},
-    h2: {fontSize: 30, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.25},
-    h3: {fontSize: 24, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.3},
-    h4: {fontSize: 20, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.35},
-    h5: {fontSize: 16, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.4},
-    body: {fontSize: 16, fontWeight: 'normal', fontFamily: 'inherit', lineHeight: 1.5},
-    code: {fontSize: 14, fontWeight: 'normal', fontFamily: 'monospace', lineHeight: 1.4},
+    h1: {fontSize: 64, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.2},
+    h2: {fontSize: 48, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.25},
+    h3: {fontSize: 40, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.3},
+    h4: {fontSize: 32, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.35},
+    h5: {fontSize: 24, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.4},
+    body: {fontSize: 24, fontWeight: 'normal', fontFamily: 'inherit', lineHeight: 1.5},
+    code: {fontSize: 24, fontWeight: 'normal', fontFamily: 'monospace', lineHeight: 1.4},
 };
 
 export interface TextDisplayViewState {
