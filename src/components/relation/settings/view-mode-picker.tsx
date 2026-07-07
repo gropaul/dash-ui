@@ -42,10 +42,10 @@ export function ViewModePicker({currentView, onViewChange}: ViewModePickerProps)
                         disabled={!mode.ready}
                         onClick={() => onViewChange(mode.viewType)}
                         className={cn(
-                            "relative flex flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-center transition-colors",
+                            "relative border flex flex-col items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-center transition-colors",
                             active
                                 ? "bg-accent text-accent-foreground"
-                                : "border bg-card text-muted-foreground hover:bg-muted",
+                                : "bg-card text-muted-foreground hover:bg-muted",
                             !mode.ready && "cursor-default opacity-60 hover:bg-card",
                         )}
                     >

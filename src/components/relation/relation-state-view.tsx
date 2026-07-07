@@ -5,7 +5,7 @@ import {RelationStateContainer} from "@/components/relation/relation-state-conta
 import {RelationLoadingView} from "@/components/relation/relation-loading-view";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {DefaultErrorBoundary} from "@/components/basics/error-bundary";
-import {hasSettingsPanel, ViewSettingsPanel} from "@/components/relation/view-settings-panel";
+import {hasSettingsPanel, RelationViewConfig} from "@/components/relation/relation-view-config";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
@@ -52,8 +52,8 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                     </ResizablePanel>
                     <ResizableHandle/>
                     <ResizablePanel defaultSize={configSize} onResize={onConfigResize} minSize={15}>
-                        <div className="pl-3 pr-1 py-3 w-full h-full overflow-y-auto">
-                            <ViewSettingsPanel {...props}/>
+                        <div className="pl-3 pr-1 w-full h-full overflow-y-auto">
+                            <RelationViewConfig {...props}/>
                         </div>
                     </ResizablePanel>
                 </ResizablePanelGroup>

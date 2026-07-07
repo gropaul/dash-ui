@@ -38,7 +38,7 @@ export interface RelationViewProps extends EndUserRelationActions, StaticDisplay
 export function RelationView(inputProps: RelationViewAPIProps) {
     return (
         <RelationContextProvider>
-            <div className="w-full h-full flex flex-col p-0 m-0 bg-background">
+            <div className="w-full h-full text-xs flex flex-col p-0 m-0 bg-background">
                 <DefaultErrorBoundary>
                     <RelationViewHeader {...inputProps}/>
                     <div className={`flex-1 bg-background overflow-auto`}>
