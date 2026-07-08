@@ -26,6 +26,7 @@ import {RelationSettings} from "@/components/relation/relation-settings";
 import {RelationViewTypeSwitcher, ViewSwitchEntry} from "@/components/relation/settings/relation-view-type-switcher";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {WorkspacePathPrefix} from "@/components/spaces/workspace-path";
 
 export interface RelationViewHeaderProps extends RelationViewAPIProps {
     children?: React.ReactNode;
@@ -86,7 +87,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
 
     const titleComponent = (
         <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
-            {breadcrumbPrefix && (
+            {breadcrumbPrefix ? (
                 <>
                     <button
                         onClick={breadcrumbPrefix.onClick}
@@ -96,10 +97,12 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                     </button>
                     <span className="text-muted-foreground flex-shrink-0">/</span>
                 </>
+            ) : (
+                <WorkspacePathPrefix entityId={relationId}/>
             )}
             <RelationTitleWithActions
                 relationState={inputProps.relationState}
-                executionInfoClassName=""
+                executionInfoClassName="text-xs"
             />
         </div>
     );

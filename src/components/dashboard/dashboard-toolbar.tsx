@@ -9,6 +9,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
+import {WorkspacePathPrefix} from "@/components/spaces/workspace-path";
 import {useRelationsState} from "@/state/relations.state";
 import {DashboardState} from "@/model/dashboard-state";
 import {
@@ -68,13 +69,24 @@ export function DashboardToolbar({dashboard, editMode, onToggleEditMode}: Dashbo
         </>
     );
 
+    const titleComponent = (
+        <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
+            <WorkspacePathPrefix entityId={dashboard.id}/>
+            <span className="font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
+                {dashboard.viewState.displayName}
+            </span>
+        </div>
+    );
+
     return (
         <ViewHeader
             title={dashboard.viewState.displayName}
+            titleComponent={titleComponent}
             path={[]}
             state={hasRelations ? execState : undefined}
             onRunClick={hasRelations ? () => runAllDashboardQueries(dashboard) : undefined}
             onCancelClick={hasRelations ? () => cancelAllDashboardQueries(dashboard) : undefined}
+            reserveRunButtonSpace
             actionButtons={actionButtons}
         />
     );

@@ -135,9 +135,7 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
 
         // Step 4. The relations have been loaded from the connection.
         onRelationStateLoadedFromConnection: async (loadedTabIds: string[]) => {
-            // remove all the tabs that were not loaded from the relation state
             get().setStep('updating-gui-state');
-            useGUIState.getState().keepTabsOfIds(loadedTabIds);
 
             // load the last used relations
             get().setStep('loading-last-used-relations');

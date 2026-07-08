@@ -10,6 +10,7 @@ import {ConditionalAnalytics} from "@/components/conditional-analytics";
 import {useEffect} from "react";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {TourDialog} from "@/components/onboarding/tour-dialog";
+import {AppGate} from "@/components/layout/app-gate";
 
 export default function RootLayout({
                                        children,
@@ -48,7 +49,7 @@ export default function RootLayout({
                     <ResponsiveModeProvider>
                         <SettingsProvider>
                             <div className="flex flex-row min-h-[100dvh] supports-[height:100dvh]:min-h-dvh w-full">
-                                {children}
+                                <AppGate>{children}</AppGate>
                             </div>
                         </SettingsProvider>
                     </ResponsiveModeProvider>

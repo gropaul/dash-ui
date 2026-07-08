@@ -27,7 +27,8 @@ import {
     updateNode
 } from "@/components/basics/files/tree-utils";
 import {RemoveNodeAction, RenameNodeActions} from "@/components/basics/files/tree-action-utils";
-import {useGUIState} from "@/state/gui.state";
+import {navigate, navigateReplace, currentPathname} from "@/state/routing/navigation";
+import {routeForNodeId, resolveNodeFromPath, SPACES_ROOT} from "@/state/routing/core-model";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
 import {GetInitialCanvasState, CanvasState} from "@/model/canvas-state";
@@ -229,9 +230,8 @@ export const useRelationsState = createWithEqualityFn(
                     }));
                 },
                 deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
-                    if (useGUIState.getState().isTabOpen(entityId)) {
-                        useGUIState.getState().removeTab(entityId);
-                    }
+                    // if the entity being deleted is the one currently shown, leave for /spaces
+                    const currentlyShown = resolveNodeFromPath(get().editorElements, currentPathname());
 
                     // if it is a relation, delete the cache and dispatch delete action
                     if (entityType === 'relations') {
@@ -248,6 +248,10 @@ export const useRelationsState = createWithEqualityFn(
                         [entityType]: newCollection,
                         editorElements: newElements,
                     });
+
+                    if (currentlyShown?.id === entityId) {
+                        navigateReplace(SPACES_ROOT);
+                    }
                 },
 
                 getEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string): string => {
@@ -257,7 +261,9 @@ export const useRelationsState = createWithEqualityFn(
                 setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => {
 
                     const newEntity = SetEntityDisplayName(entityId, entityType, displayName, get());
-                    useGUIState.getState().renameTab(entityId, displayName);
+
+                    // renaming may change the derived macro name (and thus the URL) of the shown item
+                    const wasShown = resolveNodeFromPath(get().editorElements, currentPathname())?.id === entityId;
 
                     // If path is empty, find the path by entity ID
                     const effectivePath = path.length > 0 ? path : findPathById(get().editorElements, entityId);
@@ -272,6 +278,10 @@ export const useRelationsState = createWithEqualityFn(
                             },
                             editorElements: newEditorElements,
                         }));
+                        if (wasShown) {
+                            const newRoute = routeForNodeId(get().editorElements, entityId);
+                            if (newRoute) navigateReplace(newRoute);
+                        }
                     } else {
                         // No path found, just update the entity without editor elements
                         set((state) => ({
@@ -295,10 +305,11 @@ export const useRelationsState = createWithEqualityFn(
                     }
 
                     if (openInTab) {
-                        if (useGUIState.getState().isTabOpen(entityId)) {
-                            useGUIState.getState().focusTab(entityId);
-                        } else {
-                            useGUIState.getState().addEntityTab(entityType, entity);
+                        // navigate to the entity's /spaces URL (undefined for non-addressable
+                        // kinds like schemas/databases, which are not in the editor tree)
+                        const route = routeForNodeId(get().editorElements, entityId);
+                        if (route) {
+                            navigate(route);
                         }
                     }
                 },
@@ -483,16 +494,13 @@ export const useRelationsState = createWithEqualityFn(
                     const elementToRemove = findNodeInTrees(newElements, path);
                     if (!elementToRemove) throw new Error('Element to remove not found');
 
+                    // remember what is currently shown so we can leave for /spaces if it gets removed
+                    const currentlyShown = resolveNodeFromPath(get().editorElements, currentPathname());
+
                     IterateAll([elementToRemove], (node) => {
                         if (node.type === 'dashboards') {
-                            if (useGUIState.getState().isTabOpen(node.id)) {
-                                useGUIState.getState().removeTab(node.id);
-                            }
                             delete newDashboards[node.id];
                         } else if (node.type === 'relations') {
-                            if (useGUIState.getState().isTabOpen(node.id)) {
-                                useGUIState.getState().removeTab(node.id);
-                            }
                             const relation = get().relations[node.id];
                             if (relation) {
                                 RelationEvents.delete(relation);
@@ -507,6 +515,10 @@ export const useRelationsState = createWithEqualityFn(
                         relations: newRelations,
                         dashboards: newDashboards,
                     }));
+
+                    if (currentlyShown && !findPathById(updatedFolders, currentlyShown.id)) {
+                        navigateReplace(SPACES_ROOT);
+                    }
                 },
 
                 applyEditorElementsActions: (actions: TreeAction[]) => {

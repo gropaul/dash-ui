@@ -3,6 +3,7 @@ import {TaskExecutionState} from "@/model/relation-state";
 import {RelationViewHeaderBorder} from "@/components/basics/basic-view/view-header-with-border";
 import {H5} from "@/components/ui/typography";
 import {ViewPathBreadcrumb} from "@/components/basics/basic-view/view-path-breadcrumb";
+import {Label} from "@/components/ui/label";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {RelationViewRunButton} from "@/components/relation/settings/relation-view-run-button";
 
@@ -17,6 +18,12 @@ export interface ViewHeaderProps {
     state?: TaskExecutionState;
     onRunClick?: () => void;
     onCancelClick?: () => void;
+    /** Reserve the run-button slot with a spacer when no run button is shown,
+     *  so the title aligns with views that do have one (e.g. relations). */
+    reserveRunButtonSpace?: boolean;
+    /** Custom element for the leading (run-button) slot, e.g. a "+" menu.
+     *  Only used when no run button is shown; occupies the same aligned slot. */
+    leadingButton?: ReactNode;
 
     onTitleChange?: (newTitle: string) => void;
 }
@@ -32,6 +39,8 @@ export function ViewHeader({
                                subtitle,
                                onPathClick,
                                onTitleChange,
+                               reserveRunButtonSpace,
+                               leadingButton,
                            }: ViewHeaderProps) {
 
     const isMobile = useIsMobile();
@@ -41,12 +50,18 @@ export function ViewHeader({
             <div className="flex flex-row items-center justify-between w-full h-[48px] bg-muted-background pl-3 pr-2">
                 <div className="flex flex-row items-center flex-1 gap-2  overflow-hidden pr-2">
                     {
-                        state && onCancelClick && onRunClick && <RelationViewRunButton
-                            className={'rounded-sm h-10 w-10'}
-                            onStopRun={onCancelClick}
-                            onRun={onRunClick}
-                            runState={state}
-                        />
+                        state && onCancelClick && onRunClick ? (
+                            <RelationViewRunButton
+                                className={'rounded-sm h-10 w-10'}
+                                onStopRun={onCancelClick}
+                                onRun={onRunClick}
+                                runState={state}
+                            />
+                        ) : leadingButton ? (
+                            leadingButton
+                        ) : reserveRunButtonSpace ? (
+                            <div className="h-10 w-10 flex-shrink-0" aria-hidden="true"/>
+                        ) : null
                     }
                     {/* Title (shrinks, ellipsizes) */}
                     {titleComponent ? (
@@ -55,7 +70,7 @@ export function ViewHeader({
                         <H5
                             className="text-ellipsis whitespace-nowrap flex-shrink min-w-0"
                         >
-                            {title}
+                            
                         </H5>
                     )}
 
@@ -68,9 +83,9 @@ export function ViewHeader({
 
                     {/* Subtitle (fixed width, always visible, never shrinks) */}
                     {subtitle && (
-                        <div className="pl-2 whitespace-nowrap flex-shrink-0">
+                        <Label className="pl-2 text-xs whitespace-nowrap flex-shrink-0">
                             {subtitle}
-                        </div>
+                        </Label>
                     )}
                 </div>
 
