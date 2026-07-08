@@ -1,6 +1,8 @@
-import {useGUIState} from "@/state/gui.state";
 import {useRelationsState} from "@/state/relations.state";
 import {useMemo, useSyncExternalStore} from "react";
+import {resolveNodeFromPath} from "@/state/routing/core-model";
+import {currentPathname} from "@/state/routing/navigation";
+import {useCurrentPath} from "@/state/routing/use-location";
 
 // --- Target Types ---
 
@@ -38,40 +40,24 @@ const CHAT_TARGET: ChatTarget = {
 export function getAvailableTargets(): Target[] {
     const targets: Target[] = [CHAT_TARGET];
 
-    const layoutModel = useGUIState.getState().layoutModel;
     const relationsState = useRelationsState.getState();
 
-    layoutModel.visitNodes((node) => {
-        const nodeId = node.getId();
-        console.log(nodeId);
-        if (nodeId.startsWith('dashboard-') && false) { // disable dasboards because of read only
-            // const dashboard = relationsState.dashboards[nodeId];
-            // if (dashboard) {
-            //     const blockCount = dashboard.elementState?.blocks?.length ?? 0;
-            //     targets.push({
-            //         id: nodeId,
-            //         type: 'dashboard',
-            //         name: dashboard.viewState.displayName ?? dashboard.name,
-            //         description: blockCount > 0
-            //             ? `Dashboard with ${blockCount} block${blockCount !== 1 ? 's' : ''}`
-            //             : 'Empty dashboard',
-            //     });
-            // }
-        } else if (nodeId.startsWith('relation')) {
-            const relation = relationsState.relations[nodeId];
-            if (relation) {
-                const viewType = relation.viewState.selectedView;
-                targets.push({
-                    id: nodeId,
-                    type: 'relation',
-                    name: relation.viewState.displayName,
-                    query: relation.query.baseQuery,
-                    viewType: viewType,
-                    description: `Query viewing as ${viewType}`,
-                });
-            }
+    // The "open" relation is now the one addressed by the current URL.
+    const shown = resolveNodeFromPath(relationsState.editorElements, currentPathname());
+    if (shown && shown.type === 'relations') {
+        const relation = relationsState.relations[shown.id];
+        if (relation) {
+            const viewType = relation.viewState.selectedView;
+            targets.push({
+                id: shown.id,
+                type: 'relation',
+                name: relation.viewState.displayName,
+                query: relation.query.baseQuery,
+                viewType: viewType,
+                description: `Query viewing as ${viewType}`,
+            });
         }
-    });
+    }
 
     return targets;
 }
@@ -157,13 +143,14 @@ function useDisabledTargets(): Set<string> {
 // --- Reactive Hooks ---
 
 export function useAvailableTargets(): Target[] {
-    const layoutModel = useGUIState((s) => s.layoutModel);
+    const pathname = useCurrentPath();
     const dashboards = useRelationsState((s) => s.dashboards);
     const relations = useRelationsState((s) => s.relations);
+    const editorElements = useRelationsState((s) => s.editorElements);
 
     return useMemo(() => {
         return getAvailableTargets();
-    }, [layoutModel, dashboards, relations]);
+    }, [pathname, dashboards, relations, editorElements]);
 }
 
 export function useTargetsWithEnabled(): { targets: Target[]; disabled: Set<string> } {

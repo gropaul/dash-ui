@@ -50,7 +50,7 @@ export function RelationTitleWithActions({
         <div ref={containerRef} className={`group/title flex items-center min-w-0 flex-1 ${className ?? ''}`}>
             <div className="flex flex-row items-center gap-1.5 min-w-0 overflow-hidden whitespace-nowrap">
                     <span
-                        className="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
+                        className="font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
                     >
                         {displayName}
                     </span>
