@@ -1,10 +1,11 @@
 import {TableContent} from "@/components/relation/table/table-content";
 import {TableFooter} from "@/components/relation/table/table-footer";
-import {DndContext, DragOverEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
-import type {DragEndEvent, DragStartEvent} from "@dnd-kit/core/dist/types";
-import React, {useState} from "react";
+import {closestCenter, DndContext, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
+import type {DragEndEvent} from "@dnd-kit/core/dist/types";
+import {arrayMove} from "@dnd-kit/sortable";
+import {restrictToHorizontalAxis} from "@dnd-kit/modifiers";
+import React from "react";
 import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-state/table";
-import {ColumnDragOverlay} from "@/components/relation/table/table-column/column-drag-overlay";
 import {cn} from "@/lib/utils";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 import {ScrollArea, ScrollBar} from "@/components/ui/scroll-area";
@@ -13,9 +14,6 @@ import {ScrollArea, ScrollBar} from "@/components/ui/scroll-area";
 export function Table(props: RelationViewContentProps) {
     const data = props.data;
     const columnsOrder = props.relationState.viewState.tableState.columnsOrder;
-
-    const [dragStartOrder, setDragStartOrder] = useState<string[]>([]);
-    const [activeId, setActiveId] = useState<string | number | null>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -37,47 +35,28 @@ export function Table(props: RelationViewContentProps) {
         });
     }
 
-    function handleDragStart(event: DragStartEvent) {
-        setActiveId(event.active.id);
-        setDragStartOrder(columnsOrder);
-    }
-
-    function handleDragEnd(_event: DragEndEvent) {
-        setActiveId(null);
-    }
-
-    function onDragOver(event: DragOverEvent) {
-        const over = event.over;
-
-        if (!over) {
+    function handleDragEnd(event: DragEndEvent) {
+        const {active, over} = event;
+        if (!over || active.id === over.id) {
             return;
         }
 
-        const target = over.id as string;
-        const active = activeId as string;
-
-        if (active === target) {
-            // the order is the start order
-            setTableState({
-                ...props.relationState.viewState.tableState,
-                columnsOrder: dragStartOrder,
-            });
-        } else {
-            const targetIndex = dragStartOrder.indexOf(target);
-            const activeIndex = dragStartOrder.indexOf(active);
-
-            const newColumnsOrder = [...dragStartOrder];
-            // remove the active column
-            newColumnsOrder.splice(activeIndex, 1);
-
-            // insert the active column before the target column
-            newColumnsOrder.splice(targetIndex, 0, active);
-
-            setTableState({
-                ...props.relationState.viewState.tableState,
-                columnsOrder: newColumnsOrder,
-            });
+        // Reorder the visible columns, then write the new order back. Columns
+        // not currently visible (hidden) are appended so their order is kept.
+        const orderedNames = columnViewIndices.map(i => data.columns[i].name);
+        const oldIndex = orderedNames.indexOf(active.id as string);
+        const newIndex = orderedNames.indexOf(over.id as string);
+        if (oldIndex === -1 || newIndex === -1) {
+            return;
         }
+
+        const reordered = arrayMove(orderedNames, oldIndex, newIndex);
+        const rest = columnsOrder.filter(c => !reordered.includes(c));
+
+        setTableState({
+            ...props.relationState.viewState.tableState,
+            columnsOrder: [...reordered, ...rest],
+        });
     }
 
     const columnViewIndices = getTableColumnViewIndices(props.relationState.viewState.tableState, data);
@@ -94,7 +73,12 @@ export function Table(props: RelationViewContentProps) {
         + ' [&>[data-radix-scroll-area-viewport]>div]:bg-inherit';
 
     return (
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragOver={onDragOver}>
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToHorizontalAxis]}
+            onDragEnd={handleDragEnd}
+        >
             <div className={cn("nowheel flex bg-inherit flex-col w-full overflow-hidden", wrapperClasses)}>
                 <ScrollArea className={cn("bg-inherit", contentClasses, viewportFixClasses)}>
                     <TableContent {...props} columnViewIndices={columnViewIndices} data={data}/>
@@ -102,7 +86,6 @@ export function Table(props: RelationViewContentProps) {
                 </ScrollArea>
                 <TableFooter {...props} dataRowCount={data.rows.length}/>
             </div>
-            <ColumnDragOverlay activeId={activeId}/>
         </DndContext>
     )
 }

@@ -5,7 +5,7 @@ import {
     RelationStats,
     RelationQueryParameters
 } from "@/model/relation-state";
-import {useDraggable, useDroppable} from "@dnd-kit/core";
+import {useSortable} from "@dnd-kit/sortable";
 import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
 import {ColumnStatsProps, ColumnStatsView} from "@/components/relation/table/table-head/stats/column-stats-view";
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
@@ -58,8 +58,22 @@ export function TableColumnHead(props: ColumnHeadProps) {
     let localColumnWidth = columnState.width;
     let columnWidthString = localColumnWidth.toString() + 'px';
 
-    const {listeners, setNodeRef: setDraggableNodeRef} = useDraggable({id: column.name});
-    const {setNodeRef: setDroppableNodeRef} = useDroppable({id: column.name});
+    const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id: column.name});
+
+    // The sortable node is the <th> itself (see ColumnHeadWrapper). We translate
+    // (not full transform) so the cell slides in place without squishing. No
+    // DragOverlay: a position:fixed overlay is offset by transformed ancestors
+    // (react-grid-layout items, the xyflow viewport), so it lands far from the
+    // pointer on the dashboard/canvas. Moving the cell in place is transform-safe.
+    const dragStyle: React.CSSProperties = {
+        transform: transform
+            ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+            : undefined,
+        transition,
+        opacity: isDragging ? 0.8 : 1,
+        position: 'relative',
+        zIndex: isDragging ? 1 : 0,
+    };
 
     const queryParameters = props.relationState.query.viewParameters;
     const columnSorting = queryParameters.table.sorting[props.column.name];
@@ -134,16 +148,17 @@ export function TableColumnHead(props: ColumnHeadProps) {
             relationStats={props.relationStats}
             relationState={props.relationState}
             onSelectedChange={onSelectedChange}
+            thRef={setNodeRef}
+            thStyle={dragStyle}
         >
             <div
-                ref={setDroppableNodeRef}
                 className="w-full group flex items-center justify-between pr-6"
             >
                 <div
-                    ref={setDraggableNodeRef}
                     onClick={onSortClick}
-                    className="flex items-center overflow-hidden cursor-pointer"
+                    className="flex items-center overflow-hidden cursor-pointer touch-none nodrag nopan"
                     style={{width: localColumnWidth}}
+                    {...attributes}
                     {...listeners}
                 >
                     <div style={{minWidth: "16px", display: "flex", alignItems: "center"}}>
@@ -193,14 +208,17 @@ export function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize
 interface ColumnHeadWrapperProps extends ColumnStatsProps {
     columnWidth?: string;
     children?: React.ReactNode;
+    thRef?: (node: HTMLElement | null) => void;
+    thStyle?: React.CSSProperties;
 }
 
 function ColumnHeadWrapper(props: ColumnHeadWrapperProps) {
 
     return (
         <th
+            ref={props.thRef}
             scope="col"
-            style={{width: props.columnWidth, overflow: 'hidden'}}
+            style={{width: props.columnWidth, overflow: 'hidden', ...props.thStyle}}
             className={`p-0 m-0 h-full`}
         >
             <div className="pl-4 py-1.5 border-b flex items-center bg-inherit relative "

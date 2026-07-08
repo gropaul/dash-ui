@@ -6,6 +6,7 @@ import {DropdownMenu, DropdownMenuContent} from "@/components/ui/dropdown-menu";
 import {fontMono, RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {cn} from "@/lib/utils";
+import {SortableContext, horizontalListSortingStrategy} from "@dnd-kit/sortable";
 
 export function TableHead(props: RelationViewTableContentProps) {
     const [selectedColumn, setSelectedColumn] = React.useState<Column | null>(null);
@@ -36,17 +37,22 @@ export function TableHead(props: RelationViewTableContentProps) {
                 )}
 
                 {/* Column headers */}
-                {props.columnViewIndices.map((index) => (
-                    <TableColumnHead
-                        key={index}
-                        {...props}
-                        relationStats={relationStats}
-                        column={props.data.columns[index]}
-                        columnIndex={index}
-                        onColumnMenuClick={handleColumnMenuClick}
-                        isLast={index === props.columnViewIndices[props.columnViewIndices.length - 1]}
-                    />
-                ))}
+                <SortableContext
+                    items={props.columnViewIndices.map(index => props.data.columns[index].name)}
+                    strategy={horizontalListSortingStrategy}
+                >
+                    {props.columnViewIndices.map((index) => (
+                        <TableColumnHead
+                            key={index}
+                            {...props}
+                            relationStats={relationStats}
+                            column={props.data.columns[index]}
+                            columnIndex={index}
+                            onColumnMenuClick={handleColumnMenuClick}
+                            isLast={index === props.columnViewIndices[props.columnViewIndices.length - 1]}
+                        />
+                    ))}
+                </SortableContext>
             </tr>
             </thead>
 
