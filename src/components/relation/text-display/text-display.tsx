@@ -37,7 +37,7 @@ export const TextDisplay = memo(function TextDisplay({data, relationState}: Rela
                 </div>
             )}
             <div
-                className="whitespace-pre-wrap break-words overflow-hidden w-full"
+                className="whitespace-pre-wrap break-words overflow-hidden w-full text-primary"
                 style={{
                     fontSize: `${styleConfig.fontSize}px`,
                     fontWeight: styleConfig.fontWeight,

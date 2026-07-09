@@ -7,6 +7,8 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {DefaultErrorBoundary} from "@/components/basics/error-bundary";
 import {hasSettingsPanel, RelationViewConfig} from "@/components/relation/relation-view-config";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
+import {RelationViewHeader} from "@/components/relation/relation-view-header";
+import {ViewPadding} from "@/components/ui/view-padding";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement | null>;
@@ -48,17 +50,29 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
             {showConfig ? (
                 <ResizablePanelGroup direction="horizontal" className="w-full h-full bg-inherit">
                     <ResizablePanel defaultSize={100 - configSize} minSize={30} className={'bg-inherit'}>
-                        <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
+                        <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full'}>
+                            <div className={'flex flex-col w-full h-full'}>
+                                {props.showHeader && <RelationViewHeader {...inputProps}/>}
+                                <div className={"rounded-2xl flex-1 min-h-0 w-full bg-card"}>
+                                    <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
+                                </div>
+                            </div>
+                        </ViewPadding>
                     </ResizablePanel>
                     <ResizableHandle/>
                     <ResizablePanel defaultSize={configSize} onResize={onConfigResize} minSize={15}>
-                        <div className="pl-3 pr-1 w-full h-full overflow-y-auto">
+                        <div className="pr-1 w-full h-full overflow-y-auto">
                             <RelationViewConfig {...props}/>
                         </div>
                     </ResizablePanel>
                 </ResizablePanelGroup>
             ) : (
-                <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
+                <div className={'flex flex-col w-full h-full'}>
+                    {props.showHeader && <RelationViewHeader {...inputProps}/>}
+                    <div className={"rounded-2xl flex-1 min-h-0 w-full bg-card"}>
+                        <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
+                    </div>
+                </div>
             )}
             {isLoading && <RelationLoadingView cancelQuery={props.cancelQuery}/>}
         </DefaultErrorBoundary>

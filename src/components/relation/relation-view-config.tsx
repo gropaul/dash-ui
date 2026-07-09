@@ -33,9 +33,9 @@ export function RelationViewConfig(props: RelationViewProps) {
     }
 
     return (
-        <div className="h-full min-h-0">
-            <ScrollArea className="h-full w-full pr-3">
-                <div className="flex flex-col gap-2 py-3">
+        <div className="h-full min-h-0 ">
+            <ScrollArea className="h-full w-full bg-background">
+                <div className="flex flex-col gap-2 py-3 mx-3">
                     <Label><Muted>Display as</Muted></Label>
                     <ViewModePicker currentView={viewType} onViewChange={onViewChange}/>
                     <Separator/>

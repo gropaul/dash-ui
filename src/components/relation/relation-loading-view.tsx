@@ -9,7 +9,7 @@ interface RelationLoadingViewProps {
 export function RelationLoadingView(props: RelationLoadingViewProps) {
     return (
         <div
-            className="absolute top-0 left-0 w-full h-full z-50 flex flex-col items-center justify-center bg-background transition-opacity duration-200"
+            className="absolute top-0 left-0 rounded-2xl w-full h-full z-50 flex flex-col items-center justify-center bg-background transition-opacity duration-200"
             style={{
                 opacity: 0.8,
             }}

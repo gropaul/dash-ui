@@ -71,7 +71,6 @@ export function DashboardToolbar({dashboard, editMode, onToggleEditMode}: Dashbo
 
     const titleComponent = (
         <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
-            <WorkspacePathPrefix entityId={dashboard.id}/>
             <span className="font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
                 {dashboard.viewState.displayName}
             </span>

@@ -44,22 +44,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
     const relationId = props.relationState.id;
     const {source, connectionId, viewState} = props.relationState;
 
-    function onPathClick(element: string, index: number) {
-        if (source.type === 'table') {
-            if (index === 0) {
-                // connection, no action
-            } else if (index === 1) {
-                // showDatabase(relation.connectionId, relation.source.database);
-            } else if (index === 2) {
-                // showSchema(relation.connectionId, relation.source.database, relation.source.schema );
-            } else if (index === 3) {
-                // table, no action
-            } else {
-                console.error('Unknown path element', element, index);
-            }
-        }
-    }
-
     const codeFenceState = props.getSessionState(props.mode).codeFenceState;
     const parametersState = viewState.parametersState ?? {
         panelState: {show: false, sizePercentage: 30},
@@ -113,7 +97,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                 title={viewState.displayName}
                 titleComponent={titleComponent}
                 path={path}
-                onPathClick={onPathClick}
                 state={props.relationState.executionState}
                 onRunClick={() => props.updateRelationDataWithBaseQuery(props.relationState.query.baseQuery)}
                 onCancelClick={props.cancelQuery}
@@ -177,11 +160,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     {queryToggleText}
                                 </DropdownMenuItem>
                             </RelationSettings>
-                            {/*<Separator orientation={'vertical'}/>*/}
-                            {/*<HeaderDownloadButton*/}
-                            {/*    state={filepathDialogState}*/}
-                            {/*    setState={setFilepathDialogState}*/}
-                            {/*/>*/}
                             <div className="w-1"/>
                         </>
                 }

@@ -35,19 +35,29 @@ export function Select(props: RelationViewContentProps) {
     const possibleValuesString = possibleValues.map(String);
 
     function onSelect(index: number) {
-        console.log("Selecting value: ", possibleValues[index]);
         const newValue = possibleValues[index];
 
-        const selectedValues = !params.multiSelect
-            ? [newValue]
-            : state.selectedValues.includes(newValue)
-                ? state.selectedValues.filter(v => v !== newValue)
-                : [...state.selectedValues, newValue];
+        let newSelectedValues;
+        const valueAlreadySelected = state.selectedValues.includes(newValue);
+
+        if (params.multiSelect) {
+            if (valueAlreadySelected) {
+                newSelectedValues = state.selectedValues.filter(v => v !== newValue);
+            } else {
+                newSelectedValues = [...state.selectedValues, newValue];
+            }
+        } else {
+            if (valueAlreadySelected) {
+                newSelectedValues = [];
+            } else {
+                newSelectedValues = [newValue];
+            }
+        }
 
         actions.updateRelationQueryState({
             select: {
                 ...state,
-                selectedValues
+                selectedValues: newSelectedValues,
             }
         })
     }

@@ -24,7 +24,7 @@ export interface TextDisplayViewState {
     fontStyle: 'normal' | 'italic';
     textAlign: 'left' | 'center' | 'right';
     verticalAlign: 'top' | 'center' | 'bottom';
-    color: string;
+    color?: string;
 }
 
 export function getInitialTextViewState(_data: RelationData): TextDisplayViewState {
@@ -37,6 +37,6 @@ export function getInitialTextViewStateEmpty(): TextDisplayViewState {
         fontStyle: 'normal',
         textAlign: 'center',
         verticalAlign: 'center',
-        color: '#000000',
+        color: undefined,
     };
 }

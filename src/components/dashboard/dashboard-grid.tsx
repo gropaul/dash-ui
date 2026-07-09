@@ -18,18 +18,20 @@ import {
 
 import {DASHBOARD_BREAKPOINTS, DASHBOARD_COLS, DashboardState, toSingleColumnLayout} from "@/model/dashboard-state";
 import {useRelationsState} from "@/state/relations.state";
-import {cn} from "@/lib/utils";
+import {ViewPadding} from "@/components/ui/view-padding";
 import {RelationWidget} from "@/components/dashboard/widgets/relation-widget";
 import {TextWidget} from "@/components/dashboard/widgets/text-widget";
+import {DashboardToolbar} from "@/components/dashboard/dashboard-toolbar";
 
-// RGL margin default is [10,10]. In edit mode we widen the horizontal container padding so the
-// vertical widget toolbar (sitting at each widget's top-right) has room on both sides and the
-// content stays centered.
+// Inter-widget spacing. Passed as RGL `margin`; `containerPadding` is [0,0] so the first row sits
+// flush under the header (RGL's default containerPadding mirrors margin, which is what caused the
+// top gap). Horizontal gutter around the grid is handled by the outer wrapper's px padding.
 const GRID_MARGIN = 8;
 
 interface DashboardGridProps {
     dashboard: DashboardState;
     editMode: boolean;
+    onToggleEditMode: () => void;
     onOpenFullscreen: (widgetId: string) => void;
 }
 
@@ -39,7 +41,7 @@ function compactorFor(compactType: CompactType): Compactor {
     return verticalCompactor; // 'vertical' (default) and 'wrap' fall back to vertical
 }
 
-export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: DashboardGridProps) {
+export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFullscreen}: DashboardGridProps) {
     const {width, containerRef} = useContainerWidth({initialWidth: 1200});
     const setDashboardLayouts = useRelationsState(s => s.setDashboardLayouts);
     const removeDashboardWidget = useRelationsState(s => s.removeDashboardWidget);
@@ -73,18 +75,17 @@ export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: Dashboard
     }
 
     return (
-        // Scroll area fills the tab; content is centered as a fixed max-width "page". The cap is
-        // just above the lg breakpoint (1200px) so the 12-col desktop layout can still render.
-        // Center with mx-auto (not flex) so the card grows with the grid instead of being stretched
-        // to viewport height and clipped.
-        <div className={cn("w-full h-full overflow-auto bg-accent pb-32", compact ? "px-0" : "px-12")}>
-            <div
-                ref={containerRef}
-                className={cn(
-                    "mx-auto w-full max-w-7xl min-h-full",
-
-                )}
-            >
+        // Scroll area fills the tab (bg spans full width); ViewPadding centers the content as a
+        // max-width "page" with a responsive horizontal gutter. containerRef sits inside the gutter
+        // so RGL's measured width matches the actual widget area.
+        <div className="w-full h-full overflow-auto bg-accent pb-32">
+            <ViewPadding active className="min-h-full">
+                <div ref={containerRef} className="w-full">
+                <DashboardToolbar
+                    dashboard={dashboard}
+                    editMode={editMode}
+                    onToggleEditMode={onToggleEditMode}
+                />
                 {widgets.length === 0 ? (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                         Empty dashboard — add a widget from the toolbar.
@@ -96,6 +97,8 @@ export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: Dashboard
                     cols={DASHBOARD_COLS}
                     layouts={layouts}
                     rowHeight={dashboard.gridConfig.rowHeight}
+                    margin={[GRID_MARGIN, GRID_MARGIN]}
+                    containerPadding={[0, 0]}
                     compactor={compactorFor(dashboard.gridConfig.compactType)}
                     onLayoutChange={onLayoutChange}
                     dragConfig={{enabled: editMode, handle: '.widget-drag-handle'}}
@@ -124,7 +127,8 @@ export function DashboardGrid({dashboard, editMode, onOpenFullscreen}: Dashboard
                     ))}
                 </ResponsiveGridLayout>
                 )}
-            </div>
+                </div>
+            </ViewPadding>
         </div>
     );
 }

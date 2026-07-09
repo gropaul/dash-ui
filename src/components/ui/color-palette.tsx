@@ -33,8 +33,8 @@ export function ColorSwatch({color, selected, onClick, size = 'md'}: ColorSwatch
 }
 
 interface ColorPaletteProps {
-    color: string;
-    onChange: (color: string) => void;
+    color?: string;
+    onChange: (color?: string) => void;
     colors?: string[];
     showPicker?: boolean;
     debounceMs?: number;
@@ -43,7 +43,7 @@ interface ColorPaletteProps {
 export function ColorPalette({
     color,
     onChange,
-    colors = ['black'].concat(DEFAULT_COLORS.slice(0, 4)),
+    colors = DEFAULT_COLORS.slice(0, 4),
     showPicker = true,
     debounceMs = 100,
 }: ColorPaletteProps) {
@@ -51,7 +51,7 @@ export function ColorPalette({
     const [pickerOpen, setPickerOpen] = useState(false);
 
     const throttledOnChange = useMemo(
-        () => throttleLatest((c: string) => onChange(c), debounceMs),
+        () => throttleLatest((c?: string) => onChange(c), debounceMs),
         [onChange, debounceMs]
     );
 
@@ -59,7 +59,7 @@ export function ColorPalette({
         setLocalColor(color);
     }, [color]);
 
-    const handleColorChange = (newColor: string) => {
+    const handleColorChange = (newColor?: string) => {
         setLocalColor(newColor);
         throttledOnChange(newColor);
     };
@@ -68,8 +68,17 @@ export function ColorPalette({
         handleColorChange(result.hex);
     };
 
+    const isCustom = localColor != null && !colors.includes(localColor);
+
     return (
         <div className="flex items-center gap-1.5">
+            {/* Default color: theme-dependent primary text color, represented as null */}
+            <ColorSwatch
+                color="hsl(var(--foreground))"
+                selected={localColor == null}
+                onClick={() => handleColorChange(undefined)}
+                size="sm"
+            />
             {colors.map((c) => (
                 <ColorSwatch
                     key={c}
@@ -85,12 +94,12 @@ export function ColorPalette({
                         <div
                             className="w-4 h-4 rounded-sm cursor-pointer border border-muted-foreground/30 hover:border-muted-foreground flex items-center justify-center text-[10px] text-muted-foreground"
                             style={{
-                                background: colors.includes(localColor)
-                                    ? 'linear-gradient(135deg, #fff 50%, #000 50%)'
-                                    : localColor
+                                background: isCustom
+                                    ? localColor
+                                    : 'linear-gradient(135deg, #fff 50%, #000 50%)'
                             }}
                         >
-                            {colors.includes(localColor) && '+'}
+                            {!isCustom && '+'}
                         </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">

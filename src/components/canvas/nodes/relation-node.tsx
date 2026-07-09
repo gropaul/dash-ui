@@ -218,7 +218,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         minWidth={100}
                         minHeight={30}
                     />
-                    <div className={'w-full h-full bg-background relative'}>
+                    <div className={'w-full h-full bg-background rounded-2xl relative'}>
                         <RelationStateView
                             mode={VIEW_MODE}
                             relationState={data}

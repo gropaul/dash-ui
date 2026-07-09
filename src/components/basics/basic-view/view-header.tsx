@@ -47,8 +47,10 @@ export function ViewHeader({
 
     return (
         <>
-            <div className="flex flex-row items-center justify-between w-full h-[48px] bg-muted-background pl-3 pr-2">
-                <div className="flex flex-row items-center flex-1 gap-2  overflow-hidden pr-2">
+            <RelationViewHeaderBorder state={state ??  { state: "not-started" }}/>
+
+            <div className="flex flex-row items-center justify-between w-full h-[48px] pl-3">
+                <div className="flex flex-row items-center flex-1 gap-2  overflow-hidden">
                     {
                         state && onCancelClick && onRunClick ? (
                             <RelationViewRunButton
@@ -94,7 +96,6 @@ export function ViewHeader({
                 </div>
             </div>
 
-            <RelationViewHeaderBorder state={state ??  { state: "not-started" }}/>
         </>
     );
 }

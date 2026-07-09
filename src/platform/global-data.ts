@@ -1,6 +1,6 @@
 // the time in milliseconds to wait before showing the loading spinner
 
-import {StorageDestination} from "@/model/database-connection";
+import type {StorageDestination} from "@/model/database-connection";
 
 export const DASH_STORAGE_VERSION = 1 // increment this if there are breaking changes to the storage format
 export const LOADING_TIMER_OFFSET_MS = 150; // how long the query needs to run before showing the loading spinner [ms]
@@ -76,6 +76,13 @@ export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
 export const ERROR_MESSAGE_QUERY_ABORTED = 'Query aborted by user';
 
 export const TABLE_FOOTER_SMALL_WIDTH_THRESHOLD = 512;
+
+// Container-query widths (px) at which ViewPadding steps up its horizontal gutter: tight below
+// MEDIUM, medium between MEDIUM and WIDE, wide at/above WIDE. Registered as the `view-medium` /
+// `view-wide` container sizes in tailwind.config.ts, which is where the `@view-medium/view:` and
+// `@view-wide/view:` utilities in view-padding.tsx get these values — single source of truth.
+export const VIEW_PADDING_MEDIUM_BREAKPOINT_PX = 640;
+export const VIEW_PADDING_WIDE_BREAKPOINT_PX = 1024;
 
 // minimum distance from node center for relation handles to become active, in pixels
 export const WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE = 64;

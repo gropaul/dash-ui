@@ -63,7 +63,6 @@
     "echarts": "^5.6.0",
     "echarts-for-react": "^3.0.2",
     "file-saver": "^2.0.5",
-    "flexlayout-react": "^0.7.15",
     "framer-motion": "^12.7.4",
     "immutable": "5.1.5",
     "katex": "^0.16.22",
@@ -105,6 +104,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",
+    "@tailwindcss/container-queries": "^0.1.1",
     "@types/dom-to-image": "^2.6.7",
     "@types/file-saver": "^2.0.1",
     "@types/formidable": "^3.4.5",

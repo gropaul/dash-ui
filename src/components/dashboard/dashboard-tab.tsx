@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationView} from "@/components/relation/relation-view";
 import {RelationState} from "@/model/relation-state";
-import {DashboardToolbar} from "@/components/dashboard/dashboard-toolbar";
 import {onRelationEvent} from "@/state/relations/event/relation-events";
 import {refreshDownstreamRelations} from "@/state/relations/sql/relation-dag-refresh";
 
@@ -55,22 +54,17 @@ export function DashboardTab(props: DashboardViewProps) {
                 relationState={fullscreenRelation}
                 updateRelation={(newRelation: RelationState) => updateRelation(newRelation)}
                 height={'fit'}
-                breadcrumbPrefix={{label: dashboard.viewState.displayName, onClick: onBack}}
             />
         );
     }
 
     return (
         <div className="w-full h-full flex flex-col">
-            <DashboardToolbar
-                dashboard={dashboard}
-                editMode={editMode}
-                onToggleEditMode={() => setEditMode(v => !v)}
-            />
             <div className="flex-1 min-h-0 relative">
                 <DashboardGrid
                     dashboard={dashboard}
                     editMode={editMode}
+                    onToggleEditMode={() => setEditMode(v => !v)}
                     onOpenFullscreen={openFullscreen}
                 />
             </div>

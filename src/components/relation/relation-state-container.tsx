@@ -66,7 +66,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                 // for fit views, we show the query above the content, the content should just take as much
                 // as it needs and the query should take the remaining height if shown.
                 return (
-                    <div className={cn("w-full h-full bg-inherit flex flex-col", inputProps.className)}>
+                    <div className={cn("w-full h-full bg-inherit rounded-2xl", inputProps.className)}>
                         {parameterPanelElement}
                         {showQueryEditor && (
                             <div className="flex-1 min-h-8">
@@ -85,9 +85,9 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                 );
             case 'full':
                 return (
-                    <div className="w-full h-full flex flex-col bg-inherit">
+                    <div className="w-full h-full flex flex-col bg-inherit rounded-2xl">
                         {parameterPanelElement}
-                        <ResizablePanelGroup className={'bg-inherit flex-1'}
+                        <ResizablePanelGroup className={'bg-inherit rounded-2xl flex-1'}
                                              direction={layout == 'row' ? 'vertical' : 'horizontal'}>
                             {showQueryEditor && (
                                 <>
@@ -124,7 +124,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
 
     if (props.height === 'resizable') {
         return (
-            <div className={cn("w-full h-fit bg-inherit flex flex-col", inputProps.className)}>
+            <div className={cn("w-full h-fit bg-inherit flex flex-col gap-4", inputProps.className)}>
                 {parameterPanelElement}
                 {showQueryEditor && (
                     <Sizable

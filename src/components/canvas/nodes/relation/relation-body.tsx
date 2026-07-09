@@ -17,7 +17,7 @@ export interface NodeBodyProps {
 }
 
 const INVALID_MESSAGES: Record<string, string> = {
-    cycle: 'Cannot create cycle',
+    cycle: 'Cannot create a cycle',
     duplicate: 'Connection already exists',
 };
 
@@ -39,9 +39,11 @@ export function RelationNodeBody(props: NodeBodyProps) {
     const invalidMessage = connectionHover?.invalidReason ? INVALID_MESSAGES[connectionHover.invalidReason] : null;
     const shouldShake = connectionHover?.shake ?? false;
 
+    const commonClassName = 'rounded-2xl'
+
     return (
         <div
-            className="w-full h-full relative"
+            className="w-full h-full relative rounded-2xl"
             style={{
                 animation: shouldShake ? 'shake 0.4s ease-in-out' : undefined,
             }}
@@ -49,12 +51,11 @@ export function RelationNodeBody(props: NodeBodyProps) {
             <style>{shakeKeyframes}</style>
             {isConnectionHovered && !isValidConnection && invalidMessage && (
                 <div
-                    className="absolute -top-8 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap"
+                    className={cn("absolute -top-8 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap", commonClassName)}
                     style={{
                         backgroundColor: '#ef4444',
                         color: 'white',
                         padding: '4px 8px',
-                        borderRadius: '4px',
                         fontSize: '12px',
                         fontWeight: 500,
                     }}
@@ -63,10 +64,9 @@ export function RelationNodeBody(props: NodeBodyProps) {
                 </div>
             )}
             <div
-                className="rounded-md bg-muted-background overflow-visible w-full h-full"
+                className={cn('bg-muted-background overflow-visible w-full h-full', commonClassName)}
                 style={{
                     boxShadow: "var(--node-shadow)",
-                    borderRadius: "0.5rem",
                     borderColor: props.selected ? "#8b5cf6" : "transparent",
                     borderWidth: "1px",
                     borderStyle: "solid",
@@ -84,10 +84,8 @@ export function RelationNodeBody(props: NodeBodyProps) {
                     onResizeEnd={(e) => e.sourceEvent.stopPropagation()}
                 />
                 <div
-                    className={`w-full h-full bg-background`}
+                    className={cn('w-full h-full bg-background', commonClassName)}
                     style={{
-                        borderRadius: "0.5rem",
-                        height: "100%",
                         display: "flex",
                         flexDirection: "column"
                     }}

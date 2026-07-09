@@ -147,9 +147,6 @@ importers:
       file-saver:
         specifier: ^2.0.5
         version: 2.0.5
-      flexlayout-react:
-        specifier: ^0.7.15
-        version: 0.7.15(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       framer-motion:
         specifier: ^12.7.4
         version: 12.7.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -268,6 +265,9 @@ importers:
       '@playwright/test':
         specifier: ^1.56.0
         version: 1.56.0
+      '@tailwindcss/container-queries':
+        specifier: ^0.1.1
+        version: 0.1.1(tailwindcss@3.4.17)
       '@types/dom-to-image':
         specifier: ^2.6.7
         version: 2.6.7
@@ -2145,6 +2145,11 @@ packages:
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
+  '@tailwindcss/container-queries@0.1.1':
+    resolution: {integrity: sha512-p18dswChx6WnTSaJCSGx6lTmrGzNNvm2FtXmiO6AuA1V4U5REyoqwmT6kgAsIMdjo07QdAfYXHJ4hnMtfHzWgA==}
+    peerDependencies:
+      tailwindcss: '>=3.2.0'
+
   '@tanstack/react-virtual@3.13.12':
     resolution: {integrity: sha512-Gd13QdxPSukP8ZrkbgS2RwoZseTTbQPLnQEn7HY/rqtM+8Zt95f7xKC7N0EsKs7aoz0WzZ+fditZux+F8EzYxA==}
     peerDependencies:
@@ -3602,12 +3607,6 @@ packages:
 
   flatted@3.3.2:
     resolution: {integrity: sha512-AiwGJM8YcNOaobumgtng+6NHuOqC3A7MixFeDafM3X9cIUM+xUXoS5Vfgf+OihAYe20fxqNM9yPBXJzRtZ/4eA==}
-
-  flexlayout-react@0.7.15:
-    resolution: {integrity: sha512-ydTMdEoQO5BniylxVkSxa59rEY0+96lqqRII+QK+yq6028eHywPuxZawt4g45y5pMb9ptP4N9HPAQXAFsxwowQ==}
-    peerDependencies:
-      react: ^18.0.0
-      react-dom: ^18.0.0
 
   for-each@0.3.4:
     resolution: {integrity: sha512-kKaIINnFpzW6ffJNDjjyjrk21BkDx38c0xa/klsT8VzLCaMEefv4ZTacrcVR4DmgTeBra++jMDAfS/tS799YDw==}
@@ -7622,6 +7621,10 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@tailwindcss/container-queries@0.1.1(tailwindcss@3.4.17)':
+    dependencies:
+      tailwindcss: 3.4.17
+
   '@tanstack/react-virtual@3.13.12(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@tanstack/virtual-core': 3.13.12
@@ -9412,11 +9415,6 @@ snapshots:
   flatbuffers@24.12.23: {}
 
   flatted@3.3.2: {}
-
-  flexlayout-react@0.7.15(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
 
   for-each@0.3.4:
     dependencies:
