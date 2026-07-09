@@ -9,6 +9,7 @@ import {hasSettingsPanel, RelationViewConfig} from "@/components/relation/relati
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {ViewPadding} from "@/components/ui/view-padding";
+import {cn} from "@/lib/utils";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement | null>;
@@ -50,10 +51,10 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
             {showConfig ? (
                 <ResizablePanelGroup direction="horizontal" className="w-full h-full bg-inherit">
                     <ResizablePanel defaultSize={100 - configSize} minSize={30} className={'bg-inherit'}>
-                        <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full'}>
+                        <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'}>
                             <div className={'flex flex-col w-full h-full'}>
                                 {props.showHeader && <RelationViewHeader {...inputProps}/>}
-                                <div className={"rounded-2xl flex-1 min-h-0 w-full bg-card"}>
+                                <div className={cn("rounded-2xl flex-1 min-h-0 w-full bg-card", inputProps.showBorder && 'border')}>
                                     <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
                                 </div>
                             </div>
@@ -67,12 +68,14 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                     </ResizablePanel>
                 </ResizablePanelGroup>
             ) : (
-                <div className={'flex flex-col w-full h-full'}>
-                    {props.showHeader && <RelationViewHeader {...inputProps}/>}
-                    <div className={"rounded-2xl flex-1 min-h-0 w-full bg-card"}>
-                        <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
+                <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'}>
+                    <div className={'flex flex-col w-full h-full'}>
+                        {props.showHeader && <RelationViewHeader {...inputProps}/>}
+                        <div className={cn("rounded-2xl flex-1 min-h-0 w-full bg-card", inputProps.showBorder && 'border')}>
+                            <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
+                        </div>
                     </div>
-                </div>
+                </ViewPadding>
             )}
             {isLoading && <RelationLoadingView cancelQuery={props.cancelQuery}/>}
         </DefaultErrorBoundary>

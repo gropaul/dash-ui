@@ -23,6 +23,7 @@ export interface StaticDisplayProps {
     embedded?: boolean; // if embedded, some UI elements may be hidden for a cleaner look, todo: this becomes obsolete by mode
     height?: HeightType;
     showHeader?: boolean;
+    showBorder?: boolean;
     neverShowQueryEditor?: boolean; // if true, the sql editor will never be visible, even if the relation state allows it
     sqlEditorShowRunButton?: boolean; // whether to show the run button in the sql editor, defaults to true
     sqlEditorPanelMode?: EditorPanelPosition; // whether the sql editor should be displayed in an overlay or a panel, defaults to overlay
@@ -49,6 +50,7 @@ export function RelationView(inputProps: RelationViewAPIProps) {
                     <div className={`flex-1 bg-accent h-full w-full overflow-auto`}>
                         <DefaultErrorBoundary>
                             <RelationStateView
+                                showBorder
                                 showHeader
                                 {...inputProps}
                                 sqlEditorPanelMode={'overlay'}

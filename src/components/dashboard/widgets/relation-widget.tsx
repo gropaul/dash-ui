@@ -41,9 +41,10 @@ export function RelationWidget({relationId, editMode, compact, onExpand, onRemov
 
     return (
         <div className="relative w-full h-full group/widget">
-            <div className={cn("w-full h-full overflow-hidden bg-card rounded-2xl", editMode && "border")}>
+            <div className={cn("w-full h-full overflow-hidden bg-card rounded-2xl")}>
                 <RelationStateView
                     embedded
+                    showBorder
                     neverShowQueryEditor
                     mode='embedded'
                     height='fit'

@@ -9,7 +9,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
-import {WorkspacePathPrefix} from "@/components/spaces/workspace-path";
 import {useRelationsState} from "@/state/relations.state";
 import {DashboardState} from "@/model/dashboard-state";
 import {
@@ -81,7 +80,6 @@ export function DashboardToolbar({dashboard, editMode, onToggleEditMode}: Dashbo
         <ViewHeader
             title={dashboard.viewState.displayName}
             titleComponent={titleComponent}
-            path={[]}
             state={hasRelations ? execState : undefined}
             onRunClick={hasRelations ? () => runAllDashboardQueries(dashboard) : undefined}
             onCancelClick={hasRelations ? () => cancelAllDashboardQueries(dashboard) : undefined}

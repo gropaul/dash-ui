@@ -9,7 +9,6 @@ import {onNavClick} from "@/state/routing/use-location";
 import {useRelationsState} from "@/state/relations.state";
 import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
-import {WorkspacePathPrefix} from "@/components/spaces/workspace-path";
 import {Button} from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -63,12 +62,9 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     const titleComponent = (
         <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
             {folderNode ? (
-                <>
-                    <WorkspacePathPrefix entityId={folderNode.id}/>
-                    <span className="font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
-                        {folderNode.name}
-                    </span>
-                </>
+                <span className="font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
+                    {folderNode.name}
+                </span>
             ) : (
                 <span className="font-semibold text-sm">Workspace</span>
             )}
@@ -95,7 +91,7 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
 
     return (
         <div className="w-full h-full flex flex-col">
-            <ViewHeader title={title} titleComponent={titleComponent} path={[]} leadingButton={newButton}/>
+            <ViewHeader title={title} titleComponent={titleComponent} leadingButton={newButton}/>
             <div className="flex-1 overflow-auto p-6">
                 {children.length === 0 ? (
                     <div className="text-muted-foreground text-sm">This folder is empty.</div>

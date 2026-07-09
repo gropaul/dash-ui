@@ -2,16 +2,12 @@ import {ReactNode} from "react";
 import {TaskExecutionState} from "@/model/relation-state";
 import {RelationViewHeaderBorder} from "@/components/basics/basic-view/view-header-with-border";
 import {H5} from "@/components/ui/typography";
-import {ViewPathBreadcrumb} from "@/components/basics/basic-view/view-path-breadcrumb";
 import {Label} from "@/components/ui/label";
-import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {RelationViewRunButton} from "@/components/relation/settings/relation-view-run-button";
 
 export interface ViewHeaderProps {
     title: string;
     titleComponent?: ReactNode;
-    path: string[];
-    onPathClick?: (element: string, index: number) => void;
 
     subtitle?: ReactNode;
     actionButtons?: ReactNode;
@@ -31,19 +27,15 @@ export interface ViewHeaderProps {
 export function ViewHeader({
                                title,
                                titleComponent,
-                               path,
                                actionButtons,
                                state,
                                onCancelClick,
                                onRunClick,
                                subtitle,
-                               onPathClick,
                                onTitleChange,
                                reserveRunButtonSpace,
                                leadingButton,
                            }: ViewHeaderProps) {
-
-    const isMobile = useIsMobile();
 
     return (
         <>
@@ -75,13 +67,6 @@ export function ViewHeader({
                             
                         </H5>
                     )}
-
-                    {/*/!* Breadcrumb (also shrinks, ellipsizes) *!/*/}
-                    {/*{!isMobile && (*/}
-                    {/*    <div className="pl-2 overflow-hidden text-ellipsis whitespace-nowrap flex-shrink min-w-0">*/}
-                    {/*        <ViewPathBreadcrumb path={path} onClick={onPathClick}/>*/}
-                    {/*    </div>*/}
-                    {/*)}*/}
 
                     {/* Subtitle (fixed width, always visible, never shrinks) */}
                     {subtitle && (
