@@ -1,7 +1,8 @@
 import {getRandomId} from "@/platform/id-utils";
 import {Edge, Node, Viewport} from "@xyflow/react";
+import {EntityBase} from "@/state/entities/entity-base";
 
-export interface CanvasState {
+export interface CanvasState extends EntityBase {
     id: string;
     viewState: CanvasViewState;
     nodes: Node[];

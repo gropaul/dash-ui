@@ -1,12 +1,27 @@
 'use client';
 
-import {Plus} from "lucide-react";
+import {useState} from "react";
+import {Folder, LayoutDashboard, Plus, Search, Sheet, Trash2, WorkflowIcon, X} from "lucide-react";
 import {TreeNode, findPathById} from "@/components/basics/files/tree-utils";
+import {ColumnHeadSortingIcon} from "@/components/basics/column-head-sorting-icon";
+import {FilterTag, FilterTags} from "@/components/basics/filter-tags";
+import {RelationZustandEntityType} from "@/state/entities/entity-functions";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {ColoredIcon, defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {computeSiblingMacroNames, slugify} from "@/state/routing/macro-name";
 import {routeForSegments} from "@/state/routing/core-model";
 import {onNavClick} from "@/state/routing/use-location";
 import {useRelationsState} from "@/state/relations.state";
+import {EntityBase} from "@/state/entities/entity-base";
 import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {Button} from "@/components/ui/button";
@@ -17,12 +32,22 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
     openCreateCanvasDialog,
     openCreateDashboardDialog,
     openCreateFolderDialog,
     openCreateRelationDialog,
 } from "@/components/workbench/create-entity-dialogs";
 import {ViewPadding} from "@/components/ui/view-padding";
+import {formatRelativeTime} from "@/platform/string-utils";
+import {formatNumber} from "@/platform/number-utils";
 
 interface FolderViewProps {
     /** The resolved folder node, or undefined for the /workspace root. */
@@ -31,17 +56,74 @@ interface FolderViewProps {
     segments: string[];
 }
 
+type SortKey = "name" | "lastEditedAt" | "lastViewedAt" | "nViews";
+type SortDir = "asc" | "desc";
+
+/** One filter chip per element kind; zero-count chips collapse away in the widget. */
+const TYPE_TAGS: FilterTag<TreeNode>[] = [
+    {key: "folder", label: "Folders", icon: <Folder size={12}/>, predicate: (n) => n.type === "folder"},
+    {key: "relations", label: "Queries", icon: <Sheet size={12}/>, predicate: (n) => n.type === "relations"},
+    {key: "dashboards", label: "Dashboards", icon: <LayoutDashboard size={12}/>, predicate: (n) => n.type === "dashboards"},
+    {key: "canvas", label: "Canvases", icon: <WorkflowIcon size={12}/>, predicate: (n) => n.type === "canvas"},
+];
+
 /**
- * Lists the direct children of a folder (or the /workspace root). Uses the shared
- * ViewHeader (same path title as the relation view); each row links to the
- * child's `/workspace/...` URL; the "New" menu creates items in this folder.
+ * Metadata shown for an element. Folders carry it on their tree node; relations/dashboards/
+ * canvases carry it on their collection entry (keyed by the shared id == node id).
+ */
+function getElementMetadata(
+    node: TreeNode,
+    relations: Record<string, EntityBase>,
+    dashboards: Record<string, EntityBase>,
+    canvas: Record<string, EntityBase>,
+): Partial<EntityBase> {
+    switch (node.type) {
+        case "relations":
+            return relations[node.id] ?? {};
+        case "dashboards":
+            return dashboards[node.id] ?? {};
+        case "canvas":
+            return canvas[node.id] ?? {};
+        default:
+            // folder nodes store metadata on the tree node itself
+            return node as Partial<EntityBase>;
+    }
+}
+
+/** Comparator that always sorts missing values (undefined) last, regardless of direction. */
+function compareMaybe(a: number | undefined, b: number | undefined, dir: SortDir): number {
+    if (a === undefined && b === undefined) return 0;
+    if (a === undefined) return 1;
+    if (b === undefined) return -1;
+    return dir === "asc" ? a - b : b - a;
+}
+
+/**
+ * Lists the direct children of a folder (or the /workspace root) as a sortable table. Uses the
+ * shared ViewHeader (same path title as the relation view); each row links to the child's
+ * `/workspace/...` URL; the "New" menu creates items in this folder.
  */
 export function FolderView({folderNode, segments}: FolderViewProps) {
     const editorElements = useRelationsState((state) => state.editorElements);
     const relations = useRelationsState((state) => state.relations);
+    const dashboards = useRelationsState((state) => state.dashboards);
+    const canvas = useRelationsState((state) => state.canvas);
+    const deleteEntity = useRelationsState((state) => state.deleteEntity);
+    const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
+
+    const [sort, setSort] = useState<{key: SortKey; dir: SortDir}>({key: "lastViewedAt", dir: "desc"});
+    const [activeTag, setActiveTag] = useState("");
+    const [search, setSearch] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
+    // the element pending delete confirmation, or null when the dialog is closed
+    const [deleteTarget, setDeleteTarget] = useState<TreeNode | null>(null);
 
     const children: TreeNode[] = folderNode ? (folderNode.children ?? []) : editorElements;
     const macroNames = computeSiblingMacroNames(children);
+
+    // an active tag whose count dropped to zero (e.g. after navigating) no longer filters
+    const tagEntry = TYPE_TAGS.find((t) => t.key === activeTag);
+    const activeTagEntry = tagEntry && children.some(tagEntry.predicate) ? tagEntry : undefined;
 
     // Id-path used by the create dialogs (they address the tree by node ids).
     const createPath = folderNode ? (findPathById(editorElements, folderNode.id) ?? []) : [];
@@ -50,6 +132,41 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     if (!folderNode && children.length === 0) {
         return <GetStartedPage/>;
     }
+
+    // Toggleable name search: a little icon that expands into an input (Esc / ✕ closes & clears).
+    const searchControl = searchOpen ? (
+        <div className="flex h-8 items-center gap-1.5 rounded-md border px-2">
+            <Search size={14} className="shrink-0 text-muted-foreground"/>
+            <input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                        setSearch("");
+                        setSearchOpen(false);
+                    }
+                }}
+                placeholder="Search…"
+                className="h-6 w-40 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none"
+            />
+            <button
+                type="button"
+                aria-label="Close search"
+                onClick={() => {
+                    setSearch("");
+                    setSearchOpen(false);
+                }}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+            >
+                <X size={14}/>
+            </button>
+        </div>
+    ) : (
+        <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label="Search" onClick={() => setSearchOpen(true)}>
+            <Search size={14}/>
+        </Button>
+    );
 
     // "New" menu, styled like the dashboard's Edit button (outline, small), shown at the
     // right of the header.
@@ -69,37 +186,174 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
         </DropdownMenu>
     );
 
+    // Build rows with their resolved link, icon and metadata, then sort.
+    const query = search.trim().toLowerCase();
+    const visibleChildren = children.filter((c) => {
+        if (activeTagEntry && !activeTagEntry.predicate(c)) return false;
+        if (query && !c.name.toLowerCase().includes(query)) return false;
+        return true;
+    });
+    const rows = visibleChildren.map((child) => {
+        const to = routeForSegments([...segments, macroNames.get(child.id) ?? slugify(child.name)]);
+        // Relations are colored by their view type (matching the canvas nodes); other entities by type.
+        const iconType = child.type === "relations"
+            ? (relations[child.id]?.viewState?.selectedView ?? "relations")
+            : child.type;
+        const meta = getElementMetadata(child, relations, dashboards, canvas);
+        return {child, to, iconType, meta};
+    });
+
+    rows.sort((a, b) => {
+        if (sort.key === "name") {
+            const cmp = a.child.name.localeCompare(b.child.name, undefined, {sensitivity: "base"});
+            return sort.dir === "asc" ? cmp : -cmp;
+        }
+        if (sort.key === "nViews") {
+            return compareMaybe(a.meta.nViews, b.meta.nViews, sort.dir);
+        }
+        return compareMaybe(a.meta[sort.key], b.meta[sort.key], sort.dir);
+    });
+
+    const toggleSort = (key: SortKey) => {
+        setSort((prev) =>
+            prev.key === key
+                ? {key, dir: prev.dir === "asc" ? "desc" : "asc"}
+                // names default ascending; usage columns default descending (most recent / most viewed first)
+                : {key, dir: key === "name" ? "asc" : "desc"},
+        );
+    };
+
+    function confirmDelete() {
+        if (!deleteTarget) return;
+        const path = findPathById(editorElements, deleteTarget.id);
+        if (path) {
+            if (deleteTarget.type === "folder") {
+                removeEditorElement(path);
+            } else {
+                deleteEntity(deleteTarget.type as RelationZustandEntityType, deleteTarget.id, path);
+            }
+        }
+        setDeleteTarget(null);
+    }
+
+    const SortHeader = ({label, sortKey, className}: {label: string; sortKey: SortKey; className?: string}) => {
+        const active = sort.key === sortKey;
+        return (
+            <TableHead className={className}>
+                <button
+                    type="button"
+                    onClick={() => toggleSort(sortKey)}
+                    className="group inline-flex items-center gap-1 hover:text-foreground"
+                >
+                    {label}
+                    {/* Icon always visible on the active sort column; otherwise only on hover. */}
+                    <ColumnHeadSortingIcon
+                        sorting={active ? (sort.dir === "asc" ? "ASC" : "DESC") : undefined}
+                        iconSize={13}
+                        className={active
+                            ? "text-indigo-600"
+                            : "text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200"}
+                    />
+                </button>
+            </TableHead>
+        );
+    };
+
     return (
         <ViewPadding active className=" h-full flex flex-col">
-            <ViewHeader title={title} actionButtons={newButton}/>
+            <ViewHeader title={title} actionButtons={<>{searchControl}{newButton}</>}/>
+            {children.length > 0 && (
+                <FilterTags
+                    tags={TYPE_TAGS}
+                    items={children}
+                    activeKey={activeTag}
+                    onChange={setActiveTag}
+                    className="pb-2"
+                />
+            )}
             <div className="flex-1 overflow-auto">
                 {children.length === 0 ? (
                     <div className="text-muted-foreground text-sm">This folder is empty.</div>
                 ) : (
-                    <ul className="flex flex-col gap-1">
-                        {children.map((child) => {
-                            const to = routeForSegments([...segments, macroNames.get(child.id) ?? slugify(child.name)]);
-                            // Relations are colored by their view type (matching the canvas nodes);
-                            // other entities by their type.
-                            const iconType = child.type === "relations"
-                                ? (relations[child.id]?.viewState.selectedView ?? "relations")
-                                : child.type;
-                            return (
-                                <li key={child.id}>
-                                    <a
-                                        href={to}
-                                        onClick={onNavClick(to)}
-                                        className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-muted text-sm text-foreground"
-                                    >
-                                        <ColoredIcon type={iconType}/>
-                                        <span className="truncate">{child.name}</span>
-                                    </a>
-                                </li>
-                            );
-                        })}
-                    </ul>
+                    <Table className="text-xs">
+                        <TableHeader>
+                            <TableRow>
+                                <SortHeader label="Name" sortKey="name"/>
+                                <SortHeader label="Last edited" sortKey="lastEditedAt" className="w-40"/>
+                                <SortHeader label="Last viewed" sortKey="lastViewedAt" className="w-40"/>
+                                <SortHeader label="Views" sortKey="nViews" className="w-20"/>
+                                <TableHead className="w-8"/>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {rows.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
+                                        No items match.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            {rows.map(({child, to, iconType, meta}) => (
+                                <TableRow
+                                    key={child.id}
+                                    onClick={onNavClick(to)}
+                                    className="group cursor-pointer"
+                                >
+                                    <TableCell>
+                                        {/* href kept for middle-click / open-in-new-tab; plain clicks are
+                                            handled by the row's onNavClick (bubbles up, preventing default). */}
+                                        <a href={to} className="flex items-center gap-2.5 text-foreground">
+                                            <ColoredIcon type={iconType}/>
+                                            <span className="truncate">{child.name}</span>
+                                        </a>
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">{formatRelativeTime(meta.lastEditedAt, "—")}</TableCell>
+                                    <TableCell className="text-muted-foreground">{formatRelativeTime(meta.lastViewedAt, "—")}</TableCell>
+                                    <TableCell className="text-muted-foreground tabular-nums">{formatNumber(meta.nViews ?? 0, 1, true)}</TableCell>
+                                    <TableCell className="p-0">
+                                        <button
+                                            type="button"
+                                            aria-label={`Delete ${child.name}`}
+                                            title="Delete"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setDeleteTarget(child);
+                                            }}
+                                            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-destructive group-hover:opacity-100"
+                                        >
+                                            <Trash2 size={14}/>
+                                        </button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 )}
             </div>
+
+            <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Delete {deleteTarget?.type === "folder" ? "folder" : "item"} “{deleteTarget?.name}”?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteTarget?.type === "folder"
+                                ? "This deletes the folder and all its contents. This action cannot be undone."
+                                : "This action cannot be undone."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </ViewPadding>
     );
 }

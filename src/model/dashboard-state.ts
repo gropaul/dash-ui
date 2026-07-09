@@ -1,5 +1,6 @@
 import {getInitialTabViewBaseState, TabViewBaseState} from "@/model/relation-view-state";
 import {getRandomId} from "@/platform/id-utils";
+import {EntityBase} from "@/state/entities/entity-base";
 // react-grid-layout v2.2.3 — modern rewrite (NOT the classic 1.x API)
 import type {CompactType, Layout, ResponsiveLayouts} from "react-grid-layout";
 
@@ -26,7 +27,7 @@ export interface DashboardGridConfig {
     compactType: CompactType;
 }
 
-export interface DashboardState {
+export interface DashboardState extends EntityBase {
     id: string;
     name: string;
     viewState: DashboardViewState;

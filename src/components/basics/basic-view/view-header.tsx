@@ -38,12 +38,12 @@ export function ViewHeader({
 
     return (
         <>
-            <div className="flex flex-row items-center justify-between w-full h-[48px] pl-3">
+            <div className="flex flex-row items-center justify-between w-full h-[48px] pl-2">
                 <div className="flex flex-row items-center flex-1 gap-2  overflow-hidden">
                     {
                         state && onCancelClick && onRunClick ? (
                             <RelationViewRunButton
-                                className={'rounded-sm h-10 w-10'}
+                                className={'rounded-sm ml-1.5 mr-0.5 h-10 w-10'}
                                 onStopRun={onCancelClick}
                                 onRun={onRunClick}
                                 runState={state}

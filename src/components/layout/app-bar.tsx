@@ -35,7 +35,7 @@ export function AppBar() {
 
             {/* RIGHT — app actions: settings + an overflow menu for the rest */}
             <div className="flex items-center gap-1 flex-1 justify-end pr-2">
-                <AppBarSearch/>
+                {/*<AppBarSearch/>*/}
                 <AppBarActions/>
             </div>
         </header>

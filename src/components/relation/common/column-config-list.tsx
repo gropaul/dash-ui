@@ -4,6 +4,7 @@ import React from "react";
 import {ChevronDown, Search} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {Column} from "@/model/data-source-connection";
+import {FilterTag, FilterTags} from "@/components/basics/filter-tags";
 
 /**
  * The shared column-list skeleton: search + filter tags + column rows with a
@@ -12,12 +13,8 @@ import {Column} from "@/model/data-source-connection";
  * knows how to search, filter, and expand.
  */
 
-export interface ColumnFilterTag {
-    key: string;
-    label: string;
-    icon?: React.ReactNode;
-    predicate: (column: Column) => boolean;
-}
+/** Column-typed filter chip (see the generic {@link FilterTag}). */
+export type ColumnFilterTag = FilterTag<Column>;
 
 export interface ColumnConfigListProps {
     columns: Column[];
@@ -95,35 +92,13 @@ export function ColumnConfigList(props: ColumnConfigListProps) {
             </div>
 
             {filterTags && filterTags.length > 0 && (
-                <div className="flex flex-wrap border-b px-2.5 py-2 gap-y-2">
-                    {filterTags.map(t => {
-                        const active = tag?.key === t.key;
-                        const count = tagCounts[t.key];
-                        const shown = count > 0;
-                        return (
-                            <button
-                                key={t.key}
-                                tabIndex={shown ? 0 : -1}
-                                onClick={() => setActiveTag(active ? '' : t.key)}
-                                className={cn(
-                                    "inline-flex items-center gap-1 overflow-hidden whitespace-nowrap rounded-full border text-xs transition-all duration-200",
-                                    shown
-                                        ? "mr-1.5 max-w-40 px-2.5 py-0.5 opacity-100"
-                                        : "pointer-events-none mr-0 max-w-0 border-0 p-0 opacity-0",
-                                    active
-                                        ? "border-transparent bg-primary text-primary-foreground"
-                                        : "text-muted-foreground hover:bg-muted",
-                                )}
-                            >
-                                {t.icon}
-                                {t.label}
-                                <span className={cn(active ? "text-primary-foreground/70" : "text-muted-foreground/70")}>
-                                    {count}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
+                <FilterTags
+                    tags={filterTags}
+                    items={columns}
+                    activeKey={activeTag}
+                    onChange={setActiveTag}
+                    className="border-b px-2.5 py-2"
+                />
             )}
 
             {shownColumns.length === 0 && (

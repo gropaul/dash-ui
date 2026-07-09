@@ -49,6 +49,10 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {migrateV1FlattenRelationState} from "@/state/migrations/v1-flatten-relation-state";
 import {migrateDashboardsToGrid} from "@/state/migrations/v2-dashboards-to-grid";
+import {withViewed} from "@/state/entities/entity-base";
+
+/** Element kinds that appear in the folder view and carry usage metadata. */
+export type ViewableEntityType = 'folder' | 'relations' | 'dashboards' | 'canvas';
 
 
 export interface RelationZustand {
@@ -106,6 +110,8 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => void,
     addEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, path: string[], openTab?: boolean) : void,
     showEntityFromId: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
+    // Stamp lastViewedAt + increment nViews for a folder-view element (folder/relation/dashboard/canvas).
+    markEntityViewed: (entityType: ViewableEntityType, entityId: string) => void,
 
     /* editor folder actions */
     updateEditorElements: (path: string[], newFolder: EditorFolder) => void,
@@ -225,6 +231,7 @@ export const useRelationsState = createWithEqualityFn(
                             [canvasId]: {
                                 ...state.canvas[canvasId],
                                 ...updates,
+                                lastEditedAt: Date.now(),
                             },
                         },
                     }));
@@ -260,7 +267,9 @@ export const useRelationsState = createWithEqualityFn(
 
                 setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => {
 
-                    const newEntity = SetEntityDisplayName(entityId, entityType, displayName, get());
+                    const renamed = SetEntityDisplayName(entityId, entityType, displayName, get());
+                    // renaming is an edit; stamp it (harmless for non-EntityBase kinds like schemas/databases)
+                    const newEntity = {...renamed, lastEditedAt: Date.now()};
 
                     // renaming may change the derived macro name (and thus the URL) of the shown item
                     const wasShown = resolveNodeFromPath(get().editorElements, currentPathname())?.id === entityId;
@@ -323,6 +332,26 @@ export const useRelationsState = createWithEqualityFn(
                     get().addEntity(entityType, entity, editorPath);
                 },
 
+                markEntityViewed: (entityType: ViewableEntityType, entityId: string) => {
+                    if (entityType === 'folder') {
+                        const path = findPathById(get().editorElements, entityId);
+                        if (!path) return;
+                        const node = findNodeInTrees(get().editorElements, path);
+                        if (!node) return;
+                        const updated = updateNode([...get().editorElements], path, withViewed(node));
+                        set(() => ({editorElements: updated}));
+                        return;
+                    }
+                    set((state) => {
+                        const collection = state[entityType];
+                        const entity = collection[entityId];
+                        if (!entity) return {};
+                        return {
+                            [entityType]: {...collection, [entityId]: withViewed(entity)},
+                        };
+                    });
+                },
+
                 addNewDashboard: async (connectionId: string, editorPath: string[], dashboard?: DashboardState) => {
                     const local_dashboard: DashboardState = dashboard ?? getInitDashboardState();
                     get().addEntity('dashboards', local_dashboard, editorPath);
@@ -367,6 +396,7 @@ export const useRelationsState = createWithEqualityFn(
                                     ...dashboard,
                                     widgets: {...dashboard.widgets, [widget.id]: widget},
                                     layouts,
+                                    lastEditedAt: Date.now(),
                                 },
                             },
                         };
@@ -386,7 +416,7 @@ export const useRelationsState = createWithEqualityFn(
                         return {
                             dashboards: {
                                 ...state.dashboards,
-                                [dashboardId]: {...dashboard, widgets, layouts},
+                                [dashboardId]: {...dashboard, widgets, layouts, lastEditedAt: Date.now()},
                             },
                         };
                     });
@@ -402,6 +432,7 @@ export const useRelationsState = createWithEqualityFn(
                                 [dashboardId]: {
                                     ...dashboard,
                                     widgets: {...dashboard.widgets, [widgetId]: {...widget, ...patch, id: widgetId}},
+                                    lastEditedAt: Date.now(),
                                 },
                             },
                         };
@@ -414,7 +445,7 @@ export const useRelationsState = createWithEqualityFn(
                         return {
                             dashboards: {
                                 ...state.dashboards,
-                                [dashboardId]: {...dashboard, layouts},
+                                [dashboardId]: {...dashboard, layouts, lastEditedAt: Date.now()},
                             },
                         };
                     });
@@ -450,7 +481,7 @@ export const useRelationsState = createWithEqualityFn(
                     set((state) => ({
                         relations: {
                             ...state.relations,
-                            [newRelation.id]: newRelation,
+                            [newRelation.id]: {...newRelation, lastEditedAt: Date.now()},
                         },
                     }));
                 },

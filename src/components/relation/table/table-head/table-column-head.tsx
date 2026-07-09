@@ -1,6 +1,7 @@
 import React from 'react';
 import {Column} from "@/model/data-source-connection";
-import {ArrowDown, ArrowUp, ArrowUpDown, Menu} from 'lucide-react';
+import {Menu} from 'lucide-react';
+import {ColumnHeadSortingIcon} from "@/components/basics/column-head-sorting-icon";
 import {
     RelationStats,
     RelationQueryParameters
@@ -191,19 +192,6 @@ export function TableColumnHead(props: ColumnHeadProps) {
     );
 }
 
-
-export function ColumnHeadSortingIcon(props: { sorting?: ColumnSorting, iconSize?: number, className?: string }) {
-
-    const iconSize = props.iconSize || 16;
-
-    if (props.sorting === 'ASC') {
-        return <ArrowUp size={iconSize} className={props.className}/>;
-    } else if (props.sorting === 'DESC') {
-        return <ArrowDown size={iconSize} className={props.className}/>;
-    } else {
-        return <ArrowUpDown size={iconSize} className={props.className}/>;
-    }
-}
 
 interface ColumnHeadWrapperProps extends ColumnStatsProps {
     columnWidth?: string;

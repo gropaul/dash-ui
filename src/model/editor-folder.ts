@@ -1,9 +1,10 @@
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationZustandEntityType} from "@/state/entities/entity-functions";
+import {EntityBase} from "@/state/entities/entity-base";
 
 
-export interface EditorFolder extends TreeNode<EditorFolder, string> {
+export interface EditorFolder extends TreeNode<EditorFolder, string>, EntityBase {
 
 }
 

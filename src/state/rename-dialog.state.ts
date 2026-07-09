@@ -86,7 +86,7 @@ export const useRenameDialogStore = create<RenameDialogStore>((set, get) => ({
         if (entityType === 'folder') {
             const node = findNodeInTrees(relationsState.editorElements, path ?? []);
             if (node) {
-                relationsState.updateEditorElements(path ?? [], {...node, name: newName});
+                relationsState.updateEditorElements(path ?? [], {...node, name: newName, lastEditedAt: Date.now()});
             }
         } else if (entityType === 'relations') {
             // Update macro references in other relations' SQL before renaming

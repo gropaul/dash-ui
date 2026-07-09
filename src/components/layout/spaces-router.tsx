@@ -47,21 +47,39 @@ export function SpacesRouter() {
             );
         }
         if (!node) return <NotFound/>;
-        switch (node.type) {
-            case "folder":
-                return <FolderView folderNode={node} segments={params.segments}/>;
-            case "relations":
-                return <RelationTab relationId={node.id}/>;
-            case "dashboards":
-                return <DashboardTab dashboardId={node.id}/>;
-            case "canvas":
-                return <CanvasTab canvasId={node.id}/>;
-            default:
-                return <NotFound/>;
-        }
+        return <ResolvedView node={node} segments={params.segments}/>;
     }
 
     return <NotFound/>;
+}
+
+/**
+ * Renders the view for a resolved node and — as a side effect keyed on the node id —
+ * stamps its "last viewed" metadata once per visit (covers clicks, direct URLs, back/forward).
+ */
+type ResolvedNode = NonNullable<ReturnType<typeof findNodeByMacroPath>>;
+
+function ResolvedView({node, segments}: {node: ResolvedNode; segments: string[]}) {
+    const markEntityViewed = useRelationsState((state) => state.markEntityViewed);
+
+    useEffect(() => {
+        if (node.type === "folder" || node.type === "relations" || node.type === "dashboards" || node.type === "canvas") {
+            markEntityViewed(node.type, node.id);
+        }
+    }, [node.id, node.type, markEntityViewed]);
+
+    switch (node.type) {
+        case "folder":
+            return <FolderView folderNode={node} segments={segments}/>;
+        case "relations":
+            return <RelationTab relationId={node.id}/>;
+        case "dashboards":
+            return <DashboardTab dashboardId={node.id}/>;
+        case "canvas":
+            return <CanvasTab canvasId={node.id}/>;
+        default:
+            return <NotFound/>;
+    }
 }
 
 function NotFound() {

@@ -111,7 +111,8 @@ export function formatNumberFixed(value: number) {
 // 1234567890 -> 1.23B
 // 12.3456 -> 12.35
 // 0.123456 -> 0.1235
-export function formatNumber(value: number, decimals: number = 1): string {
+export function formatNumber(value: number, decimals: number = 1, lowercaseSuffix: boolean = false): string {
+    const suf = (s: string) => lowercaseSuffix ? s.toLowerCase() : s;
     try {
         if (isNaN(value)) {
             return "NaN";
@@ -127,13 +128,15 @@ export function formatNumber(value: number, decimals: number = 1): string {
             return value.toExponential(decimals);
         }
         if (Math.abs(value) >= 1.0e+12) {
-            return (value / 1.0e+9).toFixed(decimals) + "T";
+            return (value / 1.0e+9).toFixed(decimals) + suf("T");
         } else if (Math.abs(value) >= 1.0e+9) {
-            return (value / 1.0e+9).toFixed(decimals) + "B";
+            return (value / 1.0e+9).toFixed(decimals) + suf("B");
         } else if (Math.abs(value) >= 1.0e+6) {
-            return (value / 1.0e+6).toFixed(decimals) + "M";
+            return (value / 1.0e+6).toFixed(decimals) + suf("M");
         } else if (Math.abs(value) >= 1.0e+3) {
-            return (value / 1.0e+3).toFixed(decimals) + "K";
+            return (value / 1.0e+3).toFixed(decimals) + suf("K");
+        } else if (Number.isInteger(value)) {
+            return String(value); // keep small counts exact (no "5.0")
         } else {
             return value.toFixed(decimals);
         }
