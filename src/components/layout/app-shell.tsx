@@ -7,19 +7,21 @@ import {NavigationBarMobile} from "@/components/layout/navigation-bar-mobile";
 import {useGUIState} from "@/state/gui.state";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
+import {AppBar} from "@/components/layout/app-bar";
 
 /**
- * Router-driven shell (replaces the flexlayout TabbedLayout). Left icon rail +
- * optional side panel + the routed view in <main>. The routed page is passed as
- * `children`; the side panel (which trees are open) stays UI-only state,
- * orthogonal to the routed content. The workspace path is shown per-view (e.g.
- * in the relation header), not as a global bar.
+ * Router-driven shell (replaces the flexlayout TabbedLayout). A full-width AppBar
+ * across the top (holds the global workspace path breadcrumb + future brand/search),
+ * then the left icon rail + optional side panel + the routed view in <main>. The
+ * routed page is passed as `children`; the side panel (which trees are open) stays
+ * UI-only state, orthogonal to the routed content.
  */
 export function AppShell({children}: { children: React.ReactNode }) {
     const isMobile = useIsMobile();
     return (
-        <div className="relative h-full w-full">
-            <div className="flex flex-row h-full">
+        <div className="relative h-full w-full flex flex-col">
+            <AppBar/>
+            <div className="flex flex-row flex-1 min-h-0">
                 {isMobile ? <MobileLayout>{children}</MobileLayout> : <DesktopLayout>{children}</DesktopLayout>}
             </div>
         </div>

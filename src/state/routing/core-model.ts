@@ -98,6 +98,7 @@ export function resolveNodeFromPath(trees: TreeNode[], pathname: string): TreeNo
 
 /** Human-readable crumb labels (name) + their `/spaces/...` link, for a segment path. */
 export interface Crumb {
+    id: string;
     label: string;
     to: string;
     type: string;
@@ -113,7 +114,7 @@ export function crumbsForSegments(trees: TreeNode[], segments: string[]): Crumb[
         const node: TreeNode | undefined = level.find((n) => macroNames.get(n.id) === segment);
         if (!node) break;
         prefix.push(segment);
-        crumbs.push({label: node.name, to: routeForSegments([...prefix]), type: node.type});
+        crumbs.push({id: node.id, label: node.name, to: routeForSegments([...prefix]), type: node.type});
         level = node.children as TreeNode[] | null | undefined;
     }
     return crumbs;

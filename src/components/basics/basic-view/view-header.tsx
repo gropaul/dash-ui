@@ -1,6 +1,5 @@
 import {ReactNode} from "react";
 import {TaskExecutionState} from "@/model/relation-state";
-import {RelationViewHeaderBorder} from "@/components/basics/basic-view/view-header-with-border";
 import {H5} from "@/components/ui/typography";
 import {Label} from "@/components/ui/label";
 import {RelationViewRunButton} from "@/components/relation/settings/relation-view-run-button";
@@ -39,8 +38,6 @@ export function ViewHeader({
 
     return (
         <>
-            <RelationViewHeaderBorder state={state ??  { state: "not-started" }}/>
-
             <div className="flex flex-row items-center justify-between w-full h-[48px] pl-3">
                 <div className="flex flex-row items-center flex-1 gap-2  overflow-hidden">
                     {
@@ -62,9 +59,9 @@ export function ViewHeader({
                         titleComponent
                     ) : (
                         <H5
-                            className="text-ellipsis whitespace-nowrap flex-shrink min-w-0"
+                            className="text-ellipsis text-sm whitespace-nowrap flex-shrink min-w-0"
                         >
-                            
+                            {title}
                         </H5>
                     )}
 

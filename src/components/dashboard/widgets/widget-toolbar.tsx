@@ -43,7 +43,7 @@ export function WidgetToolbar({className, compact, draggable, runState, onRun, o
         ),
         fullscreen: onFullscreen && (
             <Button variant="ghost" size="icon" className="rounded-[0px] w-10 h-10"
-                    onClick={onFullscreen} title="Edit fullscreen">
+                    onClick={onFullscreen} title="Open relation">
                 <Maximize className="w-4 h-4"/>
             </Button>
         ),

@@ -55,6 +55,7 @@ export function RelationToolbar({
                     variant={'ghost'}
                     size={'icon'}
                     onClick={onFullscreen}
+                    title="Open relation"
                 >
                     <Maximize/>
                 </Button>

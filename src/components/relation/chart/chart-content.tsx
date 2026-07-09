@@ -53,6 +53,22 @@ export function ChartContent(props: MyChartProps) {
         }
     });
 
+    // Keep the chart sized to its container. echarts-for-react uses size-sensor,
+    // which only fires on *subsequent* size changes — on first mount the chart
+    // initializes at whatever transient width the container has before the
+    // grid/canvas layout settles, drawing too wide. A ResizeObserver fires an
+    // initial callback on observe with the settled dimensions (and on every
+    // change after), so it corrects both first load and later resizes.
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+        const observer = new ResizeObserver(() => {
+            echartRef.current?.getEchartsInstance?.()?.resize();
+        });
+        observer.observe(container);
+        return () => observer.disconnect();
+    }, []);
+
     // Clean up debounce timer on unmount
     useEffect(() => {
         return () => {

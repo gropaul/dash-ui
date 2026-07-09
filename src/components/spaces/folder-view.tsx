@@ -1,8 +1,8 @@
 'use client';
 
-import {Folder, LayoutDashboard, Sheet, Workflow, SquarePlus} from "lucide-react";
+import {Plus} from "lucide-react";
 import {TreeNode, findPathById} from "@/components/basics/files/tree-utils";
-import {defaultColorFactory} from "@/components/basics/files/icon-factories";
+import {ColoredIcon, defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {computeSiblingMacroNames, slugify} from "@/state/routing/macro-name";
 import {routeForSegments} from "@/state/routing/core-model";
 import {onNavClick} from "@/state/routing/use-location";
@@ -22,16 +22,7 @@ import {
     openCreateFolderDialog,
     openCreateRelationDialog,
 } from "@/components/workbench/create-entity-dialogs";
-
-function iconForType(type: string) {
-    switch (type) {
-        case "folder": return <Folder className="h-4 w-4 text-muted-foreground"/>;
-        case "relations": return <Sheet className="h-4 w-4 text-muted-foreground"/>;
-        case "dashboards": return <LayoutDashboard className="h-4 w-4 text-muted-foreground"/>;
-        case "canvas": return <Workflow className="h-4 w-4 text-muted-foreground"/>;
-        default: return <Folder className="h-4 w-4 text-muted-foreground"/>;
-    }
-}
+import {ViewPadding} from "@/components/ui/view-padding";
 
 interface FolderViewProps {
     /** The resolved folder node, or undefined for the /workspace root. */
@@ -47,6 +38,7 @@ interface FolderViewProps {
  */
 export function FolderView({folderNode, segments}: FolderViewProps) {
     const editorElements = useRelationsState((state) => state.editorElements);
+    const relations = useRelationsState((state) => state.relations);
 
     const children: TreeNode[] = folderNode ? (folderNode.children ?? []) : editorElements;
     const macroNames = computeSiblingMacroNames(children);
@@ -59,54 +51,47 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
         return <GetStartedPage/>;
     }
 
-    const titleComponent = (
-        <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
-            {folderNode ? (
-                <span className="font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
-                    {folderNode.name}
-                </span>
-            ) : (
-                <span className="font-semibold text-sm">Workspace</span>
-            )}
-        </div>
-    );
-
-    const newColor = defaultColorFactory("table");
+    // "New" menu, styled like the dashboard's Edit button (outline, small), shown at the
+    // right of the header.
     const newButton = (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-sm flex-shrink-0 [&_svg]:size-auto"
-                        aria-label="New" style={{color: newColor.foreground}}>
-                    <SquarePlus size={28}/>
+                <Button variant="outline" size="sm" className="h-8 gap-1" aria-label="New">
+                    <Plus size={14}/> New
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => openCreateRelationDialog(createPath)}>Data View</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openCreateDashboardDialog(createPath)}>Dashboard</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openCreateCanvasDialog(createPath)}>Canvas</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openCreateFolderDialog(createPath, folderNode)}>Folder</DropdownMenuItem>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => openCreateRelationDialog(createPath)}>{defaultIconFactory("relation")}Query</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openCreateDashboardDialog(createPath)}>{defaultIconFactory("dashboard")}Dashboard</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openCreateCanvasDialog(createPath)}>{defaultIconFactory("canvas")}Canvas</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openCreateFolderDialog(createPath, folderNode)}>{defaultIconFactory("folder")}Folder</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
 
     return (
-        <div className="w-full h-full flex flex-col">
-            <ViewHeader title={title} titleComponent={titleComponent} leadingButton={newButton}/>
-            <div className="flex-1 overflow-auto p-6">
+        <ViewPadding active className=" h-full flex flex-col">
+            <ViewHeader title={title} actionButtons={newButton}/>
+            <div className="flex-1 overflow-auto">
                 {children.length === 0 ? (
                     <div className="text-muted-foreground text-sm">This folder is empty.</div>
                 ) : (
                     <ul className="flex flex-col gap-1">
                         {children.map((child) => {
                             const to = routeForSegments([...segments, macroNames.get(child.id) ?? slugify(child.name)]);
+                            // Relations are colored by their view type (matching the canvas nodes);
+                            // other entities by their type.
+                            const iconType = child.type === "relations"
+                                ? (relations[child.id]?.viewState.selectedView ?? "relations")
+                                : child.type;
                             return (
                                 <li key={child.id}>
                                     <a
                                         href={to}
                                         onClick={onNavClick(to)}
-                                        className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted text-sm text-foreground"
+                                        className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-muted text-sm text-foreground"
                                     >
-                                        {iconForType(child.type)}
+                                        <ColoredIcon type={iconType}/>
                                         <span className="truncate">{child.name}</span>
                                     </a>
                                 </li>
@@ -115,6 +100,6 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
                     </ul>
                 )}
             </div>
-        </div>
+        </ViewPadding>
     );
 }

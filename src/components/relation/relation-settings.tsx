@@ -4,14 +4,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import {LayoutDashboard, Settings} from "lucide-react";
+import {EllipsisVertical, LayoutDashboard} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {DashboardCommand} from "@/components/workbench/dashboard-command";
 import React, {useState} from "react";
 import {DashboardCommandState, onAddToDashboardSelected} from "@/components/workbench/editor-overview-tab";
 import {useRelationsState} from "@/state/relations.state";
-
 
 export interface RelationSettingsProps extends RelationViewProps {
     align?: "start" | "center" | "end";
@@ -28,7 +27,7 @@ export function RelationSettings(props: RelationSettingsProps) {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className={props.className}>
-                    <Settings className="h-4 w-4"/>
+                    <EllipsisVertical className="h-4 w-4"/>
                     <span className="sr-only">Open settings</span>
                 </Button>
             </DropdownMenuTrigger>

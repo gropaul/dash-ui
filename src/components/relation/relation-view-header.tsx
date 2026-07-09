@@ -61,22 +61,8 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
         relationId: relationId
     });
 
-
-    const {breadcrumbPrefix} = inputProps;
-
     const titleComponent = (
         <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
-            {breadcrumbPrefix && (
-                <>
-                    <button
-                        onClick={breadcrumbPrefix.onClick}
-                        className="text-muted-foreground hover:text-foreground whitespace-nowrap flex-shrink-0 text-sm font-medium"
-                    >
-                        {breadcrumbPrefix.label}
-                    </button>
-                    <span className="text-muted-foreground flex-shrink-0">/</span>
-                </>
-            )}
             <RelationTitleWithActions
                 relationState={inputProps.relationState}
                 executionInfoClassName="text-xs"

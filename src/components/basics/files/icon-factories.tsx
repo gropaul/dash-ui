@@ -47,6 +47,23 @@ export const defaultColorFactory = (type: RelationViewType): ViewTypeColor => {
     return relationViewTypeColors[type] ?? relationViewTypeColors.table;
 };
 
+// Colors for the workspace entity/group types (folder, relations, dashboards, canvas, …), used by
+// the folder view's colored icons. Relations are usually colored by their view type instead (see
+// colorForType), so this `relations` entry is only the fallback when the view type is unknown.
+const entityTypeColors: Record<string, ViewTypeColor> = {
+    folder:     { background: 'rgba(100, 116, 139, 0.1)', foreground: '#64748b' }, // slate
+    relations:  relationViewTypeColors.table,                                      // purple
+    dashboards: { background: 'rgba(99, 102, 241, 0.1)',  foreground: '#6366f1' }, // indigo
+    canvas:     { background: 'rgba(20, 184, 166, 0.1)',  foreground: '#14b8a6' }, // teal
+    databases:  { background: 'rgba(14, 165, 233, 0.1)',  foreground: '#0ea5e9' }, // sky
+    schemas:    { background: 'rgba(34, 197, 94, 0.1)',   foreground: '#22c55e' }, // green
+};
+
+// Color for any icon type — a relation view type (table/chart/…) or an entity type
+// (folder/dashboards/canvas/…). Falls back to the table (purple) color.
+export const colorForType = (type: string): ViewTypeColor =>
+    relationViewTypeColors[type as RelationViewType] ?? entityTypeColors[type] ?? relationViewTypeColors.table;
+
 const relationViewTypeIconFactory = (type: RelationViewType): ReactNode | null => {
     const iconSize = 16;
 
@@ -120,4 +137,28 @@ export const defaultIconFactory = (type: string): ReactNode => {
         default:
             return ValueIcon({type: type as any, size: iconSize});
     }
+}
+
+// A colorful, tinted rounded icon box — the same treatment the canvas relation nodes use
+// (see relation-header.tsx). `type` is an icon type: a relation view type (table/chart/…) or an
+// entity type (folder/dashboards/canvas/…), which drives both the icon and the color.
+export function ColoredIcon({type, size = 28}: {type: string; size?: number}): ReactNode {
+    const color = colorForType(type);
+    return (
+        <div
+            style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                background: color.background,
+                color: color.foreground,
+            }}
+        >
+            {defaultIconFactory(type)}
+        </div>
+    );
 }

@@ -1,14 +1,10 @@
 import React from "react";
 import {ConnectionsOverviewTab} from "@/components/connections/connections-overview-tab";
 import {EditorOverviewTab} from "@/components/workbench/editor-overview-tab";
-import {BookOpen, Database, Folder, HelpCircle, Settings, Star, Wand2} from "lucide-react";
+import {Database, Folder, Wand2} from "lucide-react";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
-import {Avatar, AvatarImage} from "@/components/ui/avatar";
-import {AvailableTab, useGUIState} from "@/state/gui.state";
-import {Button} from "@/components/ui/button";
-import {ExportDatabaseButton} from "@/components/export/export-database-button";
-import {useOnboardingState} from "@/state/onboarding.state";
+import {AvailableTab} from "@/state/gui.state";
 import {ChatTab} from "@/components/chat/chat-tab";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 
@@ -20,7 +16,6 @@ export interface NavigationBarProps {
 
 export function NavigationBarDesktop(props: NavigationBarProps) {
 
-    const openSettingsTab = useGUIState(state => state.openSettingsTab);
     // Handle tab selection change
     const handleTabChange = (values: AvailableTab[]) => {
         props.setSelectedTabs(values);
@@ -28,10 +23,6 @@ export function NavigationBarDesktop(props: NavigationBarProps) {
 
     return (
         <div className={'w-16 py-4 h-full bg-muted-background border-r border-separate flex flex-col items-center'}>
-            <Avatar>
-                <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
-            </Avatar>
-
             <ToggleGroup
                 type="multiple"
                 className={'flex flex-col mt-4'}
@@ -63,35 +54,6 @@ export function NavigationBarDesktop(props: NavigationBarProps) {
                     <Wand2 className="h-10 w-10"/>
                 </ToggleGroupItem>
             </ToggleGroup>
-            <div className={'flex-1'}/>
-
-
-            <a href="https://github.com/gropaul/dash" target="_blank" rel="noopener noreferrer">
-                <Button variant={'ghost'} size={'icon'}>
-                    <Star/>
-                </Button>
-            </a>
-            <div className={'h-2'}/>
-            <ExportDatabaseButton/>
-            <div className={'h-2'}/>
-
-            <Button variant={'ghost'} size={'icon'} onClick={() => {
-                openSettingsTab('documentation');
-            }}>                <BookOpen/>
-            </Button>
-            <div className={'h-2'}/>
-            <Button variant={'ghost'} size={'icon'} onClick={() => {
-                useOnboardingState.getState().openWelcomeTour();
-            }}>
-                <HelpCircle/>
-            </Button>
-            <div className={'h-2'}/>
-            <Button variant={'ghost'} size={'icon'} onClick={() => {
-                openSettingsTab('connection');
-            }}>
-                <Settings/>
-            </Button>
-
         </div>
     );
 }

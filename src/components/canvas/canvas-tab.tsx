@@ -1,10 +1,10 @@
-import {useCallback, useState} from "react";
+import {useCallback} from "react";
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
+import {aliasRelationRoute, buildRoutableTree} from "@/state/routing/routable-tree";
+import {navigate} from "@/state/routing/navigation";
 import {Flow} from "@/components/canvas/flow";
 import {ReactFlowProvider} from "@xyflow/react";
-import {RelationView} from "@/components/relation/relation-view";
-import {RelationState} from "@/model/relation-state";
 
 
 export interface WorkflowTabProps {
@@ -15,38 +15,21 @@ export function CanvasTab(props: WorkflowTabProps) {
     const {canvasId} = props;
 
     const canvas = useRelationsState((state) => state.canvas[canvasId], shallow);
-    const updateRelation = useRelationsState(state => state.updateRelation);
-    const [fullscreenNodeId, setFullscreenNodeId] = useState<string | null>(null);
 
-    const openFullscreen = useCallback((nodeId: string) => setFullscreenNodeId(nodeId), []);
-    const onBackToCanvas = useCallback(() => setFullscreenNodeId(null), []);
-
-    // Derive the relation ID for the fullscreen node (stable between renders)
-    const fullscreenNode = fullscreenNodeId ? canvas?.nodes.find(n => n.id === fullscreenNodeId) : undefined;
-    const fullscreenRelationId = (fullscreenNode?.data as {relationId?: string} | undefined)?.relationId;
-    const fullscreenRelation = useRelationsState(
-        state => fullscreenRelationId ? state.relations[fullscreenRelationId] : undefined,
-        shallow,
-    );
+    // Expand a node → navigate to its relation shown in this canvas' context
+    // (`…/Canvas/Relation`), not the relation's canonical path.
+    const openRelation = useCallback((nodeId: string) => {
+        const st = useRelationsState.getState();
+        const node = st.canvas[canvasId]?.nodes.find(n => n.id === nodeId);
+        const relationId = (node?.data as {relationId?: string} | undefined)?.relationId;
+        if (!relationId) return;
+        const tree = buildRoutableTree(st.editorElements, st.relations, st.dashboards, st.canvas);
+        const route = aliasRelationRoute(tree, canvasId, relationId);
+        if (route) navigate(route);
+    }, [canvasId]);
 
     if (!canvas) {
         return <div>Workflow not found: {canvasId}</div>;
-    }
-
-    if (fullscreenRelation) {
-        const handleUpdateRelation = (newRelation: RelationState) => {
-            updateRelation(newRelation);
-        };
-
-        return (
-            <RelationView
-                mode='fullscreen'
-                relationState={fullscreenRelation}
-                updateRelation={handleUpdateRelation}
-                height={'fit'}
-                breadcrumbPrefix={{label: canvas.viewState.displayName, onClick: onBackToCanvas}}
-            />
-        );
     }
 
     return (
@@ -55,7 +38,7 @@ export function CanvasTab(props: WorkflowTabProps) {
                 {canvas.viewState.displayName}
             </div>
             <ReactFlowProvider>
-                <Flow canvasId={canvasId} openFullscreen={openFullscreen}/>
+                <Flow canvasId={canvasId} openFullscreen={openRelation}/>
             </ReactFlowProvider>
         </div>
     );

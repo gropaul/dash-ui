@@ -3,6 +3,7 @@
 import {useEffect} from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {findNodeByMacroPath, parseRoute, SPACES_ROOT} from "@/state/routing/core-model";
+import {buildRoutableTree} from "@/state/routing/routable-tree";
 import {navigateReplace} from "@/state/routing/navigation";
 import {onNavClick, useCurrentPath} from "@/state/routing/use-location";
 import {FolderView} from "@/components/spaces/folder-view";
@@ -33,7 +34,18 @@ export function SpacesRouter() {
     }
 
     if (view === "spaces") {
-        const node = findNodeByMacroPath(editorElements, params.segments);
+        // Primary resolution on the raw tree; if that misses, the URL may address a relation
+        // shown in the context of a dashboard/canvas (a virtual child) — resolve on the
+        // augmented tree. getState() reads are fine here: resolution only matters on navigation
+        // / editorElements changes, both of which re-render this component.
+        let node = findNodeByMacroPath(editorElements, params.segments);
+        if (!node) {
+            const st = useRelationsState.getState();
+            node = findNodeByMacroPath(
+                buildRoutableTree(editorElements, st.relations, st.dashboards, st.canvas),
+                params.segments,
+            );
+        }
         if (!node) return <NotFound/>;
         switch (node.type) {
             case "folder":

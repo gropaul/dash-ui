@@ -1,4 +1,4 @@
-import {Button} from "@/components/ui/button";
+import {DropdownMenuItem} from "@/components/ui/dropdown-menu";
 import {Download,} from "lucide-react";
 import React, {useEffect} from "react";
 import {ConnectionsService} from "@/state/connections/connections-service";
@@ -16,6 +16,8 @@ function shouldShowExportButton(connection?: DatabaseConnection): boolean {
     }
 }
 
+// Renders as a dropdown menu item (used in the app-bar overflow menu). Renders nothing when
+// export isn't applicable (non-WASM or in-memory storage).
 export function ExportDatabaseButton() {
 
 
@@ -55,8 +57,8 @@ export function ExportDatabaseButton() {
     }
 
     return (
-        <Button variant={'ghost'} size={'icon'} onClick={onButtonClick}>
-            <Download/>
-        </Button>
+        <DropdownMenuItem onClick={onButtonClick}>
+            <Download className="mr-2 h-4 w-4"/> Download database
+        </DropdownMenuItem>
     )
 }

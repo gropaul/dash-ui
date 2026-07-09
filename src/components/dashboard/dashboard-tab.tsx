@@ -2,8 +2,8 @@ import {useCallback, useEffect, useState} from "react";
 import {shallow} from "zustand/shallow";
 import dynamic from "next/dynamic";
 import {useRelationsState} from "@/state/relations.state";
-import {RelationView} from "@/components/relation/relation-view";
-import {RelationState} from "@/model/relation-state";
+import {aliasRelationRoute, buildRoutableTree} from "@/state/routing/routable-tree";
+import {navigate} from "@/state/routing/navigation";
 import {onRelationEvent} from "@/state/relations/event/relation-events";
 import {refreshDownstreamRelations} from "@/state/relations/sql/relation-dag-refresh";
 
@@ -19,13 +19,19 @@ export interface DashboardViewProps {
 
 export function DashboardTab(props: DashboardViewProps) {
     const dashboard = useRelationsState((state) => state.getDashboardState(props.dashboardId), shallow);
-    const updateRelation = useRelationsState(state => state.updateRelation);
 
     const [editMode, setEditMode] = useState(false);
-    const [fullscreenWidgetId, setFullscreenWidgetId] = useState<string | null>(null);
 
-    const openFullscreen = useCallback((widgetId: string) => setFullscreenWidgetId(widgetId), []);
-    const onBack = useCallback(() => setFullscreenWidgetId(null), []);
+    // Expand a widget → navigate to its relation shown in this dashboard's context
+    // (`…/Dashboard/Relation`), not the relation's canonical path.
+    const openRelation = useCallback((widgetId: string) => {
+        const st = useRelationsState.getState();
+        const relationId = st.getDashboardState(props.dashboardId)?.widgets[widgetId]?.relationId;
+        if (!relationId) return;
+        const tree = buildRoutableTree(st.editorElements, st.relations, st.dashboards, st.canvas);
+        const route = aliasRelationRoute(tree, props.dashboardId, relationId);
+        if (route) navigate(route);
+    }, [props.dashboardId]);
 
     // When a relation's query finishes or a widget selection changes, re-run its downstream
     // relations (dependency graph derived from SQL). Mirrors the canvas' downstream refresh.
@@ -34,28 +40,8 @@ export function DashboardTab(props: DashboardViewProps) {
         ["QUERY_RUN_FINISHED", "UPDATE_SELECTION"],
     ), []);
 
-    // Resolve the fullscreen widget → its referenced relation.
-    const fullscreenWidget = fullscreenWidgetId ? dashboard?.widgets[fullscreenWidgetId] : undefined;
-    const fullscreenRelationId = fullscreenWidget?.relationId;
-    const fullscreenRelation = useRelationsState(
-        state => fullscreenRelationId ? state.relations[fullscreenRelationId] : undefined,
-        shallow,
-    );
-
     if (!dashboard) {
         return <div>Dashboard not found: {props.dashboardId}</div>;
-    }
-
-    // Fullscreen editing takes over the whole tab (mirrors canvas-tab.tsx).
-    if (fullscreenRelation) {
-        return (
-            <RelationView
-                mode='fullscreen'
-                relationState={fullscreenRelation}
-                updateRelation={(newRelation: RelationState) => updateRelation(newRelation)}
-                height={'fit'}
-            />
-        );
     }
 
     return (
@@ -65,7 +51,7 @@ export function DashboardTab(props: DashboardViewProps) {
                     dashboard={dashboard}
                     editMode={editMode}
                     onToggleEditMode={() => setEditMode(v => !v)}
-                    onOpenFullscreen={openFullscreen}
+                    onOpenFullscreen={openRelation}
                 />
             </div>
         </div>

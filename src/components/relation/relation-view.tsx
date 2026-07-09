@@ -32,7 +32,6 @@ export interface StaticDisplayProps {
 export interface RelationViewAPIProps extends DefaultRelationZustandActions, StaticDisplayProps {
     relationState: RelationState;
     className?: string;
-    breadcrumbPrefix?: { label: string; onClick: () => void };
 }
 
 

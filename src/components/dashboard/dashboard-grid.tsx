@@ -42,7 +42,11 @@ function compactorFor(compactType: CompactType): Compactor {
 }
 
 export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFullscreen}: DashboardGridProps) {
-    const {width, containerRef} = useContainerWidth({initialWidth: 1200});
+    // `measureBeforeMount` holds `mounted` false until the effect measures the real container width.
+    // Gating the grid render on it (below) means RGL's first paint uses the actual width instead of
+    // `initialWidth` — without it the grid paints at 1200 then re-lays-out to the real width, and the
+    // `.react-grid-item` transitions animate every widget sliding into place on page open.
+    const {width, mounted, containerRef} = useContainerWidth({initialWidth: 1200, measureBeforeMount: true});
     const setDashboardLayouts = useRelationsState(s => s.setDashboardLayouts);
     const removeDashboardWidget = useRelationsState(s => s.removeDashboardWidget);
     const updateDashboardWidget = useRelationsState(s => s.updateDashboardWidget);
@@ -90,7 +94,7 @@ export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFull
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                         Empty dashboard — add a widget from the toolbar.
                     </div>
-                ) : (
+                ) : !mounted ? null : (
                 <ResponsiveGridLayout
                     width={width}
                     breakpoints={DASHBOARD_BREAKPOINTS}
