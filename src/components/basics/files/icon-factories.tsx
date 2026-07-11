@@ -142,7 +142,8 @@ export const defaultIconFactory = (type: string): ReactNode => {
 // A colorful, tinted rounded icon box — the same treatment the canvas relation nodes use
 // (see relation-header.tsx). `type` is an icon type: a relation view type (table/chart/…) or an
 // entity type (folder/dashboards/canvas/…), which drives both the icon and the color.
-export function ColoredIcon({type, size = 28}: {type: string; size?: number}): ReactNode {
+// `background = false` drops the tinted box, keeping just the colored icon (e.g. inline in menus).
+export function ColoredIcon({type, size = 28, background = true}: {type: string; size?: number; background?: boolean}): ReactNode {
     const color = colorForType(type);
     return (
         <div
@@ -154,7 +155,7 @@ export function ColoredIcon({type, size = 28}: {type: string; size?: number}): R
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
-                background: color.background,
+                background: background ? color.background : 'transparent',
                 color: color.foreground,
             }}
         >

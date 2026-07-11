@@ -9,6 +9,7 @@ import {DatabaseConnection} from "@/model/database-connection";
 import {loadRelationStateFromConnections} from "@/state/persistency/api";
 import {maybeAttachDatabaseFromUrlParam} from "@/state/init/attach-from-url-param";
 import {useRelationDataState} from "@/state/relations-data.state";
+import {isDebugMode} from "@/components/settings/about-content";
 import {persist} from "zustand/middleware";
 
 
@@ -121,7 +122,7 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
             get().setStep('selecting-connection');
 
             // show toast that connection is initialized
-            const isDebug = process.env.NODE_ENV === 'development';
+            const isDebug = isDebugMode();
             const text = connectionToString(connection, isDebug);
             toast.success(text);
 

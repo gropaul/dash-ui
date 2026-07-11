@@ -1,4 +1,4 @@
-import {ChartContentError} from "@/components/relation/chart/chart-content/chart-content-error";
+import {RelationDisplayError} from "@/components/relation/relation-display-error";
 import {Exportable, ExportableRef} from "@/components/relation/chart/exportable";
 import {toSnakeCase} from "@/platform/string-utils";
 import {ChartContent} from "@/components/relation/chart/chart-content";
@@ -62,7 +62,6 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
     }, []);
 
     const showChartSettings = props.getSessionState(props.mode).configState.showConfig;
-
     function updateShowConfig() {
         props.updateSessionState(props.mode, {configState: {showConfig: !showChartSettings}});
     }
@@ -70,10 +69,10 @@ export function ChartContentWrapper(props: ChartContentWrapperProps) {
     return (
         <>
             {plotDisplayError ?
-                <ChartContentError
+                <RelationDisplayError
                     error={plotDisplayError}
                     updateShowConfig={updateShowConfig}
-                    showChartSettings={showChartSettings}
+                    showConfig={showChartSettings}
                 />
                 :
                 <Exportable ref={exportableRef} fileName={toSnakeCase(effectiveConfig?.plot?.title ?? 'plot')}>

@@ -30,6 +30,7 @@ import {GetEntityTypeDisplayName, IsEntityType, RelationZustandEntityType} from 
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {openCreateCanvasDialog, openCreateDashboardDialog, openCreateFolderDialog, openCreateRelationDialog} from "@/components/workbench/create-entity-dialogs";
 import {RelationDeleteDialog, useRelationDeleteDialog} from "@/components/workbench/relation-delete-dialog";
+import {isDebugMode} from "@/components/settings/about-content";
 
 
 
@@ -316,7 +317,7 @@ ${relationNames.join(', ')}`;
                             <span>Canvas️</span>
                         </DropdownMenuItem>
                         { /* only in development */}
-                        {process.env.NODE_ENV === 'development' && (
+                        {isDebugMode() && (
                             <DropdownMenuItem onClick={() => resetEditorElements()}>
                                 <span>Reset Editor</span>
                             </DropdownMenuItem>

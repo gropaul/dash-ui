@@ -19,7 +19,7 @@ export const SPACES_ROOT = "/workspace";
 export const DATA_ROOT = "/data";
 
 export interface Resolved {
-    /** 'spaces-root' | 'spaces' | 'notfound' — 'spaces' still needs tree resolution */
+    /** 'spaces-root' | 'spaces' | 'data' | 'notfound' — 'spaces' still needs tree resolution */
     view: string;
     params: { segments: string[] };
 }
@@ -36,6 +36,8 @@ export function parseRoute(pathname: string): Resolved {
             ? {view: "spaces-root", params: {segments: []}}
             : {view: "spaces", params: {segments}};
     }
+    // `/data` catalog: literal `db/schema/table[/column]` segments (see catalog-model).
+    if (parts[0] === "data") return {view: "data", params: {segments: parts.slice(1)}};
     return {view: "notfound", params: {segments: parts}};
 }
 

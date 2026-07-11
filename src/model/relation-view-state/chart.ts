@@ -365,53 +365,8 @@ export interface ChartViewState {
     chart: ChartConfig;
 }
 
-export function getInitialChartViewStateEmpty(): ChartViewState {
-    return {
-        chart: {
-            plot: {
-                type: 'bar',
-                cartesian: {
-                    xRange: {},
-                    yRange: {},
-                    decoration: {
-                        bar: {
-                            stacked: false
-                        }
-                    },
-                    groupBy: undefined
-                },
-                pie: {
-                    axis: {}
-                }
-            }
-        },
-    }
-}
 
-export function getInitialChartViewState(data: RelationData): ChartViewState {
-    return {
-        chart: {
-            plot: {
-                type: 'bar',
-                cartesian: {
-                    xRange: {},
-                    yRange: {},
-                    decoration: {
-                        bar: {
-                            stacked: false
-                        }
-                    },
-                    groupBy: undefined
-                },
-                pie: {
-                    axis: {}
-                }
-            }
-        },
-    }
-}
-
-export function getTitleForType(type: PlotDisplayErrorType) {
+export function getTitleForType(type: RelationDisplayError) {
     switch (type) {
         case 'config-not-complete':
             return 'Configuration not complete';
@@ -427,11 +382,16 @@ export function getTitleForType(type: PlotDisplayErrorType) {
 }
 
 
-export type PlotDisplayErrorType = 'config-not-complete' | 'missing-columns' | 'too-much-data' | 'no-data'
+export type RelationDisplayError = 'config-not-complete' | 'missing-columns' | 'too-much-data' | 'no-data'
 
 export interface PlotDisplayError {
-    type: PlotDisplayErrorType;
+    type: RelationDisplayError;
     message: string;
+}
+
+export const NO_DATA_ERROR: PlotDisplayError= {
+    type: "no-data",
+    message: "The query returned zero rows, so there is nothing to display. :("
 }
 
 export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationData): PlotDisplayError | undefined {
@@ -505,10 +465,7 @@ export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationD
     
     // check if we have any data
     if (relationData.rows.length === 0) {
-        return {
-            type: "no-data",
-            message: "The query zero rows, so there is nothing to show. :( "
-        }
+        return NO_DATA_ERROR;
     }
 
     // check if needed columns are there

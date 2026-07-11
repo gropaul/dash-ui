@@ -309,7 +309,7 @@ export function TableConfigView(props: RelationViewContentProps) {
                                         <button
                                             title={sorted ? `Sorted ${direction} — click to change` : 'Sort column'}
                                             className={cn(
-                                                "shrink-0 items-center gap-0.5 text-xs",
+                                                "shrink-0 items-center gap-0.5 text-xs font-mono",
                                                 sorted
                                                     ? "inline-flex text-indigo-600"
                                                     : "hidden group-hover:inline-flex text-muted-foreground hover:text-indigo-600",
@@ -319,8 +319,11 @@ export function TableConfigView(props: RelationViewContentProps) {
                                                 void cycleSort(c.name);
                                             }}
                                         >
-                                            <ColumnHeadSortingIcon sorting={direction} iconSize={13}/>
-                                            {sorted && activeSorts.length > 1 && (pos + 1)}
+                                            <ColumnHeadSortingIcon
+                                                sorting={direction}
+                                                iconSize={13}
+                                                index={sorted && activeSorts.length > 1 ? pos + 1 : undefined}
+                                            />
                                         </button>
                                     );
                                 }}

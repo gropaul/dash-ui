@@ -1,7 +1,7 @@
 'use client';
 
 import {SpacesRouter} from "@/components/layout/spaces-router";
-import {DatabaseView} from "@/components/spaces/database-view";
+import {DataView} from "@/components/spaces/data-view";
 import {DATA_ROOT} from "@/state/routing/core-model";
 import {useCurrentPath} from "@/state/routing/use-location";
 
@@ -14,7 +14,7 @@ export function AppRouter() {
     const pathname = useCurrentPath();
 
     if (pathname.startsWith(DATA_ROOT)) {
-        return <DatabaseView/>;
+        return <DataView/>;
     }
 
     return <SpacesRouter/>;

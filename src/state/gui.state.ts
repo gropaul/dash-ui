@@ -24,7 +24,7 @@ export interface GUIZustand {
     sidebarExpanded: boolean;
     settings: SettingsGUIZustand;
     // Split ratio (0-1) between a relation view and its config panel. Shared across all relation views.
-    configSplitRatio: number;
+    sidebarSplitRatio: number;
     // When true, views stretch to full width (no max-width) with a uniform gutter.
     fullWidth: boolean;
 }
@@ -54,7 +54,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             sidebarExpanded: true,
             relationFileDropEnabled: true,
             settings: INITIAL_SETTINGS_STATE,
-            configSplitRatio: 0.3,
+            sidebarSplitRatio: 0.3,
             fullWidth: true,
 
             setRelationFileDropEnabled: (enabled: boolean) => {
@@ -106,7 +106,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             },
 
             setConfigSplitRatio: (ratio: number) => {
-                set({configSplitRatio: ratio});
+                set({sidebarSplitRatio: ratio});
             },
 
             setFullWidth: (fullWidth: boolean) => {

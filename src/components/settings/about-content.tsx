@@ -3,12 +3,12 @@ import {Star} from "lucide-react";
 import {Label} from "@/components/ui/label";
 import {Switch} from "@/components/ui/switch";
 
-const PREVIEW_MODE_KEY = 'dash-preview-mode';
+const DEBUG_MODE_KEY = 'dash-debug-mode';
 const LOG_QUERIES_KEY = 'dash-log-queries';
 
-export function getPreviewMode(): boolean {
+export function isDebugMode(): boolean {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem(PREVIEW_MODE_KEY) === 'true';
+    return localStorage.getItem(DEBUG_MODE_KEY) === 'true';
 }
 
 export function getLogQueries(): boolean {
@@ -26,12 +26,12 @@ export function AboutContent() {
     const [logQueries, setLogQueries] = useState(false);
 
     useEffect(() => {
-        setPreviewMode(getPreviewMode());
+        setPreviewMode(isDebugMode());
         setLogQueries(getLogQueries());
     }, []);
 
     function handlePreviewToggle(enabled: boolean) {
-        localStorage.setItem(PREVIEW_MODE_KEY, String(enabled));
+        localStorage.setItem(DEBUG_MODE_KEY, String(enabled));
         setPreviewMode(enabled);
         window.location.reload();
     }
@@ -67,7 +67,7 @@ export function AboutContent() {
             </div>
             <div className="mt-4 flex items-center justify-between rounded-md border p-3">
                 <Label htmlFor="preview-toggle" className="text-sm">
-                    Preview mode
+                    Debug mode
                 </Label>
                 <Switch
                     id="preview-toggle"

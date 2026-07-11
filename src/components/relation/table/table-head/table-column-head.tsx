@@ -79,6 +79,14 @@ export function TableColumnHead(props: ColumnHeadProps) {
     const queryParameters = props.relationState.query.viewParameters;
     const columnSorting = queryParameters.table.sorting[props.column.name];
 
+    // Position of this column within a multi-column sort (1-based). Order follows the
+    // insertion order of the sorting record, matching the sort config panel. Only shown
+    // when more than one column is sorted.
+    const activeSorts = Object.entries(queryParameters.table.sorting).filter(([, dir]) => dir !== undefined);
+    const sortIndex = columnSorting && activeSorts.length > 1
+        ? activeSorts.findIndex(([name]) => name === props.column.name) + 1
+        : undefined;
+
     const onlyShowOnHover = !columnSorting;
 
     const opacityClass = onlyShowOnHover ?
@@ -170,7 +178,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
                     </div>
                     <div className={`px-1 ${opacityClass} h-4`}>
                         <button className={sortingClass}>
-                            <ColumnHeadSortingIcon sorting={columnSorting}/>
+                            <ColumnHeadSortingIcon sorting={columnSorting} index={sortIndex}/>
                         </button>
                     </div>
                 </div>

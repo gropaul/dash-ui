@@ -31,10 +31,13 @@ export interface ColumnConfigListProps {
     isDimmed?: (column: Column) => boolean;
     /** Rendered below the list; receives the columns currently shown by search/filter. */
     renderFooter?: (shownColumns: Column[]) => React.ReactNode;
+    /** Click handler for a whole row. When set (and the row isn't expandable) the row is
+     *  clickable — used to navigate rather than expand. */
+    onRowClick?: (column: Column) => void;
 }
 
 export function ColumnConfigList(props: ColumnConfigListProps) {
-    const {columns, filterTags, renderLeading, renderIcon, renderStatus, renderExpanded, isDimmed, renderFooter} = props;
+    const {columns, filterTags, renderLeading, renderIcon, renderStatus, renderExpanded, isDimmed, renderFooter, onRowClick} = props;
 
     const [query, setQuery] = React.useState('');
     const [activeTag, setActiveTag] = React.useState('');
@@ -113,17 +116,19 @@ export function ColumnConfigList(props: ColumnConfigListProps) {
                 const expandable = expandedContent !== undefined && expandedContent !== null;
                 const open = expandable && openColumn === column.name;
                 const mounted = expandable && (open || mountedColumn === column.name);
+                const clickable = expandable || !!onRowClick;
                 return (
                     <div key={column.name} className="border-b last:border-b-0">
                         <div
                             className={cn(
                                 "group flex items-center gap-2 px-2.5 py-1.5",
-                                expandable && "cursor-pointer hover:bg-muted/50",
+                                clickable && "cursor-pointer hover:bg-muted/50",
                                 open && "bg-muted/50",
                                 isDimmed?.(column) && "opacity-50",
                             )}
                             onClick={() => {
                                 if (expandable) toggleOpen(column.name, open);
+                                else onRowClick?.(column);
                             }}
                         >
                             {renderLeading?.(column)}

@@ -20,7 +20,7 @@ export interface DashboardViewProps {
 export function DashboardTab(props: DashboardViewProps) {
     const dashboard = useRelationsState((state) => state.getDashboardState(props.dashboardId), shallow);
 
-    const [editMode, setEditMode] = useState(false);
+    const [editMode, setEditMode] = useState(true);
 
     // Expand a widget → navigate to its relation shown in this dashboard's context
     // (`…/Dashboard/Relation`), not the relation's canonical path.

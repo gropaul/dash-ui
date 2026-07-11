@@ -1,9 +1,10 @@
 'use client';
 
-import {useState} from "react";
-import {Folder, LayoutDashboard, Plus, Search, Sheet, Trash2, WorkflowIcon, X} from "lucide-react";
+import {useMemo, useState} from "react";
+import {Folder, LayoutDashboard, Plus, Sheet, Trash2, WorkflowIcon} from "lucide-react";
 import {TreeNode, findPathById} from "@/components/basics/files/tree-utils";
 import {ColumnHeadSortingIcon} from "@/components/basics/column-head-sorting-icon";
+import {SearchBox} from "@/components/basics/search-box";
 import {FilterTag, FilterTags} from "@/components/basics/filter-tags";
 import {RelationZustandEntityType} from "@/state/entities/entity-functions";
 import {
@@ -25,6 +26,7 @@ import {EntityBase} from "@/state/entities/entity-base";
 import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {Button} from "@/components/ui/button";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -48,6 +50,7 @@ import {
 import {ViewPadding} from "@/components/ui/view-padding";
 import {formatRelativeTime} from "@/platform/string-utils";
 import {formatNumber} from "@/platform/number-utils";
+import {VIEW_MODES} from "@/components/relation/settings/view-mode-picker";
 
 interface FolderViewProps {
     /** The resolved folder node, or undefined for the /workspace root. */
@@ -126,8 +129,21 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     const children: TreeNode[] = folderNode ? (folderNode.children ?? []) : editorElements;
     const macroNames = computeSiblingMacroNames(children);
 
+    // Entity-kind chips (folder/query/…) plus one chip per relation view type (Table/Chart/…),
+    // resolved from each relation's selectedView. Zero-count chips collapse away in the widget,
+    // so only view types actually present are shown.
+    const tags = useMemo<FilterTag<TreeNode>[]>(() => {
+        const viewTags: FilterTag<TreeNode>[] = VIEW_MODES.map((mode) => ({
+            key: `view:${mode.viewType}`,
+            label: mode.label,
+            icon: <span className="[&_svg]:size-3">{defaultIconFactory(mode.viewType)}</span>,
+            predicate: (n) => n.type === "relations" && relations[n.id]?.viewState?.selectedView === mode.viewType,
+        }));
+        return [...TYPE_TAGS, ...viewTags];
+    }, [relations]);
+
     // an active tag whose count dropped to zero (e.g. after navigating) no longer filters
-    const tagEntry = TYPE_TAGS.find((t) => t.key === activeTag);
+    const tagEntry = tags.find((t) => t.key === activeTag);
     const activeTagEntry = tagEntry && children.some(tagEntry.predicate) ? tagEntry : undefined;
 
     // Id-path used by the create dialogs (they address the tree by node ids).
@@ -224,9 +240,6 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
                     <ColumnHeadSortingIcon
                         sorting={active ? (sort.dir === "asc" ? "ASC" : "DESC") : undefined}
                         iconSize={13}
-                        className={active
-                            ? "text-indigo-600"
-                            : "text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200"}
                     />
                 </button>
             </TableHead>
@@ -240,55 +253,21 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
                 {children.length > 0 && (
                     <div className={"flex items-center justify-between pb-2"}>
                         <FilterTags
-                            tags={TYPE_TAGS}
+                            tags={tags}
                             items={children}
                             activeKey={activeTag}
                             onChange={setActiveTag}
-                            className="pb-2"
                         />
-                        {
-                            searchOpen ? (
-                                <div className="flex h-8 border items-center gap-1.5 rounded-md">
-                                    <Search size={14} className="shrink-0 mx-2 text-muted-foreground"/>
-                                    <input
-                                        autoFocus
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Escape") {
-                                                setSearch("");
-                                                setSearchOpen(false);
-                                            }
-                                        }}
-                                        placeholder="Search…"
-                                        className="h-6 w-40  text-sm placeholder:text-muted-foreground focus-visible:outline-none"
-                                    />
-
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-transparent" aria-label="Search"
-                                            onClick={() => {
-                                                setSearch("");
-                                                setSearchOpen(false);
-                                            }}
-                                    >
-                                        <X size={14}/>
-                                    </Button>
-                                </div>
-                            ) : (
-                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0" aria-label="Search"
-                                        onClick={() => setSearchOpen(true)}>
-                                    <Search size={14}/>
-                                </Button>
-                            )
-                        }
+                        <SearchBox open={searchOpen} setOpen={setSearchOpen} value={search} onChange={setSearch}/>
                     </div>
 
                 )}
-                <div className="flex-1 overflow-auto">
+                <div className="flex-1 min-h-0">
                     {children.length === 0 ? (
                         <div className="text-muted-foreground text-sm">This folder is empty.</div>
                     ) : (
-                        <Table className="text-xs">
-                            <TableHeader>
+                        <Table className="text-xs" containerClassName="h-full">
+                            <TableHeader className="sticky top-0 z-10 bg-card shadow-[inset_0_-1px_0_hsl(var(--border))] [&_tr]:border-b-0">
                                 <TableRow>
                                     <SortHeader label="Name" sortKey="name"/>
                                     <SortHeader label="Last edited" sortKey="lastEditedAt" className="w-40"/>
@@ -326,18 +305,19 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
                                         <TableCell
                                             className="text-muted-foreground tabular-nums">{formatNumber(meta.nViews ?? 0, 1, true)}</TableCell>
                                         <TableCell className="p-0">
-                                            <button
-                                                type="button"
-                                                aria-label={`Delete ${child.name}`}
-                                                title="Delete"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setDeleteTarget(child);
-                                                }}
-                                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-destructive group-hover:opacity-100"
-                                            >
-                                                <Trash2 size={14}/>
-                                            </button>
+                                            <TooltipWrapper message="Delete">
+                                                <button
+                                                    type="button"
+                                                    aria-label={`Delete ${child.name}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setDeleteTarget(child);
+                                                    }}
+                                                    className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-destructive group-hover:opacity-100"
+                                                >
+                                                    <Trash2 size={14}/>
+                                                </button>
+                                            </TooltipWrapper>
                                         </TableCell>
                                     </TableRow>
                                 ))}

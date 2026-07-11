@@ -85,7 +85,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                 );
             case 'full':
                 return (
-                    <div className="w-full h-full flex flex-col bg-inherit rounded-2xl">
+                    <div className={cn("w-full h-full flex flex-col bg-inherit rounded-2xl", inputProps.className)}>
                         {parameterPanelElement}
                         <ResizablePanelGroup className={'bg-inherit rounded-2xl flex-1'}
                                              direction={layout == 'row' ? 'vertical' : 'horizontal'}>

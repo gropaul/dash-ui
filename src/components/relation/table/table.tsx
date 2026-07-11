@@ -9,6 +9,9 @@ import {getTableColumnViewIndices, TableViewState} from "@/model/relation-view-s
 import {cn} from "@/lib/utils";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 import {ScrollArea, ScrollBar} from "@/components/ui/scroll-area";
+import {RelationDisplayError} from "@/components/relation/relation-display-error";
+import {NO_DATA_ERROR} from "@/model/relation-view-state/chart";
+
 
 
 export function Table(props: RelationViewContentProps) {
@@ -23,10 +26,17 @@ export function Table(props: RelationViewContentProps) {
         })
     );
 
-
+    const showConfig = props.getSessionState(props.mode).configState.showConfig;
+    function updateShowConfig() {
+        props.updateSessionState(props.mode, {configState: {showConfig: !showConfig}});
+    }
     // if there is no data, return null
-    if (!data) {
-        return null;
+    if (!data || data.rows.length === 0) {
+        return <RelationDisplayError
+            error={NO_DATA_ERROR}
+            showConfig={showConfig}
+            updateShowConfig={updateShowConfig}
+        />
     }
 
     function setTableState(state: TableViewState) {

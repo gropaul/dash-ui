@@ -10,6 +10,7 @@ import {useDataSourcesState} from "@/state/data-sources.state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {DASH_CATALOG} from "@/platform/global-data";
+import {isDebugMode} from "@/components/settings/about-content";
 
 
 export function GetDatabaseState(connectionId: string, databaseId: string): DatabaseState {
@@ -115,8 +116,8 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
     [database: string]: DataSource
 }> {
 // get all columns and tables
-    const isDebug = process.env.NODE_ENV === 'development';
-    const conditionFilterCache = isDebug ? `TRUE` : `c.table_catalog != '${DASH_CATALOG}'`;
+    const isDebug = isDebugMode();
+    const conditionFilterCache = isDebug ? `TRUE` : `c.table_schema != '${DASH_CATALOG}'`;
     const query = `SELECT c.table_catalog, c.table_schema, c.table_name, t.table_type, c.column_name, c.data_type
                    FROM information_schema.columns as c
                             JOIN information_schema.tables as t ON

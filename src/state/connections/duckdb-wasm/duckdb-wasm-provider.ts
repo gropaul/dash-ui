@@ -4,6 +4,7 @@ import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, DuckDBDataProtocol, L
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
 import {getJsonMacro} from "@/state/connections/duckdb-wasm/utils";
 import {DASH_CATALOG, DASH_DATABASE_FILE_NAME, WASM_DATABASE_FILE_NAME} from "@/platform/global-data";
+import {isDebugMode} from "@/components/settings/about-content";
 
 export type StorageMode = 'opfs' | 'memory';
 let _storageMode: StorageMode = 'opfs';
@@ -226,7 +227,7 @@ export class DuckdbWasmProvider {
         };
 
         // (Optional) Provide a console logger
-        const IS_DEBUG = process.env.NODE_ENV === 'development';
+        const IS_DEBUG = isDebugMode();
         const logLevel = IS_DEBUG ? LogLevel.ERROR : LogLevel.ERROR;
         const logger = new duckdb.ConsoleLogger(logLevel);
 

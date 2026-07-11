@@ -42,7 +42,7 @@ export class RelationActions {
 
     static create(options?: { connectionId?: string, source?: RelationSource; viewType?: RelationViewType, showCode?: boolean}): RelationState {
 
-        const showCode = options?.showCode ?? false;
+        const showCode = options?.showCode ?? true;
         const viewType = options?.viewType ?? 'table';
         // relation prefix is important as it is e.g. used in
         // src/components/chat/model/chat-context.ts

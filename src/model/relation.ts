@@ -96,9 +96,9 @@ export function getRelationIdFromSource(connectionId: string, source: RelationSo
 
 export function getRelationNameFromSource(source: RelationSource): string {
     if (source.type === 'table') {
-        return `${source.tableName} View`;
+        return `Query ${source.tableName}`;
     } else if (source.type === 'file') {
-        return `${source.baseName} View`;
+        return `Query ${source.baseName}`;
     } else if (source.type === 'query') {
         return source.name;
     } else {

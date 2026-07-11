@@ -1,9 +1,12 @@
 'use client';
 
-import {BookOpen, HelpCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
+import {useEffect, useState} from "react";
+import {Bug, BookOpen, HelpCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {InputWithIcon} from "@/components/ui/input-with-icon";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
+import {isDebugMode} from "@/components/settings/about-content";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -37,6 +40,7 @@ export function AppBar() {
             {/* RIGHT — app actions: settings + an overflow menu for the rest */}
             <div className="flex items-center gap-1 flex-1 justify-end pr-2">
                 {/*<AppBarSearch/>*/}
+                <DebugModeBadge/>
                 <AppBarActions/>
             </div>
         </header>
@@ -84,6 +88,21 @@ function AppBarActions() {
                 </DropdownMenuContent>
             </DropdownMenu>
         </>
+    );
+}
+
+// A small badge shown only while debug mode is active (see isDebugMode). Read in an effect so
+// the server render (always false) matches the first client render, avoiding a hydration mismatch.
+function DebugModeBadge() {
+    const [debug, setDebug] = useState(false);
+    useEffect(() => setDebug(isDebugMode()), []);
+    if (!debug) return null;
+    return (
+        <TooltipWrapper message="Debug mode is active — disable it in Settings › About.">
+            <span className="flex items-center gap-1 h-6 px-2 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium select-none">
+                <Bug size={12}/> Debug
+            </span>
+        </TooltipWrapper>
     );
 }
 

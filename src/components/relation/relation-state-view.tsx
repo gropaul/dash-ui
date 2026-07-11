@@ -40,7 +40,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
 
     const viewType = props.relationState.viewState.selectedView;
     const showConfig = props.mode === 'fullscreen' && hasSettingsPanel(viewType);
-    const configSplitRatio = useGUIState(state => state.configSplitRatio);
+    const configSplitRatio = useGUIState(state => state.sidebarSplitRatio);
     const setConfigSplitRatio = useGUIState(state => state.setConfigSplitRatio);
     const configSize = Math.round(configSplitRatio * 100);
 

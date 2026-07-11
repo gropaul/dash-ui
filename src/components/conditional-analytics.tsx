@@ -1,7 +1,7 @@
 'use client';
 
 import {Analytics, type BeforeSendEvent} from "@vercel/analytics/next";
-import {getPreviewMode} from "@/components/settings/about-content";
+import {isDebugMode} from "@/components/settings/about-content";
 
 function checkIsDev(): boolean {
     if (typeof window === 'undefined') return false;
@@ -13,7 +13,7 @@ function checkIsDev(): boolean {
 }
 
 export function ConditionalAnalytics() {
-    const previewMode = getPreviewMode();
+    const previewMode = isDebugMode();
 
     if ( checkIsDev()) return null;
 
