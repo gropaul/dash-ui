@@ -67,16 +67,12 @@ export function RelationView(inputProps: RelationViewAPIProps) {
 
 
 export function ContentWrapper(props: RelationViewProps) {
-
     const queryState = props.relationState.executionState;
+    if (queryState.state === "error") {
+        return <RelationViewError error={queryState.error}/>;
+    }
     return (
-        <div className={'w-full h-full bg-card rounded-2xl'}>
-            {queryState.state === "error" ? (
-                <RelationViewError error={queryState.error}/>
-            ) : (
-                <RelationViewContent {...props}/>
-            )}
-        </div>
+        <RelationViewContent {...props}/>
     );
 }
 

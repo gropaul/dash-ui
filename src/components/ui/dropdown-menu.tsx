@@ -5,6 +5,7 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import {Check, ChevronRight, Circle} from "lucide-react"
 
 import {cn} from "@/lib/utils"
+import {Switch} from "@/components/ui/switch"
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -93,6 +94,38 @@ const DropdownMenuItem = React.forwardRef<
   />
 ))
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
+
+// A menu item with a trailing Switch. The whole row toggles; the menu stays open on click.
+const DropdownMenuSwitchItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Item>,
+  Omit<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>, "onSelect"> & {
+    checked: boolean
+    onCheckedChange: (checked: boolean) => void
+    icon?: React.ReactNode
+  }
+>(({ className, checked, onCheckedChange, icon, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.Item
+    ref={ref}
+    onSelect={(e) => e.preventDefault()}
+    onClick={() => onCheckedChange(!checked)}
+    className={cn(
+      "relative flex cursor-default select-none items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="flex flex-row items-center gap-4">
+      {icon}
+      {children}
+    </span>
+    <Switch
+      checked={checked}
+      onCheckedChange={onCheckedChange}
+      onClick={(e) => e.stopPropagation()}
+    />
+  </DropdownMenuPrimitive.Item>
+))
+DropdownMenuSwitchItem.displayName = "DropdownMenuSwitchItem"
 
 const DropdownMenuCheckboxItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.CheckboxItem>,
@@ -188,6 +221,7 @@ export {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSwitchItem,
   DropdownMenuCheckboxItem,
   DropdownMenuRadioItem,
   DropdownMenuLabel,

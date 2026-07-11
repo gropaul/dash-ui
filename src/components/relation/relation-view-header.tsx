@@ -7,7 +7,6 @@ import {HeaderDownloadButton, HeaderDownloadButtonContent} from "@/components/re
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuPortal,
@@ -15,6 +14,7 @@ import {
     DropdownMenuSub,
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
+    DropdownMenuSwitchItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
@@ -100,12 +100,13 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                             </DropdownMenuSubContent>
                                         </DropdownMenuPortal>
                                     </DropdownMenuSub>
-                                    <DropdownMenuItem
-                                        onClick={() => advancedActions.updateSessionState(props.mode, {codeFenceState: {show: !codeFenceState.show}})}
+                                    <DropdownMenuSwitchItem
                                         title={queryToggleText}
+                                        checked={codeFenceState.show}
+                                        onCheckedChange={(show) => advancedActions.updateSessionState(props.mode, {codeFenceState: {show}})}
                                     >
-                                        <span>{queryToggleText}</span>
-                                    </DropdownMenuItem>
+                                        Show Query
+                                    </DropdownMenuSwitchItem>
                                     {parametersState.parameters.length != 0 &&
                                         <DropdownMenuItem
                                             onClick={props.toggleShowParameters}
@@ -131,12 +132,14 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                 </Toggle>
                             }
                             <RelationSettings {...props} align={"end"}>
-                                <DropdownMenuItem
-                                    onClick={() => advancedActions.updateSessionState(props.mode, {codeFenceState: {show: !codeFenceState.show}})}
+                                <DropdownMenuSwitchItem
+                                    title={queryToggleText}
+                                    checked={codeFenceState.show}
+                                    onCheckedChange={(show) => advancedActions.updateSessionState(props.mode, {codeFenceState: {show}})}
+                                    icon={<Code/>}
                                 >
-                                    <Code size={16} className="mr-1"/>
-                                    {queryToggleText}
-                                </DropdownMenuItem>
+                                    Show Query
+                                </DropdownMenuSwitchItem>
                             </RelationSettings>
                             <div className="w-1"/>
                         </>

@@ -114,7 +114,7 @@ export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFull
                                 <RelationWidget
                                     relationId={widget.relationId}
                                     editMode={editMode}
-                                    compact={compact}
+                                    compact={true}
                                     onExpand={() => onOpenFullscreen(widget.id)}
                                     onRemove={() => removeDashboardWidget(dashboard.id, widget.id)}
                                 />

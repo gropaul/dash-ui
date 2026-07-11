@@ -66,7 +66,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                 // for fit views, we show the query above the content, the content should just take as much
                 // as it needs and the query should take the remaining height if shown.
                 return (
-                    <div className={cn("w-full h-full bg-inherit rounded-2xl", inputProps.className)}>
+                    <div className={cn("w-full h-full flex-col flex rounded-2xl", inputProps.className)}>
                         {parameterPanelElement}
                         {showQueryEditor && (
                             <div className="flex-1 min-h-8">
@@ -78,7 +78,7 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                             </div>
                         )}
                         <div className={cn("h-[1px] w-full bg-muted", !showQueryEditor && 'hidden')}/>
-                        <div className={cn("bg-inherit", showQueryEditor ? "flex-shrink-0 min-h-24" : "flex-1")}>
+                        <div className={cn("bg-inherit", showQueryEditor ? "flex-shrink-0 min-h-12" : "flex-1")}>
                             <ContentWrapper {...props}/>
                         </div>
                     </div>

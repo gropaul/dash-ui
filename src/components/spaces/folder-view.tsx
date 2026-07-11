@@ -63,7 +63,12 @@ type SortDir = "asc" | "desc";
 const TYPE_TAGS: FilterTag<TreeNode>[] = [
     {key: "folder", label: "Folders", icon: <Folder size={12}/>, predicate: (n) => n.type === "folder"},
     {key: "relations", label: "Queries", icon: <Sheet size={12}/>, predicate: (n) => n.type === "relations"},
-    {key: "dashboards", label: "Dashboards", icon: <LayoutDashboard size={12}/>, predicate: (n) => n.type === "dashboards"},
+    {
+        key: "dashboards",
+        label: "Dashboards",
+        icon: <LayoutDashboard size={12}/>,
+        predicate: (n) => n.type === "dashboards"
+    },
     {key: "canvas", label: "Canvases", icon: <WorkflowIcon size={12}/>, predicate: (n) => n.type === "canvas"},
 ];
 
@@ -111,7 +116,7 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     const deleteEntity = useRelationsState((state) => state.deleteEntity);
     const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
 
-    const [sort, setSort] = useState<{key: SortKey; dir: SortDir}>({key: "lastViewedAt", dir: "desc"});
+    const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({key: "lastViewedAt", dir: "desc"});
     const [activeTag, setActiveTag] = useState("");
     const [search, setSearch] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
@@ -133,41 +138,6 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
         return <GetStartedPage/>;
     }
 
-    // Toggleable name search: a little icon that expands into an input (Esc / ✕ closes & clears).
-    const searchControl = searchOpen ? (
-        <div className="flex h-8 items-center gap-1.5 rounded-md border px-2">
-            <Search size={14} className="shrink-0 text-muted-foreground"/>
-            <input
-                autoFocus
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                        setSearch("");
-                        setSearchOpen(false);
-                    }
-                }}
-                placeholder="Search…"
-                className="h-6 w-40 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none"
-            />
-            <button
-                type="button"
-                aria-label="Close search"
-                onClick={() => {
-                    setSearch("");
-                    setSearchOpen(false);
-                }}
-                className="shrink-0 text-muted-foreground hover:text-foreground"
-            >
-                <X size={14}/>
-            </button>
-        </div>
-    ) : (
-        <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label="Search" onClick={() => setSearchOpen(true)}>
-            <Search size={14}/>
-        </Button>
-    );
-
     // "New" menu, styled like the dashboard's Edit button (outline, small), shown at the
     // right of the header.
     const newButton = (
@@ -178,10 +148,14 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => openCreateRelationDialog(createPath)}>{defaultIconFactory("relation")}Query</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openCreateDashboardDialog(createPath)}>{defaultIconFactory("dashboard")}Dashboard</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openCreateCanvasDialog(createPath)}>{defaultIconFactory("canvas")}Canvas</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openCreateFolderDialog(createPath, folderNode)}>{defaultIconFactory("folder")}Folder</DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => openCreateRelationDialog(createPath)}>{defaultIconFactory("relation")}Query</DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => openCreateDashboardDialog(createPath)}>{defaultIconFactory("dashboard")}Dashboard</DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => openCreateCanvasDialog(createPath)}>{defaultIconFactory("canvas")}Canvas</DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => openCreateFolderDialog(createPath, folderNode)}>{defaultIconFactory("folder")}Folder</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -236,7 +210,7 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
         setDeleteTarget(null);
     }
 
-    const SortHeader = ({label, sortKey, className}: {label: string; sortKey: SortKey; className?: string}) => {
+    const SortHeader = ({label, sortKey, className}: { label: string; sortKey: SortKey; className?: string }) => {
         const active = sort.key === sortKey;
         return (
             <TableHead className={className}>
@@ -260,75 +234,117 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     };
 
     return (
-        <ViewPadding active className=" h-full flex flex-col">
-            <ViewHeader title={title} actionButtons={<>{searchControl}{newButton}</>}/>
-            {children.length > 0 && (
-                <FilterTags
-                    tags={TYPE_TAGS}
-                    items={children}
-                    activeKey={activeTag}
-                    onChange={setActiveTag}
-                    className="pb-2"
-                />
-            )}
-            <div className="flex-1 overflow-auto">
-                {children.length === 0 ? (
-                    <div className="text-muted-foreground text-sm">This folder is empty.</div>
-                ) : (
-                    <Table className="text-xs">
-                        <TableHeader>
-                            <TableRow>
-                                <SortHeader label="Name" sortKey="name"/>
-                                <SortHeader label="Last edited" sortKey="lastEditedAt" className="w-40"/>
-                                <SortHeader label="Last viewed" sortKey="lastViewedAt" className="w-40"/>
-                                <SortHeader label="Views" sortKey="nViews" className="w-20"/>
-                                <TableHead className="w-8"/>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {rows.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
-                                        No items match.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                            {rows.map(({child, to, iconType, meta}) => (
-                                <TableRow
-                                    key={child.id}
-                                    onClick={onNavClick(to)}
-                                    className="group cursor-pointer"
-                                >
-                                    <TableCell>
-                                        {/* href kept for middle-click / open-in-new-tab; plain clicks are
-                                            handled by the row's onNavClick (bubbles up, preventing default). */}
-                                        <a href={to} className="flex items-center gap-2.5 text-foreground">
-                                            <ColoredIcon type={iconType}/>
-                                            <span className="truncate">{child.name}</span>
-                                        </a>
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">{formatRelativeTime(meta.lastEditedAt, "—")}</TableCell>
-                                    <TableCell className="text-muted-foreground">{formatRelativeTime(meta.lastViewedAt, "—")}</TableCell>
-                                    <TableCell className="text-muted-foreground tabular-nums">{formatNumber(meta.nViews ?? 0, 1, true)}</TableCell>
-                                    <TableCell className="p-0">
-                                        <button
-                                            type="button"
-                                            aria-label={`Delete ${child.name}`}
-                                            title="Delete"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setDeleteTarget(child);
+        <ViewPadding active addPaddingBottom className=" h-full flex flex-col" classNameParent={'bg-accent'}>
+            <ViewHeader title={title} actionButtons={<>{newButton}</>}/>
+            <div className={'bg-card p-8 border rounded-2xl w-full h-full flex flex-col'}>
+                {children.length > 0 && (
+                    <div className={"flex items-center justify-between pb-2"}>
+                        <FilterTags
+                            tags={TYPE_TAGS}
+                            items={children}
+                            activeKey={activeTag}
+                            onChange={setActiveTag}
+                            className="pb-2"
+                        />
+                        {
+                            searchOpen ? (
+                                <div className="flex h-8 border items-center gap-1.5 rounded-md">
+                                    <Search size={14} className="shrink-0 mx-2 text-muted-foreground"/>
+                                    <input
+                                        autoFocus
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Escape") {
+                                                setSearch("");
+                                                setSearchOpen(false);
+                                            }
+                                        }}
+                                        placeholder="Search…"
+                                        className="h-6 w-40  text-sm placeholder:text-muted-foreground focus-visible:outline-none"
+                                    />
+
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-transparent" aria-label="Search"
+                                            onClick={() => {
+                                                setSearch("");
+                                                setSearchOpen(false);
                                             }}
-                                            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-destructive group-hover:opacity-100"
-                                        >
-                                            <Trash2 size={14}/>
-                                        </button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                    >
+                                        <X size={14}/>
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0" aria-label="Search"
+                                        onClick={() => setSearchOpen(true)}>
+                                    <Search size={14}/>
+                                </Button>
+                            )
+                        }
+                    </div>
+
                 )}
+                <div className="flex-1 overflow-auto">
+                    {children.length === 0 ? (
+                        <div className="text-muted-foreground text-sm">This folder is empty.</div>
+                    ) : (
+                        <Table className="text-xs">
+                            <TableHeader>
+                                <TableRow>
+                                    <SortHeader label="Name" sortKey="name"/>
+                                    <SortHeader label="Last edited" sortKey="lastEditedAt" className="w-40"/>
+                                    <SortHeader label="Last viewed" sortKey="lastViewedAt" className="w-40"/>
+                                    <SortHeader label="Views" sortKey="nViews" className="w-20"/>
+                                    <TableHead className="w-8"/>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {rows.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
+                                            No items match.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {rows.map(({child, to, iconType, meta}) => (
+                                    <TableRow
+                                        key={child.id}
+                                        onClick={onNavClick(to)}
+                                        className="group cursor-pointer"
+                                    >
+                                        <TableCell>
+                                            {/* href kept for middle-click / open-in-new-tab; plain clicks are
+                                            handled by the row's onNavClick (bubbles up, preventing default). */}
+                                            <a href={to} className="flex items-center gap-2.5 text-foreground">
+                                                <ColoredIcon type={iconType}/>
+                                                <span className="truncate">{child.name}</span>
+                                            </a>
+                                        </TableCell>
+                                        <TableCell
+                                            className="text-muted-foreground">{formatRelativeTime(meta.lastEditedAt, "—")}</TableCell>
+                                        <TableCell
+                                            className="text-muted-foreground">{formatRelativeTime(meta.lastViewedAt, "—")}</TableCell>
+                                        <TableCell
+                                            className="text-muted-foreground tabular-nums">{formatNumber(meta.nViews ?? 0, 1, true)}</TableCell>
+                                        <TableCell className="p-0">
+                                            <button
+                                                type="button"
+                                                aria-label={`Delete ${child.name}`}
+                                                title="Delete"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setDeleteTarget(child);
+                                                }}
+                                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-destructive group-hover:opacity-100"
+                                            >
+                                                <Trash2 size={14}/>
+                                            </button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </div>
             </div>
 
             <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>

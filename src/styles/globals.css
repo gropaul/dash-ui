@@ -209,7 +209,7 @@ body {
 .react-grid-item.react-grid-placeholder {
   background: hsl(var(--primary) / 0.2);
   border: 1px dashed hsl(var(--primary) / 0.5);
-  border-radius: 0.375rem;
+  border-radius: 0.75rem;
   transition-duration: 100ms;
   z-index: 2;
   user-select: none;
@@ -266,7 +266,7 @@ body {
 .dashboard-prose code {
   background: hsl(var(--muted));
   padding: 0.1em 0.3em;
-  border-radius: 0.25rem;
+  border-radius: 0.75rem;
   font-size: 0.85em;
 }
 .dashboard-prose hr { border-color: hsl(var(--border)); margin: 0.8em 0; }

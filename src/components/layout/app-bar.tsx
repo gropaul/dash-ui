@@ -1,13 +1,14 @@
 'use client';
 
-import {BookOpen, HelpCircle, MoreVertical, Search, Settings, Star} from "lucide-react";
+import {BookOpen, HelpCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {InputWithIcon} from "@/components/ui/input-with-icon";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuItem,
+    DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
+    DropdownMenuSwitchItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {useGUIState} from "@/state/gui.state";
@@ -46,6 +47,8 @@ export function AppBar() {
 // overflow ("more") dropdown. Moved here from the left icon rail.
 function AppBarActions() {
     const openSettingsTab = useGUIState((s) => s.openSettingsTab);
+    const fullWidth = useGUIState((s) => s.fullWidth);
+    const setFullWidth = useGUIState((s) => s.setFullWidth);
     return (
         <>
             <Button variant="ghost" size="icon" aria-label="Settings" onClick={() => openSettingsTab('connection')}>
@@ -57,19 +60,28 @@ function AppBarActions() {
                         <MoreVertical/>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className={'text-accent-foreground'}>
+                    <DropdownMenuSwitchItem
+                        checked={fullWidth}
+                        onCheckedChange={setFullWidth}
+                        icon={<Maximize2 className="mr-2 h-4 w-4"/>}
+                    >
+                        Full Width
+                    </DropdownMenuSwitchItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => openSettingsTab('documentation')}>
                         <BookOpen className="mr-2 h-4 w-4"/> Documentation
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => useOnboardingState.getState().openWelcomeTour()}>
-                        <HelpCircle className="mr-2 h-4 w-4"/> Help &amp; tour
+                        <HelpCircle className="mr-2 h-4 w-4"/> Help
                     </DropdownMenuItem>
-                    <ExportDatabaseButton/>
                     <DropdownMenuItem asChild>
                         <a href="https://github.com/gropaul/dash" target="_blank" rel="noopener noreferrer">
-                            <Star className="mr-2 h-4 w-4"/> Star on GitHub
+                            <Star className="mr-2 h-4 w-4"/> Star
                         </a>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <ExportDatabaseButton/>
                 </DropdownMenuContent>
             </DropdownMenu>
         </>

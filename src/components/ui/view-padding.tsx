@@ -1,9 +1,11 @@
 import {ReactNode} from "react";
 import {cn} from "@/lib/utils";
+import {useGUIState} from "@/state/gui.state";
 
 interface ViewPaddingProps {
     children: ReactNode;
     className?: string;
+    classNameParent?: string;
     // When true, also apply the current horizontal gutter value as bottom padding (matches left/right).
     addPaddingBottom?: boolean;
     active?: boolean;
@@ -23,11 +25,19 @@ const GUTTER_BOTTOM = "pb-2 @view-medium/view:pb-8 @view-wide/view:pb-8";
 //
 // The `@view-medium` / `@view-wide` breakpoints are defined in tailwind.config.ts from the
 // VIEW_PADDING_*_BREAKPOINT_PX constants.
-export function ViewPadding({children, className, addPaddingBottom = false, active = false}: ViewPaddingProps) {
+export function ViewPadding({children, className, classNameParent, addPaddingBottom = false, active = false}: ViewPaddingProps) {
+    const fullWidth = useGUIState((s) => s.fullWidth);
     if (!active) return <>{children}</>;
     return (
-        <div className="@container/view w-full h-full">
-            <div className={cn("mx-auto w-full max-w-6xl", GUTTER_X, addPaddingBottom && GUTTER_BOTTOM, className)}>
+        <div className={cn("@container/view w-full h-full", classNameParent)}>
+            <div
+                className={cn(
+                    "mx-auto w-full",
+                    // Full width: drop the max-width cap and use a uniform 8-unit gutter.
+                    fullWidth ? cn("px-8", addPaddingBottom && "pb-8") : cn("max-w-6xl", GUTTER_X, addPaddingBottom && GUTTER_BOTTOM),
+                    className,
+                )}
+            >
                 {children}
             </div>
         </div>

@@ -20,7 +20,6 @@ export type Layout = 'row' | 'column';
 
 export interface WidgetConfigShellState {
     showConfig: boolean;
-    configSplitRatio: number;
 }
 
 export interface CodeFenceViewState {
@@ -49,7 +48,6 @@ export function getDefaultSessionState(mode: RelationViewMode, show_code: boolea
             codeFenceState,
             configState: {
                 showConfig: true,
-                configSplitRatio: 0.3,
             },
         };
     }
@@ -58,7 +56,6 @@ export function getDefaultSessionState(mode: RelationViewMode, show_code: boolea
         codeFenceState,
         configState: {
             showConfig: false,
-            configSplitRatio: 0.3,
         },
     };
 }

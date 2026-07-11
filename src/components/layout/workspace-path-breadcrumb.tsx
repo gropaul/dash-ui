@@ -115,7 +115,7 @@ function renderCrumb(crumb: Crumb, isLast: boolean, alias?: AliasInfo) {
                 <BreadcrumbLink
                     href={crumb.to}
                     onClick={onNavClick(crumb.to)}
-                    className="truncate max-w-[160px]"
+                    className="truncate max-w-[160px] text-primary"
                 >
                     {crumb.label}
                 </BreadcrumbLink>
@@ -134,8 +134,8 @@ function renderCrumb(crumb: Crumb, isLast: boolean, alias?: AliasInfo) {
                             </a>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="max-w-80">
-                            <div className="font-medium">Link — opens the original</div>
-                            <div className="mt-0.5 text-primary-foreground/70 break-words">{alias.label}</div>
+                            <div className="font-medium">This is a linked view. Any changes you make here also apply to the original at {alias.label}</div>
+                            <div className="mt-0.5 text-primary-foreground/70 break-words">Click here to there</div>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

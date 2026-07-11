@@ -59,7 +59,7 @@ export function ViewHeader({
                         titleComponent
                     ) : (
                         <H5
-                            className="text-ellipsis text-sm whitespace-nowrap flex-shrink min-w-0"
+                            className="text-ellipsis text-sm whitespace-nowrap flex-shrink min-w-0 pl-6"
                         >
                             {title}
                         </H5>

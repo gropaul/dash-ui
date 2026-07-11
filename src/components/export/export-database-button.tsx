@@ -58,7 +58,7 @@ export function ExportDatabaseButton() {
 
     return (
         <DropdownMenuItem onClick={onButtonClick}>
-            <Download className="mr-2 h-4 w-4"/> Download database
+            <Download className="mr-2 h-4 w-4"/> Download Database
         </DropdownMenuItem>
     )
 }

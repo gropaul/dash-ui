@@ -10,6 +10,7 @@ import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {ViewPadding} from "@/components/ui/view-padding";
 import {cn} from "@/lib/utils";
+import {useGUIState} from "@/state/gui.state";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement | null>;
@@ -39,11 +40,12 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
 
     const viewType = props.relationState.viewState.selectedView;
     const showConfig = props.mode === 'fullscreen' && hasSettingsPanel(viewType);
-    const sessionState = props.getSessionState(props.mode);
-    const configSize = Math.round(sessionState.configState.configSplitRatio * 100);
+    const configSplitRatio = useGUIState(state => state.configSplitRatio);
+    const setConfigSplitRatio = useGUIState(state => state.setConfigSplitRatio);
+    const configSize = Math.round(configSplitRatio * 100);
 
     function onConfigResize(size: number) {
-        advancedActions.updateSessionState(props.mode, {configState: {configSplitRatio: size / 100}});
+        setConfigSplitRatio(size / 100);
     }
 
     return (
