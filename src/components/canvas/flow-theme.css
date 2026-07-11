@@ -53,6 +53,16 @@
     border-color: #d9d9d9;
 }
 
+/* While panning the viewport (incl. two-finger trackpad / panOnScroll), make nodes and ALL
+   their descendants transparent to pointer + wheel events so those events retarget to the pane
+   behind them and the pan is not interrupted when the cursor crosses a node. The `* !important`
+   is required to beat inner elements that set their own `pointer-events` (e.g. Monaco / the SQL
+   editor, Radix ScrollArea), which otherwise consume the wheel and end the scroll-pan. */
+.canvas-panning .react-flow__node,
+.canvas-panning .react-flow__node * {
+    pointer-events: none !important;
+}
+
 /* Override pointer cursor on nodes when not selectable */
 .react-flow__node:not(.selectable) {
     cursor: inherit;

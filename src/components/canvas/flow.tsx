@@ -95,6 +95,9 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     } = useUndoableFlow(canvasId);
 
     const [canvasState, setCanvasState] = useState<CanvasState>(INITIAL_CANVAS_STATE);
+    // True while the viewport is being panned/zoomed. Disables node pointer events (via the
+    // `canvas-panning` class) so an in-progress pan is not interrupted when the cursor crosses a node.
+    const [isPanning, setIsPanning] = useState(false);
     const {screenToFlowPosition, getIntersectingNodes, getNodes, getEdges} = useReactFlow();
     const connectingFrom = useRef<OnConnectStartParams | null>(null);
     const {resolvedTheme} = useTheme();
@@ -243,6 +246,7 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     return (
         <CanvasProvider canvasId={canvasId} setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges} openFullscreen={openFullscreen}>
             <div
+                className={isPanning ? 'canvas-panning' : undefined}
                 style={{width: '100%', height: '100%'}}
                 onKeyDownCapture={(e) => {
                     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -276,6 +280,8 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
                 colorMode={resolvedTheme === 'dark' ? 'dark' : 'light'}
                 defaultViewport={viewport}
                 onViewportChange={onViewportChange}
+                onMoveStart={() => setIsPanning(true)}
+                onMoveEnd={() => setIsPanning(false)}
                 snapToGrid={canvasState.selectedTool !== 'free-draw'}
                 snapGrid={[GRID_SIZE, GRID_SIZE]}
                 panOnScroll={true}
