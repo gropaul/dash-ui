@@ -1,4 +1,4 @@
-import {Braces, ChartSpline, Code, LayoutDashboard, Map, Menu, Sheet} from "lucide-react";
+import {Braces, ChartSpline, Code, LayoutDashboard, Map, Maximize2, Menu, Sheet} from "lucide-react";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {RelationViewType} from "@/model/relation-view-state";
 import {Toggle} from "@/components/ui/toggle"
@@ -42,7 +42,9 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
     const relationId = props.relationState.id;
     const {viewState} = props.relationState;
 
+
     const codeFenceState = props.getSessionState(props.mode).codeFenceState;
+    const queryToggleText = codeFenceState.show ? 'Hide Query' : 'Show Query';
     const parametersState = viewState.parametersState ?? {
         panelState: {show: false, sizePercentage: 30},
         parameters: []
@@ -52,7 +54,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
     const isMobile = useIsMobile();
 
 
-    const queryToggleText = codeFenceState.show ? 'Hide Query' : 'Show Query';
     const parametersToggleText = parametersState.panelState.show ? 'Hide Parameters' : 'Show Parameters';
 
     const [filepathDialogState, setFilepathDialogState] = useState<FilepathDialogState>({
@@ -81,44 +82,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                 actionButtons={
                     isMobile ?
                         <>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <Menu/>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-
-                                    <DropdownMenuSub>
-                                        <DropdownMenuSubTrigger>Export as ...</DropdownMenuSubTrigger>
-                                        <DropdownMenuPortal>
-                                            <DropdownMenuSubContent>
-                                                <HeaderDownloadButtonContent
-                                                    state={filepathDialogState}
-                                                    setState={setFilepathDialogState}
-                                                />
-                                            </DropdownMenuSubContent>
-                                        </DropdownMenuPortal>
-                                    </DropdownMenuSub>
-                                    <DropdownMenuSwitchItem
-                                        title={queryToggleText}
-                                        checked={codeFenceState.show}
-                                        onCheckedChange={(show) => advancedActions.updateSessionState(props.mode, {codeFenceState: {show}})}
-                                    >
-                                        Show Query
-                                    </DropdownMenuSwitchItem>
-                                    {parametersState.parameters.length != 0 &&
-                                        <DropdownMenuItem
-                                            onClick={props.toggleShowParameters}
-                                            title={parametersToggleText}
-                                        >
-                                            <span>{parametersToggleText}</span>
-                                        </DropdownMenuItem>
-                                    }
-                                    <DropdownMenuSeparator/>
-
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                         </>
                         :
                         <>
@@ -128,7 +91,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     pressed={parametersState.panelState.show}
                                     title={parametersToggleText}
                                 >
-                                    <Braces className="h-4 w-4"/>
+                                    <Braces className="h-4 w-4 mr-2 "/>
                                 </Toggle>
                             }
                             <RelationSettings {...props} align={"end"}>
@@ -136,7 +99,7 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                                     title={queryToggleText}
                                     checked={codeFenceState.show}
                                     onCheckedChange={(show) => advancedActions.updateSessionState(props.mode, {codeFenceState: {show}})}
-                                    icon={<Code/>}
+                                    icon={<Code className="h-4 w-4 mr-2 "/>}
                                 >
                                     Show Query
                                 </DropdownMenuSwitchItem>

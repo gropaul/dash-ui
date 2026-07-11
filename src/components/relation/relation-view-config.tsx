@@ -12,17 +12,19 @@ import {Label} from "@/components/ui/label";
 import {Muted} from "@/components/ui/typography";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Separator} from "@/components/ui/separator";
+import {GetEmptyRelationData} from "@/model/relation";
 
 export function hasSettingsPanel(viewType: RelationViewType): boolean {
     return ViewManager.instance.getSettingsComponent(viewType) !== null;
 }
 
 export function RelationViewConfig(props: RelationViewProps) {
-    const data = useRelationData(props.relationState);
+    const actualData = useRelationData(props.relationState);
     const viewType = props.relationState.viewState.selectedView;
     const SettingsComponent = ViewManager.instance.getSettingsComponent(viewType);
 
-    if (!SettingsComponent || !data) return null;
+    const data = actualData ?? GetEmptyRelationData();
+    if (!SettingsComponent) return null;
 
     const contentProps: RelationViewContentProps = {...props, data};
     const advancedActions = getRelationActions(props);

@@ -108,10 +108,10 @@ function formatDefaultValue(param: ParameterDefinition): string {
     return value;
 }
 
-export function generateCreateMacroSQLInternal(
+export async function generateCreateMacroSQLInternal(
     relationState: RelationState
-): string {
-    let effectiveQuery = ViewManager.instance.buildMacroQuery(relationState)
+): Promise<string> {
+    let effectiveQuery = await ViewManager.instance.buildMacroQuery(relationState)
     const macroName = getMacroName(relationState.viewState.displayName);
     const paramNames = extractParameters(effectiveQuery);
     const createKeyword = isDatabaseReadonly() ? 'CREATE OR REPLACE TEMP MACRO' : 'CREATE OR REPLACE MACRO';
@@ -231,7 +231,7 @@ export async function checkMacroName(_relationName: string): Promise<string | nu
 export async function registerRelationMacro(
     relationState: RelationState
 ): Promise<void> {
-    const sql = generateCreateMacroSQLInternal(relationState);
+    const sql = await generateCreateMacroSQLInternal(relationState);
     try {
         await ConnectionsService.getInstance().executeQuery(sql);
     } catch (error) {
@@ -348,7 +348,7 @@ async function reregisterAllMacros(): Promise<void> {
     for (const {relation} of entries) {
         if (relation.viewState.displayName && relation.query.baseQuery) {
             const key = sanitizeMacroName(relation.viewState.displayName);
-            const createSql = generateCreateMacroSQLInternal(relation);
+            const createSql = await generateCreateMacroSQLInternal(relation);
             macros.push({key, createSql});
         }
     }

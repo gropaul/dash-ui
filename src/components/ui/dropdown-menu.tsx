@@ -109,12 +109,12 @@ const DropdownMenuSwitchItem = React.forwardRef<
     onSelect={(e) => e.preventDefault()}
     onClick={() => onCheckedChange(!checked)}
     className={cn(
-      "relative flex cursor-default select-none items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center justify-between gap-6 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
   >
-    <span className="flex flex-row items-center gap-4">
+    <span className="flex flex-row items-center gap-2">
       {icon}
       {children}
     </span>

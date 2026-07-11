@@ -1,7 +1,7 @@
 import {
     DropdownMenu,
     DropdownMenuContent, DropdownMenuItem,
-    DropdownMenuSeparator,
+    DropdownMenuSeparator, DropdownMenuSwitchItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {EllipsisVertical, LayoutDashboard} from "lucide-react";
@@ -27,7 +27,7 @@ export function RelationSettings(props: RelationSettingsProps) {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className={props.className}>
-                    <EllipsisVertical className="h-4 w-4"/>
+                    <EllipsisVertical className="h-4 w-4 mr-2"/>
                     <span className="sr-only">Open settings</span>
                 </Button>
             </DropdownMenuTrigger>
@@ -35,10 +35,9 @@ export function RelationSettings(props: RelationSettingsProps) {
                 {props.children}
                 <DropdownMenuSeparator/>
                 <DropdownMenuItem onClick={() => setDashboardCommand({open: true, relation: props.relationState})}>
-                    <LayoutDashboard size={16} className="mr-1"/>
+                    <LayoutDashboard className="h-4 w-4 mr-2"/>
                     Add to Dashboard
                 </DropdownMenuItem>
-
             </DropdownMenuContent>
             <DashboardCommand
                 dashboards={Object.values(dashboards)}

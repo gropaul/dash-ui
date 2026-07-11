@@ -7,6 +7,13 @@ export interface RelationData {
     rows: Row[]
 }
 
+export function GetEmptyRelationData(): RelationData {
+    return {
+        columns: [],
+        rows: [],
+    };
+}
+
 export function GetColumnIndexByName(relation: RelationData, columnName: string): number {
     const columnIndex = relation.columns.findIndex((column) => column.name === columnName);
     if (columnIndex === -1) {

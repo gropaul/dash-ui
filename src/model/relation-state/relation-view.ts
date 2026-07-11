@@ -56,7 +56,7 @@ export class ViewManager {
         return this.views[viewType].buildQuery(relation);
     }
 
-    buildMacroQuery(relation: RelationState):  string {
+    buildMacroQuery(relation: RelationState):  Promise<string> {
         const viewType = relation.viewState.selectedView;
         return this.views[viewType].buildMacroQuery(relation);
     }

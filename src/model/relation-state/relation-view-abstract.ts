@@ -47,7 +47,7 @@ export abstract class IRelationView<QueryParameters, QueryState = void> {
     // The main data query for this view
     abstract buildViewQuery(parameters: QueryParameters, fromQuery: string, fromAlias: string): string;
 
-    buildMacroQuery(relation: RelationState): string {
+    buildMacroQuery(relation: RelationState): Promise<string> {
         return buildMacroQuery<QueryParameters, QueryState>(relation, this);
     }
 

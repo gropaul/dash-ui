@@ -178,7 +178,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
 
     return (
         <div
-            className="w-full h-full relative"
+            className="w-full h-full relative border rounded-2xl"
             ref={divRef}
             onMouseMove={handleMouseMove}
         >

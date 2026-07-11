@@ -1,4 +1,4 @@
-import {DropdownMenuItem} from "@/components/ui/dropdown-menu";
+import {DropdownMenuItem, DropdownMenuSeparator} from "@/components/ui/dropdown-menu";
 import {Download,} from "lucide-react";
 import React, {useEffect} from "react";
 import {ConnectionsService} from "@/state/connections/connections-service";
@@ -57,8 +57,11 @@ export function ExportDatabaseButton() {
     }
 
     return (
-        <DropdownMenuItem onClick={onButtonClick}>
-            <Download className="mr-2 h-4 w-4"/> Download Database
-        </DropdownMenuItem>
+       <>
+           <DropdownMenuSeparator />
+           <DropdownMenuItem onClick={onButtonClick}>
+               <Download className="mr-2 h-4 w-4"/> Download Database
+           </DropdownMenuItem>
+       </>
     )
 }

@@ -46,9 +46,10 @@ export class RelationViewSlider extends IRelationView<SliderQueryParameters, Sli
     }
 
     buildViewQuery(parameters: SliderQueryParameters, fromQuery: string, fromAlias: string): string {
-        const col = parameters.column
-            ? `"${fromAlias}"."${parameters.column}"`
-            : `"${fromAlias}".__unknown__`;
+        if (!parameters.column) {
+            throw new QueryBuildError('No column for the slider specified.');
+        }
+        const col = `"${fromAlias}"."${parameters.column}"`
         return `SELECT MIN(${col}) as global_min, MAX(${col}) as global_max FROM ${fromQuery}`;
     }
 
@@ -64,25 +65,27 @@ export class RelationViewSlider extends IRelationView<SliderQueryParameters, Sli
         parameters: SliderQueryParameters,
         state: SliderQueryState,
         fromQuery: string,
-        _fromAlias: string
+        fromAlias: string
     ): string {
         const mode = parameters.mode ?? 'eq';
-        const col = parameters.column;
+        const col = `"${fromAlias}"."${parameters.column}"`
 
-        if (!col) return `SELECT * FROM ${fromQuery}`;
+        console.log("buildMacroQueryInternal", parameters, state, fromQuery, col);
 
-        const q = `"${col}"`;
+        if (!parameters.column) {
+            throw new QueryBuildError('No column for the slider specified.');
+        }
 
         if (!isRangeMode(mode)) {
             if (state.value === undefined) return `SELECT * FROM ${fromQuery}`;
             const v = state.value;
             const opMap: Record<string, string> = {eq: '=', lower: '<=', higher: '>='};
-            return `SELECT * FROM ${fromQuery} WHERE ${q} ${opMap[mode]} ${v}`;
+            return `SELECT * FROM ${fromQuery} WHERE ${col} ${opMap[mode]} ${v}`;
         } else {
             if (state.rangeStart === undefined || state.rangeEnd === undefined) {
                 return `SELECT * FROM ${fromQuery}`;
             }
-            const between = `${q} BETWEEN ${state.rangeStart} AND ${state.rangeEnd}`;
+            const between = `${col} BETWEEN ${state.rangeStart} AND ${state.rangeEnd}`;
             const condition = mode === 'in_range' ? between : `NOT (${between})`;
             return `SELECT * FROM ${fromQuery} WHERE ${condition}`;
         }
