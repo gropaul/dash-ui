@@ -2,7 +2,6 @@ import {createJSONStorage, persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {ForceOpenReason} from "@/components/settings/settings-dialog";
 
-export type AvailableTab = 'connections' | 'relations' | 'chat'
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation' | 'get-started'
 
 export interface SettingsGUIZustand {
@@ -17,12 +16,12 @@ const INITIAL_SETTINGS_STATE: SettingsGUIZustand = {
     forceOpenReasons: [],
 }
 
-// Which side panels are open + panel sizing. This is UI-only state, orthogonal
-// to which entity is routed in <main> (that lives in the URL, not here).
+// Navigation sidebar + other UI-only state, orthogonal to which entity is routed
+// in <main> (that lives in the URL, not here).
 export interface GUIZustand {
-    mainBarSizeRatio: number;
-    sideBarTabsSizeRatios: number[];
-    selectedSidebarTabs: AvailableTab[];
+    // Whether the left navigation sidebar is expanded (icons + labels + sections)
+    // or collapsed (icons only).
+    sidebarExpanded: boolean;
     settings: SettingsGUIZustand;
     // Split ratio (0-1) between a relation view and its config panel. Shared across all relation views.
     configSplitRatio: number;
@@ -31,9 +30,7 @@ export interface GUIZustand {
 }
 
 export interface GUIZustandActions {
-    setMainBarSizeRatio: (ratio: number) => void;
-    setSideBarTabsSizeRatios: (ratio: number[]) => void;
-    setSelectedSidebarTabs: (tabs: AvailableTab[]) => void;
+    setSidebarExpanded: (expanded: boolean) => void;
     setConfigSplitRatio: (ratio: number) => void;
     setFullWidth: (fullWidth: boolean) => void;
 
@@ -54,9 +51,7 @@ const storage = createJSONStorage(() => localStorage);
 export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
     persist(
         (set, get) => ({
-            mainBarSizeRatio: 25,
-            selectedSidebarTabs: ['relations'],
-            sideBarTabsSizeRatios: [70],
+            sidebarExpanded: true,
             relationFileDropEnabled: true,
             settings: INITIAL_SETTINGS_STATE,
             configSplitRatio: 0.3,
@@ -106,16 +101,8 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                 set({settings: {...get().settings, isOpen: true, currentTab: tab}});
             },
 
-            setSideBarTabsSizeRatios: (ratios: number[]) => {
-                set({sideBarTabsSizeRatios: ratios});
-            },
-
-            setSelectedSidebarTabs: (tabs: AvailableTab[]) => {
-                set({selectedSidebarTabs: tabs});
-            },
-
-            setMainBarSizeRatio: (ratio: number) => {
-                set({mainBarSizeRatio: ratio});
+            setSidebarExpanded: (expanded: boolean) => {
+                set({sidebarExpanded: expanded});
             },
 
             setConfigSplitRatio: (ratio: number) => {
@@ -129,15 +116,19 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
         {
             name: "gui-state", // The key used in localStorage
             storage: storage,
-            version: 2,
+            version: 3,
             // v1 persisted a serialized flexlayout `layoutModel` + tab fields.
-            // Drop those; keep sidebar/settings state.
+            // v2→v3 dropped the old toggle-based sidebar state (icon rail + resizable panels).
+            // Drop all of those; keep settings + the new sidebarExpanded flag.
             migrate: (persistedState: any, _version: number) => {
                 if (persistedState && typeof persistedState === "object") {
                     delete persistedState.layoutModel;
                     delete persistedState.selectedTabId;
                     delete persistedState.hasOpenTabs;
                     delete persistedState.number;
+                    delete persistedState.selectedSidebarTabs;
+                    delete persistedState.mainBarSizeRatio;
+                    delete persistedState.sideBarTabsSizeRatios;
                 }
                 return persistedState;
             },

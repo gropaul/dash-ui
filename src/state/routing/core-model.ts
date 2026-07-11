@@ -16,6 +16,7 @@ import {findPathById, findNodeInTrees, TreeNode} from "@/components/basics/files
 import {computeSiblingMacroNames} from "@/state/routing/macro-name";
 
 export const SPACES_ROOT = "/workspace";
+export const DATA_ROOT = "/data";
 
 export interface Resolved {
     /** 'spaces-root' | 'spaces' | 'notfound' — 'spaces' still needs tree resolution */
