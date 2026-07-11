@@ -12,15 +12,18 @@ const LOCALE_STORAGE_OBFUSCATION_KEY = 'language-model-settings-key';
 
 export const obfuscatedStorage: StateStorage = {
     getItem: async (name: string): Promise<string | null> => {
+        if (typeof localStorage === 'undefined') return null;
         const item = localStorage.getItem(name);
         return item ? XorDecrypt(LOCALE_STORAGE_OBFUSCATION_KEY, item) : null;
     },
     setItem: async (name: string, value: string): Promise<void> => {
+        if (typeof localStorage === 'undefined') return;
         const obfuscatedValue = XorEncrypt(LOCALE_STORAGE_OBFUSCATION_KEY, value);
         localStorage.setItem(name, obfuscatedValue);
 
     },
     removeItem: async (name: string): Promise<void> => {
+        if (typeof localStorage === 'undefined') return;
         console.log(name, 'has been deleted')
         localStorage.removeItem(name);
     },
