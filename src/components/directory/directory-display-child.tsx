@@ -1,6 +1,7 @@
 import {File, Folder} from "lucide-react";
 import {DirectoryItem} from "@/components/export/hostfs-functions";
 import {DirectoryDisplayMode} from "@/components/directory/directory-display";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 export interface DirectoryChildViewProps {
     item: DirectoryItem;
@@ -17,11 +18,12 @@ export function DirectoryDisplayChild({item, displayMode, onClick}: DirectoryChi
     const renderItem = (
         <>
             {isFolder ? <Folder size={iconSize}/> : <File size={iconSize}/>}
-            <div
-                title={item.name}
-                className="text-sm font-medium text-center text-muted-foreground w-24 break-words line-clamp-2 text-ellipsis">
-                {item.name}
-            </div>
+            <TooltipWrapper message={item.name}>
+                <div
+                    className="text-sm font-medium text-center text-muted-foreground w-24 break-words line-clamp-2 text-ellipsis">
+                    {item.name}
+                </div>
+            </TooltipWrapper>
         </>
     );
 

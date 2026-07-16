@@ -1,4 +1,5 @@
 import {ChevronDown} from 'lucide-react';
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 interface CustomSelectProps {
     options: { value: string; label: string }[];
@@ -17,14 +18,13 @@ export function ButtonSelect({ options, onChange, defaultValue, title, className
 
     const borderClass = border ? 'border border-gray-300' : '';
 
-    return (
-        <div className={`relative inline-block ${className}`} title={title}>
+    const content = (
+        <div className={`relative inline-block ${className}`}>
             {/* Hidden native select */}
             <select
                 className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={handleChange}
                 defaultValue={defaultValue}
-                title="TextSelect View"
             >
                 {options.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -41,4 +41,6 @@ export function ButtonSelect({ options, onChange, defaultValue, title, className
             </div>
         </div>
     );
+
+    return title ? <TooltipWrapper message={title}>{content}</TooltipWrapper> : content;
 }

@@ -7,6 +7,7 @@ import {useRelationsState} from "@/state/relations.state";
 import {CardView} from "@/components/basics/basic-view/card-view";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 
 interface SchemaRelationViewProps {
@@ -52,10 +53,11 @@ export function SchemaRelationView(props: SchemaRelationViewProps) {
                     <div key={column.name} className="flex items-center justify-between px-4 py-0.5 border-gray-100">
                         <div className="flex-1 flex items-center space-x-2 overflow-hidden pr-1">
                             <ValueIcon type={column.type}/>
-                            <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
-                                  title={column.name}>
+                            <TooltipWrapper message={column.name}>
+                                <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
                             {column.name}
                         </span>
+                            </TooltipWrapper>
                         </div>
                         {/* Type always fully visible */}
                         <span className="flex-shrink-0 text-gray-500 text-s">
