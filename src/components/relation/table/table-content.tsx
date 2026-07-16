@@ -7,7 +7,8 @@ import {TableValueCell} from "@/components/relation/table/table-value-cell";
 import {Sometype_Mono} from "next/font/google";
 import {useVirtualizer} from "@tanstack/react-virtual";
 import {INITIAL_COLUMN_VIEW_STATE} from "@/model/relation-view-state/table";
-import {ColumnDecoration, styleNeedsRange, toNumeric} from "@/model/relation-view-state/decoration";
+import {buildCategoryColorMap, ColumnDecoration, styleNeedsRange, toNumeric} from "@/model/relation-view-state/decoration";
+import {DEFAULT_COLORS} from "@/platform/global-data";
 
 
 export const fontMono = Sometype_Mono({subsets: ["latin"], weight: "400"});
@@ -60,6 +61,16 @@ export const TableContent = React.memo(function TableContent(props: RelationView
             }
             if (min === Infinity) return undefined;
             return {min, max};
+        });
+    }, [rowsSlice, columnViewIndices, columnDecorations]);
+
+    // Collision-free value -> color map per badge column, sampled from the
+    // loaded rows. Values beyond the sample cap fall back to a hashed color.
+    const columnCategoryColors = React.useMemo(() => {
+        return columnViewIndices.map((colIndex, i) => {
+            const decoration: ColumnDecoration | undefined = columnDecorations[i];
+            if (!decoration || decoration.style !== 'badge') return undefined;
+            return buildCategoryColorMap(rowsSlice.map(row => row[colIndex]), DEFAULT_COLORS);
         });
     }, [rowsSlice, columnViewIndices, columnDecorations]);
 
@@ -154,6 +165,7 @@ export const TableContent = React.memo(function TableContent(props: RelationView
                                         decoration={columnDecorations[i]}
                                         rangeMin={columnRanges[i]?.min}
                                         rangeMax={columnRanges[i]?.max}
+                                        categoryColors={columnCategoryColors[i]}
                                     />
                                 ))
                                 }
