@@ -32,6 +32,7 @@ import {routeForNodeId, resolveNodeFromPath, SPACES_ROOT} from "@/state/routing/
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
 import {GetInitialCanvasState, CanvasState} from "@/model/canvas-state";
+import {purgeRelationReferences} from "@/state/relations/relation-dependencies";
 import {
     AddIfNotExists,
     deleteFromEntityCollection,
@@ -104,6 +105,8 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     addNewCanvas: (canvas?: CanvasState, editorPath?: string[]) => void,
     getCanvasState: (canvasId: string) => CanvasState,
     updateCanvasState: (canvasId: string, canvas: Partial<CanvasState>) => void,
+    // High-level: add a node referencing an existing relation to a canvas (mirrors addRelationWidgetToDashboard).
+    addRelationToCanvas: (canvasId: string, relationId: string) => void,
     /* entity actions */
     deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
     getEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string) => string,
@@ -236,17 +239,38 @@ export const useRelationsState = createWithEqualityFn(
                         },
                     }));
                 },
+                addRelationToCanvas: (canvasId: string, relationId: string) => {
+                    const canvas = get().canvas[canvasId];
+                    if (!canvas) return;
+                    if (!get().relations[relationId]) return;
+                    // Reference the existing relation by id (no copy) — same model as dashboard widgets.
+                    // Size mirrors DEFAULT_NODE_SIZE (25 * GRID_SIZE) from canvas/logic/models; inlined to
+                    // avoid importing canvas UI modules into the state layer. Placed top-left; user repositions.
+                    const newNode = {
+                        id: `node-${getRandomId()}`,
+                        type: 'relationNode',
+                        position: {x: 0, y: 0},
+                        width: 500,
+                        height: 500,
+                        selected: false,
+                        data: {relationId},
+                    };
+                    get().updateCanvasState(canvasId, {nodes: [...canvas.nodes, newNode]});
+                },
                 deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
                     // if the entity being deleted is the one currently shown, leave for /spaces
                     const currentlyShown = resolveNodeFromPath(get().editorElements, currentPathname());
 
-                    // if it is a relation, delete the cache and dispatch delete action
+                    // if it is a relation, delete the cache, dispatch delete action, and purge
+                    // every dashboard widget / canvas node that referenced it
+                    let refUpdates: Partial<Pick<RelationZustand, 'dashboards' | 'canvas'>> = {};
                     if (entityType === 'relations') {
                         useRelationDataState.getState().deleteData(entityId);
                         const relation = get().relations[entityId];
                         if (relation) {
                             RelationEvents.delete(relation);
                         }
+                        refUpdates = purgeRelationReferences(get().dashboards, get().canvas, new Set([entityId]));
                     }
                     const newCollection = deleteFromEntityCollection(get(), entityType, entityId);
                     const actions = RemoveNodeAction(editorPath);
@@ -254,10 +278,17 @@ export const useRelationsState = createWithEqualityFn(
                     set({
                         [entityType]: newCollection,
                         editorElements: newElements,
+                        ...refUpdates,
                     });
 
+                    // If we just deleted the entity currently on screen, its route no longer resolves —
+                    // move to the parent folder (still present in newElements) if there is one, else the
+                    // workspace root.
                     if (currentlyShown?.id === entityId) {
-                        navigateReplace(SPACES_ROOT);
+                        const parentPath = editorPath.slice(0, editorPath.length - 1);
+                        const parentId = parentPath[parentPath.length - 1];
+                        const parentRoute = parentId ? routeForNodeId(newElements, parentId) : undefined;
+                        navigateReplace(parentRoute ?? SPACES_ROOT);
                     }
                 },
 
@@ -528,6 +559,7 @@ export const useRelationsState = createWithEqualityFn(
                     // remember what is currently shown so we can leave for /spaces if it gets removed
                     const currentlyShown = resolveNodeFromPath(get().editorElements, currentPathname());
 
+                    const deletedRelationIds = new Set<string>();
                     IterateAll([elementToRemove], (node) => {
                         if (node.type === 'dashboards') {
                             delete newDashboards[node.id];
@@ -537,14 +569,19 @@ export const useRelationsState = createWithEqualityFn(
                                 RelationEvents.delete(relation);
                             }
                             delete newRelations[node.id];
+                            deletedRelationIds.add(node.id);
                         }
                     });
+
+                    // purge references to the removed relations from surviving dashboards/canvases
+                    const purged = purgeRelationReferences(newDashboards, get().canvas, deletedRelationIds);
 
                     const updatedFolders = removeNode(newElements, path);
                     set(() => ({
                         editorElements: updatedFolders,
                         relations: newRelations,
-                        dashboards: newDashboards,
+                        dashboards: purged.dashboards,
+                        canvas: purged.canvas,
                     }));
 
                     if (currentlyShown && !findPathById(updatedFolders, currentlyShown.id)) {

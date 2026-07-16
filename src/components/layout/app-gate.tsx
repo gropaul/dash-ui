@@ -4,6 +4,8 @@ import React, {useEffect, useState} from "react";
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {AppShell} from "@/components/layout/app-shell";
 import {RenameDialog} from "@/components/workbench/rename-dialog";
+import {GlobalCommand} from "@/components/workbench/global-command";
+import {RelationDeleteDialog} from "@/components/workbench/relation-delete-dialog";
 import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
 import {AlertDialog} from "@radix-ui/react-alert-dialog";
 import {
@@ -72,6 +74,8 @@ export function AppGate({children}: { children: React.ReactNode }) {
                 </AlertDialogContent>
             </AlertDialog>
             <RenameDialog/>
+            <GlobalCommand/>
+            <RelationDeleteDialog/>
         </>
     );
 }
