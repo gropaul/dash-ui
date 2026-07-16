@@ -4,7 +4,6 @@ import {useEffect, useState} from "react";
 import {Bug, BookOpen, HelpCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
-import {InputWithIcon} from "@/components/ui/input-with-icon";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {isDebugMode} from "@/components/settings/about-content";
 import {
@@ -18,6 +17,7 @@ import {useGUIState} from "@/state/gui.state";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {WorkspacePathBreadcrumb} from "@/components/layout/workspace-path-breadcrumb";
+import {openSearchCommand} from "@/components/workbench/global-command";
 
 /**
  * The global top app bar — a full-width, slot-based shell above the icon rail + sidebar.
@@ -39,8 +39,8 @@ export function AppBar() {
 
             {/* RIGHT — app actions: settings + an overflow menu for the rest */}
             <div className="flex items-center gap-1 flex-1 justify-end pr-2">
-                {/*<AppBarSearch/>*/}
                 <DebugModeBadge/>
+                <AppBarSearch/>
                 <AppBarActions/>
             </div>
         </header>
@@ -115,18 +115,11 @@ function AppBarLogo() {
     );
 }
 
-// Visual only — a non-interactive search box. No state/handler until the search feature lands.
+// Opens the global command palette in "open" mode (also ⌘K / Ctrl-K or double-Shift).
 function AppBarSearch() {
     return (
-        <div className="w-full max-w-md" aria-hidden="true">
-            <InputWithIcon
-                startIcon={Search}
-                placeholder="Search…"
-                readOnly
-                disabled
-                tabIndex={-1}
-                className="h-8 cursor-default"
-            />
-        </div>
+        <Button variant="ghost" size="icon" aria-label="Search" onClick={openSearchCommand}>
+            <Search/>
+        </Button>
     );
 }

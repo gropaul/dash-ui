@@ -1,20 +1,13 @@
-import {useState} from "react";
-import {Eye, Pencil, Plus} from "lucide-react";
+import {Eye, Pencil, Plus, Type} from "lucide-react";
 import {Button} from "@/components/ui/button";
-import {ColoredIcon} from "@/components/basics/files/icon-factories";
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-    CommandSeparator,
-} from "@/components/ui/command";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {CommandButton} from "@/components/ui/command-button";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {useRelationsState} from "@/state/relations.state";
+import {useGUIState} from "@/state/gui.state";
 import {DashboardState} from "@/model/dashboard-state";
+import {RelationActions} from "@/state/relations/actions/static-actions";
+import {findPathById} from "@/components/basics/files/tree-utils";
+import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {
     cancelAllDashboardQueries,
     dashboardRelationIds,
@@ -30,58 +23,63 @@ interface DashboardToolbarProps {
 
 export function DashboardToolbar({dashboard, editMode, onToggleEditMode}: DashboardToolbarProps) {
     const relations = useRelationsState(s => s.relations);
-    const [addOpen, setAddOpen] = useState(false);
 
-    const addTextWidget = () => {
-        useRelationsState.getState().addTextWidgetToDashboard(dashboard.id);
-        setAddOpen(false);
-    };
-    const addRelationWidget = (relationId: string) => {
-        useRelationsState.getState().addRelationWidgetToDashboard(dashboard.id, relationId);
-        setAddOpen(false);
+    // Create a brand-new (empty) relation, place it next to the dashboard in the tree, and add it
+    // as a widget — the dashboard's own "new query" entry point.
+    const addNewRelationWidget = () => {
+        const relation = RelationActions.create({showCode: true, viewType: 'table'});
+        const editorElements = useRelationsState.getState().editorElements;
+        const dashboardPath = findPathById(editorElements, dashboard.id);
+        const parentPath = dashboardPath ? dashboardPath.slice(0, -1) : [];
+        useRelationsState.getState().addNewRelation(MAIN_CONNECTION_ID, parentPath, relation, false);
+        useRelationsState.getState().addRelationWidgetToDashboard(dashboard.id, relation.id);
     };
 
-    const relationList = Object.values(relations);
+    // Open the shared command palette as the "add widget" picker: it lists existing relations to
+    // drop onto this dashboard, with quick-add buttons (text / new relation) in the slot.
+    const openAddWidget = () => {
+        useGUIState.getState().openCommand({
+            action: 'add-relation-to-dashboard',
+            filter: ['relations'],
+            slot: (
+                <div className="flex w-full gap-2.5">
+                    <CommandButton
+                        className="flex-1"
+                        icon={<Type size={16}/>}
+                        onClick={() => {
+                            useRelationsState.getState().addTextWidgetToDashboard(dashboard.id);
+                            useGUIState.getState().closeCommand();
+                        }}
+                    >
+                        Add text
+                    </CommandButton>
+                    <CommandButton
+                        className="flex-1"
+                        icon={<Plus size={16}/>}
+                        onClick={() => {
+                            addNewRelationWidget();
+                            useGUIState.getState().closeCommand();
+                        }}
+                    >
+                        New relation
+                    </CommandButton>
+                </div>
+            ),
+            onSelect: (entity) => {
+                useRelationsState.getState().addRelationWidgetToDashboard(dashboard.id, entity.id);
+            },
+        });
+    };
+
     const hasRelations = dashboardRelationIds(dashboard).length > 0;
     const execState = getDashboardExecutionState(dashboard, relations);
 
     const actionButtons = (
         <>
             {editMode && (
-                <Popover open={addOpen} onOpenChange={setAddOpen}>
-                    <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1">
-                            <Plus size={14}/> Add widget
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent align="end" className="w-64 p-0">
-                        <Command>
-                            <CommandInput placeholder="Add widget…"/>
-                            <CommandList>
-                                <CommandEmpty>No widget found.</CommandEmpty>
-                                <CommandGroup>
-                                    <CommandItem value="Text" onSelect={addTextWidget}>
-                                        <ColoredIcon type="text" size={16} background={false}/>
-                                        Text
-                                    </CommandItem>
-                                </CommandGroup>
-                                <CommandSeparator/>
-                                <CommandGroup heading="Relations">
-                                    {relationList.map(r => (
-                                        <CommandItem
-                                            key={r.id}
-                                            value={r.viewState.displayName}
-                                            onSelect={() => addRelationWidget(r.id)}
-                                        >
-                                            <ColoredIcon type={r.viewState.selectedView ?? "relations"} size={16} background={false}/>
-                                            <span className="truncate">{r.viewState.displayName}</span>
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            </CommandList>
-                        </Command>
-                    </PopoverContent>
-                </Popover>
+                <Button variant="outline" size="sm" className="h-8 gap-1" onClick={openAddWidget}>
+                    <Plus size={14}/> Add widget
+                </Button>
             )}
             <Button variant={editMode ? "default" : "outline"} size="sm" className="h-8 gap-1"
                     onClick={onToggleEditMode}>
