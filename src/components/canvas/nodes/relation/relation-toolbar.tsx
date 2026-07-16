@@ -9,6 +9,7 @@ import {DropdownMenuCheckboxItem, DropdownMenuLabel} from "@/components/ui/dropd
 import React from "react";
 import {TaskExecutionState} from "@/model/relation-state";
 import {RelationViewRunButton} from "@/components/relation/settings/relation-view-run-button";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 interface RelationToolbarProps {
     isVisible: boolean;
@@ -50,15 +51,16 @@ export function RelationToolbar({
                     runState={runState}
                 />
                 <div className="w-[1px] h-10 bg-border"/>
-                <Button
-                    className={'rounded-[0px] w-10 h-10 '}
-                    variant={'ghost'}
-                    size={'icon'}
-                    onClick={onFullscreen}
-                    title="Open relation"
-                >
-                    <Maximize/>
-                </Button>
+                <TooltipWrapper message="Open relation">
+                    <Button
+                        className={'rounded-[0px] w-10 h-10 '}
+                        variant={'ghost'}
+                        size={'icon'}
+                        onClick={onFullscreen}
+                    >
+                        <Maximize/>
+                    </Button>
+                </TooltipWrapper>
                 <div className="w-[1px] h-10 bg-border"/>
                 <div className="flex flex-row items-center justify-center  "></div>
                 <Toggle

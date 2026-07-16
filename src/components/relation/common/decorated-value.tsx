@@ -3,9 +3,12 @@ import {cn} from "@/lib/utils";
 import {
     ColumnDecoration,
     DecorationAlign,
+    categoryKey,
+    colorForCategory,
     formatDecoratedValue,
     normalizeInRange,
 } from "@/model/relation-view-state/decoration";
+import {DEFAULT_COLORS} from "@/platform/global-data";
 
 const ALIGN_CLASS: Record<DecorationAlign, string> = {
     left: 'justify-start text-left',
@@ -21,6 +24,9 @@ export interface DecoratedValueProps {
     // column-wide range for data-bar / color-scale styles
     rangeMin?: number;
     rangeMax?: number;
+    // sampled value -> color map for the badge style (collision-free for the
+    // most common values); falls back to colorForCategory when absent
+    categoryColors?: Map<string, string>;
     className?: string;
 }
 
@@ -29,7 +35,7 @@ export interface DecoratedValueProps {
  * cell style). Shared between table cells and the decoration editor preview.
  */
 export const DecoratedValue = React.memo(function DecoratedValue(props: DecoratedValueProps) {
-    const {value, fallbackString, decoration, rangeMin, rangeMax, className} = props;
+    const {value, fallbackString, decoration, rangeMin, rangeMax, categoryColors, className} = props;
     const text = formatDecoratedValue(value, fallbackString, decoration.format);
     const alignClass = ALIGN_CLASS[decoration.align] ?? ALIGN_CLASS.left;
     const color = decoration.color;
@@ -73,17 +79,19 @@ export const DecoratedValue = React.memo(function DecoratedValue(props: Decorate
     }
 
     if (!isNull && decoration.style === 'badge') {
+        // Badge color is derived per value, so each distinct value gets its own
+        // stable color instead of a single column-wide color. Prefer the sampled
+        // collision-free map; fall back to the hash for values outside it.
+        const badgeColor = categoryColors?.get(categoryKey(value))
+            ?? colorForCategory(value, DEFAULT_COLORS);
         return (
             <div className={cn("flex min-h-5 items-center", alignClass, className)}>
                 <span
-                    className={cn(
-                        "inline-block max-w-full truncate rounded-full px-2 py-0.5 text-xs",
-                        color ? undefined : "bg-secondary text-secondary-foreground",
-                    )}
-                    style={color ? {
-                        color,
-                        backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
-                    } : undefined}
+                    className="inline-block max-w-full truncate rounded-full px-2 py-0.5 text-xs"
+                    style={{
+                        color: `color-mix(in srgb, ${badgeColor} 65%, black)`,
+                        backgroundColor: `color-mix(in srgb, ${badgeColor} 10%, transparent)`,
+                    }}
                 >
                     {text}
                 </span>

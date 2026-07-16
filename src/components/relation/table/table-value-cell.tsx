@@ -16,9 +16,10 @@ interface RowElementViewProps {
     decoration?: ColumnDecoration;
     rangeMin?: number;
     rangeMax?: number;
+    categoryColors?: Map<string, string>;
 }
 
-export const TableValueCell = React.memo(function TableValueCell({column, element, width, decoration, rangeMin, rangeMax}: RowElementViewProps) {
+export const TableValueCell = React.memo(function TableValueCell({column, element, width, decoration, rangeMin, rangeMax, categoryColors}: RowElementViewProps) {
 
     const stringElement: string = useMemo(() => {
         if (element === null || element === undefined) return "NULL";
@@ -57,6 +58,7 @@ export const TableValueCell = React.memo(function TableValueCell({column, elemen
                 decoration={decoration}
                 rangeMin={rangeMin}
                 rangeMax={rangeMax}
+                categoryColors={categoryColors}
                 className="w-full min-w-0"
             />
         ) : (

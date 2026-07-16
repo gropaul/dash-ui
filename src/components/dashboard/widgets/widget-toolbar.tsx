@@ -5,6 +5,7 @@ import {RelationViewRunButton} from "@/components/relation/settings/relation-vie
 import {TaskExecutionState} from "@/model/relation-state";
 import {cn} from "@/lib/utils";
 import {Separator} from "@/components/ui/separator";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 /**
  * Vertical floating toolbar for a dashboard widget. Every button is optional — it is only rendered
@@ -33,25 +34,30 @@ export function WidgetToolbar({className, compact, draggable, runState, onRun, o
     // Each button keyed by name; a `false` value means its input wasn't provided and it's filtered out.
     const buttons: Record<string, ReactNode> = {
         drag: draggable && (
-            <span className="widget-drag-handle w-10 h-10 flex items-center justify-center cursor-move hover:bg-accent"
-                  title="Drag widget">
-                <GripHorizontal className="w-4 h-4"/>
-            </span>
+            <TooltipWrapper message="Drag widget">
+                <span className="widget-drag-handle w-10 h-10 flex items-center justify-center cursor-move hover:bg-accent">
+                    <GripHorizontal className="w-4 h-4"/>
+                </span>
+            </TooltipWrapper>
         ),
         run: showRun && (
             <RelationViewRunButton runState={runState!} onRun={onRun!} onStopRun={onStopRun!}/>
         ),
         fullscreen: onFullscreen && (
-            <Button variant="ghost" size="icon" className="rounded-[0px] w-10 h-10"
-                    onClick={onFullscreen} title="Open relation">
-                <Maximize className="w-4 h-4"/>
-            </Button>
+            <TooltipWrapper message="Open relation">
+                <Button variant="ghost" size="icon" className="rounded-[0px] w-10 h-10"
+                        onClick={onFullscreen}>
+                    <Maximize className="w-4 h-4"/>
+                </Button>
+            </TooltipWrapper>
         ),
         delete: onRemove && (
-            <Button variant="ghost" size="icon" className="rounded-[0px] w-10 h-10 hover:text-destructive"
-                    onClick={onRemove} title="Remove widget">
-                <X className="w-4 h-4"/>
-            </Button>
+            <TooltipWrapper message="Remove widget">
+                <Button variant="ghost" size="icon" className="rounded-[0px] w-10 h-10 hover:text-destructive"
+                        onClick={onRemove}>
+                    <X className="w-4 h-4"/>
+                </Button>
+            </TooltipWrapper>
         ),
     };
 

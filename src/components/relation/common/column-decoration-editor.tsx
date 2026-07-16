@@ -131,7 +131,8 @@ export function ColumnDecorationEditor(props: ColumnDecorationEditorProps) {
                 onChange={(style) => onChange({...decoration, style})}
             />
 
-            {decoration.style !== 'none' && (
+            {/* Badge derives a color per value automatically, so no color picker. */}
+            {decoration.style !== 'none' && decoration.style !== 'badge' && (
                 <div className="flex items-center justify-between gap-2 py-1">
                     <Label><Muted>Color</Muted></Label>
                     <ColorPalette

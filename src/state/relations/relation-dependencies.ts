@@ -1,4 +1,6 @@
 import {useRelationsState} from "@/state/relations.state";
+import {CanvasState} from "@/model/canvas-state";
+import {DashboardState} from "@/model/dashboard-state";
 
 export interface CanvasDependency {
     canvasId: string;
@@ -79,4 +81,55 @@ export function getRelationDependencies(relationId: string, exclude?: ExcludeRef
         totalRefs,
         isOrphan: totalRefs === 0,
     };
+}
+
+/**
+ * Remove every reference to the given relation(s) from the dashboards and canvas collections:
+ * dashboard widgets (plus their layout items across all breakpoints) and canvas nodes (plus any
+ * edges connected to those nodes). Pure — returns new collections; only the dashboards/canvases
+ * that actually changed are cloned, the rest are shared by reference.
+ */
+export function purgeRelationReferences(
+    dashboards: Record<string, DashboardState>,
+    canvas: Record<string, CanvasState>,
+    relationIds: Set<string>,
+): { dashboards: Record<string, DashboardState>; canvas: Record<string, CanvasState> } {
+    const nextDashboards: Record<string, DashboardState> = {...dashboards};
+    for (const [id, dashboard] of Object.entries(dashboards)) {
+        const removed = new Set(
+            Object.values(dashboard.widgets ?? {})
+                .filter(w => w.type === 'relation' && w.relationId != null && relationIds.has(w.relationId))
+                .map(w => w.id),
+        );
+        if (removed.size === 0) continue;
+
+        const widgets = {...dashboard.widgets};
+        for (const widgetId of removed) delete widgets[widgetId];
+        // drop each removed widget's layout item from every breakpoint (mirrors removeDashboardWidget)
+        const layouts: DashboardState['layouts'] = {};
+        for (const [bp, items] of Object.entries(dashboard.layouts)) {
+            layouts[bp] = (items ?? []).filter(item => !removed.has(item.i));
+        }
+        nextDashboards[id] = {...dashboard, widgets, layouts, lastEditedAt: Date.now()};
+    }
+
+    const nextCanvas: Record<string, CanvasState> = {...canvas};
+    for (const [id, c] of Object.entries(canvas)) {
+        const removed = new Set(
+            c.nodes
+                .filter(n => {
+                    const rid = (n.data as { relationId?: string }).relationId;
+                    return rid != null && relationIds.has(rid);
+                })
+                .map(n => n.id),
+        );
+        if (removed.size === 0) continue;
+
+        const nodes = c.nodes.filter(n => !removed.has(n.id));
+        // drop edges dangling off a removed node
+        const edges = c.edges.filter(e => !removed.has(e.source) && !removed.has(e.target));
+        nextCanvas[id] = {...c, nodes, edges, lastEditedAt: Date.now()};
+    }
+
+    return {dashboards: nextDashboards, canvas: nextCanvas};
 }

@@ -4,7 +4,8 @@ import React from "react";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {ColumnHeadSortingIcon} from "@/components/basics/column-head-sorting-icon";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
-import {CatalogObject, CatalogSelection, ColumnRow, columnGroup, objectPath, Scope, SortState} from "@/components/catalog/catalog-model";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
+import {CatalogObject, CatalogSelection, ColumnRow, columnGroup, exactRowsTitle, formatEstimatedRows, objectPath, Scope, SortState} from "@/components/catalog/catalog-model";
 
 const HEADER_CLASS = "sticky top-0 z-10 bg-card shadow-[inset_0_-1px_0_hsl(var(--border))] [&_tr]:border-b-0";
 // Rows match the FolderView row height.
@@ -118,6 +119,17 @@ function SharedCells({pathSegs, name, typeIconType, typeLabel, typeToken, onFilt
     );
 }
 
+/** Estimated row count, right-aligned; em-dash for views (no estimate). */
+function RowsCell({rows}: { rows?: number }) {
+    const cell = (
+        <TableCell className="text-muted-foreground tabular-nums">
+            {formatEstimatedRows(rows)}
+        </TableCell>
+    );
+    const title = exactRowsTitle(rows);
+    return title ? <TooltipWrapper message={title}>{cell}</TooltipWrapper> : cell;
+}
+
 function EmptyRow({cols, label}: { cols: number; label: string }) {
     return <TableRow><TableCell colSpan={cols} className="py-6 text-center text-muted-foreground">{label}</TableCell></TableRow>;
 }
@@ -131,10 +143,11 @@ function TablesGrid({tableRows, selection, sort, onSort, onSelect, onActivate, o
                 <TableRow>
                     <SharedHeaders sort={sort} onSort={onSort} nameLabel="Name"/>
                     <SortHeader label="Columns" sortKey="cols" sort={sort} onSort={onSort} className="w-24"/>
+                    <SortHeader label="Rows" sortKey="rows" sort={sort} onSort={onSort} className="w-24"/>
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {tableRows.length === 0 && <EmptyRow cols={4} label="No tables match."/>}
+                {tableRows.length === 0 && <EmptyRow cols={5} label="No tables match."/>}
                 {tableRows.map((o) => {
                     const isView = o.objType === 'view';
                     const sel = selection?.objId === o.id && !selection.colName;
@@ -150,6 +163,7 @@ function TablesGrid({tableRows, selection, sort, onSort, onSelect, onActivate, o
                                 typeIconType={o.objType} typeLabel={isView ? 'view' : 'table'} typeToken={isView ? 'view' : 'table'}
                             />
                             <TableCell className="text-muted-foreground tabular-nums">{o.columns.length}</TableCell>
+                            <RowsCell rows={o.estimatedRows}/>
                         </TableRow>
                     );
                 })}
@@ -164,10 +178,11 @@ function ColumnsGrid({columnRows, selection, sort, onSort, onSelect, onActivate,
             <TableHeader className={HEADER_CLASS}>
                 <TableRow>
                     <SharedHeaders sort={sort} onSort={onSort} nameLabel="Column"/>
+                    <SortHeader label="Rows" sortKey="rows" sort={sort} onSort={onSort} className="w-24"/>
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {columnRows.length === 0 && <EmptyRow cols={3} label="No columns match."/>}
+                {columnRows.length === 0 && <EmptyRow cols={4} label="No columns match."/>}
                 {columnRows.map(({o, col}, idx) => {
                     const sel = selection?.objId === o.id && selection.colName === col.name;
                     const target: CatalogSelection = {objId: o.id, colName: col.name};
@@ -182,6 +197,7 @@ function ColumnsGrid({columnRows, selection, sort, onSort, onSelect, onActivate,
                                 pathSegs={objectPath(o)} name={col.name} onFilterPath={onFilterPath}
                                 typeIconType={col.type} typeLabel={col.type} typeToken={columnGroup(col)}
                             />
+                            <RowsCell rows={o.estimatedRows}/>
                         </TableRow>
                     );
                 })}

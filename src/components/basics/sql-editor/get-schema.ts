@@ -96,40 +96,59 @@ async function getMacroColumns(macroNames: string[]): Promise<Map<string, Column
 
 export async function getDatabaseStructure(): Promise<Database[]> {
     try {
+        // Driven by DuckDB's internal metadata functions instead of information_schema.
+        // duckdb_columns() covers both tables and views; joining duckdb_databases() adds the
+        // catalog type and duckdb_tables() adds the estimated row count (NULL for views).
+        // `internal = false` cleanly excludes the system catalog and pg_catalog/information_schema.
         const result = await ConnectionsService.getInstance().executeQuery(
-            `SELECT c.table_catalog, c.table_schema, c.table_name, c.column_name, c.data_type
-             FROM information_schema.columns c
-             WHERE c.table_schema NOT IN ('information_schema', 'pg_catalog')
-               AND c.table_catalog != '${DASH_CATALOG}'
-             ORDER BY c.table_catalog, c.table_schema, c.table_name, c.ordinal_position`
+            `SELECT d.database_name AS table_catalog,
+                    d.type          AS database_type,
+                    c.schema_name   AS table_schema,
+                    c.table_name    AS table_name,
+                    t.estimated_size AS estimated_size,
+                    c.column_name   AS column_name,
+                    c.data_type     AS data_type
+             FROM duckdb_columns() c
+             JOIN duckdb_databases() d USING (database_oid)
+             LEFT JOIN duckdb_tables() t USING (table_oid)
+             WHERE c.internal = false
+               AND d.database_name != '${DASH_CATALOG}'
+             ORDER BY d.database_name, c.schema_name, c.table_name, c.column_index`
         );
 
         const catalogIdx = result.columns.findIndex(c => c.name === 'table_catalog');
+        const dbTypeIdx = result.columns.findIndex(c => c.name === 'database_type');
         const schemaIdx = result.columns.findIndex(c => c.name === 'table_schema');
         const tableIdx = result.columns.findIndex(c => c.name === 'table_name');
+        const sizeIdx = result.columns.findIndex(c => c.name === 'estimated_size');
         const columnIdx = result.columns.findIndex(c => c.name === 'column_name');
         const typeIdx = result.columns.findIndex(c => c.name === 'data_type');
 
         // Group into Database → Table → Column hierarchy
-        const dbMap = new Map<string, Map<string, Column[]>>();
+        interface DbEntry { type: string; tables: Map<string, {columns: Column[]; estimatedSize?: number}>; }
+        const dbMap = new Map<string, DbEntry>();
         for (const row of result.rows) {
             const dbKey = `${row[catalogIdx]}.${row[schemaIdx]}`;
-            if (!dbMap.has(dbKey)) dbMap.set(dbKey, new Map());
-            const tableMap = dbMap.get(dbKey)!;
+            if (!dbMap.has(dbKey)) dbMap.set(dbKey, {type: row[dbTypeIdx] as string, tables: new Map()});
+            const tableMap = dbMap.get(dbKey)!.tables;
             const tableName = row[tableIdx] as string;
-            if (!tableMap.has(tableName)) tableMap.set(tableName, []);
+            if (!tableMap.has(tableName)) {
+                const rawSize = row[sizeIdx];
+                tableMap.set(tableName, {columns: [], estimatedSize: rawSize == null ? undefined : Number(rawSize)});
+            }
             const colName = row[columnIdx] as string;
-            tableMap.get(tableName)!.push({name: colName, escapedName: normalizeIdentifier(colName), type: row[typeIdx] as string});
+            tableMap.get(tableName)!.columns.push({name: colName, escapedName: normalizeIdentifier(colName), type: row[typeIdx] as string});
         }
 
-        return Array.from(dbMap.entries()).map(([dbKey, tableMap]) => ({
+        return Array.from(dbMap.entries()).map(([dbKey, {type, tables}]) => ({
             name: dbKey,
             escapedName: normalizeIdentifier(dbKey),
-            type: 'ordinary',
-            children: Array.from(tableMap.entries()).map(([tableName, columns]) => ({
+            type,
+            children: Array.from(tables.entries()).map(([tableName, {columns, estimatedSize}]) => ({
                 name: tableName,
                 escapedName: normalizeIdentifier(tableName),
                 type: 'ordinary' as const,
+                estimatedSize,
                 children: columns,
             })),
         }));

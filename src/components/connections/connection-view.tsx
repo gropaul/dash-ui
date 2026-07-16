@@ -6,6 +6,7 @@ import {RefreshCw} from "lucide-react";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DataSourceConnection} from "@/model/data-source-connection";
 import {Button} from "@/components/ui/button";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 export interface ConnectionViewProps {
     connection: DataSourceConnection;
@@ -77,7 +78,8 @@ function ConnectionStateIcon(props: ConnectionStateIconProps) {
     }
 
     if (connectionsState.state === "error") {
-        return <span className="text-red-500" title={message}>●</span>
+        const dot = <span className="text-red-500">●</span>;
+        return message ? <TooltipWrapper message={message}>{dot}</TooltipWrapper> : dot;
     }
 
     if (connectionsState.state === "connecting") {

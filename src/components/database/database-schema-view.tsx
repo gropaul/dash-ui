@@ -7,6 +7,7 @@ import {ExternalLink, Network} from "lucide-react";
 import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {GetSchemaState} from "@/state/data-source/duckdb-helper";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 
 interface DatabaseSchemaViewProps {
@@ -61,12 +62,13 @@ export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
                     >
                         <div className="flex-1 flex items-center space-x-2 overflow-hidden pr-1">
                             {defaultIconFactory(table.type)}
-                            <span
-                                className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
-                                title={table.name}
-                            >
+                            <TooltipWrapper message={table.name}>
+                                <span
+                                    className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+                                >
                           {table.name}
                         </span>
+                            </TooltipWrapper>
                         </div>
                         <ExternalLink
                             size={16}

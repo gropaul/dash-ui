@@ -21,6 +21,8 @@ export interface Table {
     escapedName: string;
     type: 'ordinary' | 'dash_node';
     children: Column[];
+    /** Estimated row count (base tables only; undefined for views and dash_node). */
+    estimatedSize?: number;
     /** Human-readable display name (dash_node only). */
     displayName?: string;
     /** Source SQL query (dash_node only). */

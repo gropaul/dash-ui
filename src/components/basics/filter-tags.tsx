@@ -14,6 +14,18 @@ export interface FilterTag<T> {
     predicate: (item: T) => boolean;
 }
 
+/**
+ * Whether any chip in `tags` would render for `items` — i.e. some tag matches at least one item
+ * (and, when `hideFullSet`, fewer than all). Use to hide a surrounding divider/row when the chip
+ * row would be empty.
+ */
+export function hasVisibleFilterTags<T>(tags: FilterTag<T>[], items: T[], hideFullSet?: boolean): boolean {
+    return tags.some(t => {
+        const count = items.filter(t.predicate).length;
+        return count > 0 && (!hideFullSet || count < items.length);
+    });
+}
+
 interface FilterTagsProps<T> {
     tags: FilterTag<T>[];
     /** The items the tags filter; used to compute per-tag counts. */
@@ -24,13 +36,18 @@ interface FilterTagsProps<T> {
     onChange: (key: string) => void;
     /** Extra classes on the wrapper (e.g. border/padding to match the surrounding panel). */
     className?: string;
+    /**
+     * When true, also hide any chip that matches *every* item — filtering by it wouldn't narrow
+     * anything (e.g. don't show a "Table" chip when all items are tables).
+     */
+    hideFullSet?: boolean;
 }
 
 /**
  * The shared filter-chip row: one rounded chip per tag with a live match count. Chips whose
  * count is zero collapse away (animated), and clicking the active chip clears the filter.
  */
-export function FilterTags<T>({tags, items, activeKey, onChange, className}: FilterTagsProps<T>) {
+export function FilterTags<T>({tags, items, activeKey, onChange, className, hideFullSet}: FilterTagsProps<T>) {
     const counts: Record<string, number> = {};
     tags.forEach(t => {
         counts[t.key] = items.filter(t.predicate).length;
@@ -40,7 +57,7 @@ export function FilterTags<T>({tags, items, activeKey, onChange, className}: Fil
         <div className={cn("flex flex-wrap gap-y-2", className)}>
             {tags.map(t => {
                 const count = counts[t.key];
-                const shown = count > 0;
+                const shown = count > 0 && (!hideFullSet || count < items.length);
                 const active = activeKey === t.key && shown;
                 return (
                     <button

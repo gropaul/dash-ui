@@ -13,6 +13,7 @@ import {RelationViewTableContentProps} from "@/components/relation/table/table-c
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
 import {ColumnFilterIn, ColumnSorting} from "@/model/relation-state/relation-view-table";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 
 export interface ColumnHeadProps extends RelationViewTableContentProps {
@@ -173,9 +174,11 @@ export function TableColumnHead(props: ColumnHeadProps) {
                     <div style={{minWidth: "16px", display: "flex", alignItems: "center"}}>
                         <ValueIcon type={column.type}/>
                     </div>
-                    <div className="ml-2 font-semibold truncate text-nowrap" title={column.name}>
-                        {column.name}
-                    </div>
+                    <TooltipWrapper message={column.name}>
+                        <div className="ml-2 font-semibold truncate text-nowrap">
+                            {column.name}
+                        </div>
+                    </TooltipWrapper>
                     <div className={`px-1 ${opacityClass} h-4`}>
                         <button className={sortingClass}>
                             <ColumnHeadSortingIcon sorting={columnSorting} index={sortIndex}/>

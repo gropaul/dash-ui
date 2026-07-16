@@ -8,6 +8,8 @@ import {getBaseQueryFromSource} from "@/model/relation-state";
 import {RelationSourceTable} from "@/model/relation";
 import {DASH_CATALOG, DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {DATA_ROOT} from "@/state/routing/core-model";
+import {formatNumber} from "@/platform/number-utils";
+import {isDebugMode} from "@/components/settings/about-content";
 
 /**
  * The catalog is a flat, structural read of what the data-source connections have already
@@ -30,6 +32,8 @@ export interface CatalogObject {
     objType: CatalogObjectType;
     /** The raw column tree nodes (name + ValueType), reused as-is by shared column UIs. */
     columns: Column[];
+    /** DuckDB's estimated row count (base tables only; undefined for views). */
+    estimatedRows?: number;
 }
 
 export type Scope = 'tables' | 'columns';
@@ -127,6 +131,16 @@ export function columnGroup(col: Column): ValueTypeGroup {
     return getValueTypeGroup(col.type);
 }
 
+/** Compact display of an estimated row count; em-dash when unknown (e.g. views). */
+export function formatEstimatedRows(n: number | undefined): string {
+    return n === undefined ? "—" : formatNumber(n, 1);
+}
+
+/** Exact row count for a tooltip; undefined (no title) when unknown. */
+export function exactRowsTitle(n: number | undefined): string | undefined {
+    return n === undefined ? undefined : `${n.toLocaleString()} rows (estimated)`;
+}
+
 /**
  * Flattens every internal-database connection's loaded tree into catalog objects. Local
  * filesystem connections are skipped (no local-file support yet). Pure derivation — the
@@ -135,6 +149,7 @@ export function columnGroup(col: Column): ValueTypeGroup {
 export function useCatalogObjects(): CatalogObject[] {
     const connections = useDataSourcesState((state) => state.connections);
     return useMemo(() => {
+        const debug = isDebugMode();
         const objects: CatalogObject[] = [];
         for (const conn of Object.values(connections)) {
             if (conn.type !== 'duckdb-internal-databases') continue;
@@ -142,8 +157,8 @@ export function useCatalogObjects(): CatalogObject[] {
             const databases = Object.values(conn.dataSources ?? {}) as unknown as TreeNode[];
             for (const db of databases) {
                 if (db.type !== 'database') continue;
-                // Skip the internal dash cache catalog (only surfaced in dev builds).
-                if (db.name === DASH_CATALOG) continue;
+                // The internal dash cache catalog is only surfaced in debug mode.
+                if (db.name === DASH_CATALOG && !debug) continue;
                 for (const schema of db.children ?? []) {
                     for (const table of schema.children ?? []) {
                         if (table.type !== 'relation' && table.type !== 'view') continue;
@@ -157,6 +172,7 @@ export function useCatalogObjects(): CatalogObject[] {
                             name: table.name,
                             objType: table.type as CatalogObjectType,
                             columns,
+                            estimatedRows: (table.payload as { estimatedRows?: number } | undefined)?.estimatedRows,
                         });
                     }
                 }
