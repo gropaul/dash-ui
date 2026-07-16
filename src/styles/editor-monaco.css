@@ -45,6 +45,16 @@ body > .monaco-editor .overflowingContentWidgets * {
 /*    margin: 0 !important;*/
 /*}*/
 
+/* ── Opaque gutter + sticky scroll ─────────────────────────────────────── */
+/* editor.background is transparent (so the wrapper's bg-card shows through the
+   code area), but the line-number gutter and the sticky-scroll overlay would
+   then be see-through. Give them the same card background as the wrapper. */
+.monaco-editor .margin,
+.monaco-editor .sticky-widget,
+.monaco-editor .sticky-widget-line-numbers {
+    background-color: hsl(var(--card)) !important;
+}
+
 /* ── Shadcn-style suggest / autocomplete widget ────────────────────────── */
 .monaco-editor .suggest-widget {
     border: 1px solid hsl(var(--border)) !important;

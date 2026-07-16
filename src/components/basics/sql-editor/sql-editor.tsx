@@ -167,7 +167,7 @@ export function SqlEditor(
             { token: 'string.sql', foreground: '22863a' }, // Green color for strings
         ],
         colors: {
-            'editor.background': '#00000000',
+            'editor.background': '#00000000', // transparent — background comes from the wrapper
         },
     };
 
@@ -209,7 +209,7 @@ export function SqlEditor(
     }
 
     return (
-        <div className="flex flex-col h-full w-full relative ">
+        <div className="flex flex-col h-full w-full relative bg-card">
             {panelMode === "panel" && (
                 <EditorButtonPanel
                     embedded={embedded}
