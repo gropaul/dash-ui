@@ -64,6 +64,7 @@ This is a browser-based data exploration tool built on **DuckDB WASM** for in-br
 - **Always prefer shadcn/ui components** over custom implementations
 - Check `/src/components/ui/` for available components before creating new ones
 - Common shadcn components: Button, Dialog, Dropdown, Tooltip, Toggle, Input, etc.
+- **Never use the native `title` attribute for tooltips** — use the shadcn `Tooltip` component (`@/components/ui/tooltip`) instead
 
 ## Tech Stack
 

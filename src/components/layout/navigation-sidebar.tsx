@@ -8,6 +8,7 @@ import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
 import {DATA_ROOT, SPACES_ROOT} from "@/state/routing/core-model";
 import {onNavClick, useCurrentPath} from "@/state/routing/use-location";
+import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-section";
 
 /**
  * The single left navigation sidebar. Routing-driven (each item is a real link),
@@ -130,38 +131,10 @@ function NavLink({item, active, expanded}: {item: NavItem; active: boolean; expa
     );
 }
 
-function SectionHeader({label}: {label: string}) {
+export function SectionHeader({label}: {label: string}) {
     return (
         <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
             {label}
-        </div>
-    );
-}
-
-// Visual-only placeholder for now. The data exists (every entity carries
-// `lastViewedAt`, stamped on navigation) and will be wired in a later change.
-function RecentlyAccessedSection() {
-    return (
-        <div className="px-2 pt-4">
-            <SectionHeader label="Recently accessed"/>
-            <div className="flex flex-col gap-0.5">
-                {[0, 1, 2].map((i) => (
-                    <div
-                        key={i}
-                        className="flex items-center gap-3 h-9 px-3 rounded-md opacity-60"
-                        aria-hidden
-                    >
-                        <div className="h-4 w-4 shrink-0 rounded-sm bg-muted-foreground/20"/>
-                        <div
-                            className="h-2.5 rounded-full bg-muted-foreground/20"
-                            style={{width: `${70 - i * 12}%`}}
-                        />
-                    </div>
-                ))}
-            </div>
-            <div className="px-3 pt-2 text-xs text-muted-foreground/70">
-                Your recent items will appear here.
-            </div>
         </div>
     );
 }
