@@ -117,13 +117,19 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
 }> {
 // get all columns and tables
     const isDebug = isDebugMode();
-    const conditionFilterCache = isDebug ? `TRUE` : `c.table_schema != '${DASH_CATALOG}'`;
-    const query = `SELECT c.table_catalog, c.table_schema, c.table_name, t.table_type, c.column_name, c.data_type
+    // Exclude the whole dash cache catalog when not debugging (filter by catalog, not schema).
+    const conditionFilterCache = isDebug ? `TRUE` : `c.table_catalog != '${DASH_CATALOG}'`;
+    // duckdb_tables() supplies the estimated row count (base tables only → NULL for views).
+    const query = `SELECT c.table_catalog, c.table_schema, c.table_name, t.table_type, c.column_name, c.data_type, dt.estimated_size
                    FROM information_schema.columns as c
                             JOIN information_schema.tables as t ON
                        t.table_name = c.table_name and
                        t.table_schema = c.table_schema and
                        t.table_catalog = c.table_catalog
+                            LEFT JOIN duckdb_tables() as dt ON
+                       dt.table_name = c.table_name and
+                       dt.schema_name = c.table_schema and
+                       dt.database_name = c.table_catalog
                    WHERE ${conditionFilterCache}
                    ORDER BY c.table_catalog, c.table_name, c.ordinal_position;
     `;
@@ -132,20 +138,24 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
     // will have format [database_name: table_schema: table_name: {column_name, data_type}]
     const map: any = {}
     const types: any = {};
+    const sizes: any = {};
     for (const row of rows.rows) {
-        const [database, table_schema, table_name, table_type, column_name, type] = row;
+        const [database, table_schema, table_name, table_type, column_name, type, estimated_size] = row;
         if (!map[database]) {
             map[database] = {};
             types[database] = {};
+            sizes[database] = {};
         }
         if (!map[database][table_schema]) {
             map[database][table_schema] = {};
             types[database][table_schema] = {};
+            sizes[database][table_schema] = {};
         }
 
         if (!map[database][table_schema][table_name]) {
             map[database][table_schema][table_name] = [];
             types[database][table_schema][table_name] = getType(table_type);
+            sizes[database][table_schema][table_name] = estimated_size == null ? undefined : Number(estimated_size);
         }
 
         map[database][table_schema][table_name].push([column_name, type]);
@@ -160,11 +170,13 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
             for (const table in map[database][table_schema]) {
                 const columns = map[database][table_schema][table];
                 const type = types[database][table_schema][table];
+                const estimatedRows = sizes[database][table_schema][table];
                 // add relation to schema
                 schema_tables.push({
                     id: table,
                     type: type,
                     name: table,
+                    payload: estimatedRows === undefined ? undefined : {estimatedRows},
                     children: columns.map(([column, type]: [string, string]) => {
                         return {
                             id: column,

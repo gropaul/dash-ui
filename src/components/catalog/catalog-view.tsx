@@ -89,7 +89,7 @@ export function CatalogView() {
     const tableRows = useMemo(() => sortRows(
         scoped.filter((o) => objectMatchesTag(o, activeTagDef)),
         sort,
-        {path: objectPathStr, name: (o) => o.name, type: (o) => o.objType, cols: (o) => o.columns.length},
+        {path: objectPathStr, name: (o) => o.name, type: (o) => o.objType, cols: (o) => o.columns.length, rows: (o) => o.estimatedRows ?? -1},
     ), [scoped, activeTagDef, sort]);
 
     const columnRows = useMemo(() => {
@@ -105,7 +105,8 @@ export function CatalogView() {
         return sortRows(rows, sort, {
             path: (r) => objectPathStr(r.o),
             name: (r) => r.col.name,
-            type: (r) => r.col.type
+            type: (r) => r.col.type,
+            rows: (r) => r.o.estimatedRows ?? -1,
         });
     }, [scoped, activeTagDef, search, sort]);
 

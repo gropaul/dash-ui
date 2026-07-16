@@ -13,6 +13,7 @@ import {CatalogRelationPreview} from "@/components/catalog/utils/catalog-relatio
 import {
     CatalogObject,
     CatalogSelection,
+    formatEstimatedRows,
     objectPath,
     sqlForObject,
 } from "@/components/catalog/catalog-model";
@@ -51,11 +52,12 @@ export function CatalogDetailTable({object, mode, onToggleExpand, onClose, onSel
                 </TabsList>
                 <div className="flex-1 min-h-0 overflow-auto pt-3">
                     <TabsContent value="overview" className="mt-0 data-[state=active]:flex h-full flex-col min-h-0 gap-4">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             <Stat label="Database" value={object.database}/>
                             <Stat label="Schema" value={object.schema}/>
                             <Stat label="Type" value={object.objType === 'view' ? 'View' : 'Table'}/>
                             <Stat label="Columns" value={object.columns.length}/>
+                            <Stat label="Rows (est.)" value={formatEstimatedRows(object.estimatedRows)}/>
                         </div>
                         <div className="flex-1 min-h-0 overflow-hidden">
                             <CatalogRelationPreview object={object} mode={mode}/>
@@ -79,7 +81,7 @@ export function CatalogDetailTable({object, mode, onToggleExpand, onClose, onSel
     );
 }
 
-function Stat({label, value}: { label: string; value: React.ReactNode }) {
+export function Stat({label, value}: { label: string; value: React.ReactNode }) {
     return (
         <div className="flex flex-col gap-0.5">
             <div className="text-[11px] uppercase tracking-wide text-muted-foreground/70">{label}</div>

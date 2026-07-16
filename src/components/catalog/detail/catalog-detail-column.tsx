@@ -9,9 +9,11 @@ import {DetailMode, DetailShell} from "@/components/catalog/detail/catalog-detai
 import {
     CatalogObject,
     CatalogSelection,
+    formatEstimatedRows,
     objectPath,
     useCatalogObjects,
 } from "@/components/catalog/catalog-model";
+import {Stat} from "@/components/catalog/detail/catalog-detail-table";
 
 /** Detail view for a single column: where it lives, and which other objects carry a
  *  column of the same name (a structural join-key hint), flagging type mismatches. */
@@ -45,6 +47,12 @@ export function CatalogDetailColumn({object, column, mode, onToggleExpand, onClo
         >
             <ScrollArea className="h-full">
                 <div className="pb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+                        <Stat label="Table" value={object.name}/>
+                        <Stat label="Type" value={column.type}/>
+                        <Stat label="Schema" value={object.schema}/>
+                        <Stat label="Table rows (est.)" value={formatEstimatedRows(object.estimatedRows)}/>
+                    </div>
                     <SectionLabel>
                         Also appears in {elsewhere.length > 0 && <span className="text-foreground">{elsewhere.length}</span>}
                     </SectionLabel>
