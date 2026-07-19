@@ -2,24 +2,20 @@
  * Macro names — URL-safe slugs derived from a node's display name.
  *
  * A "macro name" is the segment used to address a content node (folder /
- * relation / dashboard / canvas) inside a `/spaces/...` URL. It is DERIVED
- * from the display name (not stored) and made unique among its siblings by a
- * deterministic suffix. Because moving/reordering items is not supported,
- * the derivation is stable, which makes `routeForNodeId` and
- * `findNodeByMacroPath` exact inverses on the live tree.
+ * relation / dashboard / canvas) inside a `/projects/<slug>/...` URL. It is
+ * DERIVED from the display name (not stored) and made unique among its siblings
+ * by a deterministic suffix. Because moving/reordering items is not supported,
+ * the derivation is stable, which makes `objectPathForId` and
+ * `findNodeByObjectPath` exact inverses on the live tree.
  */
+
+import {slugify as slugifyString} from "@/platform/string-utils";
 
 const FALLBACK_SLUG = "untitled";
 
-/** Lowercase, ascii-fold-ish, non-alphanumerics → single dash, trimmed. */
+/** A node's macro-name slug — the shared string-utils slugify with the tree's "untitled" fallback. */
 export function slugify(name: string): string {
-    const slug = (name ?? "")
-        .normalize("NFKD")
-        .replace(/[̀-ͯ]/g, "") // strip combining marks
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")     // any run of non-alphanumerics → one dash
-        .replace(/^-+|-+$/g, "");        // trim leading/trailing dashes
-    return slug.length > 0 ? slug : FALLBACK_SLUG;
+    return slugifyString(name, FALLBACK_SLUG);
 }
 
 interface HasNameAndId {

@@ -1,9 +1,10 @@
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect} from "react";
 import {shallow} from "zustand/shallow";
 import dynamic from "next/dynamic";
 import {useRelationsState} from "@/state/relations.state";
-import {aliasRelationRoute, buildRoutableTree} from "@/state/routing/routable-tree";
-import {navigate} from "@/state/routing/navigation";
+import {aliasRelationLocation, buildRoutableTree} from "@/state/routing/routable-tree";
+import {DashNavigator} from "@/state/routing/navigation";
+import {useDashQueryParam} from "@/state/routing/use-dash-location";
 import {onRelationEvent} from "@/state/relations/event/relation-events";
 import {refreshDownstreamRelations} from "@/state/relations/sql/relation-dag-refresh";
 
@@ -20,7 +21,11 @@ export interface DashboardViewProps {
 export function DashboardTab(props: DashboardViewProps) {
     const dashboard = useRelationsState((state) => state.getDashboardState(props.dashboardId), shallow);
 
-    const [editMode, setEditMode] = useState(true);
+    // Edit is the default; `?readonly=1` opens the dashboard in view mode (shareable / deep-linkable).
+    const editMode = useDashQueryParam("readonly") !== "1";
+    const toggleEditMode = useCallback(() => {
+        DashNavigator.instance().setQueryParam("readonly", editMode ? "1" : null);
+    }, [editMode]);
 
     // Expand a widget → navigate to its relation shown in this dashboard's context
     // (`…/Dashboard/Relation`), not the relation's canonical path.
@@ -29,8 +34,8 @@ export function DashboardTab(props: DashboardViewProps) {
         const relationId = st.getDashboardState(props.dashboardId)?.widgets[widgetId]?.relationId;
         if (!relationId) return;
         const tree = buildRoutableTree(st.editorElements, st.relations, st.dashboards, st.canvas);
-        const route = aliasRelationRoute(tree, props.dashboardId, relationId);
-        if (route) navigate(route);
+        const loc = aliasRelationLocation(tree, props.dashboardId, relationId);
+        if (loc) DashNavigator.instance().navigateToLocation(loc);
     }, [props.dashboardId]);
 
     // When a relation's query finishes or a widget selection changes, re-run its downstream
@@ -50,7 +55,7 @@ export function DashboardTab(props: DashboardViewProps) {
                 <DashboardGrid
                     dashboard={dashboard}
                     editMode={editMode}
-                    onToggleEditMode={() => setEditMode(v => !v)}
+                    onToggleEditMode={toggleEditMode}
                     onOpenFullscreen={openRelation}
                 />
             </div>

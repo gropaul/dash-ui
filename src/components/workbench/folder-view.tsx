@@ -9,9 +9,12 @@ import {FilterTags} from "@/components/basics/filter-tags";
 import {useEntityFilterTags} from "@/components/basics/files/entity-filter-tags";
 import {ColoredIcon, defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {computeSiblingMacroNames, slugify} from "@/state/routing/macro-name";
-import {routeForSegments} from "@/state/routing/core-model";
+import {DashNavigator} from "@/state/routing/navigation";
 import {onNavClick} from "@/state/routing/use-location";
+
+const nav = DashNavigator.instance();
 import {useRelationsState} from "@/state/relations.state";
+import {useCurrentProject} from "@/state/projects.state";
 import {EntityBase} from "@/state/entities/entity-base";
 import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
@@ -98,6 +101,7 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     const relations = useRelationsState((state) => state.relations);
     const dashboards = useRelationsState((state) => state.dashboards);
     const canvas = useRelationsState((state) => state.canvas);
+    const currentProject = useCurrentProject();
     const {handlers, dialogs} = useEntityActions();
 
     const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({key: "lastViewedAt", dir: "desc"});
@@ -118,7 +122,8 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
 
     // Id-path used by the create dialogs (they address the tree by node ids).
     const createPath = folderNode ? (findPathById(editorElements, folderNode.id) ?? []) : [];
-    const title = folderNode ? folderNode.name : "Workspace";
+    // The root folder is the project itself, so it shows the project name (not "Workspace").
+    const title = folderNode ? folderNode.name : currentProject.name;
 
     if (!folderNode && children.length === 0) {
         return <GetStartedPage/>;
@@ -154,7 +159,7 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
         return true;
     });
     const rows = visibleChildren.map((child) => {
-        const to = routeForSegments([...segments, macroNames.get(child.id) ?? slugify(child.name)]);
+        const to = nav.getUrlFrom(nav.objectLocation([...segments, macroNames.get(child.id) ?? slugify(child.name)]));
         // Relations are colored by their view type (matching the canvas nodes); other entities by type.
         const iconType = child.type === "relations"
             ? (relations[child.id]?.viewState?.selectedView ?? "relations")
