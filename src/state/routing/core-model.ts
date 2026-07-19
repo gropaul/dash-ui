@@ -1,57 +1,31 @@
 /**
- * Spaces routing core — the single source of truth mapping content nodes to
- * `/spaces/...` URLs and back.
+ * Spaces routing core — pure tree logic mapping content nodes to slug-name segment paths
+ * and back.
  *
- * Only the content tier is addressable: folders + relations + dashboards +
- * canvases, all of which live in the one `editorElements` tree
- * (`tree-utils.ts`). A URL is just a walk down that tree by each node's
- * derived macro name (`macro-name.ts`).
+ * Only the content tier is addressable: folders + relations + dashboards + canvases, all of
+ * which live in the one `editorElements` tree (`tree-utils.ts`). A path is just a walk down
+ * that tree by each node's derived macro name (`slug-name.ts`).
  *
- * `parseRoute` is deliberately pure — it does NOT touch app state. It only
- * splits the path into raw segments; resolving folder-vs-leaf against the
- * tree happens in the view (`spaces-router.tsx`).
+ * This module is deliberately store- and URL-agnostic: it never touches app state and never
+ * builds URLs. Turning a segment path into a URL (and vice-versa) is the navigator's job
+ * (`navigation.ts`), which scopes it to the current project.
  */
 
 import {findPathById, findNodeInTrees, TreeNode} from "@/components/basics/files/tree-utils";
-import {computeSiblingMacroNames} from "@/state/routing/macro-name";
-
-export const SPACES_ROOT = "/workspace";
-export const DATA_ROOT = "/data";
-
-export interface Resolved {
-    /** 'spaces-root' | 'spaces' | 'data' | 'notfound' — 'spaces' still needs tree resolution */
-    view: string;
-    params: { segments: string[] };
-}
-
-/** path -> {view, segments}. Pure; no state access, no data fetching. */
-export function parseRoute(pathname: string): Resolved {
-    const path = (pathname || "").split("?")[0].split("#")[0];
-    const parts = path.split("/").filter(Boolean).map(decodeURIComponent);
-
-    if (parts.length === 0) return {view: "spaces-root", params: {segments: []}};
-    if (parts[0] === "workspace") {
-        const segments = parts.slice(1);
-        return segments.length === 0
-            ? {view: "spaces-root", params: {segments: []}}
-            : {view: "spaces", params: {segments}};
-    }
-    // `/data` catalog: literal `db/schema/table[/column]` segments (see catalog-model).
-    if (parts[0] === "data") return {view: "data", params: {segments: parts.slice(1)}};
-    return {view: "notfound", params: {segments: parts}};
-}
+import {computeSiblingSlugNames} from "@/state/routing/slug-name";
 
 /**
- * Walk the tree following macro-name segments. Returns the matched node, or
- * undefined if any segment does not resolve.
+ * Walk a given tree following slug-name segments. Returns the matched node, or undefined if any
+ * segment does not resolve. Store-agnostic — used for augmented trees (`buildRoutableTree`) and in
+ * tests. For the live editor tree use the store-aware `getObjectFromLocation` on `DashNavigator`.
  */
-export function findNodeByMacroPath(trees: TreeNode[], segments: string[]): TreeNode | undefined {
+export function nodeAtObjectSlugPath(trees: TreeNode[], segments: string[]): TreeNode | undefined {
     let level: TreeNode[] | null | undefined = trees;
     let node: TreeNode | undefined;
     for (const segment of segments) {
         if (!level) return undefined;
-        const macroNames = computeSiblingMacroNames(level);
-        node = level.find((n) => macroNames.get(n.id) === segment);
+        const slugNames = computeSiblingSlugNames(level);
+        node = level.find((n) => slugNames.get(n.id) === segment);
         if (!node) return undefined;
         level = node.children as TreeNode[] | null | undefined;
     }
@@ -59,10 +33,10 @@ export function findNodeByMacroPath(trees: TreeNode[], segments: string[]): Tree
 }
 
 /**
- * The macro-name segment path for a node id, or undefined if not found.
- * Inverse of findNodeByMacroPath on the same tree.
+ * The slug-name segment path for a node id, or undefined if not found.
+ * Inverse of nodeAtObjectPath on the same tree.
  */
-export function macroPathForId(trees: TreeNode[], id: string): string[] | undefined {
+export function objectSlugPathForId(trees: TreeNode[], id: string): string[] | undefined {
     const idPath = findPathById(trees, id);
     if (!idPath) return undefined;
 
@@ -70,8 +44,8 @@ export function macroPathForId(trees: TreeNode[], id: string): string[] | undefi
     let level: TreeNode[] | null | undefined = trees;
     for (const nodeId of idPath) {
         if (!level) return undefined;
-        const macroNames = computeSiblingMacroNames(level);
-        const segment = macroNames.get(nodeId);
+        const slugNames = computeSiblingSlugNames(level);
+        const segment = slugNames.get(nodeId);
         const next: TreeNode | undefined = level.find((n) => n.id === nodeId);
         if (segment === undefined || !next) return undefined;
         segments.push(segment);
@@ -80,30 +54,12 @@ export function macroPathForId(trees: TreeNode[], id: string): string[] | undefi
     return segments;
 }
 
-/** Build the `/spaces/...` URL for a content node id. */
-export function routeForNodeId(trees: TreeNode[], id: string): string | undefined {
-    const segments = macroPathForId(trees, id);
-    if (!segments) return undefined;
-    return routeForSegments(segments);
-}
-
-export function routeForSegments(segments: string[]): string {
-    if (segments.length === 0) return SPACES_ROOT;
-    return SPACES_ROOT + "/" + segments.map(encodeURIComponent).join("/");
-}
-
-/** Convenience: resolve the node currently addressed by a pathname. */
-export function resolveNodeFromPath(trees: TreeNode[], pathname: string): TreeNode | undefined {
-    const {view, params} = parseRoute(pathname);
-    if (view !== "spaces") return undefined;
-    return findNodeByMacroPath(trees, params.segments);
-}
-
-/** Human-readable crumb labels (name) + their `/spaces/...` link, for a segment path. */
+/** Human-readable crumb labels (name) + the slug-name segment path up to each, for a path. */
 export interface Crumb {
     id: string;
     label: string;
-    to: string;
+    /** Cumulative slug-name segments from the root to this crumb (turn into a URL via the navigator). */
+    segments: string[];
     type: string;
 }
 
@@ -113,11 +69,11 @@ export function crumbsForSegments(trees: TreeNode[], segments: string[]): Crumb[
     const prefix: string[] = [];
     for (const segment of segments) {
         if (!level) break;
-        const macroNames = computeSiblingMacroNames(level);
-        const node: TreeNode | undefined = level.find((n) => macroNames.get(n.id) === segment);
+        const slugNames = computeSiblingSlugNames(level);
+        const node: TreeNode | undefined = level.find((n) => slugNames.get(n.id) === segment);
         if (!node) break;
         prefix.push(segment);
-        crumbs.push({id: node.id, label: node.name, to: routeForSegments([...prefix]), type: node.type});
+        crumbs.push({id: node.id, label: node.name, segments: [...prefix], type: node.type});
         level = node.children as TreeNode[] | null | undefined;
     }
     return crumbs;

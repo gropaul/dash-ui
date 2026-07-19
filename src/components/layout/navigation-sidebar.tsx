@@ -6,8 +6,9 @@ import {Button} from "@/components/ui/button";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
-import {DATA_ROOT, SPACES_ROOT} from "@/state/routing/core-model";
-import {onNavClick, useCurrentPath} from "@/state/routing/use-location";
+import {DashLocation, DashLocations, DashNavigator} from "@/state/routing/navigation";
+import {useDashLocation} from "@/state/routing/use-dash-location";
+import {useProjectsState} from "@/state/projects.state";
 import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-section";
 
 /**
@@ -25,23 +26,21 @@ interface NavItem {
     key: NavKey;
     label: string;
     icon: LucideIcon;
-    href: string;
-}
-
-const NAV_ITEMS: NavItem[] = [
-    {key: 'workspace', label: 'Workspace', icon: Folder, href: SPACES_ROOT},
-    {key: 'data', label: 'Data', icon: Database, href: DATA_ROOT},
-];
-
-function activeKeyForPath(pathname: string): NavKey {
-    return pathname.startsWith(DATA_ROOT) ? 'data' : 'workspace';
+    location: DashLocation;
 }
 
 export function NavigationSidebar() {
     const expanded = useGUIState((s) => s.sidebarExpanded);
     const setExpanded = useGUIState((s) => s.setSidebarExpanded);
-    const pathname = useCurrentPath();
-    const activeKey = activeKeyForPath(pathname);
+    const location = useDashLocation();
+
+    // Workspace goes to the current project's root; Data is global. Built here (not a module
+    // const) because the workspace href depends on the current project.
+    const navItems: NavItem[] = [
+        {key: 'workspace', label: 'Workspace', icon: Folder,location: DashLocations.CurrentProjectRoot()},
+        {key: 'data', label: 'Data', icon: Database, location: DashLocations.DataRoot()},
+    ];
+    const activeKey: NavKey = location.basePath === 'data' ? 'data' : 'workspace';
 
     return (
         <TooltipProvider delayDuration={300}>
@@ -55,7 +54,7 @@ export function NavigationSidebar() {
                 {/* Nav destinations */}
                 <div className="flex flex-col gap-0.5 p-2 pt-5">
                     {expanded && <SectionHeader label="Navigation"/>}
-                    {NAV_ITEMS.map((item) => (
+                    {navItems.map((item) => (
                         <NavLink key={item.key} item={item} active={item.key === activeKey} expanded={expanded}/>
                     ))}
                 </div>
@@ -92,8 +91,7 @@ function NavLink({item, active, expanded}: {item: NavItem; active: boolean; expa
     const Icon = item.icon;
     const link = (
         <a
-            href={item.href}
-            onClick={onNavClick(item.href)}
+            onClick={DashNavigator.instance().onClickNavigateToLocation(item.location)}
             aria-current={active ? "page" : undefined}
             className={cn(
                 "group relative flex items-center h-9 rounded-md text-sm select-none transition-colors",

@@ -7,7 +7,6 @@ import {Column} from "@/model/data-source-connection";
 import {getBaseQueryFromSource} from "@/model/relation-state";
 import {RelationSourceTable} from "@/model/relation";
 import {DASH_CATALOG, DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
-import {DATA_ROOT} from "@/state/routing/core-model";
 import {formatNumber} from "@/platform/number-utils";
 import {isDebugMode} from "@/components/settings/about-content";
 
@@ -77,37 +76,31 @@ export function objectPathStr(o: CatalogObject): string {
 }
 
 /* --------------------------------- routing --------------------------------- */
-// Everything under the catalog is a real URL, so the breadcrumb, back/forward and sharing all
-// work. Segment count disambiguates:
-//   /data                              → the full list
-//   /data/<db>                         → list filtered to a database
-//   /data/<db>/<schema>                → list filtered to a schema
-//   /data/<db>/<schema>/<table>        → the table's full-screen detail
-//   /data/<db>/<schema>/<table>/<col>  → a column's full-screen detail
-// The 1–2 segment "filtered list" routes are handled by the view (via {@link dataListRoute});
-// only the 3+ segment object routes resolve here (via {@link resolveDataRoute}).
+// Everything under the catalog is a real URL (a DataLocation whose `segments` are the part
+// after `/data`), so the breadcrumb, back/forward and sharing all work. Segment count
+// disambiguates:
+//   []                          → the full list
+//   [db]                        → list filtered to a database
+//   [db, schema]                → list filtered to a schema
+//   [db, schema, table]         → the table's full-screen detail
+//   [db, schema, table, col]    → a column's full-screen detail
+// The 0–2 segment "filtered list" cases are handled by the view; only the 3+ segment object
+// cases resolve here (via {@link resolveDataRoute}).
 
 export interface DataRouteTarget {
     object: CatalogObject;
     colName?: string;
 }
 
-/** The `/data/...` URL for a path-filtered list. Empty segments → the bare list. */
-export function dataListRoute(segments: string[]): string {
-    return segments.length ? DATA_ROOT + "/" + segments.map(encodeURIComponent).join("/") : DATA_ROOT;
+/** The catalog segments for an object, optionally a column within it. */
+export function dataSegments(o: CatalogObject, colName?: string): string[] {
+    return colName ? [...objectPath(o), colName] : objectPath(o);
 }
 
-/** The `/data/...` URL for an object, optionally a column within it. */
-export function dataRoute(o: CatalogObject, colName?: string): string {
-    const segs = colName ? [...objectPath(o), colName] : objectPath(o);
-    return DATA_ROOT + "/" + segs.map(encodeURIComponent).join("/");
-}
-
-/** Resolve a `/data/...` pathname to an object (+ optional column), or null for the list. */
-export function resolveDataRoute(objects: CatalogObject[], pathname: string): DataRouteTarget | null {
-    const parts = (pathname || "").split("?")[0].split("#")[0].split("/").filter(Boolean).map(decodeURIComponent);
-    if (parts[0] !== "data" || parts.length < 4) return null;
-    const [, database, schema, table, colName] = parts;
+/** Resolve catalog segments (the part after `/data`) to an object (+ optional column), or null for the list. */
+export function resolveDataRoute(objects: CatalogObject[], segments: string[]): DataRouteTarget | null {
+    if (segments.length < 3) return null;
+    const [database, schema, table, colName] = segments;
     const object = objects.find((o) => o.database === database && o.schema === schema && o.name === table);
     if (!object) return null;
     return {object, colName: colName && object.columns.some((c) => c.name === colName) ? colName : undefined};

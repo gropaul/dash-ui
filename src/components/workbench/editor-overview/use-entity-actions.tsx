@@ -14,8 +14,7 @@ import {RelationActions} from "@/state/relations/actions/static-actions";
 import {cloneNodesForClipboard, cloneEdgesForClipboard} from "@/components/canvas/logic/clipboard-utils";
 import {getRandomId} from "@/platform/id-utils";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
-import {routeForNodeId, resolveNodeFromPath} from "@/state/routing/core-model";
-import {navigateReplace, currentPathname} from "@/state/routing/navigation";
+import {DashNavigator} from "@/state/routing/navigation";
 
 /** The per-row/per-node actions shared by the folder view and the editor sidebar. */
 export interface EntityActionHandlers {
@@ -50,7 +49,7 @@ export function useEntityActions(): { handlers: EntityActionHandlers; dialogs: R
     const addNewDashboard = useRelationsState((state) => state.addNewDashboard);
     const addNewCanvas = useRelationsState((state) => state.addNewCanvas);
     const deleteEntity = useRelationsState((state) => state.deleteEntity);
-    const removeEditorElement = useRelationsState((state) => state.removeEditorElement);
+    const deleteEditorElement = useRelationsState((state) => state.deleteEditorElement);
     const getEntityDisplayName = useRelationsState((state) => state.getEntityDisplayName);
     const addRelationWidgetToDashboard = useRelationsState((state) => state.addRelationWidgetToDashboard);
     const addRelationToCanvas = useRelationsState((state) => state.addRelationToCanvas);
@@ -115,7 +114,7 @@ ${relationNames.join(', ')}`;
 
     function onDeleteConfirmed() {
         if (deleteState.currentNode?.type === 'folder') {
-            removeEditorElement(deleteState.path!);
+            deleteEditorElement(deleteState.path!);
         } else {
             deleteEntity(deleteState.currentNode?.type as RelationZustandEntityType, deleteState.currentNode!.id, deleteState.path!);
         }
@@ -182,12 +181,7 @@ ${relationNames.join(', ')}`;
     }
 
     function onCopyLink(path: string[], tree: TreeNode) {
-        const route = routeForNodeId(useRelationsState.getState().editorElements, tree.id);
-        if (!route) {
-            toast.error("Could not build a link for this item");
-            return;
-        }
-        const url = window.location.origin + route;
+        const url = window.location.origin + DashNavigator.instance().getUrlFromObjectId(tree.id);
         navigator.clipboard.writeText(url).then(
             () => toast.success("Link copied to clipboard", {duration: 2000}),
             () => toast.error("Failed to copy link"),
@@ -207,14 +201,12 @@ ${relationNames.join(', ')}`;
             // Moving relocates the node (and everything under it), so routes change. Remember which
             // entity is on screen; if its route stops resolving after the move — whether it was the
             // moved item itself or a descendant of a moved folder — follow it to its new location.
-            const shownId = resolveNodeFromPath(useRelationsState.getState().editorElements, currentPathname())?.id;
+            const openObject = DashNavigator.instance().getCurrentObject();
             applyEditorElementsActions([{type: 'move', id_path: path, target_id_path: targetPath}]);
-            if (shownId) {
-                const elements = useRelationsState.getState().editorElements;
-                const stillResolves = resolveNodeFromPath(elements, currentPathname())?.id === shownId;
+            if (openObject && tree.id === openObject.id) {
+                const stillResolves = DashNavigator.instance().getCurrentObject();
                 if (!stillResolves) {
-                    const newRoute = routeForNodeId(elements, shownId);
-                    if (newRoute) navigateReplace(newRoute);
+                    DashNavigator.instance().navigateToObjectId(openObject.id, true);
                 }
             }
             toast.success(`Moved "${displayName}"`, {duration: 2000});

@@ -27,8 +27,7 @@ import {
     updateNode
 } from "@/components/basics/files/tree-utils";
 import {RemoveNodeAction, RenameNodeActions} from "@/components/basics/files/tree-action-utils";
-import {navigate, navigateReplace, currentPathname} from "@/state/routing/navigation";
-import {routeForNodeId, resolveNodeFromPath, SPACES_ROOT} from "@/state/routing/core-model";
+import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
 import {GetInitialCanvasState, CanvasState} from "@/model/canvas-state";
@@ -51,6 +50,9 @@ import {RelationActions} from "@/state/relations/actions/static-actions";
 import {migrateV1FlattenRelationState} from "@/state/migrations/v1-flatten-relation-state";
 import {migrateDashboardsToGrid} from "@/state/migrations/v2-dashboards-to-grid";
 import {withViewed} from "@/state/entities/entity-base";
+
+const nav = DashNavigator.instance();
+
 
 /** Element kinds that appear in the folder view and carry usage metadata. */
 export type ViewableEntityType = 'folder' | 'relations' | 'dashboards' | 'canvas';
@@ -113,13 +115,12 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     setEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string, displayName: string, path: string[]) => void,
     addEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, path: string[], openTab?: boolean) : void,
     showEntityFromId: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
-    // Stamp lastViewedAt + increment nViews for a folder-view element (folder/relation/dashboard/canvas).
     markEntityViewed: (entityType: ViewableEntityType, entityId: string) => void,
 
     /* editor folder actions */
     updateEditorElements: (path: string[], newFolder: EditorFolder) => void,
     addEditorElement: (path: string[], newFolder: EditorFolder) => void,
-    removeEditorElement: (path: string[]) => void,
+    deleteEditorElement: (path: string[]) => void,
     applyEditorElementsActions: (actions: TreeAction[]) => void,
     resetEditorElements: () => void,
 
@@ -258,8 +259,8 @@ export const useRelationsState = createWithEqualityFn(
                     get().updateCanvasState(canvasId, {nodes: [...canvas.nodes, newNode]});
                 },
                 deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
-                    // if the entity being deleted is the one currently shown, leave for /spaces
-                    const currentlyShown = resolveNodeFromPath(get().editorElements, currentPathname());
+                    // if the entity being deleted is the one currently shown, leave for the project root
+                    const currentlyShown = DashNavigator.instance().isCurrentObjectIdShown(entityId);
 
                     // if it is a relation, delete the cache, dispatch delete action, and purge
                     // every dashboard widget / canvas node that referenced it
@@ -284,11 +285,15 @@ export const useRelationsState = createWithEqualityFn(
                     // If we just deleted the entity currently on screen, its route no longer resolves —
                     // move to the parent folder (still present in newElements) if there is one, else the
                     // workspace root.
-                    if (currentlyShown?.id === entityId) {
+                    if (currentlyShown) {
                         const parentPath = editorPath.slice(0, editorPath.length - 1);
                         const parentId = parentPath[parentPath.length - 1];
-                        const parentRoute = parentId ? routeForNodeId(newElements, parentId) : undefined;
-                        navigateReplace(parentRoute ?? SPACES_ROOT);
+                        if (parentId) {
+                            nav.navigateToObjectId(parentId, true);
+                        } else {
+                            // Root-level item: no parent folder to fall back to.
+                            nav.navigateToLocation(DashLocations.CurrentProjectRoot(), true);
+                        }
                     }
                 },
 
@@ -303,7 +308,7 @@ export const useRelationsState = createWithEqualityFn(
                     const newEntity = {...renamed, lastEditedAt: Date.now()};
 
                     // renaming may change the derived macro name (and thus the URL) of the shown item
-                    const wasShown = resolveNodeFromPath(get().editorElements, currentPathname())?.id === entityId;
+                    const wasShown = DashNavigator.instance().isCurrentObjectIdShown(entityId);
 
                     // If path is empty, find the path by entity ID
                     const effectivePath = path.length > 0 ? path : findPathById(get().editorElements, entityId);
@@ -319,8 +324,7 @@ export const useRelationsState = createWithEqualityFn(
                             editorElements: newEditorElements,
                         }));
                         if (wasShown) {
-                            const newRoute = routeForNodeId(get().editorElements, entityId);
-                            if (newRoute) navigateReplace(newRoute);
+                            DashNavigator.instance().navigateToObjectId(entityId, true);
                         }
                     } else {
                         // No path found, just update the entity without editor elements
@@ -345,12 +349,7 @@ export const useRelationsState = createWithEqualityFn(
                     }
 
                     if (openInTab) {
-                        // navigate to the entity's /spaces URL (undefined for non-addressable
-                        // kinds like schemas/databases, which are not in the editor tree)
-                        const route = routeForNodeId(get().editorElements, entityId);
-                        if (route) {
-                            navigate(route);
-                        }
+                        DashNavigator.instance().navigateToObjectId(entityId);
                     }
                 },
 
@@ -547,7 +546,7 @@ export const useRelationsState = createWithEqualityFn(
                     set(() => ({editorElements: updatedFolders}));
                 },
 
-                removeEditorElement: (path: string[]) => {
+                deleteEditorElement: (path: string[]) => {
 
                     const newElements = [...get().editorElements];
                     const newRelations = {...get().relations};
@@ -556,8 +555,8 @@ export const useRelationsState = createWithEqualityFn(
                     const elementToRemove = findNodeInTrees(newElements, path);
                     if (!elementToRemove) throw new Error('Element to remove not found');
 
-                    // remember what is currently shown so we can leave for /spaces if it gets removed
-                    const currentlyShown = resolveNodeFromPath(get().editorElements, currentPathname());
+                    // remember what is currently shown so we can leave for the project root if it gets removed
+                    const currentlyShown = DashNavigator.instance().isCurrentObjectIdShown(elementToRemove.id);
 
                     const deletedRelationIds = new Set<string>();
                     IterateAll([elementToRemove], (node) => {
@@ -584,8 +583,8 @@ export const useRelationsState = createWithEqualityFn(
                         canvas: purged.canvas,
                     }));
 
-                    if (currentlyShown && !findPathById(updatedFolders, currentlyShown.id)) {
-                        navigateReplace(SPACES_ROOT);
+                    if (currentlyShown) {
+                        nav.navigateToLocation(DashLocations.CurrentProjectRoot(), true);
                     }
                 },
 

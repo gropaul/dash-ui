@@ -1,8 +1,7 @@
 import {useRelationsState} from "@/state/relations.state";
 import {useMemo, useSyncExternalStore} from "react";
-import {resolveNodeFromPath} from "@/state/routing/core-model";
-import {currentPathname} from "@/state/routing/navigation";
-import {useCurrentPath} from "@/state/routing/use-location";
+import {useDashLocation} from "@/state/routing/use-dash-location";
+import {DashNavigator} from "@/state/routing/navigation";
 
 // --- Target Types ---
 
@@ -43,7 +42,7 @@ export function getAvailableTargets(): Target[] {
     const relationsState = useRelationsState.getState();
 
     // The "open" relation is now the one addressed by the current URL.
-    const shown = resolveNodeFromPath(relationsState.editorElements, currentPathname());
+    const shown = DashNavigator.instance().getCurrentObject();
     if (shown && shown.type === 'relations') {
         const relation = relationsState.relations[shown.id];
         if (relation) {
@@ -143,14 +142,14 @@ function useDisabledTargets(): Set<string> {
 // --- Reactive Hooks ---
 
 export function useAvailableTargets(): Target[] {
-    const pathname = useCurrentPath();
+    const location = useDashLocation();
     const dashboards = useRelationsState((s) => s.dashboards);
     const relations = useRelationsState((s) => s.relations);
     const editorElements = useRelationsState((s) => s.editorElements);
 
     return useMemo(() => {
         return getAvailableTargets();
-    }, [pathname, dashboards, relations, editorElements]);
+    }, [location, dashboards, relations, editorElements]);
 }
 
 export function useTargetsWithEnabled(): { targets: Target[]; disabled: Set<string> } {

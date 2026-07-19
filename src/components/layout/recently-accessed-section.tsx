@@ -3,8 +3,8 @@
 import React from "react";
 import {cn} from "@/lib/utils";
 import {useRelationsState} from "@/state/relations.state";
-import {routeForNodeId} from "@/state/routing/core-model";
-import {onNavClick, useCurrentPath} from "@/state/routing/use-location";
+import {DashNavigator} from "@/state/routing/navigation";
+import { useDashLocation} from "@/state/routing/use-dash-location";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {ColoredIcon} from "@/components/basics/files/icon-factories";
 import {formatRelativeTime} from "@/platform/string-utils";
@@ -26,7 +26,6 @@ export function RecentlyAccessedSection() {
     const relations = useRelationsState((s) => s.relations);
     const dashboards = useRelationsState((s) => s.dashboards);
     const canvas = useRelationsState((s) => s.canvas);
-    const pathname = useCurrentPath();
 
     const items = selectRecentWorkspaceItems({editorElements, relations, dashboards, canvas}, RECENT_LIMIT);
 
@@ -44,21 +43,15 @@ export function RecentlyAccessedSection() {
                     {/* <div className="px-3 pb-1 text-[11px] font-medium text-muted-foreground/60">Workspace</div> */}
                     <div className="flex flex-col gap-0.5">
                         {items.map((item) => {
-                            const to = routeForNodeId(editorElements, item.id);
-                            if (!to) return null;
-                            const active = pathname === to;
                             return (
                                 <Tooltip key={item.id}>
                                     <TooltipTrigger asChild>
                                         <a
-                                            href={to}
-                                            onClick={onNavClick(to)}
-                                            aria-current={active ? "page" : undefined}
+                                            onClick={DashNavigator.instance().onClickNavigateToObjectId(item.id)}
                                             className={cn(
-                                                "group flex items-center gap-2.5 h-9 px-3 rounded-md text-sm select-none transition-colors",
-                                                active
-                                                    ? "bg-accent text-foreground font-medium"
-                                                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                                                "group flex items-center gap-2.5 h-9 px-3 " +
+                                                "rounded-md text-sm select-none transition-colors" +
+                                                "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                                             )}
                                         >
                                             <ColoredIcon type={item.iconType} size={18} background={false}/>

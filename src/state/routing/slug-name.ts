@@ -1,12 +1,12 @@
 /**
- * Macro names — URL-safe slugs derived from a node's display name.
+ * Slug names — URL-safe slugs derived from a node's display name.
  *
- * A "macro name" is the segment used to address a content node (folder /
+ * A "slug name" is the segment used to address a content node (folder /
  * relation / dashboard / canvas) inside a `/projects/<slug>/...` URL. It is
  * DERIVED from the display name (not stored) and made unique among its siblings
  * by a deterministic suffix. Because moving/reordering items is not supported,
- * the derivation is stable, which makes `objectPathForId` and
- * `findNodeByObjectPath` exact inverses on the live tree.
+ * the derivation is stable, which makes `objectSlugPathForId` and
+ * `nodeAtObjectSlugPath` exact inverses on the live tree.
  */
 
 import {slugify as slugifyString} from "@/platform/string-utils";
@@ -24,11 +24,11 @@ interface HasNameAndId {
 }
 
 /**
- * Compute the macro name for every node in a sibling list, resolving slug
+ * Compute the slug name for every node in a sibling list, resolving slug
  * collisions deterministically by order (`foo`, `foo-2`, `foo-3`, ...).
  * Returns a map keyed by node id.
  */
-export function computeSiblingMacroNames(siblings: HasNameAndId[]): Map<string, string> {
+export function computeSiblingSlugNames(siblings: HasNameAndId[]): Map<string, string> {
     const used = new Map<string, number>(); // base slug -> count seen
     const result = new Map<string, string>();
     for (const node of siblings) {

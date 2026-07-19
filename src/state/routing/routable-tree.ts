@@ -18,8 +18,9 @@ import {EditorFolder} from "@/model/editor-folder";
 import {RelationState} from "@/model/relation-state";
 import {DashboardState} from "@/model/dashboard-state";
 import {CanvasState} from "@/model/canvas-state";
-import {findNodeByMacroPath, macroPathForId, routeForSegments} from "@/state/routing/core-model";
-import {computeSiblingMacroNames} from "@/state/routing/macro-name";
+import {objectSlugPathForId} from "@/state/routing/core-model";
+import {computeSiblingSlugNames} from "@/state/routing/slug-name";
+import {DashLocations, DashNavigator, ProjectLocation} from "@/state/routing/navigation";
 
 type Relations = Record<string, RelationState>;
 type Dashboards = Record<string, DashboardState>;
@@ -80,21 +81,22 @@ export function buildRoutableTree(
 }
 
 /**
- * The contextual `/workspace/...` URL for a relation shown under a container
- * (dashboard/canvas) — the container's own path plus the relation's macro name among
- * the container's virtual children. Returns undefined if the container or relation
- * can't be resolved. `tree` must be a `buildRoutableTree` result.
+ * The contextual location for a relation shown under a container (dashboard/canvas) — the
+ * container's own path plus the relation's macro name among the container's virtual children,
+ * scoped to the current project. Returns undefined if the container or relation can't be
+ * resolved. `tree` must be a `buildRoutableTree` result.
  */
-export function aliasRelationRoute(
+export function aliasRelationLocation(
     tree: EditorFolder[],
     containerId: string,
     relationId: string,
-): string | undefined {
-    const containerSegments = macroPathForId(tree, containerId);
+): ProjectLocation | undefined {
+    const containerSegments = objectSlugPathForId(tree, containerId);
     if (!containerSegments) return undefined;
-    const container = findNodeByMacroPath(tree, containerSegments) as EditorFolder | undefined;
+    const containerLoc = DashLocations.CurrentProjectElement(containerSegments);
+    const container = DashNavigator.instance().getObjectFromLocation(containerLoc);
     const children = (container?.children ?? []) as EditorFolder[];
-    const macro = computeSiblingMacroNames(children).get(relationId);
+    const macro = computeSiblingSlugNames(children).get(relationId);
     if (!macro) return undefined;
-    return routeForSegments([...containerSegments, macro]);
+    return DashLocations.CurrentProjectElement([...containerSegments, macro]);
 }

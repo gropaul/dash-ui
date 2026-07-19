@@ -1,8 +1,8 @@
 import {useCallback} from "react";
 import {shallow} from "zustand/shallow";
 import {useRelationsState} from "@/state/relations.state";
-import {aliasRelationRoute, buildRoutableTree} from "@/state/routing/routable-tree";
-import {navigate} from "@/state/routing/navigation";
+import {aliasRelationLocation, buildRoutableTree} from "@/state/routing/routable-tree";
+import {DashNavigator} from "@/state/routing/navigation";
 import {Flow} from "@/components/canvas/flow";
 import {ReactFlowProvider} from "@xyflow/react";
 
@@ -24,8 +24,8 @@ export function CanvasTab(props: WorkflowTabProps) {
         const relationId = (node?.data as {relationId?: string} | undefined)?.relationId;
         if (!relationId) return;
         const tree = buildRoutableTree(st.editorElements, st.relations, st.dashboards, st.canvas);
-        const route = aliasRelationRoute(tree, canvasId, relationId);
-        if (route) navigate(route);
+        const loc = aliasRelationLocation(tree, canvasId, relationId);
+        if (loc) DashNavigator.instance().navigateToLocation(loc);
     }, [canvasId]);
 
     if (!canvas) {

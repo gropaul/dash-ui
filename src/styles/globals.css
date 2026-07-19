@@ -235,10 +235,10 @@ body {
      (~ the corner radius; widgets use rounded-xl = 12px). */
   right: 8px;
   bottom: 8px;
-  width: 7px;
-  height: 7px;
-  border-right: 2px solid hsl(var(--muted-foreground) / 0.6);
-  border-bottom: 2px solid hsl(var(--muted-foreground) / 0.6);
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #6366f1;
+  border-bottom: 2px solid #6366f1;
 }
 /* RGL adds this class when resizing is disabled (e.g. dashboard view mode) — hide the handle. */
 .react-resizable-hide > .react-resizable-handle {

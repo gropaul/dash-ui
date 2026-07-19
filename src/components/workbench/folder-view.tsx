@@ -8,13 +8,9 @@ import {SearchBox} from "@/components/basics/search-box";
 import {FilterTags} from "@/components/basics/filter-tags";
 import {useEntityFilterTags} from "@/components/basics/files/entity-filter-tags";
 import {ColoredIcon, defaultIconFactory} from "@/components/basics/files/icon-factories";
-import {computeSiblingMacroNames, slugify} from "@/state/routing/macro-name";
-import {DashNavigator} from "@/state/routing/navigation";
-import {onNavClick} from "@/state/routing/use-location";
-
-const nav = DashNavigator.instance();
+import {computeSiblingSlugNames, slugify} from "@/state/routing/slug-name";
+import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {useRelationsState} from "@/state/relations.state";
-import {useCurrentProject} from "@/state/projects.state";
 import {EntityBase} from "@/state/entities/entity-base";
 import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
@@ -49,6 +45,9 @@ import {
 import {ViewPadding} from "@/components/ui/view-padding";
 import {formatRelativeTime} from "@/platform/string-utils";
 import {formatNumber} from "@/platform/number-utils";
+import {useProjectsState} from "@/state/projects.state";
+
+const nav = DashNavigator.instance();
 
 interface FolderViewProps {
     /** The resolved folder node, or undefined for the /workspace root. */
@@ -101,8 +100,8 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     const relations = useRelationsState((state) => state.relations);
     const dashboards = useRelationsState((state) => state.dashboards);
     const canvas = useRelationsState((state) => state.canvas);
-    const currentProject = useCurrentProject();
     const {handlers, dialogs} = useEntityActions();
+    const currentProject = useProjectsState((state) => state.getCurrentProject());
 
     const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({key: "lastViewedAt", dir: "desc"});
     const [activeTag, setActiveTag] = useState("");
@@ -110,7 +109,7 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     const [searchOpen, setSearchOpen] = useState(false);
 
     const children: TreeNode[] = folderNode ? (folderNode.children ?? []) : editorElements;
-    const macroNames = computeSiblingMacroNames(children);
+    const slugNames = computeSiblingSlugNames(children);
 
     // Entity-kind chips (folder/query/…) plus one chip per relation view type (Table/Chart/…);
     // zero-count chips collapse away in the widget, so only kinds actually present are shown.
@@ -159,7 +158,8 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
         return true;
     });
     const rows = visibleChildren.map((child) => {
-        const to = nav.getUrlFrom(nav.objectLocation([...segments, macroNames.get(child.id) ?? slugify(child.name)]));
+        const path = [...segments, slugNames.get(child.id) ?? slugify(child.name)];
+        const to = nav.getUrlFromLocation(DashLocations.CurrentProjectElement(path));
         // Relations are colored by their view type (matching the canvas nodes); other entities by type.
         const iconType = child.type === "relations"
             ? (relations[child.id]?.viewState?.selectedView ?? "relations")
@@ -253,12 +253,12 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
                                     <ContextMenu key={child.id}>
                                         <ContextMenuTrigger asChild>
                                             <TableRow
-                                                onClick={onNavClick(to)}
+                                                onClick={DashNavigator.instance().onClickNavigateToObjectId(child.id)}
                                                 className="group cursor-pointer"
                                             >
                                                 <TableCell>
                                                     {/* href kept for middle-click / open-in-new-tab; plain clicks are
-                                                    handled by the row's onNavClick (bubbles up, preventing default). */}
+                                                    handled by the row's onClickNavigateToObjectId (preventing default). */}
                                                     <a href={to} className="flex items-center gap-2.5 text-foreground">
                                                         <ColoredIcon type={iconType}/>
                                                         <span className="truncate">{child.name}</span>

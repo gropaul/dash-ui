@@ -1,21 +1,24 @@
 'use client';
 
-import {SpacesRouter} from "@/components/layout/spaces-router";
-import {DataView} from "@/components/spaces/data-view";
-import {DATA_ROOT} from "@/state/routing/core-model";
-import {useCurrentPath} from "@/state/routing/use-location";
+import {RouterProject} from "@/components/layout/sub-router/router-project";
+import {RouterData} from "@/components/layout/sub-router/router-data";
+import {useDashLocation} from "@/state/routing/use-dash-location";
+import {DashLocation} from "@/state/routing/navigation";
+import {useProjectRouteSync} from "@/state/projects.state";
 
-/**
- * Top-level client router behind the single static shell. Dispatches by the first
- * path segment: `/data` → DatabaseView, everything else → SpacesRouter (which owns
- * `/workspace`, root canonicalisation and not-found).
- */
+export interface SubRouterProps {
+    location: DashLocation;
+}
+
 export function AppRouter() {
-    const pathname = useCurrentPath();
+    const location = useDashLocation();
 
-    if (pathname.startsWith(DATA_ROOT)) {
-        return <DataView/>;
+    // Reconcile the current project with the `/projects/<slug>` in the URL.
+    useProjectRouteSync();
+
+    if (location.basePath === "data") {
+        return <RouterData location={location}/>;
     }
 
-    return <SpacesRouter/>;
+    return <RouterProject location={location}/>;
 }

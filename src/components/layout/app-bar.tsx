@@ -2,7 +2,6 @@
 
 import {useEffect, useState} from "react";
 import {Bug, BookOpen, HelpCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
-import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {isDebugMode} from "@/components/settings/about-content";
@@ -17,6 +16,7 @@ import {useGUIState} from "@/state/gui.state";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {WorkspacePathBreadcrumb} from "@/components/layout/workspace-path-breadcrumb";
+import {ProjectSwitcher} from "@/components/projects/project-switcher";
 import {openSearchCommand} from "@/components/workbench/global-command";
 
 /**
@@ -29,12 +29,11 @@ import {openSearchCommand} from "@/components/workbench/global-command";
 export function AppBar() {
     return (
         <header className="h-12 flex items-center gap-3 border-b bg-background flex-shrink-0">
-            {/* LEFT — brand + current path (path is the only functional part today) */}
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-                <div className={'w-16 flex items-center justify-center'}>
-                    <AppBarLogo/>
-                </div>
-                <WorkspacePathBreadcrumb/>
+            {/* LEFT — current project + path. The project switcher's icon replaces the old app logo. */}
+            <div className="flex items-center gap-2 min-w-0 flex-1 pl-2">
+                {/* The project switcher is the breadcrumb root, so the crumb drops its own "Workspace" root. */}
+                <ProjectSwitcher/>
+                <WorkspacePathBreadcrumb showWorkspaceRoot={false}/>
             </div>
 
             {/* RIGHT — app actions: settings + an overflow menu for the rest */}
@@ -103,15 +102,6 @@ function DebugModeBadge() {
                 <Bug size={12}/> Debug
             </span>
         </TooltipWrapper>
-    );
-}
-
-// Visual only — the Dash logo. Reuses the favicon asset already used by the icon rail.
-function AppBarLogo() {
-    return (
-        <Avatar className="h-7 w-7 flex-shrink-0">
-            <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Dash"/>
-        </Avatar>
     );
 }
 

@@ -65,7 +65,6 @@ export const useProjectsState = create<ProjectsZustand>()(
                 if (!trimmed) return {slug: null, error: "Enter a project name."};
                 const slug = slugify(trimmed);
                 if (!slug) return {slug: null, error: "Use at least one letter or number."};
-                if (RESERVED_PROJECT_SLUGS.includes(slug)) return {slug, error: "This name is reserved — pick another."};
                 if (Object.values(get().projects).some((p) => p.slug === slug && p.id !== exceptId)) {
                     return {slug, error: "A project with this slug already exists."};
                 }
