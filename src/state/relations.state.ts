@@ -259,8 +259,9 @@ export const useRelationsState = createWithEqualityFn(
                     get().updateCanvasState(canvasId, {nodes: [...canvas.nodes, newNode]});
                 },
                 deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
-                    // if the entity being deleted is the one currently shown, leave for the project root
-                    const currentlyShown = DashNavigator.instance().isCurrentObjectIdShown(entityId);
+
+                    // Resolve (before mutating the tree) whether the deleted item is the one on screen.
+                    const wasShown = nav.isCurrentObjectIdShown(entityId);
 
                     // if it is a relation, delete the cache, dispatch delete action, and purge
                     // every dashboard widget / canvas node that referenced it
@@ -282,10 +283,9 @@ export const useRelationsState = createWithEqualityFn(
                         ...refUpdates,
                     });
 
-                    // If we just deleted the entity currently on screen, its route no longer resolves —
-                    // move to the parent folder (still present in newElements) if there is one, else the
-                    // workspace root.
-                    if (currentlyShown) {
+                    // Only leave if the deleted item was on screen (its URL no longer resolves).
+                    // Folder views refresh reactively via the tree subscription, so no route needed there.
+                    if (wasShown) {
                         const parentPath = editorPath.slice(0, editorPath.length - 1);
                         const parentId = parentPath[parentPath.length - 1];
                         if (parentId) {

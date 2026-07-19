@@ -151,6 +151,7 @@ function buildEntries(trail: BreadCrumb[]): Entry[] {
 }
 
 function renderCrumb(crumb: BreadCrumb, isLast: boolean, alias?: AliasInfo) {
+    const nav = DashNavigator.instance();
     // A crumb links only when it has its own page (`to`) and isn't the current leaf. Structural
     // crumbs without a page (e.g. a `/data` database/schema) show as muted context labels.
     const navigable = !isLast && !!crumb.to;
@@ -158,7 +159,8 @@ function renderCrumb(crumb: BreadCrumb, isLast: boolean, alias?: AliasInfo) {
         <BreadcrumbItem className="min-w-0">
             {navigable ? (
                 <BreadcrumbLink
-                    onClick={DashNavigator.instance().onClickNavigateToObjectId(crumb.id)}
+                    href={crumb.to}
+                    onClick={nav.onClickNavigateToLocation(nav.getLocationFromUrl(crumb.to!))}
                     // Match the project button's ghost hover.
                     className="truncate max-w-[160px] rounded-2xl px-1.5 py-1 text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 >

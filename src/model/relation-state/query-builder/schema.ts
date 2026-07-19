@@ -25,4 +25,5 @@ export async function getQuerySchema(query: string): Promise<Column[]> {
             type: duckDBTypeToValueType(rawType),
         } satisfies Column;
     });
+
 }

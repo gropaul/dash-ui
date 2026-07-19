@@ -217,6 +217,7 @@ export interface QueryData {
 
 // 2. The async version that checks executability
 export async function buildQueryWithCheck(relation: RelationState): Promise<QueryBuildResult> {
+    console.log('buildQueryWithCheck');
     // Build the queries first
     const {
         initialQueries,

@@ -62,16 +62,25 @@ export async function buildQuery<QueryParameters, QueryState>(
     const paramDefs = relationState.viewState.parametersState?.parameters;
     const sqlWithVariables = setVariablesInQuery(relationState.query.activeBaseQuery, paramDefs);
     const {initialQueries, finalQuery, finalQueryAsSubQuery} = splitBaseQuery(sqlWithVariables);
-
-    const {
-        fixedParameters,
-        schema
-    } = await fixQueryParametersParameters(relationState, relationView, finalQueryAsSubQuery);
-    const viewQuery = relationView.buildViewQuery(fixedParameters, finalQueryAsSubQuery, QUERY_ALIAS);
+    let parameters;
+    let schema: Column[] = []
+    try {
+        const {
+            fixedParameters,
+            schema: fixedSchema
+        } = await fixQueryParametersParameters(relationState, relationView, finalQueryAsSubQuery);
+        parameters = fixedParameters;
+        schema = fixedSchema;
+    } catch (e) {
+        parameters = relationView.getQueryParameters(relationState);
+        schema = [];
+        console.error('Fixing query parameters failed', e);
+    }
+    const viewQuery = relationView.buildViewQuery(parameters, finalQueryAsSubQuery, QUERY_ALIAS);
 
     let countQuery = undefined;
     if (relationView.buildCountQuery) {
-        countQuery = relationView.buildCountQuery(fixedParameters, finalQueryAsSubQuery, QUERY_ALIAS);
+        countQuery = relationView.buildCountQuery(parameters, finalQueryAsSubQuery, QUERY_ALIAS);
     }
 
     return {

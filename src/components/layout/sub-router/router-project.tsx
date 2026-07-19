@@ -22,6 +22,11 @@ interface ProjectRouterProps extends SubRouterProps {
  */
 export function RouterProject(props: ProjectRouterProps) {
 
+    // Resolution below reads the tree non-reactively (getState), so subscribe here to re-render
+    // and re-resolve when the tree changes (add / rename / delete / move) — without this a delete
+    // inside the current folder leaves the stale node on screen (URL is unchanged).
+    useRelationsState((s) => s.editorElements);
+
     if (props.location.basePath !== "object") {
         throw new Error(`Unexpected props.location kind ${props.location.basePath} in ProjectRouter`);
     }
