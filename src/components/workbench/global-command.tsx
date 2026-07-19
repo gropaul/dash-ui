@@ -2,6 +2,7 @@
 
 import {useEffect, useMemo, useRef, useState} from "react";
 import {Command as CommandPrimitive} from "cmdk";
+import commandScore from "command-score";
 import {Folder, LayoutDashboard, Search, Sheet, Workflow} from "lucide-react";
 import {CommandDialog, CommandEmpty, CommandItem, CommandList} from "@/components/ui/command";
 import {CommandButton} from "@/components/ui/command-button";
@@ -19,8 +20,7 @@ import {EditorFolder} from "@/model/editor-folder";
 import {useGUIState, CommandActionType, CommandEntityType} from "@/state/gui.state";
 import {useRelationsState} from "@/state/relations.state";
 import {EntityBase} from "@/state/entities/entity-base";
-import {routeForNodeId} from "@/state/routing/core-model";
-import {navigate} from "@/state/routing/navigation";
+import {DashNavigator} from "@/state/routing/navigation";
 import {formatRelativeTime} from "@/platform/string-utils";
 
 function actionLabel(action: CommandActionType): string {
@@ -108,8 +108,7 @@ export function openSearchCommand() {
         action: 'open',
         slot: <CreateEntitySlot/>,
         onSelect: (entity: EntityBase) => {
-            const route = routeForNodeId(useRelationsState.getState().editorElements, entity.id);
-            if (route) navigate(route);
+            DashNavigator.instance().navigateToObjectId(entity.id);
         },
     });
 }
@@ -130,8 +129,12 @@ export function GlobalCommand() {
 
     const tags = useEntityFilterTags();
     const [activeTag, setActiveTag] = useState("");
+    const [search, setSearch] = useState("");
     useEffect(() => {
-        if (command.isOpen) setActiveTag("");
+        if (command.isOpen) {
+            setActiveTag("");
+            setSearch("");
+        }
     }, [command.isOpen]);
 
     // Global shortcuts: ⌘/Ctrl-K and double-Shift both open the palette in "open" mode.
@@ -172,7 +175,10 @@ export function GlobalCommand() {
                 : node.type;
             const meta = resolveEntity(node, relations, dashboards, canvas);
             const pathLabel = ancestorPaths?.get(node.id)?.join(' / ');
-            return {node, name: node.name, iconType, typeLabel: entityKindLabel(node.type), lastViewedAt: meta.lastViewedAt, pathLabel};
+            // `label` is what we fuzzy-score (human-readable, no id noise); `value` stays unique for cmdk.
+            const label = `${pathLabel ? pathLabel + ' / ' : ''}${node.name}`;
+            const value = `${label} ${node.id}`;
+            return {node, name: node.name, iconType, typeLabel: entityKindLabel(node.type), lastViewedAt: meta.lastViewedAt, pathLabel, label, value};
         }
 
         const filter = command.filter;
@@ -184,11 +190,22 @@ export function GlobalCommand() {
             .sort((a, b) => (b.lastViewedAt ?? 0) - (a.lastViewedAt ?? 0));
     }, [editorElements, relations, dashboards, canvas, command.filter, command.excludeIds, command.showPaths]);
 
-    // An active chip whose count dropped to zero no longer filters (mirrors the folder view).
-    const nodes = items.map((i) => i.node);
+    // The set the search leaves on screen. We own the filtering (cmdk's is disabled below) and use
+    // its exact scorer — `command-score`, the same package cmdk uses — so the chip counts reflect
+    // precisely the visible rows. Matches are ranked best-first, like cmdk; with no search we keep the
+    // most-recently-viewed order. An active chip whose count dropped to zero no longer filters.
+    const searchedItems = useMemo(() => {
+        if (!search) return items;
+        return items
+            .map((i) => ({i, score: commandScore(i.label, search)}))
+            .filter((s) => s.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .map((s) => s.i);
+    }, [items, search]);
+    const nodes = searchedItems.map((i) => i.node);
     const tagEntry = tags.find((t) => t.key === activeTag);
     const activeTagEntry = tagEntry && nodes.some(tagEntry.predicate) ? tagEntry : undefined;
-    const visibleItems = activeTagEntry ? items.filter((i) => activeTagEntry.predicate(i.node)) : items;
+    const visibleItems = activeTagEntry ? searchedItems.filter((i) => activeTagEntry.predicate(i.node)) : searchedItems;
 
     function handleSelect(node: EditorFolder) {
         command.onSelect?.(resolveEntity(node, relations, dashboards, canvas));
@@ -200,6 +217,7 @@ export function GlobalCommand() {
             open={command.isOpen}
             onOpenChange={(open) => !open && closeCommand()}
             contentClassName="sm:max-w-3xl h-[75vh] rounded-2xl flex flex-col [&>button]:hidden"
+            commandProps={{shouldFilter: false}}
         >
             {/* No bottom border when a slot follows, so search + slot read as one block. */}
             <div className={`flex items-center gap-2.5 px-3 py-3 ${command.slot ? '' : 'border-b'}`}>
@@ -210,6 +228,8 @@ export function GlobalCommand() {
                     <Search className="h-4 w-4 shrink-0 opacity-50"/>
                     <CommandPrimitive.Input
                         autoFocus
+                        value={search}
+                        onValueChange={setSearch}
                         placeholder="Type to search…"
                         className="h-full w-full bg-transparent font-medium outline-none placeholder:text-muted-foreground"
                     />
@@ -230,7 +250,7 @@ export function GlobalCommand() {
 
             <CommandList className="min-h-0 max-h-none flex-1 p-2">
                 <CommandEmpty className="py-10 text-center text-sm text-muted-foreground">No matches found</CommandEmpty>
-                {command.rootOption && (
+                {command.rootOption && (!search || commandScore(command.rootOption.label, search) > 0) && (
                     <CommandItem
                         key="__root__"
                         value={command.rootOption.label}
@@ -241,10 +261,10 @@ export function GlobalCommand() {
                         <span className="flex-1 truncate">{command.rootOption.label}</span>
                     </CommandItem>
                 )}
-                {visibleItems.map(({node, name, iconType, typeLabel, lastViewedAt, pathLabel}) => (
+                {visibleItems.map(({node, name, iconType, typeLabel, lastViewedAt, pathLabel, value}) => (
                     <CommandItem
                         key={node.id}
-                        value={`${pathLabel ? pathLabel + ' / ' : ''}${name} ${node.id}`}
+                        value={value}
                         onSelect={() => handleSelect(node)}
                         className="gap-2.5 rounded-md px-3 py-2.5 text-sm"
                     >
