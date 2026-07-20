@@ -82,8 +82,8 @@ export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFull
         // Scroll area fills the tab (bg spans full width); ViewPadding centers the content as a
         // max-width "page" with a responsive horizontal gutter. containerRef sits inside the gutter
         // so RGL's measured width matches the actual widget area.
-        <div className="w-full h-full overflow-auto bg-accent pb-32">
-            <ViewPadding active className="min-h-full">
+        <div className="w-full h-full overflow-auto bg-accent ">
+            <ViewPadding addPaddingBottom active className="min-h-full ">
                 <div ref={containerRef} className="w-full">
                 <DashboardToolbar
                     dashboard={dashboard}
@@ -96,6 +96,7 @@ export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFull
                     </div>
                 ) : !mounted ? null : (
                 <ResponsiveGridLayout
+                    className={'pb-32'}
                     width={width}
                     breakpoints={DASHBOARD_BREAKPOINTS}
                     cols={DASHBOARD_COLS}
