@@ -46,7 +46,7 @@ export function CatalogToolbar(props: CatalogToolbarProps) {
 
 function PathBar({path, onClear}: { path: string[]; onClear: () => void }) {
     return (
-        <div className="flex items-center gap-1 text-xs text-muted-foreground pb-2">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground pb-2 pl-2">
             <span className="uppercase tracking-wide text-[11px] text-muted-foreground/70 mr-1">Path</span>
             {path.map((seg, i) => (
                 <React.Fragment key={i}>
