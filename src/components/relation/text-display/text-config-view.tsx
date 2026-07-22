@@ -29,6 +29,7 @@ const textStyleOptions: { id: TextDisplayStyle; label: string }[] = [
     {id: 'h5', label: 'H5'},
     {id: 'body', label: 'Body'},
     {id: 'code', label: 'Code'},
+    {id: 'markdown', label: 'Markdown'},
 ]
 
 export function TextConfigView(props: RelationViewContentProps) {
@@ -128,7 +129,7 @@ export function TextConfigView(props: RelationViewContentProps) {
                                     </Toggle>
                                 ))}
                             </div>
-                            <div className="grid grid-cols-3 gap-1 w-full">
+                            <div className="grid grid-cols-4 gap-1 w-full">
                                 {textStyleOptions.slice(4).map(({id, label}) => (
                                     <Toggle
                                         key={id}
@@ -144,10 +145,11 @@ export function TextConfigView(props: RelationViewContentProps) {
                             </div>
                         </div>
 
-                        {/* Italic */}
+                        {/* Italic — not applicable to markdown, which controls its own emphasis */}
                         <Toggle
                             variant="outline"
                             size="sm"
+                            disabled={textDisplayState.textStyle === 'markdown'}
                             pressed={textDisplayState.fontStyle === 'italic'}
                             onPressedChange={(p) => updateViewState({fontStyle: p ? 'italic' : 'normal'})}
                             className="w-full"

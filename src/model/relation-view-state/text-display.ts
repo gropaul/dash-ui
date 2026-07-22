@@ -1,6 +1,6 @@
 import {RelationData} from "@/model/relation";
 
-export type TextDisplayStyle = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body' | 'code';
+export type TextDisplayStyle = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body' | 'code' | 'markdown';
 
 export interface TextDisplayStyleConfig {
     fontSize: number;
@@ -17,6 +17,9 @@ export const TEXT_DISPLAY_STYLES: Record<TextDisplayStyle, TextDisplayStyleConfi
     h5: {fontSize: 24, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.4},
     body: {fontSize: 24, fontWeight: 'normal', fontFamily: 'inherit', lineHeight: 1.5},
     code: {fontSize: 24, fontWeight: 'normal', fontFamily: 'monospace', lineHeight: 1.4},
+    // Markdown renders via MarkdownRenderer, which sets its own type scale; these values only
+    // drive the small subtitle shown above it.
+    markdown: {fontSize: 14, fontWeight: 'normal', fontFamily: 'inherit', lineHeight: 1.5},
 };
 
 export interface TextDisplayViewState {
