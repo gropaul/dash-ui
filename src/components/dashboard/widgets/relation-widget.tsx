@@ -11,17 +11,16 @@ import {cn} from "@/lib/utils";
 interface RelationWidgetProps {
     relationId: string;
     editMode: boolean;
-    compact: boolean;   // small screens: toolbar inside the widget instead of the right gutter
     onExpand: () => void;
     onRemove: () => void;
 }
 
 /**
  * Renders a relation referenced by id (never a copy). Content is display-only; in edit mode a
- * vertical floating toolbar (run / fullscreen / view-type / settings + drag & remove) sits at the
- * top-right. Configuration happens in the fullscreen host (see dashboard-tab).
+ * horizontal floating toolbar (run / fullscreen + drag & remove) sits centered just above the
+ * widget. Configuration happens in the fullscreen host (see dashboard-tab).
  */
-export function RelationWidget({relationId, editMode, compact, onExpand, onRemove}: RelationWidgetProps) {
+export function RelationWidget({relationId, editMode, onExpand, onRemove}: RelationWidgetProps) {
     // Fall back to a default while a referenced relation is missing (orphan/during load).
     const relation = useRelationsState(
         s => s.relations[relationId] ?? RelationActions.create(),
@@ -54,10 +53,8 @@ export function RelationWidget({relationId, editMode, compact, onExpand, onRemov
             </div>
             <WidgetToolbar
                 className={cn(
-                    "absolute top-0 z-[100] opacity-0 transition-opacity group-hover/widget:opacity-100",
-                    compact ? "right-0" : "left-full",
+                    "absolute bottom-full left-1/2 -translate-x-1/2 z-[100] opacity-0 transition-opacity group-hover/widget:opacity-100",
                 )}
-                compact={compact}
                 draggable={editMode}
                 runState={relation.executionState}
                 onRun={() => actions.updateRelationDataWithBaseQuery(relation.query.baseQuery)}

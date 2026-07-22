@@ -3,7 +3,6 @@
 // Grid + resize-handle styling lives in globals.css (themed). react-grid-layout v2 ships no CSS,
 // and react-resizable's stylesheet isn't resolvable as a direct import under pnpm.
 import {
-    getBreakpointFromWidth,
     getColsFromBreakpoint,
     horizontalCompactor,
     noCompactor,
@@ -52,11 +51,6 @@ export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFull
     const updateDashboardWidget = useRelationsState(s => s.updateDashboardWidget);
 
     const widgets = Object.values(dashboard.widgets ?? {});
-
-    // Below `lg` the grid is a single column and there's no room for the right-gutter toolbar, so we
-    // drop the horizontal padding (its only purpose is that gutter) and render the toolbar inside
-    // each widget instead. Same width source RGL uses, so it flips exactly when the layout does.
-    const compact = getBreakpointFromWidth(DASHBOARD_BREAKPOINTS, width) !== 'lg';
 
     // `lg` is the authored desktop layout and the single source of truth. Every smaller breakpoint
     // is derived from it as a full-width single column in reading order (top-to-bottom, then
@@ -115,7 +109,6 @@ export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFull
                                 <RelationWidget
                                     relationId={widget.relationId}
                                     editMode={editMode}
-                                    compact={true}
                                     onExpand={() => onOpenFullscreen(widget.id)}
                                     onRemove={() => removeDashboardWidget(dashboard.id, widget.id)}
                                 />
@@ -123,7 +116,6 @@ export function DashboardGrid({dashboard, editMode, onToggleEditMode, onOpenFull
                                 <TextWidget
                                     value={widget.textData ?? ''}
                                     editable={editMode}
-                                    compact={compact}
                                     onChange={(v) => updateDashboardWidget(dashboard.id, widget.id, {textData: v})}
                                     onRemove={() => removeDashboardWidget(dashboard.id, widget.id)}
                                 />
