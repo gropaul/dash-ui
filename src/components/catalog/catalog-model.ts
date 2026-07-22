@@ -1,4 +1,5 @@
 import {useMemo} from "react";
+import commandScore from "command-score";
 import {useDataSourcesState} from "@/state/data-sources.state";
 import {useRelationsState} from "@/state/relations.state";
 import {TreeNode} from "@/components/basics/files/tree-utils";
@@ -51,8 +52,12 @@ export interface CatalogSelection {
     colName?: string;
 }
 
-/** Case-insensitive substring match; empty query matches everything. */
-export const includesQ = (hay: string, q: string) => !q || hay.toLowerCase().includes(q.toLowerCase());
+/**
+ * Fuzzy match using `command-score` — the same scorer cmdk and the GlobalCommand palette use,
+ * so catalog search ranks and matches consistently with the ⌘K search. Empty query matches
+ * everything; any positive score counts as a match.
+ */
+export const matchesQ = (hay: string, q: string) => !q || commandScore(hay, q) > 0;
 
 /** Stable sort by a keyed extractor; numbers compare numerically, everything else by locale. */
 export function sortRows<T>(rows: T[], sort: SortState, extractors: Record<string, (r: T) => string | number>): T[] {

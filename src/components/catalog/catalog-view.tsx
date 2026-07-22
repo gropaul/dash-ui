@@ -13,7 +13,7 @@ import {
     CatalogSelection,
     ColumnRow,
     dataSegments,
-    includesQ,
+    matchesQ,
     objectPath,
     objectPathStr,
     resolveDataRoute,
@@ -81,8 +81,8 @@ export function CatalogView() {
     const scoped = useMemo(() => {
         const pathOk = (o: CatalogObject) => pathFilter.every((seg, i) => objectPath(o)[i] === seg);
         const searchOk = (o: CatalogObject) => scope === 'columns'
-            ? o.columns.some((c) => includesQ(c.name, search)) || includesQ(objectPathStr(o), search)
-            : includesQ(o.name, search) || includesQ(objectPathStr(o), search);
+            ? o.columns.some((c) => matchesQ(c.name, search)) || matchesQ(objectPathStr(o), search)
+            : matchesQ(o.name, search) || matchesQ(objectPathStr(o), search);
         return objects.filter((o) => pathOk(o) && searchOk(o));
     }, [objects, pathFilter, search, scope]);
 
@@ -98,7 +98,7 @@ export function CatalogView() {
             if (!objectMatchesTag(o, activeTagDef)) continue;
             for (const col of o.columns) {
                 if (!columnMatchesTag(col, activeTagDef)) continue;
-                if (!includesQ(col.name, search)) continue;
+                if (!matchesQ(col.name, search)) continue;
                 rows.push({o, col});
             }
         }
