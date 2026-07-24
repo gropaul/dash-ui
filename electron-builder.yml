@@ -1,0 +1,25 @@
+appId: builders.dash.app
+productName: Dash
+directories:
+  output: dist-electron
+
+# The renderer is the static Next export; no node_modules are needed at runtime.
+files:
+  - electron/**/*
+  - "!node_modules/**/*"
+# Keep the export outside the asar so the app:// protocol can serve it from disk.
+extraResources:
+  - from: out
+    to: app-bundle
+
+npmRebuild: false
+
+mac:
+  category: public.app-category.productivity
+  icon: electron/icon.png
+  identity: null
+  target:
+    - target: dmg
+      arch: [arm64]
+    - target: dir
+      arch: [arm64]

@@ -1,0 +1,53 @@
+# Builds the Electron desktop app (macOS arm64 DMG) and uploads it as a workflow artifact
+name: Electron - macOS Build
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    # macos-latest runners are Apple Silicon, matching the arm64 target in electron-builder.yml
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history: next.config.mjs derives the build version from `git rev-list --count HEAD`
+          fetch-depth: 0
+
+      - name: Install pnpm
+        run: npm install -g pnpm@9.1.2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Cache Electron binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/electron
+          key: ${{ runner.os }}-electron-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build app and package DMG
+        run: pnpm electron:build
+        env:
+          # No signing certificate on CI; don't let electron-builder look for one
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dash-macOS-arm64
+          path: dist-electron/*.dmg
+          retention-days: 30

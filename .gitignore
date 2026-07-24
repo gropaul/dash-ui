@@ -12,6 +12,7 @@
 
 # production
 /build
+/dist-electron
 
 # misc
 *.tsbuildinfo
