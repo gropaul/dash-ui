@@ -368,7 +368,11 @@ ConnectionsService.getInstance().onDatabaseConnectionChange(async (connection) =
     if (connection) {
         const state = await connection.checkConnectionState();
         if (state.state === 'connected') {
-            await reregisterAllMacros();
+            try {
+                await reregisterAllMacros();
+            } catch (error) {
+                console.warn(error);
+            }
         }
     }
 });

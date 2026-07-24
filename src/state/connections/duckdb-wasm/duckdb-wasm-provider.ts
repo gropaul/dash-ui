@@ -2,8 +2,9 @@
 import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, DuckDBDataProtocol, LogLevel} from '@duckdb/duckdb-wasm';
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
-import {getJsonMacro} from "@/state/connections/duckdb-wasm/utils";
-import {DASH_CATALOG, DASH_DATABASE_FILE_NAME, WASM_DATABASE_FILE_NAME} from "@/platform/global-data";
+import {getJsonMacro, getOpfsFileHandle, removeOpfsFile} from "@/state/connections/duckdb-wasm/utils";
+import {DASH_CATALOG, DASH_DATA_CATALOG} from "@/platform/global-data";
+import {getDashDbFileName, getMainDbFileName} from "@/state/projects/project-storage";
 import {isDebugMode} from "@/components/settings/about-content";
 
 export type StorageMode = 'opfs' | 'memory';
@@ -18,12 +19,29 @@ export async function clearOPFS(): Promise<void> {
 
     await DuckdbWasmProvider.getInstance().destroy();
 
-    // clear main.duckdb and its wal
-    const walPath = `${DASH_DATABASE_FILE_NAME}.wal`;
+    // clear the current project's state database and its wal (path may be nested under <projectId>/)
+    const dashFile = getDashDbFileName();
+    await removeOpfsFile(dashFile);
+    await removeOpfsFile(`${dashFile}.wal`);
+}
 
-    const rootHandle = await navigator.storage.getDirectory();
-    await rootHandle.removeEntry(DASH_DATABASE_FILE_NAME);
-    await rootHandle.removeEntry(walPath);
+/**
+ * Wipe the ENTIRE OPFS root — every project's data/state databases (and any other files/dirs).
+ * Destroys the WASM instance first to release file locks. A dev escape hatch when the store is wedged.
+ */
+export async function clearAllOPFS(): Promise<void> {
+    await DuckdbWasmProvider.getInstance().destroy();
+
+    const root = await navigator.storage.getDirectory();
+    // Collect names first, then delete — mutating while iterating the directory is unreliable.
+    const names: string[] = [];
+    for await (const name of (root as unknown as { keys(): AsyncIterableIterator<string> }).keys()) {
+        names.push(name);
+    }
+    for (const name of names) {
+        await root.removeEntry(name, {recursive: true});
+    }
+    console.log('Cleared all OPFS entries:', names);
 }
 
 /**
@@ -119,7 +137,7 @@ export class DuckdbWasmProvider {
         if (_storageMode === 'memory') {
             return ':memory:';
         }
-        return `opfs://${DASH_DATABASE_FILE_NAME}`;
+        return `opfs://${getDashDbFileName()}`;
     }
 
     public async getCurrentWasm(): Promise<{ db: AsyncDuckDB, con: AsyncDuckDBConnection }> {
@@ -242,20 +260,17 @@ export class DuckdbWasmProvider {
         let db: AsyncDuckDB;
         let connection: AsyncDuckDBConnection;
 
+        // The default catalog is a throwaway `:memory:` database ("memory") that we never swap; the
+        // per-project data + state databases are ATTACHed as named catalogs and USE'd. This lets a
+        // project switch just DETACH/ATTACH those catalogs instead of tearing down the whole instance.
         if (useOPFS) {
             try {
                 db = await createInstance();
-                await db.open({
-                    path: `opfs://${WASM_DATABASE_FILE_NAME}`,
-                    accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
-                    query: queryConfig,
-                });
-
+                await db.open({path: ':memory:', query: queryConfig});
                 connection = await db.connect();
                 console.log("New connection to DuckDB-Wasm established (OPFS): ", connection);
 
-                await registerAdditionalDatabase(db, DASH_DATABASE_FILE_NAME);
-                await connection.query(`ATTACH IF NOT EXISTS 'opfs://${DASH_DATABASE_FILE_NAME}' AS ${DASH_CATALOG};`);
+                await this.attachProjectDatabases(connection, db, true);
 
                 _storageMode = 'opfs';
             } catch (e) {
@@ -272,16 +287,11 @@ export class DuckdbWasmProvider {
             console.log('Initializing DuckDB-Wasm in in-memory mode (no persistence)');
 
             db = await createInstance();
-            await db.open({
-                path: ':memory:',
-                query: queryConfig,
-            });
-
+            await db.open({path: ':memory:', query: queryConfig});
             connection = await db.connect();
             console.log("New connection to DuckDB-Wasm established (in-memory): ", connection);
 
-            // Attach an in-memory database with the same catalog name so downstream code works
-            await connection.query(`ATTACH ':memory:' AS ${DASH_CATALOG};`);
+            await this.attachProjectDatabases(connection, db, false);
         }
 
         // check if we have write access
@@ -298,18 +308,58 @@ export class DuckdbWasmProvider {
         }
         return {db: db!, con: connection!};
     }
+
+    /**
+     * ATTACH the current project's data + state databases as named catalogs and USE the data catalog
+     * (so unqualified user tables land in the per-project data file). Shared by init and re-attach.
+     */
+    private async attachProjectDatabases(connection: AsyncDuckDBConnection, db: AsyncDuckDB, useOpfs: boolean): Promise<void> {
+        if (useOpfs) {
+            const mainFile = getMainDbFileName();
+            const dashFile = getDashDbFileName();
+            await registerAdditionalDatabase(db, mainFile);
+            await registerAdditionalDatabase(db, dashFile);
+            await connection.query(`ATTACH IF NOT EXISTS 'opfs://${mainFile}' AS ${DASH_DATA_CATALOG};`);
+            await connection.query(`ATTACH IF NOT EXISTS 'opfs://${dashFile}' AS ${DASH_CATALOG};`);
+        } else {
+            await connection.query(`ATTACH IF NOT EXISTS ':memory:' AS ${DASH_DATA_CATALOG};`);
+            await connection.query(`ATTACH IF NOT EXISTS ':memory:' AS ${DASH_CATALOG};`);
+        }
+        await connection.query(`USE ${DASH_DATA_CATALOG};`);
+    }
+
+    /**
+     * Swap the attached data + state databases to the current project's files (read via the storage
+     * seam) WITHOUT tearing down the instance — the project-switch equivalent of a reconnect. Detaches
+     * the old catalogs (after moving off them) and re-attaches the new ones. The `memory` default
+     * catalog and the TEMP `query_result_json` macro are untouched, so queries keep working.
+     */
+    public async reattachProjectDatabases(): Promise<void> {
+        const {db, con} = await this.getCurrentWasm();
+        const useOpfs = _storageMode === 'opfs';
+        // Can't detach the current catalog — park on the throwaway `memory` default first.
+        await con.query(`USE memory;`);
+        for (const cat of [DASH_DATA_CATALOG, DASH_CATALOG]) {
+            try {
+                await con.query(`DETACH DATABASE ${cat};`);
+            } catch (e) {
+                console.warn(`DETACH ${cat} failed (may not be attached):`, e);
+            }
+        }
+        await this.attachProjectDatabases(con, db, useOpfs);
+    }
 }
 
 
 async function registerAdditionalDatabase(db: AsyncDuckDB, name: string) {
-    // Get the root directory handle
-    const root = await navigator.storage.getDirectory();
     const wal_name = name + '.wal';
-    // Get/create a file handle
-    const fileHandle = await root.getFileHandle(name, { create: true });
-    const fileHandleWal = await root.getFileHandle(wal_name, { create: true });
-    // const writable = await fileHandle.createWritable();
-    // first get an OPFS handle for the database
+    // Get/create file handles
+    const fileHandle = await getOpfsFileHandle(name, true);
+    const fileHandleWal = await getOpfsFileHandle(wal_name, true);
+    // Drop any prior registration under these names first — on a project switch-back we re-register a
+    // name that's still registered from before, and registerFileHandle throws on a duplicate.
+    try { await db.dropFile('opfs://' + name); } catch { /* not registered yet */ }
+    try { await db.dropFile('opfs://' + wal_name); } catch { /* not registered yet */ }
     await db.registerFileHandle('opfs://' + name, fileHandle, DuckDBDataProtocol.BROWSER_FSACCESS, true);
     await db.registerFileHandle('opfs://' + wal_name, fileHandleWal, DuckDBDataProtocol.BROWSER_FSACCESS, true);
 

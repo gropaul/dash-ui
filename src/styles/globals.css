@@ -269,6 +269,19 @@ body {
   border-radius: 0.75rem;
   font-size: 0.85em;
 }
+.dashboard-prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+}
+/* Code inside a block <pre> is styled by the <pre> itself; drop the inline-code pill look. */
+.dashboard-prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+  white-space: pre;
+}
 .dashboard-prose hr { border-color: hsl(var(--border)); margin: 0.8em 0; }
 .dashboard-prose strong { font-weight: 700; }
 .dashboard-prose em { font-style: italic; }

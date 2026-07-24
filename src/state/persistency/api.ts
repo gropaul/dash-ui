@@ -8,15 +8,13 @@ export function InitializeStorage(): PersistStorage<RelationZustandCombined> | u
     return localStorage;
 }
 
-// This will be called from the Init State as soon as there is a (new) working database connection
+// This will be called from the Init State as soon as there is a (new) working database connection.
+// Relation state is persisted INTO the connection's dash database (the per-project dash file) for
+// every DuckDB backend, so project isolation comes from the file itself — no per-project browser key.
 export function loadRelationStateFromConnections(con: DatabaseConnection) {
-    if (con.type === 'duckdb-over-http') {
+    if (con.type === 'duckdb-over-http' || con.type === 'duckdb-wasm' || con.type === 'duckdb-wasm-motherduck') {
         useRelationsState.persist.setOptions({
             storage: duckdbStorage,
-        });
-    } else if (con.type === 'duckdb-wasm') {
-        useRelationsState.persist.setOptions({
-            storage: localStorage,
         });
     } else {
         throw new Error('Connection type not supported');

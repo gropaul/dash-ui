@@ -18,6 +18,7 @@ export type InitStep =
     'loaded-stored-connections-configs' |
     'selecting-connection' |
     'connection-connected-successfully' |
+    'switching-project' |
     'loading-relations-from-connection' |
     'updating-gui-state' |
     'loading-last-used-relations' |
@@ -34,6 +35,8 @@ export function getStepLabel(step: InitStep): string {
             return 'Selecting connection';
         case 'connection-connected-successfully':
             return 'Database connected successfully';
+        case 'switching-project':
+            return 'Switching project';
         case 'loading-relations-from-connection':
             return 'Loading display elements from database';
         case 'updating-gui-state':

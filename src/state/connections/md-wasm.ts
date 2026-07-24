@@ -40,6 +40,11 @@ export class MdWasm implements DatabaseConnection {
         return true;
     }
 
+    async getStorageRoot(): Promise<string> {
+        // OPFS files sit in the root; the project id is encoded in the file name.
+        return 'opfs://';
+    }
+
     // close the duckdb connection on destroy
     async destroy(): Promise<void> {
         await MdWasmProvider.getInstance().destroy();

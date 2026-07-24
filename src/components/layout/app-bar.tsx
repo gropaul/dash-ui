@@ -1,9 +1,11 @@
 'use client';
 
 import {useEffect, useState} from "react";
-import {Bug, BookOpen, HelpCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
+import {AlertTriangle, Bug, BookOpen, HelpCircle, LoaderCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
+import {AnimatePresence, motion} from "framer-motion";
 import {Button} from "@/components/ui/button";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
+import {useSaveStatus} from "@/state/save-status.state";
 import {isDebugMode} from "@/components/settings/about-content";
 import {
     DropdownMenu,
@@ -38,6 +40,7 @@ export function AppBar() {
 
             {/* RIGHT — app actions: settings + an overflow menu for the rest */}
             <div className="flex items-center gap-1 flex-1 justify-end pr-2">
+                <SaveStatusIndicator/>
                 <DebugModeBadge/>
                 <AppBarSearch/>
                 <AppBarActions/>
@@ -102,6 +105,40 @@ function DebugModeBadge() {
                 <Bug size={12}/> Debug
             </span>
         </TooltipWrapper>
+    );
+}
+
+// Shows whether the relation state has been persisted to disk, so the user knows when it's safe to
+// close/reload (writes are throttled, so a save can lag an edit by up to STORAGE_THROTTLE_TIME_MS).
+function SaveStatusIndicator() {
+    const status = useSaveStatus((s) => s.status);
+    const isError = status === 'error';
+    // 'saved' shows nothing — AnimatePresence fades the indicator out on the way back to saved.
+    const visible = status !== 'saved';
+
+    return (
+        <AnimatePresence initial={false}>
+            {visible && (
+                <motion.div
+                    key="save-status"
+                    initial={{opacity: 0}}
+                    animate={{opacity: 1}}
+                    exit={{opacity: 0}}
+                    transition={{duration: 0.2, ease: "easeInOut"}}
+                    className="flex items-center justify-center h-8"
+                >
+                    <TooltipWrapper
+                        message={isError
+                            ? "Couldn't save changes — see the console. Your latest edits may not be persisted."
+                            : "Saving changes… don't close the tab yet."}
+                    >
+                        <span className={`flex items-center justify-center h-8 w-8 ${isError ? "text-destructive" : "text-muted-foreground"}`}>
+                            {isError ? <AlertTriangle size={16}/> : <LoaderCircle size={16} className="animate-spin"/>}
+                        </span>
+                    </TooltipWrapper>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
 

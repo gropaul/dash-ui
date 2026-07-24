@@ -8,7 +8,7 @@ import {DBConnectionType} from "@/components/basics/files/icon-factories";
 import {Button} from "@/components/ui/button";
 import {AlertTriangle, Check, LoaderCircle, RefreshCcw} from "lucide-react";
 import {deepEqual} from "@/platform/object-utils";
-import {clearOPFS} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
+import {clearAllOPFS, clearOPFS} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 
 
 const DUCKDB_WASM_DESCRIPTION =
@@ -128,19 +128,36 @@ export function ClearOpfsButton() {
         return null;
     }
 
+    async function handleClearAll() {
+        await clearAllOPFS();
+        // Everything the running app references is gone — reload for a clean boot.
+        window.location.reload();
+    }
+
     return (
         <>
             <div className=" text-sm text-muted-foreground">
-                Sometimes, especially during development, the DuckDB WASM instance can get into a bad state. You can
-                erase all data stored in the browser by clicking the button below. All local databases will be lost.
+                Sometimes, especially during development, the DuckDB WASM instance can get into a bad state.
+                <br/>
+                <b>Reset Database</b> clears the current project&apos;s state database. <b>Clear OPFS</b> wipes all
+                OPFS data (every project) and reloads the page.
             </div>
-            <Button
-                onClick={clearOPFS}
-                variant="destructive"
-                size={"sm"}
-            >
-                Reset Database
-            </Button>
+            <div className="flex gap-2">
+                <Button
+                    onClick={clearOPFS}
+                    variant="destructive"
+                    size={"sm"}
+                >
+                    Reset Database
+                </Button>
+                <Button
+                    onClick={handleClearAll}
+                    variant="destructive"
+                    size={"sm"}
+                >
+                    Clear OPFS
+                </Button>
+            </div>
         </>
     )
 }

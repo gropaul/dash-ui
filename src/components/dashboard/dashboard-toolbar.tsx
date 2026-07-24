@@ -51,7 +51,7 @@ export function DashboardToolbar({dashboard, editMode, onToggleEditMode}: Dashbo
                             useGUIState.getState().closeCommand();
                         }}
                     >
-                        Add text
+                        Add Text
                     </CommandButton>
                     <CommandButton
                         className="flex-1"
@@ -61,7 +61,7 @@ export function DashboardToolbar({dashboard, editMode, onToggleEditMode}: Dashbo
                             useGUIState.getState().closeCommand();
                         }}
                     >
-                        New relation
+                        New Query
                     </CommandButton>
                 </div>
             ),

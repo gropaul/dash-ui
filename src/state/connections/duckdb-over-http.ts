@@ -58,7 +58,7 @@ export class DuckDBOverHttp implements DatabaseConnection {
         if (this.config.useToken) {
             headers['X-API-Key'] = this.config.token!;
         }
-        const response = await fetch(this.config.url + "/cancel", {
+        const response = await fetch(this.config.url + "/api/cancel", {
             method: 'POST',
             headers,
         });
@@ -74,6 +74,22 @@ export class DuckDBOverHttp implements DatabaseConnection {
 
     canHandleMultiTab(): boolean {
         return true;
+    }
+
+    async getStorageRoot(): Promise<string> {
+        const headers: Record<string, string> = {};
+        if (this.config.useToken) {
+            headers['X-API-Key'] = this.config.token!;
+        }
+        const response = await fetch(this.config.url + "/api/dash-dir", {
+            method: 'GET',
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+        return await response.text();
     }
 
     destroy(): Promise<void> {
@@ -105,7 +121,7 @@ export class DuckDBOverHttp implements DatabaseConnection {
             if (readOnly) {
                 altered_query = 'BEGIN TRANSACTION READ ONLY; ' + altered_query + ';';
             }
-            const response = await fetch(this.config.url + "/query", {
+            const response = await fetch(this.config.url + "/api/query", {
                 method: 'POST',
                 body: JSON.stringify({
                     query: altered_query,

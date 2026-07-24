@@ -1,10 +1,10 @@
 import {RelationData} from "@/model/relation";
-import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {deleteCache, listCachedIds, loadCache, updateCache} from "@/state/relations-data/functions";
 import {GetRelationStatsLoading, RelationState, RelationStats} from "@/model/relation-state";
 import {LRUList} from "@/platform/lru";
-import {DASH_CATALOG, DASH_DATABASE_FILE_NAME, N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
+import {DASH_CATALOG, N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
+import {getDashDbFileName} from "@/state/projects/project-storage";
 import {GetColumnStats} from "@/model/column-stats";
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
@@ -49,40 +49,25 @@ interface CacheState {
     delete: (item: string) => void;
 }
 
+// In-memory only — NOT persisted. The persisted "last used" set lives in the per-project dash file
+// as the cache tables themselves; loadLastUsed() reseeds this LRU from listCachedIds() on load, so it
+// is inherently per-project and swapping projects needs no separate persisted key.
 export const useCacheStore = createWithEqualityFn<CacheState>()(
-    persist(
-        (set, get) => ({
-            cache: new LRUList<string>(N_RELATIONS_DATA_TO_LOAD),
-            use: (item) => {
-                const cache = get().cache;
-                cache.use(item);
-                set({cache});
-            },
-            delete: (item: string) => {
-                const cache = get().cache;
-                cache.delete(item);
-                set({cache});
-            },
-            clear: () => set({cache: new LRUList<string>(N_RELATIONS_DATA_TO_LOAD)}),
-        }),
-        {
-            name: 'cache-store',
-            partialize: (state) => ({
-                cache: state.cache.getElements()
-            }),
-            // rehydrate into an LRUList when loading from storage
-            merge: (persisted, current) => {
-                const data = persisted as { cache?: string[] };
-                const lru = new LRUList<string>(N_RELATIONS_DATA_TO_LOAD);
-                if (data.cache) {
-                    for (const v of data.cache) {
-                        lru.use(v);
-                    }
-                }
-                return {...current, cache: lru};
-            },
-        }
-    )
+    (set, get) => ({
+        cache: new LRUList<string>(N_RELATIONS_DATA_TO_LOAD),
+        use: (item) => {
+            const cache = get().cache;
+            cache.use(item);
+            set({cache});
+        },
+        delete: (item: string) => {
+            const cache = get().cache;
+            if (!cache.contains(item)) return;
+            cache.delete(item);
+            set({cache});
+        },
+        clear: () => set({cache: new LRUList<string>(N_RELATIONS_DATA_TO_LOAD)}),
+    })
 );
 
 export function getInitialRelationDataZustandState(): RelationDataZustandState {
@@ -220,23 +205,26 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
             }
 
             const con = ConnectionsService.getInstance().getDatabaseConnection();
-            await attachDatabase(con, DASH_DATABASE_FILE_NAME, DASH_CATALOG, false);
+            await attachDatabase(con, getDashDbFileName(), DASH_CATALOG, false);
 
-            const ids_to_hydrate = useCacheStore.getState().cache.getElements();
-            const ids_to_hydrate_set = new Set(ids_to_hydrate);
-
-            // Delete cache tables that are no longer in the LRU list
+            // Reseed the LRU from the cache tables actually present in this project's dash file. This
+            // is what makes "last used" per-project: the tables ARE the persisted set, so a project
+            // switch never hydrates (or deletes) another project's cache.
+            //
+            // We do NOT delete the tables beyond the LRU capacity here. Real usage recency can't be
+            // recovered from the file (listCachedIds() returns information_schema order, not last-used
+            // order), so any capacity-based eviction on load would drop an arbitrary subset — including
+            // genuinely recent results. The overflow tables stay on disk and remain reachable: viewing
+            // that relation loads it on demand via loadCache() and re-adds it to the LRU. Cache tables
+            // are bounded by the project's live relations anyway (deleteData drops a relation's table
+            // when it is removed), so leaving them in place doesn't grow the file unbounded.
             const allCachedIds = await listCachedIds();
-            for (const cachedId of allCachedIds) {
-                if (!ids_to_hydrate_set.has(cachedId)) {
-                    console.log(`Deleting stale cache table for relation ${cachedId}`);
-                    try {
-                        await deleteCache(cachedId);
-                    } catch (e) {
-                        console.error(`Failed to delete stale cache for relation ${cachedId}:`, e);
-                    }
-                }
-            }
+            const reseeded = new LRUList<string>(N_RELATIONS_DATA_TO_LOAD);
+            reseeded.useAll(allCachedIds);
+            useCacheStore.setState({cache: reseeded});
+
+            // Only pre-warm the (≤ capacity) tables tracked by the reseeded LRU; the rest load lazily.
+            const ids_to_hydrate = reseeded.getElements();
 
             const keysLoadFailed = [];
             for (const relationId of ids_to_hydrate) {

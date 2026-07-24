@@ -11,9 +11,12 @@ export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'
 export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-storage.com/videos/canvas'
 
-export const WASM_DATABASE_FILE_NAME = 'local.duckdb'
-export const DASH_DATABASE_FILE_NAME = 'dash.duckdb'
-export const DASH_CATALOG = 'dash' // catalog name used after ATTACHing the cache database
+export const DASH_CATALOG = 'dash' // catalog alias for the per-project state database (cache + relationState)
+export const DASH_DATA_CATALOG = 'data' // catalog alias for the per-project data database (user tables + macros)
+
+// Id of the always-present seeded project (WASM has no folder to derive a name from). Kept here so
+// the storage seam can special-case it without importing the projects state (avoids an import cycle).
+export const DEFAULT_PROJECT_ID = 'default';
 
 export const DASH_CACHE_SCHEMA = 'cache'
 export const DASH_REFS_SCHEMA = 'refs';

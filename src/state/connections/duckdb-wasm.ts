@@ -56,6 +56,11 @@ export class DuckDBWasm implements DatabaseConnection {
         return false;
     }
 
+    async getStorageRoot(): Promise<string> {
+        // OPFS files sit in the root; the project id is encoded in the file name.
+        return 'opfs://';
+    }
+
 
     // close the duckdb connection on destroy
     async destroy(): Promise<void> {

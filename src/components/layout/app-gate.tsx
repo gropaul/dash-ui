@@ -16,7 +16,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {Avatar, AvatarImage} from "@/components/ui/avatar";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {useInitState} from "@/state/init.state";
 
 /**
@@ -45,7 +45,8 @@ export function AppGate({children}: { children: React.ReactNode }) {
             <div className="h-[100dvh] w-full flex items-center justify-center">
                 <div className="flex flex-col items-center justify-center space-y-2">
                     <Avatar className="mt-2">
-                        <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Logo"/>
+                        <AvatarImage src="/favicon/web-app-manifest-192x192.png" alt="Logo"/>
+                        <AvatarFallback className="bg-muted text-foreground text-xs font-semibold">D</AvatarFallback>
                     </Avatar>
                     <div className="text-muted-foreground">Loading...</div>
                     <div className="text-muted-foreground">{mounted ? label : " "}</div>

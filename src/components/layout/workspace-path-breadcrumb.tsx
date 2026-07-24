@@ -24,7 +24,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
-import {useProjectsState} from "@/state/projects.state";
+import {useProjectsState, useRoutedProject} from "@/state/projects.state";
 
 // Above this many crumbs the middle collapses into an expandable ellipsis
 // (first + … + last two), keeping the bar on a single line.
@@ -45,7 +45,12 @@ export function WorkspacePathBreadcrumb({showWorkspaceRoot = true}: {showWorkspa
     const location = useDashLocation();
     const editorElements = useRelationsState((s) => s.editorElements);
     const project = useProjectsState((s) => s.getCurrentProject());
+    const {isUnknownSlug} = useRoutedProject();
     const nav = DashNavigator.instance();
+
+    // A bogus /projects/<slug> URL: don't resolve path segments against the (mismatched) loaded
+    // project's tree — that would show crumbs for a project the URL isn't actually pointing at.
+    if (isUnknownSlug) return null;
 
     let trail: BreadCrumb[];
     if (location.basePath === "data") {

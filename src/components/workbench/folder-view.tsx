@@ -124,9 +124,10 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     // The root folder is the project itself, so it shows the project name (not "Workspace").
     const title = folderNode ? folderNode.name : currentProject.name;
 
-    if (!folderNode && children.length === 0) {
-        return <GetStartedPage/>;
-    }
+    // An empty project root shows the onboarding start page — embedded in the normal project-page
+    // shell (header + card) rather than replacing the whole view. Empty sub-folders keep the plain
+    // "This folder is empty." message.
+    const isEmptyProjectRoot = !folderNode && children.length === 0;
 
     // "New" menu, styled like the dashboard's Edit button (outline, small), shown at the
     // right of the header.
@@ -211,7 +212,12 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     return (
         <ViewPadding active addPaddingBottom className=" h-full flex flex-col" classNameParent={'bg-accent'}>
             <ViewHeader title={title} actionButtons={<>{newButton}</>}/>
-            <div className={'bg-card p-8 border rounded-2xl w-full h-full flex flex-col'}>
+            <div className={`bg-card border rounded-2xl w-full h-full flex flex-col min-h-0 ${isEmptyProjectRoot ? '' : 'p-8'}`}>
+                {isEmptyProjectRoot ? (
+                    // GetStartedPage brings its own centering + padding, so the card wrapper drops its padding.
+                    <GetStartedPage/>
+                ) : (
+                <>
                 {children.length > 0 && (
                     <div className={"flex items-center justify-between pb-2"}>
                         <FilterTags
@@ -299,6 +305,8 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
                         </Table>
                     )}
                 </div>
+                </>
+                )}
             </div>
 
             {dialogs}

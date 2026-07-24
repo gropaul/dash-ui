@@ -21,7 +21,7 @@ import {
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {ProjectIcon, ProjectIconPicker} from "@/components/projects/project-icons";
-import {useProjectsState} from "@/state/projects.state";
+import {useProjectsState, useRoutedProject} from "@/state/projects.state";
 import {DEFAULT_PROJECT_ICON, ProjectIconKey} from "@/model/project";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 
@@ -38,6 +38,9 @@ type DialogState =
 export function ProjectSwitcher() {
     const current = useProjectsState((s) => s.getCurrentProject());
     const projects = useProjectsState((s) => s.projects);
+    // When the URL names a project that doesn't exist, don't present the last-loaded project as the
+    // current one — show a neutral "select a project" chip instead (the dropdown still lists real ones).
+    const {isUnknownSlug} = useRoutedProject();
     const createProject = useProjectsState((s) => s.createProject);
     const renameProject = useProjectsState((s) => s.renameProject);
     const setProjectIcon = useProjectsState((s) => s.setProjectIcon);
@@ -103,11 +106,19 @@ export function ProjectSwitcher() {
                 <Button
                     variant="ghost"
                     className="h-8 flex flex-row items-center gap-0 pl-1 pr-1 min-w-0 rounded-l-2xl"
-                    aria-label={`Open ${current.name}`}
-                    onClick={() => openProject(current.slug)}
+                    aria-label={isUnknownSlug ? "Select a project" : `Open ${current.name}`}
+                    onClick={() => isUnknownSlug
+                        ? nav.navigateToLocation(DashLocations.ProjectsList())
+                        : openProject(current.slug)}
                 >
-                    <ProjectIcon icon={current.icon} className="ml-1 mr-4"/>
-                    <span className="min-w-0 truncate font-medium">{current.name}</span>
+                    {isUnknownSlug ? (
+                        <span className="min-w-0 truncate font-medium text-muted-foreground px-1">Select a project</span>
+                    ) : (
+                        <>
+                            <ProjectIcon icon={current.icon} className="ml-1 mr-4"/>
+                            <span className="min-w-0 truncate font-medium">{current.name}</span>
+                        </>
+                    )}
                 </Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

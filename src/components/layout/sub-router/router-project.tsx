@@ -2,6 +2,7 @@
 
 import {useEffect} from "react";
 import {useRelationsState} from "@/state/relations.state";
+import {useProjectsState} from "@/state/projects.state";
 import {FolderView} from "@/components/workbench/folder-view";
 import {ProjectListView} from "@/components/projects/project-list-view";
 import {RelationTab} from "@/components/relation/relation-tab";
@@ -26,14 +27,23 @@ export function RouterProject(props: ProjectRouterProps) {
     // and re-resolve when the tree changes (add / rename / delete / move) — without this a delete
     // inside the current folder leaves the stale node on screen (URL is unchanged).
     useRelationsState((s) => s.editorElements);
+    // Reactive so a project rename/delete re-resolves the slug below.
+    const projects = useProjectsState((s) => s.projects);
 
     if (props.location.basePath !== "object") {
         throw new Error(`Unexpected props.location kind ${props.location.basePath} in ProjectRouter`);
     }
 
     // No project selected -> Show project list
-    if (!props.location.projectSlug){
+    const projectSlug = props.location.projectSlug;
+    if (!projectSlug){
         return <ProjectListView/>;
+    }
+
+    // Unknown project slug -> don't fall back to the current project (that just showed the last
+    // project for any bogus URL). Show a not-found state instead.
+    if (!Object.values(projects).some((p) => p.slug === projectSlug)) {
+        return <ProjectNotFound/>;
     }
 
     // Project root.
@@ -78,6 +88,16 @@ function NotFound() {
         <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-muted-foreground">
             <div className="text-lg">Nothing here</div>
             <a onClick={DashNavigator.instance().onClickNavigateToLocation(DashLocations.CurrentProjectRoot())}
+               className="text-sm underline hover:text-foreground">Back to Projects</a>
+        </div>
+    );
+}
+
+function ProjectNotFound() {
+    return (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-muted-foreground">
+            <div className="text-lg">Project not found</div>
+            <a onClick={DashNavigator.instance().onClickNavigateToLocation(DashLocations.ProjectsList())}
                className="text-sm underline hover:text-foreground">Back to Projects</a>
         </div>
     );

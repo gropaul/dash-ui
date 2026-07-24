@@ -3,6 +3,21 @@ import {FileFormat} from "@/state/data-source/duckdb-helper";
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 
 
+// DuckDB WASM's OPFS is flat (no subdirectories), so all files live in the OPFS root; the project id
+// is encoded in the file name instead.
+
+/** Get (optionally creating) a handle to an OPFS file in the root directory. */
+export async function getOpfsFileHandle(fileName: string, create: boolean): Promise<FileSystemFileHandle> {
+    const root = await navigator.storage.getDirectory();
+    return root.getFileHandle(fileName, {create});
+}
+
+/** Remove an OPFS file from the root directory. */
+export async function removeOpfsFile(fileName: string): Promise<void> {
+    const root = await navigator.storage.getDirectory();
+    await root.removeEntry(fileName);
+}
+
 export async function downloadOPFSFile(fileName: string): Promise<void> {
 
     // if fileName starts with opfs://, remove it
@@ -12,11 +27,8 @@ export async function downloadOPFSFile(fileName: string): Promise<void> {
 
     console.log('downloading file: ', fileName);
 
-    // Get the root OPFS directory
-    const root = await navigator.storage.getDirectory();
-
     // Get a handle to the file
-    const fileHandle = await root.getFileHandle(fileName);
+    const fileHandle = await getOpfsFileHandle(fileName, false);
     const file = await fileHandle.getFile();
 
     // Read the file contents as a Blob (or ArrayBuffer/Text as needed)
@@ -52,7 +64,7 @@ export function getJsonMacro() {
     const sql = `
         INSTALL dash FROM community;
         LOAD dash;
-        CREATE OR REPLACE MACRO query_result_json(query_text) as TABLE (WITH data AS MATERIALIZED (FROM query_result(query_text)),
+        CREATE OR REPLACE TEMP MACRO query_result_json(query_text) as TABLE (WITH data AS MATERIALIZED (FROM query_result(query_text)),
              dash_row_number_ids AS (SELECT range AS dash_row_number_id
                                      FROM range((SELECT COUNT(*) FROM data))),
              json_data AS (SELECT dash_row_number_ids.dash_row_number_id,

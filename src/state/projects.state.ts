@@ -4,10 +4,13 @@ import {DEFAULT_PROJECT_ICON, Project, ProjectIconKey} from "@/model/project";
 import {slugify} from "@/platform/string-utils";
 import {useDashLocation} from "@/state/routing/use-dash-location";
 import {useEffect} from "react";
+import {DEFAULT_PROJECT_ID} from "@/platform/global-data";
+import {switchProject} from "@/state/init/switch-project";
+import {useInitState} from "@/state/init.state";
+import {getCurrentProjectStorageId, setCurrentProjectStorage} from "@/state/projects/project-storage";
 
 // A single seeded project so the app always has a current project (WASM has no folder to
 // derive a name from). Fixed id so it isn't duplicated across reloads before persistence.
-const DEFAULT_PROJECT_ID = "default";
 
 function makeDefaultProject(): Project {
     const now = Date.now();
@@ -149,24 +152,58 @@ export const useProjectsState = create<ProjectsZustand>()(
     ),
 );
 
+// Seed the storage seam from the persisted current project at module load, so the initial boot
+// pipeline opens the last-used project's DuckDB files (the WASM provider reads these lazily on its
+// first query, which runs after this synchronous module evaluation). This store persists to
+// localStorage synchronously, so currentProjectId is already correct here.
+setCurrentProjectStorage(useProjectsState.getState().currentProjectId);
+
 
 /**
- * Keeps the current project aligned with the URL — the URL is the source of truth. When the
- * URL addresses an object under a known project slug (`/projects/<slug>/…`) that isn't the
- * current one, select it. Everything else (the project list, unknown slugs, `/`) is left
- * alone — bootstrapping/registering a project from an arbitrary path is a later concern.
+ * Keeps the loaded project aligned with the URL — the URL is the single source of truth for a
+ * project reload. When the URL names a known project slug (`/projects/<slug>/…`) whose project isn't
+ * the one currently LOADED, reload it. Everything else (the project list, unknown slugs, `/`) is left
+ * alone.
+ *
+ * The comparison is against the storage seam (`getCurrentProjectStorageId()` = what's actually loaded
+ * in the DB), NOT `currentProjectId`. `currentProjectId` is an eagerly-set UI pointer — createProject
+ * and removeProject set it before navigating — so gating on it would skip the reload for a freshly
+ * created/selected project (the gate would already be satisfied before the URL change fires).
  *
  * Mounted once in AppRouter; it no-ops unless the location is a project object.
  */
 export function useProjectRouteSync(): void {
     const location = useDashLocation();
+    // Only reconcile once the initial boot has finished — otherwise we'd race the first-boot pipeline,
+    // which is already opening the persisted current project's files. When boot completes this flips
+    // and the effect re-runs, so a cold deep-link to another project still switches.
+    const initComplete = useInitState((s) => s.currentStep === 'complete');
 
     useEffect(() => {
         if (location.basePath !== "object") return;
+        if (!initComplete) return;
         const state = useProjectsState.getState();
         const match = Object.values(state.projects).find((p) => p.slug === location.projectSlug);
-        if (match && state.currentProjectId !== match.id) {
+        if (match && getCurrentProjectStorageId() !== match.id) {
             state.selectProject(match.id);
+            // Clear + reopen the project's database + reload its relations.
+            void switchProject(match.id);
         }
-    }, [location]);
+    }, [location, initComplete]);
+}
+
+/**
+ * The project addressed by the current URL, for chrome (app bar / breadcrumb) that must reflect the
+ * URL rather than the loaded project. `project` is the match for `/projects/<slug>`; `isUnknownSlug`
+ * is true when the URL names a `/projects/<slug>` that doesn't resolve to any project (a bogus URL).
+ * Both are absent/false for the project list and `/data` (no slug in the URL).
+ */
+export function useRoutedProject(): { project?: Project; isUnknownSlug: boolean } {
+    const location = useDashLocation();
+    const projects = useProjectsState((s) => s.projects);
+    if (location.basePath !== "object" || !location.projectSlug) {
+        return {project: undefined, isUnknownSlug: false};
+    }
+    const project = Object.values(projects).find((p) => p.slug === location.projectSlug);
+    return {project, isUnknownSlug: !project};
 }

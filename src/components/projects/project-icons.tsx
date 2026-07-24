@@ -37,7 +37,7 @@ export function ProjectIcon({icon, className, size = 16}: ProjectIconProps) {
     return (
         <Avatar className={cn("h-8 w-8 flex-shrink-0", className)}>
             {icon === 'dash' ? (
-                <AvatarImage src="favicon/web-app-manifest-192x192.png" alt="Dash"/>
+                <AvatarImage src="/favicon/web-app-manifest-192x192.png" alt="Dash"/>
             ) : (
                 <AvatarFallback className="bg-muted text-foreground">
                     {Icon && <Icon size={size}/>}

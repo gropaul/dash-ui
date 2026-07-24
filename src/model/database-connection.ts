@@ -70,4 +70,18 @@ export interface DatabaseConnection {
     destroy: () => Promise<void>;
 
     canHandleMultiTab: () => boolean;
+
+    /**
+     * The storage root (path prefix) under which this connection's per-project DuckDB files are
+     * attached. A full attach target is composed as `${root}${fileName}`, e.g.
+     * `${root}<projectId>_dash_state.duckdb`. The returned value MUST include any trailing separator.
+     *
+     *  - WASM / md-wasm: `"opfs://"` (files live in the OPFS root).
+     *  - duckdb-over-http: the server's dash data directory + separator, e.g.
+     *    `"/home/user/.duckdb/extension_data/dash/"`, discovered from the server connection.
+     *
+     * The URL is the source of truth for which project is open; the client attaches/detaches the
+     * matching database under this root.
+     */
+    getStorageRoot: () => Promise<string>;
 }

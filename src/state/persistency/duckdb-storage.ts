@@ -5,6 +5,7 @@ import {throttleLatest} from "@/lib/throttle-latest";
 import {DatabaseConnection, StateStorageInfoLoaded, StorageDestination} from "@/model/database-connection";
 import {DASH_STORAGE_VERSION, STORAGE_THROTTLE_TIME_MS, VERSION_CONFLICT_ERROR} from "@/platform/global-data";
 import {initDashCatalog} from "@/state/connections/utils";
+import {useSaveStatus} from "@/state/save-status.state";
 
 
 export function GetFullNameDestination(destination: StorageDestination) {
@@ -57,7 +58,7 @@ export class StorageDuckAPI {
     private static instance: StorageDuckAPI;
 
     lastVersionCode: number | null = null;
-    throttledSetItem: (input: Input) => Promise<void>;
+    throttledSetItem: ((input: Input) => Promise<void>) & { cancel: () => void };
 
     onForceReloadCallback: () => void = () => {
     };
@@ -160,6 +161,26 @@ export class StorageDuckAPI {
         this.lastVersionCode = versionCode;
     }
 
+    /**
+     * Reset all cached state that is tied to a specific dash file, called when switching projects.
+     * Cancels any *scheduled* throttled write so a queued write for the outgoing project can't fire
+     * against the new file, and clears the created-table / version caches so the next read/write
+     * re-initialises against the new file rather than assuming the previous file's table + version.
+     *
+     * Note: cancel() cannot abort a setItemInternal that is already mid-query — that in-flight write
+     * is instead severed by the caller's subsequent DuckdbWasmProvider.destroy(), which closes the
+     * database and rejects the pending query (caught + logged in setItemInternal).
+     */
+    static resetForProjectSwitch() {
+        const instance = StorageDuckAPI.instance;
+        if (!instance) return;
+        instance.throttledSetItem.cancel();
+        instance.createdTables = [];
+        instance.lastVersionCode = null;
+        // The cancelled write will never complete to clear the indicator; the new project loads clean.
+        useSaveStatus.getState().setStatus('saved');
+    }
+
     async loadVersionFromServer() {
         // only update if the version is still valid
         const storageInfo = await this.getActiveStorageInfo()
@@ -202,13 +223,21 @@ export class StorageDuckAPI {
         return jsonString;
     }
 
+    // Monotonic write-request counter. Each setItem() bumps it; setItemInternal() captures it at the
+    // start of a flush and only reports 'saved' if no newer write arrived meanwhile (rapid edits
+    // collapse through the throttle, so the last flush is the one that clears the indicator).
+    private writeRequestSeq = 0;
+
     async setItem(value: string): Promise<void> {
+        this.writeRequestSeq++;
+        useSaveStatus.getState().setStatus('saving');
         // Use throttledSetItem to save only the latest
         return this.throttledSetItem({value});
     }
 
     private async setItemInternal(input: Input): Promise<void> {
 
+        const seqAtStart = this.writeRequestSeq;
         console.log("Setting item in storage with throttling. Value length: ", input.value.length, ". Last version: ", this.lastVersionCode);
         const storageInfo = await this.getActiveStorageInfo();
 
@@ -249,12 +278,24 @@ export class StorageDuckAPI {
             const result = await this.executeQuery(insertQuery);
             const newVersion = result.rows[0][0];
             this.updateVersion(newVersion);
-            await this.executeQuery(`CHECKPOINT;`);
+            // Checkpoint the catalog we actually wrote to (the state DB), not the default catalog — a
+            // bare CHECKPOINT targets the current/default DB and, on WASM, leaves this write unflushed
+            // in the state file's WAL. Only for a persistent (file-backed) DB — CHECKPOINT errors on an
+            // in-memory database (the memory-mode fallback), where there's nothing to flush anyway.
+            if (storageInfo.databaseStatus === 'permanent' && storageDestination.databaseName) {
+                await this.executeQuery(`CHECKPOINT "${storageDestination.databaseName}";`);
+            }
 
             console.log("Storage setItem completed. New version: ", newVersion);
+            // Only mark 'saved' if nothing was written since this flush started; otherwise a newer
+            // write is still pending (the throttle will run it and update the status then).
+            if (this.writeRequestSeq === seqAtStart) {
+                useSaveStatus.getState().setStatus('saved');
+            }
         } catch (e) {
             // only throw if it is a version conflict
             console.warn("Storage setItem failed, likely due to version conflict. Forcing reload. Error: ", e);
+            useSaveStatus.getState().setStatus('error');
             const isVersionConflict = (e as Error).message.includes(VERSION_CONFLICT_ERROR);
             if (isVersionConflict) {
                 console.error("Version conflict detected. Forcing reload.");
