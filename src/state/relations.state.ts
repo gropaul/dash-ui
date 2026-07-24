@@ -49,6 +49,7 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {migrateV1FlattenRelationState} from "@/state/migrations/v1-flatten-relation-state";
 import {migrateDashboardsToGrid} from "@/state/migrations/v2-dashboards-to-grid";
+import {normalizeStuckExecutionState} from "@/state/migrations/normalize-stuck-execution-state";
 import {withViewed} from "@/state/entities/entity-base";
 
 const nav = DashNavigator.instance();
@@ -619,6 +620,9 @@ export const useRelationsState = createWithEqualityFn(
                     // Apply persisted-state migrations (idempotent), in order.
                     migrateV1FlattenRelationState(state);
                     migrateDashboardsToGrid(state);
+
+                    // Reset relations persisted mid-query so they don't load stuck in the loading state.
+                    normalizeStuckExecutionState(state);
 
                     const hasDuckDBStorage = useRelationsHydrationState.getState().hasDuckDBStorage
                     console.log('Has DuckDB Storage:', hasDuckDBStorage);
