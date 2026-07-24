@@ -46,7 +46,7 @@ export function toEChartOptions(
             top: '8px',
             textStyle: {color: textColor, fontSize: 16},
         },
-        tooltip: {trigger: 'axis'},
+        tooltip: {trigger: 'axis', appendToBody: true},
         legend: {
             show: plotNeedsLegend,
             type: 'scroll',

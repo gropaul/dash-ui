@@ -306,6 +306,7 @@ export function ColumnStatsViewHist({
     const option = {
         tooltip: {
             show: true,
+            appendToBody: true,
         },
         graphic: {
             elements: dataType === 'timestamp' ? date_min_max : []
