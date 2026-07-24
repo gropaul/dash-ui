@@ -10,6 +10,7 @@ import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 
 SyntaxHighlighter.registerLanguage('sql', sql);
 SyntaxHighlighter.registerLanguage('python', python);
+const REGISTERED_LANGUAGES = new Set(['sql', 'python']);
 import {Check, Copy} from 'lucide-react';
 import {cn} from "@/lib/utils";
 import {fontMono} from "@/components/relation/table/table-content";
@@ -48,8 +49,8 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
                 li({ node, ...props }: any) {
                     return <li className="my-1" {...props} />;
                 },
-                code({ node, inline, className, children, ...props }: any) {
-                    const CodeBlock = ({ codeString, language }: { codeString: string, language?: string }) => {
+                code({ node, className, children, ...props }: any) {
+                    const CodeBlock = ({ codeString, language, isBlock }: { codeString: string, language?: string, isBlock: boolean }) => {
                         const [isCopied, setIsCopied] = useState(false);
 
                         const copyToClipboard = (text: string) => {
@@ -63,23 +64,44 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
                                 });
                         };
 
-                        if (language) {
+                        if (isBlock) {
+                            const canHighlight = language && REGISTERED_LANGUAGES.has(language);
+                            // Both paths live inside the same themed box (bg-muted, small mono, horizontal
+                            // scroll). The highlighter renders transparently so the box's background shows
+                            // through — react-syntax-highlighter otherwise hardcodes a white background.
+                            const highlighterStyle = {
+                                margin: 0,
+                                padding: 0,
+                                background: 'transparent',
+                                fontSize: '0.75rem',
+                                ...codeStyle,
+                            };
                             return (
-                                <div className="relative group">
-                                    <button 
+                                <div className={cn(
+                                    "relative group my-2 p-3 rounded-md bg-muted overflow-x-auto text-xs",
+                                    fontMono.className,
+                                )}>
+                                    <button
                                         onClick={() => copyToClipboard(codeString)}
-                                        className="absolute top-2 right-2  p-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                        className="absolute top-2 right-2 z-10 p-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center bg-muted"
                                     >
                                         {isCopied ? <Check size={14} /> : <Copy size={14} />}
                                     </button>
-                                    <SyntaxHighlighter
-                                        language={language}
-                                        PreTag="div"
-                                        customStyle={codeStyle}
-                                        {...props}
-                                    >
-                                        {codeString}
-                                    </SyntaxHighlighter>
+                                    {canHighlight ? (
+                                        <SyntaxHighlighter
+                                            language={language}
+                                            PreTag="div"
+                                            customStyle={highlighterStyle}
+                                            codeTagProps={{style: {fontSize: '0.75rem'}}}
+                                            {...props}
+                                        >
+                                            {codeString}
+                                        </SyntaxHighlighter>
+                                    ) : (
+                                        <pre className="whitespace-pre m-0">
+                                            <code>{codeString}</code>
+                                        </pre>
+                                    )}
                                 </div>
                             );
                         } else {
@@ -95,11 +117,16 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
 
                     const match = /language-(\w+)/.exec(className || '')
                     const codeString = String(children).replace(/\n$/, '');
+                    // react-markdown v10 no longer passes an `inline` prop, so we detect fenced/block code
+                    // ourselves: it either has a language class or spans multiple lines. Fenced blocks with
+                    // no language would otherwise be mis-rendered as inline code.
+                    const isBlock = !!match || codeString.includes('\n');
 
-                    return <CodeBlock 
-                        codeString={codeString} 
-                        language={match ? match[1] : undefined} 
-                        {...props} 
+                    return <CodeBlock
+                        codeString={codeString}
+                        language={match ? match[1] : undefined}
+                        isBlock={isBlock}
+                        {...props}
                     />;
                 },
                 table({ node, ...props }: any) {
