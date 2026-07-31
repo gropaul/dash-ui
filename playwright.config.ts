@@ -16,9 +16,19 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
+    // Web: runs every spec in a Chromium tab against the dev server.
     {
-      name: 'chromium',
+      name: 'web',
+      metadata: { target: 'web' },
       use: { ...devices['Desktop Chrome'] },
+    },
+    // Electron: launches the desktop app (native DuckDB) pointed at the same dev
+    // server. Runs only cross-runtime specs (the `*.shared.spec.ts` suffix); the
+    // fixture in test/fixtures.ts branches on metadata.target.
+    {
+      name: 'electron',
+      metadata: { target: 'electron' },
+      testMatch: '**/*.shared.spec.ts',
     },
   ],
   webServer: {

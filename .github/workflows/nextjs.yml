@@ -69,8 +69,17 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.runner }} playwright install-deps
       - name: Run unit tests
         run: ${{ steps.detect-package-manager.outputs.runner }} test:run
-      - name: Run Playwright tests
-        run: ${{ steps.detect-package-manager.outputs.runner }} test:e2e
+      # Web e2e: headless Chromium against the dev server. Exercises DuckDB WASM.
+      - name: Run Playwright tests (web)
+        run: ${{ steps.detect-package-manager.outputs.runner }} exec playwright test --project=web
+      # Electron e2e: launches the real desktop app (native DuckDB) against the same
+      # dev server; only the *.shared.spec.ts specs run here. Electron opens a real
+      # BrowserWindow, so it needs a display - xvfb-run provides a virtual one on the
+      # headless Linux runner (headless Chromium in the web step needs none).
+      - name: Run Playwright tests (electron)
+        # Run even if the web step failed, so one runtime's failure never hides the other's.
+        if: ${{ !cancelled() }}
+        run: xvfb-run -a ${{ steps.detect-package-manager.outputs.runner }} exec playwright test --project=electron
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

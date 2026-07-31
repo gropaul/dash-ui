@@ -1,5 +1,6 @@
 // seed: test/seed.spec.ts
-import { test } from '@playwright/test';
+// Runs on both runtimes (web + electron); see test/fixtures.ts.
+import { test } from './fixtures';
 import {
   openApp,
   createProjectWithQuery,
@@ -9,10 +10,10 @@ import {
 } from './utils';
 
 test.describe('Table sort persistence', () => {
-  test('a table sort order persists across reload, navigation, and direct URL', async ({ page }) => {
+  test('a table sort order persists across reload, navigation, and direct URL', async ({ app: page, appOrigin }) => {
     test.setTimeout(90_000);
 
-    await openApp(page);
+    await openApp(page, appOrigin);
     const ctx = await createProjectWithQuery(page, {
       projectName: 'E2E Sort Test',
       queryName: 'Range Query',

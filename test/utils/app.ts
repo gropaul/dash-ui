@@ -16,14 +16,20 @@ export async function expectAppReady(page: Page): Promise<void> {
 }
 
 /**
- * Load the app connected to DuckDB WASM, with the welcome tour suppressed.
- * `?api=wasm` auto-establishes the connection (and saves it to history, so later
- * plain reloads reconnect without the param). Call once at the start of a test.
+ * Load the app connected to DuckDB, with the welcome tour suppressed. On web,
+ * `?api=wasm` auto-establishes the WASM connection (and saves it to history, so
+ * later plain reloads reconnect without the param). In Electron the URL params
+ * are ignored - the app always uses its native DuckDB backend - so the param is
+ * a harmless no-op there. Call once at the start of a test.
+ *
+ * `origin` is prefixed onto the navigation URL: leave it empty for web (relative
+ * to the config `baseURL`); pass the dev-server origin for Electron, whose
+ * window has no `baseURL`. Both values are supplied by the `appOrigin` fixture.
  */
-export async function openApp(page: Page): Promise<void> {
+export async function openApp(page: Page, origin = ''): Promise<void> {
   await page.addInitScript(() => {
     window.localStorage.setItem('dash-onboarding-seen', 'true');
   });
-  await page.goto('/?api=wasm');
+  await page.goto(`${origin}/?api=wasm`);
   await expectAppReady(page);
 }
