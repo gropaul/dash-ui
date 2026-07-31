@@ -53,6 +53,10 @@ export function NavigationSidebar() {
     ];
     const activeKey = activeKeyForLocation(location);
 
+    // The project-scoped destinations only make sense inside a project. When no project is
+    // selected (e.g. the All-projects list), hide that group and show only the general items.
+    const inProject = location.basePath === 'project';
+
     const renderGroup = (label: string, items: NavItem[]) => (
         <div className="flex flex-col gap-0.5">
             {expanded && <SectionHeader label={label}/>}
@@ -73,7 +77,7 @@ export function NavigationSidebar() {
             >
                 {/* Nav destinations, grouped by scope. */}
                 <div className="flex flex-col gap-3 p-2 pt-5">
-                    {renderGroup("Project", projectItems)}
+                    {inProject && renderGroup("Project", projectItems)}
                     {renderGroup("General", generalItems)}
                 </div>
 
