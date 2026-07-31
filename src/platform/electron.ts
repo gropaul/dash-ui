@@ -1,7 +1,8 @@
 /**
  * Runtime detection of the Electron desktop shell (see `electron/main.js`).
  *
- * There's no preload script exposing `window.electron`, so we sniff two signals that hold in
+ * The preload exposes `window.dashNative` (the native DuckDB bridge), but that only appears once
+ * the bridge is ready, so for shell detection we instead sniff two signals that hold immediately in
  * both dev (`ELECTRON_START_URL=http://localhost:3000`) and packaged (`app://bundle/`) runs:
  * the "Electron" token Chromium adds to the user-agent, and our custom `app:` protocol.
  *

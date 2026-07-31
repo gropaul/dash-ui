@@ -23,7 +23,7 @@ import {ValueIcon} from "@/components/relation/common/value-icon";
 import {RelationViewType} from "@/model/relation-view-state";
 
 
-export type DBConnectionType = 'duckdb-wasm' | 'duckdb-wasm-motherduck' | 'duckdb-over-http';
+export type DBConnectionType = 'duckdb-wasm' | 'duckdb-wasm-motherduck' | 'duckdb-over-http' | 'duckdb-native';
 export type DataSourceType = 'file' | 'relation';
 export type DataGroupType = 'folder' | 'database';
 
@@ -118,6 +118,8 @@ export const defaultIconFactory = (type: string): ReactNode => {
         case 'duckdb-wasm':
             return <Database size={iconSize} />
         case 'duckdb-over-http':
+            return <Database size={iconSize} />
+        case 'duckdb-native':
             return <Database size={iconSize} />
         case 'local-filesystem':
             return <File size={iconSize} />

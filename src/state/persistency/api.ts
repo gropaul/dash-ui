@@ -12,7 +12,7 @@ export function InitializeStorage(): PersistStorage<RelationZustandCombined> | u
 // Relation state is persisted INTO the connection's dash database (the per-project dash file) for
 // every DuckDB backend, so project isolation comes from the file itself — no per-project browser key.
 export async function loadRelationStateFromConnections(con: DatabaseConnection) {
-    if (con.type === 'duckdb-over-http' || con.type === 'duckdb-wasm' || con.type === 'duckdb-wasm-motherduck') {
+    if (con.type === 'duckdb-over-http' || con.type === 'duckdb-native' || con.type === 'duckdb-wasm' || con.type === 'duckdb-wasm-motherduck') {
         useRelationsState.persist.setOptions({
             storage: duckdbStorage,
         });

@@ -1,4 +1,5 @@
 import {findWorkingConnection} from "@/components/provider/config-utils";
+import {isElectron} from "@/platform/electron";
 import {DASH_DOMAIN, ENABLE_AUTOLOAD_IN_DEBUG} from "@/platform/global-data";
 import {DBConnectionSpec, getDefaultSpec, specToConnection} from "@/state/connections/configs";
 import {toast} from "sonner";
@@ -12,6 +13,20 @@ import {useInitState} from "@/state/init.state";
 
 // there will be only a connection returned if it was also successfully initialized
 export async function tryInitializingConnectionFromHistory(history: DBConnectionSpec[]): Promise<DatabaseConnection | undefined> {
+    // In the Electron desktop app we always host our own native DuckDB, ignoring any URL
+    // parameter or saved connection history — there is no server to configure. Native is the
+    // only supported backend here, so a failure is fatal: throw rather than fall back.
+    if (isElectron()) {
+        const nativeConnection = specToConnection(getDefaultSpec('duckdb-native'));
+        const result = await nativeConnection.initialise();
+        if (result.state !== 'connected') {
+            const message = `Failed to connect to native DuckDB: ${result.message ?? 'unknown error'}`;
+            toast.error(message);
+            throw new Error(message);
+        }
+        return nativeConnection;
+    }
+
     // get the current url params to configure the connection
     const urlParams = new URLSearchParams(window.location.search);
     let connection = await findWorkingConnection(urlParams, history);

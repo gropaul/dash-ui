@@ -1,9 +1,13 @@
 import {app, BrowserWindow, net, protocol, shell} from 'electron';
 import {existsSync} from 'node:fs';
+import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// duckdb.cjs is CommonJS (neo is CJS); load it from this ESM module.
+const {initDuckDB} = createRequire(import.meta.url)('./duckdb.cjs');
 
 const SCHEME = 'app';
 const APP_URL = `${SCHEME}://bundle/`;
@@ -67,6 +71,9 @@ function createWindow() {
         width: 1440,
         height: 900,
         title: 'Dash',
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.cjs'),
+        },
     });
 
     // External links go to the default browser instead of a new Electron window
@@ -83,6 +90,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
     registerAppProtocol();
+    initDuckDB();
     createWindow();
 
     app.on('activate', () => {
