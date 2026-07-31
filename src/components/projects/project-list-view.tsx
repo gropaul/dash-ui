@@ -8,7 +8,7 @@ import {ViewPadding} from "@/components/ui/view-padding";
 
 /**
  * The `/projects` landing view: every available project as a card. Selecting one navigates to
- * its root (`/projects/<slug>`), where ProjectRouter takes over.
+ * its workspace (`/project/<id>/workspace`), where RouterProject takes over.
  */
 export function ProjectListView() {
     const projects = useProjectsState((s) => s.projects);
@@ -24,13 +24,12 @@ export function ProjectListView() {
                         <button
                             key={project.id}
                             type="button"
-                            onClick={() => nav.navigateToLocation(DashLocations.ProjectRoot(project.slug))}
+                            onClick={() => nav.navigateToLocation(DashLocations.ProjectWorkspace(project.id))}
                             className="flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors hover:bg-accent"
                         >
                             <ProjectIcon icon={project.icon}/>
                             <div className="min-w-0">
                                 <div className="truncate font-medium">{project.name}</div>
-                                <div className="truncate text-xs text-muted-foreground font-mono">/{project.slug}</div>
                             </div>
                         </button>
                     ))}

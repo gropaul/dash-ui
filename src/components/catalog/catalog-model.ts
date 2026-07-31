@@ -7,7 +7,7 @@ import {getValueTypeGroup, ValueTypeGroup} from "@/model/value-type";
 import {Column} from "@/model/data-source-connection";
 import {getBaseQueryFromSource} from "@/model/relation-state";
 import {RelationSourceTable} from "@/model/relation";
-import {DASH_CATALOG, DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
+import {DASH_CATALOG_STATE, DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {formatNumber} from "@/platform/number-utils";
 import {isDebugMode} from "@/components/settings/about-content";
 
@@ -81,9 +81,9 @@ export function objectPathStr(o: CatalogObject): string {
 }
 
 /* --------------------------------- routing --------------------------------- */
-// Everything under the catalog is a real URL (a DataLocation whose `segments` are the part
-// after `/data`), so the breadcrumb, back/forward and sharing all work. Segment count
-// disambiguates:
+// Everything under the catalog is a real URL (a ProjectDataLocation whose `segments` are the
+// part after `/projects/<id>/data`), so the breadcrumb, back/forward and sharing all work.
+// Segment count disambiguates:
 //   []                          → the full list
 //   [db]                        → list filtered to a database
 //   [db, schema]                → list filtered to a schema
@@ -102,7 +102,7 @@ export function dataSegments(o: CatalogObject, colName?: string): string[] {
     return colName ? [...objectPath(o), colName] : objectPath(o);
 }
 
-/** Resolve catalog segments (the part after `/data`) to an object (+ optional column), or null for the list. */
+/** Resolve catalog segments (the part after `…/data`) to an object (+ optional column), or null for the list. */
 export function resolveDataRoute(objects: CatalogObject[], segments: string[]): DataRouteTarget | null {
     if (segments.length < 3) return null;
     const [database, schema, table, colName] = segments;
@@ -156,7 +156,7 @@ export function useCatalogObjects(): CatalogObject[] {
             for (const db of databases) {
                 if (db.type !== 'database') continue;
                 // The internal dash cache catalog is only surfaced in debug mode.
-                if (db.name === DASH_CATALOG && !debug) continue;
+                if (db.name === DASH_CATALOG_STATE && !debug) continue;
                 for (const schema of db.children ?? []) {
                     for (const table of schema.children ?? []) {
                         if (table.type !== 'relation' && table.type !== 'view') continue;

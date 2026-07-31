@@ -2,7 +2,6 @@ import {DataSourceConnection} from "@/model/data-source-connection";
 import {removeSemicolon} from "@/platform/sql-utils";
 import {ConnectionStatus, DatabaseConnection} from "@/model/database-connection";
 import {getLogQueries} from "@/components/settings/about-content";
-import {initDashCatalog} from "@/state/connections/utils";
 import {getQuerySchema} from "@/model/relation-state/query-builder/schema";
 
 type DatabaseConnectionCallback = (connection: DatabaseConnection | undefined) => void;
@@ -50,7 +49,6 @@ export class ConnectionsService {
 
     async setDatabaseConnection(connection: DatabaseConnection) {
         this.database_connection = connection;
-        await initDashCatalog(connection);
         this.notifyDatabaseConnectionChange();
     }
 

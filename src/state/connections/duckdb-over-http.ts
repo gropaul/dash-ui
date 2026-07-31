@@ -4,13 +4,10 @@ import {QueryResponse} from "@/model/query-response";
 import {
     ConnectionStatus,
     DatabaseConnection,
-    DefaultStateStorageInfo,
-    StateStorageInfo
 } from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections/configs";
 import {toast} from "sonner";
-import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
-import {DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
+import {ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
 import {AsyncQueue} from "@/platform/async-queue";
 import {enqueueStatements} from "@/state/connections/utils";
 import {QueryInput} from "@/state/connections/duckdb-wasm";
@@ -31,7 +28,6 @@ export class DuckDBOverHttp implements DatabaseConnection {
     id: string;
     type: DatabaseConnectionType;
     config: DuckDBOverHttpConfig;
-    storageInfo: StateStorageInfo = DefaultStateStorageInfo()
 
 
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
@@ -152,8 +148,8 @@ export class DuckDBOverHttp implements DatabaseConnection {
     }
 
 
-    executeQuery = async (query: string, readOnly: boolean): Promise<RelationData> => {
-        return enqueueStatements({query, readOnly}, this.queue);
+    executeQuery = async (query: string, readOnly: boolean, formatResultToJson = true): Promise<RelationData> => {
+        return enqueueStatements({query, readOnly, formatResultToJson}, this.queue);
     };
 
     mountFiles = async (files: File[]): Promise<void> => {
@@ -164,7 +160,6 @@ export class DuckDBOverHttp implements DatabaseConnection {
         const version = await this.sendPing();
         if (version) {
             this.connectionStatus = {state: 'connected', version: version, message: `Connected to ${this.config.url}, version: ${version}`};
-            this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this);
         } else {
             this.connectionStatus = {state: 'error', message: `Failed to ping ${this.config.url}`, version: undefined};
         }

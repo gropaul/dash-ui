@@ -9,7 +9,7 @@ import {removeSemicolon} from "@/platform/sql-utils";
 import {useDataSourcesState} from "@/state/data-sources.state";
 import {DatabaseState, getDatabaseId} from "@/model/database-state";
 import {getSchemaId, SchemaState} from "@/model/schema-state";
-import {DASH_CATALOG, DASH_CACHE_TABLE_PREFIX} from "@/platform/global-data";
+import {DASH_CATALOG_STATE, DASH_CACHE_TABLE_PREFIX} from "@/platform/global-data";
 import {isDebugMode} from "@/components/settings/about-content";
 
 
@@ -122,7 +122,7 @@ export async function loadDuckDBDataSources(executeQuery: (query: string) => Pro
     // `dash_cache_*` prefix and the legacy `cache-*` naming left over in older stores.
     const conditionFilterCache = isDebug
         ? `TRUE`
-        : `c.table_catalog != '${DASH_CATALOG}' AND c.table_name NOT LIKE '${DASH_CACHE_TABLE_PREFIX}%' AND c.table_name NOT LIKE 'cache-%'`;
+        : `c.table_catalog != '${DASH_CATALOG_STATE}' AND c.table_name NOT LIKE '${DASH_CACHE_TABLE_PREFIX}%' AND c.table_name NOT LIKE 'cache-%'`;
     // duckdb_tables() supplies the estimated row count (base tables only → NULL for views).
     const query = `SELECT c.table_catalog, c.table_schema, c.table_name, t.table_type, c.column_name, c.data_type, dt.estimated_size
                    FROM information_schema.columns as c

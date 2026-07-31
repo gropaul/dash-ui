@@ -1,4 +1,4 @@
-import {DASH_CATALOG, DASH_REFS_SCHEMA} from "@/platform/global-data";
+import {DASH_CATALOG_STATE, DASH_REFS_SCHEMA} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
@@ -9,23 +9,6 @@ import {removeComments} from "@/platform/sql-utils";
 import {useDatabaseState} from "@/state/database.state";
 import {ViewManager} from "@/model/relation-state/relation-view";
 import {RelationState} from "@/model/relation-state";
-
-
-/**
- * Check if the database is in read-only mode.
- */
-function isDatabaseReadonly(): boolean {
-    try {
-        const connection = ConnectionsService.getInstance().getDatabaseConnection();
-        const storageInfo = connection.storageInfo;
-        if (storageInfo.state === 'loaded') {
-            return (storageInfo as StateStorageInfoLoaded).databaseReadonly;
-        }
-        return false;
-    } catch {
-        return false;
-    }
-}
 
 /**
  * DuckDB reserved keywords that cannot be used as macro names without quoting.
@@ -70,7 +53,7 @@ export function sanitizeMacroName(name: string): string {
  * "My Query" -> "dash.refs.my_query"
  */
 export function getMacroName(relationName: string): string {
-    return `${DASH_CATALOG}.${DASH_REFS_SCHEMA}.${sanitizeMacroName(relationName)}`;
+    return `${DASH_CATALOG_STATE}.${DASH_REFS_SCHEMA}.${sanitizeMacroName(relationName)}`;
 }
 
 /**
@@ -114,7 +97,7 @@ export async function generateCreateMacroSQLInternal(
     let effectiveQuery = await ViewManager.instance.buildMacroQuery(relationState)
     const macroName = getMacroName(relationState.viewState.displayName);
     const paramNames = extractParameters(effectiveQuery);
-    const createKeyword = isDatabaseReadonly() ? 'CREATE OR REPLACE TEMP MACRO' : 'CREATE OR REPLACE MACRO';
+    const createKeyword = 'CREATE OR REPLACE MACRO';
 
     if (paramNames.length === 0) {
         // No parameters - simple case
@@ -169,7 +152,7 @@ export function generateDropMacroSQL(relationName: string): string {
 export function extractMacroRefs(sqlRaw: string): string[] {
     const sql = removeComments(sqlRaw)
     const refs: string[] = [];
-    const re = new RegExp(`(?:${DASH_CATALOG}\\.)?${DASH_REFS_SCHEMA}\\.(\\w+)\\s*\\(`, 'g');
+    const re = new RegExp(`(?:${DASH_CATALOG_STATE}\\.)?${DASH_REFS_SCHEMA}\\.(\\w+)\\s*\\(`, 'g');
     for (const match of sql.matchAll(re)) {
         refs.push(match[1]);
     }
@@ -341,7 +324,7 @@ export function orderMacroStatements(macros: { key: string; createSql: string }[
     return ordered.map(key => sqlByKey.get(key)!);
 }
 
-async function reregisterAllMacros(): Promise<void> {
+export async function reregisterMacrosFromRelationState(): Promise<void> {
     const entries = getAllRelations();
 
     const macros: { key: string; createSql: string }[] = [];
@@ -362,17 +345,3 @@ async function reregisterAllMacros(): Promise<void> {
         }
     }
 }
-
-// Re-register all macros when the database connection changes
-ConnectionsService.getInstance().onDatabaseConnectionChange(async (connection) => {
-    if (connection) {
-        const state = await connection.checkConnectionState();
-        if (state.state === 'connected') {
-            try {
-                await reregisterAllMacros();
-            } catch (error) {
-                console.warn(error);
-            }
-        }
-    }
-});

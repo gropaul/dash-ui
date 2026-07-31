@@ -8,11 +8,12 @@
  * because the host serves index.html for unknown paths (vercel.json rewrite; the C++
  * extension file-server fallback).
  *
- * URL scheme (only the workspace side carries a project; `/data` is global):
- *   /projects                        → the projects list
- *   /projects/<slug>                 → that project's root folder
- *   /projects/<slug>/<seg>/<seg>…    → an object (folder/relation/dashboard/canvas)
- *   /data/<seg>…                    → the catalog
+ * URL scheme (a specific project is addressed by id and carries a section):
+ *   /projects                          → the projects list
+ *   /projects/<id>/workspace           → that project's root folder
+ *   /projects/<id>/workspace/<seg>…    → an object (folder/relation/dashboard/canvas)
+ *   /projects/<id>/sources             → that project's data-sources tab
+ *   /projects/<id>/data/<seg>…         → that project's catalog
  *
  * A URL round-trips through a typed {@link DashLocation}, so callers never assemble URL
  * strings by hand — they build a location and call `navigateTo` / `getUrlFrom`.
@@ -22,67 +23,86 @@ import {useRelationsState} from "@/state/relations.state";
 import {buildRoutableTree} from "@/state/routing/routable-tree";
 import {useProjectsState} from "@/state/projects.state";
 
-export const PROJECT_ROOT = "/projects";
-export const DATA_ROOT = "/data";
 
-// A workspace object at `/projects/<slug>/<path…>` (empty path is the project root).
-export interface ProjectLocation {
-    basePath: "object";
-    projectSlug?: string;
+export const PROJECT_ROOT = "/projects";   // the projects list, and the base for a specific project
+
+/** A section within a project: the workspace object tree, the data-sources tab, or the catalog. */
+export type ProjectSection = "workspace" | "sources" | "data";
+
+// A location inside a specific project (by id), discriminated on `section` so each section
+// only carries the address shape it actually has.
+export interface ProjectWorkspaceLocation {
+    basePath: "project";
+    projectId: string;
+    section: "workspace";
+    // Addresses a workspace object; empty is the project root folder.
     path: string[];
 }
 
-// A catalog location at `/data/<segments…>`.
-export interface DataLocation {
-    basePath: "data";
+export interface ProjectSourcesLocation {
+    basePath: "project";
+    projectId: string;
+    section: "sources";
+}
+
+// The catalog: `segments` are the part after `/data` ([db, schema, table, col?]).
+export interface ProjectDataLocation {
+    basePath: "project";
+    projectId: string;
+    section: "data";
     segments: string[];
 }
 
-export type DashLocation = ProjectLocation | DataLocation;
+export type ProjectLocation = ProjectWorkspaceLocation | ProjectSourcesLocation | ProjectDataLocation;
+
+// The projects list at `/projects`.
+export interface ProjectsListLocation {
+    basePath: "projects";
+}
+
+export type DashLocation = ProjectLocation | ProjectsListLocation;
 
 export class DashLocations {
-    static DataRoot(): DataLocation {
-        return this.DataElement([]);
+    static ProjectsList(): ProjectsListLocation {
+        return {basePath: "projects"};
     }
 
-    static DataElement(segments: string[]): DataLocation {
-        return {
-            basePath: "data",
-            segments
-        };
+    private static currentProjectId(): string {
+        return useProjectsState.getState().currentProjectId;
     }
 
-    static CurrentProjectElement(path: string[]): ProjectLocation {
-        return {
-            basePath: "object",
-            projectSlug: useProjectsState.getState().getCurrentProject().slug,
-            path
-        };
+    // --- workspace (the object tree) -------------------------------------
+
+    static CurrentProjectElement(path: string[]): ProjectWorkspaceLocation {
+        return this.ProjectWorkspace(this.currentProjectId(), path);
     }
 
-    static CurrentProjectRoot() {
+    static CurrentProjectRoot(): ProjectWorkspaceLocation {
         return this.CurrentProjectElement([]);
     }
 
-    static ProjectsList(): ProjectLocation {
-        return {
-            basePath: "object",
-            projectSlug: undefined,
-            path: []
-        };
+    static ProjectWorkspace(projectId: string, path: string[] = []): ProjectWorkspaceLocation {
+        return {basePath: "project", projectId, section: "workspace", path};
     }
 
-    static ProjectRoot(projectSlug: string) {
-        return this.ProjectElement(projectSlug, []);
+    // --- data sources ----------------------------------------------------
 
+    static ProjectSources(projectId: string): ProjectSourcesLocation {
+        return {basePath: "project", projectId, section: "sources"};
     }
 
-    static ProjectElement(projectSlug: string, path: string[]): ProjectLocation {
-        return {
-            basePath: "object",
-            projectSlug,
-            path
-        }
+    static CurrentProjectSources(): ProjectSourcesLocation {
+        return this.ProjectSources(this.currentProjectId());
+    }
+
+    // --- catalog -----------------------------------------------------------
+
+    static ProjectData(projectId: string, segments: string[] = []): ProjectDataLocation {
+        return {basePath: "project", projectId, section: "data", segments};
+    }
+
+    static CurrentProjectData(segments: string[] = []): ProjectDataLocation {
+        return this.ProjectData(this.currentProjectId(), segments);
     }
 
 }
@@ -113,14 +133,15 @@ export class DashNavigator {
 
     getUrlFromLocation(location: DashLocation): string {
         switch (location.basePath) {
-            case "object": {
-                // No slug → the project list at /projects.
-                if (!location.projectSlug) return PROJECT_ROOT;
-                const base = PROJECT_ROOT + "/" + encodeURIComponent(location.projectSlug);
-                return location.path.length ? base + "/" + encodeSegments(location.path) : base;
+            case "projects":
+                return PROJECT_ROOT;
+            case "project": {
+                const base = PROJECT_ROOT + "/" + encodeURIComponent(location.projectId) + "/" + location.section;
+                const rest = location.section === "workspace" ? location.path
+                    : location.section === "data" ? location.segments
+                        : [];
+                return rest.length ? base + "/" + encodeSegments(rest) : base;
             }
-            case "data":
-                return location.segments.length ? DATA_ROOT + "/" + encodeSegments(location.segments) : DATA_ROOT;
         }
     }
 
@@ -131,15 +152,19 @@ export class DashNavigator {
 
     getLocationFromUrl(url: string = this.currentUrl()): DashLocation {
         const parts = splitPath(url);
-        if (parts[0] === "data") return {basePath: "data", segments: parts.slice(1)};
         if (parts[0] === "projects") {
-            if (parts.length === 1) return DashLocations.ProjectsList();
-            const projectSlug = parts[1];
-            const path =  parts.slice(2)
-            return DashLocations.ProjectElement(projectSlug, path);
+            const projectId = parts[1];
+            // `/projects` with no id → the list.
+            if (!projectId) return DashLocations.ProjectsList();
+            if (parts[2] === "sources") return DashLocations.ProjectSources(projectId);
+            if (parts[2] === "data") return DashLocations.ProjectData(projectId, parts.slice(3));
+            // Bare `/projects/<id>` (and any unknown section) resolves to the workspace.
+            const path = parts[2] === "workspace" ? parts.slice(3) : parts.slice(2);
+            return DashLocations.ProjectWorkspace(projectId, path);
         }
-        // `/` and anything else → the project list.
-        return DashLocations.CurrentProjectRoot();
+        // `/` and anything else → the projects list. The URL is the source of truth for which
+        // project is open, so when it names none we show the list rather than guess a project.
+        return DashLocations.ProjectsList();
     }
 
     getLocationFromObjectId(id: string): DashLocation {
@@ -185,7 +210,7 @@ export class DashNavigator {
         };
     }
 
-    getObjectFromLocation(location: ProjectLocation) {
+    getObjectFromLocation(location: ProjectWorkspaceLocation) {
         const editorElements = useRelationsState.getState().editorElements;
         const st = useRelationsState.getState();
         const tree = buildRoutableTree(editorElements, st.relations, st.dashboards, st.canvas);
@@ -230,16 +255,16 @@ export class DashNavigator {
         return this.cachedLocation;
     };
 
-    // if there is an object open, return it, else null
+    // if there is an object open, return it, else null. Objects live only in the workspace section.
     getCurrentObject() {
         const currentLocation = this.getCurrentLocation();
-        if (currentLocation.basePath !== "object") return null;
+        if (currentLocation.basePath !== "project" || currentLocation.section !== "workspace") return null;
         return this.getObjectFromLocation(currentLocation);
     }
 
     isCurrentObjectIdShown(id: string): boolean {
         const currentLocation = this.getCurrentLocation();
-        if (currentLocation.basePath !== "object") return false;
+        if (currentLocation.basePath !== "project" || currentLocation.section !== "workspace") return false;
         const currentObject = this.getObjectFromLocation(currentLocation);
         return currentObject?.id === id;
     }

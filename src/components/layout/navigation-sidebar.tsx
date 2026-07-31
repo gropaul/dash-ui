@@ -1,26 +1,26 @@
 'use client';
 
 import React from "react";
-import {Database, Folder, LucideIcon, PanelLeftClose, PanelLeftOpen} from "lucide-react";
+import {Database, Folder, LayoutGrid, LucideIcon, PanelLeftClose, PanelLeftOpen, Plug} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
 import {DashLocation, DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {useDashLocation} from "@/state/routing/use-dash-location";
-import {useProjectsState} from "@/state/projects.state";
 import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-section";
 
 /**
- * The single left navigation sidebar. Routing-driven (each item is a real link),
- * with exactly two destinations today: Workspace (/workspace) and Database (/data).
+ * The single left navigation sidebar. Routing-driven (each item is a real link), grouped by
+ * scope: PROJECT (Workspace + Data sources + Catalog, all per-project) and GENERAL (All
+ * projects). The grouping is the primary scope cue.
  *
  * Collapsed → an icon rail with tooltips. Expanded → icons + labels plus room for
  * extra sections (e.g. Recently accessed). The expanded/collapsed flag is UI-only
  * state persisted in gui.state; the active item is derived purely from the URL.
  */
 
-type NavKey = 'workspace' | 'data';
+type NavKey = 'workspace' | 'sources' | 'catalog' | 'projects';
 
 interface NavItem {
     key: NavKey;
@@ -29,18 +29,38 @@ interface NavItem {
     location: DashLocation;
 }
 
+function activeKeyForLocation(location: DashLocation): NavKey {
+    if (location.basePath === 'projects') return 'projects';
+    if (location.section === 'sources') return 'sources';
+    if (location.section === 'data') return 'catalog';
+    return 'workspace';
+}
+
 export function NavigationSidebar() {
     const expanded = useGUIState((s) => s.sidebarExpanded);
     const setExpanded = useGUIState((s) => s.setSidebarExpanded);
     const location = useDashLocation();
 
-    // Workspace goes to the current project's root; Data is global. Built here (not a module
-    // const) because the workspace href depends on the current project.
-    const navItems: NavItem[] = [
-        {key: 'workspace', label: 'Workspace', icon: Folder,location: DashLocations.CurrentProjectRoot()},
-        {key: 'data', label: 'Data', icon: Database, location: DashLocations.DataRoot()},
+    // Per-project hrefs depend on the current project, so this is built per render (not a module
+    // const). CurrentProject* read the current project id from the store at call time.
+    const projectItems: NavItem[] = [
+        {key: 'workspace', label: 'Workspace', icon: Folder, location: DashLocations.CurrentProjectRoot()},
+        {key: 'sources', label: 'Data sources', icon: Plug, location: DashLocations.CurrentProjectSources()},
+        {key: 'catalog', label: 'Catalog', icon: Database, location: DashLocations.CurrentProjectData()},
     ];
-    const activeKey: NavKey = location.basePath === 'data' ? 'data' : 'workspace';
+    const generalItems: NavItem[] = [
+        {key: 'projects', label: 'All projects', icon: LayoutGrid, location: DashLocations.ProjectsList()},
+    ];
+    const activeKey = activeKeyForLocation(location);
+
+    const renderGroup = (label: string, items: NavItem[]) => (
+        <div className="flex flex-col gap-0.5">
+            {expanded && <SectionHeader label={label}/>}
+            {items.map((item) => (
+                <NavLink key={item.key} item={item} active={item.key === activeKey} expanded={expanded}/>
+            ))}
+        </div>
+    );
 
     return (
         <TooltipProvider delayDuration={300}>
@@ -51,12 +71,10 @@ export function NavigationSidebar() {
                     expanded ? "w-60" : "w-16",
                 )}
             >
-                {/* Nav destinations */}
-                <div className="flex flex-col gap-0.5 p-2 pt-5">
-                    {expanded && <SectionHeader label="Navigation"/>}
-                    {navItems.map((item) => (
-                        <NavLink key={item.key} item={item} active={item.key === activeKey} expanded={expanded}/>
-                    ))}
+                {/* Nav destinations, grouped by scope. */}
+                <div className="flex flex-col gap-3 p-2 pt-5">
+                    {renderGroup("Project", projectItems)}
+                    {renderGroup("General", generalItems)}
                 </div>
 
                 {/* Middle region: extra sections when expanded, otherwise a spacer so the

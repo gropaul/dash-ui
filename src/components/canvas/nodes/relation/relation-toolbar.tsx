@@ -51,7 +51,7 @@ export function RelationToolbar({
                     runState={runState}
                 />
                 <div className="w-[1px] h-10 bg-border"/>
-                <TooltipWrapper message="Open relation">
+                <TooltipWrapper message="Open View">
                     <Button
                         className={'rounded-[0px] w-10 h-10 '}
                         variant={'ghost'}

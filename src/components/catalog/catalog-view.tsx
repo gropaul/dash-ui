@@ -29,8 +29,8 @@ import {CatalogDetail} from "@/components/catalog/detail/catalog-detail";
 import {CatalogHeaderActions} from "@/components/catalog/utils/catalog-header-actions";
 
 /**
- * The /data catalog: a structural, query-free browser over every internal-database
- * connection's loaded tables and columns. Mirrors the FolderView layout (ViewPadding +
+ * The catalog (`/projects/<id>/data`): a structural, query-free browser over every
+ * internal-database connection's loaded tables and columns. Mirrors the FolderView layout (ViewPadding +
  * ViewHeader + card). The grid sits on the left; selecting a row opens a detail panel on
  * the right (resizable, width persisted via gui.sidebarSplitRatio) that can expand to full
  * screen — the panel and full-screen views render the same component.
@@ -50,25 +50,25 @@ export function CatalogView() {
     const [selection, setSelection] = useState<CatalogSelection | null>(null);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Full-screen detail is URL-driven: /data/<db>/<schema>/<table>[/<column>].
+    // Full-screen detail is URL-driven: /projects/<id>/data/<db>/<schema>/<table>[/<column>].
     const nav = DashNavigator.instance();
     const location = useDashLocation();
-    const dataSegs = location.basePath === 'data' ? location.segments : [];
+    const dataSegs = location.basePath === 'project' && location.section === 'data' ? location.segments : [];
     const routeTarget = useMemo(() => resolveDataRoute(objects, dataSegs), [objects, location]);
 
-    // The path filter is URL-backed too: /data/<db>[/<schema>] narrows the list, so it's
+    // The path filter is URL-backed too: …/data/<db>[/<schema>] narrows the list, so it's
     // linkable from the breadcrumb and shareable. A resolved object route is a detail view,
     // not a filter, so it carries no path filter.
     const pathFilter = useMemo<string[]>(
         () => routeTarget ? [] : dataSegs,
         [routeTarget, location],
     );
-    const setPathFilter = (path: string[]) => nav.navigateToLocation(DashLocations.DataElement(path));
+    const setPathFilter = (path: string[]) => nav.navigateToLocation(DashLocations.CurrentProjectData(path));
 
     /** Navigate to a selection's full-screen route (used by double-click, expand, cross-links). */
     const openFullScreen = (sel: CatalogSelection) => {
         const o = objects.find((x) => x.id === sel.objId);
-        if (o) nav.navigateToLocation(DashLocations.DataElement(dataSegments(o, sel.colName)));
+        if (o) nav.navigateToLocation(DashLocations.CurrentProjectData(dataSegments(o, sel.colName)));
     };
 
     const sourceNames = useMemo(() => Array.from(new Set(objects.map((o) => o.connectionName))).sort(), [objects]);
@@ -139,11 +139,11 @@ export function CatalogView() {
                     mode="full"
                     onToggleExpand={() => {
                         setSelection({objId: object.id, colName});
-                        nav.navigateToLocation(DashLocations.DataRoot());
+                        nav.navigateToLocation(DashLocations.CurrentProjectData());
                     }}
                     onClose={() => {
                         setSelection(null);
-                        nav.navigateToLocation(DashLocations.DataRoot());
+                        nav.navigateToLocation(DashLocations.CurrentProjectData());
                     }}
                     onSelect={openFullScreen}
                 />

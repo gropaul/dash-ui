@@ -4,13 +4,13 @@ import {setDatabaseConnection, tryInitializingConnectionFromHistory} from "@/sta
 import {useGUIState} from "@/state/gui.state";
 import {NO_CONNECTION_FORCE_OPEN_REASON} from "@/components/settings/settings-dialog";
 import {connectionToSpec, connectionToString, DBConnectionSpec, specToConnection} from "@/state/connections/configs";
-import {showExampleQuery} from "@/state/init/show-example-query";
 import {DatabaseConnection} from "@/model/database-connection";
-import {loadRelationStateFromConnections} from "@/state/persistency/api";
+import {loadProjectsIntoStore, useProjectsState} from "@/state/projects.state";
 import {maybeAttachDatabaseFromUrlParam} from "@/state/init/attach-from-url-param";
-import {useRelationDataState} from "@/state/relations-data.state";
 import {isDebugMode} from "@/components/settings/about-content";
 import {persist} from "zustand/middleware";
+import {loadOrSwitchProject} from "@/state/init/load-or-switch-project";
+import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 
 
 export type InitStep =
@@ -18,8 +18,13 @@ export type InitStep =
     'loaded-stored-connections-configs' |
     'selecting-connection' |
     'connection-connected-successfully' |
-    'switching-project' |
-    'loading-relations-from-connection' |
+    'loading-projects' |
+    'loading-project'|
+    'loading-project-connections' |
+    'loading-project-relations' |
+    'loading-project-macros'|
+    'loading-project-cached-results' |
+    'closing-current-project' |
     'updating-gui-state' |
     'loading-last-used-relations' |
     'attaching-database-from-url-param' |
@@ -35,10 +40,20 @@ export function getStepLabel(step: InitStep): string {
             return 'Selecting connection';
         case 'connection-connected-successfully':
             return 'Database connected successfully';
-        case 'switching-project':
-            return 'Switching project';
-        case 'loading-relations-from-connection':
-            return 'Loading display elements from database';
+        case 'loading-projects':
+            return 'Loading projects';
+        case 'loading-project':
+            return 'Loading current project';
+        case 'loading-project-connections':
+            return 'Loading Project Connections';
+        case 'loading-project-relations':
+            return 'Loading Project Relations';
+        case 'loading-project-macros':
+            return 'Loading Project Macros';
+        case 'loading-project-cached-results':
+            return 'Loading Project Cached Results';
+        case 'closing-current-project':
+            return 'Closing current project';
         case 'updating-gui-state':
             return 'Updating Interface';
         case 'loading-last-used-relations':
@@ -57,14 +72,36 @@ export interface InitZustand {
     initializationComplete: () => boolean;
     setStep: (step: InitStep) => void;
     getCurrentStepLabel: () => string;
-    onInitStateHydrated: () => void;
-    onConnectionSpecSelected: (spec: DBConnectionSpec) => void;
-    onWorkingConnectionSelected: (connection: DatabaseConnection) => void;
+    loadConnectionConfig: () => void;
+    checkSelectedConnectionSpec: (spec: DBConnectionSpec) => void;
+    initializeWorkingConnection: (connection: DatabaseConnection) => void;
+    loadProjectDatabase: () => void;
+    checkForProjectToLoad: () => void;
+    loadProject(id: string): Promise<void>;
     onRelationStateLoadedFromConnection: (loadedTabIds: string[]) => void;
+
+    navigateToProjectsList: () => void;
 
     addConnectionToHistory: (connection: DatabaseConnection) => void;
     removeConnectionFromHistory: (index: number) => void;
 }
+
+
+// Overview
+// 1. Load connection config from
+//      (a) url parameters (higher prio)
+//      (b) connection history coming from local storage
+// if working connecction found:
+//      initializeWorkingConnection()
+// else:
+//      show connection config dialog to select a connection
+//      on select initializeWorkingConnection()
+//
+// 2. loadProjectDatabase -> Load list of projects from duckdb file
+// 3. checkForProjectToLoad()
+//       - Yes, we are at a project that exists: Load the project
+//       - No, we are not at a project: Go to projects list
+
 
 export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get) => ({
         currentStep: 'loading-stored-connections-configs',
@@ -79,12 +116,14 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
         },
 
         setStep: (step: InitStep) => {
+            console.log(`Initializing step: ${step}`);
             set({currentStep: step});
         },
 
+
         // Step 1. Load the connection configs from the zustand state. This might lead to a side quest opening the
         // settings dialog to select a connection
-        onInitStateHydrated: async () => {
+        loadConnectionConfig: async () => {
 
             get().setStep('loaded-stored-connections-configs');
             const history = get().connectionHistory;
@@ -96,19 +135,19 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
                 useGUIState.getState().addSettingForceOpenReason(NO_CONNECTION_FORCE_OPEN_REASON)
                 return;
             } else { // success, go to the next step
-                get().onWorkingConnectionSelected(connection);
+                get().initializeWorkingConnection(connection);
 
             }
         },
 
         // Step 1.1. The user selected a connection spec. Check if it is working
-        onConnectionSpecSelected: async (spec: DBConnectionSpec) => {
+        checkSelectedConnectionSpec: async (spec: DBConnectionSpec) => {
             const connection = specToConnection(spec);
             await connection.initialise();
             const status = await connection.checkConnectionState();
             if (status.state === 'connected') {
                 // go to the next step
-                get().onWorkingConnectionSelected(connection);
+                get().initializeWorkingConnection(connection);
             } else {
                 // we can't go to the next step, so we show an error
                 toast.error('Failed to connect to database');
@@ -116,7 +155,7 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
         },
 
         // Step 3. A working connection was selected, we can now set it in the state
-        onWorkingConnectionSelected: async (connection: DatabaseConnection) => {
+        initializeWorkingConnection: async (connection: DatabaseConnection) => {
 
             useGUIState.getState().removeSettingForceOpenReason(
                 NO_CONNECTION_FORCE_OPEN_REASON, true
@@ -129,31 +168,58 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
             const text = connectionToString(connection, isDebug);
             toast.success(text);
 
-            // set the connection in the state and show the example query
+            // set the connection in the state
             await setDatabaseConnection(connection);
 
-            // initialize step 4, when everything is working onRelationStateLoadedFromConnection will be called
-            get().setStep('loading-relations-from-connection');
-            loadRelationStateFromConnections(connection);
+            get().loadProjectDatabase();
         },
 
+        loadProjectDatabase: async () => {
+            // load the projects registry from the connection's meta database
+            get().setStep('loading-projects');
+            try {
+                await loadProjectsIntoStore();
+                get().checkForProjectToLoad();
+            } catch (e) {
+                logAndDisplayError('Failed to load the projects registry; continuing with the default project list', e);
+            }
+        },
+        checkForProjectToLoad: async () => {
+            // The URL decides which project is open
+            const dashLocation = DashNavigator.instance().getCurrentLocation();
+            if (dashLocation.basePath !== 'project') {
+                get().setStep('complete')
+            }
+            if (dashLocation.basePath === 'project') {
+                const projectId = dashLocation.projectId;
+                const projectExists = useProjectsState.getState().doesProjectExists(projectId);
+                if (!projectExists) {
+                    logAndDisplayError(`Project with ID ${projectId} not found; redirecting to the projects list`, null);
+                    get().navigateToProjectsList();
+                } else {
+                    await get().loadProject(projectId);
+                }
+            }
+        },
+        navigateToProjectsList: () => {
+            get().setStep('complete');
+            DashNavigator.instance().navigateToLocation(DashLocations.ProjectsList());
+        },
         // Step 4. The relations have been loaded from the connection.
         onRelationStateLoadedFromConnection: async (loadedTabIds: string[]) => {
             get().setStep('updating-gui-state');
 
-            // load the last used relations
-            get().setStep('loading-last-used-relations');
-            await useRelationDataState.getState().loadLastUsed();
-
             get().setStep('attaching-database-from-url-param');
             await maybeAttachDatabaseFromUrlParam();
-
-            // we are done!
-            get().setStep('complete');
-
-            // // some final steps that need no sync at this point
-            // await showExampleQuery()
         },
+
+
+        // ** PROJECT FUNCTIONS ***
+        async loadProject(id: string) {
+            get().setStep('loading-project')
+            await loadOrSwitchProject(id); // will call 'completed'
+        },
+
 
         // *** META FUNCTIONS ***
         addConnectionToHistory: (connection: DatabaseConnection) => {
@@ -199,10 +265,14 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
                 console.error('Failed to rehydrate init state:', error);
             } else {
                 // Initialize the state with the first step
-                state.onInitStateHydrated();
+                state.loadConnectionConfig();
             }
-
-
         },
     }
 ))
+
+
+function logAndDisplayError(error_text: string, e: any) {
+    toast.error(error_text);
+    console.error(error_text, e);
+}

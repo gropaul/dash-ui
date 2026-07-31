@@ -122,7 +122,7 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     // Id-path used by the create dialogs (they address the tree by node ids).
     const createPath = folderNode ? (findPathById(editorElements, folderNode.id) ?? []) : [];
     // The root folder is the project itself, so it shows the project name (not "Workspace").
-    const title = folderNode ? folderNode.name : currentProject.name;
+    const title = folderNode ? folderNode.name : currentProject?.name ?? 'Loading ...';
 
     // An empty project root shows the onboarding start page — embedded in the normal project-page
     // shell (header + card) rather than replacing the whole view. Empty sub-folders keep the plain

@@ -2,9 +2,18 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {throttleLatest} from "@/lib/throttle-latest";
-import {DatabaseConnection, StateStorageInfoLoaded, StorageDestination} from "@/model/database-connection";
-import {DASH_STORAGE_VERSION, STORAGE_THROTTLE_TIME_MS, VERSION_CONFLICT_ERROR} from "@/platform/global-data";
-import {initDashCatalog} from "@/state/connections/utils";
+import {
+    DatabaseConnection,
+    DefaultLoadedStorageInfo,
+    StateStorageInfoLoaded,
+    StorageDestination
+} from "@/model/database-connection";
+import {
+    DASH_STORAGE_VERSION,
+    DEFAULT_STATE_STORAGE_DESTINATION,
+    STORAGE_THROTTLE_TIME_MS,
+    VERSION_CONFLICT_ERROR
+} from "@/platform/global-data";
 import {useSaveStatus} from "@/state/save-status.state";
 
 
@@ -15,38 +24,6 @@ export function GetFullNameDestination(destination: StorageDestination) {
         return `"${destination.schemaName}"."${destination.tableName}"`;
     }
 }
-
-export async function GetStateStorageStatus(destination: StorageDestination, connection: DatabaseConnection): Promise<StateStorageInfoLoaded> {
-
-    await initDashCatalog(connection);
-
-    const targetDatabase = destination.databaseName;
-    const current_database_query = targetDatabase
-        ? `SELECT (path IS NOT null) as persistent, readonly, database_name
-           FROM duckdb_databases()
-           WHERE database_name = '${targetDatabase}';`
-        : `SELECT (path IS NOT null) as persistent, readonly, database_name
-           FROM duckdb_databases()
-           WHERE database_name = current_catalog();`;
-    const current_database_result = await connection.executeQuery(current_database_query, false)
-    const persistent = current_database_result.rows[0][0];
-    const readonly = current_database_result.rows[0][1];
-
-    // copy the destination to ensure we don't modify the original
-    const destination_copy = {...destination};
-    if (!targetDatabase) {
-        destination_copy.databaseName = current_database_result.rows[0][2];
-    }
-
-    return {
-        state: 'loaded',
-        tableStatus: 'found',
-        databaseStatus: persistent ? 'permanent' : 'temporary',
-        databaseReadonly: readonly,
-        destination: destination_copy
-    };
-}
-
 
 interface Input {
     value: string
@@ -81,13 +58,8 @@ export class StorageDuckAPI {
     }
 
     async getActiveStorageInfo(): Promise<StateStorageInfoLoaded> {
-        const connection = await this.getOrWaitForConnection();
-        if (connection.storageInfo.state === 'loaded') {
-            return connection.storageInfo;
-        }
-
-        throw new Error("Storage info not loaded but connection initialised. This should not happen.");
-
+        await this.getOrWaitForConnection();
+        return DefaultLoadedStorageInfo();
     }
 
     async createTableIfNotExists(storageInfo: StateStorageInfoLoaded) {

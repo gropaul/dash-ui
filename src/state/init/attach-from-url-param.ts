@@ -4,6 +4,7 @@ import {ConnectionsService} from "@/state/connections/connections-service";
 import {getDashStateIfExits} from "@/components/import/file-drop-relation/database-import";
 import {useRelationsState} from "@/state/relations.state";
 import {toast} from "sonner";
+import {useProjectsState} from "@/state/projects.state";
 
 
 export async function maybeAttachDatabaseFromUrlParam(): Promise<void> {
@@ -49,12 +50,14 @@ export async function copyCacheFromAttachedDB(database_name: string): Promise<vo
     const connection = ConnectionsService.getInstance().getDatabaseConnection();
     const tables = await ConnectionsService.getInstance().executeQuery(query);
 
-    if (connection.storageInfo.state !== 'loaded') {
+    const storageInfo = useProjectsState.getState().getCurrentProjectStorageInfo();
+
+    if (storageInfo.state !== 'loaded') {
         throw new Error('Storage info is not loaded');
     }
 
-    const destDatabaseName = connection.storageInfo.destination.databaseName;
-    const destSchemaName = connection.storageInfo.destination.schemaName;
+    const destDatabaseName = storageInfo.destination.databaseName;
+    const destSchemaName = storageInfo.destination.schemaName;
 
     for (const table of tables.rows) {
         const targetName = `"${table[0]}"."${table[1]}"."${table[2]}"`;

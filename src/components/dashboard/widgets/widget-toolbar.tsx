@@ -41,7 +41,7 @@ export function WidgetToolbar({className, draggable, runState, onRun, onStopRun,
             <RelationViewRunButton runState={runState!} onRun={onRun!} onStopRun={onStopRun!}/>
         ),
         fullscreen: onFullscreen && (
-            <TooltipWrapper message="Open relation">
+            <TooltipWrapper message="Open View">
                 <Button variant="ghost" size="icon" className="rounded-[0px] w-10 h-10"
                         onClick={onFullscreen}>
                     <Maximize className="w-4 h-4"/>

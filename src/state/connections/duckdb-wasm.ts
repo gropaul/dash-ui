@@ -1,16 +1,13 @@
-import {RelationData} from "@/model/relation";
+import {GetEmptyRelationData, RelationData} from "@/model/relation";
 import {Column, DataSource} from "@/model/data-source-connection";
 import {
     ConnectionStatus,
-    DatabaseConnection,
-    DefaultStateStorageInfo,
-    StateStorageInfo
+    DatabaseConnection
 } from "@/model/database-connection";
 import {DatabaseConnectionType} from "@/state/connections/configs";
 import {downloadOPFSFile, mountFilesOnWasm} from "@/state/connections/duckdb-wasm/utils";
 import {DuckdbWasmProvider, getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {duckDBTypeToValueType} from "@/model/value-type";
-import {GetStateStorageStatus} from "@/state/persistency/duckdb-storage";
 import {DEFAULT_STATE_STORAGE_DESTINATION, ERROR_MESSAGE_QUERY_ABORTED} from "@/platform/global-data";
 import {AsyncQueue} from "@/platform/async-queue";
 import {enqueueStatements} from "@/state/connections/utils";
@@ -25,6 +22,7 @@ export interface DuckDBWasmConfig {
 export interface QueryInput {
     query: string;
     readOnly: boolean;
+    formatResultToJson: boolean;
 }
 
 export class DuckDBWasm implements DatabaseConnection {
@@ -32,7 +30,6 @@ export class DuckDBWasm implements DatabaseConnection {
     id: string;
     type: DatabaseConnectionType;
     connectionStatus: ConnectionStatus = {state: 'disconnected', message: 'ConnectionState not initialised'};
-    storageInfo: StateStorageInfo = DefaultStateStorageInfo()
 
     dataSources: DataSource[];
     config: DuckDBWasmConfig;
@@ -82,8 +79,8 @@ export class DuckDBWasm implements DatabaseConnection {
         return success;
     }
 
-    async executeQuery(sql: string, readOnly: boolean): Promise<RelationData> {
-        return enqueueStatements({query: sql, readOnly}, this.queue);
+    async executeQuery(sql: string, readOnly: boolean, formatResultToJson: boolean = true): Promise<RelationData> {
+        return enqueueStatements({query: sql, readOnly, formatResultToJson}, this.queue);
     }
 
     polishColumn(column: Column) : Column {
@@ -95,7 +92,7 @@ export class DuckDBWasm implements DatabaseConnection {
     }
 
     async executeQueryInternal(input: QueryInput): Promise<RelationData> {
-        const {query, readOnly} = input;
+        const {query, readOnly, formatResultToJson} = input;
         try {
             // if no signal is provided, create a new one that times out after DEFAULT_QUERY_TIMEOUT
             const {db, con} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
@@ -104,19 +101,26 @@ export class DuckDBWasm implements DatabaseConnection {
                 query_escaped = 'BEGIN TRANSACTION READ ONLY; ' + query_escaped + ';';
             }
             const materialize_json_query = `FROM query_result_json('${query_escaped}')`;
-            const result = await con.send(materialize_json_query, true);
+            const query_to_execute = formatResultToJson ? materialize_json_query : query;
+            const result = await con.send(query_to_execute, true);
             const data = await result.readAll();
 
-            // log the time taken to parse the result
-            const startTime = performance.now();
-
-            const json = data[0].toArray().map((row: any) => row.toJSON());
-            const json_string = json[0]['data'];
-            const data_parsed = JSON.parse(json_string) as RelationData;
-            data_parsed.columns = data_parsed.columns.map(this.polishColumn)
-            const endTime = performance.now();
-            // console.log(`Time taken to parse DuckDB WASM query result: ${endTime - startTime} ms`);
-            return data_parsed;
+            if (formatResultToJson) {
+                const json = data[0].toArray().map((row: any) => row.toJSON());
+                let json_string;
+                try {
+                    json_string = json[0]['data'];
+                } catch (e) {
+                    console.error(e);
+                    console.log("Error parsing JSON from query result: ", json);
+                    throw new Error("Error parsing JSON from query result: " + e);
+                }
+                const data_parsed = JSON.parse(json_string) as RelationData;
+                data_parsed.columns = data_parsed.columns.map(this.polishColumn);
+                return data_parsed;
+            } else {
+                return GetEmptyRelationData();
+            }
         } catch (e: any) {
             // check if it is an error
             if (e instanceof Error) {
@@ -150,12 +154,8 @@ export class DuckDBWasm implements DatabaseConnection {
         try {
             const versionResult = await this.executeQuery("select version();", false);
             const version = versionResult.rows[0][0] as string;
-            console.log('DuckDB WASM version: ', version);
-            this.storageInfo = await GetStateStorageStatus(DEFAULT_STATE_STORAGE_DESTINATION, this);
+            console.log('Check connection status: DuckDB WASM version: ', version);
             // print the names of all the tables in the database using information_schema.tables, this is useful for debugging and to check if the database is accessible
-            const tablesResult = await this.executeQuery("SELECT table_name FROM information_schema.tables;", false);
-            const tableNames = tablesResult.rows.map(row => row[0]);
-            console.log('Tables in DuckDB WASM database: ', tableNames);
             this.connectionStatus = {state: 'connected', message: `Connected to DuckDB WASM. Version: ${version}`};
         } catch (e: any) {
             const message = e.message;

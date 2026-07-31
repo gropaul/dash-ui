@@ -35,7 +35,7 @@ export function AppBar() {
             <div className="flex items-center gap-2 min-w-0 flex-1 pl-2">
                 {/* The project switcher is the breadcrumb root, so the crumb drops its own "Workspace" root. */}
                 <ProjectSwitcher/>
-                <WorkspacePathBreadcrumb showWorkspaceRoot={false}/>
+                <WorkspacePathBreadcrumb/>
             </div>
 
             {/* RIGHT — app actions: settings + an overflow menu for the rest */}

@@ -8,14 +8,18 @@ unknown paths (vercel.json rewrite; the C++ extension file-server fallback).
 
 ## URL scheme
 
-Only the workspace side carries a project; `/data` is global.
+A specific project is addressed by **id** and carries a **section**; everything except the
+projects list lives under a project.
 
 ```
-/projects                         → the projects list
-/projects/<slug>                  → that project's root folder
-/projects/<slug>/<seg>/<seg>…     → an object (folder / relation / dashboard / canvas)
-/data/<seg>…                      → the catalog (db / schema / table / column)
+/projects                              → the projects list
+/projects/<id>/workspace               → that project's root folder
+/projects/<id>/workspace/<seg>/<seg>…  → an object (folder / relation / dashboard / canvas)
+/projects/<id>/sources                 → that project's data-sources tab
+/projects/<id>/data/<seg>…             → that project's catalog (db / schema / table / column)
 ```
+
+Bare `/projects/<id>` (and any unknown section) resolves to the workspace.
 
 Query params carry ephemeral view state, e.g. `?readonly=1` opens a dashboard in view mode.
 
@@ -26,21 +30,28 @@ reached via `DashNavigator.instance()`. Callers never build URL strings by hand;
 typed **location** and hand it to the navigator.
 
 ```ts
-type DashLocation = ProjectLocation | DataLocation;
+type DashLocation = ProjectLocation | ProjectsListLocation;
 
-interface ProjectLocation { basePath: "object"; projectSlug?: string; path: string[]; } // no slug = projects list
-interface DataLocation    { basePath: "data";   segments: string[]; }
+// discriminated on `section`, so each section only carries the address shape it has
+type ProjectLocation =
+    | { basePath: "project"; projectId: string; section: "workspace"; path: string[] }
+    | { basePath: "project"; projectId: string; section: "sources" }
+    | { basePath: "project"; projectId: string; section: "data"; segments: string[] };
+
+interface ProjectsListLocation { basePath: "projects"; }
 ```
 
 Build locations with the `DashLocations` factory (don't construct the objects inline):
 
 ```ts
-DashLocations.CurrentProjectRoot()              // current project, root folder
-DashLocations.CurrentProjectElement(path)       // current project, macro-slug path
-DashLocations.ProjectRoot(slug)                 // a specific project's root
-DashLocations.ProjectElement(slug, path)        // a specific project + path
-DashLocations.DataRoot() / DataElement(segs)    // the catalog
-DashLocations.ProjectsList()                     // the /projects list (no slug)
+DashLocations.CurrentProjectRoot()               // current project, root folder
+DashLocations.CurrentProjectElement(path)        // current project, slug-name path
+DashLocations.ProjectWorkspace(projectId, path)  // a specific project's workspace
+DashLocations.ProjectSources(projectId)          // a project's data-sources tab
+DashLocations.CurrentProjectSources()
+DashLocations.ProjectData(projectId, segments)   // a project's catalog
+DashLocations.CurrentProjectData(segments)
+DashLocations.ProjectsList()                     // the /projects list
 ```
 
 Key navigator methods:
@@ -95,14 +106,16 @@ resolve.
 
 `src/components/layout/app-router.tsx` reads `useDashLocation()` and dispatches by `basePath`:
 
-- `data` → `sub-router/router-data.tsx` → the catalog (`CatalogView`)
+- `projects` → the projects list (`ProjectListView`)
 - otherwise → `sub-router/router-project.tsx`, which renders:
-  - no `projectSlug` → the projects list
-  - empty `path` → the project root folder
+  - unknown project id → a not-found state
+  - `section: "sources"` → `SourcesView`
+  - `section: "data"` → the catalog (`CatalogView`)
+  - empty workspace `path` → the project root folder
   - otherwise → resolve the node and render `FolderView` / `RelationTab` / `DashboardTab` / `CanvasTab`, or not-found
 
 `AppRouter` also mounts `useProjectRouteSync()` (`state/projects.state.ts`): when the URL's
-`/projects/<slug>` names a known project that isn't current, it selects it — the **URL is the
+`/projects/<id>` names a known project that isn't loaded, it switches to it — the **URL is the
 source of truth** for the current project.
 
 ## Recipes
@@ -116,10 +129,10 @@ nav.navigateToObjectId(node.id);
 
 // go to the current project's root, or a specific project
 nav.navigateToLocation(DashLocations.CurrentProjectRoot());
-nav.navigateToLocation(DashLocations.ProjectRoot(project.slug));
+nav.navigateToLocation(DashLocations.ProjectWorkspace(project.id));
 
 // catalog
-nav.navigateToLocation(DashLocations.DataElement([db, schema, table]));
+nav.navigateToLocation(DashLocations.CurrentProjectData([db, schema, table]));
 
 // what's on screen right now?
 const shown = nav.getCurrentObject();
@@ -138,5 +151,5 @@ const url = window.location.origin + nav.getUrlFromObjectId(node.id);
 | `state/routing/slug-name.ts` | `slugify` + sibling-unique slug names. |
 | `state/routing/routable-tree.ts` | Augments the tree with dashboard/canvas relation aliases. |
 | `components/layout/app-router.tsx` | Top-level dispatch + project↔URL sync. |
-| `components/layout/sub-router/` | `router-data` (catalog) and `router-project` (workspace). |
+| `components/layout/sub-router/` | `router-project` (workspace / sources / catalog). |
 | `state/projects.state.ts` | Projects + `useProjectRouteSync` (URL is source of truth). |

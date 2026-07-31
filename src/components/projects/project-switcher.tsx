@@ -24,6 +24,7 @@ import {ProjectIcon, ProjectIconPicker} from "@/components/projects/project-icon
 import {useProjectsState, useRoutedProject} from "@/state/projects.state";
 import {DEFAULT_PROJECT_ICON, ProjectIconKey} from "@/model/project";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
+import {deleteProjectArtifacts} from "@/state/projects/delete-project-artifacts";
 
 type DialogState =
     | {mode: 'closed'}
@@ -32,15 +33,15 @@ type DialogState =
 
 /**
  * The current-project chip in the app bar. Doubles as the root of the path breadcrumb:
- * the name navigates to the project (routing TBD), the chevron opens the switcher.
+ * the name opens the project's workspace, the chevron opens the switcher.
  * Lets the user switch, create, rename, re-icon, and delete projects.
  */
 export function ProjectSwitcher() {
-    const current = useProjectsState((s) => s.getCurrentProject());
     const projects = useProjectsState((s) => s.projects);
-    // When the URL names a project that doesn't exist, don't present the last-loaded project as the
-    // current one — show a neutral "select a project" chip instead (the dropdown still lists real ones).
-    const {isUnknownSlug} = useRoutedProject();
+    // The chip reflects the URL, not the last-loaded project: when the URL names a project that doesn't
+    // exist (or no project at all, e.g. the projects list), show a neutral "select a project" chip
+    // instead (the dropdown still lists real ones). `current` is undefined in that case.
+    const {project: current} = useRoutedProject();
     const createProject = useProjectsState((s) => s.createProject);
     const renameProject = useProjectsState((s) => s.renameProject);
     const setProjectIcon = useProjectsState((s) => s.setProjectIcon);
@@ -48,17 +49,17 @@ export function ProjectSwitcher() {
     const checkProjectName = useProjectsState((s) => s.checkProjectName);
 
     const nav = DashNavigator.instance();
-    const openProject = (slug: string) => nav.navigateToLocation(DashLocations.ProjectRoot(slug));
+    const openProject = (id: string) => nav.navigateToLocation(DashLocations.ProjectWorkspace(id));
 
     const [dialog, setDialog] = useState<DialogState>({mode: 'closed'});
 
     const ordered = Object.values(projects).sort((a, b) => b.openedAt - a.openedAt);
     const canDelete = ordered.length > 1;
 
-    // Live slug preview + validation from the store (excludes the edited project from the dup check).
+    // Live name validation from the store (excludes the edited project from the dup check).
     // Depends on `projects` (subscribed above), so it re-runs as projects change.
-    const {slug: slugPreview, error: slugError} = dialog.mode === 'closed'
-        ? {slug: null, error: null}
+    const nameError = dialog.mode === 'closed'
+        ? null
         : checkProjectName(dialog.name, dialog.mode === 'edit' ? dialog.id : undefined);
 
     function openCreate() {
@@ -66,37 +67,43 @@ export function ProjectSwitcher() {
     }
 
     function openEdit() {
+        if (!current) return;
         setDialog({mode: 'edit', id: current.id, name: current.name, icon: current.icon});
     }
 
-    function save() {
-        if (slugError) return;
+    async function save() {
+        if (nameError) return;
+
+        setDialog({mode: 'closed'});
         if (dialog.mode === 'create') {
-            const project = createProject({name: dialog.name, icon: dialog.icon});
-            openProject(project.slug);
+            const project = await createProject({name: dialog.name, icon: dialog.icon});
+            openProject(project.id);
         } else if (dialog.mode === 'edit') {
+            // URLs are id-based, so a rename doesn't touch the URL — just update name/icon.
             renameProject(dialog.id, dialog.name);
             setProjectIcon(dialog.id, dialog.icon);
-            // A rename may change the slug; if we're viewing this project, swap the slug in the URL
-            // in place (preserving the path).
-            const updated = useProjectsState.getState().projects[dialog.id];
-            const loc = nav.getCurrentLocation();
-            if (updated && loc.basePath === 'object') {
-                nav.navigateToLocation(DashLocations.ProjectElement(updated.slug, loc.path), true);
-            }
         }
-        setDialog({mode: 'closed'});
+
     }
 
-    function deleteCurrent() {
-        if (dialog.mode === 'edit') {
-            removeProject(dialog.id);
-            // removeProject reselects the most-recent project; navigate to it.
-            const next = useProjectsState.getState();
-            const project = next.projects[next.currentProjectId ?? ""];
-            if (project) openProject(project.slug);
+    async function deleteCurrent() {
+        if (dialog.mode !== 'edit') {
+            setDialog({mode: 'closed'});
+            return;
         }
+        const deletedId = dialog.id;
+        removeProject(deletedId);
+        // removeProject reselects the most-recent project; navigate to it.
+        const next = useProjectsState.getState();
+        const project = next.projects[next.currentProjectId ?? ""];
+        if (project) openProject(project.id);
         setDialog({mode: 'closed'});
+        void deleteProjectArtifacts(deletedId);
+    }
+
+    const currentLocation = nav.getCurrentLocation();
+    if (currentLocation.basePath != 'project') {
+        return null;
     }
 
     return (
@@ -106,12 +113,12 @@ export function ProjectSwitcher() {
                 <Button
                     variant="ghost"
                     className="h-8 flex flex-row items-center gap-0 pl-1 pr-1 min-w-0 rounded-l-2xl"
-                    aria-label={isUnknownSlug ? "Select a project" : `Open ${current.name}`}
-                    onClick={() => isUnknownSlug
+                    aria-label={!current ? "Select a project" : `Open ${current.name}`}
+                    onClick={() => !current
                         ? nav.navigateToLocation(DashLocations.ProjectsList())
-                        : openProject(current.slug)}
+                        : openProject(current.id)}
                 >
-                    {isUnknownSlug ? (
+                    {!current ? (
                         <span className="min-w-0 truncate font-medium text-muted-foreground px-1">Select a project</span>
                     ) : (
                         <>
@@ -129,10 +136,10 @@ export function ProjectSwitcher() {
                     <DropdownMenuContent align="start" className="w-56">
                     <DropdownMenuLabel>Projects</DropdownMenuLabel>
                     {ordered.map((project) => (
-                        <DropdownMenuItem key={project.id} onClick={() => openProject(project.slug)}>
+                        <DropdownMenuItem key={project.id} onClick={() => openProject(project.id)}>
                             <ProjectIcon icon={project.icon} size={13} className="mr-2 h-5 w-5"/>
                             <span className="truncate">{project.name}</span>
-                            {project.id === current.id && <Check className="ml-auto h-4 w-4"/>}
+                            {project.id === current?.id && <Check className="ml-auto h-4 w-4"/>}
                         </DropdownMenuItem>
                     ))}
                     <DropdownMenuSeparator/>
@@ -163,10 +170,7 @@ export function ProjectSwitcher() {
                                     onChange={(e) => setDialog({...dialog, name: e.target.value})}
                                     onKeyDown={(e) => e.key === 'Enter' && save()}
                                 />
-                                <p className="text-xs text-muted-foreground">
-                                    URL: <span className="font-mono text-foreground">/{slugPreview}</span>
-                                </p>
-                                {slugError && <p className="text-xs text-destructive">{slugError}</p>}
+                                {nameError && <p className="text-xs text-destructive">{nameError}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label>Icon</Label>
@@ -185,7 +189,7 @@ export function ProjectSwitcher() {
                         ) : <span/>}
                         <div className="flex gap-2">
                             <Button variant="outline" onClick={() => setDialog({mode: 'closed'})}>Cancel</Button>
-                            <Button onClick={save} disabled={!!slugError}>{dialog.mode === 'create' ? "Create" : "Save"}</Button>
+                            <Button onClick={save} disabled={!!nameError}>{dialog.mode === 'create' ? "Create" : "Save"}</Button>
                         </div>
                     </DialogFooter>
                 </DialogContent>

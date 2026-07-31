@@ -3,12 +3,11 @@ import {createWithEqualityFn} from "zustand/traditional";
 import {deleteCache, listCachedIds, loadCache, updateCache} from "@/state/relations-data/functions";
 import {GetRelationStatsLoading, RelationState, RelationStats} from "@/model/relation-state";
 import {LRUList} from "@/platform/lru";
-import {DASH_CATALOG, N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
-import {getDashDbFileName} from "@/state/projects/project-storage";
+import {DASH_CATALOG_STATE, N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
 import {GetColumnStats} from "@/model/column-stats";
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {attachDatabase} from "@/state/connections/utils";
+import {getProjectDashStateFileName} from "@/state/projects.state";
 
 
 export interface CacheResult {
@@ -204,21 +203,8 @@ export const useRelationDataState = createWithEqualityFn<RelationZustandCombined
                 throw new Error('loadLastUsed: No database connection available');
             }
 
-            const con = ConnectionsService.getInstance().getDatabaseConnection();
-            await attachDatabase(con, getDashDbFileName(), DASH_CATALOG, false);
-
-            // Reseed the LRU from the cache tables actually present in this project's dash file. This
-            // is what makes "last used" per-project: the tables ARE the persisted set, so a project
-            // switch never hydrates (or deletes) another project's cache.
-            //
-            // We do NOT delete the tables beyond the LRU capacity here. Real usage recency can't be
-            // recovered from the file (listCachedIds() returns information_schema order, not last-used
-            // order), so any capacity-based eviction on load would drop an arbitrary subset — including
-            // genuinely recent results. The overflow tables stay on disk and remain reachable: viewing
-            // that relation loads it on demand via loadCache() and re-adds it to the LRU. Cache tables
-            // are bounded by the project's live relations anyway (deleteData drops a relation's table
-            // when it is removed), so leaving them in place doesn't grow the file unbounded.
             const allCachedIds = await listCachedIds();
+            console.log('We found n= ' + allCachedIds.length + ' cached relations.');
             const reseeded = new LRUList<string>(N_RELATIONS_DATA_TO_LOAD);
             reseeded.useAll(allCachedIds);
             useCacheStore.setState({cache: reseeded});

@@ -22,7 +22,7 @@ export default function SettingsProvider({children}: ConnectionsProviderProps) {
         state.settings.forceOpenReasons,
     ]);
 
-    const onSpecSelected = useInitState(state => state.onConnectionSpecSelected);
+    const onSpecSelected = useInitState(state => state.checkSelectedConnectionSpec);
 
     return (
         <>

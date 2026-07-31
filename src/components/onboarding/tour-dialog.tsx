@@ -16,11 +16,11 @@ const TOUR_SLIDES = [
     {
         videoSrc: `${DASH_VIDEO_BASE_URL}/demo_canvas_big_example.mp4`,
         title: "Welcome to Dash 👋",
-        description: "Dash is a local-first data exploration tool. Drop in your files, write SQL, and build interactive canvases — everything runs in your browser.",
+        description: "Dash is a local-first data exploration tool. Drop in your files, write SQL, and build interactive canvases - everything runs in your browser.",
     },
     {
         videoSrc: `${DASH_VIDEO_BASE_URL}/demo_canvas_different_views.mp4`,
-        title: "Many display options",
+        title: "View Results in Multiple Ways",
         description: "Every query node can display its results as a table, chart, or input control. ",
     },
     {
@@ -31,7 +31,7 @@ const TOUR_SLIDES = [
     {
         videoSrc: `${DASH_VIDEO_BASE_URL}/demo_canvas_dependent_select.mp4`,
         title: "Build Interactive Canvases",
-        description: "Downstream nodes will only contain the selected rows of the upstream node. This makes it easy to build interactive canvases.",
+        description: "Downstream nodes will only contain the selected rows of the upstream node. Chain nodes together for interactivity.",
     },
 ];
 
@@ -233,7 +233,7 @@ function FinalSlide({onImportClick}: { onImportClick: () => void }) {
                 </h2>
                 <p className="text-muted-foreground text-center max-w-md">
                     Import your files to start analyzing.{" "}
-                    <span className="text-primary">Everything runs locally</span> — Your data stays private.
+                    <span className="text-primary">Everything runs locally</span> - Your data stays private.
                 </p>
 
                 <div className="flex gap-4 mt-4">

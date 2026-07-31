@@ -8,7 +8,7 @@ import {DBConnectionType} from "@/components/basics/files/icon-factories";
 import {Button} from "@/components/ui/button";
 import {AlertTriangle, Check, LoaderCircle, RefreshCcw} from "lucide-react";
 import {deepEqual} from "@/platform/object-utils";
-import {clearAllOPFS, clearOPFS} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
+import {clearAllOPFS} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 
 
 const DUCKDB_WASM_DESCRIPTION =
@@ -143,13 +143,6 @@ export function ClearOpfsButton() {
                 OPFS data (every project) and reloads the page.
             </div>
             <div className="flex gap-2">
-                <Button
-                    onClick={clearOPFS}
-                    variant="destructive"
-                    size={"sm"}
-                >
-                    Reset Database
-                </Button>
                 <Button
                     onClick={handleClearAll}
                     variant="destructive"

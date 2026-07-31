@@ -6,12 +6,18 @@ truth** for which project is open - see [routing.md](./routing.md).
 
 ## Project registry
 
-The list of projects (id, name, slug, icon, timestamps) lives in browser `localStorage`, in the
-`projects-state` Zustand store. It is not stored in DuckDB. Project ids are UUIDs; the seeded default
+The list of projects lives in a per-connection meta database (`projects.duckdb`, attached as the
+`projects` catalog), as a plain relational table - one row per project with columns
+`id, name, icon, root_path, created_at, opened_at, sources_sql`
+(see `src/state/projects/project-registry-storage.ts`). Project ids are UUIDs; the seeded default
 project has the fixed id `default`.
 
-This is the same for both backends today, so the project list is shared between WASM and HTTP even
-though the data behind each project is not. That's not the intended end state - see [TODO](#todo).
+Because the registry is stored on the connection, each backend keeps its own independent project
+list: a WASM instance's OPFS and an HTTP server each have their own `projects.duckdb`. Saves are
+whole-registry snapshots: on every project change the `projects.state` store subscription replaces
+the table in one atomic `CREATE OR REPLACE TABLE`, followed by a `CHECKPOINT`. (A single statement
+on purpose: `executeQuery` splits multi-statement SQL, and over HTTP each statement is its own
+request, so a `BEGIN`/`COMMIT` pair can't be relied on to share a session.)
 
 ## Per-project databases
 
@@ -54,7 +60,7 @@ no full teardown/reconnect.
   `query_result_json` helper macro is a `TEMP` macro, so it survives catalog swaps.
 - **HTTP**: only `dash` is per-project; `data` is the shared server connection.
 
-`initDashCatalog` (run by `setDatabaseConnection` on boot and switch) only ever runs
+`initProjectCatalog` (run by `setDatabaseConnection` on boot and switch) only ever runs
 `ATTACH IF NOT EXISTS`. It cannot detach/re-attach `dash` from this layer, because every statement is
 wrapped in `query_result()` - client-side for WASM, server-side for HTTP - and `query_result` can't
 execute catalog-mutating DDL (`DETACH` / a fresh `ATTACH` fail inside it). So switching the state DB
@@ -82,21 +88,7 @@ Not yet done:
   DDL (`ATTACH`/`DETACH`) can't run through the `query_result`-wrapped query path. The server has to
   attach `<projectId>_dash_state.duckdb` for the project the client is on. Until then all HTTP projects
   share the extension's single `dash.duckdb`.
-- **Backend-specific project registry.** The list of projects should come from a different source per
-  backend:
-  - **HTTP**: from a registry database in the root (the dash dir on the server), so the project list
-    lives with the server data and is discoverable from the connection - not the browser.
-  - **WASM**: from `localStorage` (browser), as it does now.
-
-  Today the registry is `localStorage` for both, so the list is shared across backends while the data
-  behind it is not.
-
-  Rough approach (notes):
-  - Add a "loading projects" step to the init pipeline (like the other `InitStep`s) that loads the
-    registry before the rest of init.
-  - Branch on the connection: WASM reads `localStorage`; HTTP attaches the registry DB in the root
-    (the "local dash DB") and `SELECT`s the project list from it.
-  - Open question: how to persist writes (create / rename / delete a project) for HTTP. Reads are a
-    plain `SELECT` (fine through the wrapped query path), but writing the registry - and attaching the
-    per-project state DB - hits the same DDL-can't-run-through-`query_result` problem, so it likely
-    needs server support (a raw-exec endpoint, or the server owning the registry writes).
+- ~~**Backend-specific project registry.**~~ Done: the registry lives in the per-connection
+  `projects.duckdb` (see [Project registry](#project-registry)), loaded by the `loading-projects`
+  init step. Registry reads and the snapshot write both go through the raw (non-`query_result`)
+  query path, so they work on both backends.

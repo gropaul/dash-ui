@@ -2,59 +2,16 @@ import {splitSQL} from "@/platform/sql-utils";
 import {RelationData} from "@/model/relation";
 import {AsyncQueue} from "@/platform/async-queue";
 import {QueryInput} from "@/state/connections/duckdb-wasm";
-import {DatabaseConnection} from "@/model/database-connection";
-import {getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
-import {DASH_CACHE_SCHEMA, DASH_CATALOG, DASH_REFS_SCHEMA} from "@/platform/global-data";
-import {getDashDbFileName} from "@/state/projects/project-storage";
-
-/**
- * Attach the dash catalog and create all required schemas inside it.
- * Idempotent - safe to call on every connection check.
- */
-export async function initDashCatalog(connection: DatabaseConnection): Promise<void> {
-    try {
-        // ATTACH IF NOT EXISTS only. Real catalog DDL (DETACH / a fresh ATTACH) can't run here: every
-        // statement is wrapped in query_result() (client-side for WASM, server-side for HTTP), and
-        // query_result can't execute catalog-mutating DDL. So this layer can't reconcile a stale
-        // `dash` attach - the WASM provider attaches the correct per-project file via its raw
-        // connection; per-project HTTP requires the server to attach the right file (see docs).
-        await attachDatabase(connection, getDashDbFileName(), DASH_CATALOG, false);
-        await connection.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG}.${DASH_CACHE_SCHEMA};`, false);
-        await connection.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG}.${DASH_REFS_SCHEMA};`, false);
-        console.log('Dash catalog initialized successfully');
-    } catch (error) {
-        console.error('Error initializing Dash catalog:', error);
-        throw error;
-    }
-}
-
-export async function attachDatabase(
-    connection: DatabaseConnection,
-    fileName: string,
-    dbName: string,
-    readonly: boolean
-): Promise<void> {
-    const isWasm = connection.type === 'duckdb-wasm' || connection.type === 'duckdb-wasm-motherduck';
-    if (isWasm && getStorageMode() === 'memory') {
-        await connection.executeQuery(`ATTACH IF NOT EXISTS ':memory:' AS ${dbName};`, false);
-        return;
-    }
-    // The connection decides where its per-project files live (OPFS root for WASM, the server's dash
-    // data directory for HTTP); we just compose root + file name.
-    const root = await connection.getStorageRoot();
-    const readonlyClause = readonly ? ' (READ_ONLY)' : '(READ_WRITE)';
-    await connection.executeQuery(`ATTACH IF NOT EXISTS '${root}${fileName}' AS ${dbName}${readonlyClause};`, false);
-}
 
 export function enqueueStatements(input: QueryInput, queue: AsyncQueue<QueryInput, RelationData>): Promise<RelationData> {
-    const {query, readOnly} = input;
+    const {query, readOnly, formatResultToJson} = input;
     const queries = splitSQL(query)
     const lastQuery = queries.pop();
     if (!lastQuery){
         throw Error("SQL does not contain any query")
     }
     for (const statement of queries){
-        queue.add({query: statement, readOnly});
+        queue.add({query: statement, readOnly, formatResultToJson});
     }
-    return queue.add({query: lastQuery, readOnly});
+    return queue.add({query: lastQuery, readOnly, formatResultToJson});
 }

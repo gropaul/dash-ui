@@ -4,7 +4,8 @@ import {useEffect} from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {useProjectsState} from "@/state/projects.state";
 import {FolderView} from "@/components/workbench/folder-view";
-import {ProjectListView} from "@/components/projects/project-list-view";
+import {SourcesView} from "@/components/sources/sources-view";
+import {CatalogView} from "@/components/catalog/catalog-view";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {DashboardTab} from "@/components/dashboard/dashboard-tab";
 import {CanvasTab} from "@/components/canvas/canvas-tab";
@@ -18,8 +19,9 @@ interface ProjectRouterProps extends SubRouterProps {
 }
 
 /**
- * The view dispatcher behind the workspace side of the router. `/projects` lists the projects;
- * `/projects/<slug>` is that project's root; deeper paths resolve against the live editor tree.
+ * The view dispatcher for a specific project. `/projects/<id>/sources` is the data-sources tab;
+ * `/projects/<id>/data[/<seg>…]` is the catalog; `/projects/<id>/workspace[/<seg>…]` is the
+ * object tree (empty path is the project root, deeper paths resolve against the live editor tree).
  */
 export function RouterProject(props: ProjectRouterProps) {
 
@@ -27,27 +29,32 @@ export function RouterProject(props: ProjectRouterProps) {
     // and re-resolve when the tree changes (add / rename / delete / move) — without this a delete
     // inside the current folder leaves the stale node on screen (URL is unchanged).
     useRelationsState((s) => s.editorElements);
-    // Reactive so a project rename/delete re-resolves the slug below.
+    // Reactive so a project rename/delete re-resolves below.
     const projects = useProjectsState((s) => s.projects);
 
-    if (props.location.basePath !== "object") {
-        throw new Error(`Unexpected props.location kind ${props.location.basePath} in ProjectRouter`);
+    if (props.location.basePath !== "project") {
+        throw new Error(`Unexpected props.location kind ${props.location.basePath} in RouterProject`);
     }
+    const location = props.location;
 
-    // No project selected -> Show project list
-    const projectSlug = props.location.projectSlug;
-    if (!projectSlug){
-        return <ProjectListView/>;
-    }
-
-    // Unknown project slug -> don't fall back to the current project (that just showed the last
+    // Unknown project id -> don't fall back to the loaded project (that just showed the last
     // project for any bogus URL). Show a not-found state instead.
-    if (!Object.values(projects).some((p) => p.slug === projectSlug)) {
+    if (!projects[location.projectId]) {
         return <ProjectNotFound/>;
     }
 
-    // Project root.
-    if (props.location.path.length === 0) {
+    // Data-sources tab.
+    if (location.section === "sources") {
+        return <SourcesView/>;
+    }
+
+    // The catalog (reads its segments from the location itself).
+    if (location.section === "data") {
+        return <CatalogView/>;
+    }
+
+    // Workspace root.
+    if (location.path.length === 0) {
         return <FolderView segments={[]}/>;
     }
 
@@ -55,9 +62,9 @@ export function RouterProject(props: ProjectRouterProps) {
     // in the context of a dashboard/canvas (a virtual child) — resolve on the augmented tree.
     // getState() reads are fine here: resolution only matters on navigation / editorElements
     // changes, both of which re-render this component.
-    let node = DashNavigator.instance().getObjectFromLocation(DashLocations.CurrentProjectElement(props.location.path));
+    const node = DashNavigator.instance().getObjectFromLocation(DashLocations.CurrentProjectElement(location.path));
     if (!node) return <NotFound/>;
-    return <ResolvedView node={node} segments={props.location.path}/>;
+    return <ResolvedView node={node} segments={location.path}/>;
 }
 
 function ResolvedView({node, segments}: { node: TreeNode; segments: string[] }) {

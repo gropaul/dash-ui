@@ -31,55 +31,60 @@ import {useProjectsState, useRoutedProject} from "@/state/projects.state";
 const MAX_VISIBLE = 4;
 
 /**
- * The path to the currently-routed node, rendered as a shadcn Breadcrumb. Handles both
- * top-level views:
- *  - `/projects/<slug>/...` — URL-derived from the editor tree via `crumbsForSegments`.
+ * The path to the currently-routed node, rendered as a shadcn Breadcrumb. Handles the
+ * project sections:
+ *  - `/projects/<id>/workspace/...` — URL-derived from the editor tree via `crumbsForSegments`.
  *    Dashboards/canvases expose their relations as virtual children (see routable-tree),
  *    so a relation opened from one shows as `…/Dashboard/Relation` — an alias, flagged
  *    with a trailing link to its real location. Reactive to renames via `editorElements`.
- *  - `/data/...` — the catalog; a literal `Data / db / schema / table [/ column]` trail
- *    built straight from the URL segments (see `dataTrail`).
+ *  - `/projects/<id>/data/...` — the catalog; a literal `Catalog / db / schema / table
+ *    [/ column]` trail built straight from the URL segments (see `dataTrail`).
  */
-/** When false, the workspace root crumb is omitted (the ProjectSwitcher serves as the root). */
-export function WorkspacePathBreadcrumb({showWorkspaceRoot = true}: {showWorkspaceRoot?: boolean} = {}) {
+/** There is no project-name root crumb: the ProjectSwitcher next to this serves as the root. */
+export function WorkspacePathBreadcrumb() {
     const location = useDashLocation();
     const editorElements = useRelationsState((s) => s.editorElements);
     const project = useProjectsState((s) => s.getCurrentProject());
-    const {isUnknownSlug} = useRoutedProject();
+    const {isUnknown} = useRoutedProject();
     const nav = DashNavigator.instance();
 
-    // A bogus /projects/<slug> URL: don't resolve path segments against the (mismatched) loaded
+    // A bogus /project/<id> URL: don't resolve path segments against the (mismatched) loaded
     // project's tree — that would show crumbs for a project the URL isn't actually pointing at.
-    if (isUnknownSlug) return null;
+    if (isUnknown) return null;
 
     let trail: BreadCrumb[];
-    if (location.basePath === "data") {
-        // Data is project-independent, so it keeps its own "Data" root regardless of showWorkspaceRoot.
-        trail = dataTrail(location.segments);
-    } else if (location.basePath === "object") {
-        // Augmented tree (getState is fine — re-render is driven by editorElements + location).
-        const st = useRelationsState.getState();
-        const tree = buildRoutableTree(editorElements, st.relations, st.dashboards, st.canvas);
-        const toUrl = (segments: string[]) => nav.getUrlFromLocation(DashLocations.CurrentProjectElement(segments));
-        const crumbs = crumbsForSegments(tree, location.path).map((c): BreadCrumb => ({
-            id: c.id, label: c.label, to: toUrl(c.segments), type: c.type,
-        }));
-        const projectRoot: BreadCrumb = {id: "__root__", label: project.name, to: toUrl([]), type: "folder"};
-        trail = showWorkspaceRoot ? [projectRoot, ...crumbs] : crumbs;
+    if (location.basePath === "project" && project) {
+        const toWorkspace = (segments: string[]) => nav.getUrlFromLocation(DashLocations.CurrentProjectElement(segments));
+        if (location.section === "sources") {
+            trail = [{
+                id: "__sources__", label: "Data sources",
+                to: nav.getUrlFromLocation(DashLocations.CurrentProjectSources()), type: "sources",
+            }];
+        } else if (location.section === "data") {
+            trail = dataTrail(location.segments);
+        } else {
+            // Augmented tree (getState is fine — re-render is driven by editorElements + location).
+            const st = useRelationsState.getState();
+            const tree = buildRoutableTree(editorElements, st.relations, st.dashboards, st.canvas);
+            // At the workspace root this is empty — the switcher already names the project.
+            trail = crumbsForSegments(tree, location.path).map((c): BreadCrumb => ({
+                id: c.id, label: c.label, to: toWorkspace(c.segments), type: c.type,
+            }));
+        }
     } else {
         // Project list: the switcher is enough; nothing to show here.
         trail = [];
     }
 
     // With the root hidden, a leading separator visually joins the switcher to the first crumb.
-    const leadingSeparator = !showWorkspaceRoot && trail.length > 0;
+    const leadingSeparator = trail.length > 0;
 
     // Only a leaf under a dashboard/canvas is an alias (relations have no children). Resolve the
     // relation's canonical location in the raw tree: both its URL and a human-readable path for
     // the tooltip.
     const last = trail[trail.length - 1];
     const prev = trail[trail.length - 2];
-    const alias = resolveAlias(editorElements, project.name, last, prev);
+    const alias = resolveAlias(editorElements, project?.name ?? 'Loading ...', last, prev);
 
     return (
         <Breadcrumb className="min-w-0">
@@ -122,18 +127,18 @@ function resolveAlias(editorElements: TreeNode[], projectName: string, last: Bre
 }
 
 /**
- * The `Data / db / schema / table [/ column]` trail for a `/data/...` route. Unlike the
- * workspace tree, these are literal URL segments, and every prefix is a real, linkable
- * location: a database/schema prefix filters the catalog list, a table/column prefix opens
- * the detail (see catalog-model routing). So every crumb carries a `to`.
+ * The `Catalog / db / schema / table [/ column]` trail for a `/projects/<id>/data/...` route.
+ * Unlike the workspace tree, these are literal URL segments, and every prefix is a real,
+ * linkable location: a database/schema prefix filters the catalog list, a table/column prefix
+ * opens the detail (see catalog-model routing). So every crumb carries a `to`.
  */
 function dataTrail(segments: string[]): BreadCrumb[] {
     const nav = DashNavigator.instance();
-    const root: BreadCrumb = {id: "__data_root__", label: "Data", to: nav.getUrlFromLocation(DashLocations.DataRoot()), type: "folder"};
+    const root: BreadCrumb = {id: "__data_root__", label: "Catalog", to: nav.getUrlFromLocation(DashLocations.CurrentProjectData()), type: "folder"};
     const crumbs = segments.map((seg, i): BreadCrumb => ({
         id: `data:${i}:${seg}`,
         label: seg,
-        to: nav.getUrlFromLocation(DashLocations.DataElement(segments.slice(0, i + 1))),
+        to: nav.getUrlFromLocation(DashLocations.CurrentProjectData(segments.slice(0, i + 1))),
         type: "data",
     }));
     return [root, ...crumbs];

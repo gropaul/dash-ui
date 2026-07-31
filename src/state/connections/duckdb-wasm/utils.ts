@@ -9,6 +9,10 @@ import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-pr
 /** Get (optionally creating) a handle to an OPFS file in the root directory. */
 export async function getOpfsFileHandle(fileName: string, create: boolean): Promise<FileSystemFileHandle> {
     const root = await navigator.storage.getDirectory();
+    // remove the opfs prefix if it exists
+    if (fileName.startsWith('opfs://')) {
+        fileName = fileName.substring(7);
+    }
     return root.getFileHandle(fileName, {create});
 }
 

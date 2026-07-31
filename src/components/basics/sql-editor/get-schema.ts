@@ -1,5 +1,5 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DASH_CATALOG} from "@/platform/global-data";
+import {DASH_CATALOG_STATE} from "@/platform/global-data";
 import {DASH_REFS_SCHEMA} from "@/platform/global-data";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {getMacroName} from "@/state/relations/sql/table-macros";
@@ -15,7 +15,7 @@ export async function getDatabaseFunctions(): Promise<DatabaseFunction[]> {
             `SELECT DISTINCT function_name, function_type
                     FROM duckdb_functions()
                     -- filter out dash table macros (they live in the refs schema)
-                    WHERE NOT (function_type = 'table_macro' AND database_name = '${DASH_CATALOG}' AND schema_name = '${DASH_REFS_SCHEMA}')
+                    WHERE NOT (function_type = 'table_macro' AND database_name = '${DASH_CATALOG_STATE}' AND schema_name = '${DASH_REFS_SCHEMA}')
                     ORDER BY ALL`
         );
         return result.rows.map(row => ({name: row[0] as string, type: row[1] as string}));
@@ -112,7 +112,7 @@ export async function getDatabaseStructure(): Promise<Database[]> {
              JOIN duckdb_databases() d USING (database_oid)
              LEFT JOIN duckdb_tables() t USING (table_oid)
              WHERE c.internal = false
-               AND d.database_name != '${DASH_CATALOG}'
+               AND d.database_name != '${DASH_CATALOG_STATE}'
              ORDER BY d.database_name, c.schema_name, c.table_name, c.column_index`
         );
 

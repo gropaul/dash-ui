@@ -11,8 +11,12 @@ export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'
 export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-storage.com/videos/canvas'
 
-export const DASH_CATALOG = 'dash' // catalog alias for the per-project state database (cache + relationState)
-export const DASH_DATA_CATALOG = 'data' // catalog alias for the per-project data database (user tables + macros)
+export const DASH_CATALOG_STATE = 'dash' // catalog alias for the per-project state database (cache + relationState)
+export const DASH_CATALOG_DATA = 'data' // catalog alias for the per-project data database (user tables + macros)
+export const DASH_CATALOG_PROJECTS = 'projects' // catalog alias for the GLOBAL (per-connection) meta database: the projects registry
+
+export const DASH_PROJECTS_DATABASE_NAME = 'projects.duckdb'
+export const DASH_PROJECTS_TABLE_NAME = 'projects'
 
 // Id of the always-present seeded project (WASM has no folder to derive a name from). Kept here so
 // the storage seam can special-case it without importing the projects state (avoids an import cycle).
@@ -68,12 +72,12 @@ export const N_RELATIONS_DATA_TO_LOAD = 30;
 
 export const DEFAULT_RELATION_VIEW_PATH =[]
 
-export const DASH_CACHE_TABLE_PREFIX = 'dash_cache_';
+export const DASH_CACHE_TABLE_PREFIX = 'dash-cache-';
 
 export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
     tableName: 'relationState',
     schemaName: 'main',
-    databaseName: DASH_CATALOG,
+    databaseName: DASH_CATALOG_STATE,
 }
 
 export const ERROR_MESSAGE_QUERY_ABORTED = 'Query aborted by user';

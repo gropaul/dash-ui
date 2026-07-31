@@ -32,9 +32,12 @@ export interface StateStorageInfoLoaded {
     destination: StorageDestination;
 }
 
-export function DefaultStateStorageInfo(): StateStorageInfo {
+export function DefaultLoadedStorageInfo(): StateStorageInfoLoaded {
     return {
-        state: 'uninitialized',
+        state: 'loaded',
+        tableStatus: 'found',
+        databaseStatus: 'permanent',
+        databaseReadonly: false,
         destination: DEFAULT_STATE_STORAGE_DESTINATION
     };
 }
@@ -53,14 +56,13 @@ export interface DatabaseConnection {
 
     type: DatabaseConnectionType;
     connectionStatus: ConnectionStatus;
-    storageInfo: StateStorageInfo;
 
     initialise: () => Promise<ConnectionStatus>;
     checkConnectionState: () => Promise<ConnectionStatus>;
 
     updateConfig: (config: Partial<DataConnectionConfig>) => void;
 
-    executeQuery: (query: string, readOnly: boolean ) => Promise<RelationData>;
+    executeQuery: (query: string, readOnly: boolean, formatResultToJson?: boolean) => Promise<RelationData>;
     // returns true if the query was successfully aborted, false otherwise (e.g. if there was no query to abort)
     abortQuery: () => Promise<boolean>;
 
