@@ -1,5 +1,6 @@
-# Builds the Electron desktop app (macOS arm64 DMG) and uploads it as a workflow artifact
-name: Electron - macOS Build
+# Builds the Electron desktop app for macOS (arm64), Windows (x64) and Linux (x64)
+# and uploads each as a downloadable workflow artifact.
+name: Electron Build
 
 on:
   # Runs on pushes targeting the default branch
@@ -9,11 +10,42 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Cancel superseded runs on the same ref so rapid pushes don't pile up
+concurrency:
+  group: electron-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-mac:
-    # macos-latest runners are Apple Silicon, matching the arm64 target in electron-builder.yml
-    runs-on: macos-latest
-    timeout-minutes: 30
+  build:
+    name: ${{ matrix.artifact_name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      # Don't let one platform's failure cancel the others
+      fail-fast: false
+      matrix:
+        include:
+          # macos-latest runners are Apple Silicon, matching the arm64 target in
+          # electron-builder.yml (runs natively on M-series, incl. M4).
+          - os: macos-latest
+            eb_flag: "--mac"
+            artifact_name: Dash-macOS-arm64
+            artifact_path: dist-electron/*.dmg
+            electron_cache: ~/Library/Caches/electron
+            builder_cache: ~/Library/Caches/electron-builder
+          - os: windows-latest
+            eb_flag: "--win"
+            artifact_name: Dash-Windows-x64
+            artifact_path: dist-electron/*.exe
+            electron_cache: ~\AppData\Local\electron\Cache
+            builder_cache: ~\AppData\Local\electron-builder\Cache
+          - os: ubuntu-latest
+            eb_flag: "--linux"
+            artifact_name: Dash-Linux-x64
+            artifact_path: dist-electron/*.AppImage
+            electron_cache: ~/.cache/electron
+            builder_cache: ~/.cache/electron-builder
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,24 +62,36 @@ jobs:
           node-version: "22"
           cache: pnpm
 
-      - name: Cache Electron binaries
+      - name: Cache Electron / electron-builder downloads
         uses: actions/cache@v4
         with:
-          path: ~/Library/Caches/electron
+          path: |
+            ${{ matrix.electron_cache }}
+            ${{ matrix.builder_cache }}
           key: ${{ runner.os }}-electron-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
 
       - name: Install dependencies
+        # .npmrc sets node-linker=hoisted, giving a flat node_modules so electron-builder
+        # can collect the native @duckdb/node-bindings chain (see electron-builder.yml).
         run: pnpm install
 
-      - name: Build app and package DMG
-        run: pnpm electron:build
+      - name: Build renderer (Next static export)
+        run: pnpm build
+
+      - name: Package Electron app
+        # No platform flag on the script itself; pass it per matrix entry. --publish never
+        # keeps this to artifacts only (no GitHub Release upload).
+        run: pnpm exec electron-builder ${{ matrix.eb_flag }} --publish never
         env:
           # No signing certificate on CI; don't let electron-builder look for one
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
-      - name: Upload DMG
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Dash-macOS-arm64
-          path: dist-electron/*.dmg
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_path }}
+          if-no-files-found: error
           retention-days: 30

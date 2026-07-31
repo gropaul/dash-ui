@@ -7,8 +7,10 @@ directories:
 # runtime - exclude them all. The one exception is the native DuckDB (neo) backend,
 # which the Electron main process requires from electron/duckdb.cjs. Re-include only
 # its resolution chain:
-#   @duckdb/node-api -> @duckdb/node-bindings -> @duckdb/node-bindings-darwin-arm64
-# (@duckdb/node-bindings also requires detect-libc).
+#   @duckdb/node-api -> @duckdb/node-bindings -> @duckdb/node-bindings-<platform>
+# (@duckdb/node-bindings also requires detect-libc). The node-bindings-* glob is a
+# wildcard so each CI runner packs whichever prebuilt binding pnpm installed for its
+# own os/arch (darwin-arm64, win32-x64, linux-x64, ...).
 # This relies on the flat node_modules layout enforced by .npmrc (node-linker=hoisted);
 # under pnpm's default .pnpm store these transitive packages are not collectable here.
 files:
@@ -16,7 +18,7 @@ files:
   - "!node_modules/**/*"
   - "node_modules/@duckdb/node-api/**/*"
   - "node_modules/@duckdb/node-bindings/**/*"
-  - "node_modules/@duckdb/node-bindings-darwin-arm64/**/*"
+  - "node_modules/@duckdb/node-bindings-*/**/*"
   - "node_modules/detect-libc/**/*"
 # Keep the export outside the asar so the app:// protocol can serve it from disk.
 extraResources:
@@ -36,5 +38,16 @@ mac:
   target:
     - target: dmg
       arch: [arm64]
-    - target: dir
-      arch: [arm64]
+
+win:
+  icon: electron/icon.png
+  target:
+    - target: nsis
+      arch: [x64]
+
+linux:
+  icon: electron/icon.png
+  category: Utility
+  target:
+    - target: AppImage
+      arch: [x64]
