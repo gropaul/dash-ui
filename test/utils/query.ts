@@ -12,34 +12,46 @@ import { expect, type Page } from '@playwright/test';
  * clobbers the query. Relies on the dev-only `__relationsStore` hook exposed in
  * `src/state/relations.state.ts`.
  */
-export async function waitForBaseQueryCommitted(page: Page, sql: string): Promise<void> {
+export async function waitForBaseQueryCommitted(page: Page, sql: string, timeout = 10_000): Promise<void> {
   await page.waitForFunction((expected) => {
     const store = (window as unknown as { __relationsStore?: any }).__relationsStore;
     if (!store) return false;
     const relations = Object.values(store.getState().relations ?? {});
     return relations.some((r: any) => r?.query?.baseQuery === expected);
-  }, sql);
+  }, sql, { timeout });
 }
 
 /**
- * Replace the SQL editor contents and wait for the change to commit. Monaco's
- * textarea is not fillable and its select-all is unreliable under automation, so
- * we set the model value directly (which fires Monaco's change event, exactly as
- * typing would), then wait for the debounced commit to reach the store.
+ * Replace the SQL editor contents and wait for the change to commit to the
+ * store. Monaco's textarea is not fillable and its select-all is unreliable
+ * under automation, so we set the model value directly (which fires Monaco's
+ * change event, exactly as typing would).
+ *
+ * The edit is applied inside a retry loop: `@monaco-editor/react` wires its
+ * onChange subscription in an effect just after the editor mounts, so on a slow
+ * (CI) machine a one-shot setValue can land in that gap and be dropped, leaving
+ * the query uncommitted. We first wait for the editor *instance* to exist (proof
+ * onMount ran), then re-apply until the commit actually reaches the store - each
+ * attempt clears the model first so a freshly-attached subscription sees a real
+ * change even when the target text is unchanged.
  */
 export async function setSql(page: Page, sql: string): Promise<void> {
-  await page.locator('.monaco-editor').first().waitFor({ state: 'visible' });
   await page.waitForFunction(() => {
     const m = (window as unknown as { monaco?: any }).monaco;
-    return !!m?.editor?.getModels?.().length;
+    return !!m?.editor?.getEditors?.().some((e: any) => e.getModel()?.uri.toString().includes('sql-editor'));
   });
-  await page.evaluate((value) => {
-    const monaco = (window as unknown as { monaco: any }).monaco;
-    const models = monaco.editor.getModels();
-    const model = models.find((m: any) => m.uri.toString().includes('sql-editor')) ?? models[0];
-    model.setValue(value);
-  }, sql);
-  await waitForBaseQueryCommitted(page, sql);
+  await expect(async () => {
+    await page.evaluate((value) => {
+      const monaco = (window as unknown as { monaco: any }).monaco;
+      const editor = monaco.editor
+        .getEditors()
+        .find((e: any) => e.getModel()?.uri.toString().includes('sql-editor'));
+      const model = editor.getModel();
+      if (model.getValue() === value) model.setValue('');
+      model.setValue(value);
+    }, sql);
+    await waitForBaseQueryCommitted(page, sql, 2_000);
+  }).toPass({ timeout: 20_000 });
 }
 
 /**

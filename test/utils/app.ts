@@ -11,7 +11,8 @@ import { expect, type Page } from '@playwright/test';
 /** Wait until the app shell is ready: DuckDB connected and init complete. */
 export async function expectAppReady(page: Page): Promise<void> {
   // The top-bar Settings button only mounts once init reaches 'complete'.
-  await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeVisible({ timeout: 30_000 });
+  // Cold DuckDB WASM init is slower on CI, so allow generous time.
+  await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeVisible({ timeout: 45_000 });
 }
 
 /**
