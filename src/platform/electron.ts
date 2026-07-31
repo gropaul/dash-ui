@@ -1,9 +1,16 @@
-// Electron environment detection.
-//
-// The Electron preload (electron/preload.cjs) exposes `window.dashNative`; the browser build
-// never does. That presence is our single source of truth for "are we in the desktop app".
-
-/** True when running inside the Dash Electron desktop app (the native DuckDB bridge is present). */
+/**
+ * Runtime detection of the Electron desktop shell (see `electron/main.js`).
+ *
+ * The preload exposes `window.dashNative` (the native DuckDB bridge), but that only appears once
+ * the bridge is ready, so for shell detection we instead sniff two signals that hold immediately in
+ * both dev (`ELECTRON_START_URL=http://localhost:3000`) and packaged (`app://bundle/`) runs:
+ * the "Electron" token Chromium adds to the user-agent, and our custom `app:` protocol.
+ *
+ * Callers that render conditionally on this must guard against hydration mismatch — the value
+ * differs between the static prerender (always false) and the client. See `useIsElectron`.
+ */
 export function isElectron(): boolean {
-    return typeof window !== "undefined" && window.dashNative !== undefined;
+    if (typeof navigator !== "undefined" && /electron/i.test(navigator.userAgent)) return true;
+    if (typeof window !== "undefined" && window.location.protocol === "app:") return true;
+    return false;
 }

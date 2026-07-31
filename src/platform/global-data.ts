@@ -5,7 +5,7 @@ import type {StorageDestination} from "@/model/database-connection";
 export const DASH_STORAGE_VERSION = 1 // increment this if there are breaking changes to the storage format
 export const LOADING_TIMER_OFFSET_MS = 150; // how long the query needs to run before showing the loading spinner [ms]
 
-export const STORAGE_THROTTLE_TIME_MS = 2_000; // how long to wait before saving the state again [ms]
+export const STORAGE_THROTTLE_TIME_MS = 1_000; // how long to wait before saving the state again [ms]
 
 export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'

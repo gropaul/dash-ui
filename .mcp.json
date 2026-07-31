@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "playwright-test": {
+      "command": "npx",
+      "args": [
+        "playwright",
+        "run-test-mcp-server"
+      ]
+    },
     "webstorm": {
       "url": "http://127.0.0.1:64542/stream",
       "type": "http"

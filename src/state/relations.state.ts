@@ -661,3 +661,11 @@ export const useRelationsState = createWithEqualityFn(
         }
     )
 );
+
+// E2E-only: expose the store so Playwright tests can await state propagation
+// (e.g. that an edited query has committed) instead of relying on timing. Gated
+// on NEXT_PUBLIC_E2E, which the Playwright webServer sets - so it is absent from
+// normal `pnpm dev` and from production builds (the block is dead-code stripped).
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_E2E === '1') {
+    (window as unknown as { __relationsStore?: typeof useRelationsState }).__relationsStore = useRelationsState;
+}
