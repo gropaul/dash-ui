@@ -3,16 +3,31 @@ productName: Dash
 directories:
   output: dist-electron
 
-# The renderer is the static Next export; no node_modules are needed at runtime.
+# The renderer is the static Next export, so its node_modules are never needed at
+# runtime - exclude them all. The one exception is the native DuckDB (neo) backend,
+# which the Electron main process requires from electron/duckdb.cjs. Re-include only
+# its resolution chain:
+#   @duckdb/node-api -> @duckdb/node-bindings -> @duckdb/node-bindings-darwin-arm64
+# (@duckdb/node-bindings also requires detect-libc).
+# This relies on the flat node_modules layout enforced by .npmrc (node-linker=hoisted);
+# under pnpm's default .pnpm store these transitive packages are not collectable here.
 files:
   - electron/**/*
   - "!node_modules/**/*"
+  - "node_modules/@duckdb/node-api/**/*"
+  - "node_modules/@duckdb/node-bindings/**/*"
+  - "node_modules/@duckdb/node-bindings-darwin-arm64/**/*"
+  - "node_modules/detect-libc/**/*"
 # Keep the export outside the asar so the app:// protocol can serve it from disk.
 extraResources:
   - from: out
     to: app-bundle
 
 npmRebuild: false
+# Native addons (the DuckDB *.node binary) cannot be dlopen'd from inside an asar
+# archive, so unpack them to app.asar.unpacked.
+asarUnpack:
+  - "**/*.node"
 
 mac:
   category: public.app-category.productivity

@@ -9,13 +9,14 @@ import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {AttachDatabaseDialog, DialogResult} from "@/components/connections/attach-database-dialog";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DASH_CATALOG_STATE} from "@/platform/global-data";
+import {DASH_INTERNAL_CATALOGS} from "@/platform/global-data";
 import {getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {useProjectsState} from "@/state/projects.state";
 import {initProjectSources} from "@/state/sources/replay-sources";
 import {useSourcesHealthState} from "@/state/sources/sources-health.state";
 import {aliasFromPath, appendStatement, buildAttachStatement, parseAttach} from "@/state/sources/sources-manifest";
 import {cn} from "@/lib/utils";
+import {isDebugMode} from "@/components/settings/about-content";
 
 type ViewMode = 'manage' | 'sql';
 
@@ -28,7 +29,7 @@ interface SourceRow {
 }
 
 // System catalogs that are never user data sources.
-const SYSTEM_DATABASES = ['memory', DASH_CATALOG_STATE, 'system', 'temp'];
+const SYSTEM_DATABASES = ['memory', 'system', 'temp'];
 
 /**
  * The per-project Data sources tab (`/project/<id>/sources`). Manages the project's `sources.sql`
@@ -50,11 +51,15 @@ export function SourcesView() {
     const health = useSourcesHealthState((s) => s.results);
     const isMemory = getStorageMode() === 'memory';
 
+    const isDebug = isDebugMode();
+
+    const hidden_databases = SYSTEM_DATABASES.concat(isDebug ? [] : DASH_INTERNAL_CATALOGS);
+
     const fetchAttached = useCallback(async () => {
         const res = await ConnectionsService.getInstance().executeQuery(
             `SELECT database_name, path, readonly
              FROM duckdb_databases()
-             WHERE database_name NOT IN (${SYSTEM_DATABASES.map((d) => `'${d}'`).join(', ')})
+             WHERE database_name NOT IN (${hidden_databases.map((d) => `'${d}'`).join(', ')})
              ORDER BY database_name`,
             true,
         );
@@ -143,18 +148,20 @@ export function SourcesView() {
     return (
         <ViewPadding active addPaddingBottom className="h-full flex flex-col" classNameParent={'bg-accent'}>
             <ViewHeader
-                title="Data sources"
+                title="Data Connections"
                 subtitle={
                     <span className="text-muted-foreground">
                         {rows.length} declared
-                        {needsAttention > 0 && <> · <span className="text-destructive">{needsAttention} need attention</span></>}
+                        {needsAttention > 0 && <> · <span
+                            className="text-destructive">{needsAttention} need attention</span></>}
                     </span>
                 }
                 actionButtons={
                     <div className="flex items-center gap-2">
                         <ModeToggle mode={mode} onChange={setMode}/>
                         <TooltipWrapper message="Re-attach all sources">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" disabled={busy} onClick={reAttachAll}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" disabled={busy}
+                                    onClick={reAttachAll}>
                                 <RefreshCw className={cn("h-4 w-4", busy && "animate-spin")}/>
                             </Button>
                         </TooltipWrapper>
@@ -175,8 +182,9 @@ export function SourcesView() {
                 {mode === 'manage' ? (
                     <div className="flex-1 min-h-0 overflow-y-auto">
                         {rows.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
-                                <div className="text-sm">No data sources yet.</div>
+                            <div
+                                className="h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                                <div className="text-sm">No connections yet.</div>
                                 <div className="text-xs">Attach a database, or add reads in the SQL view.</div>
                             </div>
                         ) : (
@@ -193,7 +201,7 @@ export function SourcesView() {
     );
 }
 
-function ModeToggle({mode, onChange}: {mode: ViewMode; onChange: (m: ViewMode) => void}) {
+function ModeToggle({mode, onChange}: { mode: ViewMode; onChange: (m: ViewMode) => void }) {
     return (
         <div className="inline-flex rounded-md border overflow-hidden">
             <Button
@@ -203,7 +211,8 @@ function ModeToggle({mode, onChange}: {mode: ViewMode; onChange: (m: ViewMode) =
                 <List className="mr-1 h-4 w-4"/> Manage
             </Button>
             <Button
-                variant={mode === 'sql' ? 'secondary' : 'ghost'} size="sm" className="h-8 rounded-none border-0 border-l"
+                variant={mode === 'sql' ? 'secondary' : 'ghost'} size="sm"
+                className="h-8 rounded-none border-0 border-l"
                 onClick={() => onChange('sql')}
             >
                 <Code2 className="mr-1 h-4 w-4"/> sources.sql
@@ -212,7 +221,7 @@ function ModeToggle({mode, onChange}: {mode: ViewMode; onChange: (m: ViewMode) =
     );
 }
 
-function SourceListItem({row}: {row: SourceRow}) {
+function SourceListItem({row}: { row: SourceRow }) {
     const dot = row.status === 'attached'
         ? <span className="h-2 w-2 rounded-full bg-green-500 shrink-0"/>
         : <span className="h-2 w-2 rounded-full bg-red-500 shrink-0"/>;
@@ -222,7 +231,8 @@ function SourceListItem({row}: {row: SourceRow}) {
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                     <span className="font-mono text-sm truncate">{row.alias}</span>
-                    {row.readonly && <span className="text-[10px] uppercase tracking-wide text-muted-foreground">read-only</span>}
+                    {row.readonly &&
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">read-only</span>}
                 </div>
                 <div className="text-xs text-muted-foreground font-mono truncate">
                     {row.status === 'error' ? (row.path ?? 'could not attach') : (row.path ?? '')}

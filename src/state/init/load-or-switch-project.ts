@@ -10,7 +10,13 @@ import {useInitState} from "@/state/init.state";
 import {DatabaseConnection} from "@/model/database-connection";
 import {initProjectSources} from "@/state/sources/replay-sources";
 import {getProjectDashStateFileName, getProjectDataFileName, useProjectsState} from "@/state/projects.state";
-import {DASH_CACHE_SCHEMA, DASH_CATALOG_DATA, DASH_CATALOG_STATE, DASH_REFS_SCHEMA} from "@/platform/global-data";
+import {
+    DASH_CACHE_SCHEMA,
+    DASH_CATALOG_DATA,
+    DASH_CATALOG_STATE,
+    DASH_CATALOG_TEMP,
+    DASH_REFS_SCHEMA
+} from "@/platform/global-data";
 import {reregisterMacrosFromRelationState} from "@/state/relations/sql/table-macros";
 
 // A persist storage that drops every write. We swap the relation store onto this while clearing the
@@ -57,8 +63,8 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     useProjectsState.getState().setCurrentProject(projectId);
 
     // create a temporary database in memory that we can use for detaching the others
-    await connection.executeQuery(`ATTACH IF NOT EXISTS ':memory:' as dash_temp;`, false, false);
-    await connection.executeQuery(`USE dash_temp;`, false, false);
+    await connection.executeQuery(`ATTACH IF NOT EXISTS ':memory:' as ${DASH_CATALOG_TEMP};`, false, false);
+    await connection.executeQuery(`USE ${DASH_CATALOG_TEMP};`, false, false);
 
     // now we can safely detach
     await connection.executeQuery(`DETACH DATABASE IF EXISTS ${DASH_CATALOG_DATA};`, false, false);
