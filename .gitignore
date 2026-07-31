@@ -28,3 +28,5 @@ yarn-error.log*
 .idea
 /dev/
 /playwright-report/
+/test-results/
+/.playwright-mcp/
