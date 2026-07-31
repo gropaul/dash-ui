@@ -55,8 +55,12 @@ function closeOldProject(): void {
 async function loadProject(projectId: string, connection: DatabaseConnection): Promise<void> {
 
     useProjectsState.getState().setCurrentProject(projectId);
-    await connection.executeQuery(`USE memory;`, false, false);
 
+    // create a temporary database in memory that we can use for detaching the others
+    await connection.executeQuery(`ATTACH IF NOT EXISTS ':memory:' as dash_temp;`, false, false);
+    await connection.executeQuery(`USE dash_temp;`, false, false);
+
+    // now we can safely detach
     await connection.executeQuery(`DETACH DATABASE IF EXISTS ${DASH_CATALOG_DATA};`, false, false);
     await connection.executeQuery(`DETACH DATABASE IF EXISTS ${DASH_CATALOG_STATE};`, false, false);
 
@@ -64,19 +68,22 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     const data_path = base_path + getProjectDataFileName(projectId);
     const state_path = base_path + getProjectDashStateFileName(projectId);
 
+    console.log(`Loading project ${projectId} from ${data_path} and ${state_path}`);
+
     if (connection.type === 'duckdb-wasm') {
         const wasm = DuckdbWasmProvider.getInstance();
-
         await wasm.attachDatabase(data_path, DASH_CATALOG_DATA);
         await wasm.attachDatabase(state_path, DASH_CATALOG_STATE);
     } else {
-        await connection.executeQuery(`ATTACH DATABASE '${data_path}' AS ${DASH_CATALOG_DATA};`, false, false);
-        await connection.executeQuery(`ATTACH DATABASE '${state_path}' AS ${DASH_CATALOG_STATE};`, false, false);
+        await connection.executeQuery(`ATTACH IF NOT EXISTS '${data_path}' AS ${DASH_CATALOG_DATA};`, false, false);
+        await connection.executeQuery(`ATTACH IF NOT EXISTS '${state_path}' AS ${DASH_CATALOG_STATE};`, false, false);
     }
 
     await connection.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG_STATE}.${DASH_CACHE_SCHEMA};`, false);
     await connection.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG_STATE}.${DASH_REFS_SCHEMA};`, false);
 
+    // use the data connection as the default table so we can store data into it
+    await connection.executeQuery(`USE ${DASH_CATALOG_DATA};`, false, false);
 
     // Replay the project's data sources before rehydrating relations that may reference them.
     useInitState.getState().setStep('loading-project-connections');

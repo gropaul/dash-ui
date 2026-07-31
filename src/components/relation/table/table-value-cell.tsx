@@ -1,13 +1,19 @@
-import React, {useMemo} from "react";
+import React, {useMemo, useState} from "react";
+import {Expand} from "lucide-react";
 import {Column} from "@/model/data-source-connection";
 import {CopyButton} from "@/components/basics/input/copy-button";
 import {RecursiveJsonViewer} from "@/components/ui/json-viewer";
+import {MyDialog} from "@/components/ui/my-dialog";
+import {COLUMN_VALUE_EXPAND_THRESHOLD} from "@/platform/global-data";
 import {DecoratedValue} from "@/components/relation/common/decorated-value";
 import {
     ColumnDecoration,
     hasNonDefaultDecoration,
     isDecoratableType,
 } from "@/model/relation-view-state/decoration";
+
+const isStructured = (type: Column["type"]) =>
+    type === "List" || type === "Map" || type === "Struct";
 
 interface RowElementViewProps {
     element: any;
@@ -39,6 +45,8 @@ export const TableValueCell = React.memo(function TableValueCell({column, elemen
     const decorated = decoration
         && hasNonDefaultDecoration(decoration)
         && isDecoratableType(column.type);
+
+    const canExpand = stringElement.length > COLUMN_VALUE_EXPAND_THRESHOLD;
 
     return <td
         className="relative px-4 py-1 group"
@@ -81,13 +89,66 @@ export const TableValueCell = React.memo(function TableValueCell({column, elemen
             </div>
         )}
 
+        {/* fade the cell content behind the hover buttons so they stay legible over any value */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
+
+        {canExpand && (
+            <ExpandButton
+                className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+                column={column}
+                element={element}
+                stringElement={stringElement}
+            />
+        )}
+
         <CopyButton
-            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className={`absolute ${canExpand ? "right-7" : "right-1"} top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity`}
             textToCopy={stringElement}
         />
     </td>
 
 });
+
+
+interface ExpandButtonProps {
+    column: Column;
+    element: any;
+    stringElement: string;
+    className?: string;
+}
+
+function ExpandButton({column, element, stringElement, className}: ExpandButtonProps) {
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(true);
+    };
+
+    return (
+        <>
+            <button onClick={handleOpen} className={`cursor-pointer ${className ?? ""}`} title="Expand value">
+                <Expand className="hover:text-primary text-muted-foreground" size={14}/>
+            </button>
+            <MyDialog open={open} onOpenChange={setOpen} className="max-w-2xl rounded-2xl">
+                <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-foreground truncate">{column.name}</span>
+                    <CopyButton textToCopy={stringElement}/>
+                </div>
+                <div className="max-h-[60vh] overflow-auto">
+                    {isStructured(column.type) ? (
+                        <RecursiveJsonViewer json={element}/>
+                    ) : (
+                        <pre className="whitespace-pre-wrap break-words text-sm text-foreground font-mono">
+                            {stringElement}
+                        </pre>
+                    )}
+                </div>
+            </MyDialog>
+        </>
+    );
+}
 
 
 interface ValueElementProps {

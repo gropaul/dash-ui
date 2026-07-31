@@ -33,11 +33,10 @@ let connection = null;
 let initPromise = null;
 
 async function connect() {
-    const dbPath = path.join(app.getPath('userData'), 'dash.duckdb');
-    const instance = await DuckDBInstance.create(dbPath);
+    const instance = await DuckDBInstance.create();
     const con = await instance.connect();
     await con.run(JSON_MACRO_SQL);
-    console.log('[duckdb-native] connected at', dbPath);
+    console.log('[duckdb-native] connected to native DuckDB instance');
     return con;
 }
 

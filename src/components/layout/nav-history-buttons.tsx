@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useState, useSyncExternalStore} from "react";
-import {ArrowLeft, ArrowRight} from "lucide-react";
+import {ChevronLeft, ChevronRight} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {isElectron} from "@/platform/electron";
@@ -57,24 +57,24 @@ export function NavHistoryButtons() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-6"
                     aria-label="Go back"
                     disabled={!canGoBack}
                     onClick={() => window.navigation?.back()}
                 >
-                    <ArrowLeft/>
+                    <ChevronLeft/>
                 </Button>
             </TooltipWrapper>
             <TooltipWrapper message="Forward">
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-6"
                     aria-label="Go forward"
                     disabled={!canGoForward}
                     onClick={() => window.navigation?.forward()}
                 >
-                    <ArrowRight/>
+                    <ChevronRight/>
                 </Button>
             </TooltipWrapper>
         </div>

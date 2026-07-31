@@ -11,8 +11,8 @@ export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'
 export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-storage.com/videos/canvas'
 
-export const DASH_CATALOG_STATE = 'dash' // catalog alias for the per-project state database (cache + relationState)
-export const DASH_CATALOG_DATA = 'data' // catalog alias for the per-project data database (user tables + macros)
+export const DASH_CATALOG_STATE = 'dash_state' // catalog alias for the per-project state database (cache + relationState)
+export const DASH_CATALOG_DATA = 'dash_data' // catalog alias for the per-project data database (user tables + macros)
 export const DASH_CATALOG_PROJECTS = 'projects' // catalog alias for the GLOBAL (per-connection) meta database: the projects registry
 
 export const DASH_PROJECTS_DATABASE_NAME = 'projects.duckdb'
@@ -104,3 +104,6 @@ export const DATABASE_STATE_REFRESH_INTERVAL_MS = 30_000;
 // If the view query takes longer than this threshold, execute the count query separately.
 // For fast queries, the row count from the view query result is used instead.
 export const COUNT_QUERY_THRESHOLD_MS = 2_000;
+
+// Table cell string length above which the hover "expand value" button is shown [chars]
+export const COLUMN_VALUE_EXPAND_THRESHOLD = 25;
