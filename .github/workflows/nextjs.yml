@@ -79,4 +79,6 @@ jobs:
           path: playwright-report/
           retention-days: 30
       - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+        # Use the project's build script (next build --webpack); a bare `next build`
+        # defaults to Turbopack in Next 16 and errors against the webpack config.
+        run: ${{ steps.detect-package-manager.outputs.runner }} build
