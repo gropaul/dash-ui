@@ -1,11 +1,17 @@
 import {DuckDBOverHttp, DuckDBOverHttpConfig} from "@/state/connections/duckdb-over-http";
 import {DuckDBWasm, DuckDBWasmConfig} from "@/state/connections/duckdb-wasm";
+import {DuckDBNative, DuckDBNativeConfig} from "@/state/connections/duckdb-native";
 import {DatabaseConnection} from "@/model/database-connection";
-import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL, DATABASE_CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
+import {
+    DATABASE_CONNECTION_ID_DUCKDB_LOCAL,
+    DATABASE_CONNECTION_ID_DUCKDB_NATIVE,
+    DATABASE_CONNECTION_ID_DUCKDB_WASM
+} from "@/platform/global-data";
 import {MdWasm, MdWasmConnectionConfig} from "@/state/connections/md-wasm";
 
 export type DatabaseConnectionType =
     | "duckdb-over-http"
+    | "duckdb-native"
     | "duckdb-wasm"
     | "duckdb-wasm-motherduck";
 
@@ -13,6 +19,8 @@ export function typeToLabel(type: DatabaseConnectionType): string {
     switch (type) {
         case "duckdb-over-http":
             return "DuckDB Over HTTP";
+        case "duckdb-native":
+            return "DuckDB Native";
         case "duckdb-wasm":
             return "DuckDB WASM";
         case "duckdb-wasm-motherduck":
@@ -22,6 +30,7 @@ export function typeToLabel(type: DatabaseConnectionType): string {
 
 export type DatabaseConfigMap = {
     "duckdb-over-http": DuckDBOverHttpConfig;
+    "duckdb-native": DuckDBNativeConfig;
     "duckdb-wasm": DuckDBWasmConfig;
     "duckdb-wasm-motherduck": MdWasmConnectionConfig;
 };
@@ -44,6 +53,13 @@ export function getDefaultSpec(type: DatabaseConnectionType = "duckdb-wasm"): DB
                     token: "supersecrettoken",
                 } ,
             } as any;
+        case "duckdb-native":
+            return {
+                type: "duckdb-native",
+                config: {
+                    name: "DuckDB Native",
+                },
+            };
         case "duckdb-wasm":
             return {
                 type: "duckdb-wasm",
@@ -66,6 +82,8 @@ export function specToConnection(spec: DBConnectionSpec): DatabaseConnection {
     switch (spec.type) {
         case "duckdb-over-http":
             return new DuckDBOverHttp(spec.config as DuckDBOverHttpConfig, DATABASE_CONNECTION_ID_DUCKDB_LOCAL);
+        case "duckdb-native":
+            return new DuckDBNative(spec.config as DuckDBNativeConfig, DATABASE_CONNECTION_ID_DUCKDB_NATIVE);
         case "duckdb-wasm":
             return new DuckDBWasm(spec.config as DuckDBWasmConfig, DATABASE_CONNECTION_ID_DUCKDB_WASM);
         case "duckdb-wasm-motherduck":
@@ -81,6 +99,8 @@ export function connectionToSpec(connection: DatabaseConnection): DBConnectionSp
     switch (connection.type) {
         case "duckdb-over-http":
             return {type: "duckdb-over-http", config: connection.config as DuckDBOverHttpConfig};
+        case "duckdb-native":
+            return {type: "duckdb-native", config: connection.config as DuckDBNativeConfig};
         case "duckdb-wasm":
             return {type: "duckdb-wasm", config: connection.config as DuckDBWasmConfig};
         case "duckdb-wasm-motherduck":
@@ -93,6 +113,8 @@ export function specToString(spec: DBConnectionSpec, withSecrets = false): strin
     switch (spec.type) {
         case "duckdb-over-http":
             return `Connected to DuckDB via ${config.url} ${withSecrets ? `(${config.useToken ? "Token: " + config.token : "No authentication"})` : ""}`;
+        case "duckdb-native":
+            return `Connected to native DuckDB`
         case "duckdb-wasm":
             return `Connected to DuckDB WASM`
         case "duckdb-wasm-motherduck":

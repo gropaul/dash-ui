@@ -5,6 +5,7 @@ import {validateUrl} from "@/platform/string-validation";
 import {ConnectionStringField} from "@/state/connections/duckdb-over-http/widgets";
 import {DBConnectionSpec, getDefaultSpec, specToConnection, typeToLabel} from "@/state/connections/configs";
 import {DBConnectionType} from "@/components/basics/files/icon-factories";
+import {isElectron} from "@/platform/electron";
 import {Button} from "@/components/ui/button";
 import {AlertTriangle, Check, LoaderCircle, RefreshCcw} from "lucide-react";
 import {deepEqual} from "@/platform/object-utils";
@@ -22,7 +23,27 @@ const DUCKDB_WASM_MOTHERDUCK_DESCRIPTION =
 const DUCKDB_LOCAL_DESCRIPTION =
     "This setup uses a local DuckDB via HTTP, giving full machine power and file access. DuckDB must be running locally.";
 
+const DUCKDB_NATIVE_DESCRIPTION =
+    "This configuration hosts a native DuckDB inside the Dash desktop app, giving full machine power, " +
+    "native extensions, and real file access with no server to start. Only available in the desktop app.";
+
 const FROM_DEFINITIONS: Record<DBConnectionType, FormDefinition> = {
+    "duckdb-native": {
+        fields: [
+            {
+                type: 'description',
+                label: DUCKDB_NATIVE_DESCRIPTION,
+                key: 'description'
+            },
+            {
+                type: 'custom',
+                key: 'connectionCheck',
+                customField: {
+                    render: (data) => ConnectionChecker({formData: data.formData, type: 'duckdb-native'})
+                },
+            },
+        ]
+    },
     "duckdb-wasm": {
         fields: [
             {
@@ -311,7 +332,10 @@ export function ConnectionConfig({spec, onSpecChange, onSpecSave}: ConnectionCon
                 <div className="min-w-full mb-4">
                     <Tabs value={spec.type} onValueChange={(v) => onTypeChange(v as DBConnectionType)}>
                         <TabsList className="w-full">
-                            {Object.keys(FROM_DEFINITIONS).map((type) => (
+                            {Object.keys(FROM_DEFINITIONS)
+                                // Native DuckDB only exists in the desktop app; hide its tab in the browser.
+                                .filter((type) => type !== 'duckdb-native' || isElectron())
+                                .map((type) => (
                                 <TabsTrigger key={type} value={type} className="flex-1">
                                     {typeToLabel(type as DBConnectionType)}
                                 </TabsTrigger>

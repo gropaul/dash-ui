@@ -2,6 +2,8 @@ import React, {useState} from "react";
 import {Dialog, DialogContent, DialogTitle} from "@/components/ui/dialog";
 import {connectionToSpec, DBConnectionSpec, getDefaultSpec} from "@/state/connections/configs";
 import {ConnectionsService} from "@/state/connections/connections-service";
+import {isElectron} from "@/platform/electron";
+import {isDebugMode} from "@/components/settings/about-content";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";
@@ -76,6 +78,10 @@ export function SettingsDialog(props: SettingsViewProps) {
         }
     }
 
+    // In Electron the native connection is forced regardless of URL/history, so the connection
+    // config is irrelevant to normal users — only surface it there when debug mode is on.
+    const showConnectionTab = !isElectron() || isDebugMode();
+
     // Define the tabs - this makes it easy to add new tabs in the future
     const tabs: SettingsTabDefinition[] = [
         {
@@ -84,8 +90,8 @@ export function SettingsDialog(props: SettingsViewProps) {
             icon: <Rocket className="h-4 w-4 mr-1 sm:mr-2"/>,
             content: <GetStartedPage/>
         },
-        {
-            id: 'connection',
+        ...(showConnectionTab ? [{
+            id: 'connection' as const,
             label: 'Connections',
             icon: <Database className="h-4 w-4 mr-1 sm:mr-2"/>,
             content: <ConnectionContent
@@ -93,7 +99,7 @@ export function SettingsDialog(props: SettingsViewProps) {
                 onSpecChange={setCurrentSpec}
                 onSpecSave={props.onSpecSave}
             />
-        },
+        }] : []),
         {
             id: 'language-model',
             label: 'Assistant',
