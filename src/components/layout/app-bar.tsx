@@ -18,6 +18,7 @@ import {useGUIState} from "@/state/gui.state";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {WorkspacePathBreadcrumb} from "@/components/layout/workspace-path-breadcrumb";
+import {NavHistoryButtons} from "@/components/layout/nav-history-buttons";
 import {ProjectSwitcher} from "@/components/projects/project-switcher";
 import {openSearchCommand} from "@/components/workbench/global-command";
 
@@ -35,6 +36,8 @@ export function AppBar() {
             <div className="flex items-center gap-2 min-w-0 flex-1 pl-2">
                 {/* The project switcher is the breadcrumb root, so the crumb drops its own "Workspace" root. */}
                 <ProjectSwitcher/>
+                {/* Electron-only: fills in for the browser back/forward buttons the desktop shell lacks. */}
+                <NavHistoryButtons/>
                 <WorkspacePathBreadcrumb/>
             </div>
 
