@@ -60,8 +60,15 @@ export const test = base.extend<AppFixtures>({
     // electron/duckdb.cjs) and the Chromium profile holding localStorage
     // (--user-data-dir). Without these the run would start on whatever the previous
     // run - or the developer's own desktop app - left behind.
+    //
+    // On Linux the Chromium sandbox has to be turned off. CI runners block unprivileged
+    // user namespaces, so Chromium falls back to the setuid helper - and the Electron
+    // that npm installs ships `chrome-sandbox` without the root-owned 4755 bits it
+    // needs, which aborts the launch ("The SUID sandbox helper binary was found, but is
+    // not configured correctly"). Other platforms keep the sandbox on.
+    const linuxArgs = process.platform === 'linux' ? ['--no-sandbox'] : [];
     const electronApp: ElectronApplication = await electron.launch({
-      args: ['.', `--user-data-dir=${E2E_ELECTRON_PROFILE_DIR}`],
+      args: ['.', `--user-data-dir=${E2E_ELECTRON_PROFILE_DIR}`, ...linuxArgs],
       env: {
         ...process.env,
         ELECTRON_START_URL: E2E_BASE_URL,
