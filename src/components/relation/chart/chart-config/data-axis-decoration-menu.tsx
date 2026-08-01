@@ -29,7 +29,7 @@ export function DataAxisDecorationMenu(props: DecorationMenuProps) {
                 <div
                     className="inline-block bg-white rounded-sm shadow border border-gray-300 cursor-pointer h-4 w-4"
                     style={{
-                        background: decoration.color,
+                        background: decoration.line.stroke.color,
                     }}
                 />
             </DropdownMenuTrigger>

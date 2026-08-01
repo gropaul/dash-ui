@@ -43,7 +43,7 @@ export function SliderSettingsContent(props: RelationViewContentProps) {
     // Bridge: slider stores column by name; ColumnSelector uses AxisConfig with columnId (id === name in schema)
     const currentColumn = numericColumns.find(col => col.name === params.column);
     const axis: AxisConfig | undefined = currentColumn
-        ? {columnId: currentColumn.id, label: currentColumn.name, decoration: getInitialAxisDecoration(0)}
+        ? {columnId: currentColumn.id, decoration: getInitialAxisDecoration(0)}
         : undefined;
 
     async function updateColumn(update: Partial<AxisConfig>) {

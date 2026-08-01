@@ -50,11 +50,11 @@ export function TextConfigView(props: RelationViewContentProps) {
     const subtitleCol = columns.find(col => col.name === params.subtitleColumn)
 
     const titleAxis: AxisConfig | undefined = titleCol
-        ? {columnId: titleCol.id, label: titleCol.name, decoration: getInitialAxisDecoration(0)}
+        ? {columnId: titleCol.id, decoration: getInitialAxisDecoration(0)}
         : undefined
 
     const subtitleAxis: AxisConfig | undefined = subtitleCol
-        ? {columnId: subtitleCol.id, label: subtitleCol.name, decoration: getInitialAxisDecoration(0)}
+        ? {columnId: subtitleCol.id, decoration: getInitialAxisDecoration(0)}
         : undefined
 
     async function updateTitleColumn(update: Partial<AxisConfig>) {

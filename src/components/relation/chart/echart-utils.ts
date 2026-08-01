@@ -329,7 +329,6 @@ function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], dat
             const config: AxisConfig = {
                 columnId: c.id,
                 decoration: decoration,
-                label: c.name
             }
             return getEChartSeriesFromAxis(config, GetColumn(c.id), plot, count, xAxisId, xValues);
         })
@@ -362,6 +361,8 @@ function buildBrushOption(mode: ChartInteractionMode): object | null {
 
 function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConfig, yAxisCount: number, xAxisId: string, xValues: any[]): any {
     const dec = axis.decoration;
+    // The stroke color is the series color for every plot type: line/area stroke, bar fill, dot border.
+    const seriesColor = dec.line.stroke.color;
 
     if (plot.type === 'radar') {
         values = [
@@ -383,7 +384,7 @@ function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConf
         name: axis.columnId,
         type: plot.type === "area" ? "line" : plot.type, // Area = Line + areaStyle
         data: valuesMapList,
-        color: dec.color,
+        color: seriesColor,
     };
 
     switch (plot.type) {
@@ -409,7 +410,7 @@ function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConf
         case "scatter":
         case "radar":
             base.lineStyle = {
-                color: dec.color,
+                color: seriesColor,
                 width: dec.line.stroke.width,
                 type: dec.line.stroke.lineStyle || 'solid',
             };
@@ -421,7 +422,7 @@ function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConf
             base.itemStyle = {
                 color: dec.scatter.dots.fill,
                 borderWidth: dec.scatter.dots.borderWidth,
-                borderColor: dec.color,
+                borderColor: seriesColor,
 
             };
             if (plot.type === "area" || plot.type === "radar") {

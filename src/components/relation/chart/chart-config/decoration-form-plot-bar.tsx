@@ -20,10 +20,17 @@ export function DecorationFormPlotBar({decoration, setDecoration}: DecorationMen
         });
     };
 
+    // The bar fill is the series color, which lives on the stroke decoration.
     const handleColorChange = (color: any) => {
         setDecoration({
             ...decoration,
-            color: color.hex,
+            line: {
+                ...decoration.line,
+                stroke: {
+                    ...decoration.line.stroke,
+                    color: color.hex,
+                },
+            },
         });
     };
 
@@ -45,7 +52,7 @@ export function DecorationFormPlotBar({decoration, setDecoration}: DecorationMen
             {/* Bar Main */}
             <ColorSubMenu
                 label="Fill Color"
-                color={decoration.color}
+                color={decoration.line.stroke.color}
                 setColor={handleColorChange}
             />
             <div className="px-2 py-1.5 flex items-center justify-between w-full">

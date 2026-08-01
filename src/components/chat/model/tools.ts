@@ -100,12 +100,10 @@ function getChartQueryParameters(args: ChartViewDataArgs): ChartQueryParameters 
             cartesian: {
                 xLabelRotation: args.xLabelRotation,
                 xAxis: {
-                    label: dequoteAxisLabel(args.xAxis),
                     columnId: dequoteAxisLabel(args.xAxis),
                     decoration: getInitialAxisDecoration(0)
                 },
                 yAxes: args.yAxes.map((yAxis, index) => ({
-                    label: dequoteAxisLabel(yAxis),
                     columnId: dequoteAxisLabel(yAxis),
                     decoration: getInitialAxisDecoration(index)
                 })),
@@ -121,12 +119,10 @@ function getChartQueryParameters(args: ChartViewDataArgs): ChartQueryParameters 
             pie: {
                 axis: {
                     label: {
-                        label: dequoteAxisLabel(args.xAxis),
                         columnId: dequoteAxisLabel(args.xAxis),
                         decoration: getInitialAxisDecoration(0)
                     },
                     radius: {
-                        label: dequoteAxisLabel(args.yAxes[0]),
                         columnId: dequoteAxisLabel(args.yAxes[0]),
                         decoration: getInitialAxisDecoration(0)
                     }

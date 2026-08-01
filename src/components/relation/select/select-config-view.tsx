@@ -19,7 +19,7 @@ export function SelectConfigView(props: RelationViewContentProps) {
     // Bridge: select stores column by name; ColumnSelector uses AxisConfig.columnId (id === name in schema)
     const currentColumn = columns.find(col => col.name === params.column);
     const axis: AxisConfig | undefined = currentColumn
-        ? {columnId: currentColumn.id, label: currentColumn.name, decoration: getInitialAxisDecoration(0)}
+        ? {columnId: currentColumn.id, decoration: getInitialAxisDecoration(0)}
         : undefined;
 
     async function updateColumn(update: Partial<AxisConfig>) {

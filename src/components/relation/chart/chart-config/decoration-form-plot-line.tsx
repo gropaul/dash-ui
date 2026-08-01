@@ -19,7 +19,6 @@ export function DecorationFormPlotLine({decoration, setDecoration}: DecorationMe
                 ...line,
                 stroke: stroke,
             },
-            color: stroke.color,
         });
     };
 

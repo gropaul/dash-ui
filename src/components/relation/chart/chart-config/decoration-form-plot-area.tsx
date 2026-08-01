@@ -45,7 +45,6 @@ export function DecorationFormPlotArea({decoration, setDecoration}: DecorationMe
                     ...partial,
                 },
             },
-            color: partial.color,
         });
     };
 

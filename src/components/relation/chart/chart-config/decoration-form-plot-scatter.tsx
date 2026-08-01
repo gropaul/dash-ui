@@ -5,19 +5,26 @@ import {DecorationFormDots} from "@/components/relation/chart/chart-config/decor
 
 
 export function DecorationFormPlotScatter({decoration, setDecoration}: DecorationMenuProps) {
-    const line = decoration.scatter;
+    const scatter = decoration.scatter;
 
-
+    // Scatter has no stroke form of its own, so the dot fill doubles as the series color (which is
+    // what draws the dot border).
     const updateDots = (partial: Partial<DotsDecoration>) => {
         setDecoration({
             ...decoration,
             scatter: {
                 dots: {
-                    ...line.dots,
+                    ...scatter.dots,
                     ...partial,
                 },
             },
-            color: partial.fill ?? decoration.color,
+            line: {
+                ...decoration.line,
+                stroke: {
+                    ...decoration.line.stroke,
+                    color: partial.fill ?? decoration.line.stroke.color,
+                },
+            },
         });
     };
 
@@ -28,7 +35,7 @@ export function DecorationFormPlotScatter({decoration, setDecoration}: Decoratio
             <DecorationFormDots
                 alwaysShowDots={true}
 
-                dots={line.dots}
+                dots={scatter.dots}
                 setDots={updateDots}
             />
 

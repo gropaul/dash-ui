@@ -6,22 +6,21 @@ export type PlotType = 'bar' | 'area' | 'line' | 'scatter' | 'pie' | 'radar';
 export const AVAILABLE_PLOT_TYPES: PlotType[] = ["bar", "scatter", "line", "area", "pie", "radar"]
 
 export interface AxisConfig {
-    label: string;
     columnId: string;
     decoration: AxisDecoration;
 }
 
 /**
- * Main interface that groups all plot-type-specific decoration settings
+ * Main interface that groups all plot-type-specific decoration settings.
+ *
+ * The single color of a series is `line.stroke.color`: it is the line/area stroke, the bar fill and
+ * the swatch shown in the column picker. The other color fields here are separate on purpose
+ * (a dot fill or an area fill may differ from the stroke).
  */
 export interface AxisDecoration {
     /**
-     * Base color for the series (used as a fallback or main color).
-     */
-    color: string; //todo: this must be the bar/stroke color
-
-    /**
-     * Decoration settings specific to Line plots
+     * Decoration settings specific to Line plots. `stroke.color` is the series color for every
+     * plot type, not just lines.
      */
     line: LineAxisDecoration;
 
@@ -44,11 +43,6 @@ export interface AxisDecoration {
      * Decoration settings specific to Pie plots
      */
     pie: PieAxisDecoration;
-
-    /**
-     * Decoration settings specific to Radar plots
-     */
-    radar: RadarAxisDecoration;
 
 }
 
@@ -169,33 +163,9 @@ export interface PieAxisDecoration {
      * Label style
      */
     label: {
-        color?: string; // this variable is not in use anywhere
         fontSize: number;
         fontFamily: string;
     };
-}
-
-/* -------------------------------------------------------------------------- */
-/* RADAR */
-/* -------------------------------------------------------------------------- */
-
-export interface RadarAxisDecoration {
-    /**
-     * The stroke width of each radar “spoke” (maps to <Radar strokeWidth>)
-     */
-    strokeWidth: number;
-    /**
-     * Optionally fill each area (maps to <Radar fill> + fillOpacity)
-     */
-    fillColor: string;
-    fillOpacity: number;
-    /**
-     * Show or hide points on each radar vertex
-     */
-    showDots: boolean;
-    dotSize: number;
-    dotColor: string;
-    dotBorderWidth: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -223,7 +193,6 @@ export interface AreaAxisDecoration {
 export function getInitialAxisDecoration(yIndex: number): AxisDecoration {
     const base_color = DEFAULT_COLORS[yIndex % DEFAULT_COLORS.length]
     return {
-        color: base_color,
         scatter: {
             dots: {
                 shape: 'circle',
@@ -268,16 +237,6 @@ export function getInitialAxisDecoration(yIndex: number): AxisDecoration {
                 fontSize: 12,
                 fontFamily: 'Inter, sans-serif',
             },
-        },
-
-        radar: {
-            strokeWidth: 2,
-            fillColor: base_color,
-            fillOpacity: 0.2,
-            showDots: true,
-            dotSize: 6,
-            dotColor: base_color,
-            dotBorderWidth: 1,
         },
 
     };
@@ -486,9 +445,8 @@ export function CanDisplayPlot(chartConfig: ChartConfig, relationData: RelationD
 /**
  * Create an AxisConfig for a column
  */
-function createAxisConfig(column: {id: string; name: string}, yIndex: number = 0): AxisConfig {
+function createAxisConfig(column: {id: string}, yIndex: number = 0): AxisConfig {
     return {
-        label: column.name,
         columnId: column.id,
         decoration: getInitialAxisDecoration(yIndex),
     };

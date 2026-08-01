@@ -83,8 +83,8 @@ export class RelationActions {
         if (viewType === 'chart') {
             const chartParams = getInitialChartQueryParameters();
             chartParams.plot.type = 'line';
-            chartParams.plot.cartesian.xAxis = {label: 'x', columnId: 'x', decoration: getInitialAxisDecoration(0)};
-            chartParams.plot.cartesian.yAxes = [{label: 'y', columnId: 'y', decoration: getInitialAxisDecoration(1)}];
+            chartParams.plot.cartesian.xAxis = {columnId: 'x', decoration: getInitialAxisDecoration(0)};
+            chartParams.plot.cartesian.yAxes = [{columnId: 'y', decoration: getInitialAxisDecoration(1)}];
             params.chart = chartParams;
         }
         const relationState: RelationState = {
