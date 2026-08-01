@@ -16,7 +16,7 @@ export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-
 // instead of failing with an explanatory error.
 export const PARAMETERS_SUPPORTED = false
 
-export const DASH_CATALOG_STATE = 'dash_state' // catalog alias for the per-project state database (cache + relationState)
+export const DASH_CATALOG_STATE = 'dash' // catalog alias for the per-project state database (cache + relationState)
 export const DASH_CATALOG_DATA = 'dash_data' // catalog alias for the per-project data database (user tables + macros)
 export const DASH_CATALOG_TEMP = 'dash_temp'
 export const DASH_CATALOG_PROJECTS = 'dash_projects' // catalog alias for the GLOBAL (per-connection) meta database: the projects registry
