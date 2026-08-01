@@ -6,6 +6,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { ParameterType } from "@/model/relation-view-state/parameters";
+import { cn } from "@/lib/utils";
 
 const PARAMETER_TYPES: { value: ParameterType; label: string }[] = [
     { value: 'string', label: 'string' },
@@ -19,12 +20,13 @@ interface ParameterTypeSelectorProps {
     value: ParameterType;
     onChange: (value: ParameterType) => void;
     disabled?: boolean;
+    className?: string;
 }
 
-export function ParameterTypeSelector({ value, onChange, disabled }: ParameterTypeSelectorProps) {
+export function ParameterTypeSelector({ value, onChange, disabled, className }: ParameterTypeSelectorProps) {
     return (
         <Select value={value} onValueChange={(v) => onChange(v as ParameterType)} disabled={disabled}>
-            <SelectTrigger className="w-24 h-7 text-xs">
+            <SelectTrigger className={cn("w-24 h-7 text-xs", className)}>
                 <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>

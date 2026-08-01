@@ -10,7 +10,6 @@ import {DeepPartial} from "@/platform/object-utils";
 
 export interface EndUserRelationActions extends AdvancedRelationActions {
     toggleShowHeader: () => void,
-    toggleShowParameters: () => void,
     setRelationViewType: (view: RelationViewType) => void,
     setDisplayName: (name: string, path?: string[]) => void,
     /** Resolves the session state for the given rendering mode, falling back to mode-appropriate defaults. */
@@ -45,12 +44,6 @@ export function getRelationActions(props: RelationViewAPIProps): EndUserRelation
         toggleShowHeader: () => {
             const current = relationState.viewState.showHeader;
             advancedActions.updateRelationViewState({showHeader: !current});
-        },
-        toggleShowParameters: () => {
-            const current = relationState.viewState.parametersState.panelState.show;
-            advancedActions.updateRelationViewState({
-                parametersState: {panelState: {show: !current}},
-            });
         },
         setRelationViewType: (view: RelationViewType) => {
             advancedActions.updateRelationViewState({selectedView: view});

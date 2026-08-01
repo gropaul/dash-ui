@@ -19,8 +19,6 @@ interface RelationToolbarProps {
     onViewChange: (entry: ViewSwitchEntry) => void;
     onFullscreen: () => void;
     onToggleHeader?: () => void;
-    showParams?: boolean;
-    onToggleParams?: () => void;
     runState: TaskExecutionState;
     onRun: () => void;
     onStopRun: () => void;
@@ -34,8 +32,6 @@ export function RelationToolbar({
                             onViewChange,
                             onFullscreen,
                             onToggleHeader,
-                            showParams,
-                            onToggleParams,
                             runState,
                             onRun,
                             onStopRun
@@ -79,27 +75,17 @@ export function RelationToolbar({
                 <div className="w-[1px] h-10 bg-border"/>
 
                 <RelationSettings {...viewProps} className={'h-10 w-10 rounded-sm'}>
-                    {(onToggleHeader || onToggleParams) && (
+                    {onToggleHeader && (
                         <>
                             <DropdownMenuLabel>
                                 Node
                             </DropdownMenuLabel>
-                            {onToggleHeader && (
-                                <DropdownMenuCheckboxItem
-                                    checked={viewProps.relationState.viewState.showHeader}
-                                    onCheckedChange={onToggleHeader}
-                                >
-                                    Show Header
-                                </DropdownMenuCheckboxItem>
-                            )}
-                            {onToggleParams && (
-                                <DropdownMenuCheckboxItem
-                                    checked={showParams}
-                                    onCheckedChange={onToggleParams}
-                                >
-                                    Show Parameters
-                                </DropdownMenuCheckboxItem>
-                            )}
+                            <DropdownMenuCheckboxItem
+                                checked={viewProps.relationState.viewState.showHeader}
+                                onCheckedChange={onToggleHeader}
+                            >
+                                Show Header
+                            </DropdownMenuCheckboxItem>
                         </>
                     )}
                 </RelationSettings>

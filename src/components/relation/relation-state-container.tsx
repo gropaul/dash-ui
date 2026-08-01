@@ -5,8 +5,6 @@ import {Sizable} from "@/components/ui/sizable";
 import {cn} from "@/lib/utils";
 import {getViewSizeRequirements} from "@/model/relation-view-state";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
-import {ParameterPanel} from "@/components/relation/parameters/parameter-panel";
-import {ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 
 export interface RelationStateContainerProps extends RelationViewAPIProps {
@@ -21,7 +19,6 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
     };
 
     const codeFenceState = props.getSessionState(props.mode).codeFenceState;
-    const parametersState = props.relationState.viewState.parametersState ?? { panelState: { show: false, sizePercentage: 30 }, parameters: [] };
     const [codeHeight, setCodeHeight] = useState(64 * 3);
 
     function setCodeFenceState(sizePercentage: number) {
@@ -34,22 +31,6 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
             codeFenceState: {sizePercentage: codeFencePercentage},
         });
     }
-
-    function handleUpdateParameters(parameters: ParameterDefinition[]) {
-        props.updateRelationViewState({
-            parametersState: {
-                parameters,
-            }
-        });
-    }
-
-    const parameterPanelElement = (
-        <ParameterPanel
-            size={props.height === 'fit' ? 'small' : 'large'}
-            parametersState={parametersState}
-            onUpdateParameters={handleUpdateParameters}
-        />
-    );
 
     const codePercentage = codeFenceState.show ? codeFenceState.sizePercentage : 0;
     const neverShowQueryEditor = props.neverShowQueryEditor ?? false;
@@ -67,7 +48,6 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
                 // as it needs and the query should take the remaining height if shown.
                 return (
                     <div className={cn("w-full h-full flex-col flex rounded-2xl", inputProps.className)}>
-                        {parameterPanelElement}
                         {showQueryEditor && (
                             <div className="flex-1 min-h-8">
                                 <RelationViewQueryView
@@ -86,7 +66,6 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
             case 'full':
                 return (
                     <div className={cn("w-full h-full flex flex-col bg-inherit rounded-2xl", inputProps.className)}>
-                        {parameterPanelElement}
                         <ResizablePanelGroup className={'bg-inherit rounded-2xl flex-1'}
                                              direction={layout == 'row' ? 'vertical' : 'horizontal'}>
                             {showQueryEditor && (
@@ -125,7 +104,6 @@ export function RelationStateContainer(inputProps: RelationStateContainerProps) 
     if (props.height === 'resizable') {
         return (
             <div className={cn("w-full h-fit bg-inherit flex flex-col gap-4", inputProps.className)}>
-                {parameterPanelElement}
                 {showQueryEditor && (
                     <Sizable
                         width={'full'}
