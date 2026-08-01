@@ -14,6 +14,10 @@ export interface QueryContext {
   queryUrl: string;
 }
 
+function uniqueName(base: string): string {
+  return `${base} ${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 /** Create a project from the projects list and land inside its workspace. */
 export async function createProject(page: Page, name: string): Promise<void> {
   await page.getByRole('button', { name: 'New project' }).first().click();
@@ -89,8 +93,8 @@ export async function createProjectWithQuery(
   page: Page,
   opts: { projectName?: string; queryName?: string; sql?: string } = {},
 ): Promise<QueryContext> {
-  const projectName = opts.projectName ?? 'E2E Test Project';
-  const queryName = opts.queryName ?? 'Test Query';
+  const projectName = uniqueName(opts.projectName ?? 'E2E Test Project');
+  const queryName = uniqueName(opts.queryName ?? 'Test Query');
   const sql = opts.sql ?? 'SELECT * FROM range(10)';
 
   await createProject(page, projectName);
