@@ -33,9 +33,13 @@ export async function initProjectSources(): Promise<void> {
     const statements = splitSQL(sql).map((s) => s.trim()).filter(Boolean);
     const results: SourceReplayResult[] = [];
     for (const statement of statements) {
+        // recorded whether or not it runs: a statement can fail precisely because its object is
+        // already there (a non-idempotent ATTACH replayed against a session that outlived the page,
+        // as the native one does), and that is state this project owns and has to clean up. Undo is
+        // IF EXISTS throughout, so recording something that never got created is a no-op.
+        SourceSession.instance().record(statement);
         try {
             await connection.executeQuery(statement, false);
-            SourceSession.instance().record(statement);
             results.push({statement, ok: true, error: null});
         } catch (e) {
             results.push({statement, ok: false, error: e instanceof Error ? e.message : String(e)});

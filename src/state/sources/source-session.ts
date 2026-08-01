@@ -19,7 +19,7 @@ export class SourceSession {
         return SourceSession._instance;
     }
 
-    /** Record a statement that executed successfully against the connection. */
+    /** Record a statement the manifest declared, whether or not it executed cleanly. */
     record(statement: string): void {
         const effect = parseSourceEffect(statement);
         if (effect) this.effects.push(effect);
