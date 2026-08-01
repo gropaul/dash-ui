@@ -12,7 +12,7 @@
  *   /projects                          → the projects list
  *   /projects/<id>/workspace           → that project's root folder
  *   /projects/<id>/workspace/<seg>…    → an object (folder/relation/dashboard/canvas)
- *   /projects/<id>/sources             → that project's data-sources tab
+ *   /projects/<id>/connections         → that project's connections tab
  *   /projects/<id>/data/<seg>…         → that project's catalog
  *
  * A URL round-trips through a typed {@link DashLocation}, so callers never assemble URL
@@ -26,8 +26,8 @@ import {useProjectsState} from "@/state/projects.state";
 
 export const PROJECT_ROOT = "/projects";   // the projects list, and the base for a specific project
 
-/** A section within a project: the workspace object tree, the data-sources tab, or the catalog. */
-export type ProjectSection = "workspace" | "sources" | "data";
+/** A section within a project: the workspace object tree, the connections tab, or the catalog. */
+export type ProjectSection = "workspace" | "connections" | "data";
 
 // A location inside a specific project (by id), discriminated on `section` so each section
 // only carries the address shape it actually has.
@@ -39,10 +39,10 @@ export interface ProjectWorkspaceLocation {
     path: string[];
 }
 
-export interface ProjectSourcesLocation {
+export interface ProjectConnectionsLocation {
     basePath: "project";
     projectId: string;
-    section: "sources";
+    section: "connections";
 }
 
 // The catalog: `segments` are the part after `/data` ([db, schema, table, col?]).
@@ -53,7 +53,7 @@ export interface ProjectDataLocation {
     segments: string[];
 }
 
-export type ProjectLocation = ProjectWorkspaceLocation | ProjectSourcesLocation | ProjectDataLocation;
+export type ProjectLocation = ProjectWorkspaceLocation | ProjectConnectionsLocation | ProjectDataLocation;
 
 // The projects list at `/projects`.
 export interface ProjectsListLocation {
@@ -85,14 +85,14 @@ export class DashLocations {
         return {basePath: "project", projectId, section: "workspace", path};
     }
 
-    // --- data sources ----------------------------------------------------
+    // --- connections -------------------------------------------------------
 
-    static ProjectSources(projectId: string): ProjectSourcesLocation {
-        return {basePath: "project", projectId, section: "sources"};
+    static ProjectConnections(projectId: string): ProjectConnectionsLocation {
+        return {basePath: "project", projectId, section: "connections"};
     }
 
-    static CurrentProjectSources(): ProjectSourcesLocation {
-        return this.ProjectSources(this.currentProjectId());
+    static CurrentProjectConnections(): ProjectConnectionsLocation {
+        return this.ProjectConnections(this.currentProjectId());
     }
 
     // --- catalog -----------------------------------------------------------
@@ -156,7 +156,8 @@ export class DashNavigator {
             const projectId = parts[1];
             // `/projects` with no id → the list.
             if (!projectId) return DashLocations.ProjectsList();
-            if (parts[2] === "sources") return DashLocations.ProjectSources(projectId);
+            // `sources` is the legacy segment for this section, kept so older links still resolve.
+            if (parts[2] === "connections" || parts[2] === "sources") return DashLocations.ProjectConnections(projectId);
             if (parts[2] === "data") return DashLocations.ProjectData(projectId, parts.slice(3));
             // Bare `/projects/<id>` (and any unknown section) resolves to the workspace.
             const path = parts[2] === "workspace" ? parts.slice(3) : parts.slice(2);

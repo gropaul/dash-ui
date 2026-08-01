@@ -44,7 +44,7 @@ write SQL relations, and compose them on canvases and dashboards. It ships both 
   - Subfolders: `connections/` (backends), `persistency/` (storage seam), `routing/`, `projects/`,
     `relations/` (actions, events, SQL/DAG), `migrations/`, `entities/`, `init/`, `sources/`.
 - **`src/components/`** - feature-organized React components: `canvas/`, `dashboard/`, `relation/`,
-  `workbench/`, `layout/`, `chat/`, `catalog/`, `projects/`, `sources/`, `onboarding/`,
+  `workbench/`, `layout/`, `chat/`, `catalog/`, `projects/`, `connections/`, `onboarding/`,
   `ui/` (shadcn).
 - **`src/model/`** - TypeScript interfaces for domain objects (RelationState, RelationViewState,
   DashboardState, CanvasState, Project, ColumnStats, …).

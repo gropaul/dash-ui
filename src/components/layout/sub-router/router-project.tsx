@@ -4,7 +4,7 @@ import {useEffect} from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {useProjectsState} from "@/state/projects.state";
 import {FolderView} from "@/components/workbench/folder-view";
-import {SourcesView} from "@/components/sources/sources-view";
+import {ConnectionsView} from "@/components/connections/connections-view";
 import {CatalogView} from "@/components/catalog/catalog-view";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {DashboardTab} from "@/components/dashboard/dashboard-tab";
@@ -19,7 +19,7 @@ interface ProjectRouterProps extends SubRouterProps {
 }
 
 /**
- * The view dispatcher for a specific project. `/projects/<id>/sources` is the data-sources tab;
+ * The view dispatcher for a specific project. `/projects/<id>/connections` is the connections tab;
  * `/projects/<id>/data[/<seg>…]` is the catalog; `/projects/<id>/workspace[/<seg>…]` is the
  * object tree (empty path is the project root, deeper paths resolve against the live editor tree).
  */
@@ -43,9 +43,9 @@ export function RouterProject(props: ProjectRouterProps) {
         return <ProjectNotFound/>;
     }
 
-    // Data-sources tab.
-    if (location.section === "sources") {
-        return <SourcesView/>;
+    // Connections tab.
+    if (location.section === "connections") {
+        return <ConnectionsView/>;
     }
 
     // The catalog (reads its segments from the location itself).

@@ -20,7 +20,7 @@ import {isDebugMode} from "@/components/settings/about-content";
 
 type ViewMode = 'manage' | 'sql';
 
-interface SourceRow {
+interface ConnectionRow {
     alias: string;
     path: string | null;
     readonly: boolean;
@@ -28,23 +28,24 @@ interface SourceRow {
     error?: string | null;
 }
 
-// System catalogs that are never user data sources.
+// System catalogs that are never user connections.
 const SYSTEM_DATABASES = ['memory', 'system', 'temp'];
 
 /**
- * The per-project Data sources tab (`/project/<id>/sources`). Manages the project's `sources.sql`
- * manifest (the single source of truth) as a simple list ⇄ SQL view. The list is derived: attached
- * databases come from the live catalog (`duckdb_databases()`), and declared-but-failed sources come
- * from the last replay (sources-health). Editing the SQL / adding a source rewrites `sources.sql`.
+ * The per-project Connections tab (`/projects/<id>/connections`). Manages the project's
+ * `sources.sql` manifest (the single source of truth - the state layer still calls these sources)
+ * as a simple list ⇄ SQL view. The list is derived: attached databases come from the live catalog
+ * (`duckdb_databases()`), and declared-but-failed connections come from the last replay
+ * (sources-health). Editing the SQL / attaching a database rewrites `sources.sql`.
  */
-export function SourcesView() {
+export function ConnectionsView() {
     const currentProject = useProjectsState((s) => s.getCurrentProject());
     const setProjectSources = useProjectsState((s) => s.setProjectSources);
     const projectId = currentProject?.id;
     const projectSources = currentProject?.sourcesSql ?? "";
 
     const [mode, setMode] = useState<ViewMode>('manage');
-    const [attached, setAttached] = useState<SourceRow[]>([]);
+    const [attached, setAttached] = useState<ConnectionRow[]>([]);
     const [manifest, setManifest] = useState<string>(projectSources);
     const [busy, setBusy] = useState(false);
     const [addOpen, setAddOpen] = useState(false);
@@ -63,7 +64,7 @@ export function SourcesView() {
              ORDER BY database_name`,
             true,
         );
-        setAttached(res.rows.map((r): SourceRow => ({
+        setAttached(res.rows.map((r): ConnectionRow => ({
             alias: String(r[0]),
             path: r[1] == null ? null : String(r[1]),
             readonly: Boolean(r[2]),
@@ -81,13 +82,13 @@ export function SourcesView() {
         void fetchAttached();
     }, [fetchAttached]);
 
-    // Declared-but-failed sources from the last replay (a moved/missing file, a catalog error, …),
+    // Declared-but-failed connections from the last replay (a moved/missing file, a catalog error, …),
     // excluding any alias that did end up attached.
-    const rows = useMemo<SourceRow[]>(() => {
+    const rows = useMemo<ConnectionRow[]>(() => {
         const attachedAliases = new Set(attached.map((r) => r.alias));
-        const failed: SourceRow[] = health
+        const failed: ConnectionRow[] = health
             .filter((h) => !h.ok)
-            .map((h): SourceRow => {
+            .map((h): ConnectionRow => {
                 const parsed = parseAttach(h.statement);
                 return {
                     alias: parsed?.alias ?? "(statement)",
@@ -124,7 +125,7 @@ export function SourcesView() {
         }
     }, [fetchAttached]);
 
-    const addSource = useCallback(async (result: DialogResult) => {
+    const addConnection = useCallback(async (result: DialogResult) => {
         // URL / path only. Uploading a local .duckdb needs the provider's registerFileHandle path
         // (a raw OPFS write isn't visible to DuckDB's VFS); that's a separate task.
         const path = (result.url ?? "").trim();
@@ -159,7 +160,7 @@ export function SourcesView() {
                 actionButtons={
                     <div className="flex items-center gap-2">
                         <ModeToggle mode={mode} onChange={setMode}/>
-                        <TooltipWrapper message="Re-attach all sources">
+                        <TooltipWrapper message="Re-attach all connections">
                             <Button variant="ghost" size="icon" className="h-8 w-8" disabled={busy}
                                     onClick={reAttachAll}>
                                 <RefreshCw className={cn("h-4 w-4", busy && "animate-spin")}/>
@@ -175,7 +176,7 @@ export function SourcesView() {
             <div className="bg-card border rounded-2xl w-full h-full flex flex-col min-h-0 overflow-hidden">
                 {isMemory && (
                     <div className="px-4 py-2 text-xs text-muted-foreground border-b">
-                        Running in memory mode — sources are not persisted across reloads.
+                        Running in memory mode — connections are not persisted across reloads.
                     </div>
                 )}
 
@@ -188,7 +189,7 @@ export function SourcesView() {
                                 <div className="text-xs">Attach a database, or add reads in the SQL view.</div>
                             </div>
                         ) : (
-                            rows.map((row) => <SourceListItem key={`${row.status}:${row.alias}`} row={row}/>)
+                            rows.map((row) => <ConnectionListItem key={`${row.status}:${row.alias}`} row={row}/>)
                         )}
                     </div>
                 ) : (
@@ -196,7 +197,7 @@ export function SourcesView() {
                 )}
             </div>
 
-            <AttachDatabaseDialog isOpen={addOpen} onClose={() => setAddOpen(false)} onSubmit={addSource}/>
+            <AttachDatabaseDialog isOpen={addOpen} onClose={() => setAddOpen(false)} onSubmit={addConnection}/>
         </ViewPadding>
     );
 }
@@ -221,7 +222,7 @@ function ModeToggle({mode, onChange}: { mode: ViewMode; onChange: (m: ViewMode) 
     );
 }
 
-function SourceListItem({row}: { row: SourceRow }) {
+function ConnectionListItem({row}: { row: ConnectionRow }) {
     const dot = row.status === 'attached'
         ? <span className="h-2 w-2 rounded-full bg-green-500 shrink-0"/>
         : <span className="h-2 w-2 rounded-full bg-red-500 shrink-0"/>;

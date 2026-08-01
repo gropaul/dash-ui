@@ -12,7 +12,7 @@ import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-sec
 
 /**
  * The single left navigation sidebar. Routing-driven (each item is a real link), grouped by
- * scope: PROJECT (Workspace + Data sources + Catalog, all per-project) and GENERAL (All
+ * scope: PROJECT (Workspace + Connections + Catalog, all per-project) and GENERAL (All
  * projects). The grouping is the primary scope cue.
  *
  * Collapsed → an icon rail with tooltips. Expanded → icons + labels plus room for
@@ -20,7 +20,7 @@ import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-sec
  * state persisted in gui.state; the active item is derived purely from the URL.
  */
 
-type NavKey = 'workspace' | 'sources' | 'catalog' | 'projects';
+type NavKey = 'workspace' | 'connections' | 'catalog' | 'projects';
 
 interface NavItem {
     key: NavKey;
@@ -31,7 +31,7 @@ interface NavItem {
 
 function activeKeyForLocation(location: DashLocation): NavKey {
     if (location.basePath === 'projects') return 'projects';
-    if (location.section === 'sources') return 'sources';
+    if (location.section === 'connections') return 'connections';
     if (location.section === 'data') return 'catalog';
     return 'workspace';
 }
@@ -45,7 +45,7 @@ export function NavigationSidebar() {
     // const). CurrentProject* read the current project id from the store at call time.
     const projectItems: NavItem[] = [
         {key: 'workspace', label: 'Workspace', icon: Folder, location: DashLocations.CurrentProjectRoot()},
-        {key: 'sources', label: 'Data sources', icon: Plug, location: DashLocations.CurrentProjectSources()},
+        {key: 'connections', label: 'Connections', icon: Plug, location: DashLocations.CurrentProjectConnections()},
         {key: 'catalog', label: 'Catalog', icon: Database, location: DashLocations.CurrentProjectData()},
     ];
     const generalItems: NavItem[] = [

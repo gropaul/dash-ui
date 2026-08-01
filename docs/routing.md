@@ -15,11 +15,12 @@ projects list lives under a project.
 /projects                              → the projects list
 /projects/<id>/workspace               → that project's root folder
 /projects/<id>/workspace/<seg>/<seg>…  → an object (folder / relation / dashboard / canvas)
-/projects/<id>/sources                 → that project's data-sources tab
+/projects/<id>/connections             → that project's connections tab
 /projects/<id>/data/<seg>…             → that project's catalog (db / schema / table / column)
 ```
 
-Bare `/projects/<id>` (and any unknown section) resolves to the workspace.
+Bare `/projects/<id>` (and any unknown section) resolves to the workspace. `/projects/<id>/sources`
+is the legacy segment for the connections tab and still parses, but is never generated.
 
 Query params carry ephemeral view state, e.g. `?readonly=1` opens a dashboard in view mode.
 
@@ -35,7 +36,7 @@ type DashLocation = ProjectLocation | ProjectsListLocation;
 // discriminated on `section`, so each section only carries the address shape it has
 type ProjectLocation =
     | { basePath: "project"; projectId: string; section: "workspace"; path: string[] }
-    | { basePath: "project"; projectId: string; section: "sources" }
+    | { basePath: "project"; projectId: string; section: "connections" }
     | { basePath: "project"; projectId: string; section: "data"; segments: string[] };
 
 interface ProjectsListLocation { basePath: "projects"; }
@@ -47,8 +48,8 @@ Build locations with the `DashLocations` factory (don't construct the objects in
 DashLocations.CurrentProjectRoot()               // current project, root folder
 DashLocations.CurrentProjectElement(path)        // current project, slug-name path
 DashLocations.ProjectWorkspace(projectId, path)  // a specific project's workspace
-DashLocations.ProjectSources(projectId)          // a project's data-sources tab
-DashLocations.CurrentProjectSources()
+DashLocations.ProjectConnections(projectId)      // a project's connections tab
+DashLocations.CurrentProjectConnections()
 DashLocations.ProjectData(projectId, segments)   // a project's catalog
 DashLocations.CurrentProjectData(segments)
 DashLocations.ProjectsList()                     // the /projects list
@@ -109,7 +110,7 @@ resolve.
 - `projects` → the projects list (`ProjectListView`)
 - otherwise → `sub-router/router-project.tsx`, which renders:
   - unknown project id → a not-found state
-  - `section: "sources"` → `SourcesView`
+  - `section: "connections"` → `ConnectionsView`
   - `section: "data"` → the catalog (`CatalogView`)
   - empty workspace `path` → the project root folder
   - otherwise → resolve the node and render `FolderView` / `RelationTab` / `DashboardTab` / `CanvasTab`, or not-found
@@ -151,5 +152,5 @@ const url = window.location.origin + nav.getUrlFromObjectId(node.id);
 | `state/routing/slug-name.ts` | `slugify` + sibling-unique slug names. |
 | `state/routing/routable-tree.ts` | Augments the tree with dashboard/canvas relation aliases. |
 | `components/layout/app-router.tsx` | Top-level dispatch + project↔URL sync. |
-| `components/layout/sub-router/` | `router-project` (workspace / sources / catalog). |
+| `components/layout/sub-router/` | `router-project` (workspace / connections / catalog). |
 | `state/projects.state.ts` | Projects + `useProjectRouteSync` (URL is source of truth). |

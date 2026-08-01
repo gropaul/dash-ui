@@ -55,10 +55,10 @@ export function WorkspacePathBreadcrumb() {
     let trail: BreadCrumb[];
     if (location.basePath === "project" && project) {
         const toWorkspace = (segments: string[]) => nav.getUrlFromLocation(DashLocations.CurrentProjectElement(segments));
-        if (location.section === "sources") {
+        if (location.section === "connections") {
             trail = [{
-                id: "__sources__", label: "Data sources",
-                to: nav.getUrlFromLocation(DashLocations.CurrentProjectSources()), type: "sources",
+                id: "__connections__", label: "Connections",
+                to: nav.getUrlFromLocation(DashLocations.CurrentProjectConnections()), type: "connections",
             }];
         } else if (location.section === "data") {
             trail = dataTrail(location.segments);
