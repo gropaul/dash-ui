@@ -1,4 +1,4 @@
-// seed: test/seed.spec.ts
+// seed: test/seed.shared.spec.ts
 // Runs on both runtimes (web + electron); see test/fixtures.ts.
 import { test } from './fixtures';
 import {

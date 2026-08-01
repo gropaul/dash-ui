@@ -1,4 +1,5 @@
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
+import { E2E_BASE_URL, E2E_DUCKDB_DIR, E2E_ELECTRON_PROFILE_DIR } from '../playwright.config';
 
 /**
  * Cross-runtime test fixtures: run the same spec against the web app (Chromium
@@ -37,7 +38,7 @@ function targetOf(testInfo: { project: { metadata: Record<string, unknown> } }):
 
 export const test = base.extend<AppFixtures>({
   appOrigin: async ({}, use, testInfo) => {
-    await use(targetOf(testInfo) === 'electron' ? 'http://localhost:3000' : '');
+    await use(targetOf(testInfo) === 'electron' ? E2E_BASE_URL : '');
   },
 
   app: async ({ page }, use, testInfo) => {
@@ -53,9 +54,19 @@ export const test = base.extend<AppFixtures>({
     // "Electron" token to the UA), so the app runs its NATIVE DuckDB backend -
     // the desktop path we actually want to test - while inheriting the dev
     // server's NEXT_PUBLIC_E2E hooks that the test helpers depend on.
+    //
+    // Both halves of its persistent state are redirected into the throwaway data dir
+    // that global setup wipes: the DuckDB files (DASH_STORAGE_DIR, read by
+    // electron/duckdb.cjs) and the Chromium profile holding localStorage
+    // (--user-data-dir). Without these the run would start on whatever the previous
+    // run - or the developer's own desktop app - left behind.
     const electronApp: ElectronApplication = await electron.launch({
-      args: ['.'],
-      env: { ...process.env, ELECTRON_START_URL: 'http://localhost:3000' } as Record<string, string>,
+      args: ['.', `--user-data-dir=${E2E_ELECTRON_PROFILE_DIR}`],
+      env: {
+        ...process.env,
+        ELECTRON_START_URL: E2E_BASE_URL,
+        DASH_STORAGE_DIR: E2E_DUCKDB_DIR,
+      } as Record<string, string>,
     });
     const window = await electronApp.firstWindow();
     await use(window);
