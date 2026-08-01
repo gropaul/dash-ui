@@ -26,6 +26,7 @@ export interface DataSourcesZustand {
     loadChildrenForDataSource: (connectionId: string, id_path: string[]) => Promise<DataSourceGroup | undefined>;
 
     refreshConnection: (connectionId: string) => Promise<void>;
+    refreshAllConnections: () => Promise<void>;
 }
 
 export const useDataSourcesState = createWithEqualityFn<DataSourcesZustand>((set, get) => ({
@@ -96,6 +97,11 @@ export const useDataSourcesState = createWithEqualityFn<DataSourcesZustand>((set
         await get().updateConnectionState(connectionId);
         // load all data sources
         await get().loadAllDataSources(connectionId);
+    },
+
+    // re-read every source connection, e.g. after the attached databases changed
+    refreshAllConnections: async () => {
+        await Promise.all(Object.keys(get().connections).map((id) => get().refreshConnection(id)));
     },
 
     updateConfig: async (connectionId, config) => {

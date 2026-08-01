@@ -3,6 +3,7 @@
  *   import { openApp, createProjectWithQuery, expectPersistsAcrossReloadReopenAndUrl } from './utils';
  */
 export * from './app';
+export * from './connections';
 export * from './dashboard';
 export * from './query';
 export * from './project';

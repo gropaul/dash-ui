@@ -37,8 +37,7 @@ import {CatalogHeaderActions} from "@/components/catalog/utils/catalog-header-ac
  */
 export function CatalogView() {
     const objects = useCatalogObjects();
-    const connections = useDataSourcesState((s) => s.connections);
-    const refreshConnection = useDataSourcesState((s) => s.refreshConnection);
+    const refreshAllConnections = useDataSourcesState((s) => s.refreshAllConnections);
     const splitRatio = useGUIState((s) => s.sidebarSplitRatio);
     const setSplitRatio = useGUIState((s) => s.setConfigSplitRatio);
 
@@ -126,7 +125,7 @@ export function CatalogView() {
     async function onRefreshAll() {
         setRefreshing(true);
         try {
-            await Promise.all(Object.keys(connections).map((id) => refreshConnection(id)));
+            await refreshAllConnections();
         } finally {
             setRefreshing(false);
         }

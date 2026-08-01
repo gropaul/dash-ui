@@ -8,7 +8,7 @@ import {getInitialRelationDataZustandState, useCacheStore, useRelationDataState}
 import {INIT, RelationZustandCombined, useRelationsState} from "@/state/relations.state";
 import {useInitState} from "@/state/init.state";
 import {DatabaseConnection} from "@/model/database-connection";
-import {initProjectSources} from "@/state/sources/replay-sources";
+import {initProjectSources, teardownProjectSources} from "@/state/sources/replay-sources";
 import {getProjectDashStateFileName, getProjectDataFileName, useProjectsState} from "@/state/projects.state";
 import {
     DASH_CACHE_SCHEMA,
@@ -120,6 +120,8 @@ async function runLoadOrSwitchProject(projectId: string): Promise<void> {
 
     // then update the local state
     try {
+        // undo the outgoing project's sources, else a database attached by A stays attached under B
+        await teardownProjectSources();
         await loadProject(projectId, connection);
     } catch (e) {
         // Never leave the app stuck on the loading splash if the swap fails.

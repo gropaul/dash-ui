@@ -14,6 +14,8 @@ import {getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provid
 import {useProjectsState} from "@/state/projects.state";
 import {initProjectSources} from "@/state/sources/replay-sources";
 import {useSourcesHealthState} from "@/state/sources/sources-health.state";
+import {SourceSession} from "@/state/sources/source-session";
+import {useDataSourcesState} from "@/state/data-sources.state";
 import {aliasFromPath, appendStatement, buildAttachStatement, parseAttach} from "@/state/sources/sources-manifest";
 import {cn} from "@/lib/utils";
 import {isDebugMode} from "@/components/settings/about-content";
@@ -139,8 +141,11 @@ export function ConnectionsView() {
             }
             const statement = buildAttachStatement(path, aliasFromPath(path), false);
             await connection.executeQuery(statement, false);
+            // run directly rather than via the replay, so the ledger has to be told about it
+            SourceSession.instance().record(statement);
             if (projectId) setProjectSources(projectId, appendStatement(projectSources, statement));
             await fetchAttached();
+            await useDataSourcesState.getState().refreshAllConnections();
         } finally {
             setBusy(false);
         }
