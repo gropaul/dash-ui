@@ -10,9 +10,9 @@ import { defineConfig, devices } from '@playwright/test';
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 export const E2E_BASE_URL = `http://localhost:${PORT}`;
 
-// Throwaway state for the Electron runtime, wiped by test/global-setup.ts before every
-// run so both targets start from an empty app. Unlike the web target - whose OPFS dies
-// with the browser context - the desktop app persists: its DuckDB files default to
+// Throwaway state for the Electron runtime, wiped by test/fixtures.ts before every test
+// so both targets start from an empty app. Unlike the web target - whose OPFS dies with
+// the browser context - the desktop app persists: its DuckDB files default to
 // ~/.duckdb/extension_data/dash and its Chromium profile to the OS app-data dir, both
 // shared with a locally-run app. So each is redirected in here (DASH_STORAGE_DIR /
 // --user-data-dir, wired up in test/fixtures.ts).
@@ -31,7 +31,6 @@ export default defineConfig({
   // be created if there is another open") and flake. Tests must run serially.
   workers: 1,
   reporter: 'html',
-  globalSetup: './test/global-setup.ts',
   use: {
     baseURL: E2E_BASE_URL,
     trace: 'on-first-retry',

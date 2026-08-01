@@ -1,5 +1,6 @@
+import fs from 'node:fs';
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
-import { E2E_BASE_URL, E2E_DUCKDB_DIR, E2E_ELECTRON_PROFILE_DIR } from '../playwright.config';
+import { E2E_BASE_URL, E2E_DATA_DIR, E2E_DUCKDB_DIR, E2E_ELECTRON_PROFILE_DIR } from '../playwright.config';
 
 /**
  * Cross-runtime test fixtures: run the same spec against the web app (Chromium
@@ -55,11 +56,18 @@ export const test = base.extend<AppFixtures>({
     // the desktop path we actually want to test - while inheriting the dev
     // server's NEXT_PUBLIC_E2E hooks that the test helpers depend on.
     //
-    // Both halves of its persistent state are redirected into the throwaway data dir
-    // that global setup wipes: the DuckDB files (DASH_STORAGE_DIR, read by
-    // electron/duckdb.cjs) and the Chromium profile holding localStorage
-    // (--user-data-dir). Without these the run would start on whatever the previous
-    // run - or the developer's own desktop app - left behind.
+    // Both halves of its persistent state are redirected into a throwaway data dir:
+    // the DuckDB files (DASH_STORAGE_DIR, read by electron/duckdb.cjs) and the
+    // Chromium profile holding localStorage (--user-data-dir). Without these the run
+    // would start on whatever the previous run - or the developer's own desktop app -
+    // left behind.
+    //
+    // The dir is wiped per test, not per run, so each test (and each RETRY) gets a
+    // first-launch app, matching the web target where every test gets a fresh OPFS.
+    // Wiping once per run is not enough: tests create projects under fixed names, so
+    // a retry would hit "a project with this name already exists" and could never
+    // recover. Safe to do here only because `workers: 1` rules out a concurrent app.
+    fs.rmSync(E2E_DATA_DIR, { recursive: true, force: true });
     //
     // On Linux the Chromium sandbox has to be turned off. CI runners block unprivileged
     // user namespaces, so Chromium falls back to the setuid helper - and the Electron
