@@ -37,7 +37,7 @@ export async function listCachedIds(): Promise<string[]> {
     try {
         const prefix = GetCacheViewPrefix();
         const result = await ConnectionsService.getInstance().executeQuery(
-            `SELECT table_name FROM information_schema.tables WHERE table_catalog = '${DASH_CATALOG_STATE}' AND table_schema = 'main' AND table_name LIKE '${prefix}%';`
+            `SELECT table_name FROM information_schema.tables WHERE table_catalog = '${DASH_CATALOG_STATE}' AND table_schema = '${DASH_CACHE_SCHEMA}' AND table_name LIKE '${prefix}%';`
         );
         return result.rows.map((row: unknown[]) => (row[0] as string).slice(prefix.length));
     } catch (error) {

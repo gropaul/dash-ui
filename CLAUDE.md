@@ -98,7 +98,13 @@ features must not assume WASM.
 - Path alias: `@/*` → `./src/*`.
 - Playwright (`test/`) runs two projects: `web` runs every spec in Chromium, `electron` runs only
   `*.shared.spec.ts` against the desktop app; `test/fixtures.ts` branches on `metadata.target`.
-  `workers: 1` is deliberate (OPFS contention). Vitest covers unit tests colocated in `src/`.
+  Every spec is currently shared, so new ones should be too - write them against the fixtures
+  (`import { test } from './fixtures'`, `async ({ app: page, appOrigin })`) unless a spec is
+  genuinely runtime-specific.
+  `workers: 1` is deliberate (OPFS contention). It runs its own dev server on port 3100 with its
+  own `.next-e2e` dist dir, so it coexists with a regular `pnpm dev`; Electron's persistent state
+  (DuckDB files + Chromium profile) is redirected into `.e2e-data/` and wiped by
+  `test/global-setup.ts` each run. Vitest covers unit tests colocated in `src/`.
 
 ## Styling Guidelines
 

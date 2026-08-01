@@ -37,6 +37,29 @@ export async function createQuery(page: Page, name: string): Promise<string> {
   return page.url();
 }
 
+/** Go to the project's workspace root - the folder view listing every entity. */
+export async function goToWorkspaceRoot(page: Page): Promise<void> {
+  // Sidebar entries are <a> elements without href (client-side nav), so they are
+  // not exposed as links; match by text like `goToProjectsList` does.
+  await page.getByText('Workspace', { exact: true }).click();
+  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
+}
+
+/**
+ * Create an entity from the workspace folder view's "New" menu. Creating opens the
+ * new entity, so the returned URL is its own. Requires the workspace root (see
+ * `goToWorkspaceRoot`); the fresh-project welcome screen uses `createQuery`.
+ */
+export async function createEntity(page: Page, kind: 'Query' | 'Dashboard' | 'Canvas', name: string): Promise<string> {
+  await page.getByRole('button', { name: 'New', exact: true }).click();
+  await page.getByRole('menuitem', { name: kind, exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: `New ${kind}` });
+  await dialog.getByRole('textbox', { name: 'Enter a name' }).fill(name);
+  await dialog.getByRole('button', { name: 'Create' }).click();
+  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/[^/]+$/);
+  return page.url();
+}
+
 /** Go back to the projects list. */
 export async function goToProjectsList(page: Page): Promise<void> {
   // The sidebar "All projects" entry is an <a> without href (client-side nav),

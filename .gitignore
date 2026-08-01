@@ -5,6 +5,8 @@
 /out
 /.pnp
 /.next
+/.next-e2e
+/.e2e-data
 .pnp.js
 
 # testing

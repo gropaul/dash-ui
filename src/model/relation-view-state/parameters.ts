@@ -32,6 +32,22 @@ export function getInitialParametersState(): ParametersState {
     };
 }
 
+/**
+ * Extract {{param}} placeholders from SQL.
+ * Returns array of unique parameter names.
+ */
+export function extractParameters(sql: string): string[] {
+    const regex = /{{([^}]+)}}/g;
+    const matches = sql.matchAll(regex);
+    const params = new Set<string>();
+
+    for (const match of matches) {
+        params.add(match[1].trim());
+    }
+
+    return Array.from(params);
+}
+
 export function createParameter(name: string): ParameterDefinition {
     return {
         name,

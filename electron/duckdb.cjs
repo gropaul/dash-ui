@@ -8,6 +8,7 @@
 //
 // CommonJS on purpose: this is required from an ESM main.js, and @duckdb/node-api is CJS.
 
+const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { app, ipcMain } = require('electron');
@@ -22,7 +23,17 @@ const JSON_MACRO_SQL = require('./query-result-json-macro.cjs');
 // native computes it directly so per-project attach (`${root}${projectId}_dash_state.duckdb`)
 // behaves identically to the http path. Returned WITH a trailing separator, per the
 // DatabaseConnection.getStorageRoot() contract.
+//
+// DASH_STORAGE_DIR overrides the location. It exists for the e2e suite, which must not
+// read or write the real one - that is the same directory a locally-run desktop app
+// uses, so tests would inherit leftover projects and pollute real data (see
+// playwright.config.ts). The override is created if missing; ATTACH needs it to exist.
 function getDashDirectory() {
+    const override = process.env.DASH_STORAGE_DIR;
+    if (override) {
+        fs.mkdirSync(override, {recursive: true});
+        return override.endsWith(path.sep) ? override : override + path.sep;
+    }
     const homeDir = os.homedir();
     if (!homeDir) return '';
     const dashDir = path.join(homeDir, '.duckdb', 'extension_data', 'dash');

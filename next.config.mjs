@@ -16,6 +16,11 @@ const nextConfig = {
     reactStrictMode: false,
     output: 'export',
 
+    // Next locks its dist dir per dev server, so a second `next dev` on the default
+    // one exits. The Playwright e2e server sets NEXT_DIST_DIR (see playwright.config.ts)
+    // to get its own, and can then run alongside a regular `pnpm dev`.
+    distDir: process.env.NEXT_DIST_DIR ?? '.next',
+
     // basePath: process.env.NEXT_PUBLIC_BASE_PATH,
 
     images: {

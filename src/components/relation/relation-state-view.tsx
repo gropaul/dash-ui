@@ -5,7 +5,7 @@ import {RelationStateContainer} from "@/components/relation/relation-state-conta
 import {RelationLoadingView} from "@/components/relation/relation-loading-view";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {DefaultErrorBoundary} from "@/components/basics/error-bundary";
-import {hasSettingsPanel, RelationViewConfig} from "@/components/relation/relation-view-config";
+import {hasConfigPanel, RelationViewConfig} from "@/components/relation/relation-view-config";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {ViewPadding} from "@/components/ui/view-padding";
@@ -38,8 +38,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
         return () => clearTimeout(timer);
     }, [executionState.state]);
 
-    const viewType = props.relationState.viewState.selectedView;
-    const showConfig = props.mode === 'fullscreen' && hasSettingsPanel(viewType);
+    const showConfig = props.mode === 'fullscreen' && hasConfigPanel(props);
     const configSplitRatio = useGUIState(state => state.sidebarSplitRatio);
     const setConfigSplitRatio = useGUIState(state => state.setConfigSplitRatio);
     const configSize = Math.round(configSplitRatio * 100);

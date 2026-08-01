@@ -206,11 +206,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                         }}
                         onFullscreen={() => openFullscreen(props.id)}
                         onToggleHeader={viewProps.toggleShowHeader}
-                        showParams={data.viewState.parametersState?.panelState?.show ?? false}
-                        onToggleParams={
-                            data.viewState.parametersState.parameters.length == 0 ?
-                                undefined : actions.toggleShowParameters
-                        }
                     />
                     <NodeResizer
                         lineClassName={'z-40'}

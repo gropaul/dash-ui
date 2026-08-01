@@ -1,5 +1,6 @@
-// seed: test/seed.spec.ts
-import { test, expect } from '@playwright/test';
+// seed: test/seed.shared.spec.ts
+// Runs on both runtimes (web + electron); see test/fixtures.ts.
+import { test, expect } from './fixtures';
 import {
   openApp,
   createProjectWithQuery,
@@ -11,10 +12,10 @@ import {
 } from './utils';
 
 test.describe('Project persistence', () => {
-  test('a bar chart persists across reload, navigation, and direct URL', async ({ page }) => {
+  test('a bar chart persists across reload, navigation, and direct URL', async ({ app: page, appOrigin }) => {
     test.setTimeout(90_000);
 
-    await openApp(page);
+    await openApp(page, appOrigin);
     const ctx = await createProjectWithQuery(page, {
       projectName: 'E2E Persist Test',
       queryName: 'Range Query',

@@ -1,7 +1,6 @@
-import {Braces, ChartSpline, Code, LayoutDashboard, Map, Maximize2, Menu, Sheet} from "lucide-react";
+import {ChartSpline, Code, LayoutDashboard, Map, Maximize2, Menu, Sheet} from "lucide-react";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {RelationViewType} from "@/model/relation-view-state";
-import {Toggle} from "@/components/ui/toggle"
 import {Separator} from "@/components/ui/separator";
 import {HeaderDownloadButton, HeaderDownloadButtonContent} from "@/components/relation/header/header-download-button";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
@@ -45,16 +44,8 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
 
     const codeFenceState = props.getSessionState(props.mode).codeFenceState;
     const queryToggleText = codeFenceState.show ? 'Hide Query' : 'Show Query';
-    const parametersState = viewState.parametersState ?? {
-        panelState: {show: false, sizePercentage: 30},
-        parameters: []
-    };
-
 
     const isMobile = useIsMobile();
-
-
-    const parametersToggleText = parametersState.panelState.show ? 'Hide Parameters' : 'Show Parameters';
 
     const [filepathDialogState, setFilepathDialogState] = useState<FilepathDialogState>({
         open: false,
@@ -85,15 +76,6 @@ export function RelationViewHeader(inputProps: RelationViewHeaderProps) {
                         </>
                         :
                         <>
-                            {
-                                parametersState.parameters.length != 0 && <Toggle
-                                    onClick={props.toggleShowParameters}
-                                    pressed={parametersState.panelState.show}
-                                    title={parametersToggleText}
-                                >
-                                    <Braces className="h-4 w-4 mr-2 "/>
-                                </Toggle>
-                            }
                             <RelationSettings {...props} align={"end"}>
                                 <DropdownMenuSwitchItem
                                     title={queryToggleText}
