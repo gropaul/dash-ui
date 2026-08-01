@@ -1,3 +1,4 @@
+import {PARAMETERS_SUPPORTED} from "@/platform/global-data";
 import {
     RelationConfigTab,
     RelationConfigTabId,
@@ -19,9 +20,11 @@ export const RELATION_CONFIG_TABS: RelationConfigTab[] = [
         isAvailable: (props) => hasViewSettings(props.relationState.viewState.selectedView),
     },
     {
+        // hidden while {{param}} placeholders are not supported
         id: 'parameters',
         label: 'Parameters',
         component: ParametersTab,
+        isAvailable: () => PARAMETERS_SUPPORTED,
     },
     {
         id: 'references',

@@ -2,7 +2,7 @@ import {DASH_CATALOG_STATE, DASH_REFS_SCHEMA} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
-import {ParameterDefinition} from "@/model/relation-view-state/parameters";
+import {extractParameters, ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
 import {removeComments} from "@/platform/sql-utils";
 
@@ -54,22 +54,6 @@ export function sanitizeMacroName(name: string): string {
  */
 export function getMacroName(relationName: string): string {
     return `${DASH_CATALOG_STATE}.${DASH_REFS_SCHEMA}.${sanitizeMacroName(relationName)}`;
-}
-
-/**
- * Extract {{param}} placeholders from SQL.
- * Returns array of unique parameter names.
- */
-export function extractParameters(sql: string): string[] {
-    const regex = /{{([^}]+)}}/g;
-    const matches = sql.matchAll(regex);
-    const params = new Set<string>();
-
-    for (const match of matches) {
-        params.add(match[1].trim());
-    }
-
-    return Array.from(params);
 }
 
 /**

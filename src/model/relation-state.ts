@@ -12,7 +12,8 @@ import {cleanAndSplitSQL, escapeName, minifySQL, removeSemicolon, turnQueryIntoS
 import {getErrorMessage} from "@/platform/error-handling";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useRelationDataState} from "@/state/relations-data.state";
-import {CHART_QUERY_LIMIT, COUNT_QUERY_THRESHOLD_MS} from "@/platform/global-data";
+import {CHART_QUERY_LIMIT, COUNT_QUERY_THRESHOLD_MS, PARAMETERS_SUPPORTED} from "@/platform/global-data";
+import {extractParameters} from "@/model/relation-view-state/parameters";
 import {HistDataType} from "@/components/relation/table/table-head/stats/column-stats-view-hist";
 import {ViewManager} from "@/model/relation-state/relation-view";
 import {ChartQueryParameters} from "@/model/relation-state/relation-view-chart";
@@ -273,6 +274,18 @@ export function returnEmptyErrorState(relation: RelationState, error: unknown): 
 
 // builds and executes the query and updates the view state
 export async function executeQueryOfRelation(input: RelationState, readOnly: boolean = false): Promise<RelationState> {
+
+    // While parameters are off the {{...}} placeholders are left in the SQL, so DuckDB would fail
+    // with a syntax error. Say what actually went wrong instead.
+    if (!PARAMETERS_SUPPORTED) {
+        const parameters = extractParameters(input.query.activeBaseQuery ?? '');
+        if (parameters.length > 0) {
+            const placeholders = parameters.map(name => `{{${name}}}`).join(', ');
+            return returnEmptyErrorState(input, new Error(
+                `Query parameters are not supported right now: ${placeholders}`,
+            ));
+        }
+    }
 
     const buildResult = await buildQueryWithCheck(input);
 

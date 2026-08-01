@@ -11,6 +11,11 @@ export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'
 export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-storage.com/videos/canvas'
 
+// `{{param}}` query parameters are switched off for now. Flipping this back on re-enables the
+// Parameters tab in the relation settings panel and lets a query containing placeholders run
+// instead of failing with an explanatory error.
+export const PARAMETERS_SUPPORTED = false
+
 export const DASH_CATALOG_STATE = 'dash_state' // catalog alias for the per-project state database (cache + relationState)
 export const DASH_CATALOG_DATA = 'dash_data' // catalog alias for the per-project data database (user tables + macros)
 export const DASH_CATALOG_TEMP = 'dash_temp'
