@@ -6,7 +6,7 @@ import {FilterTag} from "@/components/basics/filter-tags";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {Column} from "@/model/data-source-connection";
 import {ValueTypeGroup} from "@/model/value-type";
-import {CatalogObject, columnGroup, Scope} from "@/components/catalog/catalog-model";
+import {CatalogObject, ColumnRow, columnGroup, Scope} from "@/components/catalog/catalog-model";
 
 /**
  * A catalog facet chip. Extends the generic object-level {@link FilterTag} with an optional
@@ -63,4 +63,16 @@ export function objectMatchesTag(o: CatalogObject, tag?: CatalogTag): boolean {
 /** Whether a column passes the active tag; object-only facets match every column of a matching object. */
 export function columnMatchesTag(col: Column, tag?: CatalogTag): boolean {
     return !tag || !tag.columnPredicate || tag.columnPredicate(col);
+}
+
+/**
+ * The same facets lifted to column rows: a row matches when both its object and its column pass.
+ * The columns scope counts and filters rows, so the chip counts state how many columns a facet
+ * yields rather than how many tables contain one.
+ */
+export function toColumnTags(tags: CatalogTag[]): FilterTag<ColumnRow>[] {
+    return tags.map((t) => ({
+        ...t,
+        predicate: (r: ColumnRow) => t.predicate(r.o) && columnMatchesTag(r.col, t),
+    }));
 }

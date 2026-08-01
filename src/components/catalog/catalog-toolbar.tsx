@@ -3,16 +3,25 @@
 import React from "react";
 import {ChevronRight, X} from "lucide-react";
 import {Button} from "@/components/ui/button";
-import {FilterTags} from "@/components/basics/filter-tags";
+import {FilterTag, FilterTags} from "@/components/basics/filter-tags";
 import {SearchBox} from "@/components/basics/search-box";
-import {CatalogObject} from "@/components/catalog/catalog-model";
+import {CatalogObject, ColumnRow, Scope} from "@/components/catalog/catalog-model";
 import {CatalogTag} from "@/components/catalog/utils/catalog-tags";
 
+/**
+ * What the facet chips count: the path+search-filtered rows of the active scope, plus the facets
+ * lifted to that row type. Both scopes are carried so the chip counts always match the grid.
+ */
+export interface CatalogFacets {
+    scope: Scope;
+    objects: CatalogObject[];
+    objectTags: CatalogTag[];
+    columns: ColumnRow[];
+    columnTags: FilterTag<ColumnRow>[];
+}
+
 export interface CatalogToolbarProps {
-    /** The path+search-filtered objects the chip counts read from. */
-    items: CatalogObject[];
-    /** The facet chips for the current scope (see buildCatalogTags). */
-    tags: CatalogTag[];
+    facets: CatalogFacets;
     /** Key of the active facet chip, or '' when none. */
     activeTag: string;
     setActiveTag: (v: string) => void;
@@ -26,16 +35,14 @@ export interface CatalogToolbarProps {
 
 /** The facet chip row, search box, and the active-path bar. */
 export function CatalogToolbar(props: CatalogToolbarProps) {
+    const {facets} = props;
+    const chipProps = {className: "min-w-0", activeKey: props.activeTag, onChange: props.setActiveTag};
     return (
         <>
             <div className="flex items-center justify-between gap-4 pb-2">
-                <FilterTags
-                    className="min-w-0"
-                    tags={props.tags}
-                    items={props.items}
-                    activeKey={props.activeTag}
-                    onChange={props.setActiveTag}
-                />
+                {facets.scope === 'tables'
+                    ? <FilterTags {...chipProps} tags={facets.objectTags} items={facets.objects}/>
+                    : <FilterTags {...chipProps} tags={facets.columnTags} items={facets.columns}/>}
                 <SearchBox open={props.searchOpen} setOpen={props.setSearchOpen} value={props.search} onChange={props.setSearch}/>
             </div>
 

@@ -22,7 +22,7 @@ import {
     SortState,
     useCatalogObjects,
 } from "@/components/catalog/catalog-model";
-import {buildCatalogTags, columnMatchesTag, objectMatchesTag} from "@/components/catalog/utils/catalog-tags";
+import {buildCatalogTags, columnMatchesTag, objectMatchesTag, toColumnTags} from "@/components/catalog/utils/catalog-tags";
 import {CatalogToolbar} from "@/components/catalog/catalog-toolbar";
 import {CatalogGrid} from "@/components/catalog/catalog-grid";
 import {CatalogDetail} from "@/components/catalog/detail/catalog-detail";
@@ -92,23 +92,32 @@ export function CatalogView() {
         {path: objectPathStr, name: (o) => o.name, type: (o) => o.objType, cols: (o) => o.columns.length, rows: (o) => o.estimatedRows ?? -1},
     ), [scoped, activeTagDef, sort]);
 
-    const columnRows = useMemo(() => {
+    // The same base one level down — every column of a scoped object that matches the search.
+    // The columns scope counts and lists these rows, so both read from one source.
+    const scopedColumns = useMemo(() => {
+        if (scope !== 'columns') return [];
         const rows: ColumnRow[] = [];
         for (const o of scoped) {
-            if (!objectMatchesTag(o, activeTagDef)) continue;
             for (const col of o.columns) {
-                if (!columnMatchesTag(col, activeTagDef)) continue;
-                if (!matchesQ(col.name, search)) continue;
-                rows.push({o, col});
+                if (matchesQ(col.name, search)) rows.push({o, col});
             }
         }
+        return rows;
+    }, [scoped, search, scope]);
+
+    const columnRows = useMemo(() => {
+        const rows = scopedColumns.filter(
+            ({o, col}) => objectMatchesTag(o, activeTagDef) && columnMatchesTag(col, activeTagDef),
+        );
         return sortRows(rows, sort, {
             path: (r) => objectPathStr(r.o),
             name: (r) => r.col.name,
             type: (r) => r.col.type,
             rows: (r) => r.o.estimatedRows ?? -1,
         });
-    }, [scoped, activeTagDef, search, sort]);
+    }, [scopedColumns, activeTagDef, sort]);
+
+    const columnTags = useMemo(() => toColumnTags(tags), [tags]);
 
     const selectedObject = selection ? objects.find((o) => o.id === selection.objId) ?? null : null;
     const selectedColumn = selectedObject && selection?.colName
@@ -171,7 +180,7 @@ export function CatalogView() {
                         />
                         <div className="bg-card p-8 border rounded-2xl w-full h-full flex flex-col min-h-0">
                             <CatalogToolbar
-                                items={scoped} tags={tags}
+                                facets={{scope, objects: scoped, objectTags: tags, columns: scopedColumns, columnTags}}
                                 activeTag={activeTag} setActiveTag={setActiveTag}
                                 search={search} setSearch={setSearch} searchOpen={searchOpen} setSearchOpen={setSearchOpen}
                                 pathFilter={pathFilter} onClearPath={() => setPathFilter([])}
