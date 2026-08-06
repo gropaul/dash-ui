@@ -31,7 +31,7 @@ export function RecentlyAccessedSection() {
 
     return (
         <div className="px-2 pt-4">
-            <SectionHeader label="Recently accessed"/>
+            <SectionHeader label="Recently accessed" extended={true}/>
             {items.length === 0 ? (
                 <div className="px-3 pt-1 text-xs text-muted-foreground/70">
                     Your recent items will appear here.

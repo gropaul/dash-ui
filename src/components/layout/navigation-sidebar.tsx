@@ -59,7 +59,7 @@ export function NavigationSidebar() {
 
     const renderGroup = (label: string, items: NavItem[]) => (
         <div className="flex flex-col gap-0.5">
-            {expanded && <SectionHeader label={label}/>}
+            <SectionHeader label={label} extended={expanded}/>
             {items.map((item) => (
                 <NavLink key={item.key} item={item} active={item.key === activeKey} expanded={expanded}/>
             ))}
@@ -77,8 +77,8 @@ export function NavigationSidebar() {
             >
                 {/* Nav destinations, grouped by scope. */}
                 <div className="flex flex-col gap-3 p-2 pt-5">
-                    {inProject && renderGroup("Project", projectItems)}
                     {renderGroup("General", generalItems)}
+                    {inProject && renderGroup("Project", projectItems)}
                 </div>
 
                 {/* Middle region: extra sections when expanded, otherwise a spacer so the
@@ -151,10 +151,21 @@ function NavLink({item, active, expanded}: {item: NavItem; active: boolean; expa
     );
 }
 
-export function SectionHeader({label}: {label: string}) {
+export function SectionHeader({label, extended}: {label: string, extended: boolean}) {
+    // Collapses to zero height instead of leaving a blank band in the icon rail. The height
+    // animates on the same curve as the sidebar width, so the nav icons glide into place.
     return (
-        <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-            {label}
+        <div
+            className={cn(
+                "flex items-center overflow-hidden px-3",
+                "transition-[height,opacity] duration-200 ease-in-out",
+                extended ? "h-6 opacity-100" : "h-0 opacity-0",
+            )}
+            aria-hidden={!extended}
+        >
+            <span className="truncate text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                {label}
+            </span>
         </div>
     );
 }
