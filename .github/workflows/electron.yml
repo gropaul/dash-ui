@@ -1,5 +1,6 @@
 # Builds the Electron desktop app for macOS (arm64), Windows (x64) and Linux (x64)
 # and uploads each as a downloadable workflow artifact.
+# release.yml calls this with release_tag to also attach the installers to a release.
 name: Electron Build
 
 on:
@@ -9,6 +10,17 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+  # Called by release.yml, which owns the release page itself
+  workflow_call:
+    inputs:
+      release_tag:
+        description: "Tag of an existing release to attach the installers to"
+        type: string
+        required: true
+
+permissions:
+  contents: write
 
 # Cancel superseded runs on the same ref so rapid pushes don't pile up
 concurrency:
@@ -82,7 +94,7 @@ jobs:
 
       - name: Package Electron app
         # No platform flag on the script itself; pass it per matrix entry. --publish never
-        # keeps this to artifacts only (no GitHub Release upload).
+        # keeps electron-builder out of releases; the upload step below owns that.
         run: pnpm exec electron-builder ${{ matrix.eb_flag }} --publish never
         env:
           # No signing certificate on CI; don't let electron-builder look for one
@@ -95,3 +107,14 @@ jobs:
           path: ${{ matrix.artifact_path }}
           if-no-files-found: error
           retention-days: 30
+
+      # Only when release.yml drove this run; the release already exists by now.
+      # Each platform uploads its own file, so the three matrix jobs don't collide.
+      - name: Attach installer to the release
+        if: inputs.release_tag
+        # bash on every platform: pwsh does not expand the glob for a native command
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload "${{ inputs.release_tag }}" ${{ matrix.artifact_path }} --clobber

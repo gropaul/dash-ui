@@ -19,8 +19,8 @@ pnpm electron:preview # Run the desktop shell against out/
 pnpm electron:build   # next build + electron-builder --mac
 ```
 
-Deeper design docs live in `/docs` (`projects.md`, `routing.md`); `/src/state/docs.md` covers app
-init order. Scratch planning notes are in `/dev`.
+Deeper design docs live in `/docs` (`projects.md`, `routing.md`, `ci.md`, `self-hosting.md`);
+`/src/state/docs.md` covers app init order. Scratch planning notes are in `/dev`.
 
 ## Architecture
 
