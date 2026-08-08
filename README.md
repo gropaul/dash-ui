@@ -62,11 +62,24 @@ To build the application for production:
 pnpm build
 ```
 
-To start the production server:
+Dash is a static export, so there is no server to run. To preview the build locally:
 
 ```bash
-pnpm start
+pnpm exec serve out
 ```
+
+### Self-hosting
+
+`pnpm build` writes the complete app to `out/` as plain static files, and
+
+```bash
+pnpm build:static
+```
+
+packages that up as `dist-web/dash-web-<version>.zip` along with setup instructions. The same bundle
+is attached to every release, so you can drop it on an S3 bucket, GitHub Pages or any static host and
+run your own Dash. See [docs/self-hosting.md](docs/self-hosting.md) for the requirements (HTTPS,
+deep-link fallback, optional cross-origin isolation headers) and an AWS walkthrough.
 
 ## Testing
 

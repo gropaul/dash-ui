@@ -11,6 +11,7 @@
     "lint": "next lint",
     "tsc": "tsc --noEmit",
     "build:extension": "env-cmd -f .env.extension next build --webpack",
+    "build:static": "next build --webpack && node scripts/pack-web.mjs",
     "postinstall": "node --experimental-require-module node_modules/electron/install.js",
     "electron:dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
     "electron:preview": "electron .",

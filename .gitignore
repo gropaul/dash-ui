@@ -15,6 +15,7 @@
 # production
 /build
 /dist-electron
+/dist-web
 
 # misc
 *.tsbuildinfo

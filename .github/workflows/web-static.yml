@@ -1,0 +1,73 @@
+# Builds the browser app as a self-hostable static bundle (the Next export plus
+# self-hosting instructions) and uploads it as a downloadable workflow artifact.
+# release.yml calls this with release_tag to also attach the zip to a release.
+name: Static Web Bundle
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+  # Called by release.yml, which owns the release page itself
+  workflow_call:
+    inputs:
+      release_tag:
+        description: "Tag of an existing release to attach the bundle to"
+        type: string
+        required: true
+
+# Cancel superseded runs on the same ref so rapid pushes don't pile up
+concurrency:
+  group: web-static-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Dash-Web-Static
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history: next.config.mjs derives the build version from `git rev-list --count HEAD`
+          fetch-depth: 0
+
+      - name: Install pnpm
+        run: npm install -g pnpm@9.1.2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build static bundle
+        run: pnpm build:static
+
+      # Uploads the unpacked bundle so the artifact isn't a zip inside a zip.
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dash-Web-Static
+          path: dist-web/dash-web-*/
+          if-no-files-found: error
+          retention-days: 30
+
+      # Only when release.yml drove this run; the release already exists by now.
+      - name: Attach bundle to the release
+        if: inputs.release_tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload "${{ inputs.release_tag }}" dist-web/*.zip --clobber
