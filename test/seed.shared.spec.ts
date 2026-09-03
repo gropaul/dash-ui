@@ -14,13 +14,14 @@ import { test, expect } from './fixtures';
  * (relative to the config baseURL) or the dev-server origin on Electron.
  *
  * Three things every run needs:
- *   1. Auto-connect to DuckDB WASM via the `?api=wasm` URL param. On localhost a
- *      fresh profile has no saved connection and does NOT auto-connect (autoload
- *      is only enabled on the production domain), so init otherwise parks at
- *      "Selecting connection" and force-opens the connection dialog. `?api=wasm`
- *      is the app's own deep-link to establish a working connection headlessly
- *      (see config-utils.ts / init.state.ts). Electron ignores the param and runs
- *      its native DuckDB backend, so it is a harmless no-op there.
+ *   1. Auto-connect to DuckDB via the `appApi` URL query. On localhost a fresh
+ *      profile has no saved connection and does NOT auto-connect (autoload is only
+ *      enabled on the production domain), so init otherwise parks at "Selecting
+ *      connection" and force-opens the connection dialog. The query is the app's own
+ *      deep-link to establish a working connection headlessly (see config-utils.ts /
+ *      init.state.ts): `api=wasm` on the web target, `api=http&url=<server>` on the
+ *      http one - the same handoff `PRAGMA dash` makes when it opens the UI. Electron
+ *      ignores the param and runs its native DuckDB backend, so it is a no-op there.
  *   2. Suppress the first-run welcome tour — a modal that otherwise opens on a
  *      fresh profile and blocks every interaction — by pre-seeding its
  *      localStorage flag before any app code runs.
@@ -28,7 +29,7 @@ import { test, expect } from './fixtures';
  *      "Loading..." screen instead of the app shell.
  */
 test.describe('Test group', () => {
-  test('seed', async ({ app: page, appOrigin }) => {
+  test('seed', async ({ app: page, appOrigin, appApi }) => {
     // 1. Skip the onboarding tour before the app boots (see onboarding.state.ts).
     await page.addInitScript(() => {
       window.localStorage.setItem('dash-onboarding-seen', 'true');
@@ -36,7 +37,7 @@ test.describe('Test group', () => {
 
     // 2. Load the app and auto-connect to DuckDB. The dev-server origin comes from
     //    playwright.config.ts — via baseURL on web, via `appOrigin` on Electron.
-    await page.goto(`${appOrigin}/?api=wasm`);
+    await page.goto(`${appOrigin}/?${appApi}`);
 
     // 3. App ready: init reaches 'complete', the AppGate "Loading..." gate is
     //    replaced by the app shell, and the top-bar Settings button mounts. Cold

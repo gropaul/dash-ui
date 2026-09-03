@@ -16,20 +16,25 @@ export async function expectAppReady(page: Page): Promise<void> {
 }
 
 /**
- * Load the app connected to DuckDB, with the welcome tour suppressed. On web,
- * `?api=wasm` auto-establishes the WASM connection (and saves it to history, so
- * later plain reloads reconnect without the param). In Electron the URL params
- * are ignored - the app always uses its native DuckDB backend - so the param is
- * a harmless no-op there. Call once at the start of a test.
+ * Load the app connected to DuckDB, with the welcome tour suppressed. Call once at
+ * the start of a test.
  *
  * `origin` is prefixed onto the navigation URL: leave it empty for web (relative
- * to the config `baseURL`); pass the dev-server origin for Electron, whose
- * window has no `baseURL`. Both values are supplied by the `appOrigin` fixture.
+ * to the config `baseURL`); pass the dev-server origin for Electron, whose window
+ * has no `baseURL`.
+ *
+ * `api` is the connection query - `api=wasm`, or `api=http&url=<server>` for the
+ * dash extension's HTTP API, the same handoff `PRAGMA dash` performs. The app saves
+ * the connection to its history, so later plain reloads reconnect without it. In
+ * Electron the params are ignored (it always uses its native DuckDB backend), so the
+ * value is a harmless no-op there.
+ *
+ * Both values come from the `appOrigin` / `appApi` fixtures.
  */
-export async function openApp(page: Page, origin = ''): Promise<void> {
+export async function openApp(page: Page, origin = '', api = 'api=wasm'): Promise<void> {
   await page.addInitScript(() => {
     window.localStorage.setItem('dash-onboarding-seen', 'true');
   });
-  await page.goto(`${origin}/?api=wasm`);
+  await page.goto(`${origin}/?${api}`);
   await expectAppReady(page);
 }

@@ -12,10 +12,10 @@ import {
 } from './utils';
 
 test.describe('Project persistence', () => {
-  test('a bar chart persists across reload, navigation, and direct URL', async ({ app: page, appOrigin }) => {
+  test('a bar chart persists across reload, navigation, and direct URL', async ({ app: page, appOrigin, appApi }) => {
     test.setTimeout(90_000);
 
-    await openApp(page, appOrigin);
+    await openApp(page, appOrigin, appApi);
     const ctx = await createProjectWithQuery(page, {
       projectName: 'E2E Persist Test',
       queryName: 'Range Query',

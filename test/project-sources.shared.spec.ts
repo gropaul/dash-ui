@@ -27,10 +27,10 @@ const CREATE_TABLE_SQL =
 const CE_TABLES = ['downloads', 'github_snapshots'];
 
 test.describe('Project data sources', () => {
-  test('an attached database follows its project and does not leak into the next one', async ({ app: page, appOrigin }) => {
+  test('an attached database follows its project and does not leak into the next one', async ({ app: page, appOrigin, appApi }) => {
     test.setTimeout(240_000);
 
-    await openApp(page, appOrigin);
+    await openApp(page, appOrigin, appApi);
     await createProject(page, 'E2E Sources');
 
     // Attaching writes sources.sql and replays it; the catalog picks the tables up on its own.
@@ -53,10 +53,10 @@ test.describe('Project data sources', () => {
     for (const table of CE_TABLES) await expectCatalogTable(page, table, false);
   });
 
-  test('a table created by the manifest is rebuilt per project, not carried over', async ({ app: page, appOrigin }) => {
+  test('a table created by the manifest is rebuilt per project, not carried over', async ({ app: page, appOrigin, appApi }) => {
     test.setTimeout(240_000);
 
-    await openApp(page, appOrigin);
+    await openApp(page, appOrigin, appApi);
     await createProject(page, 'E2E Table Sources');
     await setProjectSources(page, CREATE_TABLE_SQL);
     await goToCatalog(page);

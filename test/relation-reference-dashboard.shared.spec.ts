@@ -33,10 +33,10 @@ import {
 const NUMBERS_MACRO = `${DASH_CATALOG_STATE}.${DASH_REFS_SCHEMA}.numbers`;
 
 test.describe('Relation references on a dashboard', () => {
-  test('picking a value in a Select relation filters the relation referencing it', async ({ app: page, appOrigin }) => {
+  test('picking a value in a Select relation filters the relation referencing it', async ({ app: page, appOrigin, appApi }) => {
     test.setTimeout(120_000);
 
-    await openApp(page, appOrigin);
+    await openApp(page, appOrigin, appApi);
 
     // 1. The upstream relation: 10 rows, displayed as a dropdown.
     await createProjectWithQuery(page, {

@@ -21,6 +21,19 @@ export const E2E_DATA_DIR = path.join(ROOT, '.e2e-data');
 export const E2E_DUCKDB_DIR = path.join(E2E_DATA_DIR, 'duckdb');
 export const E2E_ELECTRON_PROFILE_DIR = path.join(E2E_DATA_DIR, 'electron-profile');
 
+// The duckdb-over-http target runs a real DuckDB CLI with the `dash` extension loaded
+// (`CALL start_dash(...)`, what `PRAGMA dash` expands to). It needs two binaries that are
+// not part of this repo, supplied by env:
+//   E2E_DUCKDB_BIN       path to a duckdb CLI matching the extension's DuckDB version
+//   E2E_DASH_EXTENSION   path to dash.duckdb_extension (the file must be named dash.*,
+//                        DuckDB derives the entrypoint symbol from the basename)
+// The extension keeps its state in $HOME/.duckdb/extension_data/dash, so each test gets a
+// throwaway HOME under E2E_DASH_HOME_DIR.
+export const E2E_DUCKDB_BIN = process.env.E2E_DUCKDB_BIN;
+export const E2E_DASH_EXTENSION = process.env.E2E_DASH_EXTENSION;
+export const E2E_DASH_PORT = Number(process.env.E2E_DASH_PORT ?? 4200);
+export const E2E_DASH_HOME_DIR = path.join(E2E_DATA_DIR, 'dash-home');
+
 export default defineConfig({
   testDir: './test',
   fullyParallel: true,
@@ -31,6 +44,9 @@ export default defineConfig({
   // be created if there is another open") and flake. Tests must run serially.
   workers: 1,
   reporter: 'html',
+  // A locally built (debug) dash extension is far slower than a release binary; raise this to give
+  // project loads room. Default matches Playwright's own.
+  expect: { timeout: Number(process.env.E2E_EXPECT_TIMEOUT ?? 5000) },
   use: {
     baseURL: E2E_BASE_URL,
     trace: 'on-first-retry',
@@ -49,6 +65,15 @@ export default defineConfig({
       name: 'electron',
       metadata: { target: 'electron' },
       testMatch: '**/*.shared.spec.ts',
+    },
+    // duckdb-over-http: a Chromium tab against the same dev server, but with the app's
+    // database connection pointed at a DuckDB CLI running the `dash` extension's HTTP
+    // server. Same spec set as Electron.
+    {
+      name: 'http',
+      metadata: { target: 'http' },
+      testMatch: '**/*.shared.spec.ts',
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
   webServer: {
