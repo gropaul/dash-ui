@@ -85,7 +85,11 @@ export class DuckDBOverHttp implements DatabaseConnection {
         if (!response.ok) {
             throw new Error(await response.text());
         }
-        return await response.text();
+        // A storage root is a prefix that file names are concatenated onto, so it has to end in a
+        // separator. The extension returns its data directory bare, without one - and on Windows it
+        // is backslash-separated.
+        const root = await response.text();
+        return /[/\\]$/.test(root) ? root : root + '/';
     }
 
     destroy(): Promise<void> {
@@ -104,47 +108,48 @@ export class DuckDBOverHttp implements DatabaseConnection {
 
     async executeQueryInternal(input: QueryInput): Promise<RelationData> {
         const {query, readOnly} = input;
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json'
-        };
-
-        if (this.config.useToken) {
-            headers['X-API-Key'] = this.config.token!;
-        }
-
         try {
-            let altered_query = query;
-            if (readOnly) {
-                altered_query = 'BEGIN TRANSACTION READ ONLY; ' + altered_query + ';';
+            if (!readOnly) return await this.post(query);
+            await this.post('BEGIN TRANSACTION READ ONLY;');
+            try {
+                return await this.post(query);
+            } finally {
+                await this.post('ROLLBACK;').catch(() => {});
             }
-            const response = await fetch(this.config.url + "/api/query", {
-                method: 'POST',
-                body: JSON.stringify({
-                    query: altered_query,
-                    format: "compact_json"
-                }),
-                headers,
-            });
-
-            if (!response.ok) {
-                throw new Error(await response.text());
-            }
-
-            const json: QueryResponse = await response.json();
-            return {
-                columns: json.columns.map((column: any) => ({
-                    name: column.name,
-                    type: duckDBTypeToValueType(column.type),
-                    id: column.name,
-                })),
-                rows: json.rows
-            };
         } catch (error) {
-            if (error instanceof Error && error.message.includes('INTERRUPT')){
+            if (error instanceof Error && error.message.includes('INTERRUPT')) {
                 throw new Error(ERROR_MESSAGE_QUERY_ABORTED);
             }
             throw error;
         }
+    }
+
+    private async post(query: string): Promise<RelationData> {
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+        };
+        if (this.config.useToken) {
+            headers['X-API-Key'] = this.config.token!;
+        }
+        const response = await fetch(this.config.url + "/api/query", {
+            method: 'POST',
+            body: JSON.stringify({query, format: "compact_json"}),
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+
+        const json: QueryResponse = await response.json();
+        return {
+            columns: json.columns.map((column: any) => ({
+                name: column.name,
+                type: duckDBTypeToValueType(column.type),
+                id: column.name,
+            })),
+            rows: json.rows
+        };
     }
 
 
