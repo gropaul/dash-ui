@@ -50,9 +50,6 @@ is user content.
 "last used" set. Kept out of the project file so a shared file carries no derived data and so a
 read-only open can later swap in an in-memory catalog instead.
 
-Over HTTP the client cannot run `ATTACH`, so every HTTP project still opens the extension's single
-`dash.duckdb` - and therefore now also shares one sources manifest. See the TODO below.
-
 ## Where the files live (storage root)
 
 Full attach path = `root + fileName`. The connection decides the root, via
@@ -61,7 +58,9 @@ Full attach path = `root + fileName`. The connection decides the root, via
 - **WASM / md-wasm**: `opfs://`. Files sit in the OPFS root. OPFS is flat (no subdirectories), so the
   project id is encoded in the file name, not a folder.
 - **HTTP**: the DuckDB `dash` extension's data directory (e.g. `~/.duckdb/extension_data/dash/`),
-  fetched from the server via `GET /api/dash-dir`.
+  fetched from the server via `GET /api/dash-dir`. That endpoint returns the directory without a
+  trailing separator, so `getStorageRoot()` appends one - otherwise every file would be created as a
+  sibling of the directory with its name glued on (`.../extension_data/dash<uuid>.dash.duckdb`).
 
 ## Attaching and switching
 
@@ -72,11 +71,15 @@ no full teardown/reconnect.
   are attached on top and `USE dash` makes the project file current. A switch just detaches those two
   catalogs and re-attaches the new project's files (the provider re-registers the OPFS file handles
   first). The `query_result_json` helper macro is a `TEMP` macro, so it survives catalog swaps.
-- **HTTP**: not client-driven. `ATTACH IF NOT EXISTS` no-ops against the extension's default
-  `dash.duckdb`, because every statement is wrapped in `query_result()` and `query_result` can't
-  execute catalog-mutating DDL. Real per-project HTTP needs the **server** to attach the correct
-  `<projectId>.dash.duckdb` for the project the client is on. `getStorageRoot()` / `GET /api/dash-dir`
-  is the first half of that.
+- **HTTP**: the same client-driven flow, and it works. The extension wraps every statement in
+  `query_result()`, which runs it on a transient connection, but `ATTACH`/`DETACH` act on the shared
+  `DatabaseInstance`, so they outlive the request. The extension pre-attaches its own `dash.duckdb`
+  at load; the client detaches that and attaches the project's file under the same alias.
+
+  What does **not** survive a request is connection-scoped state: `USE dash` and `TEMP` macros are
+  gone by the next statement (`SELECT current_database()` reports `memory`). Nothing depends on the
+  `USE` today because relations qualify their catalog, but unqualified DDL resolves against `memory`
+  over HTTP, not against the project file.
 
 After attaching, `loadProject` reads the meta row (seeding it from the registry entry for a fresh
 file and refreshing the name/icon copy), replays `sources_sql`, then rehydrates the relation state.
@@ -91,10 +94,9 @@ shows a spinner while a write is in flight and nothing once everything is saved.
 
 Not yet done:
 
-- **Per-project state over HTTP.** The client can't attach per-project files, because catalog
-  DDL (`ATTACH`/`DETACH`) can't run through the `query_result`-wrapped query path. The server has to
-  attach `<projectId>.dash.duckdb` for the project the client is on. Until then all HTTP projects
-  share the extension's single `dash.duckdb`, including its sources manifest.
+- **A session over HTTP.** Each request runs on its own connection, so `USE` and `TEMP` macros do not
+  persist. Making unqualified DDL land in the project file needs the server to hold one connection per
+  client.
 - ~~**Backend-specific project registry.**~~ Done: the registry lives in the per-connection
   `projects.duckdb` (see [Project registry](#project-registry)), loaded by the `loading-projects`
   init step. Registry reads and the snapshot write both go through the raw (non-`query_result`)
