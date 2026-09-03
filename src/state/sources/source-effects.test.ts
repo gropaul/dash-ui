@@ -15,7 +15,8 @@ describe('parseSourceEffect', () => {
     });
 
     it('never detaches one of the project databases', () => {
-        expect(undo("ATTACH 'other.duckdb' AS dash_data;")).toBeNull();
+        expect(undo("ATTACH 'other.duckdb' AS dash;")).toBeNull();
+        expect(undo("ATTACH 'other.duckdb' AS dash_cache;")).toBeNull();
     });
 
     it('reverses tables and views created outside the project databases', () => {
@@ -31,10 +32,10 @@ describe('parseSourceEffect', () => {
     });
 
     it('leaves the project\'s own tables alone', () => {
-        // Unqualified: the replay runs with the project data database as the current catalog, so
-        // this lands in the project's own file and disappears with it on DETACH.
+        // Unqualified: the replay runs with the project file as the current catalog, so this lands
+        // in the project's own file and disappears with it on DETACH.
         expect(undo("CREATE TABLE monthly AS SELECT 1;")).toBeNull();
-        expect(undo("CREATE TABLE dash_data.monthly AS SELECT 1;")).toBeNull();
+        expect(undo("CREATE TABLE dash.monthly AS SELECT 1;")).toBeNull();
     });
 
     it('reverses named secrets only', () => {

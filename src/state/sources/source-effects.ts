@@ -49,8 +49,8 @@ function isInternalCatalog(name: string): boolean {
  *
  * Objects inside the project's own catalogs are never recorded - those are separate database files
  * that get DETACHed on switch, so undoing them would delete the user's data instead of cleaning up.
- * That covers unqualified names too: the replay runs with the project's data database as the current
- * catalog (`USE dash_data` in loadProject), so an unqualified CREATE lands in that same file. TEMP
+ * That covers unqualified names too: the replay runs with the project file as the current catalog
+ * (`USE dash` in loadProject), so an unqualified CREATE lands in that same file. TEMP
  * objects are the exception - they live in the session's `temp` catalog, so they are recorded fully
  * qualified, which keeps the DROP from resolving to a same-named project table.
  */

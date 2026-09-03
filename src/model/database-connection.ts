@@ -76,7 +76,7 @@ export interface DatabaseConnection {
     /**
      * The storage root (path prefix) under which this connection's per-project DuckDB files are
      * attached. A full attach target is composed as `${root}${fileName}`, e.g.
-     * `${root}<projectId>_dash_state.duckdb`. The returned value MUST include any trailing separator.
+     * `${root}<projectId>.dash.duckdb`. The returned value MUST include any trailing separator.
      *
      *  - WASM / md-wasm: `"opfs://"` (files live in the OPFS root).
      *  - duckdb-over-http: the server's dash data directory + separator, e.g.

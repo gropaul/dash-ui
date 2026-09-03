@@ -7,9 +7,8 @@ import {getValueTypeGroup, ValueTypeGroup} from "@/model/value-type";
 import {Column} from "@/model/data-source-connection";
 import {getBaseQueryFromSource} from "@/model/relation-state";
 import {RelationSourceTable} from "@/model/relation";
-import {DASH_CATALOG_STATE, DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
+import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {formatNumber} from "@/platform/number-utils";
-import {isDebugMode} from "@/components/settings/about-content";
 
 /**
  * The catalog is a flat, structural read of what the data-source connections have already
@@ -147,7 +146,6 @@ export function exactRowsTitle(n: number | undefined): string | undefined {
 export function useCatalogObjects(): CatalogObject[] {
     const connections = useDataSourcesState((state) => state.connections);
     return useMemo(() => {
-        const debug = isDebugMode();
         const objects: CatalogObject[] = [];
         for (const conn of Object.values(connections)) {
             if (conn.type !== 'duckdb-internal-databases') continue;
@@ -155,8 +153,6 @@ export function useCatalogObjects(): CatalogObject[] {
             const databases = Object.values(conn.dataSources ?? {}) as unknown as TreeNode[];
             for (const db of databases) {
                 if (db.type !== 'database') continue;
-                // The internal dash cache catalog is only surfaced in debug mode.
-                if (db.name === DASH_CATALOG_STATE && !debug) continue;
                 for (const schema of db.children ?? []) {
                     for (const table of schema.children ?? []) {
                         if (table.type !== 'relation' && table.type !== 'view') continue;

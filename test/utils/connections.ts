@@ -66,7 +66,7 @@ export async function setProjectSources(page: Page, sql: string, timeout = 120_0
 async function expectProjectSources(page: Page, sql: string, timeout: number): Promise<void> {
   await page.waitForFunction((expected) => {
     const store = (window as unknown as { __projectsStore?: any }).__projectsStore;
-    return store?.getState().getCurrentProject()?.sourcesSql === expected;
+    return store?.getState().currentMeta?.sourcesSql === expected;
   }, sql, { timeout });
 }
 

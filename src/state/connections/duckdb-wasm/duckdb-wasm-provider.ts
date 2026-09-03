@@ -3,9 +3,7 @@ import * as duckdb from '@duckdb/duckdb-wasm';
 import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, DuckDBDataProtocol, LogLevel} from '@duckdb/duckdb-wasm';
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
 import {getJsonMacro, getOpfsFileHandle, removeOpfsFile} from "@/state/connections/duckdb-wasm/utils";
-import {DASH_CATALOG_STATE, DASH_CATALOG_DATA} from "@/platform/global-data";
 import {isDebugMode} from "@/components/settings/about-content";
-import {getProjectDashStateFileName, getProjectDataFileName} from "@/state/projects.state";
 
 export type StorageMode = 'opfs' | 'memory';
 let _storageMode: StorageMode = 'opfs';

@@ -1,6 +1,7 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DASH_CATALOG_PROJECTS, DASH_PROJECTS_TABLE_NAME} from "@/platform/global-data";
 import {Project, ProjectIconKey} from "@/model/project";
+import {formatValueForSql as lit} from "@/platform/sql-utils";
 
 /**
  * Persistence for the projects registry — the list of projects, stored as a plain relational
@@ -21,24 +22,18 @@ import {Project, ProjectIconKey} from "@/model/project";
 const PROJECTS_TABLE = `"${DASH_CATALOG_PROJECTS}"."main"."${DASH_PROJECTS_TABLE_NAME}"`;
 
 const PROJECTS_SCHEMA = `(
-    id          VARCHAR,
-    name        VARCHAR,
-    icon        VARCHAR,
-    root_path   VARCHAR,
-    created_at  BIGINT,
-    opened_at   BIGINT,
-    sources_sql VARCHAR
+    id        VARCHAR,
+    name      VARCHAR,
+    icon      VARCHAR,
+    location  VARCHAR,
+    root_path VARCHAR,
+    opened_at BIGINT
 )`;
 
 /** Make sure the table exists so the first-run read doesn't fail. */
 async function ensureTable(): Promise<void> {
     const con = ConnectionsService.getInstance().getDatabaseConnection();
     await con.executeQuery(`CREATE TABLE IF NOT EXISTS ${PROJECTS_TABLE} ${PROJECTS_SCHEMA};`, false);
-}
-
-/** A SQL string literal (single-quote escaped). */
-function lit(value: string): string {
-    return `'${value.replace(/'/g, "''")}'`;
 }
 
 /**
@@ -54,22 +49,21 @@ export async function loadProjectsRegistry(): Promise<ProjectsRegistryLoad> {
     await ensureTable();
     const con = ConnectionsService.getInstance().getDatabaseConnection();
     const res = await con.executeQuery(
-        `SELECT id, name, icon, root_path, created_at, opened_at, sources_sql FROM ${PROJECTS_TABLE};`,
+        `SELECT id, name, icon, location, root_path, opened_at FROM ${PROJECTS_TABLE};`,
         false,
     );
     if (res.rows.length === 0) return {status: 'empty'};
 
     const projects: Record<string, Project> = {};
-    for (const [id, name, icon, rootPath, createdAt, openedAt, sourcesSql] of res.rows) {
+    for (const [id, name, icon, location, rootPath, openedAt] of res.rows) {
         projects[String(id)] = {
             id: String(id),
             name: String(name),
             icon: String(icon) as ProjectIconKey,
+            location: String(location),
             rootPath: String(rootPath),
             // WASM hands BIGINTs back as bigint, HTTP as JSON numbers — normalize.
-            createdAt: Number(createdAt),
             openedAt: Number(openedAt),
-            sourcesSql: String(sourcesSql),
         };
     }
     return {status: 'ok', projects};
@@ -79,7 +73,7 @@ export async function loadProjectsRegistry(): Promise<ProjectsRegistryLoad> {
 export async function saveProjectsRegistry(projects: Record<string, Project>): Promise<void> {
     const con = ConnectionsService.getInstance().getDatabaseConnection();
     const rows = Object.values(projects).map((p) =>
-        `(${lit(p.id)}, ${lit(p.name)}, ${lit(p.icon)}, ${lit(p.rootPath)}, ${p.createdAt}, ${p.openedAt}, ${lit(p.sourcesSql)})`,
+        `(${lit(p.id)}, ${lit(p.name)}, ${lit(p.icon)}, ${lit(p.location)}, ${lit(p.rootPath)}, ${p.openedAt})`,
     );
 
     // An empty registry replaces with the bare schema; VALUES needs at least one row. The casts
@@ -88,9 +82,9 @@ export async function saveProjectsRegistry(projects: Record<string, Project>): P
         ? `CREATE OR REPLACE TABLE ${PROJECTS_TABLE} ${PROJECTS_SCHEMA};`
         : `CREATE OR REPLACE TABLE ${PROJECTS_TABLE} AS
            SELECT id::VARCHAR AS id, name::VARCHAR AS name, icon::VARCHAR AS icon,
-                  root_path::VARCHAR AS root_path, created_at::BIGINT AS created_at,
-                  opened_at::BIGINT AS opened_at, sources_sql::VARCHAR AS sources_sql
-           FROM (VALUES ${rows.join(", ")}) AS t(id, name, icon, root_path, created_at, opened_at, sources_sql);`;
+                  location::VARCHAR AS location, root_path::VARCHAR AS root_path,
+                  opened_at::BIGINT AS opened_at
+           FROM (VALUES ${rows.join(", ")}) AS t(id, name, icon, location, root_path, opened_at);`;
     await con.executeQuery(sql, false);
 
     // Flush to the file (WASM otherwise leaves the write in the WAL). The write is still durable if

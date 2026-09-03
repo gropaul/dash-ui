@@ -20,7 +20,7 @@ const JSON_MACRO_SQL = require('./query-result-json-macro.cjs');
 // Mirror of the dash extension's GetDashDirectory() (DuckDB side):
 //   home_dir/.duckdb/extension_data/dash
 // This is the storage root the duckdb-over-http connection discovers via /api/dash-dir;
-// native computes it directly so per-project attach (`${root}${projectId}_dash_state.duckdb`)
+// native computes it directly so per-project attach (`${root}${projectId}.dash.duckdb`)
 // behaves identically to the http path. Returned WITH a trailing separator, per the
 // DatabaseConnection.getStorageRoot() contract.
 //

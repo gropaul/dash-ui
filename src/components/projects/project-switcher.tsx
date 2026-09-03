@@ -91,14 +91,14 @@ export function ProjectSwitcher() {
             setDialog({mode: 'closed'});
             return;
         }
-        const deletedId = dialog.id;
-        removeProject(deletedId);
+        const deleted = projects[dialog.id];
+        removeProject(dialog.id);
         // removeProject reselects the most-recent project; navigate to it.
         const next = useProjectsState.getState();
         const project = next.projects[next.currentProjectId ?? ""];
         if (project) openProject(project.id);
         setDialog({mode: 'closed'});
-        void deleteProjectArtifacts(deletedId);
+        if (deleted) void deleteProjectArtifacts(deleted);
     }
 
     const currentLocation = nav.getCurrentLocation();

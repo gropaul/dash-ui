@@ -3,11 +3,10 @@ import {createWithEqualityFn} from "zustand/traditional";
 import {deleteCache, listCachedIds, loadCache, updateCache} from "@/state/relations-data/functions";
 import {GetRelationStatsLoading, RelationState, RelationStats} from "@/model/relation-state";
 import {LRUList} from "@/platform/lru";
-import {DASH_CATALOG_STATE, N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
+import {N_RELATIONS_DATA_TO_LOAD} from "@/platform/global-data";
 import {GetColumnStats} from "@/model/column-stats";
 import {Column} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {getProjectDashStateFileName} from "@/state/projects.state";
 
 
 export interface CacheResult {

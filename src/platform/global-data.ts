@@ -16,14 +16,14 @@ export const DASH_VIDEO_BASE_URL = 'https://qfsxxbgzapt0b2kj.public.blob.vercel-
 // instead of failing with an explanatory error.
 export const PARAMETERS_SUPPORTED = false
 
-export const DASH_CATALOG_STATE = 'dash' // catalog alias for the per-project state database (cache + relationState)
-export const DASH_CATALOG_DATA = 'dash_data' // catalog alias for the per-project data database (user tables + macros)
+export const DASH_CATALOG_STATE = 'dash' // the project database: user tables in main, app state in the DASH_INTERNAL_SCHEMAS
+export const DASH_CATALOG_CACHE = 'dash_cache' // per-project cache database, never shared
 export const DASH_CATALOG_TEMP = 'dash_temp'
 export const DASH_CATALOG_PROJECTS = 'dash_projects' // catalog alias for the GLOBAL (per-connection) meta database: the projects registry
 
 export const DASH_INTERNAL_CATALOGS = [
     DASH_CATALOG_STATE,
-    DASH_CATALOG_DATA,
+    DASH_CATALOG_CACHE,
     DASH_CATALOG_PROJECTS,
     DASH_CATALOG_TEMP,
 ]
@@ -35,8 +35,27 @@ export const DASH_PROJECTS_TABLE_NAME = 'projects'
 // the storage seam can special-case it without importing the projects state (avoids an import cycle).
 export const DEFAULT_PROJECT_ID = 'default';
 
-export const DASH_CACHE_SCHEMA = 'cache'
 export const DASH_REFS_SCHEMA = 'refs';
+export const DASH_META_SCHEMA = 'dash_meta';
+export const DASH_STATE_SCHEMA = 'dash_state';
+
+// schemas of the project catalog that are not user tables
+export const DASH_INTERNAL_SCHEMAS = [DASH_META_SCHEMA, DASH_STATE_SCHEMA, DASH_REFS_SCHEMA];
+
+// SQL predicate that drops dash's own objects from a catalog listing: the cache database and the
+// internal schemas of the project database. `catalogCol` / `schemaCol` name the columns to test.
+export function dashInternalObjectsFilter(catalogCol: string, schemaCol: string): string {
+    const schemas = DASH_INTERNAL_SCHEMAS.map((s) => `'${s}'`).join(', ');
+    return `${catalogCol} != '${DASH_CATALOG_CACHE}' AND NOT (${catalogCol} = '${DASH_CATALOG_STATE}' AND ${schemaCol} IN (${schemas}))`;
+}
+
+export function getProjectFileName(projectId: string): string {
+    return `${projectId}.dash.duckdb`;
+}
+
+export function getProjectCacheFileName(projectId: string): string {
+    return `${projectId}.cache.duckdb`;
+}
 
 // connection ids
 export const DATABASE_CONNECTION_ID_DUCKDB_WASM = 'duckdb-wasm';
@@ -90,7 +109,7 @@ export const DASH_CACHE_TABLE_PREFIX = 'dash-cache-';
 
 export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
     tableName: 'relationState',
-    schemaName: 'main',
+    schemaName: DASH_STATE_SCHEMA,
     databaseName: DASH_CATALOG_STATE,
 }
 

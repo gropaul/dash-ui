@@ -9,15 +9,18 @@ import {INIT, RelationZustandCombined, useRelationsState} from "@/state/relation
 import {useInitState} from "@/state/init.state";
 import {DatabaseConnection} from "@/model/database-connection";
 import {initProjectSources, teardownProjectSources} from "@/state/sources/replay-sources";
-import {getProjectDashStateFileName, getProjectDataFileName, useProjectsState} from "@/state/projects.state";
+import {useProjectsState} from "@/state/projects.state";
 import {
-    DASH_CACHE_SCHEMA,
-    DASH_CATALOG_DATA,
+    DASH_CATALOG_CACHE,
     DASH_CATALOG_STATE,
     DASH_CATALOG_TEMP,
-    DASH_REFS_SCHEMA
+    DASH_INTERNAL_SCHEMAS,
+    DASH_STORAGE_VERSION,
+    getProjectCacheFileName
 } from "@/platform/global-data";
 import {reregisterMacrosFromRelationState} from "@/state/relations/sql/table-macros";
+import {loadProjectMeta, saveProjectMeta} from "@/state/projects/project-meta-storage";
+import {Project, ProjectMeta} from "@/model/project";
 
 // A persist storage that drops every write. We swap the relation store onto this while clearing the
 // outgoing project's in-memory state, so `setState(INIT)` cannot write an empty blob into either
@@ -43,23 +46,42 @@ function closeOldProject(): void {
     useRelationsState.setState(INIT);
     useRelationDataState.setState(getInitialRelationDataZustandState());
     useCacheStore.getState().clear();
+    useProjectsState.getState().setCurrentMeta(null);
     StorageDuckAPI.resetForProjectSwitch();
 }
 
 /**
- * Point the app at `projectId`, reopen its databases against its files, replay its sources, and
+ * The meta row of the freshly attached project file, mirrored from the registry: the registry is the
+ * local truth for name and icon, the file copy exists so they travel with a shared file. A fresh file
+ * gets a row seeded from the registry entry.
+ */
+async function loadOrSeedProjectMeta(project: Project): Promise<ProjectMeta> {
+    const stored = await loadProjectMeta();
+    const meta: ProjectMeta = {
+        ...(stored ?? {sourcesSql: "", createdAt: Date.now(), layoutVersion: DASH_STORAGE_VERSION}),
+        name: project.name,
+        icon: project.icon,
+    };
+    if (!stored || stored.name !== meta.name || stored.icon !== meta.icon) await saveProjectMeta(meta);
+    return meta;
+}
+
+/**
+ * Point the app at `projectId`, reopen its file and cache database, replay its sources, and
  * rehydrate its workspace.
  *
- *   1. Repoint the storage seam and re-attach the data + state catalogs against the new project's
- *      files (WASM registers the OPFS handles; HTTP reconciles the state DB via initDashCatalog).
- *   2. Replay the project's `sources.sql` (ATTACH / CREATE VIEW / secrets) so its data is back before
- *      relations run.
- *   3. Rehydrate relation state + last-used from the new project's dash file. The rehydrate pipeline
+ *   1. Re-attach the project catalog (`dash`, the project file) and the cache catalog against the new
+ *      project's files (WASM registers the OPFS handles first) and make `dash` the default catalog, so
+ *      unqualified `CREATE TABLE` lands in the project file.
+ *   2. Read the file's meta row (seeding it from the registry for a fresh file), then replay its
+ *      `sources.sql` (ATTACH / CREATE VIEW / secrets) so its data is back before relations run.
+ *   3. Rehydrate relation state + last-used from the file. The rehydrate pipeline
  *      (onRelationStateLoadedFromConnection) drives the init step back to 'complete', hiding the splash.
- *
  */
 async function loadProject(projectId: string, connection: DatabaseConnection): Promise<void> {
 
+    const project = useProjectsState.getState().projects[projectId];
+    if (!project) throw new Error(`Unknown project ${projectId}`);
     useProjectsState.getState().setCurrentProject(projectId);
 
     // create a temporary database in memory that we can use for detaching the others
@@ -67,32 +89,32 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     await connection.executeQuery(`USE ${DASH_CATALOG_TEMP};`, false, false);
 
     // now we can safely detach
-    await connection.executeQuery(`DETACH DATABASE IF EXISTS ${DASH_CATALOG_DATA};`, false, false);
+    await connection.executeQuery(`DETACH DATABASE IF EXISTS ${DASH_CATALOG_CACHE};`, false, false);
     await connection.executeQuery(`DETACH DATABASE IF EXISTS ${DASH_CATALOG_STATE};`, false, false);
 
-    const base_path = await connection.getStorageRoot();
-    const data_path = base_path + getProjectDataFileName(projectId);
-    const state_path = base_path + getProjectDashStateFileName(projectId);
+    const root = await connection.getStorageRoot();
+    const projectPath = root + project.location;
+    const cachePath = root + getProjectCacheFileName(projectId);
 
-    console.log(`Loading project ${projectId} from ${data_path} and ${state_path}`);
+    console.log(`Loading project ${projectId} from ${projectPath} (cache: ${cachePath})`);
 
     if (connection.type === 'duckdb-wasm') {
         const wasm = DuckdbWasmProvider.getInstance();
-        await wasm.attachDatabase(data_path, DASH_CATALOG_DATA);
-        await wasm.attachDatabase(state_path, DASH_CATALOG_STATE);
+        await wasm.attachDatabase(projectPath, DASH_CATALOG_STATE);
+        await wasm.attachDatabase(cachePath, DASH_CATALOG_CACHE);
     } else {
-        await connection.executeQuery(`ATTACH IF NOT EXISTS '${data_path}' AS ${DASH_CATALOG_DATA};`, false, false);
-        await connection.executeQuery(`ATTACH IF NOT EXISTS '${state_path}' AS ${DASH_CATALOG_STATE};`, false, false);
+        await connection.executeQuery(`ATTACH IF NOT EXISTS '${projectPath}' AS ${DASH_CATALOG_STATE};`, false, false);
+        await connection.executeQuery(`ATTACH IF NOT EXISTS '${cachePath}' AS ${DASH_CATALOG_CACHE};`, false, false);
     }
 
-    await connection.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG_STATE}.${DASH_CACHE_SCHEMA};`, false);
-    await connection.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG_STATE}.${DASH_REFS_SCHEMA};`, false);
-
-    // use the data connection as the default table so we can store data into it
-    await connection.executeQuery(`USE ${DASH_CATALOG_DATA};`, false, false);
+    for (const schema of DASH_INTERNAL_SCHEMAS) {
+        await connection.executeQuery(`CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG_STATE}.${schema};`, false);
+    }
+    await connection.executeQuery(`USE ${DASH_CATALOG_STATE};`, false, false);
 
     // Replay the project's data sources before rehydrating relations that may reference them.
     useInitState.getState().setStep('loading-project-connections');
+    useProjectsState.getState().setCurrentMeta(await loadOrSeedProjectMeta(project));
     await initProjectSources();
 
     useInitState.getState().setStep('loading-project-relations');

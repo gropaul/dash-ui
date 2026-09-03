@@ -1,6 +1,6 @@
 import {escapeSQLForStringLiteral} from "@/platform/sql-utils";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DASH_CATALOG_STATE} from "@/platform/global-data";
+import {DASH_CATALOG_CACHE} from "@/platform/global-data";
 
 export interface AstHighlight {
     startOffset: number;
@@ -65,9 +65,9 @@ export function walkAst(node: any, highlights: AstHighlight[], sql: string): voi
         return;
     }
 
-    // BASE_TABLE: highlight the table name identifier (skip internal cache views)
+    // BASE_TABLE: highlight the table name identifier (skip internal cache tables)
     if (node.type === 'BASE_TABLE' && node.table_name && node.query_location < Number.MAX_SAFE_INTEGER
-        && node.catalog_name !== DASH_CATALOG_STATE) {
+        && node.catalog_name !== DASH_CATALOG_CACHE) {
         // query_location points to start of catalog.schema.table — skip catalog and schema prefixes
         let prefixLength = 0;
         if (node.catalog_name) prefixLength += node.catalog_name.length + 1; // "catalog."

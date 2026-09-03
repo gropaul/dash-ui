@@ -1,6 +1,5 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DASH_CATALOG_STATE} from "@/platform/global-data";
-import {DASH_REFS_SCHEMA} from "@/platform/global-data";
+import {DASH_CATALOG_STATE, DASH_REFS_SCHEMA, dashInternalObjectsFilter} from "@/platform/global-data";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {getMacroName} from "@/state/relations/sql/table-macros";
 
@@ -112,7 +111,7 @@ export async function getDatabaseStructure(): Promise<Database[]> {
              JOIN duckdb_databases() d USING (database_oid)
              LEFT JOIN duckdb_tables() t USING (table_oid)
              WHERE c.internal = false
-               AND d.database_name != '${DASH_CATALOG_STATE}'
+               AND ${dashInternalObjectsFilter('d.database_name', 'c.schema_name')}
              ORDER BY d.database_name, c.schema_name, c.table_name, c.column_index`
         );
 

@@ -1,16 +1,18 @@
 import {create} from "zustand";
-import {DEFAULT_PROJECT_ICON, Project, ProjectIconKey} from "@/model/project";
+import {DEFAULT_PROJECT_ICON, Project, ProjectIconKey, ProjectMeta} from "@/model/project";
 import {useDashLocation} from "@/state/routing/use-dash-location";
 import {useEffect} from "react";
 import {
     DASH_CATALOG_PROJECTS,
     DASH_PROJECTS_DATABASE_NAME,
     DEFAULT_PROJECT_ID,
-    DEFAULT_STATE_STORAGE_DESTINATION
+    DEFAULT_STATE_STORAGE_DESTINATION,
+    getProjectFileName
 } from "@/platform/global-data";
 import {loadOrSwitchProject} from "@/state/init/load-or-switch-project";
 import {useInitState} from "@/state/init.state";
 import {loadProjectsRegistry, saveProjectsRegistry} from "@/state/projects/project-registry-storage";
+import {saveProjectMeta} from "@/state/projects/project-meta-storage";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {StateStorageInfo} from "@/model/database-connection";
@@ -19,15 +21,13 @@ import {StateStorageInfo} from "@/model/database-connection";
 // derive a name from). Fixed id so it isn't duplicated across reloads before persistence.
 
 function makeDefaultProject(): Project {
-    const now = Date.now();
     return {
         id: DEFAULT_PROJECT_ID,
         name: "Untitled project",
         icon: DEFAULT_PROJECT_ICON,
+        location: getProjectFileName(DEFAULT_PROJECT_ID),
         rootPath: "/",
-        createdAt: now,
-        openedAt: now,
-        sourcesSql: "",
+        openedAt: Date.now(),
     };
 }
 
@@ -40,7 +40,8 @@ export interface CreateProjectInput {
 interface ProjectsZustand {
     projects: Record<string, Project>;
     currentProjectId: string;
-
+    // The dash_meta row of the loaded project's file; null while no project is open.
+    currentMeta: ProjectMeta | null;
 
     getCurrentProject: () => Project | null;
     getCurrentProjectStorageInfo: () => StateStorageInfo;
@@ -53,15 +54,18 @@ interface ProjectsZustand {
     createProject: (input: CreateProjectInput) => Promise<Project>;
     renameProject: (id: string, name: string) => void;
     setProjectIcon: (id: string, icon: ProjectIconKey) => void;
-    setProjectSources: (id: string, sourcesSql: string) => void;
+    // The manifest belongs to the open project's file, so it can only be edited for that project.
+    setProjectSources: (sourcesSql: string) => void;
     removeProject: (id: string) => void;
     setCurrentProject: (id: string) => void;
+    setCurrentMeta: (meta: ProjectMeta | null) => void;
 }
 
 export const useProjectsState = create<ProjectsZustand>()(
         (set, get) => ({
             projects: {[DEFAULT_PROJECT_ID]: makeDefaultProject()},
             currentProjectId: DEFAULT_PROJECT_ID,
+            currentMeta: null,
             getCurrentProject: () => {
                 const id = get().currentProjectId;
                 return get().projects[id];
@@ -92,16 +96,15 @@ export const useProjectsState = create<ProjectsZustand>()(
             createProject: async ({name, icon, rootPath}) => {
                 const error = get().checkProjectName(name);
                 if (error) throw new Error(error);
-                const now = Date.now();
+                const id = crypto.randomUUID();
                 const project: Project = {
-                    id: crypto.randomUUID(),
+                    id,
                     name: name.trim(),
                     icon: icon ?? DEFAULT_PROJECT_ICON,
+                    location: getProjectFileName(id),
                     // No filesystem in WASM mode, so default to the virtual root.
                     rootPath: rootPath ?? "/",
-                    createdAt: now,
-                    openedAt: now,
-                    sourcesSql: "",
+                    openedAt: Date.now(),
                 };
                 set((s) => ({
                     projects: {...s.projects, [project.id]: project},
@@ -118,6 +121,7 @@ export const useProjectsState = create<ProjectsZustand>()(
                     if (!project) return s;
                     return {projects: {...s.projects, [id]: {...project, name: name.trim()}}};
                 });
+                if (id === get().currentProjectId) updateCurrentMeta({name: name.trim()});
             },
 
             setProjectIcon: (id, icon) => {
@@ -126,14 +130,11 @@ export const useProjectsState = create<ProjectsZustand>()(
                     if (!project) return s;
                     return {projects: {...s.projects, [id]: {...project, icon}}};
                 });
+                if (id === get().currentProjectId) updateCurrentMeta({icon});
             },
 
-            setProjectSources: (id, sourcesSql) => {
-                set((s) => {
-                    const project = s.projects[id];
-                    if (!project) return s;
-                    return {projects: {...s.projects, [id]: {...project, sourcesSql}}};
-                });
+            setProjectSources: (sourcesSql) => {
+                updateCurrentMeta({sourcesSql});
             },
 
             removeProject: (id) => {
@@ -166,8 +167,19 @@ export const useProjectsState = create<ProjectsZustand>()(
                     };
                 });
             },
+
+            setCurrentMeta: (meta) => set({currentMeta: meta}),
         }),
 );
+
+// Change the open project's meta and write it to its file.
+function updateCurrentMeta(patch: Partial<ProjectMeta>): void {
+    const meta = useProjectsState.getState().currentMeta;
+    if (!meta) return;
+    const next = {...meta, ...patch};
+    useProjectsState.setState({currentMeta: next});
+    void saveProjectMeta(next);
+}
 
 // loads the projects from DASH_PROJECTS_DATABASE_NAME to useProjectsState
 export async function loadProjectsIntoStore(): Promise<void> {
@@ -262,12 +274,3 @@ export function useRoutedProject(): { project?: Project; isUnknown: boolean } {
     return {project, isUnknown: !project};
 }
 
-/** (the default DuckDB catalog: user tables). */
-export function getProjectDataFileName(projectId: string): string {
-    return `${projectId}-dash-project-data.duckdb`;
-}
-
-/** (cache tables + persisted relation state + macros). */
-export function getProjectDashStateFileName(projectId: string): string {
-    return `${projectId}-dash-project-state.duckdb`;
-}

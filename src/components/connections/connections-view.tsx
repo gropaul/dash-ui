@@ -41,10 +41,9 @@ const SYSTEM_DATABASES = ['memory', 'system', 'temp'];
  * (sources-health). Editing the SQL / attaching a database rewrites `sources.sql`.
  */
 export function ConnectionsView() {
-    const currentProject = useProjectsState((s) => s.getCurrentProject());
+    const projectId = useProjectsState((s) => s.currentMeta ? s.currentProjectId : undefined);
     const setProjectSources = useProjectsState((s) => s.setProjectSources);
-    const projectId = currentProject?.id;
-    const projectSources = currentProject?.sourcesSql ?? "";
+    const projectSources = useProjectsState((s) => s.currentMeta?.sourcesSql ?? "");
 
     const [mode, setMode] = useState<ViewMode>('manage');
     const [attached, setAttached] = useState<ConnectionRow[]>([]);
@@ -109,7 +108,7 @@ export function ConnectionsView() {
     const saveManifest = useCallback(async (text: string) => {
         setBusy(true);
         try {
-            if (projectId) setProjectSources(projectId, text);
+            if (projectId) setProjectSources(text);
             await initProjectSources();
             await fetchAttached();
         } finally {
@@ -143,7 +142,7 @@ export function ConnectionsView() {
             await connection.executeQuery(statement, false);
             // run directly rather than via the replay, so the ledger has to be told about it
             SourceSession.instance().record(statement);
-            if (projectId) setProjectSources(projectId, appendStatement(projectSources, statement));
+            if (projectId) setProjectSources(appendStatement(projectSources, statement));
             await fetchAttached();
             await useDataSourcesState.getState().refreshAllConnections();
         } finally {
