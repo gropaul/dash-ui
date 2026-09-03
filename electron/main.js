@@ -66,13 +66,19 @@ function registerAppProtocol() {
     });
 }
 
+// DASH_HEADLESS keeps the window hidden (the e2e suite sets it). Hidden windows throttle timers and
+// animation frames, which stalls the app, so throttling is turned off in that case.
+const HEADLESS = process.env.DASH_HEADLESS === '1';
+
 function createWindow() {
     const win = new BrowserWindow({
         width: 1440,
         height: 900,
         title: 'Dash',
+        show: !HEADLESS,
         webPreferences: {
             preload: path.join(__dirname, 'preload.cjs'),
+            backgroundThrottling: !HEADLESS,
         },
     });
 
