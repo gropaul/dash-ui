@@ -71,15 +71,14 @@ no full teardown/reconnect.
   are attached on top and `USE dash` makes the project file current. A switch just detaches those two
   catalogs and re-attaches the new project's files (the provider re-registers the OPFS file handles
   first). The `query_result_json` helper macro is a `TEMP` macro, so it survives catalog swaps.
-- **HTTP**: the same client-driven flow, and it works. The extension wraps every statement in
-  `query_result()`, which runs it on a transient connection, but `ATTACH`/`DETACH` act on the shared
-  `DatabaseInstance`, so they outlive the request. The extension pre-attaches its own `dash.duckdb`
-  at load; the client detaches that and attaches the project's file under the same alias.
+- **HTTP**: the same client-driven flow. The extension holds one connection for the life of the
+  server (dash v0.4.1), so `USE dash` and `TEMP` objects persist from one request to the next just as
+  they do in-process. It pre-attaches its own `dash.duckdb` at load; the client detaches that and
+  attaches the project's file under the same alias.
 
-  What does **not** survive a request is connection-scoped state: `USE dash` and `TEMP` macros are
-  gone by the next statement (`SELECT current_database()` reports `memory`). Nothing depends on the
-  `USE` today because relations qualify their catalog, but unqualified DDL resolves against `memory`
-  over HTTP, not against the project file.
+  Against dash v0.4.0 and earlier every request ran on a throwaway connection: `ATTACH`/`DETACH`
+  still took effect (they act on the shared `DatabaseInstance`), but `USE` and `TEMP` macros did not,
+  so unqualified DDL landed in `memory` instead of the project file.
 
 After attaching, `loadProject` reads the meta row (seeding it from the registry entry for a fresh
 file and refreshing the name/icon copy), replays `sources_sql`, then rehydrates the relation state.
@@ -90,13 +89,12 @@ Relation state writes to `dash.dash_state.relationState` are throttled (`STORAGE
 followed by a `CHECKPOINT` of the `dash` database so the change is flushed to the file. The app bar
 shows a spinner while a write is in flight and nothing once everything is saved.
 
-## TODO
+## Closed
 
-Not yet done:
+Nothing open. Kept for the context these carry:
 
-- **A session over HTTP.** Each request runs on its own connection, so `USE` and `TEMP` macros do not
-  persist. Making unqualified DDL land in the project file needs the server to hold one connection per
-  client.
+- ~~**A session over HTTP.**~~ Done in dash v0.4.1: the server keeps one connection, so `USE` and
+  `TEMP` objects survive across requests and unqualified DDL lands in the project file.
 - ~~**Backend-specific project registry.**~~ Done: the registry lives in the per-connection
   `projects.duckdb` (see [Project registry](#project-registry)), loaded by the `loading-projects`
   init step. Registry reads and the snapshot write both go through the raw (non-`query_result`)
