@@ -11,6 +11,7 @@ import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {ViewPadding} from "@/components/ui/view-padding";
 import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
+import {useAgentPanelShown} from "@/components/agent-chat/agent-chat-panel";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement | null>;
@@ -41,6 +42,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
     const showConfig = props.mode === 'fullscreen' && hasConfigPanel(props);
     const configSplitRatio = useGUIState(state => state.sidebarSplitRatio);
     const setConfigSplitRatio = useGUIState(state => state.setConfigSplitRatio);
+    const agentPanelShown = useAgentPanelShown();
     const configSize = Math.round(configSplitRatio * 100);
 
     function onConfigResize(size: number) {
@@ -63,7 +65,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                     </ResizablePanel>
                     <ResizableHandle/>
                     <ResizablePanel defaultSize={configSize} onResize={onConfigResize} minSize={15}>
-                        <div className="pr-1 w-full h-full overflow-y-auto">
+                        <div className={cn("w-full h-full overflow-y-auto", !agentPanelShown && "pr-1")}>
                             <RelationViewConfig {...props}/>
                         </div>
                     </ResizablePanel>

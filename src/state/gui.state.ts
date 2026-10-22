@@ -77,6 +77,8 @@ export interface GUIZustand {
     sidebarSplitRatio: number;
     // When true, views stretch to full width (no max-width) with a uniform gutter.
     fullWidth: boolean;
+    // Whether the right-hand agent chat panel is open.
+    agentPanelOpen: boolean;
     // Global command palette / entity picker (not persisted — see partialize).
     command: CommandGUIZustand;
 }
@@ -85,6 +87,7 @@ export interface GUIZustandActions {
     setSidebarExpanded: (expanded: boolean) => void;
     setConfigSplitRatio: (ratio: number) => void;
     setFullWidth: (fullWidth: boolean) => void;
+    setAgentPanelOpen: (open: boolean) => void;
 
     relationFileDropEnabled: boolean;
     setRelationFileDropEnabled: (enabled: boolean) => void;
@@ -111,6 +114,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             settings: INITIAL_SETTINGS_STATE,
             sidebarSplitRatio: 0.3,
             fullWidth: true,
+            agentPanelOpen: false,
             command: INITIAL_COMMAND_STATE,
 
             setRelationFileDropEnabled: (enabled: boolean) => {
@@ -167,6 +171,10 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
 
             setFullWidth: (fullWidth: boolean) => {
                 set({fullWidth});
+            },
+
+            setAgentPanelOpen: (open: boolean) => {
+                set({agentPanelOpen: open});
             },
 
             openCommand: (request: CommandRequest) => {

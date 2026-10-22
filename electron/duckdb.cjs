@@ -88,4 +88,4 @@ function initDuckDB() {
     return initPromise;
 }
 
-module.exports = { initDuckDB };
+module.exports = { initDuckDB, getDashDirectory };

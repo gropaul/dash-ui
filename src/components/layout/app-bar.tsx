@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useState} from "react";
-import {AlertTriangle, Bug, BookOpen, HelpCircle, LoaderCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
+import {AlertTriangle, Bot, Bug, BookOpen, HelpCircle, LoaderCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
 import {AnimatePresence, motion} from "framer-motion";
 import {Button} from "@/components/ui/button";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
@@ -18,6 +18,7 @@ import {useGUIState} from "@/state/gui.state";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {WorkspacePathBreadcrumb} from "@/components/layout/workspace-path-breadcrumb";
+import {useAgentsAvailable} from "@/components/agent-chat/agent-chat-panel";
 import {NavHistoryButtons} from "@/components/layout/nav-history-buttons";
 import {ProjectSwitcher} from "@/components/projects/project-switcher";
 import {openSearchCommand} from "@/components/workbench/global-command";
@@ -58,8 +59,18 @@ function AppBarActions() {
     const openSettingsTab = useGUIState((s) => s.openSettingsTab);
     const fullWidth = useGUIState((s) => s.fullWidth);
     const setFullWidth = useGUIState((s) => s.setFullWidth);
+    const agentPanelOpen = useGUIState((s) => s.agentPanelOpen);
+    const setAgentPanelOpen = useGUIState((s) => s.setAgentPanelOpen);
+    const agentsAvailable = useAgentsAvailable();
     return (
         <>
+            {agentsAvailable && (
+                <TooltipWrapper message="Agent chat">
+                    <Button variant={agentPanelOpen ? "secondary" : "ghost"} size="icon" aria-label="Agent chat" onClick={() => setAgentPanelOpen(!agentPanelOpen)}>
+                        <Bot/>
+                    </Button>
+                </TooltipWrapper>
+            )}
             <Button variant="ghost" size="icon" aria-label="Settings" onClick={() => openSettingsTab('connection')}>
                 <Settings/>
             </Button>
