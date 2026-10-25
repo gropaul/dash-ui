@@ -7,7 +7,7 @@ import {IRelationView} from "@/model/relation-state/relation-view-abstract";
 import {RelationViewSlider} from "@/model/relation-state/relation-view-slider";
 import {RelationViewText} from "@/model/relation-state/relation-view-text";
 import type {ComponentType} from "react";
-import {expandPageRefs} from "@/state/relations/sql/page-refs";
+import {expandPageRefs, missingRefs} from "@/state/relations/sql/page-refs";
 
 // singleton class, all RelationViews need to be registered here
 export class ViewManager {
@@ -54,6 +54,9 @@ export class ViewManager {
 
     async buildQuery(relation: RelationState): Promise<QueryBuildResult> {
         const viewType = relation.viewState.selectedView;
+        // A ref to a query or block that isn't there would fail as an unknown macro; say what is missing instead.
+        const missing = missingRefs(relation.id, relation.query.activeBaseQuery);
+        if (missing.length > 0) throw new Error(`${missing.join(', ')} not found`);
         const activeBaseQuery = await expandPageRefs(relation.id, relation.query.activeBaseQuery, r => this.buildMacroQuery(r));
         return this.views[viewType].buildQuery({...relation, query: {...relation.query, activeBaseQuery}});
     }

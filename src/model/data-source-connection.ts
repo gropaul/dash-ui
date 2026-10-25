@@ -1,3 +1,4 @@
+import type {RelationSource} from "@/model/relation";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {TreeContextMenuFactory} from "@/components/basics/files/tree-explorer";
 import {ConnectionStatus} from "@/model/database-connection";
@@ -32,7 +33,8 @@ export interface DataSourceConnection {
     dataSources: { [key: string]: DataSource };
     loadDataSources: () => Promise<{ [key: string]: DataSource }>;
     loadChildrenForDataSource: (id_path: string[]) => Promise<{ [key: string]: DataSource }>;
-    onDataSourceClick: (id_path: string[]) => void;
+    /** What a click on a data source opens; a table or file is returned, for the view to save as a query. */
+    onDataSourceClick: (id_path: string[]) => Promise<RelationSource | undefined>;
     dataSourceContextMenuFactory?: TreeContextMenuFactory;
 
 }

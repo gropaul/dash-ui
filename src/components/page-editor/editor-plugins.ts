@@ -54,7 +54,7 @@ import {isMovableBlock} from "@/components/page-editor/block-moves";
 import {ListTabPlugin} from "@/components/page-editor/block-types";
 import {pageMarkdownRules} from "@/components/page-editor/markdown";
 import {LinkElement} from "@/components/page-editor/link-element";
-import {BlockInputPlugin} from "@/components/page-editor/block-relation";
+import {PagePathPlugin} from "@/components/page-editor/block-relation";
 
 const LIST_TARGETS = [...KEYS.heading, KEYS.p, KEYS.blockquote, KEYS.codeBlock];
 
@@ -92,7 +92,7 @@ export const PAGE_EDITOR_PLUGINS = [
     ColumnPlugin.withComponent(ColumnGroupElement),
     ColumnItemPlugin.withComponent(ColumnElement),
     RelationBlockPlugin,
-    BlockInputPlugin,
+    PagePathPlugin,
     LinkPlugin.withComponent(LinkElement),
     MarkdownPlugin.configure({options: {remarkPlugins: [remarkGfm, remarkMdx], rules: pageMarkdownRules}}),
     DndPlugin.configure({render: {aboveNodes: BlockDraggable}}),

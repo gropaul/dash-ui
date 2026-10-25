@@ -1,12 +1,11 @@
 import {DataSourceElement} from "@/model/data-source-connection";
+import {saveSourceAsQuery} from "@/components/workspace/file-actions";
 import React from "react";
 import {SchemaState} from "@/model/schema-state";
 import {ExternalLink, Sheet} from "lucide-react";
 import {RelationSourceTable} from "@/model/relation";
-import {useRelationsState} from "@/state/relations.state";
 import {CardView} from "@/components/basics/basic-view/card-view";
 import {ValueIcon} from "@/components/relation/common/value-icon";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 
@@ -17,7 +16,6 @@ interface SchemaRelationViewProps {
 
 export function SchemaRelationView(props: SchemaRelationViewProps) {
 
-    const showRelation = useRelationsState((state) => state.showRelationFromSource);
 
     function onShowRelation() {
         const relationSourceTable: RelationSourceTable = {
@@ -27,7 +25,7 @@ export function SchemaRelationView(props: SchemaRelationViewProps) {
             tableName: props.table.name,
         }
 
-        showRelation(props.schema.connectionId, relationSourceTable, DEFAULT_RELATION_VIEW_PATH);
+        saveSourceAsQuery(relationSourceTable);
     }
 
 

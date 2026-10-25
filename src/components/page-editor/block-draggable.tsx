@@ -19,9 +19,8 @@ import {BLOCK_TYPES, getElementType, selectBlocks, setBlockType} from "@/compone
 import {BlockTypeButton} from "@/components/page-editor/add-menu";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {VIEW_MODES} from "@/components/relation/settings/view-mode-picker";
-import {headerForViewType, useBlockRelation, useBlockRelations} from "@/components/page-editor/block-relation";
+import {useBlockFullscreen, useBlockRelation} from "@/components/page-editor/block-relation";
 import {RelationViewType} from "@/model/relation-view-state";
-import {TRelationBlock} from "@/components/page-editor/model";
 import {
     canDrop,
     getEntries,
@@ -67,7 +66,7 @@ function Draggable(props: PlateElementProps) {
     const isRow = element.type === KEYS.columnGroup;
     // Relation blocks add the relation buttons (run, fullscreen); in view mode those are all that's left.
     const relationBlock = useBlockRelation(element);
-    const setFullscreen = useBlockRelations(s => s.setFullscreen);
+    const openFullscreen = useBlockFullscreen(s => s.open);
     const showBar = !isRow && (!readOnly || !!relationBlock);
     const elementType = getElementType(element);
     const textType = elementType ? BLOCK_TYPES.find(t => t.key === elementType) ?? BLOCK_TYPES.find(t => t.key === KEYS.p)! : undefined;
@@ -106,15 +105,8 @@ function Draggable(props: PlateElementProps) {
         editor.setOption(DndPlugin, 'draggingId', multiSelected ? withFullRows(editor, selectionIds()) : id);
     };
 
-    // An inline block's view type lives in the fence's `view:` line and the block rebuilds its relation from
-    // it; a reference changes its relation.
-    const setChartView = (viewType: RelationViewType) => {
-        const path = editor.api.findPath(element);
-        if (!relationBlock || !path) return;
-        if (relationBlock.isReference) return relationBlock.actions.setRelationViewType(viewType);
-        const header = {...(element as TRelationBlock).header, view: headerForViewType(relationBlock.relation, viewType)};
-        editor.tf.setNodes<TRelationBlock>({header}, {at: path});
-    };
+    // The view type goes into the fence's `view:` line through the block's relation.
+    const setChartView = (viewType: RelationViewType) => relationBlock?.actions.setRelationViewType(viewType);
 
     // A row added from a block inside a column goes below that whole row; rows don't nest.
     const insertBelow = (node: TElement) => {
@@ -171,7 +163,7 @@ function Draggable(props: PlateElementProps) {
                             runState: relationBlock.relation.executionState,
                             onRun: () => relationBlock.actions.updateRelationDataWithBaseQuery(relationBlock.relation.query.baseQuery),
                             onStopRun: relationBlock.actions.cancelQuery,
-                            onFullscreen: () => setFullscreen({relationId: relationBlock.relation.id, blockId: id}),
+                            onFullscreen: () => openFullscreen(id),
                         })}
                         onRemove={readOnly ? undefined : onRemove}
                     />

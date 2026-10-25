@@ -5,10 +5,8 @@ import {
     returnEmptyErrorState,
     setRelationRunning,
 } from '@/model/relation-state';
-import {useRelationsState} from '@/state/relations.state';
 import {sanitizeMacroName} from '@/platform/sql-utils';
 import {extractMacroRefs} from './table-macros';
-import {registerRelationMacro} from './table-macros';
 import {getDownstreamQueue} from './dag-execution';
 
 /**
@@ -37,20 +35,9 @@ function buildRelationEdges(relations: Record<string, RelationState>): Edge[] {
 }
 
 /**
- * Re-run every relation downstream of `relationId`, sequentially in topological order.
- *
- * Uses the raw store `updateRelation` + `executeQueryOfRelation` directly (like the canvas'
- * refreshDownstream) so it does NOT re-dispatch relation events — no feedback loop.
+ * Re-runs every relation of `getRelations()` downstream of `relationId`, sequentially in topological order. Uses
+ * `update` and `executeQueryOfRelation` directly, so it doesn't dispatch relation events again: no feedback loop.
  */
-export async function refreshDownstreamRelations(relationId: string): Promise<void> {
-    await refreshDownstreamIn(
-        relationId,
-        () => useRelationsState.getState().relations,
-        (r: RelationState) => useRelationsState.getState().updateRelation(r),
-    );
-}
-
-/** `refreshDownstreamRelations` over any set of relations, e.g. ones kept outside the relations store. */
 export async function refreshDownstreamIn(
     relationId: string,
     getRelations: () => Record<string, RelationState>,
@@ -66,7 +53,6 @@ export async function refreshDownstreamIn(
             update(setRelationRunning(relation));
             const executed = await executeQueryOfRelation({...relation});
             update(executed);
-            await registerRelationMacro(relation);
         } catch (e) {
             update(returnEmptyErrorState(setRelationRunning(relation), e));
         }

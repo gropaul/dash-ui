@@ -1,5 +1,4 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {referencedRelationIds} from "@/model/dashboard-state";
 import {SQLToolDescription} from "@/components/chat/model/promts";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
@@ -10,11 +9,10 @@ import {ChartQueryParameters} from "@/model/relation-state/relation-view-chart";
 import z from 'zod';
 import {tool} from "ai";
 import {RelationActions} from "@/state/relations/actions/static-actions";
-import {useRelationsState} from "@/state/relations.state";
-import {getRelationActions} from "@/state/relations/actions/end-user-actions";
+import {useSurfaces} from "@/state/workspace/surfaces.state";
 import {getAvailableTargets, isTargetEnabled} from "@/components/chat/model/chat-context";
 import {TableViewConfigSchema} from "@/model/relation-view-state/table";
-import {deepClone, DeepPartial} from "@/platform/object-utils";
+import {DeepPartial} from "@/platform/object-utils";
 import {updateRelationWithPartial} from "@/state/relations/actions/advanced-actions";
 import {useLanguageModelState} from "@/state/language-model.state";
 
@@ -201,12 +199,14 @@ export const ChartTool = tool({
 
 type TargetType = 'chat' | 'dashboard' | 'relation';
 
+// Targets other than the chat are files: a page or a query, by path.
 function getTargetType(target: string): TargetType {
     if (target === 'chat') return 'chat';
-    if (target.startsWith('dashboard')) return 'dashboard';
-    if (target.startsWith('relation')) return 'relation';
-    throw new Error(`Unknown target type for target "${target}".`);
+    return target.endsWith('.md') ? 'dashboard' : 'relation';
 }
+
+// Until the agent writes through the workspace store (dev/workspace-files.md), it changes no files.
+const WRITES_OFF = 'Error: Changing the project\'s files from the chat is turned off for now. Use "chat" as the target.';
 
 const TableToolInputSchema = z.object({
     target: z.string().describe(TARGET_DESCRIPTION),
@@ -236,7 +236,7 @@ function GetBase(targetId: string, sql: string, viewType: RelationViewType): Rel
     const targetType = getTargetType(targetId);
     let base = getDefaultRelationBockData(sql, viewType);
     if (targetType === 'relation') {
-        base = useRelationsState.getState().relations[targetId];
+        base = useSurfaces.getState().relations[targetId] ?? base;
     }
     return base;
 }
@@ -259,25 +259,8 @@ async function RouteAndApplyTarget(target: string, data: RelationState): Promise
                 return executed;
             }
         case 'relation':
-            const updateRelation = useRelationsState.getState().updateRelation;
-            const actions = getRelationActions({
-                mode: 'fullscreen',
-                relationState: data,
-                updateRelation: updateRelation
-            });
-            useRelationsState.getState().updateRelation(deepClone(data));
-            await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
-            return `Relation was updated successfully.`;
-        case 'dashboard': {
-            // Persist the built relation, run it, then add a block referencing it —
-            // the same canonical add-to-dashboard path the UI uses.
-            const state = useRelationsState.getState();
-            state.addNewRelation(data.connectionId, [], data, false);
-            const dashActions = getRelationActions({mode: 'embedded', relationState: data, updateRelation: state.updateRelation});
-            await dashActions.updateRelationDataWithBaseQuery(data.query.baseQuery);
-            state.addRelationToDashboard(target, data.id);
-            return `Added to dashboard "${target}".`;
-        }
+        case 'dashboard':
+            return WRITES_OFF;
     }
 }
 
@@ -316,18 +299,7 @@ export const MarkdownTool = tool({
             return markdown;
         }
 
-        // Dashboard target: add the markdown at the end of the page
-        if (target.startsWith('dashboard')) {
-            useRelationsState.getState().addMarkdownToDashboard(target, markdown);
-            return `Markdown was added successfully to the dashboard.`;
-        }
-
-        // Relation target: not applicable
-        if (target.startsWith('relation')) {
-            return `Error: Cannot add markdown to a relation tab. Use a dashboard target instead.`;
-        }
-
-        return `Error: Unknown target "${target}".`;
+        return WRITES_OFF;
     }
 });
 
@@ -350,19 +322,11 @@ export const ReadTargetTool = tool({
             case 'chat':
                 return 'Error: Cannot read the chat target.';
 
-            case 'dashboard': {
-                const dashboard = useRelationsState.getState().dashboards[targetId];
-                if (!dashboard) return `Error: Dashboard "${targetId}" not found in state.`;
-                return JSON.stringify({
-                    name: target.name,
-                    type: 'dashboard',
-                    markdown: dashboard.markdown ?? '',
-                    relationIds: referencedRelationIds(dashboard.markdown ?? ''),
-                });
-            }
+            case 'dashboard':
+                return 'Error: Pages cannot be read from the chat for now.';
 
             case 'relation': {
-                const relation = useRelationsState.getState().relations[targetId];
+                const relation = useSurfaces.getState().relations[targetId];
                 if (!relation) return `Error: Relation "${targetId}" not found in state.`;
                 const columns = relation.viewState.schema?.map(c => `${c.name} (${c.type})`) ?? [];
                 return JSON.stringify({

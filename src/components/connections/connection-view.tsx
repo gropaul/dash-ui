@@ -1,4 +1,5 @@
 import {TreeExplorer} from "@/components/basics/files/tree-explorer";
+import {saveSourceAsQuery} from "@/components/workspace/file-actions";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import React from "react";
 import {useDataSourcesState} from "@/state/data-sources.state";
@@ -18,7 +19,8 @@ export function ConnectionView(props: ConnectionViewProps) {
     const loadChildrenForDataSource = useDataSourcesState((state) => state.loadChildrenForDataSource);
 
     async function onElementClick(connection_id: string, id_path: string[]) {
-        ConnectionsService.getInstance().getSourceConnection(connection_id).onDataSourceClick(id_path);
+        const source = await ConnectionsService.getInstance().getSourceConnection(connection_id).onDataSourceClick(id_path);
+        if (source) saveSourceAsQuery(source);
     }
 
     function getContextMenuFactory(connection_id: string) {

@@ -1,49 +1,48 @@
 import {RelationState} from "@/model/relation-state";
-import {cleanAndSplitSQL, removeSemicolon, sanitizeMacroName} from "@/platform/sql-utils";
+import {cleanAndSplitSQL, removeSemicolon} from "@/platform/sql-utils";
 import {replaceRefCalls} from "@/platform/sql-refs";
+import {pageOfSurface, surfacesOfPage} from "@/state/workspace/surfaces.state";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {queryByName} from "@/state/workspace/file-references";
+import {blockNamesOf, sqlFences} from "@/state/workspace/page-text";
+import {buildRelation, splitHeader} from "@/state/workspace/relation-config";
+import {extractMacroRefs} from "@/state/relations/sql/table-macros";
 
 /**
  * Blocks of a page read each other through `refs.<name>()` without any macro in the database: when a block
  * runs, each such call naming another block of its page is replaced by that block's query, with its current
- * pick. A call naming no block of the page stays as it is and calls the macro of a project relation.
+ * pick. A call naming no block of the page stays as it is and calls the macro of a query file.
  */
 
-export interface PageScope {
-    /** The relations of the open page's blocks, keyed by id. */
-    relations: () => Record<string, RelationState>;
-    /** Renames a block of the page, and with `updateReferences` its refs in the other blocks. */
-    rename: (relationId: string, name: string, updateReferences: boolean) => void;
-}
-
-const scopes = new Set<PageScope>();
-
-export function addPageScope(scope: PageScope): () => void {
-    scopes.add(scope);
-    return () => scopes.delete(scope);
-}
-
-function scopeOf(relationId: string): { scope: PageScope, relations: Record<string, RelationState> } | undefined {
-    for (const scope of scopes) {
-        const relations = scope.relations();
-        if (relations[relationId]) return {scope, relations};
+/**
+ * The relations of the page's blocks, by surface key: as shown, or for a block not on screen yet, as its fence
+ * builds it. Only the blocks the page's text still has count; a removed block's state stays in memory a while.
+ */
+export function blocksOfPage(page: string): Record<string, RelationState> {
+    const markdown = useWorkspace.getState().files[page] ?? '';
+    const shown = surfacesOfPage(page);
+    const blocks: Record<string, RelationState> = {};
+    for (const relation of Object.values(shown)) {
+        if (!relation.viewState.displayName) blocks[relation.id] = relation;
     }
+    for (const {name, body} of sqlFences(markdown)) {
+        if (!name) continue;
+        const id = `${page}#${name}`;
+        blocks[id] = shown[id] ?? buildRelation({id, name, ...splitHeader(body)});
+    }
+    return blocks;
 }
 
-function pageOf(relationId: string): Record<string, RelationState> | undefined {
-    return scopeOf(relationId)?.relations;
-}
-
-export function isPageBlock(relationId: string): boolean {
-    return pageOf(relationId) !== undefined;
-}
-
-/** The other blocks of the block's page. */
-export function otherPageBlocks(relationId: string): RelationState[] {
-    return Object.values(pageOf(relationId) ?? {}).filter(r => r.id !== relationId);
-}
-
-export function renamePageBlock(relationId: string, name: string, updateReferences: boolean) {
-    scopeOf(relationId)?.scope.rename(relationId, name, updateReferences);
+/** The named blocks of the page `relationId` belongs to, by name; none for a query. */
+function namedBlocksOf(relationId: string): Map<string, RelationState> {
+    const page = pageOfSurface(relationId);
+    const byName = new Map<string, RelationState>();
+    if (!page) return byName;
+    for (const relation of Object.values(blocksOfPage(page))) {
+        const name = relation.viewState.displayName.toLowerCase();
+        if (name) byName.set(name, relation);
+    }
+    return byName;
 }
 
 /**
@@ -58,13 +57,8 @@ export async function expandPageRefs(
     buildRefQuery: (relation: RelationState) => Promise<string>,
     expanding: Set<string> = new Set([relationId]),
 ): Promise<string> {
-    const page = pageOf(relationId);
-    if (!page) return sql;
-    const byName = new Map<string, RelationState>();
-    for (const relation of Object.values(page)) {
-        const name = sanitizeMacroName(relation.viewState.displayName);
-        if (!byName.has(name) && !expanding.has(relation.id)) byName.set(name, relation);
-    }
+    const byName = new Map([...namedBlocksOf(relationId)].filter(([, relation]) => !expanding.has(relation.id)));
+    if (byName.size === 0) return sql;
 
     const used = new Set<string>();
     replaceRefCalls(sql, name => {
@@ -83,4 +77,12 @@ export async function expandPageRefs(
         subqueries.set(name, `(${removeSemicolon(statements.at(-1) ?? '')})`);
     }
     return [...setup, replaceRefCalls(sql, name => subqueries.get(name))].join('\n');
+}
+
+/** The `refs.<name>()` calls of `sql` that name neither a query file nor, for a block, a block of its page. */
+export function missingRefs(relationId: string, sql: string): string[] {
+    const files = useWorkspace.getState().files;
+    const page = pageOfSurface(relationId);
+    const blocks = blockNamesOf(page ? files[page] ?? '' : '');
+    return extractMacroRefs(sql).filter(name => !blocks.has(name.toLowerCase()) && !queryByName(files, name));
 }

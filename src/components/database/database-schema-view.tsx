@@ -1,10 +1,10 @@
 import {DataSourceGroup} from "@/model/data-source-connection";
+import {saveSourceAsQuery} from "@/components/workspace/file-actions";
 import {CardView} from "@/components/basics/basic-view/card-view";
 import React from "react";
 import {RelationSourceTable} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {ExternalLink, Network} from "lucide-react";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {GetSchemaState} from "@/state/data-source/duckdb-helper";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
@@ -19,7 +19,6 @@ interface DatabaseSchemaViewProps {
 
 export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
 
-    const showRelation = useRelationsState((state) => state.showRelationFromSource);
     const showEntity = useRelationsState((state) => state.addEntity);
 
     function onShowSchema() {
@@ -34,7 +33,7 @@ export function DatabaseSchemaView(props: DatabaseSchemaViewProps) {
             schema: props.schema.name,
             tableName: tableName,
         }
-        showRelation(props.connectionId, relationSourceTable, DEFAULT_RELATION_VIEW_PATH);
+        saveSourceAsQuery(relationSourceTable);
     }
 
 

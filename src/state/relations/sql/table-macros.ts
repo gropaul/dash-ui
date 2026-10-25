@@ -1,14 +1,9 @@
 import {DASH_CATALOG_STATE, DASH_REFS_SCHEMA} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
 import {extractParameters, ParameterDefinition} from "@/model/relation-view-state/parameters";
-import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
 import {removeComments, sanitizeMacroName} from "@/platform/sql-utils";
-import {isPageBlock} from "@/state/relations/sql/page-refs";
-import {callsRef} from "@/platform/sql-refs";
 
-import {useDatabaseState} from "@/state/database.state";
 import {ViewManager} from "@/model/relation-state/relation-view";
 import {RelationState} from "@/model/relation-state";
 
@@ -133,15 +128,6 @@ export function extractMacroRefs(sqlRaw: string): string[] {
     return [...new Set(refs)];
 }
 
-/** The relations of the project, other than `excludeId`, whose SQL calls `refs.<name>(…)`. */
-export function findMacroReferences(name: string, excludeId: string): RelationWithOrigin[] {
-    return getAllRelations().filter(({relation}) => relation.id !== excludeId && callsRef(relation.query.baseQuery ?? '', name));
-}
-
-export async function checkMacroName(_relationName: string): Promise<string | null> {
-    return null;
-}
-
 /**
  * Register a relation as a table macro in DuckDB.
  * Uses TEMP macro if database is read-only.
@@ -150,8 +136,6 @@ export async function checkMacroName(_relationName: string): Promise<string | nu
 export async function registerRelationMacro(
     relationState: RelationState
 ): Promise<void> {
-    // Blocks of a page are expanded into the queries reading them instead (page-refs.ts).
-    if (isPageBlock(relationState.id)) return;
     const sql = await generateCreateMacroSQLInternal(relationState);
     try {
         await ConnectionsService.getInstance().executeQuery(sql);
@@ -175,39 +159,6 @@ export async function dropRelationMacro(relationName: string): Promise<void> {
     }
 }
 
-/**
- * Handle relation actions for macro management.
- * Note: SQL editor already debounces onCodeChange (300ms), so no extra debouncing needed here.
- */
-async function handleRelationAction(action: RelationEvent): Promise<void> {
-    if (action.new && isPageBlock(action.new.id)) return;
-    switch (action.type) {
-        case 'CREATE':
-        case 'UPDATE_SQL':
-        case 'UPDATE_PARAMS':
-        case 'UPDATE_SELECTION': {
-            await registerRelationMacro(action.new!);
-            break;
-        }
-        case 'DELETE':
-            await dropRelationMacro(action.old!.viewState.displayName);
-            break;
-        case 'RENAME': {
-            await dropRelationMacro(action.old!.viewState.displayName);
-            await registerRelationMacro(action.new!);
-            break;
-        }
-    }
-    await useDatabaseState.getState().refresh(['structure']);
-}
-
-// Subscribe to relation actions
-onRelationEvent(handleRelationAction);
-
-/**
- * Re-register all existing relation macros.
- * Called when the database connection changes, since macros are not persistent across connections.
- */
 /**
  * Build a dependency map for a set of macros.
  * For each key, returns the list of other keys it depends on (references in its SQL).
@@ -261,26 +212,4 @@ export function orderMacroStatements(macros: { key: string; createSql: string }[
     const ordered = topologicalSort(macros.map(m => m.key), deps);
     const sqlByKey = new Map(macros.map(m => [m.key, m.createSql]));
     return ordered.map(key => sqlByKey.get(key)!);
-}
-
-export async function reregisterMacrosFromRelationState(): Promise<void> {
-    const entries = getAllRelations();
-
-    const macros: { key: string; createSql: string }[] = [];
-    for (const {relation} of entries) {
-        if (relation.viewState.displayName && relation.query.baseQuery) {
-            const key = sanitizeMacroName(relation.viewState.displayName);
-            const createSql = await generateCreateMacroSQLInternal(relation);
-            macros.push({key, createSql});
-        }
-    }
-
-    const orderedSqls = orderMacroStatements(macros);
-    for (const sql of orderedSqls) {
-        try {
-            await ConnectionsService.getInstance().executeQuery(sql);
-        } catch (error) {
-            console.error(`Failed to re-register relation macro: ${sql}`, error);
-        }
-    }
 }

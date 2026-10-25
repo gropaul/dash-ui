@@ -1,11 +1,6 @@
 'use client';
 
 import React from "react";
-import {ArrowUpRight} from "lucide-react";
-import {TreeNode} from "@/components/basics/files/tree-utils";
-import {useRelationsState} from "@/state/relations.state";
-import {crumbsForSegments, objectSlugPathForId} from "@/state/routing/core-model";
-import {buildRoutableTree} from "@/state/routing/routable-tree";
 import {useDashLocation} from "@/state/routing/use-dash-location";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {
@@ -23,27 +18,25 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {useProjectsState, useRoutedProject} from "@/state/projects.state";
+import {useGUIState} from "@/state/gui.state";
+import {ancestorsOf} from "@/state/workspace/paths";
+import {displayName} from "@/state/workspace/workspace-tree";
 
 // Above this many crumbs the middle collapses into an expandable ellipsis
 // (first + … + last two), keeping the bar on a single line.
 const MAX_VISIBLE = 4;
 
 /**
- * The path to the currently-routed node, rendered as a shadcn Breadcrumb. Handles the
- * project sections:
- *  - `/projects/<id>/workspace/...` — URL-derived from the editor tree via `crumbsForSegments`.
- *    Dashboards/canvases expose their relations as virtual children (see routable-tree),
- *    so a relation opened from one shows as `…/Dashboard/Relation` — an alias, flagged
- *    with a trailing link to its real location. Reactive to renames via `editorElements`.
- *  - `/projects/<id>/data/...` — the catalog; a literal `Catalog / db / schema / table
- *    [/ column]` trail built straight from the URL segments (see `dataTrail`).
+ * The path to the currently-routed view, rendered as a shadcn Breadcrumb. Handles the project sections:
+ *  - `/projects/<id>/workspace/<path>`: the open file's path. A folder segment opens that folder in the file
+ *    tree, since folders have no view of their own.
+ *  - `/projects/<id>/data/...`: the catalog; a literal `Catalog / db / schema / table [/ column]` trail built
+ *    straight from the URL segments (see `dataTrail`).
  */
 /** There is no project-name root crumb: the ProjectSwitcher next to this serves as the root. */
 export function WorkspacePathBreadcrumb() {
     const location = useDashLocation();
-    const editorElements = useRelationsState((s) => s.editorElements);
     const project = useProjectsState((s) => s.getCurrentProject());
     const {isUnknown} = useRoutedProject();
     const nav = DashNavigator.instance();
@@ -54,7 +47,6 @@ export function WorkspacePathBreadcrumb() {
 
     let trail: BreadCrumb[];
     if (location.basePath === "project" && project) {
-        const toWorkspace = (segments: string[]) => nav.getUrlFromLocation(DashLocations.CurrentProjectElement(segments));
         if (location.section === "connections") {
             trail = [{
                 id: "__connections__", label: "Connections",
@@ -63,13 +55,7 @@ export function WorkspacePathBreadcrumb() {
         } else if (location.section === "data") {
             trail = dataTrail(location.segments);
         } else {
-            // Augmented tree (getState is fine — re-render is driven by editorElements + location).
-            const st = useRelationsState.getState();
-            const tree = buildRoutableTree(editorElements, st.relations, st.dashboards, st.canvas);
-            // At the workspace root this is empty — the switcher already names the project.
-            trail = crumbsForSegments(tree, location.path).map((c): BreadCrumb => ({
-                id: c.id, label: c.label, to: toWorkspace(c.segments), type: c.type,
-            }));
+            trail = workspaceTrail(location.projectId, location.path);
         }
     } else {
         // Project list: the switcher is enough; nothing to show here.
@@ -79,13 +65,6 @@ export function WorkspacePathBreadcrumb() {
     // With the root hidden, a leading separator visually joins the switcher to the first crumb.
     const leadingSeparator = trail.length > 0;
 
-    // Only a leaf under a dashboard/canvas is an alias (relations have no children). Resolve the
-    // relation's canonical location in the raw tree: both its URL and a human-readable path for
-    // the tooltip.
-    const last = trail[trail.length - 1];
-    const prev = trail[trail.length - 2];
-    const alias = resolveAlias(editorElements, project?.name ?? 'Loading ...', last, prev);
-
     return (
         <Breadcrumb className="min-w-0">
             <BreadcrumbList className="flex-nowrap gap-2 sm:gap-2">
@@ -94,7 +73,7 @@ export function WorkspacePathBreadcrumb() {
                         {(i > 0 || leadingSeparator) && <BreadcrumbSeparator className="-mx-1 text-muted-foreground">/</BreadcrumbSeparator>}
                         {entry.kind === "ellipsis"
                             ? renderEllipsis(entry.hidden)
-                            : renderCrumb(entry.crumb, entry.isLast, entry.isLast ? alias : undefined)}
+                            : renderCrumb(entry.crumb, entry.isLast)}
                     </React.Fragment>
                 ))}
             </BreadcrumbList>
@@ -102,28 +81,26 @@ export function WorkspacePathBreadcrumb() {
     );
 }
 
-/** A rendered breadcrumb: a label plus (optionally) the URL it links to. */
+/** A rendered breadcrumb: a label plus (optionally) the URL it links to or what a click does. */
 interface BreadCrumb {
     id: string;
     label: string;
     to?: string;
+    onClick?: () => void;
     type: string;
 }
 
-interface AliasInfo {
-    to: string;      // canonical /projects/... URL of the original
-    label: string;   // human-readable path, e.g. "Finance/Q4 Revenue"
-}
-
-function resolveAlias(editorElements: TreeNode[], projectName: string, last: BreadCrumb, prev?: BreadCrumb): AliasInfo | undefined {
-    if (!prev || (prev.type !== "dashboards" && prev.type !== "canvas")) return undefined;
-    const segments = objectSlugPathForId(editorElements, last.id);
-    if (!segments) return undefined;
-    const nav = DashNavigator.instance();
-    return {
-        to: nav.getUrlFromLocation(DashLocations.CurrentProjectElement(segments)),
-        label: [projectName, ...crumbsForSegments(editorElements, segments).map((c) => c.label)].join("/"),
+/** The open file's folders, each opening in the file tree on a click, and the file's name. */
+function workspaceTrail(projectId: string, segments: string[]): BreadCrumb[] {
+    const path = segments.join('/');
+    const openFolder = (dir: string) => () => {
+        const setOpen = useGUIState.getState().setWorkspaceFolderOpen;
+        [...ancestorsOf(dir), dir].forEach(d => setOpen(projectId, d, true));
     };
+    const folders = ancestorsOf(path).map((dir, i): BreadCrumb => ({
+        id: `dir:${dir}`, label: segments[i], onClick: openFolder(dir), type: "folder",
+    }));
+    return [...folders, {id: path, label: displayName(path), type: "file"}];
 }
 
 /**
@@ -160,11 +137,12 @@ function buildEntries(trail: BreadCrumb[]): Entry[] {
     ];
 }
 
-function renderCrumb(crumb: BreadCrumb, isLast: boolean, alias?: AliasInfo) {
+function renderCrumb(crumb: BreadCrumb, isLast: boolean) {
     const nav = DashNavigator.instance();
     // A crumb links only when it has its own page (`to`) and isn't the current leaf. Structural
     // crumbs without a page (e.g. a `/data` database/schema) show as muted context labels.
     const navigable = !isLast && !!crumb.to;
+    const linkClass = "truncate max-w-[160px] rounded-2xl px-1.5 py-1 text-foreground transition-colors hover:bg-accent hover:text-accent-foreground";
     return (
         <BreadcrumbItem className="min-w-0">
             {navigable ? (
@@ -172,34 +150,16 @@ function renderCrumb(crumb: BreadCrumb, isLast: boolean, alias?: AliasInfo) {
                     href={crumb.to}
                     onClick={nav.onClickNavigateToLocation(nav.getLocationFromUrl(crumb.to!))}
                     // Match the project button's ghost hover.
-                    className="truncate max-w-[160px] rounded-2xl px-1.5 py-1 text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    className={linkClass}
                 >
                     {crumb.label}
                 </BreadcrumbLink>
+            ) : crumb.onClick && !isLast ? (
+                <button type="button" onClick={crumb.onClick} className={linkClass}>{crumb.label}</button>
             ) : (
                 <BreadcrumbPage className={`truncate max-w-[160px] px-1.5 py-1   hover:bg-accent rounded-2xl ${isLast ? "" : "text-muted-foreground"}`}>
                     {crumb.label}
                 </BreadcrumbPage>
-            )}
-            {alias && (
-                <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <a
-                                onClick={DashNavigator.instance().onClickNavigateToObjectId(crumb.id)}
-                                aria-label="Open the original"
-                                className="inline-flex text-muted-foreground hover:text-foreground"
-                            >
-                                <ArrowUpRight className="h-3.5 w-3.5"/>
-                            </a>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="max-w-80">
-                            <div className="font-medium">This is a linked view. Any changes you make here also apply to the original at </div>
-                            <div className="mt-0.5 font-medium font-mono">{alias.label}</div>
-                            <div className="mt-0.5 text-primary-foreground/70 break-words">Click here to there</div>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
             )}
         </BreadcrumbItem>
     );
@@ -217,8 +177,8 @@ function renderEllipsis(hidden: BreadCrumb[]) {
                     {hidden.map((crumb) => (
                         <DropdownMenuItem
                             key={crumb.id}
-                            disabled={!crumb.to}
-                            onClick={crumb.to ? () => nav.navigateToLocation(nav.getLocationFromUrl(crumb.to!)) : undefined}
+                            disabled={!crumb.to && !crumb.onClick}
+                            onClick={crumb.to ? () => nav.navigateToLocation(nav.getLocationFromUrl(crumb.to!)) : crumb.onClick}
                         >
                             <span className="truncate">{crumb.label}</span>
                         </DropdownMenuItem>

@@ -12,7 +12,6 @@ import {
 } from "@/model/dashboard-state";
 import {getRandomId} from "@/platform/id-utils";
 import {EditorFolder} from "@/model/editor-folder";
-import {withPartnerMoves} from "@/state/routing/page-links";
 import {
     addNode,
     applyTreeActions,
@@ -25,7 +24,6 @@ import {
     updateNode
 } from "@/components/basics/files/tree-utils";
 import {RemoveNodeAction, RenameNodeActions} from "@/components/basics/files/tree-action-utils";
-import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {DEFAULT_STATE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {InitializeStorage} from "@/state/persistency/api";
 import {GetInitialCanvasState, CanvasState} from "@/model/canvas-state";
@@ -35,21 +33,18 @@ import {
     deleteFromEntityCollection,
     getEntityCollection,
     GetEntityDisplayNameById,
-    GetEntityId,
     RelationZustandEntity,
     RelationZustandEntityType,
     SetEntityDisplayName
 } from "@/state/entities/entity-functions";
 import {useInitState} from "@/state/init.state";
 import {RelationEvents} from "@/state/relations/event/relation-events";
-import {ContentLifecycle} from "@/state/content-lifecycle";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {migrateV1FlattenRelationState} from "@/state/migrations/v1-flatten-relation-state";
 import {normalizeStuckExecutionState} from "@/state/migrations/normalize-stuck-execution-state";
 import {withViewed} from "@/state/entities/entity-base";
 
-const nav = DashNavigator.instance();
 
 
 /** Element kinds that appear in the folder view and carry usage metadata. */
@@ -254,19 +249,12 @@ export const useRelationsState = createWithEqualityFn(
                 },
                 deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => {
 
-                    // Resolve (before mutating the tree) whether the deleted item is the one on screen.
-                    const wasShown = nav.isCurrentObjectIdShown(entityId);
-
                     // A relation also leaves every dashboard block / canvas node that referenced it.
                     let refUpdates: Partial<Pick<RelationZustand, 'dashboards' | 'canvas'>> = {};
                     if (entityType === 'relations') {
                         const relation = get().relations[entityId];
-                        if (relation) ContentLifecycle.onQueryDelete(relation);
+                        if (relation) RelationEvents.delete(relation);
                         refUpdates = purgeRelationReferences(get().dashboards, get().canvas, new Set([entityId]));
-                    }
-                    if (entityType === 'dashboards') {
-                        const page = get().dashboards[entityId];
-                        if (page) ContentLifecycle.onPageDelete(page, get());
                     }
                     const newCollection = deleteFromEntityCollection(get(), entityType, entityId);
                     const actions = RemoveNodeAction(editorPath);
@@ -276,19 +264,6 @@ export const useRelationsState = createWithEqualityFn(
                         editorElements: newElements,
                         ...refUpdates,
                     });
-
-                    // Only leave if the deleted item was on screen (its URL no longer resolves).
-                    // Folder views refresh reactively via the tree subscription, so no route needed there.
-                    if (wasShown) {
-                        const parentPath = editorPath.slice(0, editorPath.length - 1);
-                        const parentId = parentPath[parentPath.length - 1];
-                        if (parentId) {
-                            nav.navigateToObjectId(parentId, true);
-                        } else {
-                            // Root-level item: no parent folder to fall back to.
-                            nav.navigateToLocation(DashLocations.CurrentProjectRoot(), true);
-                        }
-                    }
                 },
 
                 getEntityDisplayName: (entityType: RelationZustandEntityType, entityId: string): string => {
@@ -300,9 +275,6 @@ export const useRelationsState = createWithEqualityFn(
                     const renamed = SetEntityDisplayName(entityId, entityType, displayName, get());
                     // renaming is an edit; stamp it (harmless for non-EntityBase kinds like schemas/databases)
                     const newEntity = {...renamed, lastEditedAt: Date.now()};
-
-                    // renaming may change the derived macro name (and thus the URL) of the shown item
-                    const wasShown = DashNavigator.instance().isCurrentObjectIdShown(entityId);
 
                     // If path is empty, find the path by entity ID
                     const effectivePath = path.length > 0 ? path : findPathById(get().editorElements, entityId);
@@ -317,9 +289,6 @@ export const useRelationsState = createWithEqualityFn(
                             },
                             editorElements: newEditorElements,
                         }));
-                        if (wasShown) {
-                            DashNavigator.instance().navigateToObjectId(entityId, true);
-                        }
                     } else {
                         // No path found, just update the entity without editor elements
                         set((state) => ({
@@ -334,16 +303,11 @@ export const useRelationsState = createWithEqualityFn(
                 addEntity(entityType: RelationZustandEntityType, entity: RelationZustandEntity, editorPath: string[] = [], openInTab: boolean = true) {
 
                     const addResult = AddIfNotExists(entity, entityType, get(), editorPath);
-                    const entityId = GetEntityId(entity);
                     if (addResult.added) {
                         set((state) => ({
                             [entityType]: addResult.updatedCollection,
                             editorElements: addResult.updatedElements,
                         }));
-                    }
-
-                    if (openInTab) {
-                        DashNavigator.instance().navigateToObjectId(entityId);
                     }
                 },
 
@@ -492,18 +456,13 @@ export const useRelationsState = createWithEqualityFn(
                     const elementToRemove = findNodeInTrees(newElements, path);
                     if (!elementToRemove) throw new Error('Element to remove not found');
 
-                    // remember what is currently shown so we can leave for the project root if it gets removed
-                    const currentlyShown = DashNavigator.instance().isCurrentObjectIdShown(elementToRemove.id);
-
                     const deletedRelationIds = new Set<string>();
                     IterateAll([elementToRemove], (node) => {
                         if (node.type === 'dashboards') {
-                            const page = get().dashboards[node.id];
-                            if (page) ContentLifecycle.onPageDelete(page, get());
                             delete newDashboards[node.id];
                         } else if (node.type === 'relations') {
                             const relation = get().relations[node.id];
-                            if (relation) ContentLifecycle.onQueryDelete(relation);
+                            if (relation) RelationEvents.delete(relation);
                             delete newRelations[node.id];
                             deletedRelationIds.add(node.id);
                         }
@@ -519,20 +478,10 @@ export const useRelationsState = createWithEqualityFn(
                         dashboards: purged.dashboards,
                         canvas: purged.canvas,
                     }));
-
-                    if (currentlyShown) {
-                        nav.navigateToLocation(DashLocations.CurrentProjectRoot(), true);
-                    }
                 },
 
                 applyEditorElementsActions: (actions: TreeAction[]) => {
-                    const before = get().editorElements;
-                    set(() => ({editorElements: applyTreeActions([...before], withPartnerMoves(before, actions))}));
-                    // A move changes the paths pages link each other by. Loaded on demand: the page editor's
-                    // modules import this store.
-                    if (actions.some(action => action.type === 'move')) {
-                        void import("@/components/page-editor/page-links").then(m => m.updatePageLinks(before));
-                    }
+                    set(() => ({editorElements: applyTreeActions([...get().editorElements], actions)}));
                 },
                 resetEditorElements: () => {
                     set(() => ({editorElements: []}));

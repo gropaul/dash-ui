@@ -1,44 +1,40 @@
 import {useEffect} from "react";
-import {SlateEditor} from "platejs";
 import {PlateEditor} from "platejs/react";
 import {humanizeName} from "@/platform/string-utils";
 import {renameRefCalls} from "@/platform/sql-refs";
 import {onRelationEvent, RelationEvent} from "@/state/relations/event/relation-events";
 import {refreshDownstreamIn} from "@/state/relations/sql/relation-dag-refresh";
-import {addPageScope} from "@/state/relations/sql/page-refs";
+import {blocksOfPage} from "@/state/relations/sql/page-refs";
+import {pageOfSurface, useSurfaces} from "@/state/workspace/surfaces.state";
 import {useRelationDataState} from "@/state/relations-data.state";
-import {buildBlockRelation, inputOf, relationsInDocument, useBlockRelations} from "@/components/page-editor/block-relation";
+import {blockSurface} from "@/components/page-editor/block-relation";
 import {withoutBlockSelection} from "@/components/page-editor/block-moves";
 import {RELATION_BLOCK_KEY, TRelationBlock} from "@/components/page-editor/model";
 
 /**
- * Re-runs the inline blocks reading a block (or a relation of the project) once it ran or its pick changed.
- * They read it through `refs.<name>()`, expanded into their query when they run (page-refs.ts).
+ * Re-runs the blocks of the page reading a block once it ran or its pick changed. They read it through
+ * `refs.<name>()`, expanded into their query when they run (page-refs.ts).
  */
-export async function onBlockRelationEvent(editor: SlateEditor, event: RelationEvent) {
+export async function onBlockRelationEvent(page: string, event: RelationEvent) {
     const relation = event.new;
-    if (!relation) return;
-    await refreshDownstreamIn(
-        relation.id,
-        () => ({...relationsInDocument(editor), [relation.id]: relation}),
-        useBlockRelations.getState().setRelation,
-    );
+    if (!relation || pageOfSurface(relation.id) !== page) return;
+    await refreshDownstreamIn(relation.id, () => blocksOfPage(page), useSurfaces.getState().set);
 }
 
 /**
- * Renames the inline block whose relation is `relationId`, and with `updateReferences` its refs in the other
- * blocks. The block keeps its result and pick under the id of its new name.
+ * Renames the block whose surface is `relationId`, and its refs in the other blocks. Its pick, run and result
+ * move to the key of its new name.
  */
-export function renameBlock(editor: PlateEditor, relationId: string, name: string, updateReferences: boolean) {
-    const blocks = [...editor.api.nodes<TRelationBlock>({at: [], match: {type: RELATION_BLOCK_KEY}})].filter(([node]) => !node.relationId);
-    const entry = blocks.find(([node]) => buildBlockRelation(node, inputOf(editor, node)).id === relationId);
+export function renameBlock(editor: PlateEditor, page: string, relationId: string, name: string) {
+    const blocks = [...editor.api.nodes<TRelationBlock>({at: [], match: {type: RELATION_BLOCK_KEY}})];
+    const entry = blocks.find(([node]) => blockSurface(page, node) === relationId);
     if (!entry) return;
     const [block, path] = entry;
     const from = block.name;
+    const id = blockSurface(page, {...block, name});
 
-    const {relations, setRelation, fullscreen, setFullscreen} = useBlockRelations.getState();
-    const previous = relations[relationId];
-    const id = buildBlockRelation({...block, name}, inputOf(editor, block)).id;
+    const surfaces = useSurfaces.getState();
+    const previous = surfaces.relations[relationId];
     if (previous) {
         const viewParameters = structuredClone(previous.query.viewParameters);
         const oldTitle = humanizeName(from ?? '');
@@ -46,12 +42,12 @@ export function renameBlock(editor: PlateEditor, relationId: string, name: strin
         if (viewParameters.select && viewParameters.select.label === oldTitle) viewParameters.select.label = humanizeName(name);
         const data = useRelationDataState.getState().getData(relationId);
         if (data) useRelationDataState.getState().updateData(id, data);
-        setRelation({...previous, id, viewState: {...previous.viewState, displayName: name}, query: {...previous.query, viewParameters}});
+        surfaces.set({...previous, id, viewState: {...previous.viewState, displayName: name}, query: {...previous.query, viewParameters}});
+        surfaces.remove(relationId);
     }
-    if (fullscreen?.relationId === relationId) setFullscreen({...fullscreen, relationId: id});
 
     withoutBlockSelection(editor, () => {
-        if (from && updateReferences) {
+        if (from) {
             for (const [node, at] of blocks) {
                 const sql = renameRefCalls(node.sql, from.toLowerCase(), name);
                 if (node !== block && sql !== node.sql) editor.tf.setNodes<TRelationBlock>({sql}, {at});
@@ -61,14 +57,10 @@ export function renameBlock(editor: PlateEditor, relationId: string, name: strin
     });
 }
 
-/** Lets one block read another through `refs.<name>()`, e.g. a chart filtered by a dropdown. */
-export function useRelationLinks(editor: PlateEditor) {
-    useEffect(() => addPageScope({
-        relations: () => relationsInDocument(editor),
-        rename: (relationId, name, updateReferences) => renameBlock(editor, relationId, name, updateReferences),
-    }), [editor]);
+/** Lets one block of the page read another through `refs.<name>()`, e.g. a chart filtered by a dropdown. */
+export function useRelationLinks(page: string) {
     useEffect(() => onRelationEvent(
-        (event) => onBlockRelationEvent(editor, event),
+        (event) => onBlockRelationEvent(page, event),
         ["QUERY_RUN_FINISHED", "UPDATE_SELECTION"],
-    ), [editor]);
+    ), [page]);
 }

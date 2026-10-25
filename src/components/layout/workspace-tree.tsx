@@ -2,7 +2,7 @@
 
 import React, {useEffect, useState} from "react";
 import {toast} from "sonner";
-import {ChevronRight} from "lucide-react";
+import {ChevronRight, Plus} from "lucide-react";
 import {
     DndContext,
     DragEndEvent,
@@ -16,128 +16,129 @@ import {
     useSensors,
 } from "@dnd-kit/core";
 import {cn} from "@/lib/utils";
-import {Collapsible, CollapsibleContent} from "@/components/ui/collapsible";
+import {Expandable} from "@/components/basics/expandable";
 import {ContextMenu, ContextMenuContent, ContextMenuTrigger} from "@/components/ui/context-menu";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {ColoredIcon} from "@/components/basics/files/icon-factories";
-import {findNodeInTrees, findPathById} from "@/components/basics/files/tree-utils";
-import {EditorFolder} from "@/model/editor-folder";
-import {useRelationsState} from "@/state/relations.state";
 import {useGUIState} from "@/state/gui.state";
 import {DashNavigator} from "@/state/routing/navigation";
 import {useDashLocation} from "@/state/routing/use-dash-location";
-import {moveClash, pageFolderOf} from "@/state/routing/page-links";
-import {EntityActionHandlers, useEntityActions} from "@/components/workbench/editor-overview/use-entity-actions";
-import {EntityMenuItems} from "@/components/workbench/editor-overview/entity-menu-items";
+import {useWorkspace, useWorkspaceTree} from "@/state/workspace/workspace.state";
+import {WorkspaceNode} from "@/state/workspace/workspace-tree";
+import {ancestorsOf, baseName, isWithin, joinPath, parentOf} from "@/state/workspace/paths";
+import {viewOfQuery} from "@/state/workspace/relation-config";
+import {fileIconType} from "@/components/workspace/file-icon";
+import {moveEntry, newFile} from "@/components/workspace/file-actions";
+import {FileMenuItems} from "@/components/workspace/file-menu-items";
 import {SectionHeader} from "@/components/layout/navigation-sidebar";
 
 // The section's header takes drops onto the top level of the workspace.
 const ROOT_DROP_ID = 'workspace-tree-root';
 
 interface TreeContext {
-    tree: EditorFolder[];
     projectId: string;
-    currentId?: string;
+    currentPath: string | null;
     open: Set<string>;
-    handlers: EntityActionHandlers;
 }
 
 /**
- * The project's folders, pages, queries and canvases as a tree in the sidebar, for getting around, after shadcn's
- * File Tree: folders are Collapsibles, items are buttons. A click opens the item; dragging it onto a folder, or
- * onto the header for the top level, moves it there.
+ * The project's folders and files as a tree in the sidebar, the only way to browse the workspace, after shadcn's
+ * File Tree: folders are Collapsibles that only open and close, files are links. Dragging an item onto a folder,
+ * or onto the header for the top level, moves it there.
  */
 export function WorkspaceTree({projectId}: { projectId: string }) {
-    const tree = useRelationsState(s => s.editorElements);
-    const applyEditorElementsActions = useRelationsState(s => s.applyEditorElementsActions);
+    const tree = useWorkspaceTree();
     const stored = useGUIState(s => s.workspaceTreeOpen[projectId]);
     const setFolderOpen = useGUIState(s => s.setWorkspaceFolderOpen);
-    const {handlers, dialogs} = useEntityActions();
-    const [dragging, setDragging] = useState<EditorFolder | null>(null);
+    const [dragging, setDragging] = useState<WorkspaceNode | null>(null);
     const sensors = useSensors(useSensor(PointerSensor, {activationConstraint: {distance: 5}}));
-    const {setNodeRef: rootRef, isOver: overRoot} = useDroppable({id: ROOT_DROP_ID, data: {path: []}});
+    const {setNodeRef: rootRef, isOver: overRoot} = useDroppable({id: ROOT_DROP_ID, data: {path: ''}});
 
-    // Re-renders on navigation, so the open item is marked; its folders open as it is opened.
+    // Re-renders on navigation, so the open file is marked; its folders open as it is opened.
     useDashLocation();
-    const currentId = DashNavigator.instance().getCurrentObject()?.id;
+    const currentPath = DashNavigator.instance().getCurrentPath();
     useEffect(() => {
-        const ancestors = currentId ? findPathById(tree, currentId)?.slice(0, -1) ?? [] : [];
-        ancestors.forEach(id => setFolderOpen(projectId, id, true));
-    }, [currentId, tree, projectId, setFolderOpen]);
+        if (currentPath) ancestorsOf(currentPath).forEach(dir => setFolderOpen(projectId, dir, true));
+    }, [currentPath, projectId, setFolderOpen]);
 
-    const onDragStart = ({active}: DragStartEvent) => {
-        const path = active.data.current?.path as string[];
-        setDragging(findNodeInTrees(tree, path) as EditorFolder ?? null);
-    };
+    const onDragStart = ({active}: DragStartEvent) => setDragging(active.data.current?.node as WorkspaceNode ?? null);
 
-    const onDragEnd = ({active, over}: DragEndEvent) => {
+    const onDragEnd = async ({active, over}: DragEndEvent) => {
         setDragging(null);
-        const from = active.data.current?.path as string[] | undefined;
-        const target = over?.data.current?.path as string[] | undefined;
-        const node = from && findNodeInTrees(tree, from);
-        if (!from || !target || !node) return;
+        const node = active.data.current?.node as WorkspaceNode | undefined;
+        const folder = over?.data.current?.path as string | undefined;
+        if (!node || folder === undefined) return;
         // Into itself or where it already is.
-        if (from.every((id, i) => target[i] === id) || target.join('/') === from.slice(0, -1).join('/')) return;
-        if (moveClash(tree, target, node as EditorFolder)) {
-            toast.error(`"${node.name}" is already in that folder.`);
-            return;
+        if (isWithin(folder, node.path) || folder === parentOf(node.path)) return;
+        try {
+            await moveEntry(node.path, joinPath(folder, baseName(node.path)));
+            if (folder) setFolderOpen(projectId, folder, true);
+        } catch (e) {
+            toast.error((e as Error).message);
         }
-        // The open item may be the one moved or inside it; its address changes, so follow it.
-        const shown = DashNavigator.instance().getCurrentObject();
-        applyEditorElementsActions([{type: 'move', id_path: from, target_id_path: target}]);
-        if (shown && !DashNavigator.instance().getCurrentObject()) DashNavigator.instance().navigateToObjectId(shown.id, true);
-        if (target.length) setFolderOpen(projectId, target.at(-1)!, true);
     };
 
-    // A folder's page shows as its folder.
-    const shownId = currentId && (pageFolderOf(tree, currentId)?.id ?? currentId);
-    const context: TreeContext = {tree, projectId, currentId: shownId, open: new Set(stored ?? []), handlers};
+    const context: TreeContext = {projectId, currentPath, open: new Set(stored ?? [])};
 
     return (
         <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={onDragStart} onDragEnd={onDragEnd}
                     onDragCancel={() => setDragging(null)}>
             <div className="px-2 pt-4">
-                <div ref={rootRef} className={cn("rounded-md", overRoot && "bg-primary/10 ring-1 ring-primary/40")}>
-                    <SectionHeader label="Files" extended={true}/>
+                <div ref={rootRef} className={cn("flex items-center rounded-md", overRoot && "bg-primary/10 ring-1 ring-primary/40")}>
+                    <div className="min-w-0 flex-1"><SectionHeader label="Files" extended={true}/></div>
+                    <NewItemButton/>
                 </div>
                 <div className="flex flex-col gap-0.5">
-                    {listed(tree, tree).map(node => <TreeItem key={node.id} node={node} path={[node.id]} context={context}/>)}
+                    {tree.map(node => <TreeItem key={node.path} node={node} context={context}/>)}
                 </div>
             </div>
             <DragOverlay dropAnimation={null}>
                 {dragging && (
                     <div className="flex h-8 items-center gap-2 rounded-md border bg-background px-2 text-sm shadow-md">
-                        <ColoredIcon type={iconType(dragging)} size={16} background={false}/>
+                        <ColoredIcon type={fileIconType(dragging)} size={16} background={false}/>
                         <span className="truncate">{dragging.name}</span>
                     </div>
                 )}
             </DragOverlay>
-            {dialogs}
         </DndContext>
     );
 }
 
-// A folder's page is listed as its folder. Canvases are disabled during the move to files.
-function listed(tree: EditorFolder[], nodes: EditorFolder[]) {
-    return nodes.filter(node => node.type !== 'canvas' && !pageFolderOf(tree, node.id));
+function NewItemButton() {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger aria-label="New"
+                                 className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground">
+                <Plus className="h-3.5 w-3.5"/>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => newFile('page')}>New page</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => newFile('query')}>New query</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => newFile('folder')}>New folder</DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
 }
 
-// Queries take the icon of their view, as in the folder view.
-function iconType(node: EditorFolder) {
-    if (node.type !== 'relations') return node.type;
-    return useRelationsState.getState().relations[node.id]?.viewState.selectedView ?? 'relations';
-}
-
-function TreeItem({node, path, context}: { node: EditorFolder, path: string[], context: TreeContext }) {
-    const isFolder = node.type === 'folder';
-    const isOpen = isFolder && context.open.has(node.id);
+function TreeItem({node, context}: { node: WorkspaceNode, context: TreeContext }) {
+    const isFolder = node.kind === 'folder';
+    const isOpen = isFolder && context.open.has(node.path);
     const setFolderOpen = useGUIState(s => s.setWorkspaceFolderOpen);
     // Subscribed, so a query's icon follows its view.
-    useRelationsState(s => node.type === 'relations' ? s.relations[node.id]?.viewState.selectedView : undefined);
+    useWorkspace(s => node.kind === 'query' ? viewOfQuery(s.files[node.path] ?? '') : undefined);
 
-    const {setNodeRef: dragRef, attributes, listeners, isDragging} = useDraggable({id: node.id, data: {path}});
-    const {setNodeRef: dropRef, isOver} = useDroppable({id: node.id, data: {path}, disabled: !isFolder});
+    const {setNodeRef: dragRef, attributes, listeners, isDragging} = useDraggable({id: node.path, data: {node}});
+    const {setNodeRef: dropRef, isOver} = useDroppable({id: node.path, data: {path: node.path}, disabled: !isFolder});
     const nav = DashNavigator.instance();
-    const toggle = (open: boolean) => setFolderOpen(context.projectId, node.id, open);
+    const toggle = (open: boolean) => setFolderOpen(context.projectId, node.path, open);
+    const isCurrent = context.currentPath === node.path;
+
+    const label = (
+        <>
+            <ColoredIcon type={fileIconType(node)} size={16} background={false}/>
+            <span className="min-w-0 flex-1 truncate">{node.name}</span>
+        </>
+    );
 
     const row = (
         <ContextMenu>
@@ -151,7 +152,7 @@ function TreeItem({node, path, context}: { node: EditorFolder, path: string[], c
                     {...listeners}
                     className={cn(
                         "flex h-8 items-center gap-1.5 rounded-md pr-2 text-sm select-none transition-colors",
-                        context.currentId === node.id
+                        isCurrent
                             ? "bg-accent font-medium text-foreground"
                             : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                         isOver && "bg-primary/10 ring-1 ring-primary/40",
@@ -163,43 +164,40 @@ function TreeItem({node, path, context}: { node: EditorFolder, path: string[], c
                             type="button"
                             aria-label={isOpen ? "Close folder" : "Open folder"}
                             onClick={() => toggle(!isOpen)}
-                            className="flex h-6 w-5 shrink-0 items-center justify-center rounded hover:bg-accent"
+                            className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch text-left"
                         >
-                            <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-90")}/>
+                            <ChevronRight className={cn("h-3.5 w-5 shrink-0 transition-transform", isOpen && "rotate-90")}/>
+                            {label}
                         </button>
-                    ) : <span className="w-5 shrink-0"/>}
-                    <a
-                        href={nav.getUrlFromObjectId(node.id)}
-                        // The browser's own link drag would compete with moving the item.
-                        draggable={false}
-                        onClick={e => {
-                            nav.onClickNavigateToObjectId(node.id)(e);
-                            // A folder opens in the tree as it is opened.
-                            if (isFolder && e.defaultPrevented) toggle(true);
-                        }}
-                        aria-current={context.currentId === node.id ? "page" : undefined}
-                        className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch"
-                    >
-                        <ColoredIcon type={iconType(node)} size={16} background={false}/>
-                        <span className="min-w-0 flex-1 truncate">{node.name}</span>
-                    </a>
+                    ) : (
+                        <a
+                            href={nav.getUrlFromPath(node.path)}
+                            // The browser's own link drag would compete with moving the item.
+                            draggable={false}
+                            onClick={nav.onClickNavigateToPath(node.path)}
+                            aria-current={isCurrent ? "page" : undefined}
+                            className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch pl-5"
+                        >
+                            {label}
+                        </a>
+                    )}
                 </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
-                <EntityMenuItems variant="context" path={path} tree={node} handlers={context.handlers}/>
+                <FileMenuItems variant="context" path={node.path} isFolder={isFolder}/>
             </ContextMenuContent>
         </ContextMenu>
     );
 
     if (!isFolder) return row;
     return (
-        <Collapsible open={isOpen} onOpenChange={toggle}>
+        <div>
             {row}
-            <CollapsibleContent className="flex flex-col gap-0.5 pl-3">
-                {listed(context.tree, node.children ?? []).map(child => (
-                    <TreeItem key={child.id} node={child} path={[...path, child.id]} context={context}/>
+            <Expandable open={isOpen} className="flex flex-col gap-0.5 pl-3">
+                {(node.children ?? []).map(child => (
+                    <TreeItem key={child.path} node={child} context={context}/>
                 ))}
-            </CollapsibleContent>
-        </Collapsible>
+            </Expandable>
+        </div>
     );
 }

@@ -1,7 +1,6 @@
 import {RelationData, RelationSource} from "@/model/relation";
-import {DEFAULT_RELATION_VIEW_PATH, SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM,} from "@/platform/global-data";
+import {SOURCE_CONNECTION_ID_DUCKDB_FILE_SYSTEM,} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {useRelationsState} from "@/state/relations.state";
 import {findNodeInTrees, TreeNode} from "@/components/basics/files/tree-utils";
 import {
     DataSource,
@@ -140,7 +139,7 @@ export class DuckdbLocalFilesystem implements DataSourceConnection {
         return { [rootDataSource.id]: rootDataSource };
     }
 
-    async onDataSourceClick(id_path: string[]) {
+    async onDataSourceClick(id_path: string[]): Promise<RelationSource | undefined> {
 
         const lastId = id_path[id_path.length - 1];
         const element = findNodeInTrees(Object.values(this.dataSources), id_path);
@@ -154,14 +153,7 @@ export class DuckdbLocalFilesystem implements DataSourceConnection {
             // const showDirectory = useRelationsState.getState().showDirectory;
             // await showDirectory(this.id, id_path, element as DataSourceGroup);
         } else {
-            const source: RelationSource = {
-                type: 'file',
-                path: lastId,
-                baseName: element.name
-            }
-
-            // show the table
-            await useRelationsState.getState().showRelationFromSource(this.id, source, DEFAULT_RELATION_VIEW_PATH);
+            return {type: 'file', path: lastId, baseName: element.name};
         }
     }
 

@@ -14,6 +14,8 @@ interface WorkspaceState {
     dirs: Set<string>;
 
     load(backend: WorkspaceBackend): Promise<void>;
+    /** Empties the store and detaches it from its backend, when a project closes. */
+    unload(): void;
     write(path: string, text: string): Promise<void>;
     mkdir(path: string): Promise<void>;
     /** Moves or renames a file or a folder with its contents. */
@@ -71,6 +73,12 @@ export const useWorkspace = createWithEqualityFn<WorkspaceState>()((set, get) =>
             Object.keys(files).forEach(path => ancestorsOf(path).forEach(dir => all.add(dir)));
             set({files, dirs: all});
             stopWatching = next.watch?.((path, text) => get().applyOutside(path, text));
+        },
+
+        unload() {
+            stopWatching?.();
+            stopWatching = backend = undefined;
+            set({files: {}, dirs: new Set()});
         },
 
         async write(path, text) {
@@ -145,9 +153,14 @@ export function useFile(path: string): string | undefined {
     return useWorkspace(s => s.files[path]);
 }
 
+/** The paths of the workspace's files, not their texts: typing in a file doesn't change them. */
+export function useFilePaths(): string[] {
+    const key = useWorkspace(s => Object.keys(s.files).join('\n'));
+    return useMemo(() => key ? key.split('\n') : [], [key]);
+}
+
 export function useWorkspaceTree() {
-    // The paths, not the texts: typing in a file doesn't rebuild the tree.
-    const paths = useWorkspace(s => Object.keys(s.files).join('\n'));
+    const paths = useFilePaths();
     const dirs = useWorkspace(s => s.dirs);
-    return useMemo(() => buildWorkspaceTree(paths ? paths.split('\n') : [], dirs), [paths, dirs]);
+    return useMemo(() => buildWorkspaceTree(paths, dirs), [paths, dirs]);
 }

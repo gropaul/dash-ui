@@ -2,7 +2,6 @@ import {duckDBTypeToValueType} from "@/model/value-type";
 import {RelationData, RelationSource} from "@/model/relation";
 import {useRelationsState} from "@/state/relations.state";
 import {DataSource, DataSourceConnection, DataSourceElement, DataSourceGroup} from "@/model/data-source-connection";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {findNodeInTrees} from "@/components/basics/files/tree-utils";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {removeSemicolon} from "@/platform/sql-utils";
@@ -49,14 +48,14 @@ export async function onDuckDBDataSourceClick(
     connection: DataSourceConnection,
     id_path: string[],
     dataSources: { [key: string]: DataSource },
-) {
+): Promise<RelationSource | undefined> {
 
     // if path has one element, it’s a database
     if (id_path.length === 1) {
         const database = findNodeInTrees(Object.values(dataSources), id_path);
         if (database) {
             const state = GetDatabaseState(connection.id, database.id);
-            return useRelationsState.getState().addEntity('databases', state, [])
+            useRelationsState.getState().addEntity('databases', state, []);
         }
     }
 
@@ -65,7 +64,7 @@ export async function onDuckDBDataSourceClick(
         const schema = findNodeInTrees(Object.values(dataSources), id_path)  as DataSourceGroup;
         if (schema) {
             const state = GetSchemaState(connection.id, id_path[0], schema);
-            return useRelationsState.getState().addEntity('schemas', state, []);
+            useRelationsState.getState().addEntity('schemas', state, []);
         }
     }
 
@@ -73,16 +72,9 @@ export async function onDuckDBDataSourceClick(
     // if path has tree elements, it’s a table
     else if (id_path.length === 3) {
 
-        const showRelation = useRelationsState.getState().showRelationFromSource;
 
         const [databaseName, schemaName, relationName] = id_path;
-        const source: RelationSource = {
-            type: 'table',
-            database: databaseName,
-            schema: schemaName,
-            tableName: relationName,
-        };
-        await showRelation(connection.id, source, DEFAULT_RELATION_VIEW_PATH);
+        return {type: 'table', database: databaseName, schema: schemaName, tableName: relationName};
     }
 }
 

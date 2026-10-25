@@ -54,3 +54,29 @@ export function nameError(name: string): string | undefined {
     if (FORBIDDEN_IN_NAMES.test(name)) return 'A name cannot contain / \\ : * ? " < > |';
     if (name === '.' || name === '..') return `"${name}" is not a name.`;
 }
+
+/**
+ * The path `link` leads to from the file `from`: relative to its folder, or to the root with a leading `/`, as
+ * links and `-- input:` paths are written. Undefined when it leaves the workspace.
+ */
+export function resolveRelative(from: string, link: string): string | undefined {
+    const segments = link.startsWith('/') ? [] : parentOf(from).split('/').filter(Boolean);
+    for (const segment of link.replace(/\\/g, '/').split('/')) {
+        if (segment === '' || segment === '.') continue;
+        if (segment !== '..') segments.push(segment);
+        else if (!segments.pop()) return;
+    }
+    return segments.join('/') || undefined;
+}
+
+/** The path from the file `from`'s folder to `to`, as a link on `from` writes it. */
+export function relativePath(from: string, to: string): string {
+    const fromDirs = parentOf(from).split('/').filter(Boolean);
+    const toSegments = to.split('/');
+    let shared = 0;
+    while (shared < fromDirs.length && shared < toSegments.length - 1 && samePath(fromDirs[shared], toSegments[shared])) shared++;
+    return [...Array(fromDirs.length - shared).fill('..'), ...toSegments.slice(shared)].join('/');
+}
+
+/** `name` in the folder `folder`; the root is ''. */
+export const joinPath = (folder: string, name: string) => folder ? `${folder}/${name}` : name;

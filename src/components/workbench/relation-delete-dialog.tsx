@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import {Button} from "@/components/ui/button";
 import {create} from "zustand";
-import {getRelationDependencies, RelationDependencies} from "@/state/relations/relation-dependencies";
-import {LayoutDashboard, Workflow} from "lucide-react";
+import {RelationDependencies} from "@/state/relations/relation-dependencies";
+import {FileText, Workflow} from "lucide-react";
 
 type DeleteMode =
     | 'confirm-with-deps'   // deleting from sidebar, has dependencies
@@ -24,12 +24,6 @@ interface RelationDeleteDialogState {
     dependencies: RelationDependencies | null;
     onConfirmDelete: (() => void) | null;
     onCancel: (() => void) | null;
-
-    /**
-     * Open the dialog for deleting a relation from the sidebar.
-     * Shows dependencies if any exist.
-     */
-    openForSidebarDelete: (relationId: string, relationName: string, onConfirm: () => void) => void;
 
     /**
      * Open the dialog after removing the last reference to a relation
@@ -49,19 +43,6 @@ export const useRelationDeleteDialog = create<RelationDeleteDialogState>((set) =
     dependencies: null,
     onConfirmDelete: null,
     onCancel: null,
-
-    openForSidebarDelete: (relationId, relationName, onConfirm) => {
-        const deps = getRelationDependencies(relationId);
-        set({
-            isOpen: true,
-            relationId,
-            relationName,
-            mode: deps.totalRefs > 0 ? 'confirm-with-deps' : 'confirm-no-deps',
-            dependencies: deps,
-            onConfirmDelete: onConfirm,
-            onCancel: null,
-        });
-    },
 
     openForOrphanDelete: (relationId, relationName, onConfirm, onCancel) => {
         set({
@@ -165,7 +146,7 @@ function DependencyList({dependencies}: { dependencies: RelationDependencies }) 
             ))}
             {dependencies.dashboards.map(d => (
                 <div key={d.dashboardId} className="flex items-center gap-2 text-muted-foreground">
-                    <LayoutDashboard size={14}/>
+                    <FileText size={14}/>
                     <span>{d.dashboardName}</span>
                     {d.blockCount > 1 && (
                         <span className="text-xs">({d.blockCount} blocks)</span>

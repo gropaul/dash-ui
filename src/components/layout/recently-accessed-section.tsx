@@ -1,34 +1,34 @@
 'use client';
 
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import {cn} from "@/lib/utils";
-import {useRelationsState} from "@/state/relations.state";
+import {useFilePaths} from "@/state/workspace/workspace.state";
+import {useFileStats} from "@/state/workspace/file-stats.state";
+import {useProjectsState} from "@/state/projects.state";
+import {fileIconType} from "@/components/workspace/file-icon";
 import {DashNavigator} from "@/state/routing/navigation";
 import { useDashLocation} from "@/state/routing/use-dash-location";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {ColoredIcon} from "@/components/basics/files/icon-factories";
 import {formatRelativeTime} from "@/platform/string-utils";
-import {keepDisplayOrder, selectRecentWorkspaceItems} from "@/state/recent/recent-items";
+import {keepDisplayOrder, selectRecentFiles} from "@/state/recent/recent-items";
 import {SectionHeader} from "@/components/layout/navigation-sidebar";
 
 const RECENT_LIMIT = 5;
 
 /**
- * The sidebar "Recently accessed" list. Surfaces the most recently viewed workspace items
- * (queries/dashboards/canvases/folders), grouped under a "Workspace" sub-header. `lastViewedAt`
- * is stamped on every navigation by `markEntityViewed`; the order only changes when an item
- * enters the list (`keepDisplayOrder`).
+ * The sidebar "Recently accessed" list: the most recently viewed files. `lastViewedAt` is stamped when a
+ * file is opened (file stats); the order only changes when an item enters the list (`keepDisplayOrder`).
  *
  * A second "Data" group (recently viewed catalog tables) is planned but needs its own
  * access-tracking store first — see the plan / catalog-view.
  */
 export function RecentlyAccessedSection() {
-    const editorElements = useRelationsState((s) => s.editorElements);
-    const relations = useRelationsState((s) => s.relations);
-    const dashboards = useRelationsState((s) => s.dashboards);
-    const canvas = useRelationsState((s) => s.canvas);
+    const paths = useFilePaths();
+    const projectId = useProjectsState((s) => s.currentProjectId);
+    const stats = useFileStats((s) => s.stats[projectId]);
 
-    const recent = selectRecentWorkspaceItems({editorElements, relations, dashboards, canvas}, RECENT_LIMIT);
+    const recent = useMemo(() => selectRecentFiles(new Set(paths), stats ?? {}, RECENT_LIMIT), [paths, stats]);
     const [shownIds, setShownIds] = useState<string[]>([]);
     const items = keepDisplayOrder(shownIds, recent);
     const itemIds = items.map((i) => i.id);
@@ -52,14 +52,15 @@ export function RecentlyAccessedSection() {
                                 <Tooltip key={item.id}>
                                     <TooltipTrigger asChild>
                                         <a
-                                            onClick={DashNavigator.instance().onClickNavigateToObjectId(item.id)}
+                                            href={DashNavigator.instance().getUrlFromPath(item.id)}
+                                            onClick={DashNavigator.instance().onClickNavigateToPath(item.id)}
                                             className={cn(
                                                 "group flex items-center gap-2.5 h-9 px-3 " +
                                                 "rounded-md text-sm select-none transition-colors" +
                                                 "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                                             )}
                                         >
-                                            <ColoredIcon type={item.iconType} size={18} background={false}/>
+                                            <ColoredIcon type={fileIconType({kind: item.kind, path: item.id})} size={18} background={false}/>
                                             <span className="truncate flex-1 min-w-0">{item.name}</span>
                                             <span className="shrink-0 text-[11px] text-muted-foreground/70 tabular-nums">
                                                 {formatRelativeTime(item.lastViewedAt)}

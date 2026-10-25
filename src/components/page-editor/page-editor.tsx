@@ -1,6 +1,6 @@
 'use client';
 
-import React, {ReactNode, useEffect, useLayoutEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import {Columns2, Eye, LucideIcon, Pencil} from "lucide-react";
@@ -19,9 +19,14 @@ import {AddMenuAt, AddMenuEntry, AddMenuExtraContext} from "@/components/page-ed
 import {CooldownIndicator} from "@/components/page-editor/use-cooldown";
 import {useMarkdownSync} from "@/components/page-editor/use-markdown-sync";
 import {RelationFullscreenDialog} from "@/components/page-editor/relation-fullscreen-dialog";
-import {useRelationLinks} from "@/components/page-editor/use-relation-links";
-import {BlockInputPlugin} from "@/components/page-editor/block-relation";
+import {renameBlock, useRelationLinks} from "@/components/page-editor/use-relation-links";
+import {PagePathPlugin} from "@/components/page-editor/block-relation";
 import {RelationState} from "@/model/relation-state";
+import {RenameRelationContext} from "@/components/relation/common/rename-relation-context";
+import {askForName} from "@/components/workspace/name-dialog";
+import {blockNamesOf} from "@/state/workspace/page-text";
+import {queryByName} from "@/state/workspace/file-references";
+import {useWorkspace} from "@/state/workspace/workspace.state";
 
 export type PageEditorMode = 'edit' | 'view' | 'split';
 
@@ -31,24 +36,25 @@ const MODES: { mode: PageEditorMode, label: string, icon: LucideIcon }[] = [
     {mode: 'split', label: 'Edit next to the markdown', icon: Columns2},
 ];
 
+// A block's name is what other blocks write in refs.<name>(), so it must be one as it stands.
+const BLOCK_NAME = /^[a-z_][a-z0-9_]*$/;
+
 export interface PageEditorProps {
+    /** The page's file; blocks are keyed by it and resolve their `-- input:` paths from it. */
+    path: string;
     /** The page. A change from outside (not one the editor reported) is applied to the open page. */
     markdown: string;
     /** Called with the page's markdown whenever its content changed, from the view or the text. */
     onMarkdownChange?: (markdown: string) => void;
     /** Entries at the top of every add menu; `insert` places the chosen block. */
     addMenuExtra?: (insert: (node: TElement) => void) => AddMenuEntry[];
-    /** The query of the project a block's `-- input: <path>.sql` takes in, relative to this page. */
-    resolveInput?: (path: string) => RelationState | undefined;
-    /** Shown below the page, e.g. the contents of the folder it is the page of. */
-    footer?: ReactNode;
     /** The mode, when the host keeps it (e.g. in the URL); otherwise the editor keeps it itself. */
     mode?: PageEditorMode;
     onModeChange?: (mode: PageEditorMode) => void;
 }
 
 /** A page as one markdown document: text and relation blocks, edited as blocks, read-only, or next to its markdown. */
-export function PageEditor({markdown, onMarkdownChange, addMenuExtra, resolveInput, footer, mode: modeProp, onModeChange}: PageEditorProps) {
+export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode: modeProp, onModeChange}: PageEditorProps) {
     const [ownMode, setOwnMode] = useState<PageEditorMode>('edit');
     const mode = modeProp ?? ownMode;
     const readOnly = mode === 'view';
@@ -57,11 +63,22 @@ export function PageEditor({markdown, onMarkdownChange, addMenuExtra, resolveInp
         plugins: PAGE_EDITOR_PLUGINS,
         value: (e) => e.getApi(MarkdownPlugin).markdown.deserialize(markdown),
     });
-    useRelationLinks(editor);
-    // Before the blocks run, so a block taking a query in starts with it.
+    useRelationLinks(path);
+    // Before the blocks render, which key their state by it.
     useLayoutEffect(() => {
-        editor.setOption(BlockInputPlugin, 'resolve', resolveInput ?? (() => undefined));
-    }, [editor, resolveInput]);
+        editor.setOption(PagePathPlugin, 'path', path);
+    }, [editor, path]);
+
+    const renameBlockOf = useCallback((relation: RelationState) => askForName({
+        title: 'Rename block',
+        initial: relation.viewState.displayName,
+        submitLabel: 'Rename',
+        validate: name => !BLOCK_NAME.test(name) ? 'A block name is a lowercase SQL identifier, e.g. sales_by_region.'
+            : name !== relation.viewState.displayName && blockNamesOf(useWorkspace.getState().files[path] ?? '').has(name)
+                ? `Another block on the page is named ${name}.`
+                : queryByName(useWorkspace.getState().files, name) ? `A query is named ${name}.` : undefined,
+        onSubmit: name => renameBlock(editor, path, relation.id, name),
+    }), [editor, path]);
     const sync = useMarkdownSync(editor, onMarkdownChange);
     useEffect(() => sync.applyExternal(markdown), [markdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -126,16 +143,14 @@ export function PageEditor({markdown, onMarkdownChange, addMenuExtra, resolveInp
                         onMouseUp={onContainerMouseUp}
                         className={cn(
                             // Plate positions the selection rectangle absolutely inside this container.
-                            "relative", !footer && "min-h-full",
+                            "relative min-h-full",
                             "[&_.slate-selection-area]:z-50 [&_.slate-selection-area]:rounded-sm",
                             "[&_.slate-selection-area]:border [&_.slate-selection-area]:border-primary/40 [&_.slate-selection-area]:bg-primary/10",
                         )}>
             {/* The bottom padding lets the page scroll the last block up from the bottom edge. */}
             {/* Slate fades its placeholder with an inline opacity; it takes the empty line hint's colour instead. */}
             <PlateContent className={cn(
-                              // With a footer, the footer takes the space at the bottom.
-                              "mx-auto max-w-5xl px-12 pt-8 text-foreground outline-none",
-                              footer ? "pb-8" : "pb-[40vh]",
+                              "mx-auto max-w-5xl px-12 pt-8 pb-[40vh] text-foreground outline-none",
                               "[&_[data-slate-placeholder]]:!opacity-100 [&_[data-slate-placeholder]]:text-muted-foreground/50",
                           )}
                           placeholder={readOnly ? undefined : EMPTY_LINE_PLACEHOLDER}
@@ -148,6 +163,7 @@ export function PageEditor({markdown, onMarkdownChange, addMenuExtra, resolveInp
 
     return (
         <DndProvider backend={HTML5Backend}>
+            <RenameRelationContext.Provider value={renameBlockOf}>
             <AddMenuExtraContext.Provider value={addMenuExtra}>
                 <Plate editor={editor} readOnly={readOnly} onValueChange={sync.onValueChange}>
                     <div className="relative flex h-full w-full flex-col bg-background">
@@ -188,18 +204,19 @@ export function PageEditor({markdown, onMarkdownChange, addMenuExtra, resolveInp
                                 <ResizablePanel defaultSize={60}>
                                     <div className="relative h-full" onPointerDownCapture={sync.textToView.flush}>
                                         <CooldownIndicator pending={sync.textToView.pending}/>
-                                        <div className="h-full overflow-auto">{content}{footer}</div>
+                                        <div className="h-full overflow-auto">{content}</div>
                                     </div>
                                 </ResizablePanel>
                             </ResizablePanelGroup>
                         ) : (
-                            <div className="min-h-0 flex-1 overflow-auto">{content}{footer}</div>
+                            <div className="min-h-0 flex-1 overflow-auto">{content}</div>
                         )}
                     </div>
                     <RelationFullscreenDialog/>
                     {slash && <AddMenuAt rect={slash.rect} insert={node => insertAtSlash(editor, slash.at, node, slash.length)} onClose={closeSlash}/>}
                 </Plate>
             </AddMenuExtraContext.Provider>
+            </RenameRelationContext.Provider>
         </DndProvider>
     );
 }

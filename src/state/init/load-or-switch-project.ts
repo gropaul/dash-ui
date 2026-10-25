@@ -8,6 +8,8 @@ import {getInitialRelationDataZustandState, useCacheStore, useRelationDataState}
 import {INIT, RelationZustandCombined, useRelationsState} from "@/state/relations.state";
 import {useInitState} from "@/state/init.state";
 import {ContentLifecycle} from "@/state/content-lifecycle";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {BlobBackend} from "@/state/workspace/blob-backend";
 import {DatabaseConnection} from "@/model/database-connection";
 import {initProjectSources, teardownProjectSources} from "@/state/sources/replay-sources";
 import {useProjectsState} from "@/state/projects.state";
@@ -17,9 +19,10 @@ import {
     DASH_CATALOG_TEMP,
     DASH_INTERNAL_SCHEMAS,
     DASH_STORAGE_VERSION,
+    WORKSPACE_STORAGE_DESTINATION,
     getProjectCacheFileName
 } from "@/platform/global-data";
-import {reregisterMacrosFromRelationState} from "@/state/relations/sql/table-macros";
+import {followQueryMacros, registerQueryMacros} from "@/state/workspace/query-macros";
 import {loadProjectMeta, saveProjectMeta} from "@/state/projects/project-meta-storage";
 import {Project, ProjectMeta} from "@/model/project";
 
@@ -41,10 +44,15 @@ const DISCARD_STORAGE: PersistStorage<RelationZustandCombined> = {
  * in memory. We detach persistence first (DISCARD_STORAGE) so clearing doesn't write the empty state
  * into the outgoing file, and cancel any pending throttled write so nothing clobbers the new file.
  */
+let stopFollowing: (() => void)[] = [];
+
 function closeOldProject(): void {
+    stopFollowing.forEach(stop => stop());
+    stopFollowing = [];
     useInitState.getState().setStep('closing-current-project');
     useRelationsState.persist.setOptions({storage: DISCARD_STORAGE});
     useRelationsState.setState(INIT);
+    useWorkspace.getState().unload();
     useRelationDataState.setState(getInitialRelationDataZustandState());
     useCacheStore.getState().clear();
     useProjectsState.getState().setCurrentMeta(null);
@@ -120,12 +128,15 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
 
     useInitState.getState().setStep('loading-project-relations');
     await loadRelationStateFromConnections(connection);
+    const workspaceStorage = await StorageDuckAPI.getInstance(WORKSPACE_STORAGE_DESTINATION);
+    await useWorkspace.getState().load(new BlobBackend(workspaceStorage, () => useWorkspace.getState().snapshot()));
 
     useInitState.getState().setStep('loading-project-macros');
-    await reregisterMacrosFromRelationState();
+    await registerQueryMacros(useWorkspace.getState().files);
+    stopFollowing = [followQueryMacros(), ContentLifecycle.followRemovedFiles()];
 
     useInitState.getState().setStep('loading-project-cached-results');
-    await ContentLifecycle.onProjectLoad(useRelationsState.getState());
+    await ContentLifecycle.onProjectLoad(useWorkspace.getState().files);
     await useRelationDataState.getState().loadLastUsed();
 }
 

@@ -119,5 +119,5 @@ ${FENCE}
 `;
 
 export function PageEditorDemo() {
-    return <PageEditor markdown={SAMPLE_PAGE}/>;
+    return <PageEditor path="Demo.md" markdown={SAMPLE_PAGE}/>;
 }

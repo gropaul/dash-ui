@@ -3,6 +3,7 @@
 import React from "react";
 import {ChevronDown, Search} from "lucide-react";
 import {cn} from "@/lib/utils";
+import {Expandable} from "@/components/basics/expandable";
 import {Column} from "@/model/data-source-connection";
 import {FilterTag, FilterTags} from "@/components/basics/filter-tags";
 
@@ -42,25 +43,6 @@ export function ColumnConfigList(props: ColumnConfigListProps) {
     const [query, setQuery] = React.useState('');
     const [activeTag, setActiveTag] = React.useState('');
     const [openColumn, setOpenColumn] = React.useState('');
-    // stays set while the close animation runs, so the content can animate out
-    const [mountedColumn, setMountedColumn] = React.useState('');
-    const openIntent = React.useRef('');
-
-    function toggleOpen(columnName: string, open: boolean) {
-        if (open) {
-            openIntent.current = '';
-            setOpenColumn('');
-            setMountedColumn(columnName);
-        } else {
-            // mount collapsed first, then expand a frame later so the
-            // 0fr -> 1fr transition actually runs
-            openIntent.current = columnName;
-            setMountedColumn(columnName);
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                if (openIntent.current === columnName) setOpenColumn(columnName);
-            }));
-        }
-    }
 
     const tagCounts: Record<string, number> = {};
     filterTags?.forEach(t => {
@@ -115,7 +97,6 @@ export function ColumnConfigList(props: ColumnConfigListProps) {
                 const expandedContent = renderExpanded?.(column);
                 const expandable = expandedContent !== undefined && expandedContent !== null;
                 const open = expandable && openColumn === column.name;
-                const mounted = expandable && (open || mountedColumn === column.name);
                 const clickable = expandable || !!onRowClick;
                 return (
                     <div key={column.name} className="border-b last:border-b-0">
@@ -127,7 +108,7 @@ export function ColumnConfigList(props: ColumnConfigListProps) {
                                 isDimmed?.(column) && "opacity-50",
                             )}
                             onClick={() => {
-                                if (expandable) toggleOpen(column.name, open);
+                                if (expandable) setOpenColumn(open ? '' : column.name);
                                 else onRowClick?.(column);
                             }}
                         >
@@ -147,22 +128,10 @@ export function ColumnConfigList(props: ColumnConfigListProps) {
                                 />
                             )}
                         </div>
-                        {mounted && (
-                            <div
-                                className={cn(
-                                    "grid transition-[grid-template-rows] duration-200 ease-in-out",
-                                    open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-                                )}
-                                onTransitionEnd={() => {
-                                    if (!open && mountedColumn === column.name) setMountedColumn('');
-                                }}
-                            >
-                                <div className="min-h-0 overflow-hidden">
-                                    <div className="px-2.5 pb-3">
-                                        {expandedContent}
-                                    </div>
-                                </div>
-                            </div>
+                        {expandable && (
+                            <Expandable open={open}>
+                                <div className="px-2.5 pb-3">{expandedContent}</div>
+                            </Expandable>
                         )}
                     </div>
                 );

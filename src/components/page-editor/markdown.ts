@@ -8,18 +8,17 @@ import {
     MdRules,
 } from "@platejs/markdown";
 import {
-    createReferenceBlock,
     createRelationBlock,
     DEFAULT_BLOCK_ROWS,
     GRID_COLUMNS,
     isInputBlock,
-    isReferenceBlock,
     RELATION_BLOCK_KEY,
     spanOf,
     spanToWidth,
     TColumnElement,
     TRelationBlock,
 } from "@/components/page-editor/model";
+import {joinHeader, splitHeader} from "@/state/workspace/relation-config";
 
 /**
  * A relation block is a plain ```sql fence, optionally named after the language (```sql revenue_per_month),
@@ -28,7 +27,7 @@ import {
  *     -- view: bar             (a plot type, or table / text / select / slider)
  *     -- x: month
  *     -- y: revenue
- *     -- settings: {...}       (optional: the complete view settings as JSON; the keys above override it)
+ *     -- settings: {...}       (optional: the views' setup beyond the keys above, as JSON)
  *     -- rows: 6               (height in grid rows; inputs have none)
  *     SELECT ...
  *
@@ -38,39 +37,20 @@ import {
  *     -- input: ../sales/orders.sql
  *     -- view: line
  *
- * A block that shows a relation of the project is a reference, without SQL:
- *
- *     -- relation: relation-query-local-abc
- *     -- rows: 6
- *
- * A sql fence without a `view`, `input` or `relation` line stays an ordinary code block. Columns are
+ * A sql fence without a `view` or `input` line stays an ordinary code block. Columns are
  * `<column span="6">`, in grid columns out of 12, inside a `<columngroup>` row.
  */
-const HEADER_LINE = /^--\s*([\w-]+):\s*(.*)$/;
 const COLUMN_GROUP_TAG = 'columngroup';
 
 export function parseRelationFence(lang: string | null | undefined, value: string, meta?: string | null): TRelationBlock | undefined {
     if (lang !== 'sql') return;
-    const lines = value.split('\n');
-    const header: Record<string, string> = {};
-    let i = 0;
-    for (; i < lines.length; i++) {
-        const match = HEADER_LINE.exec(lines[i].trim());
-        if (!match) break;
-        header[match[1]] = match[2].trim();
-    }
-    const {rows, relation, ...rest} = header;
-    const height = Number(rows) || DEFAULT_BLOCK_ROWS;
-    if (relation) return createReferenceBlock(relation, height);
-    if (!rest.view && !rest.input) return;
-    return createRelationBlock(lines.slice(i).join('\n').trim(), rest, height, meta?.trim() || undefined);
+    const {header: {rows, ...header}, sql} = splitHeader(value);
+    if (!header.view && !header.input) return;
+    return createRelationBlock(sql.trim(), header, Number(rows) || DEFAULT_BLOCK_ROWS, meta?.trim() || undefined);
 }
 
 export function relationToFence(block: TRelationBlock): string {
-    const header: Record<string, string> = isReferenceBlock(block) ? {relation: block.relationId!} : {...block.header};
-    if (!isInputBlock(block)) header.rows = String(block.rows);
-    const lines = Object.entries(header).map(([key, value]) => `-- ${key}: ${value}`);
-    return [...lines, block.sql].filter(Boolean).join('\n');
+    return joinHeader(isInputBlock(block) ? block.header : {...block.header, rows: String(block.rows)}, block.sql);
 }
 
 function attribute(mdastNode: MdMdxJsxFlowElement, name: string): string | undefined {

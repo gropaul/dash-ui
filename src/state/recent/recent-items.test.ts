@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {keepDisplayOrder, RecentItem} from "@/state/recent/recent-items";
 
 const item = (id: string, lastViewedAt: number): RecentItem =>
-    ({id, name: id, type: "relations", iconType: "relations", lastViewedAt});
+    ({id, name: id, kind: "query", lastViewedAt});
 const ids = (items: RecentItem[]) => items.map((i) => i.id);
 
 describe('keepDisplayOrder', () => {

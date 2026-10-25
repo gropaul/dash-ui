@@ -11,17 +11,15 @@
  * URL scheme (a specific project is addressed by id and carries a section):
  *   /projects                          → the projects list
  *   /projects/<id>/workspace           → that project's root folder
- *   /projects/<id>/workspace/<seg>…    → an object (folder/relation/dashboard/canvas)
+ *   /projects/<id>/workspace/<path>    → a file of the workspace, by its path (`Sales/Q3.md`)
  *   /projects/<id>/connections         → that project's connections tab
  *   /projects/<id>/data/<seg>…         → that project's catalog
  *
  * A URL round-trips through a typed {@link DashLocation}, so callers never assemble URL
  * strings by hand — they build a location and call `navigateTo` / `getUrlFrom`.
  */
-import {nodeAtObjectSlugPath, objectSlugPathForId} from "@/state/routing/core-model";
-import {useRelationsState} from "@/state/relations.state";
-import {buildRoutableTree} from "@/state/routing/routable-tree";
 import {useProjectsState} from "@/state/projects.state";
+import {useWorkspace} from "@/state/workspace/workspace.state";
 
 
 export const PROJECT_ROOT = "/projects";   // the projects list, and the base for a specific project
@@ -35,7 +33,7 @@ export interface ProjectWorkspaceLocation {
     basePath: "project";
     projectId: string;
     section: "workspace";
-    // Addresses a workspace object; empty is the project root folder.
+    // The segments of a file's path; empty is the bare workspace.
     path: string[];
 }
 
@@ -145,9 +143,8 @@ export class DashNavigator {
         }
     }
 
-    getUrlFromObjectId(id: string): string {
-        const location = this.getLocationFromObjectId(id);
-        return this.getUrlFromLocation(location);
+    getUrlFromPath(path: string): string {
+        return this.getUrlFromLocation(DashLocations.CurrentProjectElement(path.split('/')));
     }
 
     getLocationFromUrl(url: string = this.currentUrl()): DashLocation {
@@ -168,15 +165,6 @@ export class DashNavigator {
         return DashLocations.ProjectsList();
     }
 
-    getLocationFromObjectId(id: string): DashLocation {
-        const path = objectSlugPathForId(useRelationsState.getState().editorElements, id);
-        if (!path) {
-            throw new Error(`Can't resolve object location for id ${id}: not in the editor tree`);
-        }
-        return DashLocations.CurrentProjectElement(path)
-    }
-
-
     // --- navigation -------------------------------------------------------
 
     navigateToLocation(location: DashLocation, replace = false): void {
@@ -188,9 +176,8 @@ export class DashNavigator {
         this.emit();
     }
 
-    navigateToObjectId(id: string, replace = false): void {
-        const location = this.getLocationFromObjectId(id);
-        this.navigateToLocation(location, replace);
+    navigateToPath(path: string, replace = false): void {
+        this.navigateToLocation(DashLocations.CurrentProjectElement(path.split('/')), replace);
     }
 
     onClickNavigateToLocation(location: DashLocation, replace = false) {
@@ -202,20 +189,8 @@ export class DashNavigator {
         };
     }
 
-    onClickNavigateToObjectId(id: string) {
-        return (e: React.MouseEvent) => {
-            if (e.defaultPrevented) return;
-            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-            e.preventDefault();
-            this.navigateToObjectId(id);
-        };
-    }
-
-    getObjectFromLocation(location: ProjectWorkspaceLocation) {
-        const editorElements = useRelationsState.getState().editorElements;
-        const st = useRelationsState.getState();
-        const tree = buildRoutableTree(editorElements, st.relations, st.dashboards, st.canvas);
-        return nodeAtObjectSlugPath(tree, location.path);
+    onClickNavigateToPath(path: string) {
+        return this.onClickNavigateToLocation(DashLocations.CurrentProjectElement(path.split('/')));
     }
 
 
@@ -256,18 +231,12 @@ export class DashNavigator {
         return this.cachedLocation;
     };
 
-    // if there is an object open, return it, else null. Objects live only in the workspace section.
-    getCurrentObject() {
-        const currentLocation = this.getCurrentLocation();
-        if (currentLocation.basePath !== "project" || currentLocation.section !== "workspace") return null;
-        return this.getObjectFromLocation(currentLocation);
-    }
-
-    isCurrentObjectIdShown(id: string): boolean {
-        const currentLocation = this.getCurrentLocation();
-        if (currentLocation.basePath !== "project" || currentLocation.section !== "workspace") return false;
-        const currentObject = this.getObjectFromLocation(currentLocation);
-        return currentObject?.id === id;
+    /** The path of the file open in the workspace, if one is open and exists. */
+    getCurrentPath(): string | null {
+        const location = this.getCurrentLocation();
+        if (location.basePath !== "project" || location.section !== "workspace" || !location.path.length) return null;
+        const path = location.path.join('/');
+        return path in useWorkspace.getState().files ? path : null;
     }
 
     // --- Helper ----------------------------------------------------------

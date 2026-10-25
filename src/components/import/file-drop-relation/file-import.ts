@@ -1,9 +1,8 @@
 import {toast} from "sonner";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useDataSourcesState} from "@/state/data-sources.state";
-import {useRelationsState} from "@/state/relations.state";
+import {createQueryFileFromSource} from "@/state/workspace/query-files";
 import {getImportQuery, inferFileTableName} from "@/state/connections/duckdb-wasm/utils";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {RelationSource} from "@/model/relation";
 import {FileFormat} from "@/state/data-source/duckdb-helper";
 import {FileUploadState} from "./file-drop-overlay";
@@ -40,7 +39,6 @@ export const handleFileImport = async (
             const refreshConnection = useDataSourcesState.getState().refreshConnection;
             await refreshConnection(connection.id);
 
-            const showRelation = useRelationsState.getState().showRelationFromSource;
             const catalog = await connection.executeQuery(`SELECT current_catalog();`, false);
             const dbName = catalog.rows[0][0];
 
@@ -50,7 +48,7 @@ export const handleFileImport = async (
                 schema: 'main',
                 tableName: tableName,
             };
-            showRelation(connection.id, source, DEFAULT_RELATION_VIEW_PATH);
+            await createQueryFileFromSource(source);
 
             setFileUploadState({state: 'done', message: 'Imported successfully!'});
             toast.success('File imported successfully!');
@@ -111,18 +109,11 @@ export const handleFileDrop = async (
             const refreshConnection = useDataSourcesState.getState().refreshConnection;
             await refreshConnection(connection.id);
 
-            const showRelation = useRelationsState.getState().showRelationFromSource;
             const catalog = await connection.executeQuery(`SELECT current_catalog();`, false);
             const dbName = catalog.rows[0][0];
-            tableNames.forEach((name, index) => {
-                let source: RelationSource = {
-                    type: 'table',
-                    database: dbName,
-                    schema: 'main',
-                    tableName: name,
-                };
-                showRelation(connection.id, source, DEFAULT_RELATION_VIEW_PATH);
-            });
+            for (const name of tableNames) {
+                await createQueryFileFromSource({type: 'table', database: dbName, schema: 'main', tableName: name});
+            }
 
             setFileUploadState({state: 'done', message: 'Imported successfully!'});
             toast.success('Files imported successfully!');

@@ -8,8 +8,6 @@ import remarkGfm from "remark-gfm";
 import {MarkdownPlugin, remarkMdx} from "@platejs/markdown";
 import {relationToFence, pageMarkdownRules, parseRelationFence, serializePage} from "@/components/page-editor/markdown";
 import {RELATION_BLOCK_KEY, TRelationBlock} from "@/components/page-editor/model";
-import {buildBlockRelation, headerFromRelation} from "@/components/page-editor/block-relation";
-import {relationReferenceFence} from "@/model/dashboard-state";
 
 const MARKDOWN = `# Title
 
@@ -131,45 +129,6 @@ describe('dashboard markdown', () => {
     });
 });
 
-describe('reference blocks', () => {
-    it('read and write the fence the store appends', () => {
-        const block = parseRelationFence('sql', relationReferenceFence('rel-a').split('\n').slice(1, -1).join('\n'))!;
-        expect(block).toMatchObject({type: RELATION_BLOCK_KEY, relationId: 'rel-a', rows: 6});
-        expect('```sql\n' + relationToFence(block) + '\n```').toBe(relationReferenceFence('rel-a'));
-    });
-});
-
-describe('view settings', () => {
-    const sql = 'SELECT 1 AS month, 2 AS revenue';
-
-    it('takes the view JSON as the base and the readable keys over it', () => {
-        const base = buildBlockRelation({sql, header: {view: 'line', x: 'month', y: 'revenue'}});
-        const settings = base.query.viewParameters.chart!;
-        settings.plot.cartesian.yAxes![0].decoration.line.stroke.color = '#123456';
-        const relation = buildBlockRelation({sql, header: {view: 'bar', x: 'month', y: 'revenue', settings: JSON.stringify(settings)}});
-        const plot = relation.query.viewParameters.chart!.plot;
-        expect(plot.type).toBe('bar');
-        expect(plot.cartesian.yAxes![0].decoration.line.stroke.color).toBe('#123456');
-    });
-
-    it('writes the view JSON back only when the readable keys do not cover the settings', () => {
-        const header = {view: 'line', x: 'month', y: 'revenue'};
-        const plain = buildBlockRelation({sql, header, name: 'monthly_revenue'});
-        expect(headerFromRelation(plain, header, sql)).toEqual(header);
-
-        plain.query.viewParameters.chart!.plot.cartesian.yAxes![0].decoration.line.stroke.color = '#123456';
-        const settings = JSON.parse(headerFromRelation(plain, header, sql).settings);
-        expect(settings.plot.cartesian.yAxes[0].decoration.line.stroke.color).toBe('#123456');
-        // The title is the name's, so it isn't kept in the settings and follows a rename.
-        expect(settings.plot.title).toBeUndefined();
-    });
-
-    it('titles a chart and labels a dropdown by the name', () => {
-        expect(buildBlockRelation({sql, header: {view: 'bar'}, name: 'monthly_revenue'}).query.viewParameters.chart!.plot.title).toBe('Monthly revenue');
-        expect(buildBlockRelation({sql, header: {view: 'select'}, name: 'region'}).query.viewParameters.select!.label).toBe('Region');
-    });
-});
-
 describe('empty text block at the end', () => {
     // Clicking below the last block adds one to type into; until something is typed it is no content, and the
     // markdown must stay the same, or the split view would write the text back.
@@ -188,22 +147,9 @@ describe('empty text block at the end', () => {
 });
 
 describe('blocks taking a query in', () => {
-    const query = buildBlockRelation({sql: 'SELECT 1 AS month, 2 AS revenue', header: {view: 'line', x: 'month', y: 'revenue'}, name: 'orders'});
-
     it('are read from an input line, without a view or SQL of their own', () => {
         const block = parseRelationFence('sql', '-- input: ../Orders.sql\n-- rows: 4', 'orders')!;
         expect(block).toMatchObject({type: RELATION_BLOCK_KEY, name: 'orders', sql: '', header: {input: '../Orders.sql'}, rows: 4});
         expect(relationToFence(block)).toBe('-- input: ../Orders.sql\n-- rows: 4');
-    });
-
-    it('take the query\'s SQL and view, and their own keys override the view', () => {
-        const same = buildBlockRelation({sql: '', header: {input: 'Orders.sql'}, name: 'orders'}, query);
-        expect(same.query.baseQuery).toBe(query.query.baseQuery);
-        expect(same.query.viewParameters.chart!.plot.type).toBe('line');
-
-        const asBars = buildBlockRelation({sql: '', header: {input: 'Orders.sql', view: 'bar'}, name: 'orders'}, query);
-        expect(asBars.query.viewParameters.chart!.plot.type).toBe('bar');
-        expect(asBars.query.viewParameters.chart!.plot.cartesian.xAxis?.columnId).toBe('month');
-        expect(buildBlockRelation({sql: '', header: {input: 'Orders.sql', view: 'table'}, name: 'orders'}, query).viewState.selectedView).toBe('table');
     });
 });

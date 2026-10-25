@@ -3,8 +3,9 @@ import {Button} from "@/components/ui/button";
 import {MacroCopyButton} from "@/components/relation/macro-copy-button";
 import {RelationExecutionInfo} from "@/components/relation/common/relation-execution-info";
 import {RelationState} from "@/model/relation-state";
-import {useRenameDialogStore} from "@/state/rename-dialog.state";
-import {useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
+import {RenameRelationContext} from "@/components/relation/common/rename-relation-context";
+import {renameEntry} from "@/components/workspace/file-actions";
 import {H4, H5} from "@/components/ui/typography";
 
 export interface RelationTitleWithActionsProps {
@@ -43,9 +44,9 @@ export function RelationTitleWithActions({
         return () => observer.disconnect();
     }, []);
 
-    const handleOpenRename = () => {
-        useRenameDialogStore.getState().openRelationRenameDialog(relationState);
-    };
+    const rename = useContext(RenameRelationContext);
+    // A query's id is its file's path.
+    const handleOpenRename = () => rename ? rename(relationState) : renameEntry(relationState.id);
 
     return (
         <div ref={containerRef} className={`group/title flex items-center min-w-0 flex-1 ${className ?? ''}`}>

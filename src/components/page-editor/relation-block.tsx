@@ -24,7 +24,7 @@ function RelationBlockElement(props: PlateElementProps<TRelationBlock>) {
     const {element, editor} = props;
     const [previewRows, setPreviewRows] = useState<number | null>(null);
     const hovered = usePluginOption(BlockHoverPlugin, 'isHovered', element.id as string);
-    // Undefined when a reference points at a relation that was deleted, or an input at a query that isn't there.
+    // Undefined when the block's input names a query that isn't there.
     const linked = useBlockRelation(element);
     const input = isInputView(linked?.relation.viewState.selectedView);
     const rows = input ? INPUT_ROWS : previewRows ?? element.rows;
@@ -65,9 +65,7 @@ function RelationBlockElement(props: PlateElementProps<TRelationBlock>) {
                         />
                     ) : (
                         <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                            {element.header.input
-                                ? `No query at ${element.header.input}.`
-                                : 'The relation shown here no longer exists.'}
+                            {`${element.header.input} not found`}
                         </div>
                     )}
                 </div>

@@ -5,7 +5,6 @@ import {FileText} from "lucide-react";
 import {TLinkElement} from "platejs";
 import {PlateElement, PlateElementProps} from "platejs/react";
 import {cn} from "@/lib/utils";
-import {isPagePath} from "@/state/routing/page-links";
 import {PageLinksContext} from "@/components/page-editor/page-link-context";
 
 /**
@@ -17,7 +16,8 @@ export function LinkElement(props: PlateElementProps<TLinkElement>) {
     const pageLinks = useContext(PageLinksContext);
     const url = props.element.url;
     const page = pageLinks?.resolve(url);
-    const broken = !!pageLinks && !page && isPagePath(url);
+    // A path to a page that isn't there.
+    const broken = !!pageLinks && !page && /\.md$/i.test(url.split(/[?#]/)[0]);
     const href = page ? pageLinks!.href(page.id) : broken ? undefined : url;
 
     // Also prevents the browser's default, which is nothing inside the editable page.

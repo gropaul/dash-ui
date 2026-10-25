@@ -2,51 +2,42 @@ import type {ReactNode} from "react";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {ForceOpenReason} from "@/components/settings/settings-dialog";
-import {EntityBase} from "@/state/entities/entity-base";
+import type {WorkspaceNodeKind} from "@/state/workspace/workspace-tree";
 
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation' | 'get-started'
 
-// --- Global command palette (entity picker) --------------------------------
-// A single palette, opened from anywhere (AppBar search, ⌘K, double-Shift, or the
-// "Add to …" actions). The caller supplies the action label, an optional type
-// filter, and a callback; the palette just returns the chosen entity — the caller
-// performs the actual work (navigate, add-to-canvas, …).
+// --- Global command palette (file picker) ----------------------------------
+// A single palette, opened from anywhere (AppBar search, ⌘K, double-Shift, or a page's
+// "Existing query…"). The caller supplies the action label, an optional kind filter and a
+// callback; the palette just returns the chosen file, the caller does the work.
 
-export type CommandActionType = 'open' | 'add-relation-to-dashboard' | 'add-relation-to-canvas' | 'move';
+export type CommandActionType = 'open' | 'add-query-to-page';
 
-/** Entity kinds the palette can list (mirrors the folder-view element kinds). */
-export type CommandEntityType = 'folder' | 'relations' | 'dashboards' | 'canvas';
+/** The kinds of workspace entries the palette can list. */
+export type CommandEntityType = Extract<WorkspaceNodeKind, 'folder' | 'page' | 'query'>;
 
-/** A pinned row shown above the results (e.g. the "Workspace" root target in move mode). */
-export interface CommandRootOption {
-    label: string;
-    onSelect: () => void;
+/** A file or folder the palette hands back. */
+export interface CommandFile {
+    path: string;
+    name: string;
+    kind: CommandEntityType;
 }
 
 export interface CommandRequest {
     action: CommandActionType;
-    // which entity kinds to show; undefined = all kinds
+    // which kinds to show; undefined = all kinds
     filter?: CommandEntityType[];
-    // entity ids to hide from the list (e.g. a move can't target itself or its own subtree)
-    excludeIds?: string[];
-    // show each row's full breadcrumb path (used by move, where identical folder names collide)
-    showPaths?: boolean;
-    // optional pinned row rendered above the results
-    rootOption?: CommandRootOption;
     // optional element rendered between the search field and the filter tags (e.g. quick-add buttons)
     slot?: ReactNode;
-    onSelect: (entity: EntityBase) => void;
+    onSelect: (file: CommandFile) => void;
 }
 
 export interface CommandGUIZustand {
     isOpen: boolean;
     action: CommandActionType;
     filter?: CommandEntityType[];
-    excludeIds?: string[];
-    showPaths?: boolean;
-    rootOption?: CommandRootOption;
     slot?: ReactNode;
-    onSelect?: (entity: EntityBase) => void;
+    onSelect?: (file: CommandFile) => void;
 }
 
 const INITIAL_COMMAND_STATE: CommandGUIZustand = {
@@ -180,9 +171,6 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                         isOpen: true,
                         action: request.action,
                         filter: request.filter,
-                        excludeIds: request.excludeIds,
-                        showPaths: request.showPaths,
-                        rootOption: request.rootOption,
                         slot: request.slot,
                         onSelect: request.onSelect,
                     }

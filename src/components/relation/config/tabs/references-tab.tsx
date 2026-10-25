@@ -9,10 +9,9 @@ import {ReferenceEntry, useRelationReferences} from "@/components/relation/confi
 import {ReferenceList} from "@/components/relation/config/reference-list";
 
 /**
- * Everything that connects this relation to the rest of the project: the two directions of the
- * `refs.<name>()` macro graph, plus the dashboards and canvases that place it. Only the groups
- * that actually have entries are rendered, so an unconnected relation shows one empty state
- * instead of four.
+ * Everything that connects this query to the rest of the project: the two directions of the
+ * `refs.<name>()` graph, plus the pages that use it. Only the groups that have entries are rendered,
+ * so an unconnected query shows one empty state instead of three.
  */
 export function ReferencesTab(props: RelationConfigTabProps) {
     const references = useRelationReferences(props.relationState);
@@ -21,16 +20,15 @@ export function ReferencesTab(props: RelationConfigTabProps) {
         // relations only; the dashboard/canvas groups below cover the other kinds of use
         {title: 'Used by', entries: references.usedByRelations},
         {title: 'Uses', entries: references.usesRelations},
-        {title: 'Dashboards', entries: references.dashboards},
-        {title: 'Canvases', entries: references.canvases},
+        {title: 'Pages', entries: references.dashboards},
     ].filter(group => group.entries.length > 0);
 
     if (groups.length === 0) {
         return (
             <Muted className="text-sm">
-                Nothing references this relation yet. Other relations can read it
-                with <span className="font-mono">refs.&lt;name&gt;()</span>, and it can be placed on
-                a dashboard or a canvas.
+                Nothing references this query yet. Other queries can read it
+                with <span className="font-mono">refs.&lt;name&gt;()</span>, and a page can take it in
+                with <span className="font-mono">-- input:</span>.
             </Muted>
         );
     }

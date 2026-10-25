@@ -16,7 +16,14 @@ export function kindOf(path: string): WorkspaceNodeKind {
     return KIND_BY_EXTENSION[extensionOf(path)] ?? 'file';
 }
 
-function nodeName(path: string, kind: WorkspaceNodeKind) {
+export const isQuery = (path: string) => kindOf(path) === 'query';
+export const isPage = (path: string) => kindOf(path) === 'page';
+
+/** Canvases are disabled while project content moves to files: no listing shows them. */
+export const isListed = (path: string) => kindOf(path) !== 'canvas';
+
+/** What a file is called: its name without a known extension (`Q3` for `Q3.md`); a folder's or other file's full name. */
+export function displayName(path: string, kind: WorkspaceNodeKind = kindOf(path)): string {
     const name = baseName(path);
     return kind === 'folder' || kind === 'file' ? name : name.slice(0, -extensionOf(path).length);
 }
@@ -40,8 +47,9 @@ export function buildWorkspaceTree(filePaths: Iterable<string>, dirs: Iterable<s
         childrenOf(parentOf(dir)).push(node);
     }
     for (const path of filePaths) {
+        if (!isListed(path)) continue;
         const kind = kindOf(path);
-        childrenOf(parentOf(path)).push({path, name: nodeName(path, kind), kind});
+        childrenOf(parentOf(path)).push({path, name: displayName(path, kind), kind});
     }
 
     const sort = (nodes: WorkspaceNode[]) => {

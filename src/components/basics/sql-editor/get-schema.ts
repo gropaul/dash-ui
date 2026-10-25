@@ -1,6 +1,9 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DASH_CATALOG_STATE, DASH_REFS_SCHEMA, dashInternalObjectsFilter} from "@/platform/global-data";
-import {getAllRelations} from "@/state/relations/all-relation-utils";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {queryName} from "@/state/workspace/file-references";
+import {isQuery} from "@/state/workspace/workspace-tree";
+import {splitHeader} from "@/state/workspace/relation-config";
 import {getMacroName} from "@/state/relations/sql/table-macros";
 
 export type {Column, Database, DatabaseFunction, DatabaseKeyword, Table} from './schema-utils';
@@ -37,17 +40,17 @@ export async function getDatabaseKeywords(): Promise<DatabaseKeyword[]> {
 }
 
 export async function getDatabaseMacros(): Promise<Table[]> {
-    // Merge canvas/dashboard relations as dash_node tables
-    const macroTables: Table[] = getAllRelations()
-        .filter(r => r.relation.query.baseQuery)
-        .map(r => {
-            const macroName = getMacroName(r.relation.viewState.displayName);
+    // Each query file is a macro, dash.refs.<name>().
+    const macroTables: Table[] = Object.entries(useWorkspace.getState().files)
+        .filter(([path, text]) => isQuery(path) && splitHeader(text).sql)
+        .map(([path, text]) => {
+            const macroName = getMacroName(queryName(path));
             return {
                 name: macroName,
                 escapedName: normalizeIdentifier(macroName),
                 type: 'dash_node' as const,
-                displayName: r.relation.viewState.displayName,
-                query: r.relation.query.baseQuery,
+                displayName: queryName(path),
+                query: splitHeader(text).sql,
                 children: [],
             };
         });

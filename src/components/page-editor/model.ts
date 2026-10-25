@@ -13,21 +13,13 @@ export const DEFAULT_BLOCK_ROWS = 6;
 const INPUT_VIEWS = ['select', 'slider'];
 export const INPUT_ROWS = 1;
 
-/**
- * A block showing a relation: a chart, table, dropdown, ... In markdown it is a ```sql fence, see markdown.ts.
- * Either inline, with its own SQL and settings, or a reference to a relation of the project (`relationId`),
- * which then keeps its query and settings itself.
- */
+/** A block showing a relation: a chart, table, dropdown, ... In markdown it is a ```sql fence, see markdown.ts. */
 export interface TRelationBlock extends TElement {
     type: typeof RELATION_BLOCK_KEY;
-    relationId?: string;
-    /** An inline block's name, ```sql <name>: what other blocks read it by, `refs.<name>()`, and its title. */
+    /** The block's name, ```sql <name>: what other blocks read it by, `refs.<name>()`, and its title. */
     name?: string;
     sql: string;
-    /**
-     * The fence's header, apart from `rows`: the readable `view`, `x`, `y`, `column`, and `settings`, the
-     * complete settings of the shown view as JSON, which the readable keys override.
-     */
+    /** The fence's header, apart from `rows`: `view`, `x`, `y`, `column`, `input` and `settings` (relation-config.ts). */
     header: Record<string, string>;
     rows: number;
 }
@@ -40,13 +32,9 @@ export function isInputView(viewType: string | undefined) {
     return INPUT_VIEWS.includes(viewType ?? '');
 }
 
-/** Whether the fence shows an input; for a reference that is up to the relation, see isInputView. */
+/** Whether the fence shows an input. */
 export function isInputBlock(block: TRelationBlock) {
     return isInputView(block.header.view);
-}
-
-export function isReferenceBlock(block: TRelationBlock) {
-    return block.relationId !== undefined;
 }
 
 // Columns keep Plate's percentage `width`, always a whole number of grid columns.
@@ -75,10 +63,6 @@ export function uniqueBlockName(editor: SlateEditor, base: string): string {
     let n = 1;
     while (taken.has(`${base}_${n}`)) n++;
     return `${base}_${n}`;
-}
-
-export function createReferenceBlock(relationId: string, rows = DEFAULT_BLOCK_ROWS): TRelationBlock {
-    return {type: RELATION_BLOCK_KEY, relationId, sql: '', header: {}, rows, children: [{text: ''}]};
 }
 
 /** Each argument is one column: a single block or the blocks stacked in it. */

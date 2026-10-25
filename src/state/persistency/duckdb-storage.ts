@@ -29,23 +29,25 @@ interface Input {
     value: string
 }
 
+/** One JSON value in one table of the project database: the relation state, the workspace files. */
 export class StorageDuckAPI {
 
     createdTables: string[] = [];
-    private static instance: StorageDuckAPI;
+    private static instances = new Map<string, StorageDuckAPI>();
 
     lastVersionCode: number | null = null;
     throttledSetItem: ((input: Input) => Promise<void>) & { cancel: () => void };
 
-    onForceReloadCallback: () => void = () => {
+    // Shared: a conflict on any table means another tab wrote the project.
+    private static onForceReloadCallback: () => void = () => {
     };
 
-    private constructor() {
+    private constructor(private destination: StorageDestination) {
         this.throttledSetItem = throttleLatest(this.setItemInternal.bind(this), STORAGE_THROTTLE_TIME_MS);
     }
 
     setOnForceReloadCallback(callback: () => void) {
-        this.onForceReloadCallback = callback;
+        StorageDuckAPI.onForceReloadCallback = callback;
     }
 
     async getOrWaitForConnection(): Promise<DatabaseConnection> {
@@ -59,7 +61,7 @@ export class StorageDuckAPI {
 
     async getActiveStorageInfo(): Promise<StateStorageInfoLoaded> {
         await this.getOrWaitForConnection();
-        return DefaultLoadedStorageInfo();
+        return {...DefaultLoadedStorageInfo(), destination: this.destination};
     }
 
     async createTableIfNotExists(storageInfo: StateStorageInfoLoaded) {
@@ -118,15 +120,15 @@ export class StorageDuckAPI {
         return connection.executeQuery(query, false);
     }
 
-    static async getInstance(): Promise<StorageDuckAPI> {
-
-        if (!StorageDuckAPI.instance) {
-            StorageDuckAPI.instance = new StorageDuckAPI();
+    static async getInstance(destination: StorageDestination = DEFAULT_STATE_STORAGE_DESTINATION): Promise<StorageDuckAPI> {
+        const key = GetFullNameDestination(destination);
+        let instance = StorageDuckAPI.instances.get(key);
+        if (!instance) {
+            instance = new StorageDuckAPI(destination);
+            StorageDuckAPI.instances.set(key, instance);
         }
-
-        await StorageDuckAPI.instance.getOrWaitForConnection();
-
-        return StorageDuckAPI.instance;
+        await instance.getOrWaitForConnection();
+        return instance;
     }
 
     updateVersion(versionCode: number) {
@@ -144,11 +146,11 @@ export class StorageDuckAPI {
      * database and rejects the pending query (caught + logged in setItemInternal).
      */
     static resetForProjectSwitch() {
-        const instance = StorageDuckAPI.instance;
-        if (!instance) return;
-        instance.throttledSetItem.cancel();
-        instance.createdTables = [];
-        instance.lastVersionCode = null;
+        for (const instance of StorageDuckAPI.instances.values()) {
+            instance.throttledSetItem.cancel();
+            instance.createdTables = [];
+            instance.lastVersionCode = null;
+        }
         // The cancelled write will never complete to clear the indicator; the new project loads clean.
         useSaveStatus.getState().setStatus('saved');
     }
@@ -271,7 +273,7 @@ export class StorageDuckAPI {
             const isVersionConflict = (e as Error).message.includes(VERSION_CONFLICT_ERROR);
             if (isVersionConflict) {
                 console.error("Version conflict detected. Forcing reload.");
-                this.onForceReloadCallback()
+                StorageDuckAPI.onForceReloadCallback()
             }
         }
     }

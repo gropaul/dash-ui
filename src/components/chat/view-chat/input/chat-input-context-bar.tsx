@@ -1,6 +1,6 @@
 import {toggleTargetEnabled, useTargetsWithEnabled} from "@/components/chat/model/chat-context";
 import {Badge} from "@/components/ui/badge";
-import {LayoutDashboard, Table2} from "lucide-react";
+import {FileText, Table2} from "lucide-react";
 import {cn} from "@/lib/utils";
 
 export function ChatInputContextBar() {
@@ -35,7 +35,7 @@ export function ChatInputContextBar() {
                         onClick={() => toggleTargetEnabled(target.id)}
                     >
                         {target.type === 'dashboard'
-                            ? <LayoutDashboard size={10} className="flex-shrink-0"/>
+                            ? <FileText size={10} className="flex-shrink-0"/>
                             : <Table2 size={10} className="flex-shrink-0"/>
                         }
                         <span className="truncate">{target.name}</span>

@@ -287,7 +287,12 @@ export async function executeQueryOfRelation(input: RelationState, readOnly: boo
         }
     }
 
-    const buildResult = await buildQueryWithCheck(input);
+    let buildResult: QueryBuildResult;
+    try {
+        buildResult = await buildQueryWithCheck(input);
+    } catch (e) {
+        return returnEmptyErrorState(input, e);
+    }
 
     // start a timer to measure the query duration
     const start = performance.now();

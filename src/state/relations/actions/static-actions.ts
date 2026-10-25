@@ -116,16 +116,6 @@ export class RelationActions {
         return {...relationState, query};
     }
 
-    static renameInAllQueries(from: string, to: string, excludeId: string): void {
-        for (const entry of getAllRelations()) {
-            if (entry.relation.id === excludeId) continue;
-            const updated = RelationActions.renameInQuery(entry.relation, from, to);
-            if (updated !== entry.relation) {
-                entry.updateRelation(updated);
-            }
-        }
-    }
-
     static getUniqueDisplayName = (desiredName: string, excludeRelationId?: string): string => {
         if (!isDisplayNameTaken(desiredName, excludeRelationId)) {
             return desiredName;

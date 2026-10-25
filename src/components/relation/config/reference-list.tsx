@@ -23,7 +23,7 @@ export function ReferenceList({entries}: ReferenceListProps) {
 function ReferenceRow({entry}: { entry: ReferenceEntry }) {
     function onClick() {
         if (!entry.navigable) return;
-        DashNavigator.instance().navigateToObjectId(entry.id);
+        DashNavigator.instance().navigateToPath(entry.id);
     }
 
     return (

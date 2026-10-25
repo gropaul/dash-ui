@@ -103,12 +103,16 @@ export const DEFAULT_LLM_SETTINGS: LLMSettings = {
 
 export const N_RELATIONS_DATA_TO_LOAD = 30;
 
-export const DEFAULT_RELATION_VIEW_PATH =[]
-
 export const DASH_CACHE_TABLE_PREFIX = 'dash-cache-';
 
 export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
     tableName: 'relationState',
+    schemaName: DASH_STATE_SCHEMA,
+    databaseName: DASH_CATALOG_STATE,
+}
+
+export const WORKSPACE_STORAGE_DESTINATION: StorageDestination = {
+    tableName: 'workspace',
     schemaName: DASH_STATE_SCHEMA,
     databaseName: DASH_CATALOG_STATE,
 }

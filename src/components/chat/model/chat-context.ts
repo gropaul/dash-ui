@@ -1,4 +1,4 @@
-import {useRelationsState} from "@/state/relations.state";
+import {useSurfaces} from "@/state/workspace/surfaces.state";
 import {useMemo, useSyncExternalStore} from "react";
 import {useDashLocation} from "@/state/routing/use-dash-location";
 import {DashNavigator} from "@/state/routing/navigation";
@@ -39,23 +39,19 @@ const CHAT_TARGET: ChatTarget = {
 export function getAvailableTargets(): Target[] {
     const targets: Target[] = [CHAT_TARGET];
 
-    const relationsState = useRelationsState.getState();
-
-    // The "open" relation is now the one addressed by the current URL.
-    const shown = DashNavigator.instance().getCurrentObject();
-    if (shown && shown.type === 'relations') {
-        const relation = relationsState.relations[shown.id];
-        if (relation) {
-            const viewType = relation.viewState.selectedView;
-            targets.push({
-                id: shown.id,
-                type: 'relation',
-                name: relation.viewState.displayName,
-                query: relation.query.baseQuery,
-                viewType: viewType,
-                description: `Query viewing as ${viewType}`,
-            });
-        }
+    // The open query: its id is its path, its state the surface the query tab shows.
+    const path = DashNavigator.instance().getCurrentPath();
+    const relation = path ? useSurfaces.getState().relations[path] : undefined;
+    if (path && relation) {
+        const viewType = relation.viewState.selectedView;
+        targets.push({
+            id: path,
+            type: 'relation',
+            name: relation.viewState.displayName,
+            query: relation.query.baseQuery,
+            viewType: viewType,
+            description: `Query viewing as ${viewType}`,
+        });
     }
 
     return targets;
@@ -143,13 +139,13 @@ function useDisabledTargets(): Set<string> {
 
 export function useAvailableTargets(): Target[] {
     const location = useDashLocation();
-    const dashboards = useRelationsState((s) => s.dashboards);
-    const relations = useRelationsState((s) => s.relations);
-    const editorElements = useRelationsState((s) => s.editorElements);
+    const relations = useSurfaces((s) => s.relations);
 
     return useMemo(() => {
         return getAvailableTargets();
-    }, [location, dashboards, relations, editorElements]);
+        // Read through getAvailableTargets.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location, relations]);
 }
 
 export function useTargetsWithEnabled(): { targets: Target[]; disabled: Set<string> } {

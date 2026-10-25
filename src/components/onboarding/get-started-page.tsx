@@ -1,5 +1,5 @@
 import React, {useRef} from "react";
-import {Upload, BookOpen, Play, Sheet, LayoutDashboard, Database} from "lucide-react";
+import {Upload, BookOpen, Play, Sheet, FileText, Database} from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
 import {FileTypePill} from "@/components/onboarding/file-type-pill";
 import {useOnboardingState} from "@/state/onboarding.state";
@@ -7,7 +7,7 @@ import {handleFileDrop} from "@/components/import/file-drop-relation/file-import
 import {FileUploadState} from "@/components/import/file-drop-relation/file-drop-overlay";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {showExampleQueryInternal} from "@/state/init/show-example-query";
-import {openCreateDashboardDialog, openCreateRelationDialog} from "@/components/workbench/create-entity-dialogs";
+import {newFile} from "@/components/workspace/file-actions";
 
 export function GetStartedPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,8 +34,8 @@ export function GetStartedPage() {
         useOnboardingState.getState().openWelcomeTour();
     };
 
-    const onNewQuery = () => openCreateRelationDialog();
-    const onNewDashboard = () => openCreateDashboardDialog();
+    const onNewQuery = () => newFile('query');
+    const onNewDashboard = () => newFile('page');
 
     const onExampleQuery = () => {
         showExampleQueryInternal(MAIN_CONNECTION_ID);
@@ -123,7 +123,7 @@ export function GetStartedPage() {
                             onClick={onNewDashboard}
                         >
                             <CardContent className="flex flex-col items-center text-center p-4 space-y-2">
-                                <LayoutDashboard className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
+                                <FileText className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
                                 <span className="text-sm font-medium text-foreground">New Dashboard</span>
                             </CardContent>
                         </Card>
