@@ -3,7 +3,6 @@ import {useRelationsState} from "@/state/relations.state";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {getInitDashboardState} from "@/model/dashboard-state";
-import {GetInitialCanvasState} from "@/model/canvas-state";
 import {AddFolderActions} from "@/components/basics/files/tree-action-utils";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 
@@ -24,14 +23,9 @@ export function openCreateDashboardDialog(path: string[] = []) {
     });
 }
 
-export function openCreateCanvasDialog(path: string[] = []) {
-    useRenameDialogStore.getState().openCreateDialog('canvas', (name) => {
-        const canvas = GetInitialCanvasState();
-        useRelationsState.getState().addNewCanvas(
-            {...canvas, viewState: {...canvas.viewState, displayName: name}},
-            path
-        );
-    });
+/** The page of the folder at `folderPath`: beside it, named like it, Sales.md for Sales/. */
+export function createFolderPage(folderPath: string[], folderName: string) {
+    useRelationsState.getState().addNewDashboard(MAIN_CONNECTION_ID, folderPath.slice(0, -1), getInitDashboardState(folderName));
 }
 
 export function openCreateFolderDialog(path: string[] = [], tree?: TreeNode) {

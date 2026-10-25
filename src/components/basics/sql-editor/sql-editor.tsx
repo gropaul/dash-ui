@@ -17,7 +17,7 @@ import {registerCompletionDuckDB} from "@/components/basics/sql-editor/register-
 import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
 import {useMonacoState} from "@/state/monaco.state";
 
-export type SupportedLanguages = "sql" | "plaintext";
+export type SupportedLanguages = "sql" | "plaintext" | "markdown";
 
 export type EditorPanelPosition = "panel" | "overlay";
 
@@ -51,6 +51,7 @@ export interface SqlEditorProps {
 export function SqlEditor(
     {
         displayCode,
+        language,
         copyCode,
         onRun,
         onCodeChange,
@@ -230,8 +231,8 @@ export function SqlEditor(
                 className={'nodrag'}
                 height={height}
                 width={width}
-                defaultLanguage={'sql'}
-                language={'sql'}
+                defaultLanguage={language}
+                language={language}
                 defaultValue={displayCode}
                 path={editorPath}
                 options={{

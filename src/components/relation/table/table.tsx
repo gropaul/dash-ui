@@ -11,6 +11,7 @@ import {RelationViewContentProps} from "@/components/relation/relation-view-cont
 import {ScrollArea, ScrollBar} from "@/components/ui/scroll-area";
 import {RelationDisplayError} from "@/components/relation/relation-display-error";
 import {NO_DATA_ERROR} from "@/model/relation-view-state/chart";
+import {TABLE_FOOTER_MIN_ROWS} from "@/platform/global-data";
 
 
 
@@ -71,6 +72,12 @@ export function Table(props: RelationViewContentProps) {
 
     const columnViewIndices = getTableColumnViewIndices(props.relationState.viewState.tableState, data);
 
+    // The footer stays while a smaller page size or an offset hides some of the rows.
+    const {offset, limit} = props.relationState.query.viewParameters.table;
+    const total = props.relationState.lastExecutionMetaData?.lastResultCount
+        ?? (data.rows.length < limit ? offset + data.rows.length : undefined);
+    const showFooter = total === undefined || total >= TABLE_FOOTER_MIN_ROWS || offset > 0 || data.rows.length < total;
+
     // will the whole height of the screen when not embedded, todo: maybe make max height configurable
     const wrapperClasses = props.height === 'resizable' ? 'h-fit max-h-96' : 'h-full';
     // min-h-0 lets the scroll area shrink inside the flex column so the viewport scrolls
@@ -94,7 +101,7 @@ export function Table(props: RelationViewContentProps) {
                     <TableContent {...props} columnViewIndices={columnViewIndices} data={data}/>
                     <ScrollBar orientation="horizontal"/>
                 </ScrollArea>
-                <TableFooter {...props} dataRowCount={data.rows.length}/>
+                {showFooter && <TableFooter {...props} dataRowCount={data.rows.length}/>}
             </div>
         </DndContext>
     )

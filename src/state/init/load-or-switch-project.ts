@@ -7,6 +7,7 @@ import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
 import {getInitialRelationDataZustandState, useCacheStore, useRelationDataState} from "@/state/relations-data.state";
 import {INIT, RelationZustandCombined, useRelationsState} from "@/state/relations.state";
 import {useInitState} from "@/state/init.state";
+import {ContentLifecycle} from "@/state/content-lifecycle";
 import {DatabaseConnection} from "@/model/database-connection";
 import {initProjectSources, teardownProjectSources} from "@/state/sources/replay-sources";
 import {useProjectsState} from "@/state/projects.state";
@@ -124,6 +125,7 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     await reregisterMacrosFromRelationState();
 
     useInitState.getState().setStep('loading-project-cached-results');
+    await ContentLifecycle.onProjectLoad(useRelationsState.getState());
     await useRelationDataState.getState().loadLastUsed();
 }
 

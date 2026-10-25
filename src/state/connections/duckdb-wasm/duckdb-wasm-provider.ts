@@ -4,6 +4,7 @@ import {AsyncDuckDB, AsyncDuckDBConnection, DuckDBBundles, DuckDBDataProtocol, L
 import {Coordinator, createConnectionCoordinator} from "@/state/connections/connection-coordinator";
 import {getJsonMacro, getOpfsFileHandle, removeOpfsFile} from "@/state/connections/duckdb-wasm/utils";
 import {isDebugMode} from "@/components/settings/about-content";
+import {useInitState} from "@/state/init.state";
 
 export type StorageMode = 'opfs' | 'memory';
 let _storageMode: StorageMode = 'opfs';
@@ -239,7 +240,19 @@ export class DuckdbWasmProvider {
         const createInstance = async (): Promise<AsyncDuckDB> => {
             const worker = await this._createWorker(bundle);
             const db = new duckdb.AsyncDuckDB(logger, worker);
-            await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+            const init = useInitState.getState();
+            // A re-instantiation after init must not bring back the init screen.
+            if (init.initializationComplete()) {
+                await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+                return db;
+            }
+            init.setStep('downloading-duckdb');
+            try {
+                await db.instantiate(bundle.mainModule, bundle.pthreadWorker, ({bytesLoaded, bytesTotal}) =>
+                    init.setDownloadProgress({bytesLoaded, bytesTotal}));
+            } finally {
+                init.setDownloadProgress(null);
+            }
             return db;
         };
 

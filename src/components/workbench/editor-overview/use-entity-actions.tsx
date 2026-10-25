@@ -15,6 +15,9 @@ import {cloneNodesForClipboard, cloneEdgesForClipboard} from "@/components/canva
 import {getRandomId} from "@/platform/id-utils";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {DashNavigator} from "@/state/routing/navigation";
+import {folderPageOf, moveClash} from "@/state/routing/page-links";
+import {createFolderPage} from "@/components/workbench/create-entity-dialogs";
+import {EditorFolder} from "@/model/editor-folder";
 
 /** The per-row/per-node actions shared by the folder view and the editor sidebar. */
 export interface EntityActionHandlers {
@@ -22,9 +25,9 @@ export interface EntityActionHandlers {
     onDelete: (path: string[], tree: TreeNode) => void;
     onDuplicate: (path: string[], tree: TreeNode) => void;
     onAddToDashboard: (path: string[], tree: TreeNode) => void;
-    onAddToCanvas: (path: string[], tree: TreeNode) => void;
     onCopyLink: (path: string[], tree: TreeNode) => void;
     onMove: (path: string[], tree: TreeNode) => void;
+    onAddFolderPage: (path: string[], tree: TreeNode) => void;
 }
 
 interface DeleteState {
@@ -51,8 +54,7 @@ export function useEntityActions(): { handlers: EntityActionHandlers; dialogs: R
     const deleteEntity = useRelationsState((state) => state.deleteEntity);
     const deleteEditorElement = useRelationsState((state) => state.deleteEditorElement);
     const getEntityDisplayName = useRelationsState((state) => state.getEntityDisplayName);
-    const addRelationWidgetToDashboard = useRelationsState((state) => state.addRelationWidgetToDashboard);
-    const addRelationToCanvas = useRelationsState((state) => state.addRelationToCanvas);
+    const addRelationToDashboard = useRelationsState((state) => state.addRelationToDashboard);
     const applyEditorElementsActions = useRelationsState((state) => state.applyEditorElementsActions);
 
     const [deleteState, setDeleteState] = useState<DeleteState>({isOpen: false});
@@ -105,7 +107,8 @@ export function useEntityActions(): { handlers: EntityActionHandlers; dialogs: R
                     relationNames.push(node.name);
                 }
             });
-            const description = `Are you sure you want to delete the folder "${tree.name}" and all its contents? This action cannot be undone. The folder contains ${dashboardNames.length} dashboards and ${relationNames.length} data views:
+            const page = folderPageOf(useRelationsState.getState().editorElements, tree.id);
+            const description = `Are you sure you want to delete the folder "${tree.name}"${page ? ', its page' : ''} and all its contents? This action cannot be undone. The folder contains ${dashboardNames.length} dashboards and ${relationNames.length} data views:
 ${dashboardNames.join(', ')}
 ${relationNames.join(', ')}`;
             setDeleteState({...baseState, title: 'Delete Folder with Contents', description});
@@ -114,7 +117,12 @@ ${relationNames.join(', ')}`;
 
     function onDeleteConfirmed() {
         if (deleteState.currentNode?.type === 'folder') {
+            // The folder's page goes with it.
+            const tree = useRelationsState.getState().editorElements;
+            const page = folderPageOf(tree, deleteState.currentNode.id);
+            const pagePath = page && findPathById(tree, page.id);
             deleteEditorElement(deleteState.path!);
+            if (page && pagePath) deleteEntity('dashboards', page.id, pagePath);
         } else {
             deleteEntity(deleteState.currentNode?.type as RelationZustandEntityType, deleteState.currentNode!.id, deleteState.path!);
         }
@@ -150,7 +158,7 @@ ${relationNames.join(', ')}`;
         }
     }
 
-    // Open the palette as a target picker (dashboards/canvases) and add the relation to the choice.
+    // Open the palette as a target picker and add the relation to the choice.
     function openAddRelationTo(
         relation: RelationState,
         action: CommandActionType,
@@ -170,13 +178,7 @@ ${relationNames.join(', ')}`;
 
     function onAddToDashboard(path: string[], tree: TreeNode) {
         if (tree.type === 'relations') {
-            openAddRelationTo(relations[tree.id], 'add-relation-to-dashboard', 'dashboards', addRelationWidgetToDashboard);
-        }
-    }
-
-    function onAddToCanvas(path: string[], tree: TreeNode) {
-        if (tree.type === 'relations') {
-            openAddRelationTo(relations[tree.id], 'add-relation-to-canvas', 'canvas', addRelationToCanvas);
+            openAddRelationTo(relations[tree.id], 'add-relation-to-dashboard', 'dashboards', addRelationToDashboard);
         }
     }
 
@@ -198,6 +200,11 @@ ${relationNames.join(', ')}`;
 
         const displayName = IsEntityType(tree.type) ? getEntityDisplayName(tree.type, tree.id) : tree.name;
         const moveTo = (targetPath: string[]) => {
+            // Items become files and folders, so a folder can't hold two of the same name.
+            if (moveClash(useRelationsState.getState().editorElements, targetPath, tree as EditorFolder)) {
+                toast.error(`"${displayName}" is already in that folder.`);
+                return;
+            }
             // Moving relocates the node (and everything under it), so routes change. Remember which
             // entity is on screen; if its route stops resolving after the move — whether it was the
             // moved item itself or a descendant of a moved folder — follow it to its new location.
@@ -227,8 +234,12 @@ ${relationNames.join(', ')}`;
         });
     }
 
+    function onAddFolderPage(path: string[], tree: TreeNode) {
+        createFolderPage(path, tree.name);
+    }
+
     const handlers: EntityActionHandlers = {
-        onRename, onDelete, onDuplicate, onAddToDashboard, onAddToCanvas, onCopyLink, onMove,
+        onRename, onDelete, onDuplicate, onAddToDashboard, onCopyLink, onMove, onAddFolderPage,
     };
 
     const dialogs = (

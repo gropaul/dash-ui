@@ -1,6 +1,6 @@
 import {useRelationsState} from "@/state/relations.state";
 import {CanvasState} from "@/model/canvas-state";
-import {DashboardState} from "@/model/dashboard-state";
+import {countRelationReferences, DashboardState, removeRelationReferences} from "@/model/dashboard-state";
 
 export interface CanvasDependency {
     canvasId: string;
@@ -11,7 +11,8 @@ export interface CanvasDependency {
 export interface DashboardDependency {
     dashboardId: string;
     dashboardName: string;
-    widgetIds: string[];
+    /** How many blocks of the dashboard show the relation. */
+    blockCount: number;
 }
 
 export interface RelationDependencies {
@@ -26,8 +27,6 @@ export interface RelationDependencies {
 export interface ExcludeRefs {
     /** Canvas node IDs to exclude (e.g., nodes being deleted) */
     canvasNodeIds?: Set<string>;
-    /** Dashboard widget IDs to exclude */
-    dashboardWidgetIds?: Set<string>;
 }
 
 /**
@@ -58,22 +57,14 @@ export function getRelationDependencies(relationId: string, exclude?: ExcludeRef
 
     const dashboards: DashboardDependency[] = [];
     for (const [dashboardId, dashboard] of Object.entries(state.dashboards)) {
-        const matchingWidgets = Object.values(dashboard.widgets ?? {})
-            .filter(w => {
-                if (w.type !== 'relation' || w.relationId !== relationId) return false;
-                return !exclude?.dashboardWidgetIds?.has(w.id);
-            });
-        if (matchingWidgets.length > 0) {
-            dashboards.push({
-                dashboardId,
-                dashboardName: dashboard.viewState.displayName,
-                widgetIds: matchingWidgets.map(w => w.id),
-            });
+        const blockCount = countRelationReferences(dashboard.markdown ?? '', relationId);
+        if (blockCount > 0) {
+            dashboards.push({dashboardId, dashboardName: dashboard.viewState.displayName, blockCount});
         }
     }
 
     const totalRefs = canvases.reduce((sum, c) => sum + c.nodeIds.length, 0)
-        + dashboards.reduce((sum, d) => sum + d.widgetIds.length, 0);
+        + dashboards.reduce((sum, d) => sum + d.blockCount, 0);
 
     return {
         canvases,
@@ -85,9 +76,9 @@ export function getRelationDependencies(relationId: string, exclude?: ExcludeRef
 
 /**
  * Remove every reference to the given relation(s) from the dashboards and canvas collections:
- * dashboard widgets (plus their layout items across all breakpoints) and canvas nodes (plus any
- * edges connected to those nodes). Pure — returns new collections; only the dashboards/canvases
- * that actually changed are cloned, the rest are shared by reference.
+ * dashboard blocks showing them and canvas nodes (plus any edges connected to those nodes).
+ * Pure — returns new collections; only the dashboards/canvases that actually changed are cloned,
+ * the rest are shared by reference.
  */
 export function purgeRelationReferences(
     dashboards: Record<string, DashboardState>,
@@ -96,21 +87,9 @@ export function purgeRelationReferences(
 ): { dashboards: Record<string, DashboardState>; canvas: Record<string, CanvasState> } {
     const nextDashboards: Record<string, DashboardState> = {...dashboards};
     for (const [id, dashboard] of Object.entries(dashboards)) {
-        const removed = new Set(
-            Object.values(dashboard.widgets ?? {})
-                .filter(w => w.type === 'relation' && w.relationId != null && relationIds.has(w.relationId))
-                .map(w => w.id),
-        );
-        if (removed.size === 0) continue;
-
-        const widgets = {...dashboard.widgets};
-        for (const widgetId of removed) delete widgets[widgetId];
-        // drop each removed widget's layout item from every breakpoint (mirrors removeDashboardWidget)
-        const layouts: DashboardState['layouts'] = {};
-        for (const [bp, items] of Object.entries(dashboard.layouts)) {
-            layouts[bp] = (items ?? []).filter(item => !removed.has(item.i));
-        }
-        nextDashboards[id] = {...dashboard, widgets, layouts, lastEditedAt: Date.now()};
+        const markdown = removeRelationReferences(dashboard.markdown ?? '', relationIds);
+        if (markdown === (dashboard.markdown ?? '')) continue;
+        nextDashboards[id] = {...dashboard, markdown, lastEditedAt: Date.now()};
     }
 
     const nextCanvas: Record<string, CanvasState> = {...canvas};

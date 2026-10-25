@@ -1,5 +1,7 @@
 import React from "react";
-import {Copy, FolderInput, LayoutDashboard, Link, PencilLine, Trash, Workflow} from "lucide-react";
+import {Copy, FilePlus, FolderInput, LayoutDashboard, Link, PencilLine, Trash} from "lucide-react";
+import {useRelationsState} from "@/state/relations.state";
+import {folderPageOf} from "@/state/routing/page-links";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {ContextMenuItem, ContextMenuSeparator} from "@/components/ui/context-menu";
 import {DropdownMenuItem, DropdownMenuSeparator} from "@/components/ui/dropdown-menu";
@@ -23,6 +25,7 @@ export function EntityMenuItems({variant, path, tree, handlers}: EntityMenuItems
     const Separator = variant === 'context' ? ContextMenuSeparator : DropdownMenuSeparator;
 
     const isFolder = tree.type === 'folder';
+    const pageless = useRelationsState(s => isFolder && !folderPageOf(s.editorElements, tree.id));
     const isRelation = tree.type === 'relations';
     // Rename/Duplicate/Copy link/Delete address the entity through its editor-tree path. When the
     // entity isn't in the tree (e.g. a relation shown only inside a canvas node), those items are
@@ -38,6 +41,12 @@ export function EntityMenuItems({variant, path, tree, handlers}: EntityMenuItems
                         <PencilLine size={16} className="mr-2"/>
                         <span>Rename</span>
                     </Item>
+                    {pageless && (
+                        <Item onClick={() => handlers.onAddFolderPage(path, tree)}>
+                            <FilePlus size={16} className="mr-2"/>
+                            <span>Add page for this folder</span>
+                        </Item>
+                    )}
                     <Item onClick={() => handlers.onMove(path, tree)}>
                         <FolderInput size={16} className="mr-2"/>
                         <span>Move to…</span>
@@ -62,10 +71,6 @@ export function EntityMenuItems({variant, path, tree, handlers}: EntityMenuItems
                     <Item onClick={() => handlers.onAddToDashboard(path, tree)}>
                         <LayoutDashboard size={16} className="mr-2"/>
                         <span>Add to Dashboard</span>
-                    </Item>
-                    <Item onClick={() => handlers.onAddToCanvas(path, tree)}>
-                        <Workflow size={16} className="mr-2"/>
-                        <span>Add to Canvas</span>
                     </Item>
                 </>
             )}

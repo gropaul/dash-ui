@@ -43,7 +43,7 @@ write SQL relations, and compose them on canvases and dashboards. It ships both 
     `language-model` (stored obfuscated). The rest are in-memory.
   - Subfolders: `connections/` (backends), `persistency/` (storage seam), `routing/`, `projects/`,
     `relations/` (actions, events, SQL/DAG), `migrations/`, `entities/`, `init/`, `sources/`.
-- **`src/components/`** - feature-organized React components: `canvas/`, `dashboard/`, `relation/`,
+- **`src/components/`** - feature-organized React components: `canvas/`, `dashboard/`, `page-editor/`, `relation/`,
   `workbench/`, `layout/`, `chat/`, `catalog/`, `projects/`, `connections/`, `onboarding/`,
   `ui/` (shadcn).
 - **`src/model/`** - TypeScript interfaces for domain objects (RelationState, RelationViewState,
@@ -72,6 +72,9 @@ features must not assume WASM.
 - **`StorageDuckAPI`** / `persistency/duckdb-storage.ts` is the zustand `PersistStorage` that writes
   the relation state into the project's `dash` database (throttled, with a version-conflict check).
   `persistency/api.ts` swaps the store's storage from localStorage to DuckDB once a connection is up.
+- Planned: project content as files (`.md` pages, `.sql` queries, `.canvas`) behind a file system API,
+  zustand in the browser and a folder in Electron, replacing the relations store blob. See
+  `dev/workspace-files.md`.
 - Routing is entirely client-side over the History API (`output: 'export'` cannot serve dynamic
   routes). `DashNavigator.instance()` in `src/state/routing/navigation.ts` is the only place that
   builds URLs; callers pass typed locations from the `DashLocations` factory. See `docs/routing.md`.
@@ -87,7 +90,11 @@ features must not assume WASM.
   Macro registration and downstream refresh subscribe to it; wrap relation updates with
   `processRelationUpdateEvent` so all three contexts (standalone, canvas, dashboard) stay in sync.
 - Canvases are @xyflow/react graphs; edges define a DAG and `relations/sql/dag-execution.ts` reruns
-  downstream nodes in topological order. Dashboards are react-grid-layout widget grids.
+  downstream nodes in topological order. A dashboard is one markdown page (`DashboardState.markdown`),
+  edited in the Plate-based page editor (`src/components/page-editor/`, format in `markdown.ts`): text,
+  `sql` blocks with their own query, and references to project relations, in rows of columns. Blocks get
+  no macro: a block's `refs.<title>()` calls to other blocks of the page are expanded into its query when it
+  runs (`relations/sql/page-refs.ts`). Naming, refs and renames are recorded in `dev/pages.md`.
 
 ### Notable config
 
@@ -132,7 +139,7 @@ features must not assume WASM.
 - Tailwind CSS + shadcn/ui (Radix UI)
 - Zustand for state management
 - DuckDB WASM in the browser, `@duckdb/node-api` natively in Electron
-- @xyflow/react for canvases, react-grid-layout for dashboards, dnd-kit for sorting
+- @xyflow/react for canvases, Plate for dashboards (page editor), dnd-kit for sorting
 - ECharts + Recharts for visualization
 - Monaco Editor for SQL editing
 - Vercel AI SDK for LLM integration (OpenAI, Ollama, WebLLM)

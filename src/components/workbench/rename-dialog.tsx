@@ -12,17 +12,26 @@ import {Loader2} from "lucide-react";
 import {Checkbox} from "@/components/ui/checkbox";
 import React from "react";
 import {getCreateDialogTitle, getRenameDialogDescription, getRenameDialogTitle, useRenameDialogStore} from "@/state/rename-dialog.state";
-import {checkMacroName, findMacroReferences, getMacroName, MacroReference} from "@/state/relations/sql/table-macros";
+import {checkMacroName, findMacroReferences, getMacroName} from "@/state/relations/sql/table-macros";
 import {getAllRelations} from "@/state/relations/all-relation-utils";
+import {isPageBlock, otherPageBlocks} from "@/state/relations/sql/page-refs";
+import {useRelationsState} from "@/state/relations.state";
+import {callsRefInMarkdown} from "@/model/dashboard-state";
+import {sanitizeMacroName} from "@/platform/sql-utils";
+import {callsRef} from "@/platform/sql-refs";
+import {pageNameError, partnerOf} from "@/state/routing/page-links";
 
-function MacroInfo({currentMacroName, newName, references, updateReferences, onUpdateReferencesChange}: {
+// A page block's name is what other blocks write in refs.<name>(), so it must be one as it stands.
+const BLOCK_NAME = /^[a-z_][a-z0-9_]*$/;
+
+function MacroInfo({currentMacroName, newMacroName, references, updateReferences, onUpdateReferencesChange}: {
     currentMacroName: string;
-    newName: string;
-    references: MacroReference[];
+    newMacroName: string;
+    /** Where the macro is called, e.g. "Sales (query)". */
+    references: string[];
     updateReferences: boolean;
     onUpdateReferencesChange: (checked: boolean) => void;
 }) {
-    const newMacroName = getMacroName(newName);
     const macroChanged = currentMacroName !== newMacroName;
 
     return (
@@ -50,15 +59,12 @@ function MacroInfo({currentMacroName, newName, references, updateReferences, onU
                             onCheckedChange={(checked) => onUpdateReferencesChange(checked === true)}
                         />
                         <label htmlFor="update-references" className="text-sm cursor-pointer">
-                            Update {references.length} reference{references.length > 1 ? 's' : ''} in other queries
+                            Update {references.length} reference{references.length > 1 ? 's' : ''}
                         </label>
                     </div>
                     <ul className="list-disc list-inside text-muted-foreground">
-                        {references.map((ref) => (
-                            <li key={ref.relation.relation.id} className="text-xs">
-                                <span>{ref.relation.relation.viewState.displayName}</span>
-                                <span className="text-muted-foreground/60 ml-1">({ref.relation.origin})</span>
-                            </li>
+                        {references.map((ref, i) => (
+                            <li key={i} className="text-xs">{ref}</li>
                         ))}
                     </ul>
                 </div>
@@ -95,23 +101,38 @@ export function RenameDialog() {
 
     // Compute macro info locally for relations (rename mode only)
     const isRelation = entityType === 'relations';
-    const macroName = React.useMemo(
-        () => mode === 'rename' && isRelation && currentName ? getMacroName(currentName) : undefined,
-        [mode, isRelation, currentName]
-    );
-    const macroReferences = React.useMemo(
-        () => macroName && entityId ? findMacroReferences(macroName, entityId) : [],
-        [macroName, entityId]
-    );
+    const isBlock = isRelation && mode === 'rename' && !!entityId && isPageBlock(entityId);
+    const refOf = (name: string) => isBlock ? `refs.${name}` : getMacroName(name);
+    const macroName = mode === 'rename' && isRelation && currentName ? refOf(currentName) : undefined;
+    const macroReferences = React.useMemo(() => {
+        if (mode !== 'rename' || !isRelation || !currentName || !entityId) return [];
+        if (isBlock) {
+            return otherPageBlocks(entityId)
+                .filter(r => callsRef(r.query.baseQuery, currentName))
+                .map(r => `${r.viewState.displayName} (block)`);
+        }
+        const name = sanitizeMacroName(currentName);
+        const dashboards = Object.values(useRelationsState.getState().dashboards);
+        return [
+            ...findMacroReferences(name, entityId).map(e => `${e.relation.viewState.displayName} (query)`),
+            ...dashboards.filter(d => callsRefInMarkdown(d.markdown ?? '', name)).map(d => `${d.viewState.displayName} (dashboard)`),
+        ];
+    }, [mode, isRelation, isBlock, currentName, entityId]);
 
     const title = mode === 'create' ? getCreateDialogTitle(entityType) : getRenameDialogTitle(entityType);
     const description = mode === 'create' ? undefined : getRenameDialogDescription(entityType, currentName);
 
     const trimmedName = newName.trim();
 
+    const blockError = !isBlock || !trimmedName ? undefined
+        : !BLOCK_NAME.test(trimmedName) ? 'A block name is a lowercase SQL identifier, e.g. sales_by_region.'
+        : trimmedName !== currentName && otherPageBlocks(entityId!).some(r => r.viewState.displayName === trimmedName)
+            ? `Another block on the page is named ${trimmedName}.`
+            : undefined;
+
     // Check for macro name conflict with other relations
     const macroConflict = React.useMemo(() => {
-        if (!isRelation || !trimmedName) return undefined;
+        if (!isRelation || isBlock || !trimmedName) return undefined;
         const newMacroName = getMacroName(trimmedName);
         // In rename mode, skip if the name is unchanged
         if (mode === 'rename' && macroName && newMacroName === macroName) return undefined;
@@ -120,9 +141,17 @@ export function RenameDialog() {
               && getMacroName(e.relation.viewState.displayName) === newMacroName
         );
         return conflict?.relation.viewState.displayName;
-    }, [isRelation, mode, macroName, trimmedName, entityId]);
+    }, [isRelation, isBlock, mode, macroName, trimmedName, entityId]);
 
-    const isValid = trimmedName.length > 0 && !macroConflict && !isValidating;
+    // Pages, folders and queries become files and folders, named as they are; a folder and its page share the
+    // new name.
+    const tree = useRelationsState.getState().editorElements;
+    const partner = mode === 'rename' && entityId ? partnerOf(tree, entityId) : undefined;
+    const pageError = (entityType === 'dashboards' || entityType === 'folder' || isRelation && !isBlock) && trimmedName
+        ? pageNameError(tree, entityId ?? '', trimmedName) ?? (partner && pageNameError(tree, partner.id, trimmedName))
+        : undefined;
+
+    const isValid = trimmedName.length > 0 && !macroConflict && !blockError && !pageError && !isValidating;
 
     async function handleRename() {
         if (!isValid) return;
@@ -140,7 +169,7 @@ export function RenameDialog() {
             onCreate(trimmedName);
             close();
         } else {
-            confirmRename(trimmedName, macroName, updateReferences);
+            confirmRename(trimmedName, updateReferences);
         }
     }
 
@@ -166,8 +195,8 @@ export function RenameDialog() {
                     />
                     {isRelation && trimmedName.length > 0 && (
                         <MacroInfo
-                            currentMacroName={mode === 'create' ? getMacroName(trimmedName) : macroName!}
-                            newName={newName}
+                            currentMacroName={mode === 'create' ? refOf(trimmedName) : macroName!}
+                            newMacroName={refOf(trimmedName)}
                             references={mode === 'create' ? [] : macroReferences}
                             updateReferences={updateReferences}
                             onUpdateReferencesChange={setUpdateReferences}
@@ -177,6 +206,12 @@ export function RenameDialog() {
                         <p className="text-sm text-destructive">
                             Macro name conflicts with &quot;{macroConflict}&quot;
                         </p>
+                    )}
+                    {pageError && (
+                        <p className="text-sm text-destructive">{pageError}</p>
+                    )}
+                    {blockError && (
+                        <p className="text-sm text-destructive">{blockError}</p>
                     )}
                     {macroError && (
                         <p className="text-sm text-destructive">{macroError}</p>

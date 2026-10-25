@@ -4,11 +4,11 @@ import {useEffect} from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {useProjectsState} from "@/state/projects.state";
 import {FolderView} from "@/components/workbench/folder-view";
+import {folderPageOf, pageFolderOf} from "@/state/routing/page-links";
 import {ConnectionsView} from "@/components/connections/connections-view";
 import {CatalogView} from "@/components/catalog/catalog-view";
 import {RelationTab} from "@/components/relation/relation-tab";
 import {DashboardTab} from "@/components/dashboard/dashboard-tab";
-import {CanvasTab} from "@/components/canvas/canvas-tab";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {SubRouterProps} from "@/components/layout/app-router";
 import {TreeNode} from "@/components/basics/files/tree-utils";
@@ -55,7 +55,7 @@ export function RouterProject(props: ProjectRouterProps) {
 
     // Workspace root.
     if (location.path.length === 0) {
-        return <FolderView segments={[]}/>;
+        return <FolderView/>;
     }
 
     // Primary resolution on the raw tree; if that misses, the URL may address a relation shown
@@ -64,11 +64,12 @@ export function RouterProject(props: ProjectRouterProps) {
     // changes, both of which re-render this component.
     const node = DashNavigator.instance().getObjectFromLocation(DashLocations.CurrentProjectElement(location.path));
     if (!node) return <NotFound/>;
-    return <ResolvedView node={node} segments={location.path}/>;
+    return <ResolvedView node={node}/>;
 }
 
-function ResolvedView({node, segments}: { node: TreeNode; segments: string[] }) {
+function ResolvedView({node}: { node: TreeNode }) {
     const markEntityViewed = useRelationsState((state) => state.markEntityViewed);
+    const tree = useRelationsState((state) => state.editorElements);
 
     useEffect(() => {
         if (node.type === "folder" || node.type === "relations" || node.type === "dashboards" || node.type === "canvas") {
@@ -77,14 +78,15 @@ function ResolvedView({node, segments}: { node: TreeNode; segments: string[] }) 
     }, [node.id, node.type, markEntityViewed]);
 
     switch (node.type) {
-        case "folder":
-            return <FolderView folderNode={node} segments={segments}/>;
+        case "folder": {
+            // A folder with a page shows the page, with the folder's contents below it.
+            const page = folderPageOf(tree, node.id);
+            return page ? <DashboardTab dashboardId={page.id} folderId={node.id}/> : <FolderView folderNode={node}/>;
+        }
         case "relations":
             return <RelationTab relationId={node.id}/>;
         case "dashboards":
-            return <DashboardTab dashboardId={node.id}/>;
-        case "canvas":
-            return <CanvasTab canvasId={node.id}/>;
+            return <DashboardTab dashboardId={node.id} folderId={pageFolderOf(tree, node.id)?.id}/>;
         default:
             return <NotFound/>;
     }

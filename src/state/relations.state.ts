@@ -5,16 +5,14 @@ import {DatabaseState} from "@/model/database-state";
 import {persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {
-    appendWidgetToLayouts,
-    createRelationWidget,
-    createTextWidget,
+    appendToMarkdown,
     DashboardState,
-    DashboardWidget,
     getInitDashboardState,
+    relationReferenceFence,
 } from "@/model/dashboard-state";
-import type {ResponsiveLayouts} from "react-grid-layout";
 import {getRandomId} from "@/platform/id-utils";
 import {EditorFolder} from "@/model/editor-folder";
+import {withPartnerMoves} from "@/state/routing/page-links";
 import {
     addNode,
     applyTreeActions,
@@ -43,12 +41,11 @@ import {
     SetEntityDisplayName
 } from "@/state/entities/entity-functions";
 import {useInitState} from "@/state/init.state";
-import {useRelationDataState} from "@/state/relations-data.state";
 import {RelationEvents} from "@/state/relations/event/relation-events";
+import {ContentLifecycle} from "@/state/content-lifecycle";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationActions} from "@/state/relations/actions/static-actions";
 import {migrateV1FlattenRelationState} from "@/state/migrations/v1-flatten-relation-state";
-import {migrateDashboardsToGrid} from "@/state/migrations/v2-dashboards-to-grid";
 import {normalizeStuckExecutionState} from "@/state/migrations/normalize-stuck-execution-state";
 import {withViewed} from "@/state/entities/entity-base";
 
@@ -94,21 +91,17 @@ interface RelationZustandActions extends DefaultRelationZustandActions {
     getDashboardState: (dashboardId: string) => DashboardState,
     // **unsafe in terms of adding, renaming, and deleting dashboards**
     setDashboardStateUnsafe: (dashboardId: string, dashboard: DashboardState) => void,
-    // grid widget/layout actions (targeted, merge-safe against concurrent drags)
-    // High-level: the single way to add a widget to a dashboard (used by UI + chat tools).
-    addRelationWidgetToDashboard: (dashboardId: string, relationId: string) => void,
-    addTextWidgetToDashboard: (dashboardId: string, text?: string) => void,
-    // Low-level primitive (used internally by the two actions above).
-    addDashboardWidget: (dashboardId: string, widget: DashboardWidget, layouts: ResponsiveLayouts) => void,
-    removeDashboardWidget: (dashboardId: string, widgetId: string) => void,
-    updateDashboardWidget: (dashboardId: string, widgetId: string, patch: Partial<DashboardWidget>) => void,
-    setDashboardLayouts: (dashboardId: string, layouts: ResponsiveLayouts) => void,
+    // The page's markdown, as the open editor writes it.
+    setDashboardMarkdown: (dashboardId: string, markdown: string) => void,
+    // Add at the end of the page (used by UI + chat tools): a block showing a relation of the project, or markdown.
+    addRelationToDashboard: (dashboardId: string, relationId: string) => void,
+    addMarkdownToDashboard: (dashboardId: string, markdown: string) => void,
 
     /* canvas actions */
     addNewCanvas: (canvas?: CanvasState, editorPath?: string[]) => void,
     getCanvasState: (canvasId: string) => CanvasState,
     updateCanvasState: (canvasId: string, canvas: Partial<CanvasState>) => void,
-    // High-level: add a node referencing an existing relation to a canvas (mirrors addRelationWidgetToDashboard).
+    // High-level: add a node referencing an existing relation to a canvas (mirrors addRelationToDashboard).
     addRelationToCanvas: (canvasId: string, relationId: string) => void,
     /* entity actions */
     deleteEntity: (entityType: RelationZustandEntityType, entityId: string, editorPath: string[]) => void,
@@ -264,16 +257,16 @@ export const useRelationsState = createWithEqualityFn(
                     // Resolve (before mutating the tree) whether the deleted item is the one on screen.
                     const wasShown = nav.isCurrentObjectIdShown(entityId);
 
-                    // if it is a relation, delete the cache, dispatch delete action, and purge
-                    // every dashboard widget / canvas node that referenced it
+                    // A relation also leaves every dashboard block / canvas node that referenced it.
                     let refUpdates: Partial<Pick<RelationZustand, 'dashboards' | 'canvas'>> = {};
                     if (entityType === 'relations') {
-                        useRelationDataState.getState().deleteData(entityId);
                         const relation = get().relations[entityId];
-                        if (relation) {
-                            RelationEvents.delete(relation);
-                        }
+                        if (relation) ContentLifecycle.onQueryDelete(relation);
                         refUpdates = purgeRelationReferences(get().dashboards, get().canvas, new Set([entityId]));
+                    }
+                    if (entityType === 'dashboards') {
+                        const page = get().dashboards[entityId];
+                        if (page) ContentLifecycle.onPageDelete(page, get());
                     }
                     const newCollection = deleteFromEntityCollection(get(), entityType, entityId);
                     const actions = RemoveNodeAction(editorPath);
@@ -404,82 +397,25 @@ export const useRelationsState = createWithEqualityFn(
                 getDashboardState: (dashboardId: string) => {
                     return get().dashboards[dashboardId];
                 },
-                addRelationWidgetToDashboard: (dashboardId: string, relationId: string) => {
+                setDashboardMarkdown: (dashboardId: string, markdown: string) => {
+                    set((state) => {
+                        const dashboard = state.dashboards[dashboardId];
+                        if (!dashboard || dashboard.markdown === markdown) return {};
+                        return {
+                            dashboards: {
+                                ...state.dashboards,
+                                [dashboardId]: {...dashboard, markdown, lastEditedAt: Date.now()},
+                            },
+                        };
+                    });
+                },
+                addRelationToDashboard: (dashboardId: string, relationId: string) => {
+                    get().addMarkdownToDashboard(dashboardId, relationReferenceFence(relationId));
+                },
+                addMarkdownToDashboard: (dashboardId: string, markdown: string) => {
                     const dashboard = get().dashboards[dashboardId];
                     if (!dashboard) return;
-                    const widget = createRelationWidget(relationId);
-                    get().addDashboardWidget(dashboardId, widget, appendWidgetToLayouts(dashboard.layouts, widget.id));
-                },
-                addTextWidgetToDashboard: (dashboardId: string, text: string = '') => {
-                    const dashboard = get().dashboards[dashboardId];
-                    if (!dashboard) return;
-                    const widget = createTextWidget(text);
-                    get().addDashboardWidget(dashboardId, widget, appendWidgetToLayouts(dashboard.layouts, widget.id));
-                },
-                addDashboardWidget: (dashboardId: string, widget: DashboardWidget, layouts: ResponsiveLayouts) => {
-                    set((state) => {
-                        const dashboard = state.dashboards[dashboardId];
-                        if (!dashboard) return {};
-                        return {
-                            dashboards: {
-                                ...state.dashboards,
-                                [dashboardId]: {
-                                    ...dashboard,
-                                    widgets: {...dashboard.widgets, [widget.id]: widget},
-                                    layouts,
-                                    lastEditedAt: Date.now(),
-                                },
-                            },
-                        };
-                    });
-                },
-                removeDashboardWidget: (dashboardId: string, widgetId: string) => {
-                    set((state) => {
-                        const dashboard = state.dashboards[dashboardId];
-                        if (!dashboard) return {};
-                        const widgets = {...dashboard.widgets};
-                        delete widgets[widgetId];
-                        // drop the widget's layout item from every breakpoint
-                        const layouts: ResponsiveLayouts = {};
-                        for (const [bp, items] of Object.entries(dashboard.layouts)) {
-                            layouts[bp] = (items ?? []).filter((item) => item.i !== widgetId);
-                        }
-                        return {
-                            dashboards: {
-                                ...state.dashboards,
-                                [dashboardId]: {...dashboard, widgets, layouts, lastEditedAt: Date.now()},
-                            },
-                        };
-                    });
-                },
-                updateDashboardWidget: (dashboardId: string, widgetId: string, patch: Partial<DashboardWidget>) => {
-                    set((state) => {
-                        const dashboard = state.dashboards[dashboardId];
-                        const widget = dashboard?.widgets[widgetId];
-                        if (!dashboard || !widget) return {};
-                        return {
-                            dashboards: {
-                                ...state.dashboards,
-                                [dashboardId]: {
-                                    ...dashboard,
-                                    widgets: {...dashboard.widgets, [widgetId]: {...widget, ...patch, id: widgetId}},
-                                    lastEditedAt: Date.now(),
-                                },
-                            },
-                        };
-                    });
-                },
-                setDashboardLayouts: (dashboardId: string, layouts: ResponsiveLayouts) => {
-                    set((state) => {
-                        const dashboard = state.dashboards[dashboardId];
-                        if (!dashboard) return {};
-                        return {
-                            dashboards: {
-                                ...state.dashboards,
-                                [dashboardId]: {...dashboard, layouts, lastEditedAt: Date.now()},
-                            },
-                        };
-                    });
+                    get().setDashboardMarkdown(dashboardId, appendToMarkdown(dashboard.markdown ?? '', markdown));
                 },
                 getDatabaseState: (databaseId: string) => {
                     return get().databases[databaseId];
@@ -562,12 +498,12 @@ export const useRelationsState = createWithEqualityFn(
                     const deletedRelationIds = new Set<string>();
                     IterateAll([elementToRemove], (node) => {
                         if (node.type === 'dashboards') {
+                            const page = get().dashboards[node.id];
+                            if (page) ContentLifecycle.onPageDelete(page, get());
                             delete newDashboards[node.id];
                         } else if (node.type === 'relations') {
                             const relation = get().relations[node.id];
-                            if (relation) {
-                                RelationEvents.delete(relation);
-                            }
+                            if (relation) ContentLifecycle.onQueryDelete(relation);
                             delete newRelations[node.id];
                             deletedRelationIds.add(node.id);
                         }
@@ -590,9 +526,13 @@ export const useRelationsState = createWithEqualityFn(
                 },
 
                 applyEditorElementsActions: (actions: TreeAction[]) => {
-                    const newElements = [...get().editorElements];
-                    let updatedFolders = applyTreeActions(newElements, actions);
-                    set(() => ({editorElements: updatedFolders}));
+                    const before = get().editorElements;
+                    set(() => ({editorElements: applyTreeActions([...before], withPartnerMoves(before, actions))}));
+                    // A move changes the paths pages link each other by. Loaded on demand: the page editor's
+                    // modules import this store.
+                    if (actions.some(action => action.type === 'move')) {
+                        void import("@/components/page-editor/page-links").then(m => m.updatePageLinks(before));
+                    }
                 },
                 resetEditorElements: () => {
                     set(() => ({editorElements: []}));
@@ -619,7 +559,6 @@ export const useRelationsState = createWithEqualityFn(
 
                     // Apply persisted-state migrations (idempotent), in order.
                     migrateV1FlattenRelationState(state);
-                    migrateDashboardsToGrid(state);
 
                     // Reset relations persisted mid-query so they don't load stuck in the loading state.
                     normalizeStuckExecutionState(state);

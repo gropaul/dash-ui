@@ -63,14 +63,16 @@ export function Select(props: RelationViewContentProps) {
     }
 
     return (
-        <div className='pt-0.5 pb-0.5 flex flex-row w-full gap-2 items-center justify-start group'>
+        <div className={cn('flex flex-row w-full gap-2 items-center justify-start group', props.bare ? 'h-full' : 'pt-0.5 pb-0.5')}>
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="w-full justify-between relative flex-row"
+                        // A bare view has no card behind it, so the field brings the card's surface and corners itself,
+                        // and fills its box so it lines up with a card beside it.
+                        className={cn("w-full justify-between relative flex-row", props.bare && "h-full rounded-2xl bg-card")}
                     >
                         {params.label && (
                             <>

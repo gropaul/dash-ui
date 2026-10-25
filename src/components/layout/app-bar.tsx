@@ -23,16 +23,13 @@ import {ProjectSwitcher} from "@/components/projects/project-switcher";
 import {openSearchCommand} from "@/components/workbench/global-command";
 
 /**
- * The global top app bar — a full-width, slot-based shell above the icon rail + sidebar.
- *
- * Three regions keep it extensible: future items drop into a region without reflowing the
- * others. Today only the breadcrumb (LEFT) is functional; the logo and search are visual
- * placeholders to be wired later, and the RIGHT region is reserved for future actions.
+ * The global top app bar - a slot-based shell above the routed view, right of the sidebar.
+ * Future items drop into the LEFT or RIGHT region without reflowing the other.
  */
 export function AppBar() {
     return (
-        <header className="h-12 flex items-center gap-3 border-b bg-background flex-shrink-0">
-            {/* LEFT — current project + path. The project switcher's icon replaces the old app logo. */}
+        <header className="h-10 flex items-center gap-3 bg-background flex-shrink-0">
+            {/* LEFT — current project + path */}
             <div className="flex items-center gap-2 min-w-0 flex-1 pl-2">
                 {/* The project switcher is the breadcrumb root, so the crumb drops its own "Workspace" root. */}
                 <ProjectSwitcher/>

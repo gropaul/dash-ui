@@ -79,6 +79,8 @@ export interface GUIZustand {
     fullWidth: boolean;
     // Global command palette / entity picker (not persisted — see partialize).
     command: CommandGUIZustand;
+    // The folders open in the sidebar's workspace tree, per project id.
+    workspaceTreeOpen: Record<string, string[]>;
 }
 
 export interface GUIZustandActions {
@@ -97,6 +99,8 @@ export interface GUIZustandActions {
 
     openCommand: (request: CommandRequest) => void;
     closeCommand: () => void;
+
+    setWorkspaceFolderOpen: (projectId: string, folderId: string, open: boolean) => void;
 }
 
 type GUIZustandCombined = GUIZustand & GUIZustandActions;
@@ -112,6 +116,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             sidebarSplitRatio: 0.3,
             fullWidth: true,
             command: INITIAL_COMMAND_STATE,
+            workspaceTreeOpen: {},
 
             setRelationFileDropEnabled: (enabled: boolean) => {
                 set({relationFileDropEnabled: enabled});
@@ -185,6 +190,12 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             },
             closeCommand: () => {
                 set((state) => ({command: {...state.command, isOpen: false}}));
+            },
+            setWorkspaceFolderOpen: (projectId: string, folderId: string, open: boolean) => {
+                const ids = get().workspaceTreeOpen[projectId] ?? [];
+                if (ids.includes(folderId) === open) return;
+                const next = open ? [...ids, folderId] : ids.filter(id => id !== folderId);
+                set((state) => ({workspaceTreeOpen: {...state.workspaceTreeOpen, [projectId]: next}}));
             },
         }),
         {

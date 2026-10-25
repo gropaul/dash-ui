@@ -17,6 +17,7 @@ export type InitStep =
     'loading-stored-connections-configs' |
     'loaded-stored-connections-configs' |
     'selecting-connection' |
+    'downloading-duckdb' |
     'connection-connected-successfully' |
     'loading-projects' |
     'loading-project'|
@@ -38,6 +39,8 @@ export function getStepLabel(step: InitStep): string {
             return 'Loaded stored connections configs';
         case 'selecting-connection':
             return 'Selecting connection';
+        case 'downloading-duckdb':
+            return 'Downloading DuckDB';
         case 'connection-connected-successfully':
             return 'Database connected successfully';
         case 'loading-projects':
@@ -66,8 +69,16 @@ export function getStepLabel(step: InitStep): string {
 }
 
 
+export interface DownloadProgress {
+    bytesLoaded: number;
+    /** 0 when the server sends no length. */
+    bytesTotal: number;
+}
+
 export interface InitZustand {
     currentStep: InitStep;
+    downloadProgress: DownloadProgress | null;
+    setDownloadProgress: (progress: DownloadProgress | null) => void;
     connectionHistory: DBConnectionSpec[];
     initializationComplete: () => boolean;
     setStep: (step: InitStep) => void;
@@ -105,7 +116,10 @@ export interface InitZustand {
 
 export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get) => ({
         currentStep: 'loading-stored-connections-configs',
+        downloadProgress: null,
         connectionHistory: [],
+
+        setDownloadProgress: (downloadProgress) => set({downloadProgress}),
 
         initializationComplete: () => {
             return get().currentStep === 'complete';
@@ -260,6 +274,7 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
     {
         name: 'init-state',
         version: 1,
+        partialize: ({downloadProgress: _, ...rest}) => rest as InitZustand,
         onRehydrateStorage: () => (state, error) => {
             if (error || !state) {
                 console.error('Failed to rehydrate init state:', error);

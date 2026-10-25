@@ -23,6 +23,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@electron-shared': resolve(__dirname, './electron'),
     },
     // Allow vitest to resolve packages from node_modules properly
     conditions: ['node', 'default', 'import'],

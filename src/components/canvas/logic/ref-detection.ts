@@ -1,6 +1,7 @@
 import {Edge, MarkerType, Node} from '@xyflow/react';
 import {minifySQL} from "@/platform/sql-utils";
-import {extractMacroRefs, sanitizeMacroName} from "@/state/relations/sql/table-macros";
+import {extractMacroRefs} from "@/state/relations/sql/table-macros";
+import {sanitizeMacroName} from "@/platform/sql-utils";
 import {useRelationsState} from "@/state/relations.state";
 
 /**

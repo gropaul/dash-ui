@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, {useState} from "react";
 import {cn} from "@/lib/utils";
 import {useRelationsState} from "@/state/relations.state";
 import {DashNavigator} from "@/state/routing/navigation";
@@ -8,7 +8,7 @@ import { useDashLocation} from "@/state/routing/use-dash-location";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {ColoredIcon} from "@/components/basics/files/icon-factories";
 import {formatRelativeTime} from "@/platform/string-utils";
-import {selectRecentWorkspaceItems} from "@/state/recent/recent-items";
+import {keepDisplayOrder, selectRecentWorkspaceItems} from "@/state/recent/recent-items";
 import {SectionHeader} from "@/components/layout/navigation-sidebar";
 
 const RECENT_LIMIT = 5;
@@ -16,7 +16,8 @@ const RECENT_LIMIT = 5;
 /**
  * The sidebar "Recently accessed" list. Surfaces the most recently viewed workspace items
  * (queries/dashboards/canvases/folders), grouped under a "Workspace" sub-header. `lastViewedAt`
- * is stamped on every navigation by `markEntityViewed`, so this re-renders live as you browse.
+ * is stamped on every navigation by `markEntityViewed`; the order only changes when an item
+ * enters the list (`keepDisplayOrder`).
  *
  * A second "Data" group (recently viewed catalog tables) is planned but needs its own
  * access-tracking store first — see the plan / catalog-view.
@@ -27,7 +28,11 @@ export function RecentlyAccessedSection() {
     const dashboards = useRelationsState((s) => s.dashboards);
     const canvas = useRelationsState((s) => s.canvas);
 
-    const items = selectRecentWorkspaceItems({editorElements, relations, dashboards, canvas}, RECENT_LIMIT);
+    const recent = selectRecentWorkspaceItems({editorElements, relations, dashboards, canvas}, RECENT_LIMIT);
+    const [shownIds, setShownIds] = useState<string[]>([]);
+    const items = keepDisplayOrder(shownIds, recent);
+    const itemIds = items.map((i) => i.id);
+    if (itemIds.join() !== shownIds.join()) setShownIds(itemIds);
 
     return (
         <div className="px-2 pt-4">

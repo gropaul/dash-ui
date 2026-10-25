@@ -10,7 +10,6 @@ import {FilterTags, hasVisibleFilterTags} from "@/components/basics/filter-tags"
 import {useEntityFilterTags} from "@/components/basics/files/entity-filter-tags";
 import {ColoredIcon} from "@/components/basics/files/icon-factories";
 import {
-    openCreateCanvasDialog,
     openCreateDashboardDialog,
     openCreateFolderDialog,
     openCreateRelationDialog,
@@ -82,7 +81,7 @@ function resolveEntity(
     }
 }
 
-// Quick-create row shown in "open" mode: create a Query / Dashboard / Canvas / Folder at the root.
+// Quick-create row shown in "open" mode: create a Query / Dashboard / Folder at the root.
 function CreateEntitySlot() {
     const close = useGUIState((s) => s.closeCommand);
     const create = (open: (path: string[]) => void) => () => {
@@ -93,7 +92,6 @@ function CreateEntitySlot() {
         <div className="flex w-full gap-2.5">
             <CommandButton className="flex-1" icon={<Sheet size={16}/>} onClick={create(openCreateRelationDialog)}>New Query</CommandButton>
             <CommandButton className="flex-1" icon={<LayoutDashboard size={16}/>} onClick={create(openCreateDashboardDialog)}>New Dashboard</CommandButton>
-            <CommandButton className="flex-1" icon={<Workflow size={16}/>} onClick={create(openCreateCanvasDialog)}>New Canvas</CommandButton>
             <CommandButton className="flex-1" icon={<Folder size={16}/>} onClick={create(openCreateFolderDialog)}>New Folder</CommandButton>
         </div>
     );
@@ -184,6 +182,8 @@ export function GlobalCommand() {
         const filter = command.filter;
         const exclude = command.excludeIds;
         return flattenEditorTree(editorElements)
+            // Canvases are disabled during the move to files (dev/workspace-files.md).
+            .filter((node) => node.type !== 'canvas')
             .filter((node) => !filter || filter.includes(node.type as CommandEntityType))
             .filter((node) => !exclude || !exclude.includes(node.id))
             .map(toItem)

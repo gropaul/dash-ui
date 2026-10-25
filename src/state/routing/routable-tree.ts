@@ -1,6 +1,6 @@
 /**
  * Routing augmentation: dashboards and canvases don't have children in the editor
- * tree, but they *reference* relations (dashboard widgets / canvas nodes). This
+ * tree, but they *reference* relations (dashboard blocks / canvas nodes). This
  * exposes those referenced relations as **virtual children** of their container so
  * a relation can be addressed — and shown in the breadcrumb — in the context of the
  * dashboard/canvas it was opened from (e.g. `…/Sales Dashboard/Q4 Revenue`), instead
@@ -16,7 +16,7 @@
 
 import {EditorFolder} from "@/model/editor-folder";
 import {RelationState} from "@/model/relation-state";
-import {DashboardState} from "@/model/dashboard-state";
+import {DashboardState, referencedRelationIds} from "@/model/dashboard-state";
 import {CanvasState} from "@/model/canvas-state";
 import {objectSlugPathForId} from "@/state/routing/core-model";
 import {computeSiblingSlugNames} from "@/state/routing/slug-name";
@@ -26,13 +26,6 @@ type Relations = Record<string, RelationState>;
 type Dashboards = Record<string, DashboardState>;
 type Canvases = Record<string, CanvasState>;
 
-// Distinct relation ids referenced by a dashboard's widgets (in reading order).
-function dashboardRelationIds(dashboard: DashboardState): string[] {
-    const ids = Object.values(dashboard.widgets)
-        .filter((w) => w.type === "relation" && w.relationId)
-        .map((w) => w.relationId!);
-    return Array.from(new Set(ids));
-}
 
 // Distinct relation ids referenced by a canvas' relation nodes (in node order).
 function canvasRelationIds(canvas: CanvasState): string[] {
@@ -62,7 +55,7 @@ export function buildRoutableTree(
 
     const mapNode = (node: EditorFolder): EditorFolder => {
         if (node.type === "dashboards") {
-            const ids = dashboards[node.id] ? dashboardRelationIds(dashboards[node.id]) : [];
+            const ids = referencedRelationIds(dashboards[node.id]?.markdown ?? '');
             const children = ids.filter((id) => relations[id]).map(virtualChild);
             return children.length ? {...node, children} : node;
         }

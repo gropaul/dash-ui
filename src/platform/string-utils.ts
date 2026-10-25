@@ -69,3 +69,9 @@ export function toSnakeCase(str: string): string {
     // Lowercase all words and join with underscore
     return words.map(word => word.toLowerCase()).join('_');
 }
+
+/** "busiest_stations" -> "Busiest stations" */
+export function humanizeName(name: string): string {
+    const words = name.replace(/_+/g, ' ').trim();
+    return words.charAt(0).toUpperCase() + words.slice(1);
+}

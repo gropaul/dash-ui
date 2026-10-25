@@ -50,7 +50,7 @@ export async function goToWorkspaceRoot(page: Page): Promise<void> {
  * new entity, so the returned URL is its own. Requires the workspace root (see
  * `goToWorkspaceRoot`); the fresh-project welcome screen uses `createQuery`.
  */
-export async function createEntity(page: Page, kind: 'Query' | 'Dashboard' | 'Canvas', name: string): Promise<string> {
+export async function createEntity(page: Page, kind: 'Query' | 'Dashboard', name: string): Promise<string> {
   await page.getByRole('button', { name: 'New', exact: true }).click();
   await page.getByRole('menuitem', { name: kind, exact: true }).click();
   const dialog = page.getByRole('dialog', { name: `New ${kind}` });

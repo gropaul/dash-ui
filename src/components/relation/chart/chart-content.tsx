@@ -23,6 +23,7 @@ export function ChartContent(props: MyChartProps) {
     const config = ViewManager.instance.chart.getQueryParameters(props.relationState);
     const containerRef = useRef<HTMLDivElement>(null);
     const [textColor, setTextColor] = React.useState<string>('#333');
+    const [gridColor, setGridColor] = React.useState<string | undefined>(undefined);
     const echartRef = useRef<any>(null);
 
     // Debounce refs for brush selection
@@ -48,8 +49,11 @@ export function ChartContent(props: MyChartProps) {
 
     useEffect(() => {
         if (containerRef.current) {
-            const color = getComputedStyle(containerRef.current).getPropertyValue('color').trim();
+            const style = getComputedStyle(containerRef.current);
+            const color = style.getPropertyValue('color').trim();
             if (color) setTextColor(color);
+            // Every element has the theme's border colour (globals.css), also without a border.
+            if (style.borderTopColor) setGridColor(style.borderTopColor);
         }
     });
 
@@ -95,7 +99,7 @@ export function ChartContent(props: MyChartProps) {
         }
     }, [interactionMode]);
 
-    const option: EChartsOption = config ? toEChartOptions(config, data, textColor, interactionMode, queryState) : {};
+    const option: EChartsOption = config ? toEChartOptions(config, data, textColor, interactionMode, queryState, gridColor) : {};
 
     // Stable handler object — created once, reads current values via refs at call time
     const onEvents = useMemo<Record<string, (p: any) => void>>(() => ({

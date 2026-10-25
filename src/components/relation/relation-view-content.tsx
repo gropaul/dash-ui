@@ -8,6 +8,7 @@ import {TextDisplay} from "@/components/relation/text-display/text-display";
 import {RelationData} from "@/model/relation";
 import {useRelationData} from "@/state/relations-data.state";
 import {RelationViewContentEmpty} from "@/components/relation/relation-view-content-empty";
+import {cn} from "@/lib/utils";
 
 const DATA_QUERY = "SELECT\n" +
     "     TO_JSON(LIST(geo_lng)) AS lng_list_json,\n" +
@@ -41,7 +42,7 @@ export const RelationViewContent = memo(function RelationViewContent(props: Rela
         ...props,
         data: data,
     }
-    const wrapperClass = props.height === 'fit' ? 'p-2 flex items-center h-full w-full' : 'w-full';
+    const wrapperClass = props.height === 'fit' ? cn('flex items-center h-full w-full', !props.bare && 'p-2') : 'w-full';
 
     if (selectedView === 'table') {
         return (

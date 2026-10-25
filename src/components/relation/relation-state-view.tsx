@@ -55,7 +55,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                         <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'}>
                             <div className={'flex flex-col w-full h-full'}>
                                 {props.showHeader && <RelationViewHeader {...inputProps}/>}
-                                <div className={cn("rounded-2xl flex-1 min-h-0 w-full bg-card", inputProps.showBorder && 'border')}>
+                                <div className={cn("rounded-2xl flex-1 min-h-0 w-full", !inputProps.bare && 'bg-card', inputProps.showBorder && 'border')}>
                                     <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
                                 </div>
                             </div>
@@ -72,7 +72,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                 <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'}>
                     <div className={'flex flex-col w-full h-full'}>
                         {props.showHeader && <RelationViewHeader {...inputProps}/>}
-                        <div className={cn("rounded-2xl flex-1 min-h-0 w-full bg-card", inputProps.showBorder && 'border')}>
+                        <div className={cn("rounded-2xl flex-1 min-h-0 w-full", !inputProps.bare && 'bg-card', inputProps.showBorder && 'border')}>
                             <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
                         </div>
                     </div>

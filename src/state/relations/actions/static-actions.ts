@@ -11,6 +11,7 @@ import {
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
 import {getMacroName} from "@/state/relations/sql/table-macros";
+import {renameRefCalls} from "@/platform/sql-refs";
 import {getInitialAxisDecoration} from "@/model/relation-view-state/chart";
 import {RelationEvents} from "@/state/relations/event/relation-events";
 import {ConnectionsService} from "@/state/connections/connections-service";
@@ -103,23 +104,22 @@ export class RelationActions {
         return relationState;
     }
 
-    static renameInQuery(relationState: RelationState, oldStr: string, newStr: string): RelationState {
+    /** The relation with its calls of `refs.<from>(…)` renamed to `refs.<to>(…)`. */
+    static renameInQuery(relationState: RelationState, from: string, to: string): RelationState {
         const {baseQuery, activeBaseQuery} = relationState.query;
-        if (!baseQuery.includes(oldStr) && !activeBaseQuery.includes(oldStr)) return relationState;
-        return {
-            ...relationState,
-            query: {
-                ...relationState.query,
-                baseQuery: baseQuery.replaceAll(oldStr, newStr),
-                activeBaseQuery: activeBaseQuery.replaceAll(oldStr, newStr),
-            },
+        const query = {
+            ...relationState.query,
+            baseQuery: renameRefCalls(baseQuery, from, to),
+            activeBaseQuery: renameRefCalls(activeBaseQuery, from, to),
         };
+        if (query.baseQuery === baseQuery && query.activeBaseQuery === activeBaseQuery) return relationState;
+        return {...relationState, query};
     }
 
-    static renameInAllQueries(oldStr: string, newStr: string, excludeId: string): void {
+    static renameInAllQueries(from: string, to: string, excludeId: string): void {
         for (const entry of getAllRelations()) {
             if (entry.relation.id === excludeId) continue;
-            const updated = RelationActions.renameInQuery(entry.relation, oldStr, newStr);
+            const updated = RelationActions.renameInQuery(entry.relation, from, to);
             if (updated !== entry.relation) {
                 entry.updateRelation(updated);
             }

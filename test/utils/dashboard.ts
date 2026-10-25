@@ -1,15 +1,15 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
- * Dashboard helpers: adding widgets and addressing them individually.
+ * Dashboard helpers: adding relation blocks and addressing them individually.
  *
- * Widgets carry no name in the DOM (the embedded relation view renders no header),
+ * Blocks carry no name in the DOM (the embedded relation view renders no header),
  * so tests address them by what they contain - see `widgetWith`.
  */
 
-/** The dashboard's widget tiles (react-grid-layout items). */
+/** The dashboard's relation blocks. */
 export function dashboardWidgets(page: Page): Locator {
-  return page.locator('.react-grid-item');
+  return page.locator('[data-relation-block]');
 }
 
 /**
@@ -26,11 +26,13 @@ export function widgetWithout(page: Page, content: Locator): Locator {
 }
 
 /**
- * Add an existing relation to the open dashboard. Uses the toolbar's "Add widget"
- * entry point, which opens the global command palette filtered to relations.
- * Requires edit mode (the default for a dashboard).
+ * Add an existing relation to the open dashboard, below its last block. Uses the add menu of the
+ * + strip shown under a hovered block, whose "Existing relation…" tile opens the global command
+ * palette filtered to relations. Requires edit mode (the default for a dashboard).
  */
 export async function addRelationWidget(page: Page, relationName: string): Promise<void> {
-  await page.getByRole('button', { name: 'Add widget' }).click();
+  await page.locator('[data-slate-editor] > *').last().hover();
+  await page.getByRole('button', { name: 'Add a block below' }).last().click();
+  await page.getByRole('option', { name: 'Existing relation…' }).click();
   await page.getByRole('option', { name: relationName }).click();
 }

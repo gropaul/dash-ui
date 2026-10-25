@@ -209,3 +209,15 @@ export function turnQueryIntoSubquery(sql: string, alias: string): string {
     return `(${singleStatement}) AS ${alias}`;
 
 }
+
+/**
+ * Sanitize relation name for use as a macro name.
+ * Converts "My Query!" -> "my_query" and MyQuery -> "myquery"
+ */
+export function sanitizeMacroName(name: string): string {
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '_')  // Replace non-alphanumeric chars with underscore
+        .replace(/_+/g, '_')           // Collapse multiple underscores
+        .replace(/^_|_$/g, '');        // Trim leading/trailing underscores
+}

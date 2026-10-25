@@ -6,7 +6,8 @@ import {
     setRelationRunning,
 } from '@/model/relation-state';
 import {useRelationsState} from '@/state/relations.state';
-import {extractMacroRefs, sanitizeMacroName} from './table-macros';
+import {sanitizeMacroName} from '@/platform/sql-utils';
+import {extractMacroRefs} from './table-macros';
 import {registerRelationMacro} from './table-macros';
 import {getDownstreamQueue} from './dag-execution';
 
@@ -42,14 +43,24 @@ function buildRelationEdges(relations: Record<string, RelationState>): Edge[] {
  * refreshDownstream) so it does NOT re-dispatch relation events — no feedback loop.
  */
 export async function refreshDownstreamRelations(relationId: string): Promise<void> {
-    const relations = useRelationsState.getState().relations;
-    const queue = getDownstreamQueue(relationId, buildRelationEdges(relations));
+    await refreshDownstreamIn(
+        relationId,
+        () => useRelationsState.getState().relations,
+        (r: RelationState) => useRelationsState.getState().updateRelation(r),
+    );
+}
+
+/** `refreshDownstreamRelations` over any set of relations, e.g. ones kept outside the relations store. */
+export async function refreshDownstreamIn(
+    relationId: string,
+    getRelations: () => Record<string, RelationState>,
+    update: (relation: RelationState) => void,
+): Promise<void> {
+    const queue = getDownstreamQueue(relationId, buildRelationEdges(getRelations()));
     if (queue.length === 0) return;
 
-    const update = (r: RelationState) => useRelationsState.getState().updateRelation(r);
-
     for (const downstreamId of queue) {
-        const relation = useRelationsState.getState().relations[downstreamId];
+        const relation = getRelations()[downstreamId];
         if (!relation) continue;
         try {
             update(setRelationRunning(relation));

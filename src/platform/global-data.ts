@@ -116,6 +116,8 @@ export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
 export const ERROR_MESSAGE_QUERY_ABORTED = 'Query aborted by user';
 
 export const TABLE_FOOTER_SMALL_WIDTH_THRESHOLD = 512;
+// Results with fewer rows show without the paging footer.
+export const TABLE_FOOTER_MIN_ROWS = 30;
 
 // Container-query widths (px) at which ViewPadding steps up its horizontal gutter: tight below
 // MEDIUM, medium between MEDIUM and WIDE, wide at/above WIDE. Registered as the `view-medium` /

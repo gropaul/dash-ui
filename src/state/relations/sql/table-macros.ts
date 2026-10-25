@@ -4,7 +4,9 @@ import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
 import {extractParameters, ParameterDefinition} from "@/model/relation-view-state/parameters";
 import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
-import {removeComments} from "@/platform/sql-utils";
+import {removeComments, sanitizeMacroName} from "@/platform/sql-utils";
+import {isPageBlock} from "@/state/relations/sql/page-refs";
+import {callsRef} from "@/platform/sql-refs";
 
 import {useDatabaseState} from "@/state/database.state";
 import {ViewManager} from "@/model/relation-state/relation-view";
@@ -34,18 +36,6 @@ const DUCKDB_RESERVED_KEYWORDS = new Set([
  */
 export function isReservedMacroName(sanitized: string): boolean {
     return DUCKDB_RESERVED_KEYWORDS.has(sanitized);
-}
-
-/**
- * Sanitize relation name for use as a macro name.
- * Converts "My Query!" -> "my_query" and MyQuery -> "myquery"
- */
-export function sanitizeMacroName(name: string): string {
-    return name
-        .toLowerCase()
-        .replace(/[^a-z0-9_]/g, '_')  // Replace non-alphanumeric chars with underscore
-        .replace(/_+/g, '_')           // Collapse multiple underscores
-        .replace(/^_|_$/g, '');        // Trim leading/trailing underscores
 }
 
 /**
@@ -143,47 +133,9 @@ export function extractMacroRefs(sqlRaw: string): string[] {
     return [...new Set(refs)];
 }
 
-export interface MacroReference {
-    relation: RelationWithOrigin;
-    macroName: string;
-}
-
-/**
- * Build a regex that matches a macro name followed by '(' (with optional whitespace).
- * Ensures exact match: node_a() won't match node_ab().
- */
-function macroCallRegex(macroName: string, flags: string = 'g'): RegExp {
-    return new RegExp(`\\b${escapeRegExp(macroName)}\\s*\\(`, flags);
-}
-
-function escapeRegExp(s: string): string {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Check if SQL contains an exact macro call (not a prefix match).
- */
-export function sqlContainsMacroCall(sql: string, macroName: string): boolean {
-    return macroCallRegex(macroName).test(sql);
-}
-
-/**
- * Find all relations whose SQL references the given macro name.
- * Searches across standalone relations, canvas nodes, and dashboard blocks.
- */
-export function findMacroReferences(macroName: string, excludeId: string): MacroReference[] {
-    const allRelations = getAllRelations();
-    const references: MacroReference[] = [];
-
-    for (const entry of allRelations) {
-        if (entry.relation.id === excludeId) continue;
-        const sql = entry.relation.query.baseQuery;
-        if (sql && sqlContainsMacroCall(sql, macroName)) {
-            references.push({relation: entry, macroName});
-        }
-    }
-
-    return references;
+/** The relations of the project, other than `excludeId`, whose SQL calls `refs.<name>(…)`. */
+export function findMacroReferences(name: string, excludeId: string): RelationWithOrigin[] {
+    return getAllRelations().filter(({relation}) => relation.id !== excludeId && callsRef(relation.query.baseQuery ?? '', name));
 }
 
 export async function checkMacroName(_relationName: string): Promise<string | null> {
@@ -198,6 +150,8 @@ export async function checkMacroName(_relationName: string): Promise<string | nu
 export async function registerRelationMacro(
     relationState: RelationState
 ): Promise<void> {
+    // Blocks of a page are expanded into the queries reading them instead (page-refs.ts).
+    if (isPageBlock(relationState.id)) return;
     const sql = await generateCreateMacroSQLInternal(relationState);
     try {
         await ConnectionsService.getInstance().executeQuery(sql);
@@ -226,6 +180,7 @@ export async function dropRelationMacro(relationName: string): Promise<void> {
  * Note: SQL editor already debounces onCodeChange (300ms), so no extra debouncing needed here.
  */
 async function handleRelationAction(action: RelationEvent): Promise<void> {
+    if (action.new && isPageBlock(action.new.id)) return;
     switch (action.type) {
         case 'CREATE':
         case 'UPDATE_SQL':

@@ -1,5 +1,5 @@
 import React, {useRef} from "react";
-import {Upload, BookOpen, Play, Sheet, LayoutDashboard, Workflow, Database} from "lucide-react";
+import {Upload, BookOpen, Play, Sheet, LayoutDashboard, Database} from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
 import {FileTypePill} from "@/components/onboarding/file-type-pill";
 import {useOnboardingState} from "@/state/onboarding.state";
@@ -7,7 +7,7 @@ import {handleFileDrop} from "@/components/import/file-drop-relation/file-import
 import {FileUploadState} from "@/components/import/file-drop-relation/file-drop-overlay";
 import {MAIN_CONNECTION_ID} from "@/platform/global-data";
 import {showExampleQueryInternal} from "@/state/init/show-example-query";
-import {openCreateCanvasDialog, openCreateDashboardDialog, openCreateRelationDialog} from "@/components/workbench/create-entity-dialogs";
+import {openCreateDashboardDialog, openCreateRelationDialog} from "@/components/workbench/create-entity-dialogs";
 
 export function GetStartedPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,7 +36,6 @@ export function GetStartedPage() {
 
     const onNewQuery = () => openCreateRelationDialog();
     const onNewDashboard = () => openCreateDashboardDialog();
-    const onNewCanvas = () => openCreateCanvasDialog();
 
     const onExampleQuery = () => {
         showExampleQueryInternal(MAIN_CONNECTION_ID);
@@ -126,15 +125,6 @@ export function GetStartedPage() {
                             <CardContent className="flex flex-col items-center text-center p-4 space-y-2">
                                 <LayoutDashboard className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
                                 <span className="text-sm font-medium text-foreground">New Dashboard</span>
-                            </CardContent>
-                        </Card>
-                        <Card
-                            className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
-                            onClick={onNewCanvas}
-                        >
-                            <CardContent className="flex flex-col items-center text-center p-4 space-y-2">
-                                <Workflow className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
-                                <span className="text-sm font-medium text-foreground">New Canvas</span>
                             </CardContent>
                         </Card>
                         <Card

@@ -109,7 +109,7 @@ export function ProjectSwitcher() {
     return (
         <>
             <div className="flex items-center min-w-0 max-w-[240px] gap-0 rounded-2xl hover:bg-muted">
-                {/* Name + icon open the project root folder; only the chevron opens the switcher. */}
+                {/* The name opens the project root folder; only the chevron opens the switcher. */}
                 <Button
                     variant="ghost"
                     className="h-8 flex flex-row items-center gap-0 pl-1 pr-1 min-w-0 rounded-l-2xl"
@@ -121,10 +121,7 @@ export function ProjectSwitcher() {
                     {!current ? (
                         <span className="min-w-0 truncate font-medium text-muted-foreground px-1">Select a project</span>
                     ) : (
-                        <>
-                            <ProjectIcon icon={current.icon} className="ml-1 mr-4"/>
-                            <span className="min-w-0 truncate font-medium">{current.name}</span>
-                        </>
+                        <span className="min-w-0 truncate font-medium px-1">{current.name}</span>
                     )}
                 </Button>
                 <DropdownMenu>

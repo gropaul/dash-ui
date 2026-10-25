@@ -1,7 +1,7 @@
 'use client';
 
 import React, {useMemo} from "react";
-import {Folder, LayoutDashboard, Sheet, WorkflowIcon} from "lucide-react";
+import {Folder, LayoutDashboard, Sheet} from "lucide-react";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {FilterTag} from "@/components/basics/filter-tags";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
@@ -12,7 +12,6 @@ const ENTITY_TYPE_TAGS: FilterTag<TreeNode>[] = [
     {key: "folder", label: "Folders", icon: <Folder size={12}/>, predicate: (n) => n.type === "folder"},
     {key: "relations", label: "Queries", icon: <Sheet size={12}/>, predicate: (n) => n.type === "relations"},
     {key: "dashboards", label: "Dashboards", icon: <LayoutDashboard size={12}/>, predicate: (n) => n.type === "dashboards"},
-    {key: "canvas", label: "Canvases", icon: <WorkflowIcon size={12}/>, predicate: (n) => n.type === "canvas"},
 ];
 
 /**

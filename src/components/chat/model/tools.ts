@@ -1,4 +1,5 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
+import {referencedRelationIds} from "@/model/dashboard-state";
 import {SQLToolDescription} from "@/components/chat/model/promts";
 import {getRandomId} from "@/platform/id-utils";
 import {RelationDataToMarkdown, RelationSourceQuery} from "@/model/relation";
@@ -268,13 +269,13 @@ async function RouteAndApplyTarget(target: string, data: RelationState): Promise
             await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);
             return `Relation was updated successfully.`;
         case 'dashboard': {
-            // Persist the built relation, run it, then add a relation widget referencing it —
+            // Persist the built relation, run it, then add a block referencing it —
             // the same canonical add-to-dashboard path the UI uses.
             const state = useRelationsState.getState();
             state.addNewRelation(data.connectionId, [], data, false);
             const dashActions = getRelationActions({mode: 'embedded', relationState: data, updateRelation: state.updateRelation});
             await dashActions.updateRelationDataWithBaseQuery(data.query.baseQuery);
-            state.addRelationWidgetToDashboard(target, data.id);
+            state.addRelationToDashboard(target, data.id);
             return `Added to dashboard "${target}".`;
         }
     }
@@ -315,9 +316,9 @@ export const MarkdownTool = tool({
             return markdown;
         }
 
-        // Dashboard target: add a text (markdown) widget
+        // Dashboard target: add the markdown at the end of the page
         if (target.startsWith('dashboard')) {
-            useRelationsState.getState().addTextWidgetToDashboard(target, markdown);
+            useRelationsState.getState().addMarkdownToDashboard(target, markdown);
             return `Markdown was added successfully to the dashboard.`;
         }
 
@@ -352,17 +353,11 @@ export const ReadTargetTool = tool({
             case 'dashboard': {
                 const dashboard = useRelationsState.getState().dashboards[targetId];
                 if (!dashboard) return `Error: Dashboard "${targetId}" not found in state.`;
-                const widgets = Object.values(dashboard.widgets ?? {});
-                const widgetTypes = widgets.map(w => w.type).join(', ') || 'none';
-                const relationIds = widgets
-                    .filter(w => w.type === 'relation' && w.relationId)
-                    .map(w => w.relationId);
                 return JSON.stringify({
                     name: target.name,
                     type: 'dashboard',
-                    widgetCount: widgets.length,
-                    widgetTypes,
-                    relationIds,
+                    markdown: dashboard.markdown ?? '',
+                    relationIds: referencedRelationIds(dashboard.markdown ?? ''),
                 });
             }
 

@@ -68,7 +68,7 @@ export function selectRecentWorkspaceItems(c: WorkspaceCollections, limit = 5): 
     const items: RecentItem[] = [];
     for (const node of flattenEditorTree(c.editorElements)) {
         const meta = metadataFor(node, c.relations, c.dashboards, c.canvas);
-        if (meta.lastViewedAt === undefined) continue;
+        if (meta.lastViewedAt === undefined || node.type === 'canvas') continue;
         const iconType = node.type === "relations"
             ? (c.relations[node.id]?.viewState?.selectedView ?? "relations")
             : node.type;
@@ -76,4 +76,22 @@ export function selectRecentWorkspaceItems(c: WorkspaceCollections, limit = 5): 
     }
     items.sort((a, b) => b.lastViewedAt - a.lastViewedAt);
     return items.slice(0, limit);
+}
+
+/**
+ * Keeps the order the list was last shown in, so viewing an item already listed does not move it.
+ * An item that just entered goes on top; a backfill (older than the newest kept item, e.g. after a
+ * delete) goes at the bottom. Eviction stays least-recently-viewed, since `items` is the top-N.
+ */
+export function keepDisplayOrder(prevIds: string[], items: RecentItem[]): RecentItem[] {
+    const byId = new Map(items.map((i) => [i.id, i]));
+    const kept = prevIds.flatMap((id) => byId.get(id) ?? []);
+    const newestKept = Math.max(-Infinity, ...kept.map((i) => i.lastViewedAt));
+    const prev = new Set(prevIds);
+    const added = items.filter((i) => !prev.has(i.id));
+    return [
+        ...added.filter((i) => i.lastViewedAt > newestKept),
+        ...kept,
+        ...added.filter((i) => i.lastViewedAt <= newestKept),
+    ];
 }

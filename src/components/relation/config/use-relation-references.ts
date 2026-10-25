@@ -1,7 +1,8 @@
 import {useMemo} from "react";
 import {useRelationsState} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
-import {extractMacroRefs, sanitizeMacroName} from "@/state/relations/sql/table-macros";
+import {extractMacroRefs} from "@/state/relations/sql/table-macros";
+import {sanitizeMacroName} from "@/platform/sql-utils";
 import {getRelationDependencies} from "@/state/relations/relation-dependencies";
 import {objectSlugPathForId} from "@/state/routing/core-model";
 
@@ -71,7 +72,7 @@ export function useRelationReferences(relationState: RelationState): RelationRef
             id: d.dashboardId,
             name: d.dashboardName,
             iconType: 'dashboard',
-            detail: widgetCount(d.widgetIds.length),
+            detail: blockCount(d.blockCount),
             navigable: navigable(d.dashboardId),
         }));
 
@@ -103,8 +104,8 @@ function toRelationEntry(relation: RelationState, navigable: boolean): Reference
     };
 }
 
-function widgetCount(count: number): string | undefined {
-    return count > 1 ? `${count} widgets` : undefined;
+function blockCount(count: number): string | undefined {
+    return count > 1 ? `${count} blocks` : undefined;
 }
 
 function nodeCount(count: number): string | undefined {

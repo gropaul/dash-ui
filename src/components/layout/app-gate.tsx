@@ -17,7 +17,8 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {useInitState} from "@/state/init.state";
+import {DownloadProgress, useInitState} from "@/state/init.state";
+import {Progress} from "@/components/ui/progress";
 
 /**
  * Hosts the one-time init gate + global dialogs, ABOVE the router so they are
@@ -29,6 +30,7 @@ export function AppGate({children}: { children: React.ReactNode }) {
     const [mounted, setMounted] = useState(false);
     const initComplete = useInitState((state) => state.initializationComplete());
     const label = useInitState((state) => state.getCurrentStepLabel());
+    const downloadProgress = useInitState((state) => state.downloadProgress);
 
     useEffect(() => {
         setMounted(true);
@@ -78,5 +80,17 @@ export function AppGate({children}: { children: React.ReactNode }) {
             <GlobalCommand/>
             <RelationDeleteDialog/>
         </>
+    );
+}
+
+function DownloadProgressView({progress}: { progress: DownloadProgress }) {
+    const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
+    const {bytesLoaded, bytesTotal} = progress;
+    const known = bytesTotal > 0 && bytesLoaded <= bytesTotal;
+    return (
+        <div className="flex w-48 flex-col items-center space-y-1 text-xs text-muted-foreground">
+            {known && <Progress value={bytesLoaded / bytesTotal * 100}/>}
+            <div>{known ? `${mb(bytesLoaded)} / ${mb(bytesTotal)} MB` : `${mb(bytesLoaded)} MB`}</div>
+        </div>
     );
 }

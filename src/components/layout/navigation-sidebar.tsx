@@ -8,7 +8,9 @@ import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
 import {DashLocation, DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {useDashLocation} from "@/state/routing/use-dash-location";
+import {WorkspaceTree} from "@/components/layout/workspace-tree";
 import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-section";
+import {ProjectIcon} from "@/components/projects/project-icons";
 
 /**
  * The single left navigation sidebar. Routing-driven (each item is a real link), grouped by
@@ -75,6 +77,11 @@ export function NavigationSidebar() {
                     expanded ? "w-60" : "w-16",
                 )}
             >
+                {/* Logo row. Fixed inset so it doesn't jump on expand/collapse. */}
+                <div className="flex items-center shrink-0 pl-4 pt-2">
+                    <ProjectIcon icon="dash"/>
+                </div>
+
                 {/* Nav destinations, grouped by scope. */}
                 <div className="flex flex-col gap-3 p-2 pt-5">
                     {renderGroup("General", generalItems)}
@@ -84,6 +91,7 @@ export function NavigationSidebar() {
                 {/* Middle region: extra sections when expanded, otherwise a spacer so the
                     footer stays pinned to the bottom. Slot-based — future sections drop in here. */}
                 <div className="flex-1 min-h-0 overflow-y-auto">
+                    {expanded && location.basePath === 'project' && <WorkspaceTree projectId={location.projectId}/>}
                     {expanded && <RecentlyAccessedSection/>}
                 </div>
 

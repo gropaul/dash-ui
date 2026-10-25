@@ -2,14 +2,15 @@
 
 import {useState} from "react";
 import {MoreHorizontal, Plus} from "lucide-react";
-import {TreeNode, findPathById} from "@/components/basics/files/tree-utils";
+import {TreeNode, findNodeInTrees, findPathById} from "@/components/basics/files/tree-utils";
+import {EditorFolder} from "@/model/editor-folder";
+import {folderPageOf, pageFolderOf} from "@/state/routing/page-links";
 import {ColumnHeadSortingIcon} from "@/components/basics/column-head-sorting-icon";
 import {SearchBox} from "@/components/basics/search-box";
 import {FilterTags} from "@/components/basics/filter-tags";
 import {useEntityFilterTags} from "@/components/basics/files/entity-filter-tags";
 import {ColoredIcon, defaultIconFactory} from "@/components/basics/files/icon-factories";
-import {computeSiblingSlugNames, slugify} from "@/state/routing/slug-name";
-import {DashLocations, DashNavigator} from "@/state/routing/navigation";
+import {DashNavigator} from "@/state/routing/navigation";
 import {useRelationsState} from "@/state/relations.state";
 import {EntityBase} from "@/state/entities/entity-base";
 import {GetStartedPage} from "@/components/onboarding/get-started-page";
@@ -37,8 +38,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
-    openCreateCanvasDialog,
     openCreateDashboardDialog,
+    createFolderPage,
     openCreateFolderDialog,
     openCreateRelationDialog,
 } from "@/components/workbench/create-entity-dialogs";
@@ -52,8 +53,6 @@ const nav = DashNavigator.instance();
 interface FolderViewProps {
     /** The resolved folder node, or undefined for the /workspace root. */
     folderNode?: TreeNode;
-    /** Macro-name segments of the current folder (empty at root). */
-    segments: string[];
 }
 
 type SortKey = "name" | "lastEditedAt" | "lastViewedAt" | "nViews";
@@ -90,26 +89,54 @@ function compareMaybe(a: number | undefined, b: number | undefined, dir: SortDir
     return dir === "asc" ? a - b : b - a;
 }
 
-/**
- * Lists the direct children of a folder (or the /workspace root) as a sortable table. Uses the
- * shared ViewHeader (same path title as the relation view); each row links to the child's
- * `/workspace/...` URL; the "New" menu creates items in this folder.
- */
-export function FolderView({folderNode, segments}: FolderViewProps) {
+/** The items of a folder (or the top level) to list: a folder's page is shown as its folder. */
+function listedChildren(tree: EditorFolder[], folderNode?: TreeNode): TreeNode[] {
+    const children = folderNode ? (folderNode.children ?? []) : tree;
+    return children.filter(child => child.type !== 'canvas' && !pageFolderOf(tree, child.id));
+}
+
+/** The "New" menu, creating items in the folder at `createPath`, and the folder's page if it has none yet. */
+function NewMenu({createPath, folderNode}: { createPath: string[], folderNode?: TreeNode }) {
     const editorElements = useRelationsState((state) => state.editorElements);
-    const relations = useRelationsState((state) => state.relations);
-    const dashboards = useRelationsState((state) => state.dashboards);
-    const canvas = useRelationsState((state) => state.canvas);
-    const {handlers, dialogs} = useEntityActions();
+    const pageless = folderNode && !folderPageOf(editorElements, folderNode.id);
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1" aria-label="New">
+                    <Plus size={14}/> New
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                    onClick={() => openCreateRelationDialog(createPath)}>{defaultIconFactory("relation")}Query</DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => openCreateDashboardDialog(createPath)}>{defaultIconFactory("dashboard")}Dashboard</DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => openCreateFolderDialog(createPath, folderNode)}>{defaultIconFactory("folder")}Folder</DropdownMenuItem>
+                {pageless && (
+                    <DropdownMenuItem onClick={() => createFolderPage(createPath, folderNode.name)}>
+                        {defaultIconFactory("dashboard")}Page for this folder
+                    </DropdownMenuItem>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
+/**
+ * Lists the direct children of a folder (or the /workspace root) as a sortable table, under the shared
+ * ViewHeader; the "New" menu creates items in this folder. A folder with a page shows the page instead, with
+ * FolderContents below it.
+ */
+export function FolderView({folderNode}: FolderViewProps) {
+    const editorElements = useRelationsState((state) => state.editorElements);
     const currentProject = useProjectsState((state) => state.getCurrentProject());
 
-    const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({key: "lastViewedAt", dir: "desc"});
     const [activeTag, setActiveTag] = useState("");
     const [search, setSearch] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
 
-    const children: TreeNode[] = folderNode ? (folderNode.children ?? []) : editorElements;
-    const slugNames = computeSiblingSlugNames(children);
+    const children = listedChildren(editorElements, folderNode);
 
     // Entity-kind chips (folder/query/…) plus one chip per relation view type (Table/Chart/…);
     // zero-count chips collapse away in the widget, so only kinds actually present are shown.
@@ -129,38 +156,78 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     // "This folder is empty." message.
     const isEmptyProjectRoot = !folderNode && children.length === 0;
 
-    // "New" menu, styled like the dashboard's Edit button (outline, small), shown at the
-    // right of the header.
-    const newButton = (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-1" aria-label="New">
-                    <Plus size={14}/> New
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                    onClick={() => openCreateRelationDialog(createPath)}>{defaultIconFactory("relation")}Query</DropdownMenuItem>
-                <DropdownMenuItem
-                    onClick={() => openCreateDashboardDialog(createPath)}>{defaultIconFactory("dashboard")}Dashboard</DropdownMenuItem>
-                <DropdownMenuItem
-                    onClick={() => openCreateCanvasDialog(createPath)}>{defaultIconFactory("canvas")}Canvas</DropdownMenuItem>
-                <DropdownMenuItem
-                    onClick={() => openCreateFolderDialog(createPath, folderNode)}>{defaultIconFactory("folder")}Folder</DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-
-    // Build rows with their resolved link, icon and metadata, then sort.
     const query = search.trim().toLowerCase();
     const visibleChildren = children.filter((c) => {
         if (activeTagEntry && !activeTagEntry.predicate(c)) return false;
         if (query && !c.name.toLowerCase().includes(query)) return false;
         return true;
     });
-    const rows = visibleChildren.map((child) => {
-        const path = [...segments, slugNames.get(child.id) ?? slugify(child.name)];
-        const to = nav.getUrlFromLocation(DashLocations.CurrentProjectElement(path));
+
+    return (
+        <ViewPadding active addPaddingBottom className=" h-full flex flex-col" classNameParent={'bg-accent'}>
+            <ViewHeader title={title} actionButtons={<NewMenu createPath={createPath} folderNode={folderNode}/>}/>
+            <div className={`bg-card border rounded-2xl w-full h-full flex flex-col min-h-0 ${isEmptyProjectRoot ? '' : 'p-8'}`}>
+                {isEmptyProjectRoot ? (
+                    // GetStartedPage brings its own centering + padding, so the card wrapper drops its padding.
+                    <GetStartedPage/>
+                ) : (
+                <>
+                {children.length > 0 && (
+                    <div className={"flex items-center justify-between pb-2"}>
+                        <FilterTags
+                            tags={tags}
+                            items={children}
+                            activeKey={activeTag}
+                            onChange={setActiveTag}
+                            hideFullSet
+                        />
+                        <SearchBox open={searchOpen} setOpen={setSearchOpen} value={search} onChange={setSearch}/>
+                    </div>
+
+                )}
+                <div className="flex-1 min-h-0">
+                    {children.length === 0
+                        ? <div className="text-muted-foreground text-sm">This folder is empty.</div>
+                        : <FolderTable items={visibleChildren}/>}
+                </div>
+                </>
+                )}
+            </div>
+        </ViewPadding>
+    );
+}
+
+/** The contents of the folder whose page is open, below the page. */
+export function FolderContents({folderId}: { folderId: string }) {
+    const editorElements = useRelationsState((state) => state.editorElements);
+    const createPath = findPathById(editorElements, folderId) ?? [];
+    const folderNode = findNodeInTrees(editorElements, createPath);
+    if (!folderNode) return null;
+    const children = listedChildren(editorElements, folderNode);
+    return (
+        <div className="mx-auto flex max-w-5xl flex-col gap-2 px-12 pb-[40vh] pt-8">
+            <div className="flex items-center justify-between border-t pt-6">
+                <span className="text-sm font-medium text-muted-foreground">In {folderNode.name}</span>
+                <NewMenu createPath={createPath} folderNode={folderNode}/>
+            </div>
+            {children.length === 0
+                ? <div className="text-muted-foreground text-sm">This folder is empty.</div>
+                : <FolderTable items={children}/>}
+        </div>
+    );
+}
+
+/** The items as a sortable table; each row links to the item and has its menu. */
+function FolderTable({items}: { items: TreeNode[] }) {
+    const editorElements = useRelationsState((state) => state.editorElements);
+    const relations = useRelationsState((state) => state.relations);
+    const dashboards = useRelationsState((state) => state.dashboards);
+    const canvas = useRelationsState((state) => state.canvas);
+    const {handlers, dialogs} = useEntityActions();
+    const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({key: "lastViewedAt", dir: "desc"});
+
+    const rows = items.map((child) => {
+        const to = nav.getUrlFromObjectId(child.id);
         // Relations are colored by their view type (matching the canvas nodes); other entities by type.
         const iconType = child.type === "relations"
             ? (relations[child.id]?.viewState?.selectedView ?? "relations")
@@ -210,106 +277,76 @@ export function FolderView({folderNode, segments}: FolderViewProps) {
     };
 
     return (
-        <ViewPadding active addPaddingBottom className=" h-full flex flex-col" classNameParent={'bg-accent'}>
-            <ViewHeader title={title} actionButtons={<>{newButton}</>}/>
-            <div className={`bg-card border rounded-2xl w-full h-full flex flex-col min-h-0 ${isEmptyProjectRoot ? '' : 'p-8'}`}>
-                {isEmptyProjectRoot ? (
-                    // GetStartedPage brings its own centering + padding, so the card wrapper drops its padding.
-                    <GetStartedPage/>
-                ) : (
-                <>
-                {children.length > 0 && (
-                    <div className={"flex items-center justify-between pb-2"}>
-                        <FilterTags
-                            tags={tags}
-                            items={children}
-                            activeKey={activeTag}
-                            onChange={setActiveTag}
-                            hideFullSet
-                        />
-                        <SearchBox open={searchOpen} setOpen={setSearchOpen} value={search} onChange={setSearch}/>
-                    </div>
-
+        <>
+        <Table className="text-xs" containerClassName="h-full">
+            <TableHeader className="sticky top-0 z-10 bg-card shadow-[inset_0_-1px_0_hsl(var(--border))] [&_tr]:border-b-0">
+                <TableRow>
+                    <SortHeader label="Name" sortKey="name"/>
+                    <SortHeader label="Last edited" sortKey="lastEditedAt" className="w-40"/>
+                    <SortHeader label="Last viewed" sortKey="lastViewedAt" className="w-40"/>
+                    <SortHeader label="Views" sortKey="nViews" className="w-20"/>
+                    <TableHead className="w-8"/>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {rows.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
+                            No items match.
+                        </TableCell>
+                    </TableRow>
                 )}
-                <div className="flex-1 min-h-0">
-                    {children.length === 0 ? (
-                        <div className="text-muted-foreground text-sm">This folder is empty.</div>
-                    ) : (
-                        <Table className="text-xs" containerClassName="h-full">
-                            <TableHeader className="sticky top-0 z-10 bg-card shadow-[inset_0_-1px_0_hsl(var(--border))] [&_tr]:border-b-0">
-                                <TableRow>
-                                    <SortHeader label="Name" sortKey="name"/>
-                                    <SortHeader label="Last edited" sortKey="lastEditedAt" className="w-40"/>
-                                    <SortHeader label="Last viewed" sortKey="lastViewedAt" className="w-40"/>
-                                    <SortHeader label="Views" sortKey="nViews" className="w-20"/>
-                                    <TableHead className="w-8"/>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rows.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="py-4 text-center text-muted-foreground">
-                                            No items match.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                                {rows.map(({child, to, iconType, meta}) => {
-                                    const path = findPathById(editorElements, child.id) ?? [];
-                                    return (
-                                    <ContextMenu key={child.id}>
-                                        <ContextMenuTrigger asChild>
-                                            <TableRow
-                                                onClick={DashNavigator.instance().onClickNavigateToObjectId(child.id)}
-                                                className="group cursor-pointer"
+                {rows.map(({child, to, iconType, meta}) => {
+                    const path = findPathById(editorElements, child.id) ?? [];
+                    return (
+                    <ContextMenu key={child.id}>
+                        <ContextMenuTrigger asChild>
+                            <TableRow
+                                onClick={DashNavigator.instance().onClickNavigateToObjectId(child.id)}
+                                className="group cursor-pointer"
+                            >
+                                <TableCell>
+                                    {/* href kept for middle-click / open-in-new-tab; plain clicks are
+                                    handled by the row's onClickNavigateToObjectId (preventing default). */}
+                                    <a href={to} className="flex items-center gap-2.5 text-foreground">
+                                        <ColoredIcon type={iconType}/>
+                                        <span className="truncate">{child.name}</span>
+                                    </a>
+                                </TableCell>
+                                <TableCell
+                                    className="text-muted-foreground">{formatRelativeTime(meta.lastEditedAt, "—")}</TableCell>
+                                <TableCell
+                                    className="text-muted-foreground">{formatRelativeTime(meta.lastViewedAt, "—")}</TableCell>
+                                <TableCell
+                                    className="text-muted-foreground tabular-nums">{formatNumber(meta.nViews ?? 0, 1, true)}</TableCell>
+                                <TableCell className="p-0">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                type="button"
+                                                aria-label={`Actions for ${child.name}`}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100 data-[state=open]:bg-muted"
                                             >
-                                                <TableCell>
-                                                    {/* href kept for middle-click / open-in-new-tab; plain clicks are
-                                                    handled by the row's onClickNavigateToObjectId (preventing default). */}
-                                                    <a href={to} className="flex items-center gap-2.5 text-foreground">
-                                                        <ColoredIcon type={iconType}/>
-                                                        <span className="truncate">{child.name}</span>
-                                                    </a>
-                                                </TableCell>
-                                                <TableCell
-                                                    className="text-muted-foreground">{formatRelativeTime(meta.lastEditedAt, "—")}</TableCell>
-                                                <TableCell
-                                                    className="text-muted-foreground">{formatRelativeTime(meta.lastViewedAt, "—")}</TableCell>
-                                                <TableCell
-                                                    className="text-muted-foreground tabular-nums">{formatNumber(meta.nViews ?? 0, 1, true)}</TableCell>
-                                                <TableCell className="p-0">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <button
-                                                                type="button"
-                                                                aria-label={`Actions for ${child.name}`}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100 data-[state=open]:bg-muted"
-                                                            >
-                                                                <MoreHorizontal size={14}/>
-                                                            </button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                                            <EntityMenuItems variant="dropdown" path={path} tree={child} handlers={handlers}/>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </TableCell>
-                                            </TableRow>
-                                        </ContextMenuTrigger>
-                                        <ContextMenuContent>
-                                            <EntityMenuItems variant="context" path={path} tree={child} handlers={handlers}/>
-                                        </ContextMenuContent>
-                                    </ContextMenu>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    )}
-                </div>
-                </>
-                )}
-            </div>
-
+                                                <MoreHorizontal size={14}/>
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                            <EntityMenuItems variant="dropdown" path={path} tree={child} handlers={handlers}/>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                            <EntityMenuItems variant="context" path={path} tree={child} handlers={handlers}/>
+                        </ContextMenuContent>
+                    </ContextMenu>
+                    );
+                })}
+            </TableBody>
+        </Table>
             {dialogs}
-        </ViewPadding>
+        </>
     );
 }
