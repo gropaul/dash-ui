@@ -69,6 +69,15 @@ export function renameRefCalls(sql: string, from: string, to: string): string {
     return replaceMatches(sql, REF_NAME, match => match[2].toLowerCase() === from ? match[1] + to : undefined);
 }
 
+/**
+ * `sql` with `refs.<name>(…)` calls spelled out as `dash.refs.<name>(…)`. Queries run inside `query_result()`, where
+ * the short form doesn't find the macros.
+ */
+export function qualifyRefCalls(sql: string): string {
+    const full = `${DASH_CATALOG_STATE}.${DASH_REFS_SCHEMA}.`;
+    return replaceMatches(sql, REF_NAME, match => match[1].toLowerCase() === full ? undefined : full + match[2]);
+}
+
 /** Whether `sql` calls `refs.<name>(…)`. */
 export function callsRef(sql: string, name: string): boolean {
     return renameRefCalls(sql, name, `${name}_`) !== sql;

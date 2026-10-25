@@ -1,7 +1,7 @@
 'use client';
 
 import {useState} from "react";
-import {Check, ChevronDown, Pencil, Plus, Trash2} from "lucide-react";
+import {Check, ChevronDown, LayoutGrid, Pencil, Plus, Trash2} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -140,6 +140,9 @@ export function ProjectSwitcher() {
                         </DropdownMenuItem>
                     ))}
                     <DropdownMenuSeparator/>
+                    <DropdownMenuItem onClick={() => nav.navigateToLocation(DashLocations.ProjectsList())}>
+                        <LayoutGrid className="mr-2 h-4 w-4"/> All projects
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={openCreate}>
                         <Plus className="mr-2 h-4 w-4"/> New project
                     </DropdownMenuItem>

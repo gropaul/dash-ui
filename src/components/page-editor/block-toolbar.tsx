@@ -45,7 +45,7 @@ export function BlockToolbar({className, draggable, dragHandleRef, menu, runStat
         ),
         fullscreen: onFullscreen && (
             <TooltipWrapper message="Open View">
-                <Button variant="ghost" size="icon" className="rounded-[0px] w-10 h-10"
+                <Button variant="ghost" size="icon" aria-label="Open view" className="rounded-[0px] w-10 h-10"
                         onClick={onFullscreen}>
                     <Maximize className="w-4 h-4"/>
                 </Button>
@@ -53,7 +53,7 @@ export function BlockToolbar({className, draggable, dragHandleRef, menu, runStat
         ),
         delete: onRemove && (
             <TooltipWrapper message="Remove block">
-                <Button variant="ghost" size="icon" className="rounded-[0px] w-10 h-10 hover:text-destructive"
+                <Button variant="ghost" size="icon" aria-label="Remove block" className="rounded-[0px] w-10 h-10 hover:text-destructive"
                         onClick={onRemove}>
                     <X className="w-4 h-4"/>
                 </Button>

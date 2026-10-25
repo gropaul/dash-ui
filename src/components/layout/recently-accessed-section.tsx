@@ -14,7 +14,7 @@ import {formatRelativeTime} from "@/platform/string-utils";
 import {keepDisplayOrder, selectRecentFiles} from "@/state/recent/recent-items";
 import {SectionHeader} from "@/components/layout/navigation-sidebar";
 
-const RECENT_LIMIT = 5;
+const RECENT_LIMIT = 3;
 
 /**
  * The sidebar "Recently accessed" list: the most recently viewed files. `lastViewedAt` is stamped when a
@@ -54,9 +54,11 @@ export function RecentlyAccessedSection() {
                                         <a
                                             href={DashNavigator.instance().getUrlFromPath(item.id)}
                                             onClick={DashNavigator.instance().onClickNavigateToPath(item.id)}
+                                            // Not the browser's own link drag: nothing here takes it.
+                                            draggable={false}
                                             className={cn(
                                                 "group flex items-center gap-2.5 h-9 px-3 " +
-                                                "rounded-md text-sm select-none transition-colors" +
+                                                "rounded-md text-sm select-none transition-colors " +
                                                 "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                                             )}
                                         >

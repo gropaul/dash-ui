@@ -5,9 +5,9 @@ import { SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS } from '@/platform/global-data';
  * Helpers for the per-project Connections tab (`sources.sql`) and the Catalog view it feeds.
  */
 
-/** The navigation sidebar; scoped so labels can't collide with the breadcrumb nav. */
+/** The navigation sidebar, the nav holding the workspace's file tree; scoped so labels can't collide with the breadcrumb nav. */
 function sidebar(page: Page) {
-  return page.locator('nav').filter({ hasText: 'All projects' });
+  return page.locator('nav').filter({ has: page.getByRole('tree', { name: 'Workspace' }) });
 }
 
 export async function goToConnections(page: Page): Promise<void> {

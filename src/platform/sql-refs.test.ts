@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {callsRef, renameRefCalls, replaceRefCalls} from "@/platform/sql-refs";
+import {callsRef, qualifyRefCalls, renameRefCalls, replaceRefCalls} from "@/platform/sql-refs";
 
 const upper = (name: string) => name.toUpperCase();
 
@@ -30,5 +30,13 @@ describe('renameRefCalls', () => {
         expect(renameRefCalls(sql, 'sales', 'revenue')).toBe("SELECT 'refs.sales()' -- refs.sales()\nFROM refs.revenue()");
         expect(callsRef(sql, 'sales')).toBe(true);
         expect(callsRef("SELECT 'refs.sales()'", 'sales')).toBe(false);
+    });
+});
+
+describe('qualifyRefCalls', () => {
+    it('spells out short calls, keeps full ones, strings and comments', () => {
+        expect(qualifyRefCalls("SELECT * FROM refs.orders(), dash.refs.items() -- refs.x()\nWHERE s = 'refs.y()'"))
+            .toBe("SELECT * FROM dash.refs.orders(), dash.refs.items() -- refs.x()\nWHERE s = 'refs.y()'");
+        expect(qualifyRefCalls('FROM refs.sales(2024)')).toBe('FROM dash.refs.sales(2024)');
     });
 });

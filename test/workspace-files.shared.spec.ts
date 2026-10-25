@@ -7,6 +7,7 @@ import {
   createProject,
   expandFolder,
   expectAppReady,
+  goToWorkspaceRoot,
   moveTo,
   openApp,
   readFile,
@@ -48,6 +49,10 @@ test.describe('Workspace files', () => {
     await expandFolder(page, 'Reports');
     await expect(treeItem(page, 'Sales')).toBeVisible();
     await expect(treeItem(page, 'orders')).toBeVisible();
+
+    // The project's name in the app bar leads back to its overview.
+    await goToWorkspaceRoot(page);
+    await expect(page.getByText('New Query', { exact: true })).toBeVisible();
   });
 
   test('dragging moves a file into a folder and back to the top level', async ({ app: page, appOrigin, appApi }) => {

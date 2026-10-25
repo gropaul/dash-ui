@@ -1,4 +1,4 @@
-import { type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * Page helpers: adding relation blocks, addressing them individually, and reading or writing a page's text.
@@ -48,4 +48,30 @@ export async function writeFile(page: Page, path: string, text: string): Promise
 /** The text of the workspace file at `path` (e2e builds only). */
 export async function readFile(page: Page, path: string): Promise<string | undefined> {
   return page.evaluate((p) => (window as unknown as { __workspaceStore?: any }).__workspaceStore?.getState().files[p], path);
+}
+
+/**
+ * Add a block below the page's last block from the add menu. `group` is the menu's section ('Data' for tables,
+ * charts and other views; 'Text' for text, headings, lists); `label` the entry, e.g. 'Chart' or 'Text'.
+ */
+export async function addBlock(page: Page, group: 'Data' | 'Text', label: string): Promise<void> {
+  await page.locator('[data-slate-editor] > *').last().hover();
+  await page.getByRole('button', { name: 'Add a block below' }).last().click();
+  await page.getByRole('group', { name: group }).getByRole('option', { name: label, exact: true }).click();
+}
+
+/** Change a relation block's view through the "Turn into" menu of its toolbar, e.g. to 'Chart'. */
+export async function turnBlockInto(page: Page, block: Locator, label: string): Promise<void> {
+  await block.hover({ position: { x: 4, y: 4 } });
+  const draggable = page.locator('[data-draggable-id]').filter({ has: block }).last();
+  await draggable.getByRole('button', { name: 'Turn into' }).click();
+  await page.getByRole('option', { name: label, exact: true }).click();
+  await expect(page.getByRole('option', { name: label, exact: true })).toBeHidden();
+}
+
+/** Open a relation block's full view (the "Open view" button of its toolbar), a dialog with its config panel. */
+export async function openBlockView(page: Page, block: Locator): Promise<void> {
+  await block.hover({ position: { x: 4, y: 4 } });
+  await page.locator('[data-draggable-id]').filter({ has: block }).last().getByRole('button', { name: 'Open view' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
 }

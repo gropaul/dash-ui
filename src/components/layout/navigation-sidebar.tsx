@@ -1,7 +1,7 @@
 'use client';
 
 import React from "react";
-import {Database, Folder, LayoutGrid, LucideIcon, PanelLeftClose, PanelLeftOpen, Plug} from "lucide-react";
+import {Database, LucideIcon, PanelLeftClose, PanelLeftOpen, Plug} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {cn} from "@/lib/utils";
@@ -22,7 +22,7 @@ import {ProjectIcon} from "@/components/projects/project-icons";
  * state persisted in gui.state; the active item is derived purely from the URL.
  */
 
-type NavKey = 'workspace' | 'connections' | 'catalog' | 'projects';
+type NavKey = 'connections' | 'catalog';
 
 interface NavItem {
     key: NavKey;
@@ -31,11 +31,12 @@ interface NavItem {
     location: DashLocation;
 }
 
-function activeKeyForLocation(location: DashLocation): NavKey {
-    if (location.basePath === 'projects') return 'projects';
+// The workspace has no entry: the project's name in the app bar opens it, and the file tree browses it. The
+// projects list is in the project switcher.
+function activeKeyForLocation(location: DashLocation): NavKey | undefined {
+    if (location.basePath === 'projects') return;
     if (location.section === 'connections') return 'connections';
     if (location.section === 'data') return 'catalog';
-    return 'workspace';
 }
 
 export function NavigationSidebar() {
@@ -46,12 +47,8 @@ export function NavigationSidebar() {
     // Per-project hrefs depend on the current project, so this is built per render (not a module
     // const). CurrentProject* read the current project id from the store at call time.
     const projectItems: NavItem[] = [
-        {key: 'workspace', label: 'Workspace', icon: Folder, location: DashLocations.CurrentProjectRoot()},
         {key: 'connections', label: 'Connections', icon: Plug, location: DashLocations.CurrentProjectConnections()},
         {key: 'catalog', label: 'Catalog', icon: Database, location: DashLocations.CurrentProjectData()},
-    ];
-    const generalItems: NavItem[] = [
-        {key: 'projects', label: 'All projects', icon: LayoutGrid, location: DashLocations.ProjectsList()},
     ];
     const activeKey = activeKeyForLocation(location);
 
@@ -77,26 +74,9 @@ export function NavigationSidebar() {
                     expanded ? "w-60" : "w-16",
                 )}
             >
-                {/* Logo row. Fixed inset so it doesn't jump on expand/collapse. */}
-                <div className="flex items-center shrink-0 pl-4 pt-2">
-                    <ProjectIcon icon="dash"/>
-                </div>
-
-                {/* Nav destinations, grouped by scope. */}
-                <div className="flex flex-col gap-3 p-2 pt-5">
-                    {renderGroup("General", generalItems)}
-                    {inProject && renderGroup("Project", projectItems)}
-                </div>
-
-                {/* Middle region: extra sections when expanded, otherwise a spacer so the
-                    footer stays pinned to the bottom. Slot-based — future sections drop in here. */}
-                <div className="flex-1 min-h-0 overflow-y-auto">
-                    {expanded && location.basePath === 'project' && <WorkspaceTree projectId={location.projectId}/>}
-                    {expanded && <RecentlyAccessedSection/>}
-                </div>
-
-                {/* Collapse / expand toggle */}
-                <div className={cn("p-2 flex", expanded ? "justify-end" : "justify-center")}>
+                {/* Logo row, as high as the app bar so the toggle lines up with it. Collapsed, only the toggle shows. */}
+                <div className={cn("flex h-10 shrink-0 items-center", expanded ? "justify-between pl-4 pr-2" : "justify-center")}>
+                    {expanded && <ProjectIcon icon="dash"/>}
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
@@ -112,6 +92,19 @@ export function NavigationSidebar() {
                         <TooltipContent side="right">{expanded ? "Collapse sidebar" : "Expand sidebar"}</TooltipContent>
                     </Tooltip>
                 </div>
+
+                {/* Nav destinations, grouped by scope. */}
+                <div className="flex flex-col gap-3 p-2 pt-5">
+                    {inProject && renderGroup("Project", projectItems)}
+                </div>
+
+                {/* Extra sections when expanded, scrolling together: the few recent files first, then the workspace.
+                    Slot-based — future sections drop in here. */}
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                    {expanded && <RecentlyAccessedSection/>}
+                    {expanded && location.basePath === 'project' && <WorkspaceTree projectId={location.projectId}/>}
+                </div>
+
             </nav>
         </TooltipProvider>
     );

@@ -45,18 +45,16 @@ export async function createQuery(page: Page, name: string): Promise<string> {
   return page.url();
 }
 
-/** Go to the bare workspace, the welcome screen. */
+/** Go to the bare workspace, the welcome screen: the project's name in the app bar opens it. */
 export async function goToWorkspaceRoot(page: Page): Promise<void> {
-  // Sidebar entries are <a> elements without href (client-side nav), so they are
-  // not exposed as links; match by text like `goToProjectsList` does.
-  await page.getByText('Workspace', { exact: true }).click();
+  await page.getByRole('banner').getByRole('button', { name: /^Open / }).click();
   await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
 }
 
 export type FileKind = 'Page' | 'Query' | 'Folder';
 
 /**
- * Create a page, query or folder from the file tree: the + menu of the "Files" header for the top level, or the
+ * Create a page, query or folder from the file tree: the + menu of the "Workspace" header for the top level, or the
  * context menu of `folder` (its name in the tree). A new page or query opens; returns the URL then.
  */
 export async function createEntity(page: Page, kind: FileKind, name: string, folder?: string): Promise<string> {
@@ -79,7 +77,7 @@ export async function createEntity(page: Page, kind: FileKind, name: string, fol
 
 /** The sidebar's file tree. */
 export function fileTree(page: Page) {
-  return page.getByRole('tree', { name: 'Files' });
+  return page.getByRole('tree', { name: 'Workspace' });
 }
 
 /** A file or folder in the file tree by the name it shows (a query's file name, a page's name). */
@@ -109,11 +107,10 @@ export async function workspacePaths(page: Page): Promise<string[]> {
   });
 }
 
-/** Go back to the projects list. */
+/** Go back to the projects list, through the project switcher. */
 export async function goToProjectsList(page: Page): Promise<void> {
-  // The sidebar "All projects" entry is an <a> without href (client-side nav),
-  // so it is not exposed as a link role; match it by text.
-  await page.getByText('All projects', { exact: true }).click();
+  await page.getByRole('button', { name: 'Switch project' }).click();
+  await page.getByRole('menuitem', { name: 'All projects' }).click();
   await expect(page).toHaveURL(/\/projects$/);
 }
 

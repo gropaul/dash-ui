@@ -80,6 +80,9 @@ export function WorkspaceTree({projectId}: { projectId: string }) {
         canReorder: true,
         openOnDropDelay: 600,
         canDrop: (_items, target) => target.item.isFolder(),
+        // Only the tree's own items move; links or files dragged in from elsewhere are not taken.
+        canDragForeignDragObjectOver: () => false,
+        canDropForeignDragObject: () => false,
         // The rounded row, not the full-width element around it.
         setDragImage: items => ({imgElement: items[0].getElement()?.firstElementChild ?? items[0].getElement()!, xOffset: 16, yOffset: 16}),
         onDrop: async (items, target) => {
@@ -109,9 +112,9 @@ export function WorkspaceTree({projectId}: { projectId: string }) {
     const context: TreeContext = {currentPath, setModifierClick, isDragged: item => !!dragged?.some(d => d.getId() === item.getId())};
 
     return (
-        <div {...tree.getContainerProps('Files')} className="px-2 pt-4 outline-none">
+        <div {...tree.getContainerProps('Workspace')} className="px-2 pt-4 outline-none">
             <div className="flex items-center">
-                <div className="min-w-0 flex-1"><SectionHeader label="Files" extended={true}/></div>
+                <div className="min-w-0 flex-1"><SectionHeader label="Workspace" extended={true}/></div>
                 <NewItemButton/>
             </div>
             <div className="flex flex-col gap-0.5">

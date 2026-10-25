@@ -6,6 +6,8 @@ import {
   createEntity,
   createProject,
   expectFirstDataRow,
+  expectReferences,
+  openBlockView,
   expectRowCount,
   openApp,
   pickSelectValue,
@@ -59,5 +61,13 @@ test.describe('Page blocks reading each other', () => {
     // Clearing the pick restores all rows.
     await clearSelectValue(page, '4', numbersBlock);
     await expectRowCount(filteredBlock, 10);
+
+    // Each block's References tab names the other block of the page.
+    await openBlockView(page, filteredBlock);
+    await expectReferences(page, 'Uses', ['numbers']);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toBeHidden();
+    await openBlockView(page, numbersBlock);
+    await expectReferences(page, 'Used by', ['filtered']);
   });
 });

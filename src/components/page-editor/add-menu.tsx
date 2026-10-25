@@ -141,7 +141,7 @@ export function BlockTypeButton({icon, kind, items}: { icon: ReactNode, kind: Bl
         <Popover open={open} onOpenChange={setOpen}>
             <TooltipWrapper message="Turn into">
                 <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="flex h-10 w-14 flex-row items-center justify-center rounded-[0px]">
+                    <Button variant="ghost" size="icon" aria-label="Turn into" className="flex h-10 w-14 flex-row items-center justify-center rounded-[0px]">
                         {icon}
                         <ChevronDown className="h-2 w-2"/>
                     </Button>
