@@ -20,7 +20,8 @@ export async function createProject(page: Page, name: string): Promise<void> {
   const dialog = page.getByRole('dialog', { name: 'New project' });
   await dialog.getByRole('textbox', { name: 'Name' }).fill(name);
   await dialog.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
+  // The URL changes once the project has loaded (its database files attached), which a cold start can take a while.
+  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/, { timeout: 45_000 });
   await expect(page.getByRole('button', { name: `Open ${name}` })).toBeVisible();
 }
 
@@ -46,8 +47,8 @@ export async function createQuery(page: Page, name: string): Promise<string> {
 }
 
 /** Go to the bare workspace, the welcome screen: the project's name in the app bar opens it. */
-export async function goToWorkspaceRoot(page: Page): Promise<void> {
-  await page.getByRole('banner').getByRole('button', { name: /^Open / }).click();
+export async function goToWorkspaceRoot(page: Page, projectName: string): Promise<void> {
+  await page.getByRole('button', { name: `Open ${projectName}`, exact: true }).click();
   await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
 }
 

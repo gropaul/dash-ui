@@ -49,8 +49,9 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
 
     return (
         <DefaultErrorBoundary>
+            {/* A view with a header (the query tab) is set off from the app bar by a line across its full width. */}
             {showConfig ? (
-                <ResizablePanelGroup direction="horizontal" className="w-full h-full bg-inherit">
+                <ResizablePanelGroup direction="horizontal" className={cn("w-full h-full bg-inherit", props.showHeader && "border-t")}>
                     <ResizablePanel defaultSize={100 - configSize} minSize={30} className={'bg-inherit'}>
                         <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'}>
                             <div className={'flex flex-col w-full h-full'}>
@@ -69,7 +70,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                     </ResizablePanel>
                 </ResizablePanelGroup>
             ) : (
-                <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'}>
+                <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'} classNameParent="border-t">
                     <div className={'flex flex-col w-full h-full'}>
                         {props.showHeader && <RelationViewHeader {...inputProps}/>}
                         <div className={cn("rounded-2xl flex-1 min-h-0 w-full", !inputProps.bare && 'bg-card', inputProps.showBorder && 'border')}>

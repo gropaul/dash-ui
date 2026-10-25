@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useEffect, useMemo, useRef} from "react";
+import React, {useEffect, useLayoutEffect, useMemo, useRef} from "react";
 import {toast} from "sonner";
 import {ChevronRight, Plus} from "lucide-react";
 import {dragAndDropFeature, hotkeysCoreFeature, ItemInstance, selectionFeature, syncDataLoaderFeature} from "@headless-tree/core";
@@ -100,7 +100,8 @@ export function WorkspaceTree({projectId}: { projectId: string }) {
         features: [syncDataLoaderFeature, selectionFeature, hotkeysCoreFeature, dragAndDropFeature],
     });
 
-    useEffect(() => {
+    // Before paint, so the tree never shows a frame of the new files laid out by the old tree.
+    useLayoutEffect(() => {
         indexRef.current = index;
         tree.rebuildTree();
     }, [tree, index]);

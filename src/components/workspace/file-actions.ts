@@ -68,11 +68,24 @@ export function newFile(kind: NewFileKind, folder: string = '') {
 export async function moveEntry(from: string, to: string) {
     const nav = DashNavigator.instance();
     const shown = nav.getCurrentPath();
-    const rewritten = rewriteReferences(useWorkspace.getState().files, from, to);
-    await useWorkspace.getState().move(from, to);
-    for (const [path, text] of Object.entries(rewritten)) await useWorkspace.getState().write(path, text);
+    const ws = useWorkspace.getState();
+    const rewritten = rewriteReferences(ws.files, from, to);
+    // Everything that follows the move changes in one go, so nothing shows the half-moved state; the saving after.
+    const saving = [ws.move(from, to), ...Object.entries(rewritten).map(([path, text]) => ws.write(path, text))];
     useFileStats.getState().move(projectId(), from, to);
+    moveOpenFolders(from, to);
     if (shown && isWithin(shown, from)) nav.navigateToPath(movedPath(shown, from, to), true);
+    await Promise.all(saving);
+}
+
+/** The folders open in the file tree at or inside `from`, open at their new place. */
+function moveOpenFolders(from: string, to: string) {
+    const id = projectId();
+    useGUIState.setState(s => {
+        const open = s.workspaceTreeOpen[id];
+        if (!open?.some(dir => isWithin(dir, from))) return {};
+        return {workspaceTreeOpen: {...s.workspaceTreeOpen, [id]: open.map(dir => isWithin(dir, from) ? movedPath(dir, from, to) : dir)}};
+    });
 }
 
 /** Picks a folder, or the top level, in the command palette and moves the file or folder there. */

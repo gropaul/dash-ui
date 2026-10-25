@@ -140,7 +140,7 @@ export function CatalogView() {
     if (routeTarget) {
         const {object, colName} = routeTarget;
         return (
-            <ViewPadding active addPaddingBottom className="h-full flex flex-col" classNameParent="bg-accent">
+            <ViewPadding active addPaddingBottom className="h-full flex flex-col" classNameParent="bg-accent border-t">
                 <CatalogDetail
                     object={object}
                     column={colName ? object.columns.find((c) => c.name === colName) : null}
@@ -164,7 +164,7 @@ export function CatalogView() {
     // The detail lives at the root level — a sibling of the padded main column — so it
     // spans the full height (alongside the header), not nested inside ViewPadding.
     return (
-        <div className="h-full w-full bg-accent">
+        <div className="h-full w-full bg-accent border-t">
             <ResizablePanelGroup direction="horizontal" className="h-full">
                 <ResizablePanel defaultSize={selectedObject ? 100 - detailSize : 100} minSize={30}>
                     <ViewPadding active addPaddingBottom className="h-full flex flex-col" classNameParent="bg-accent">

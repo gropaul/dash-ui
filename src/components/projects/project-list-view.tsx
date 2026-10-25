@@ -52,7 +52,7 @@ export function ProjectListView() {
     }
 
     return (
-        <ViewPadding active addPaddingBottom className="h-full flex flex-col" classNameParent={'bg-accent'}>
+        <ViewPadding active addPaddingBottom className="h-full flex flex-col" classNameParent={'bg-accent border-t'}>
             <ViewHeader
                 title="Projects"
                 actionButtons={

@@ -51,7 +51,7 @@ test.describe('Workspace files', () => {
     await expect(treeItem(page, 'orders')).toBeVisible();
 
     // The project's name in the app bar leads back to its overview.
-    await goToWorkspaceRoot(page);
+    await goToWorkspaceRoot(page, 'E2E Files');
     await expect(page.getByText('New Query', { exact: true })).toBeVisible();
   });
 

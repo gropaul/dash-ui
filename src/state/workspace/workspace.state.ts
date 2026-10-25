@@ -6,7 +6,8 @@ import {buildWorkspaceTree} from "@/state/workspace/workspace-tree";
 
 /**
  * The project's files, the working copy in both runtimes. The app reads and edits this store; each change
- * goes to the store first, then to the backend. See dev/workspace-files.md.
+ * goes to the store first, synchronously, then to the backend: the returned promise is the saving. See
+ * dev/workspace-files.md.
  */
 interface WorkspaceState {
     files: Record<string, string>;
@@ -27,6 +28,9 @@ interface WorkspaceState {
 }
 
 let backend: WorkspaceBackend | undefined;
+
+// The changes apply to the store at once (and throw at once when they can't); the promise is only the saving.
+const persist = (saving: Promise<void> | undefined) => saving ?? Promise.resolve();
 let stopWatching: (() => void) | undefined;
 
 function withAncestors(dirs: Set<string>, path: string) {
@@ -81,21 +85,21 @@ export const useWorkspace = createWithEqualityFn<WorkspaceState>()((set, get) =>
             set({files: {}, dirs: new Set()});
         },
 
-        async write(path, text) {
+        write(path, text) {
             const target = resolve(path);
             if (get().dirs.has(target)) throw new Error(`"${target}" is a folder.`);
             set(state => ({files: {...state.files, [target]: text}, dirs: withAncestors(state.dirs, target)}));
-            await backend?.write(target, text);
+            return persist(backend?.write(target, text));
         },
 
-        async mkdir(path) {
+        mkdir(path) {
             const target = resolve(path);
             if (target in get().files) throw new Error(`"${target}" is a file.`);
             set(state => ({dirs: withAncestors(state.dirs, target).add(target)}));
-            await backend?.mkdir(target);
+            return persist(backend?.mkdir(target));
         },
 
-        async move(path, toPath) {
+        move(path, toPath) {
             const from = find(normalizePath(path));
             if (!from) throw new Error(`"${path}" doesn't exist.`);
             // The folders of the target as they exist; its own name as given, so a rename can change case.
@@ -103,7 +107,7 @@ export const useWorkspace = createWithEqualityFn<WorkspaceState>()((set, get) =>
             const to = (parent ? resolve(parent) + '/' : '') + baseName(normalizePath(toPath));
             const error = nameError(baseName(to));
             if (error) throw new Error(error);
-            if (from === to) return;
+            if (from === to) return persist(undefined);
             const taken = find(to);
             if (taken && !samePath(taken, from)) throw new Error(`"${taken}" already exists.`);
             if (isWithin(to, from) && !samePath(to, from)) throw new Error(`"${from}" can't move into itself.`);
@@ -115,17 +119,17 @@ export const useWorkspace = createWithEqualityFn<WorkspaceState>()((set, get) =>
                 const dirs = withAncestors(new Set([...state.dirs].map(d => isWithin(d, from) ? movedPath(d, from, to) : d)), to);
                 return {files, dirs};
             });
-            await backend?.move(from, to);
+            return persist(backend?.move(from, to));
         },
 
-        async remove(path) {
+        remove(path) {
             const target = find(normalizePath(path));
-            if (!target) return;
+            if (!target) return persist(undefined);
             set(state => ({
                 files: Object.fromEntries(Object.entries(state.files).filter(([p]) => !isWithin(p, target))),
                 dirs: new Set([...state.dirs].filter(d => !isWithin(d, target))),
             }));
-            await backend?.remove(target);
+            return persist(backend?.remove(target));
         },
 
         applyOutside(path, text) {

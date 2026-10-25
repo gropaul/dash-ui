@@ -103,10 +103,10 @@ describe('workspace store', () => {
         const ws = useWorkspace.getState();
         await ws.write('Sales.md', '');
         await ws.write('Q3.md', '');
-        await expect(ws.move('Q3.md', 'sales.md')).rejects.toThrow('already exists');
-        await expect(ws.write('a:b.md', '')).rejects.toThrow('cannot contain');
-        await expect(ws.write('../x.md', '')).rejects.toThrow('leaves the workspace');
-        await expect(ws.write('Sales.md/x.md', '')).rejects.toThrow('is a file');
+        expect(() => ws.move('Q3.md', 'sales.md')).toThrow('already exists');
+        expect(() => ws.write('a:b.md', '')).toThrow('cannot contain');
+        expect(() => ws.write('../x.md', '')).toThrow('leaves the workspace');
+        expect(() => ws.write('Sales.md/x.md', '')).toThrow('is a file');
     });
 
     it('renames by case and refuses moving a folder into itself', async () => {
@@ -114,7 +114,7 @@ describe('workspace store', () => {
         await ws.write('Sales/Q3.md', '');
         await ws.move('Sales/Q3.md', 'Sales/q3.md');
         expect(Object.keys(useWorkspace.getState().files)).toEqual(['Sales/q3.md']);
-        await expect(ws.move('Sales', 'Sales/Inner')).rejects.toThrow('into itself');
+        expect(() => ws.move('Sales', 'Sales/Inner')).toThrow('into itself');
     });
 
     it('takes outside changes and drops its own writes coming back', async () => {
