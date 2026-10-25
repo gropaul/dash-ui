@@ -7,7 +7,35 @@ import {
 } from '@/model/relation-state';
 import {sanitizeMacroName} from '@/platform/sql-utils';
 import {extractMacroRefs} from './table-macros';
-import {getDownstreamQueue} from './dag-execution';
+
+/**
+ * All downstream relation ids in topological (BFS) order.
+ * Excludes the start node itself.
+ */
+export function getDownstreamQueue(startNodeId: string, edges: Edge[]): string[] {
+    // Build adjacency: source → [targets]
+    const adj = new Map<string, string[]>();
+    for (const edge of edges) {
+        if (!adj.has(edge.source)) adj.set(edge.source, []);
+        adj.get(edge.source)!.push(edge.target);
+    }
+
+    const visited = new Set<string>();
+    const queue: string[] = [startNodeId];
+    const order: string[] = [];
+
+    while (queue.length > 0) {
+        const id = queue.shift()!;
+        if (visited.has(id)) continue;
+        visited.add(id);
+        if (id !== startNodeId) order.push(id);
+        for (const child of adj.get(id) ?? []) {
+            queue.push(child);
+        }
+    }
+
+    return order;
+}
 
 /**
  * Build the relation dependency graph from SQL alone — no canvas required.

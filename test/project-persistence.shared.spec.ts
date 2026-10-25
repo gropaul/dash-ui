@@ -1,6 +1,6 @@
 // seed: test/seed.shared.spec.ts
 // Runs on both runtimes (web + electron); see test/fixtures.ts.
-import { test, expect } from './fixtures';
+import { test } from './fixtures';
 import {
   openApp,
   createProjectWithQuery,
@@ -8,6 +8,7 @@ import {
   setChartColumn,
   expectBarChartVisible,
   expectSql,
+  expectRowCount,
   expectPersistsAcrossReloadReopenAndUrl,
 } from './utils';
 
@@ -23,7 +24,7 @@ test.describe('Project persistence', () => {
     });
 
     // The query ran: 10 rows (range 0..9).
-    await expect(page.getByText('1 to 10 of 10')).toBeVisible();
+    await expectRowCount(page, 10);
 
     // Turn it into a bar chart of the single "range" column.
     await selectResultView(page, 'Chart');

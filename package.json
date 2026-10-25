@@ -34,6 +34,8 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@duckdb/duckdb-wasm": "1.33.1-dev20.0",
     "@duckdb/node-api": "1.5.5-r.3",
+    "@headless-tree/core": "1.8.0",
+    "@headless-tree/react": "1.8.0",
     "@monaco-editor/react": "4.8.0-rc.3",
     "@next/env": "16.2.2",
     "@platejs/basic-nodes": "^53.0.0",

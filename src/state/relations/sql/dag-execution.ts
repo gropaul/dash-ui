@@ -6,41 +6,13 @@ import {
     setRelationRunning,
 } from '@/model/relation-state';
 import {registerRelationMacro} from './table-macros';
+import {getDownstreamQueue} from './relation-dag-refresh';
 import {useRelationsState} from '@/state/relations.state';
 
 type SetNodes = (updater: Node[] | ((nodes: Node[]) => Node[])) => void;
 type SetEdges = (updater: Edge[] | ((edges: Edge[]) => Edge[])) => void;
 type GetNodes = () => Node[];
 type GetEdges = () => Edge[];
-
-/**
- * Get all downstream node IDs in topological (BFS) order.
- * Excludes the start node itself.
- */
-export function getDownstreamQueue(startNodeId: string, edges: Edge[]): string[] {
-    // Build adjacency: source → [targets]
-    const adj = new Map<string, string[]>();
-    for (const edge of edges) {
-        if (!adj.has(edge.source)) adj.set(edge.source, []);
-        adj.get(edge.source)!.push(edge.target);
-    }
-
-    const visited = new Set<string>();
-    const queue: string[] = [startNodeId];
-    const order: string[] = [];
-
-    while (queue.length > 0) {
-        const id = queue.shift()!;
-        if (visited.has(id)) continue;
-        visited.add(id);
-        if (id !== startNodeId) order.push(id);
-        for (const child of adj.get(id) ?? []) {
-            queue.push(child);
-        }
-    }
-
-    return order;
-}
 
 export type EdgeAnimationState = 'queued' | 'executing' | undefined;
 

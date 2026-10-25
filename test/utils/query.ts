@@ -5,25 +5,22 @@ import { expect, type Page } from '@playwright/test';
  */
 
 /**
- * Wait until an edit has committed to the relation store, i.e. some relation's
- * `query.baseQuery` equals `sql`. The editor commits on a debounce, and every
- * relation edit replaces the whole relation from a React snapshot - so we must
- * let the commit land before the next edit, or it clones a stale snapshot and
- * clobbers the query. Relies on the dev-only `__relationsStore` hook exposed in
- * `src/state/relations.state.ts`.
+ * Wait until an edit has reached the files, i.e. some `.sql` file's SQL (below its `-- key: value` header) equals
+ * `sql`. The editor commits on a debounce, so a test lets the commit land before the next edit. Relies on the
+ * e2e-only `__workspaceStore` hook in `src/state/workspace/workspace.state.ts`.
  */
 export async function waitForBaseQueryCommitted(page: Page, sql: string, timeout = 10_000): Promise<void> {
   await page.waitForFunction((expected) => {
-    const store = (window as unknown as { __relationsStore?: any }).__relationsStore;
+    const store = (window as unknown as { __workspaceStore?: any }).__workspaceStore;
     if (!store) return false;
-    const relations = Object.values(store.getState().relations ?? {});
-    return relations.some((r: any) => r?.query?.baseQuery === expected);
+    const files: Record<string, string> = store.getState().files ?? {};
+    return Object.entries(files).some(([path, text]) => path.endsWith('.sql')
+      && text.split('\n').filter((line) => !/^\s*--\s*[\w-]+:/.test(line)).join('\n').trim() === expected.trim());
   }, sql, { timeout });
 }
 
 /**
- * Replace the SQL editor contents and wait for the change to commit to the
- * store. Monaco's textarea is not fillable and its select-all is unreliable
+ * Replace the SQL editor contents and wait for the change to reach the file. Monaco's textarea is not fillable and its select-all is unreliable
  * under automation, so we set the model value directly (which fires Monaco's
  * change event, exactly as typing would).
  *

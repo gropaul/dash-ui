@@ -275,6 +275,9 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
         name: 'init-state',
         version: 1,
         partialize: ({downloadProgress: _, ...rest}) => rest as InitZustand,
+        // Hydrating starts the app (loadConnectionConfig below). AppGate does it once mounted: doing it while this
+        // module is still being imported calls into modules that are themselves still loading.
+        skipHydration: true,
         onRehydrateStorage: () => (state, error) => {
             if (error || !state) {
                 console.error('Failed to rehydrate init state:', error);

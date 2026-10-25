@@ -1,11 +1,8 @@
-import type {PersistStorage} from "zustand/middleware";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {setDatabaseConnection} from "@/state/init/initialize-connections";
-import {loadRelationStateFromConnections} from "@/state/persistency/api";
 import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
 import {getInitialRelationDataZustandState, useCacheStore, useRelationDataState} from "@/state/relations-data.state";
-import {INIT, RelationZustandCombined, useRelationsState} from "@/state/relations.state";
 import {useInitState} from "@/state/init.state";
 import {ContentLifecycle} from "@/state/content-lifecycle";
 import {useWorkspace} from "@/state/workspace/workspace.state";
@@ -26,23 +23,10 @@ import {followQueryMacros, registerQueryMacros} from "@/state/workspace/query-ma
 import {loadProjectMeta, saveProjectMeta} from "@/state/projects/project-meta-storage";
 import {Project, ProjectMeta} from "@/model/project";
 
-// A persist storage that drops every write. We swap the relation store onto this while clearing the
-// outgoing project's in-memory state, so `setState(INIT)` cannot write an empty blob into either
-// project's dash file. loadRelationStateFromConnections() swaps the real storage back before rehydrate.
-const DISCARD_STORAGE: PersistStorage<RelationZustandCombined> = {
-    getItem: async () => null,
-    setItem: async () => undefined,
-    removeItem: async () => undefined,
-};
-
 /**
- * Tear down the outgoing project's in-memory state so the incoming project starts clean.
- *
- * Shows the init loading splash (a non-'complete' step) and clears the in-memory relation state +
- * data. The clear must be explicit — rehydrate MERGES persisted-over-current, so if the target
- * project's stored state is empty (a fresh project) it would leave the OUTGOING project's relations
- * in memory. We detach persistence first (DISCARD_STORAGE) so clearing doesn't write the empty state
- * into the outgoing file, and cancel any pending throttled write so nothing clobbers the new file.
+ * Tear down the outgoing project's in-memory state so the incoming project starts clean: shows the init
+ * loading splash (a non-'complete' step), empties the workspace and the results, and cancels any pending
+ * throttled write so nothing clobbers the new file.
  */
 let stopFollowing: (() => void)[] = [];
 
@@ -50,8 +34,6 @@ function closeOldProject(): void {
     stopFollowing.forEach(stop => stop());
     stopFollowing = [];
     useInitState.getState().setStep('closing-current-project');
-    useRelationsState.persist.setOptions({storage: DISCARD_STORAGE});
-    useRelationsState.setState(INIT);
     useWorkspace.getState().unload();
     useRelationDataState.setState(getInitialRelationDataZustandState());
     useCacheStore.getState().clear();
@@ -121,13 +103,12 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     }
     await connection.executeQuery(`USE ${DASH_CATALOG_STATE};`, false, false);
 
-    // Replay the project's data sources before rehydrating relations that may reference them.
+    // Replay the project's data sources before loading the queries that may read them.
     useInitState.getState().setStep('loading-project-connections');
     useProjectsState.getState().setCurrentMeta(await loadOrSeedProjectMeta(project));
     await initProjectSources();
 
     useInitState.getState().setStep('loading-project-relations');
-    await loadRelationStateFromConnections(connection);
     const workspaceStorage = await StorageDuckAPI.getInstance(WORKSPACE_STORAGE_DESTINATION);
     await useWorkspace.getState().load(new BlobBackend(workspaceStorage, () => useWorkspace.getState().snapshot()));
 

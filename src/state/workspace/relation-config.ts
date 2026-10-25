@@ -119,13 +119,25 @@ function applyChartKeys(chart: ChartQueryParameters, header: Record<string, stri
 
 /**
  * The relation a config shows, before it ran. A block with an `input` takes the query's SQL and setup, and its
- * own keys override them. Without a `view` a query is a table.
+ * own keys override them. Without a `view` a query is a table. `settings` applies onto what the readable keys
+ * give, the same base `headerOf` diffs against, so whatever it leaves out comes from there.
  */
-export function buildRelation({id, name, sql: ownSql, header}: RelationConfig, input?: RelationState): RelationState {
+export function buildRelation(config: RelationConfig, input?: RelationState): RelationState {
+    const relation = buildFromKeys(config, input);
+    const settings = parseSettings(config.header.settings);
+    if (!settings) return relation;
+    const {tableState, textDisplayState, showHeader, ...viewSettings} = settings;
+    const viewState = mergeSetup(relation.viewState, {tableState, textDisplayState, showHeader});
+    const viewParameters = mergeSetup(relation.query.viewParameters, viewSettings);
+    viewParameters.type = viewState.selectedView;
+    return {...relation, viewState, query: {...relation.query, viewParameters}};
+}
+
+/** The relation the readable header keys alone give. */
+function buildFromKeys({id, name, sql: ownSql, header}: RelationConfig, input?: RelationState): RelationState {
     const sql = input ? input.query.baseQuery : ownSql;
     const title = humanizeName(name);
     const otherView = OTHER_VIEW_TYPES.find(type => type === header.view);
-    const settings = parseSettings(header.settings) ?? {};
 
     let viewState = getInitViewState(name, undefined, [], false);
     viewState.fullscreenSessionState = getDefaultSessionState('fullscreen', true);
@@ -134,11 +146,8 @@ export function buildRelation({id, name, sql: ownSql, header}: RelationConfig, i
         const {tableState, textDisplayState, showHeader} = input.viewState;
         viewState = {...viewState, tableState: structuredClone(tableState), textDisplayState: structuredClone(textDisplayState), showHeader};
     }
-    const {tableState, textDisplayState, showHeader, ...viewSettings} = settings;
-    viewState = mergeSetup(viewState, {tableState, textDisplayState, showHeader});
 
-    let viewParameters: RelationQueryParameters = input ? structuredClone(input.query.viewParameters) : ViewManager.instance.getInitialQueryParameters();
-    viewParameters = mergeSetup(viewParameters, viewSettings);
+    const viewParameters: RelationQueryParameters = input ? structuredClone(input.query.viewParameters) : ViewManager.instance.getInitialQueryParameters();
     viewParameters.type = viewState.selectedView;
 
     if (viewState.selectedView === 'select') {
@@ -201,7 +210,7 @@ function readableHeader(relation: RelationState, previous: Record<string, string
  */
 export function headerOf(relation: RelationState, config: RelationConfig, input?: RelationState): Record<string, string> {
     const readable = readableHeader(relation, config.header, input);
-    const base = setupOf(buildRelation({...config, header: readable}, input));
+    const base = setupOf(buildFromKeys({...config, header: readable}, input));
     const columns = {columns: relation.viewState.schema, rows: []};
     const setup = setupOf(relation);
     for (const fromData of [getInitialTableDisplayStateEmpty(), getInitialTableDisplayState(columns)]) {

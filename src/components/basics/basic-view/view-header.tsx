@@ -38,7 +38,7 @@ export function ViewHeader({
 
     return (
         <>
-            <div className="flex flex-row items-center justify-between w-full h-[48px] pl-2">
+            <div className="flex flex-row items-center justify-between w-full h-[48px] pl-2 border-t">
                 <div className="flex flex-row items-center flex-1 gap-2  overflow-hidden">
                     {
                         state && onCancelClick && onRunClick ? (

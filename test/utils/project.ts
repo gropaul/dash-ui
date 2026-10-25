@@ -25,6 +25,14 @@ export async function createProject(page: Page, name: string): Promise<void> {
 }
 
 /**
+ * The name a query's file gets: an identifier, as the new-query dialog saves it (`Range Query` → `range_query`).
+ * The file tree shows queries by it.
+ */
+export function queryFileStem(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+}
+
+/**
  * Create a query from the fresh-project welcome screen and open it. Returns the
  * query's direct URL.
  */
@@ -33,11 +41,11 @@ export async function createQuery(page: Page, name: string): Promise<string> {
   const dialog = page.getByRole('dialog', { name: 'New Query' });
   await dialog.getByRole('textbox', { name: 'Enter a name' }).fill(name);
   await dialog.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/[^/]+$/);
+  await expect(page).toHaveURL(new RegExp(`/workspace/${queryFileStem(name)}\\.sql$`));
   return page.url();
 }
 
-/** Go to the project's workspace root - the folder view listing every entity. */
+/** Go to the bare workspace, the welcome screen. */
 export async function goToWorkspaceRoot(page: Page): Promise<void> {
   // Sidebar entries are <a> elements without href (client-side nav), so they are
   // not exposed as links; match by text like `goToProjectsList` does.
@@ -45,19 +53,60 @@ export async function goToWorkspaceRoot(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
 }
 
+export type FileKind = 'Page' | 'Query' | 'Folder';
+
 /**
- * Create an entity from the workspace folder view's "New" menu. Creating opens the
- * new entity, so the returned URL is its own. Requires the workspace root (see
- * `goToWorkspaceRoot`); the fresh-project welcome screen uses `createQuery`.
+ * Create a page, query or folder from the file tree: the + menu of the "Files" header for the top level, or the
+ * context menu of `folder` (its name in the tree). A new page or query opens; returns the URL then.
  */
-export async function createEntity(page: Page, kind: 'Query' | 'Dashboard', name: string): Promise<string> {
-  await page.getByRole('button', { name: 'New', exact: true }).click();
-  await page.getByRole('menuitem', { name: kind, exact: true }).click();
+export async function createEntity(page: Page, kind: FileKind, name: string, folder?: string): Promise<string> {
+  if (folder) {
+    await treeItem(page, folder).click({ button: 'right' });
+  } else {
+    await fileTree(page).getByRole('button', { name: 'New', exact: true }).click();
+  }
+  await page.getByRole('menuitem', { name: `New ${kind.toLowerCase()}`, exact: true }).click();
   const dialog = page.getByRole('dialog', { name: `New ${kind}` });
   await dialog.getByRole('textbox', { name: 'Enter a name' }).fill(name);
   await dialog.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/[^/]+$/);
+  if (kind === 'Folder') {
+    await expect(dialog).toBeHidden();
+    return page.url();
+  }
+  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/.+\.(md|sql)$/);
   return page.url();
+}
+
+/** The sidebar's file tree. */
+export function fileTree(page: Page) {
+  return page.getByRole('tree', { name: 'Files' });
+}
+
+/** A file or folder in the file tree by the name it shows (a query's file name, a page's name). */
+export function treeItem(page: Page, name: string) {
+  return fileTree(page).getByRole('treeitem', { name, exact: true });
+}
+
+/** Open a folder in the file tree, if it is closed. */
+export async function expandFolder(page: Page, name: string): Promise<void> {
+  const folder = treeItem(page, name);
+  if (await folder.getAttribute('aria-expanded') !== 'true') await folder.click();
+  await expect(folder).toHaveAttribute('aria-expanded', 'true');
+}
+
+/** Move a file or folder through its context menu's "Move to…" picker; `target` is a folder path or 'Top level'. */
+export async function moveTo(page: Page, name: string, target: string): Promise<void> {
+  await treeItem(page, name).click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Move to…' }).click();
+  await page.getByRole('option', { name: new RegExp(`^${target.split('/').pop()}\\b`) }).first().click();
+}
+
+/** The workspace's file paths, read from the store (e2e builds only). */
+export async function workspacePaths(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const store = (window as unknown as { __workspaceStore?: any }).__workspaceStore;
+    return Object.keys(store?.getState().files ?? {}).sort();
+  });
 }
 
 /** Go back to the projects list. */
@@ -74,10 +123,10 @@ export async function openProject(page: Page, name: string): Promise<void> {
   await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
 }
 
-/** Open a query by name from the project workspace overview. */
+/** Open a query by the name it was created with, from the file tree. */
 export async function openQuery(page: Page, name: string): Promise<void> {
-  await page.getByRole('link', { name }).click();
-  await expect(page).toHaveURL(/\/workspace\/[^/]+$/);
+  await treeItem(page, queryFileStem(name)).click();
+  await expect(page).toHaveURL(new RegExp(`/workspace/(.+/)?${queryFileStem(name)}\\.sql$`));
 }
 
 /**

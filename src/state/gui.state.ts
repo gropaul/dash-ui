@@ -11,7 +11,7 @@ export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' 
 // "Existing query…"). The caller supplies the action label, an optional kind filter and a
 // callback; the palette just returns the chosen file, the caller does the work.
 
-export type CommandActionType = 'open' | 'add-query-to-page';
+export type CommandActionType = 'open' | 'add-query-to-page' | 'move';
 
 /** The kinds of workspace entries the palette can list. */
 export type CommandEntityType = Extract<WorkspaceNodeKind, 'folder' | 'page' | 'query'>;
@@ -29,6 +29,10 @@ export interface CommandRequest {
     filter?: CommandEntityType[];
     // optional element rendered between the search field and the filter tags (e.g. quick-add buttons)
     slot?: ReactNode;
+    /** Lists the top level of the workspace (path '') first, as a folder to pick. */
+    includeTopLevel?: boolean;
+    /** Entries to leave out. */
+    exclude?: (file: CommandFile) => boolean;
     onSelect: (file: CommandFile) => void;
 }
 
@@ -37,6 +41,8 @@ export interface CommandGUIZustand {
     action: CommandActionType;
     filter?: CommandEntityType[];
     slot?: ReactNode;
+    includeTopLevel?: boolean;
+    exclude?: (file: CommandFile) => boolean;
     onSelect?: (file: CommandFile) => void;
 }
 
@@ -172,6 +178,8 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                         action: request.action,
                         filter: request.filter,
                         slot: request.slot,
+                        includeTopLevel: request.includeTopLevel,
+                        exclude: request.exclude,
                         onSelect: request.onSelect,
                     }
                 });

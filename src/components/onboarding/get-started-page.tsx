@@ -124,7 +124,7 @@ export function GetStartedPage() {
                         >
                             <CardContent className="flex flex-col items-center text-center p-4 space-y-2">
                                 <FileText className="h-5 w-5 text-primary group-hover:scale-110 transition-transform"/>
-                                <span className="text-sm font-medium text-foreground">New Dashboard</span>
+                                <span className="text-sm font-medium text-foreground">New Page</span>
                             </CardContent>
                         </Card>
                         <Card

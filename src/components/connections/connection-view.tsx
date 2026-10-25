@@ -52,7 +52,6 @@ export function ConnectionView(props: ConnectionViewProps) {
             </div>
             <div className={'pr-4'}>
                 <TreeExplorer
-                    enableDnd={false}
                     tree={Object.values(props.connection.dataSources)}
                     iconFactory={defaultIconFactory}
                     contextMenuFactory={getContextMenuFactory(props.connection.id)}

@@ -38,6 +38,13 @@ describe('settings', () => {
         expect(headerOf(rebuilt, {...chart, header})).toEqual(header);
     });
 
+    it('read back as a whole chart: what they leave out comes from the defaults', () => {
+        const relation = buildRelation(chart);
+        relation.query.viewParameters.chart!.plot.cartesian.xLabel = 'Month';
+        const rebuilt = buildRelation({...chart, header: headerOf(relation, chart)});
+        expect(rebuilt.query.viewParameters.chart).toEqual(relation.query.viewParameters.chart);
+    });
+
     it('leave out the paging and display state the data made', () => {
         const relation = buildRelation(chart);
         relation.query.viewParameters.table.offset = 100;

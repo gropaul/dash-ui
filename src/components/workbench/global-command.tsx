@@ -26,6 +26,8 @@ function actionLabel(action: CommandActionType): string {
             return 'Open';
         case 'add-query-to-page':
             return 'Add to page';
+        case 'move':
+            return 'Move to';
     }
 }
 
@@ -124,16 +126,20 @@ export function GlobalCommand() {
 
     // Flat, searchable list of the workspace's entries, filtered by kind, most-recently-viewed first.
     const items = useMemo(() => {
-        const filter = command.filter;
-        return workspaceEntries(paths, dirs)
-            .filter((file) => !filter || filter.includes(file.kind))
+        const {filter, exclude} = command;
+        const sorted = workspaceEntries(paths, dirs)
+            .filter((file) => (!filter || filter.includes(file.kind)) && !exclude?.(file))
             .map((file) => {
                 const folder = parentOf(file.path);
                 // `label` is what we fuzzy-score: the path, so a folder's name finds what is in it.
                 return {file, folder, label: file.path, lastViewedAt: stats?.[file.path]?.lastViewedAt};
             })
             .sort((a, b) => (b.lastViewedAt ?? 0) - (a.lastViewedAt ?? 0));
-    }, [paths, dirs, stats, command.filter]);
+        const top: CommandFile = {path: '', name: 'Top level', kind: 'folder'};
+        return command.includeTopLevel && !exclude?.(top)
+            ? [{file: top, folder: '', label: top.name, lastViewedAt: undefined}, ...sorted]
+            : sorted;
+    }, [paths, dirs, stats, command.filter, command.exclude, command.includeTopLevel]);
 
     // The set the search leaves on screen. We own the filtering (cmdk's is disabled below) and use
     // its exact scorer — `command-score`, the same package cmdk uses — so the chip counts reflect
@@ -197,8 +203,9 @@ export function GlobalCommand() {
                 <CommandEmpty className="py-10 text-center text-sm text-muted-foreground">No matches found</CommandEmpty>
                 {visibleItems.map(({file, folder, lastViewedAt}) => (
                     <CommandItem
-                        key={file.path}
-                        value={file.path}
+                        // The top level's path is ''; cmdk needs a value.
+                        key={file.path || '/'}
+                        value={file.path || '/'}
                         onSelect={() => handleSelect(file)}
                         className="gap-2.5 rounded-md px-3 py-2.5 text-sm"
                     >

@@ -20,7 +20,7 @@ export function ReferencesTab(props: RelationConfigTabProps) {
         // relations only; the dashboard/canvas groups below cover the other kinds of use
         {title: 'Used by', entries: references.usedByRelations},
         {title: 'Uses', entries: references.usesRelations},
-        {title: 'Pages', entries: references.dashboards},
+        {title: 'Pages', entries: references.pages},
     ].filter(group => group.entries.length > 0);
 
     if (groups.length === 0) {

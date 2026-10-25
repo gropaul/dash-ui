@@ -1,5 +1,4 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {StateStorage} from "zustand/middleware";
 import {RelationData} from "@/model/relation";
 import {throttleLatest} from "@/lib/throttle-latest";
 import {
@@ -10,7 +9,6 @@ import {
 } from "@/model/database-connection";
 import {
     DASH_STORAGE_VERSION,
-    DEFAULT_STATE_STORAGE_DESTINATION,
     STORAGE_THROTTLE_TIME_MS,
     VERSION_CONFLICT_ERROR
 } from "@/platform/global-data";
@@ -120,7 +118,7 @@ export class StorageDuckAPI {
         return connection.executeQuery(query, false);
     }
 
-    static async getInstance(destination: StorageDestination = DEFAULT_STATE_STORAGE_DESTINATION): Promise<StorageDuckAPI> {
+    static async getInstance(destination: StorageDestination): Promise<StorageDuckAPI> {
         const key = GetFullNameDestination(destination);
         let instance = StorageDuckAPI.instances.get(key);
         if (!instance) {
@@ -277,26 +275,4 @@ export class StorageDuckAPI {
             }
         }
     }
-}
-
-
-export const duckdbTableStorageProvider: StateStorage = {
-    getItem: async (_tableName: string): Promise<string | null> => {
-        const provider = await StorageDuckAPI.getInstance();
-        return provider.getItem();
-    },
-    setItem: async (_tableName: string, value: string): Promise<void> => {
-        const provider = await StorageDuckAPI.getInstance();
-        return provider.setItem(value);
-    },
-    removeItem: async (_tableName: string): Promise<void> => {
-        const provider = await StorageDuckAPI.getInstance();
-        const storageInfo = await provider.getActiveStorageInfo();
-
-        await provider.createTableIfNotExists(storageInfo);
-
-        const tableName = GetFullNameDestination(storageInfo.destination);
-        await provider.executeQuery(`DELETE
-                                     FROM ${tableName};`);
-    },
 }

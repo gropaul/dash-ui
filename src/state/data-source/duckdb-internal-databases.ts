@@ -49,7 +49,7 @@ export class DuckdbInternalDatabases implements DataSourceConnection {
     }
 
     async onDataSourceClick(id_path: string[]) {
-        return onDuckDBDataSourceClick(this, id_path, this.dataSources);
+        return onDuckDBDataSourceClick(id_path);
     }
 
     loadChildrenForDataSource(_id_path: string[]): Promise<{ [key: string]: DataSource }> {

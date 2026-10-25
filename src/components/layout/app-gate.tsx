@@ -4,10 +4,10 @@ import React, {useEffect, useState} from "react";
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {AppShell} from "@/components/layout/app-shell";
 import {GlobalCommand} from "@/components/workbench/global-command";
-import {RelationDeleteDialog} from "@/components/workbench/relation-delete-dialog";
 import {NameDialog} from "@/components/workspace/name-dialog";
 import {DeleteFileDialog} from "@/components/workspace/delete-file-dialog";
 import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
+import {WORKSPACE_STORAGE_DESTINATION} from "@/platform/global-data";
 import {AlertDialog} from "@radix-ui/react-alert-dialog";
 import {
     AlertDialogAction,
@@ -35,10 +35,12 @@ export function AppGate({children}: { children: React.ReactNode }) {
 
     useEffect(() => {
         setMounted(true);
+        // Starts initialization (see init.state.ts).
+        void useInitState.persist.rehydrate();
     }, []);
 
     useEffect(() => {
-        StorageDuckAPI.getInstance().then((duckdb) => {
+        StorageDuckAPI.getInstance(WORKSPACE_STORAGE_DESTINATION).then((duckdb) => {
             duckdb.setOnForceReloadCallback(() => setShowForceReloadDialog(true));
         });
     });
@@ -78,7 +80,6 @@ export function AppGate({children}: { children: React.ReactNode }) {
                 </AlertDialogContent>
             </AlertDialog>
             <GlobalCommand/>
-            <RelationDeleteDialog/>
             <NameDialog/>
             <DeleteFileDialog/>
         </>

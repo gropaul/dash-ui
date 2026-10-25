@@ -1,4 +1,3 @@
-import {useRelationsState} from "@/state/relations.state";
 import {
     getDefaultSessionState,
     RelationSessionState,
@@ -11,7 +10,6 @@ import {DeepPartial} from "@/platform/object-utils";
 export interface EndUserRelationActions extends AdvancedRelationActions {
     toggleShowHeader: () => void,
     setRelationViewType: (view: RelationViewType) => void,
-    setDisplayName: (name: string, path?: string[]) => void,
     /** Resolves the session state for the given rendering mode, falling back to mode-appropriate defaults. */
     getSessionState: (mode: RelationViewMode) => RelationSessionState,
     /** Merges a partial update into the session state for the given rendering mode. */
@@ -48,13 +46,5 @@ export function getRelationActions(props: RelationViewAPIProps): EndUserRelation
         setRelationViewType: (view: RelationViewType) => {
             advancedActions.updateRelationViewState({selectedView: view});
         },
-        setDisplayName: (name: string, path: string[] = []) => {
-            advancedActions.updateRelationViewState({displayName: name});
-            try {
-                useRelationsState.getState().setEntityDisplayName('relations', relationState.id, name, path);
-            } catch (e) {
-                console.info("Failed to set display name in entity collection. this may be fine if this is a canvas node", e);
-            }
-        }
     }
 }

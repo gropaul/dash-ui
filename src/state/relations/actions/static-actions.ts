@@ -1,6 +1,5 @@
 import {getBaseQueryFromSource, RelationState} from "@/model/relation-state";
 import {getRandomId} from "@/platform/id-utils";
-import {getAllRelations} from "@/state/relations/all-relation-utils";
 import {
     getRelationIdFromSource,
     getRelationNameFromSource,
@@ -10,36 +9,13 @@ import {
 } from "@/model/relation";
 import {DATABASE_CONNECTION_ID_DUCKDB_LOCAL} from "@/platform/global-data";
 import {getInitViewState, RelationViewType} from "@/model/relation-view-state";
-import {getMacroName} from "@/state/relations/sql/table-macros";
-import {renameRefCalls} from "@/platform/sql-refs";
 import {getInitialAxisDecoration} from "@/model/relation-view-state/chart";
-import {RelationEvents} from "@/state/relations/event/relation-events";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {ViewManager} from "@/model/relation-state/relation-view";
 import {getInitialChartQueryParameters} from "@/model/relation-state/relation-view-chart";
 
 
-function isDisplayNameTaken(displayName: string, excludeRelationId?: string): boolean {
-    const macro = getMacroName(displayName);
-    return getAllRelations().some(
-        ({relation}) => relation.id !== excludeRelationId && getMacroName(relation.viewState.displayName) === macro
-    );
-}
-
 export class RelationActions {
-
-    static copy = (original: RelationState) => {
-        const newName = RelationActions.getUniqueDisplayName(original.viewState.displayName + ' Copy');
-        return {
-            ...original,
-            id: getRandomId(),
-            name: newName,
-            viewState: {
-                ...original.viewState,
-                displayName: newName,
-            }
-        };
-    }
 
     static create(options?: { connectionId?: string, source?: RelationSource; viewType?: RelationViewType, showCode?: boolean}): RelationState {
 
@@ -69,10 +45,8 @@ export class RelationActions {
             connectionId: DATABASE_CONNECTION_ID_DUCKDB_LOCAL, id: relationId, source: source
         }
 
-        const desiredName = getRelationNameFromSource(source);
-        const uniqueName = RelationActions.getUniqueDisplayName(desiredName, relationId);
         const viewState =  getInitViewState(
-            uniqueName,
+            getRelationNameFromSource(source),
             undefined,
             [],
             showCode
@@ -100,32 +74,6 @@ export class RelationActions {
                 state: "not-started"
             }
         };
-        RelationEvents.create(relationState);
         return relationState;
     }
-
-    /** The relation with its calls of `refs.<from>(…)` renamed to `refs.<to>(…)`. */
-    static renameInQuery(relationState: RelationState, from: string, to: string): RelationState {
-        const {baseQuery, activeBaseQuery} = relationState.query;
-        const query = {
-            ...relationState.query,
-            baseQuery: renameRefCalls(baseQuery, from, to),
-            activeBaseQuery: renameRefCalls(activeBaseQuery, from, to),
-        };
-        if (query.baseQuery === baseQuery && query.activeBaseQuery === activeBaseQuery) return relationState;
-        return {...relationState, query};
-    }
-
-    static getUniqueDisplayName = (desiredName: string, excludeRelationId?: string): string => {
-        if (!isDisplayNameTaken(desiredName, excludeRelationId)) {
-            return desiredName;
-        }
-        const base = desiredName.replace(/ \(\d+\)$/, '');
-        let counter = 2;
-        while (isDisplayNameTaken(`${base} (${counter})`, excludeRelationId)) {
-            counter++;
-        }
-        return `${base} (${counter})`;
-    }
 }
-

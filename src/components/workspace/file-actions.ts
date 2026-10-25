@@ -2,6 +2,7 @@ import {toast} from "sonner";
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {useFileStats} from "@/state/workspace/file-stats.state";
 import {useProjectsState} from "@/state/projects.state";
+import {useGUIState} from "@/state/gui.state";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {baseName, extensionOf, isWithin, joinPath, movedPath, nameError, parentOf, samePath} from "@/state/workspace/paths";
 import {displayName, isQuery, kindOf} from "@/state/workspace/workspace-tree";
@@ -72,6 +73,25 @@ export async function moveEntry(from: string, to: string) {
     for (const [path, text] of Object.entries(rewritten)) await useWorkspace.getState().write(path, text);
     useFileStats.getState().move(projectId(), from, to);
     if (shown && isWithin(shown, from)) nav.navigateToPath(movedPath(shown, from, to), true);
+}
+
+/** Picks a folder, or the top level, in the command palette and moves the file or folder there. */
+export function moveEntryTo(path: string) {
+    useGUIState.getState().openCommand({
+        action: 'move',
+        filter: ['folder'],
+        includeTopLevel: true,
+        // Not into itself, and not where it already is.
+        exclude: folder => isWithin(folder.path, path) || folder.path === parentOf(path),
+        onSelect: async folder => {
+            try {
+                await moveEntry(path, joinPath(folder.path, baseName(path)));
+                if (folder.path) useGUIState.getState().setWorkspaceFolderOpen(projectId(), folder.path, true);
+            } catch (e) {
+                toast.error((e as Error).message);
+            }
+        },
+    });
 }
 
 export function renameEntry(path: string) {

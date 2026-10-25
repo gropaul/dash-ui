@@ -81,7 +81,7 @@ export default defineConfig({
     url: E2E_BASE_URL,
     reuseExistingServer: !process.env.CI,
     env: {
-      // Exposes the dev-only __relationsStore hook (see relations.state.ts) that the
+      // Exposes the dev-only __workspaceStore hook (see workspace/workspace.state.ts) that the
       // test helpers use to await state propagation.
       NEXT_PUBLIC_E2E: '1',
       // Own dist dir, so this server does not fight a plain `pnpm dev` over Next's

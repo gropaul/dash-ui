@@ -220,7 +220,7 @@ useProjectsState.subscribe((state, prev) => {
     void saveProjectsRegistry(state.projects);
 });
 
-// E2E-only, same hook as __relationsStore in relations.state.ts: the projects registry is not part
+// E2E-only, like __workspaceStore in workspace.state.ts: the projects registry is not part
 // of the relation state, so a test editing sources.sql has no other way to await the commit.
 if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_E2E === '1') {
     (window as unknown as { __projectsStore?: typeof useProjectsState }).__projectsStore = useProjectsState;

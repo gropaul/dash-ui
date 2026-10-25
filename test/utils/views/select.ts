@@ -19,6 +19,9 @@ export function selectTrigger(scope: Page | Locator): Locator {
  * list is portaled to the body, so options are looked up on the page.
  */
 async function toggleSelectValue(page: Page, value: string, scope: Page | Locator): Promise<void> {
+  // Point at the block itself first: the toolbar of a hovered block below floats over a one-row Select block and
+  // would take the click.
+  if (scope !== page) await (scope as Locator).hover({ position: { x: 4, y: 4 } });
   await selectTrigger(scope).click();
   await page.getByRole('option', { name: value, exact: true }).click();
   await page.keyboard.press('Escape');

@@ -4,10 +4,10 @@ import {RelationState} from "@/model/relation-state";
 import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
-import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {EditorPanelPosition} from "@/components/basics/sql-editor/sql-editor";
 import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
+import {RelationUpdate} from "@/state/relations/actions/advanced-actions";
 import {RelationViewMode} from "@/model/relation-view-state";
 import {DefaultErrorBoundary} from "@/components/basics/error-bundary";
 import {CopyButton} from "@/components/basics/input/copy-button";
@@ -32,7 +32,7 @@ export interface StaticDisplayProps {
     sqlEditorPanelMode?: EditorPanelPosition; // whether the sql editor should be displayed in an overlay or a panel, defaults to overlay
 }
 
-export interface RelationViewAPIProps extends DefaultRelationZustandActions, StaticDisplayProps {
+export interface RelationViewAPIProps extends RelationUpdate, StaticDisplayProps {
     relationState: RelationState;
     className?: string;
 }

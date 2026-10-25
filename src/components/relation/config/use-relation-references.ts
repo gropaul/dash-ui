@@ -23,7 +23,7 @@ export interface RelationReferences {
     /** Queries this one's SQL calls. */
     usesRelations: ReferenceEntry[];
     /** Pages calling this query or taking it in. */
-    dashboards: ReferenceEntry[];
+    pages: ReferenceEntry[];
 }
 
 function fileEntry(path: string): ReferenceEntry {
@@ -47,7 +47,7 @@ export function useRelationReferences(relationState: RelationState): RelationRef
             usesRelations: queriesCalledBy(files, baseQuery ?? '').map(({name, path}) => path
                 ? fileEntry(path)
                 : {id: name, name: `refs.${name}()`, iconType: 'relation', detail: 'unresolved', navigable: false}),
-            dashboards: users.pages.map(fileEntry),
+            pages: users.pages.map(fileEntry),
         };
     }, [files, path, baseQuery]);
 }

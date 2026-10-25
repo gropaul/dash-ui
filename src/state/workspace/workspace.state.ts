@@ -164,3 +164,8 @@ export function useWorkspaceTree() {
     const dirs = useWorkspace(s => s.dirs);
     return useMemo(() => buildWorkspaceTree(paths, dirs), [paths, dirs]);
 }
+
+// E2E-only, like __projectsStore: lets a test await an edit reaching the files.
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_E2E === '1') {
+    (window as unknown as { __workspaceStore?: typeof useWorkspace }).__workspaceStore = useWorkspace;
+}
