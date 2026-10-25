@@ -1,5 +1,6 @@
 import {EditorFolder} from "@/model/editor-folder";
 import {findNodeInTrees, findPathById, TreeAction} from "@/components/basics/files/tree-utils";
+import {FORBIDDEN_IN_NAMES} from "@/state/workspace/paths";
 
 /**
  * Pages link each other, and their blocks take in queries, by paths relative to the page's folder, as files
@@ -12,8 +13,6 @@ import {findNodeInTrees, findPathById, TreeAction} from "@/components/basics/fil
  */
 
 const PAGE_EXTENSION = '.md';
-// `/` separates folders; Windows refuses the others in file names.
-const FORBIDDEN_IN_NAMES = /[/\\:*?"<>|]/;
 
 const sameName = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 

@@ -2,7 +2,7 @@
 
 Every scheduled stop of trains and replacement buses in and around the Netherlands from Monday 15 to Sunday 21 September 2025. Pick a service type to filter the charts; with nothing picked they show all services. Engineering works and replacement buses have a page of their own: [Disruptions](Disruptions.md).
 
-<column_group>
+<columngroup>
 <column span="8">
 
 ```sql week_in_numbers
@@ -27,13 +27,13 @@ ORDER BY ServiceType
 ```
 
 </column>
-</column_group>
+</columngroup>
 
 ## Where and who
 
 Utrecht Centraal is the busiest station, ahead of Amsterdam Sloterdijk and Schiphol Airport. NS runs about two thirds of all stops, Arriva most of the rest.
 
-<column_group>
+<columngroup>
 <column span="7">
 
 ```sql busiest_stations
@@ -65,13 +65,13 @@ ORDER BY stops DESC
 ```
 
 </column>
-</column_group>
+</columngroup>
 
 ## When
 
 Service is close to flat from 8:00 to 19:00, with no sharp rush-hour peak. Saturday has a fifth fewer stops than a weekday, Sunday more than a quarter fewer. Times are local (CEST).
 
-<column_group>
+<columngroup>
 <column span="7">
 
 ```sql stops_per_hour_of_day
@@ -102,4 +102,4 @@ ORDER BY isodow(ArrivalTime::TIMESTAMP + INTERVAL 2 HOUR)
 ```
 
 </column>
-</column_group>
+</columngroup>

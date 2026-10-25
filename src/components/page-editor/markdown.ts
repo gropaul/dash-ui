@@ -1,4 +1,4 @@
-import {KEYS, SlateEditor, Value} from "platejs";
+import {KEYS, SlateEditor, TElement, Value} from "platejs";
 import {
     convertChildrenDeserialize,
     convertNodesSerialize,
@@ -44,9 +44,10 @@ import {
  *     -- rows: 6
  *
  * A sql fence without a `view`, `input` or `relation` line stays an ordinary code block. Columns are
- * `<column span="6">`, in grid columns out of 12.
+ * `<column span="6">`, in grid columns out of 12, inside a `<columngroup>` row.
  */
 const HEADER_LINE = /^--\s*([\w-]+):\s*(.*)$/;
+const COLUMN_GROUP_TAG = 'columngroup';
 
 export function parseRelationFence(lang: string | null | undefined, value: string, meta?: string | null): TRelationBlock | undefined {
     if (lang !== 'sql') return;
@@ -96,6 +97,21 @@ export const pageMarkdownRules: MdRules = {
             name: 'column',
             attributes: [{type: 'mdxJsxAttribute', name: 'span', value: String(spanOf(node))}],
             children: convertNodesSerialize(node.children, options),
+        }),
+    },
+    // A row is `<columngroup>`; IntelliJ's markdown support rejects Plate's `<columngroup>`.
+    [KEYS.columnGroup]: {
+        serialize: (node: TElement, options) => ({
+            type: 'mdxJsxFlowElement',
+            name: COLUMN_GROUP_TAG,
+            attributes: [],
+            children: convertNodesSerialize(node.children, options),
+        }),
+    },
+    [COLUMN_GROUP_TAG]: {
+        deserialize: (mdastNode, deco, options) => ({
+            type: KEYS.columnGroup,
+            children: convertChildrenDeserialize(mdastNode.children, deco, options),
         }),
     },
 };

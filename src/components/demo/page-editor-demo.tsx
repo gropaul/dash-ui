@@ -14,7 +14,7 @@ const SAMPLE_PAGE = `# Train services
 
 One week of Dutch train services, read straight from a Parquet file on GitHub. The page is a markdown file: a chart is a \`sql\` code block with a name, whose leading comments say how to show it, and \`<column span="…">\` tags place blocks side by side on a 12-column grid.
 
-<column_group>
+<columngroup>
 <column span="7">
 
 ${FENCE}sql busiest_stations
@@ -47,11 +47,11 @@ ORDER BY day
 ${FENCE}
 
 </column>
-</column_group>
+</columngroup>
 
 ## Operators
 
-<column_group>
+<columngroup>
 <column span="5">
 
 ${FENCE}sql services_by_operator
@@ -76,13 +76,13 @@ ${FENCE}
 > Between 07:00 and 20:00 every hour has more than 20,000 stops. Between 02:00 and 05:00 there are fewer than 500 an hour.
 
 </column>
-</column_group>
+</columngroup>
 
 ## By service type
 
 Sprinter is the most common service type with 181,050 stops, followed by Stoptrein and Intercity. Pick a type to see when it runs during the day; without a pick the chart shows all of them. The dropdown is a \`sql\` block shown as \`select\`, and the chart reads its rows through \`refs.service_type()\`.
 
-<column_group>
+<columngroup>
 <column span="3">
 
 ${FENCE}sql service_type
@@ -106,7 +106,7 @@ ORDER BY hour
 ${FENCE}
 
 </column>
-</column_group>
+</columngroup>
 
 ${FENCE}sql busiest_types_and_operators
 -- view: table

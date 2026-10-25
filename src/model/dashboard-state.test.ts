@@ -13,7 +13,7 @@ const PAGE = `# Overview
 
 ${relationReferenceFence('rel-a')}
 
-<column_group>
+<columngroup>
   <column span="6">
     \`\`\`sql
     -- relation: rel-b
@@ -23,7 +23,7 @@ ${relationReferenceFence('rel-a')}
   <column span="6">
     ${relationReferenceFence('rel-a').split('\n').join('\n    ')}
   </column>
-</column_group>
+</columngroup>
 
 \`\`\`sql
 -- chart: bar
@@ -54,14 +54,14 @@ describe('dashboard markdown references', () => {
 
 describe('renaming a relation in a page', () => {
     const page = [
-        '<column_group>',
+        '<columngroup>',
         '  <column span="6">',
         '    ```sql by_region',
         '    -- view: bar',
         "    SELECT * FROM refs.sales() WHERE note = 'refs.sales()'",
         '    ```',
         '  </column>',
-        '</column_group>',
+        '</columngroup>',
         '',
         '```sql',
         '-- view: table',

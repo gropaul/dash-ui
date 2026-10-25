@@ -2,7 +2,7 @@
 
 Buses replacing trains ("Stopbus ipv trein", "Snelbus ipv trein") point to engineering works. In week 38 of 2025 they cluster in Twente, on the Gooi line and on the Groningen - Leer line into Germany, and almost all of them run on the weekend. The whole week's service is on [Train services](<Train services.md>).
 
-<column_group>
+<columngroup>
 <column span="7">
 
 ```sql replacement_bus_stations
@@ -34,7 +34,7 @@ ORDER BY isodow(ArrivalTime::TIMESTAMP + INTERVAL 2 HOUR)
 ```
 
 </column>
-</column_group>
+</columngroup>
 
 ## Replacement services by type
 

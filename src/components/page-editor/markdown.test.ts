@@ -13,7 +13,7 @@ import {relationReferenceFence} from "@/model/dashboard-state";
 
 const MARKDOWN = `# Title
 
-<column_group>
+<columngroup>
 <column span="8">
 
 \`\`\`sql revenue
@@ -30,7 +30,7 @@ SELECT 1 AS month, 2 AS revenue
 Some text
 
 </column>
-</column_group>
+</columngroup>
 
 \`\`\`sql
 SELECT 'plain code'

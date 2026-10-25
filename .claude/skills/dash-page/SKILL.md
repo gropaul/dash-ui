@@ -101,7 +101,7 @@ Blocks stack top to bottom. Put blocks side by side in a row of columns; spans a
 each is at least 2. Leave blank lines around the tags and around the blocks inside them:
 
 ````md
-<column_group>
+<columngroup>
 <column span="7">
 
 ```sql
@@ -115,7 +115,7 @@ each is at least 2. Leave blank lines around the tags and around the blocks insi
 Some text next to the chart.
 
 </column>
-</column_group>
+</columngroup>
 ````
 
 A column can hold several blocks. Rows don't nest. To line up, the blocks of each column should add up to the
