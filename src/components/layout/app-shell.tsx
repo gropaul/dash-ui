@@ -5,7 +5,6 @@ import {NavigationSidebar} from "@/components/layout/navigation-sidebar";
 import {AppBar} from "@/components/layout/app-bar";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {AgentChatPanel, useAgentPanelShown} from "@/components/agent-chat/agent-chat-panel";
-import {useGUIState} from "@/state/gui.state";
 
 /**
  * Router-driven shell. The full-height left navigation sidebar (holds the logo), then the
@@ -27,7 +26,6 @@ export function AppShell({children}: { children: React.ReactNode }) {
 
 function ContentWithAgentPanel({children}: { children: React.ReactNode }) {
     const shown = useAgentPanelShown();
-    const setOpen = useGUIState((s) => s.setAgentPanelOpen);
     if (!shown) return <MainArea>{children}</MainArea>;
     return (
         <ResizablePanelGroup direction="horizontal" autoSaveId="agent-panel" className="flex-1 min-h-0 min-w-0">
@@ -36,7 +34,7 @@ function ContentWithAgentPanel({children}: { children: React.ReactNode }) {
             </ResizablePanel>
             <ResizableHandle className="!cursor-col-resize"/>
             <ResizablePanel defaultSize={30} minSize={20}>
-                <AgentChatPanel onClose={() => setOpen(false)}/>
+                <AgentChatPanel/>
             </ResizablePanel>
         </ResizablePanelGroup>
     );
