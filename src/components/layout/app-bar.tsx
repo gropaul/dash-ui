@@ -28,7 +28,7 @@ import {openSearchCommand} from "@/components/workbench/global-command";
  */
 export function AppBar() {
     return (
-        <header className="h-10 flex items-center gap-3 bg-background flex-shrink-0">
+        <header className="h-10 flex items-center gap-3 bg-background border-b flex-shrink-0">
             {/* LEFT — current project + path */}
             <div className="flex items-center gap-2 min-w-0 flex-1 pl-2">
                 {/* The project switcher is the breadcrumb root, so the crumb drops its own "Workspace" root. */}

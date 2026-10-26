@@ -74,8 +74,8 @@ export function NavigationSidebar() {
                     expanded ? "w-60" : "w-16",
                 )}
             >
-                {/* Logo row, as high as the app bar so the toggle lines up with it. Collapsed, only the toggle shows. */}
-                <div className={cn("flex h-10 shrink-0 items-center", expanded ? "justify-between pl-4 pr-2" : "justify-center")}>
+                {/* Logo row, as high as the app bar so the toggle and the bottom line line up with it. Collapsed, only the toggle shows. */}
+                <div className={cn("flex h-10 shrink-0 items-center border-b", expanded ? "justify-between pl-4 pr-2" : "justify-center")}>
                     {expanded && <ProjectIcon icon="dash"/>}
                     <Tooltip>
                         <TooltipTrigger asChild>

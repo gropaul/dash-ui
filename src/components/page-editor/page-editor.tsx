@@ -11,6 +11,7 @@ import {cn} from "@/lib/utils";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
+import {useGUIState} from "@/state/gui.state";
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {EMPTY_LINE_PLACEHOLDER, PAGE_EDITOR_PLUGINS} from "@/components/page-editor/editor-plugins";
 import {BlockHoverPlugin, onEditorMouseOver} from "@/components/page-editor/block-hover";
@@ -58,6 +59,7 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
     const [ownMode, setOwnMode] = useState<PageEditorMode>('edit');
     const mode = modeProp ?? ownMode;
     const readOnly = mode === 'view';
+    const markdownSize = useGUIState(s => Math.round(s.pageMarkdownRatio * 100));
 
     const editor = usePlateEditor({
         plugins: PAGE_EDITOR_PLUGINS,
@@ -181,7 +183,8 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
                         </div>
                         {mode === 'split' ? (
                             <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
-                                <ResizablePanel defaultSize={40} minSize={20}>
+                                <ResizablePanel defaultSize={markdownSize} minSize={20}
+                                                onResize={size => useGUIState.getState().setPageMarkdownRatio(size / 100)}>
                                     <div className="relative flex h-full flex-col"
                                          onFocusCapture={sync.viewToText.flush}
                                          onPointerDownCapture={sync.viewToText.flush}>
@@ -201,7 +204,7 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
                                     </div>
                                 </ResizablePanel>
                                 <ResizableHandle/>
-                                <ResizablePanel defaultSize={60}>
+                                <ResizablePanel defaultSize={100 - markdownSize}>
                                     <div className="relative h-full" onPointerDownCapture={sync.textToView.flush}>
                                         <CooldownIndicator pending={sync.textToView.pending}/>
                                         <div className="h-full overflow-auto">{content}</div>

@@ -16,6 +16,7 @@ import {registerHighlighting} from "@/components/basics/sql-editor/register-high
 import {registerCompletionDuckDB} from "@/components/basics/sql-editor/register-autocomplete";
 import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
 import {useMonacoState} from "@/state/monaco.state";
+import {useGUIState} from "@/state/gui.state";
 
 export type SupportedLanguages = "sql" | "plaintext" | "markdown";
 
@@ -80,6 +81,7 @@ export function SqlEditor(
     const editorPath = `sql-editor-${uniqueId}`;
 
     const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
+    const wordWrap = useGUIState(s => s.editorWordWrap);
 
     // Use refs to avoid stale closures in debounced callbacks
     const editorRef = useRef<any>(null);
@@ -197,6 +199,15 @@ export function SqlEditor(
 
         registerHotkeys(editor, monaco, () => handleRun());
         registerFormatter(monaco);
+        editor.addAction({
+            id: 'dash.toggle-word-wrap',
+            label: 'Toggle Line Wrapping',
+            contextMenuGroupId: '1_modification',
+            run: () => {
+                const {editorWordWrap, setEditorWordWrap} = useGUIState.getState();
+                setEditorWordWrap(!editorWordWrap);
+            },
+        });
 
         registerHighlighting(editor, monaco);
         registerCompletionDuckDB(monaco);
@@ -244,6 +255,7 @@ export function SqlEditor(
                     theme: editorTheme,
                     padding: {top: 12, bottom: 12},
                     tabSize: 2,
+                    wordWrap: wordWrap ? "on" : "off",
                     scrollBeyondLastLine: false,
                     scrollbar: {
                         alwaysConsumeMouseWheel: alwaysConsumeMouseWheel,

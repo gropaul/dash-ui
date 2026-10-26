@@ -3,6 +3,7 @@ import {createJSONStorage, persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
 import {ForceOpenReason} from "@/components/settings/settings-dialog";
 import type {WorkspaceNodeKind} from "@/state/workspace/workspace-tree";
+import type {PageEditorMode} from "@/components/page-editor/page-editor";
 
 export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation' | 'get-started'
 
@@ -74,6 +75,12 @@ export interface GUIZustand {
     sidebarSplitRatio: number;
     // When true, views stretch to full width (no max-width) with a uniform gutter.
     fullWidth: boolean;
+    // Whether code editors wrap long lines.
+    editorWordWrap: boolean;
+    // Whether pages open in the editor alone or next to their markdown; view mode is in the URL instead.
+    pageEditorMode: Exclude<PageEditorMode, 'view'>;
+    // Width (0-1) of the markdown next to the page editor.
+    pageMarkdownRatio: number;
     // Global command palette / entity picker (not persisted — see partialize).
     command: CommandGUIZustand;
     // The folders open in the sidebar's workspace tree, per project id.
@@ -84,6 +91,9 @@ export interface GUIZustandActions {
     setSidebarExpanded: (expanded: boolean) => void;
     setConfigSplitRatio: (ratio: number) => void;
     setFullWidth: (fullWidth: boolean) => void;
+    setEditorWordWrap: (wrap: boolean) => void;
+    setPageEditorMode: (mode: Exclude<PageEditorMode, 'view'>) => void;
+    setPageMarkdownRatio: (ratio: number) => void;
 
     relationFileDropEnabled: boolean;
     setRelationFileDropEnabled: (enabled: boolean) => void;
@@ -112,6 +122,9 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             settings: INITIAL_SETTINGS_STATE,
             sidebarSplitRatio: 0.3,
             fullWidth: true,
+            editorWordWrap: false,
+            pageEditorMode: 'edit',
+            pageMarkdownRatio: 0.4,
             command: INITIAL_COMMAND_STATE,
             workspaceTreeOpen: {},
 
@@ -169,6 +182,18 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
 
             setFullWidth: (fullWidth: boolean) => {
                 set({fullWidth});
+            },
+
+            setEditorWordWrap: (wrap: boolean) => {
+                set({editorWordWrap: wrap});
+            },
+
+            setPageEditorMode: (mode) => {
+                set({pageEditorMode: mode});
+            },
+
+            setPageMarkdownRatio: (ratio) => {
+                set({pageMarkdownRatio: ratio});
             },
 
             openCommand: (request: CommandRequest) => {

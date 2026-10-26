@@ -151,7 +151,7 @@ export function ConnectionsView() {
     }, [fetchAttached, projectId, projectSources, setProjectSources]);
 
     return (
-        <ViewPadding active addPaddingBottom className="h-full flex flex-col" classNameParent={'bg-accent border-t'}>
+        <ViewPadding active addPaddingBottom className="h-full flex flex-col" classNameParent={'bg-accent'}>
             <ViewHeader
                 title="Data Connections"
                 subtitle={

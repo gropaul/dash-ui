@@ -31,10 +31,13 @@ export function PageTab({path}: { path: string }) {
         };
     }, [paths, path]);
 
-    // `?readonly=1` opens the page in view mode (shareable / deep-linkable); the other modes aren't in the URL.
+    // `?readonly=1` opens the page in view mode (shareable / deep-linkable); edit or next to the markdown is a
+    // setting kept in the GUI state.
     const readonly = useDashQueryParam("readonly") === "1";
+    const editMode = useGUIState(s => s.pageEditorMode);
     const onModeChange = useCallback((mode: PageEditorMode) => {
         DashNavigator.instance().setQueryParam("readonly", mode === 'view' ? "1" : null);
+        if (mode !== 'view') useGUIState.getState().setPageEditorMode(mode);
     }, []);
 
     const onMarkdownChange = useCallback((next: string) => {
@@ -59,7 +62,7 @@ export function PageTab({path}: { path: string }) {
                 path={path}
                 markdown={markdown}
                 onMarkdownChange={onMarkdownChange}
-                mode={readonly ? 'view' : undefined}
+                mode={readonly ? 'view' : editMode}
                 onModeChange={onModeChange}
                 addMenuExtra={addMenuExtra}
             />
