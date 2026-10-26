@@ -80,6 +80,28 @@ jobs:
         # Run even if the web step failed, so one runtime's failure never hides the other's.
         if: ${{ !cancelled() }}
         run: xvfb-run -a ${{ steps.detect-package-manager.outputs.runner }} exec playwright test --project=electron
+      # duckdb-over-http e2e: the latest gropaul/dash release's extension, served by the DuckDB CLI
+      # it was built for. The asset name carries that version: dash-v1.5.5-linux_amd64.duckdb_extension.
+      - name: Fetch the dash extension and DuckDB CLI
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dir="$RUNNER_TEMP/dash-server"
+          mkdir -p "$dir" && cd "$dir"
+          gh release download -R gropaul/dash -p 'dash-*-linux_amd64.duckdb_extension'
+          ext=$(ls dash-*-linux_amd64.duckdb_extension)
+          version=${ext#dash-}
+          version=${version%%-*}
+          # DuckDB derives the entrypoint symbol from the file's basename.
+          mv "$ext" dash.duckdb_extension
+          gh release download "$version" -R duckdb/duckdb -p duckdb_cli-linux-amd64.zip
+          unzip -q duckdb_cli-linux-amd64.zip
+          echo "E2E_DUCKDB_BIN=$dir/duckdb" >> "$GITHUB_ENV"
+          echo "E2E_DASH_EXTENSION=$dir/dash.duckdb_extension" >> "$GITHUB_ENV"
+      - name: Run Playwright tests (http)
+        if: ${{ !cancelled() }}
+        run: ${{ steps.detect-package-manager.outputs.runner }} exec playwright test --project=http
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

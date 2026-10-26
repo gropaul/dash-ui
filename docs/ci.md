@@ -31,8 +31,15 @@ Every workflow cancels a superseded run on the same ref, except `release.yml` (s
 
 Single Ubuntu job: `pnpm test:run` (Vitest), then Playwright `--project=web` (headless Chromium,
 exercises DuckDB WASM), then Playwright `--project=electron` under `xvfb-run` for the `*.shared.spec.ts`
-specs, then `pnpm build`. The Electron step runs with `if: !cancelled()` so a web failure never hides
-an Electron failure. The Playwright HTML report is uploaded as an artifact either way.
+specs, then Playwright `--project=http` for the same specs, then `pnpm build`. The Electron and http
+steps run with `if: !cancelled()` so one runtime's failure never hides another's.
+
+The http project talks to a DuckDB CLI running the `dash` extension (gropaul/dash). CI downloads the
+linux_amd64 extension from that repo's latest release and the DuckDB CLI version named in the asset
+(`dash-v1.5.5-...` → duckdb v1.5.5). Locally, set `E2E_DUCKDB_BIN` (e.g. a
+[duckman](https://github.com/NiclasHaderer/duckdb-version-manager) install,
+`~/.config/duckman/versions/duckdb-v1.5.5`) and `E2E_DASH_EXTENSION` yourself; without them the http
+specs skip. The Playwright HTML report is uploaded as an artifact either way.
 
 Note this also runs on tag pushes, because its `push` trigger has no branch filter. That is
 deliberate enough to leave alone: cutting a release re-runs the full suite.
