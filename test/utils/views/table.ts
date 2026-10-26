@@ -11,13 +11,18 @@ import { TABLE_FOOTER_MIN_ROWS } from '@/platform/global-data';
 
 /**
  * Sort a table column. Clicking a column header cycles none -> ASC -> DESC, so
- * we click once for ASC and twice for DESC (from an unsorted column).
+ * we click once for ASC and twice for DESC (from an unsorted column). Each click
+ * waits for the header's `aria-sort`: the next state is computed from the shown
+ * one, so a second click before the first lands would only repeat it.
  */
 export async function sortColumn(page: Page, column: string, direction: 'ASC' | 'DESC'): Promise<void> {
-  const header = page.getByRole('columnheader', { name: column }).getByRole('button', { name: column });
-  await header.click();
+  const header = page.getByRole('columnheader', { name: column });
+  const button = header.getByRole('button', { name: column });
+  await button.click();
+  await expect(header).toHaveAttribute('aria-sort', 'ascending');
   if (direction === 'DESC') {
-    await header.click();
+    await button.click();
+    await expect(header).toHaveAttribute('aria-sort', 'descending');
   }
 }
 

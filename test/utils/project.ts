@@ -94,11 +94,17 @@ export async function expandFolder(page: Page, name: string): Promise<void> {
   await expect(folder).toHaveAttribute('aria-expanded', 'true');
 }
 
-/** Move a file or folder through its context menu's "Move to…" picker; `target` is a folder path or 'Top level'. */
+/**
+ * Move a file or folder through its context menu's "Move to…" picker; `target` is a folder path or 'Top level'.
+ * Returns once the move is in the workspace, so the next step doesn't act on a tree that is still re-rendering.
+ */
 export async function moveTo(page: Page, name: string, target: string): Promise<void> {
+  const before = await workspacePaths(page);
   await treeItem(page, name).click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Move to…' }).click();
   await page.getByRole('option', { name: new RegExp(`^${target.split('/').pop()}\\b`) }).first().click();
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect.poll(() => workspacePaths(page)).not.toEqual(before);
 }
 
 /** The workspace's file paths, read from the store (e2e builds only). */
