@@ -5,6 +5,7 @@ import {Plus} from "lucide-react";
 import {useProjectsState} from "@/state/projects.state";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {ProjectIcon, ProjectIconPicker} from "@/components/projects/project-icons";
+import {ProjectFolderField} from "@/components/projects/project-folder-field";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {ViewPadding} from "@/components/ui/view-padding";
 import {Button} from "@/components/ui/button";
@@ -21,7 +22,7 @@ import {DEFAULT_PROJECT_ICON, ProjectIconKey} from "@/model/project";
 
 type CreateDialogState =
     | {mode: 'closed'}
-    | {mode: 'create'; name: string; icon: ProjectIconKey};
+    | {mode: 'create'; name: string; icon: ProjectIconKey; rootPath: string};
 
 /**
  * The `/projects` landing view: every available project as a card. Selecting one navigates to
@@ -40,14 +41,14 @@ export function ProjectListView() {
     const nameError = dialog.mode === 'closed' ? null : checkProjectName(dialog.name);
 
     function openCreate() {
-        setDialog({mode: 'create', name: "", icon: DEFAULT_PROJECT_ICON});
+        setDialog({mode: 'create', name: "", icon: DEFAULT_PROJECT_ICON, rootPath: "/"});
     }
 
     async function save() {
         if (dialog.mode !== 'create' || nameError) return;
-        const {name, icon} = dialog;
+        const {name, icon, rootPath} = dialog;
         setDialog({mode: 'closed'});
-        const project = await createProject({name, icon});
+        const project = await createProject({name, icon, rootPath});
         openProject(project.id);
     }
 
@@ -113,6 +114,7 @@ export function ProjectListView() {
                                     onChange={(icon) => setDialog({...dialog, icon})}
                                 />
                             </div>
+                            <ProjectFolderField value={dialog.rootPath} onChange={(rootPath) => setDialog({...dialog, rootPath})}/>
                         </div>
                     )}
                     <DialogFooter>

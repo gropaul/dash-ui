@@ -2,7 +2,7 @@
 
 import {useCallback, useEffect, useState} from "react";
 import type {PlanEntry} from "@agentclientprotocol/sdk";
-import {CheckCircle2, ChevronDown, Circle, CircleDot, Loader2, Plus, Send, Square} from "lucide-react";
+import {CheckCircle2, ChevronDown, Circle, CircleDot, Loader2, Plus, Send, Settings, Square} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
@@ -20,12 +20,14 @@ import type {ChatItem} from "@/state/agent/session-items";
 import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
 
-// Agents run as local processes through the Electron bridge; without it there is no panel at all.
-// Read after mount so the static prerender and the first client render agree.
+// Agents run as local processes through the Electron bridge; without it, or with agents switched off in
+// the settings, there is no panel at all. Read after mount so the static prerender and the first client
+// render agree.
 export function useAgentsAvailable(): boolean {
     const [available, setAvailable] = useState(false);
+    const enabled = useGUIState((s) => s.agentsEnabled);
     useEffect(() => setAvailable(window.dashNative?.agent !== undefined), []);
-    return available;
+    return available && enabled;
 }
 
 export function useAgentPanelShown(): boolean {
@@ -44,15 +46,11 @@ export function AgentChatPanel() {
 
 function AgentChatHeader() {
     const {agents, agentId, modes, currentModeId, status, startSession, setMode} = useAgentChatState();
+    const openSettingsTab = useGUIState((s) => s.openSettingsTab);
     const connected = status === 'ready' || status === 'running';
     return (
         <div className="flex h-10 shrink-0 items-center gap-1 border-b px-2">
-            <HeaderPicker
-                label={agents.find((a) => a.id === agentId)?.label ?? 'Agent'}
-                value={agentId}
-                options={agents.map((a) => ({id: a.id, name: a.label}))}
-                onChange={(id) => startSession(id)}
-            />
+            <span className="truncate px-2 text-xs font-medium">{agents.find((a) => a.id === agentId)?.label ?? 'Agent'}</span>
             {modes.length > 0 && (
                 <HeaderPicker
                     label={modes.find((m) => m.id === currentModeId)?.name ?? 'Mode'}
@@ -71,6 +69,11 @@ function AgentChatHeader() {
                 </TooltipWrapper>
             )}
             {agentId && <SessionHistoryButton disabled={!connected}/>}
+            <TooltipWrapper message="Agent settings">
+                <Button variant="ghost" size="icon" className="size-7" aria-label="Agent settings" onClick={() => openSettingsTab('agents')}>
+                    <Settings className="size-4"/>
+                </Button>
+            </TooltipWrapper>
         </div>
     );
 }
@@ -126,15 +129,14 @@ function AgentChatBody() {
 
     return (
         <>
-            <Conversation>
+            {/* Remounted when a chat appears, so a loaded history opens at the bottom without scrolling there. */}
+            <Conversation key={items.length === 0 ? 'empty' : 'chat'} initial="instant">
                 <ConversationContent>
                     {items.length === 0 ? (
                         status === 'starting'
                             ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin"/> Starting agent…</div>
                             : <RecentSessions count={5}/>
-                    ) : groupToolCalls(items).map((item, i, shown) => (
-                        <ChatItemView key={item.id} item={item} isLast={i === shown.length - 1} running={status === 'running'}/>
-                    ))}
+                    ) : <ChatItems items={items} running={status === 'running'}/>}
                     {status === 'running' && <Loader2 className="size-4 animate-spin text-muted-foreground"/>}
                 </ConversationContent>
                 <ConversationScrollButton/>
@@ -167,6 +169,27 @@ function ExamplePrompts() {
                 </Button>
             ))}
         </div>
+    );
+}
+
+// A long history renders its latest items, and earlier ones a page at a time on request.
+const ITEMS_PAGE = 50;
+
+function ChatItems({items, running}: { items: ChatItem[]; running: boolean }) {
+    const [limit, setLimit] = useState(ITEMS_PAGE);
+    const all = groupToolCalls(items);
+    const shown = all.slice(-limit);
+    return (
+        <>
+            {all.length > shown.length && (
+                <Button variant="ghost" size="sm" className="self-center text-muted-foreground" onClick={() => setLimit(limit + ITEMS_PAGE)}>
+                    Show earlier messages
+                </Button>
+            )}
+            {shown.map((item, i) => (
+                <ChatItemView key={item.id} item={item} isLast={i === shown.length - 1} running={running}/>
+            ))}
+        </>
     );
 }
 

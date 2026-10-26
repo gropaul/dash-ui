@@ -26,11 +26,12 @@ import {DEFAULT_PROJECT_ICON, ProjectIconKey} from "@/model/project";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {deleteProjectArtifacts} from "@/state/projects/delete-project-artifacts";
 import {FolderEntries} from "@/components/layout/workspace-path-breadcrumb";
+import {ProjectFolderField} from "@/components/projects/project-folder-field";
 
 type DialogState =
     | {mode: 'closed'}
-    | {mode: 'create'; name: string; icon: ProjectIconKey}
-    | {mode: 'edit'; id: string; name: string; icon: ProjectIconKey};
+    | {mode: 'create'; name: string; icon: ProjectIconKey; rootPath: string}
+    | {mode: 'edit'; id: string; name: string; icon: ProjectIconKey; rootPath: string};
 
 /**
  * The current-project chip in the app bar. Doubles as the root of the path breadcrumb:
@@ -46,6 +47,7 @@ export function ProjectSwitcher() {
     const createProject = useProjectsState((s) => s.createProject);
     const renameProject = useProjectsState((s) => s.renameProject);
     const setProjectIcon = useProjectsState((s) => s.setProjectIcon);
+    const setProjectRoot = useProjectsState((s) => s.setProjectRoot);
     const removeProject = useProjectsState((s) => s.removeProject);
     const checkProjectName = useProjectsState((s) => s.checkProjectName);
 
@@ -64,12 +66,12 @@ export function ProjectSwitcher() {
         : checkProjectName(dialog.name, dialog.mode === 'edit' ? dialog.id : undefined);
 
     function openCreate() {
-        setDialog({mode: 'create', name: "", icon: DEFAULT_PROJECT_ICON});
+        setDialog({mode: 'create', name: "", icon: DEFAULT_PROJECT_ICON, rootPath: "/"});
     }
 
     function openEdit() {
         if (!current) return;
-        setDialog({mode: 'edit', id: current.id, name: current.name, icon: current.icon});
+        setDialog({mode: 'edit', id: current.id, name: current.name, icon: current.icon, rootPath: current.rootPath});
     }
 
     async function save() {
@@ -77,12 +79,13 @@ export function ProjectSwitcher() {
 
         setDialog({mode: 'closed'});
         if (dialog.mode === 'create') {
-            const project = await createProject({name: dialog.name, icon: dialog.icon});
+            const project = await createProject({name: dialog.name, icon: dialog.icon, rootPath: dialog.rootPath});
             openProject(project.id);
         } else if (dialog.mode === 'edit') {
             // URLs are id-based, so a rename doesn't touch the URL — just update name/icon.
             renameProject(dialog.id, dialog.name);
             setProjectIcon(dialog.id, dialog.icon);
+            setProjectRoot(dialog.id, dialog.rootPath);
         }
 
     }
@@ -191,6 +194,7 @@ export function ProjectSwitcher() {
                                     onChange={(icon) => setDialog({...dialog, icon})}
                                 />
                             </div>
+                            <ProjectFolderField value={dialog.rootPath} onChange={(rootPath) => setDialog({...dialog, rootPath})}/>
                         </div>
                     )}
                     <DialogFooter className="sm:justify-between">

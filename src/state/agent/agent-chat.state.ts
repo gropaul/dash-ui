@@ -17,6 +17,7 @@ import {
 import type {AgentInfo} from '@/types/dash-native';
 import {applySessionUpdate, ChatItem, newItemId, PermissionAnswer} from '@/state/agent/session-items';
 import {openAgentStream} from '@/state/agent/electron-transport';
+import {useGUIState} from '@/state/gui.state';
 
 /** Dash's own MCP server (state/agent/dash-mcp.ts): the project's data and files. */
 async function dashMcpServers(): Promise<McpServer[]> {
@@ -56,6 +57,8 @@ interface LiveSession {
 }
 
 let live: LiveSession | undefined;
+// A stored session's history while it is replayed, shown in one go once the load returns.
+let replay: ChatItem[] | undefined;
 
 export const useAgentChatState = create<AgentChatZustand>()((set, get) => {
     const addItem = (item: ChatItem) => set((s) => ({items: [...s.items, item]}));
@@ -118,6 +121,8 @@ export const useAgentChatState = create<AgentChatZustand>()((set, get) => {
                     const update = ctx.params.update;
                     if (update.sessionUpdate === 'current_mode_update') {
                         set({currentModeId: update.currentModeId});
+                    } else if (replay) {
+                        replay = applySessionUpdate(replay, update);
                     } else {
                         set((s) => ({items: applySessionUpdate(s.items, update)}));
                     }
@@ -169,8 +174,9 @@ export const useAgentChatState = create<AgentChatZustand>()((set, get) => {
         currentModeId: undefined,
 
         loadAgents: async () => {
-            const agents = await window.dashNative?.agent.list() ?? [];
-            set({agents, agentId: get().agentId ?? agents[0]?.id});
+            const agents = (await window.dashNative?.agent.list() ?? []).filter((a) => a.path);
+            const preferred = agents.find((a) => a.id === useGUIState.getState().preferredAgentId);
+            set({agents, agentId: get().agentId ?? preferred?.id ?? agents[0]?.id});
             if (!agents.length) {
                 notice('No agent is installed. Dash runs the one on this computer: Claude Code, Codex (codex-acp), Gemini CLI, OpenCode or Goose.');
             }
@@ -188,12 +194,19 @@ export const useAgentChatState = create<AgentChatZustand>()((set, get) => {
 
         // Replays the stored history as ordinary session updates, then continues the conversation.
         loadSession: (info) => openSession(get().agentId!, async (connection) => {
-            const session = await connection.agent.request(methods.agent.session.load, {
-                sessionId: info.sessionId,
-                cwd: info.cwd,
-                mcpServers: await dashMcpServers(),
-            });
-            return {sessionId: info.sessionId, modes: session.modes};
+            replay = [];
+            try {
+                const session = await connection.agent.request(methods.agent.session.load, {
+                    sessionId: info.sessionId,
+                    cwd: info.cwd,
+                    mcpServers: await dashMcpServers(),
+                });
+                return {sessionId: info.sessionId, modes: session.modes};
+            } finally {
+                const history = replay;
+                replay = undefined;
+                set((s) => ({items: [...history, ...s.items]}));
+            }
         }),
 
         closeSession: async () => {
@@ -242,3 +255,10 @@ export const useAgentChatState = create<AgentChatZustand>()((set, get) => {
         answerElicitation: (itemId, response) => settle(itemId, response, {answer: response.action}),
     };
 });
+
+/** Makes `agentId` the agent the chat uses, now and on the next start; a running chat restarts with it. */
+export function selectAgent(agentId: string) {
+    useGUIState.getState().setPreferredAgentId(agentId);
+    const chat = useAgentChatState.getState();
+    if (chat.agentId !== undefined && chat.agentId !== agentId) chat.startSession(agentId);
+}

@@ -4,7 +4,7 @@ import React from "react";
 export function DocumentationContent() {
     return (
         <div className="p-4">
-            <h5 className="text-lg font-bold">Documentation</h5>
+            <h5 className="text-base font-bold">Documentation</h5>
             <p className="text-muted-foreground mb-2">
                 For a complete guide on how to use <strong>Dash</strong>, visit the documentation at:{" "}
                 <a

@@ -43,7 +43,7 @@ export function AboutContent() {
 
     return (
         <div className="p-4">
-            <h5 className="text-lg font-bold">About Dash</h5>
+            <h5 className="text-base font-bold">About Dash</h5>
             <p className="">
                 Dash is an open source project for exploring and visualizing data using DuckDB.
             </p>

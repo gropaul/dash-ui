@@ -58,6 +58,15 @@ function availableAgents() {
     return AGENTS.filter((agent) => findExecutable(agent.executable?.command ?? agent.command));
 }
 
+/** Every agent of agents.json with the path its CLI was found at, null when it isn't installed. */
+function listAgents() {
+    if (process.env.DASH_E2E_AGENT) return [{id: 'e2e', label: 'E2E agent', command: 'node', path: process.env.DASH_E2E_AGENT}];
+    return AGENTS.map(({id, label, executable, command}) => {
+        const cli = executable?.command ?? command;
+        return {id, label, command: cli, path: findExecutable(cli)};
+    });
+}
+
 // A `package` entry runs the package's bin with Electron's own Node, so no node on PATH is needed.
 function resolveCommand(agent) {
     if (agent.script) return {command: process.execPath, args: [agent.script], env: {ELECTRON_RUN_AS_NODE: '1'}};
@@ -129,7 +138,7 @@ function sessionSizes(agentId, sessions) {
 
 function initAgents() {
     ipcMain.handle('agent:session-sizes', (_event, agentId, sessions) => sessionSizes(agentId, sessions));
-    ipcMain.handle('agent:list', () => availableAgents().map(({id, label}) => ({id, label})));
+    ipcMain.handle('agent:list', () => listAgents());
     ipcMain.handle('agent:start', (event, agentId) => startAgent(event.sender, agentId));
     ipcMain.on('agent:write', (_event, channelId, chunk) => channels.get(channelId)?.stdin.write(chunk));
     ipcMain.on('agent:close', (_event, channelId) => channels.get(channelId)?.kill());

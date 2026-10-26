@@ -85,7 +85,7 @@ export function ShareContent() {
 
     return (
         <div className="p-4">
-            <h5 className="text-lg font-bold">Share Dashboards</h5>
+            <h5 className="text-base font-bold">Share Dashboards</h5>
             <p className="text-muted-foreground mb-2">
                 Sharing a dashboard is currently not well supported in Dash. This would require some form of
                 account management and a backend to store the dashboards, however Dash is purely a frontend

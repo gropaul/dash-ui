@@ -12,7 +12,7 @@ interface ConnectionContentProps {
 export function ConnectionContent({ currentSpec, onSpecChange, onSpecSave }: ConnectionContentProps) {
   return (
     <div className="p-4">
-      <h5 className="text-lg font-bold">Database Connections</h5>
+      <h5 className="text-base font-bold">Database Connections</h5>
       <p className="text-muted-foreground mb-2">
         Configure how you would like to connect to DuckDB.
       </p>

@@ -61,7 +61,7 @@ export function ChatWrapper(props: ChatWindowProps) {
     }
 
     function goToSettings() {
-        openSettingsTab('language-model');
+        openSettingsTab('agents');
     }
 
     const header = showHistory ? "Chat History" : " Chat Assistant";

@@ -11,6 +11,7 @@ const require = createRequire(import.meta.url);
 const {initDuckDB} = require('./duckdb.cjs');
 const {initAgents} = require('./agents.cjs');
 const {initMcp} = require('./mcp.cjs');
+const {initWorkspaceFs} = require('./workspace-fs.cjs');
 
 const SCHEME = 'app';
 const APP_URL = `${SCHEME}://bundle/`;
@@ -102,6 +103,7 @@ app.whenReady().then(() => {
     initDuckDB();
     initAgents();
     initMcp();
+    initWorkspaceFs();
     createWindow();
 
     app.on('activate', () => {

@@ -5,7 +5,7 @@ import {ForceOpenReason} from "@/components/settings/settings-dialog";
 import type {WorkspaceNodeKind} from "@/state/workspace/workspace-tree";
 import type {PageEditorMode} from "@/components/page-editor/page-editor";
 
-export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation' | 'get-started'
+export type SettingsTab = 'about' | 'connection' | 'sharing' | 'agents' | 'documentation' | 'get-started'
 
 // --- Global command palette (file picker) ----------------------------------
 // A single palette, opened from anywhere (AppBar search, ⌘K, double-Shift, or a page's
@@ -83,6 +83,10 @@ export interface GUIZustand {
     pageMarkdownRatio: number;
     // Whether the right-hand agent chat panel is open.
     agentPanelOpen: boolean;
+    // Whether agent chat is offered at all (Settings › Agents).
+    agentsEnabled: boolean;
+    // The agent the chat starts with, when it is installed.
+    preferredAgentId: string | undefined;
     // Global command palette / entity picker (not persisted — see partialize).
     command: CommandGUIZustand;
     // The folders open in the sidebar's workspace tree, per project id.
@@ -97,6 +101,8 @@ export interface GUIZustandActions {
     setPageEditorMode: (mode: Exclude<PageEditorMode, 'view'>) => void;
     setPageMarkdownRatio: (ratio: number) => void;
     setAgentPanelOpen: (open: boolean) => void;
+    setAgentsEnabled: (enabled: boolean) => void;
+    setPreferredAgentId: (agentId: string) => void;
 
     relationFileDropEnabled: boolean;
     setRelationFileDropEnabled: (enabled: boolean) => void;
@@ -129,6 +135,8 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             pageEditorMode: 'edit',
             pageMarkdownRatio: 0.4,
             agentPanelOpen: false,
+            agentsEnabled: true,
+            preferredAgentId: undefined,
             command: INITIAL_COMMAND_STATE,
             workspaceTreeOpen: {},
 
@@ -202,6 +210,14 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
 
             setAgentPanelOpen: (open: boolean) => {
                 set({agentPanelOpen: open});
+            },
+
+            setAgentsEnabled: (enabled: boolean) => {
+                set({agentsEnabled: enabled});
+            },
+
+            setPreferredAgentId: (agentId: string) => {
+                set({preferredAgentId: agentId});
             },
 
             openCommand: (request: CommandRequest) => {

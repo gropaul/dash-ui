@@ -55,6 +55,8 @@ interface ProjectsZustand {
     createProject: (input: CreateProjectInput) => Promise<Project>;
     renameProject: (id: string, name: string) => void;
     setProjectIcon: (id: string, icon: ProjectIconKey) => void;
+    /** Electron: the folder holding the project's files, "/" for the default; reopens the project if it is open. */
+    setProjectRoot: (id: string, rootPath: string) => void;
     // The manifest belongs to the open project's file, so it can only be edited for that project.
     setProjectSources: (sourcesSql: string) => void;
     removeProject: (id: string) => void;
@@ -133,6 +135,13 @@ export const useProjectsState = create<ProjectsZustand>()(
                     return {projects: {...s.projects, [id]: {...project, icon}}};
                 });
                 if (id === get().currentProjectId) updateCurrentMeta({icon});
+            },
+
+            setProjectRoot: (id, rootPath) => {
+                const project = get().projects[id];
+                if (!project || project.rootPath === rootPath) return;
+                set((s) => ({projects: {...s.projects, [id]: {...project, rootPath}}}));
+                if (id === get().currentProjectId) void loadOrSwitchProject(id, true);
             },
 
             setProjectSources: (sourcesSql) => {

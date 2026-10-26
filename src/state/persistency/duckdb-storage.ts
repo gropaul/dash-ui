@@ -31,7 +31,7 @@ interface Input {
 export class StorageDuckAPI {
 
     createdTables: string[] = [];
-    private static instances = new Map<string, StorageDuckAPI>();
+    private static   instances = new Map<string, StorageDuckAPI>();
 
     lastVersionCode: number | null = null;
     throttledSetItem: ((input: Input) => Promise<void>) & { cancel: () => void };

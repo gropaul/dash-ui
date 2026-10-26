@@ -7,6 +7,8 @@ import {useInitState} from "@/state/init.state";
 import {ContentLifecycle} from "@/state/content-lifecycle";
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {BlobBackend} from "@/state/workspace/blob-backend";
+import {FolderBackend} from "@/state/workspace/folder-backend";
+import {WorkspaceBackend} from "@/state/workspace/workspace-backend";
 import {DatabaseConnection} from "@/model/database-connection";
 import {initProjectSources, teardownProjectSources} from "@/state/sources/replay-sources";
 import {useProjectsState} from "@/state/projects.state";
@@ -109,8 +111,7 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     await initProjectSources();
 
     useInitState.getState().setStep('loading-project-relations');
-    const workspaceStorage = await StorageDuckAPI.getInstance(WORKSPACE_STORAGE_DESTINATION);
-    await useWorkspace.getState().load(new BlobBackend(workspaceStorage, () => useWorkspace.getState().snapshot()));
+    await useWorkspace.getState().load(await workspaceBackend(project, root));
 
     useInitState.getState().setStep('loading-project-macros');
     await registerQueryMacros(useWorkspace.getState().files);
@@ -121,14 +122,27 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     await useRelationDataState.getState().loadLastUsed();
 }
 
+/** Electron keeps the files in the project's folder, the browser in the project's DuckDB. */
+async function workspaceBackend(project: Project, storageRoot: string): Promise<WorkspaceBackend> {
+    const native = typeof window !== 'undefined' ? window.dashNative : undefined;
+    if (native) return new FolderBackend(native.workspace, projectFolder(project, storageRoot));
+    const storage = await StorageDuckAPI.getInstance(WORKSPACE_STORAGE_DESTINATION);
+    return new BlobBackend(storage, () => useWorkspace.getState().snapshot());
+}
+
+/** The project's chosen folder, or by default one named after its id next to its DuckDB files. */
+export function projectFolder(project: Project, storageRoot: string): string {
+    return project.rootPath && project.rootPath !== "/" ? project.rootPath : storageRoot + project.id;
+}
+
 /**
  * Re-point the app at a different project: close the old one, then load the new one.
  *
  * Switches are serialized (see {@link loadOrSwitchProject}) so overlapping calls — e.g. rapid project
  * navigation — can't interleave the destroy/reopen of the WASM database.
  */
-async function runLoadOrSwitchProject(projectId: string): Promise<void> {
-    if (useProjectsState.getState().currentProjectId === projectId) return;
+async function runLoadOrSwitchProject(projectId: string, reload: boolean): Promise<void> {
+    if (!reload && useProjectsState.getState().currentProjectId === projectId) return;
 
     // first close the old project
     const connection = ConnectionsService.getInstance().getDatabaseConnection();
@@ -150,10 +164,11 @@ async function runLoadOrSwitchProject(projectId: string): Promise<void> {
 // switches can't interleave the WASM destroy/reopen. Callers fire-and-forget via `void switchProject`.
 let pendingSwitch: Promise<void> = Promise.resolve();
 
-export function loadOrSwitchProject(projectId: string): Promise<void> {
+/** `reload` reopens the project even when it is the current one, e.g. after its folder changed. */
+export function loadOrSwitchProject(projectId: string, reload = false): Promise<void> {
     pendingSwitch = pendingSwitch.then(
-        () => runLoadOrSwitchProject(projectId),
-        () => runLoadOrSwitchProject(projectId),
+        () => runLoadOrSwitchProject(projectId, reload),
+        () => runLoadOrSwitchProject(projectId, reload),
     );
     return pendingSwitch;
 }

@@ -29,6 +29,22 @@ contextBridge.exposeInMainWorld('dashNative', {
         ipcRenderer.on('mcp:message', listener);
         return () => ipcRenderer.removeListener('mcp:message', listener);
     },
+    // The open project's folder (electron/workspace-fs.cjs); paths are posix, relative to the folder.
+    workspace: {
+        open: (folder) => ipcRenderer.invoke('workspace:open', folder),
+        close: () => ipcRenderer.invoke('workspace:close'),
+        write: (rel, text) => ipcRenderer.invoke('workspace:write', rel, text),
+        mkdir: (rel) => ipcRenderer.invoke('workspace:mkdir', rel),
+        move: (from, to) => ipcRenderer.invoke('workspace:move', from, to),
+        remove: (rel) => ipcRenderer.invoke('workspace:remove', rel),
+        chooseFolder: () => ipcRenderer.invoke('workspace:choose-folder'),
+        // Returns an unsubscribe function.
+        onChanged: (callback) => {
+            const listener = (_event, rel, text) => callback(rel, text);
+            ipcRenderer.on('workspace:changed', listener);
+            return () => ipcRenderer.removeListener('workspace:changed', listener);
+        },
+    },
     // ACP agent processes (electron/agents.cjs). Bytes pass through unparsed.
     agent: {
         list: () => ipcRenderer.invoke('agent:list'),

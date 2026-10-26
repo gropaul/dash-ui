@@ -181,6 +181,7 @@ body {
 /* ── markdown styling for text views (Tailwind preflight strips defaults) ── */
 .dashboard-prose { color: hsl(var(--foreground)); line-height: 1.6; word-break: break-word; }
 .dashboard-prose > *:first-child { margin-top: 0; }
+.dashboard-prose > *:last-child { margin-bottom: 0; }
 .dashboard-prose h1 { font-size: 1.5rem; font-weight: 700; margin: 0.5em 0 0.3em; }
 .dashboard-prose h2 { font-size: 1.25rem; font-weight: 700; margin: 0.5em 0 0.3em; }
 .dashboard-prose h3 { font-size: 1.1rem; font-weight: 600; margin: 0.5em 0 0.3em; }
@@ -197,7 +198,7 @@ body {
   color: hsl(var(--muted-foreground));
 }
 .dashboard-prose code {
-  background: hsl(var(--muted));
+  background: hsl(var(--foreground) / 0.07);
   padding: 0.1em 0.3em;
   border-radius: 0.75rem;
   font-size: 0.85em;
