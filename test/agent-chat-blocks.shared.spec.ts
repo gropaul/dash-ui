@@ -2,7 +2,7 @@
 // (test/agents/echo-agent.mjs), so the prompt is the agent's reply.
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures';
-import { createProject, expectChartIn, expectRowCount, openApp } from './utils';
+import { createEntity, createProject, expectChartIn, expectRowCount, openApp, readFile, setSql } from './utils';
 
 async function reply(page: Page, text: string) {
   const input = page.getByPlaceholder('Ask the agent…');
@@ -19,6 +19,10 @@ test.describe('Agent chat blocks', () => {
 
     await openApp(page, appOrigin, appApi);
     await createProject(page, 'E2E Agent Chat');
+    await createEntity(page, 'Folder', 'Sales');
+    await createEntity(page, 'Query', 'Orders', 'Sales');
+    await setSql(page, 'SELECT * FROM range(4) t(n)');
+    await expect.poll(() => readFile(page, 'Sales/orders.sql')).toContain('range(4)');
     await page.getByRole('button', { name: 'Agent chat', exact: true }).click();
     await expect(page.getByPlaceholder('Ask the agent…')).toBeEnabled({ timeout: 30_000 });
 
@@ -34,6 +38,13 @@ test.describe('Agent chat blocks', () => {
 
     const write = await reply(page, '```sql\n-- view: table\nCREATE TABLE t AS SELECT 1 AS x\n```');
     await expect(write).toContainText('Only reading statements');
+    const tables = await reply(page, '```sql\n-- view: table\nSELECT count(*) AS n FROM information_schema.tables WHERE table_name = \'t\'\n```');
+    await expectRowCount(tables, 1);
+    await expect(tables.getByRole('cell').last()).toHaveText('0');
+
+    // A block takes a query file in by its path from the project root, and reads query files through refs.
+    await expectRowCount(await reply(page, '```sql\n-- input: Sales/orders.sql\n-- view: table\n```'), 4);
+    await expectRowCount(await reply(page, '```sql\n-- view: table\nSELECT * FROM refs.orders() WHERE n < 2\n```'), 2);
 
     const code = await reply(page, 'Just code:\n\n```sql\nSELECT 42\n```');
     await expect(code.locator('[data-chat-block]')).toHaveCount(0);
