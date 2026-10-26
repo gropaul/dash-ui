@@ -9,6 +9,7 @@ import {
     type RequestPermissionRequest,
     type RequestPermissionResponse,
     type ListSessionsResponse,
+    type McpServer,
     type SessionInfo,
     type SessionMode,
     type SessionModeState,
@@ -16,6 +17,13 @@ import {
 import type {AgentInfo} from '@/types/dash-native';
 import {applySessionUpdate, ChatItem, newItemId, PermissionAnswer} from '@/state/agent/session-items';
 import {openAgentStream} from '@/state/agent/electron-transport';
+
+/** Dash's own MCP server (state/agent/dash-mcp.ts): the project's data and files. */
+async function dashMcpServers(): Promise<McpServer[]> {
+    const server = await window.dashNative?.mcpServer();
+    if (!server) return [];
+    return [{type: 'http', name: 'dash', url: server.url, headers: [{name: 'Authorization', value: `Bearer ${server.token}`}]}];
+}
 
 export type AgentStatus = 'disconnected' | 'starting' | 'ready' | 'running' | 'exited';
 
@@ -166,7 +174,7 @@ export const useAgentChatState = create<AgentChatZustand>()((set, get) => {
         },
 
         startSession: (agentId) => openSession(agentId, async (connection, cwd) => {
-            const session = await connection.agent.request(methods.agent.session.new, {cwd, mcpServers: []});
+            const session = await connection.agent.request(methods.agent.session.new, {cwd, mcpServers: await dashMcpServers()});
             return {sessionId: session.sessionId, modes: session.modes};
         }),
 
@@ -180,7 +188,7 @@ export const useAgentChatState = create<AgentChatZustand>()((set, get) => {
             const session = await connection.agent.request(methods.agent.session.load, {
                 sessionId: info.sessionId,
                 cwd: info.cwd,
-                mcpServers: [],
+                mcpServers: await dashMcpServers(),
             });
             return {sessionId: info.sessionId, modes: session.modes};
         }),

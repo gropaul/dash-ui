@@ -15,6 +15,20 @@ contextBridge.exposeInMainWorld('dashNative', {
     interrupt: () => ipcRenderer.invoke('duckdb:interrupt'),
     // Storage root (home/.duckdb/extension_data/dash/) for per-project state DBs.
     storageRoot: () => ipcRenderer.invoke('duckdb:storage-root'),
+    // The address and token of Dash's MCP server (electron/mcp.cjs), or null while it starts.
+    mcpServer: () => ipcRenderer.invoke('mcp:server'),
+    // Answers the MCP messages main relays (electron/mcp.cjs); `handle(message)` returns the answer or null.
+    serveMcp: (handle) => {
+        const listener = async (_event, id, message) => {
+            try {
+                ipcRenderer.send('mcp:answer', id, true, await handle(message));
+            } catch (e) {
+                ipcRenderer.send('mcp:answer', id, false, e instanceof Error ? e.message : String(e));
+            }
+        };
+        ipcRenderer.on('mcp:message', listener);
+        return () => ipcRenderer.removeListener('mcp:message', listener);
+    },
     // ACP agent processes (electron/agents.cjs). Bytes pass through unparsed.
     agent: {
         list: () => ipcRenderer.invoke('agent:list'),

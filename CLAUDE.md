@@ -52,7 +52,9 @@ write SQL queries, and compose them on pages. It ships both as a browser app
   defaults - the single source of truth for magic values), `sql-utils`, `colors-utils`,
   `async-queue`, `electron.ts`, LRU cache, number/string/object utils.
 - **`electron/`** - desktop shell: `main.js` (custom `app://` protocol serving `out/`),
-  `preload.cjs` exposing `window.dashNative`, and `duckdb.cjs` (native DuckDB via `@duckdb/node-api`).
+  `preload.cjs` exposing `window.dashNative`, `duckdb.cjs` (native DuckDB via `@duckdb/node-api`), `agents.cjs`
+  (starts ACP agents for the chat panel, `src/state/agent/`) and `mcp.cjs` (relays Dash's MCP server to agents on
+  localhost; the server itself runs in the app, `state/agent/dash-mcp.ts`: read-only queries and the workspace files).
 
 ### Connections
 

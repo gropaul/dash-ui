@@ -1,3 +1,5 @@
+import type {JSONRPCMessage} from "@modelcontextprotocol/sdk/types.js";
+
 // Shape of the bridge exposed by electron/preload.cjs as `window.dashNative`.
 // Present only in the Electron renderer; `undefined` in the browser (used to detect Electron).
 
@@ -11,6 +13,10 @@ export interface DashNativeApi {
     /** Storage root (home/.duckdb/extension_data/dash/) for per-project state DBs. */
     storageRoot: () => Promise<string>;
     agent: DashNativeAgentApi;
+    /** Where agents reach Dash's MCP server (electron/mcp.cjs relays it); null until it listens. */
+    mcpServer: () => Promise<{ url: string; token: string } | null>;
+    /** Answers the MCP messages main relays: the response to a request, null for a notification. */
+    serveMcp: (handle: (message: JSONRPCMessage) => Promise<JSONRPCMessage | null>) => () => void;
 }
 
 export interface AgentInfo {

@@ -10,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const {initDuckDB} = require('./duckdb.cjs');
 const {initAgents} = require('./agents.cjs');
+const {initMcp} = require('./mcp.cjs');
 
 const SCHEME = 'app';
 const APP_URL = `${SCHEME}://bundle/`;
@@ -100,6 +101,7 @@ app.whenReady().then(() => {
     registerAppProtocol();
     initDuckDB();
     initAgents();
+    initMcp();
     createWindow();
 
     app.on('activate', () => {

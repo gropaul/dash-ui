@@ -20,6 +20,7 @@ import {
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {DownloadProgress, useInitState} from "@/state/init.state";
 import {Progress} from "@/components/ui/progress";
+import {serveDashMcp} from "@/state/agent/dash-mcp";
 
 /**
  * Hosts the one-time init gate + global dialogs, ABOVE the router so they are
@@ -37,6 +38,7 @@ export function AppGate({children}: { children: React.ReactNode }) {
         setMounted(true);
         // Starts initialization (see init.state.ts).
         void useInitState.persist.rehydrate();
+        return serveDashMcp();
     }, []);
 
     useEffect(() => {

@@ -17,6 +17,7 @@ import {registerCompletionDuckDB} from "@/components/basics/sql-editor/register-
 import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
 import {useMonacoState} from "@/state/monaco.state";
 import {useGUIState} from "@/state/gui.state";
+import {registerPendingEdits} from "@/state/workspace/pending-edits";
 
 export type SupportedLanguages = "sql" | "plaintext" | "markdown";
 
@@ -143,6 +144,7 @@ export function SqlEditor(
 
             // Debounce the state update
             debounceTimerRef.current = setTimeout(() => {
+                debounceTimerRef.current = null;
                 onCodeChangeRef.current?.(value);
             }, SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS);
         }
@@ -162,6 +164,14 @@ export function SqlEditor(
             // aiCompletionRef.current?.deregister();
         };
     }, []);
+
+    // Typing still waiting for the debounce goes out at once when asked.
+    useEffect(() => registerPendingEdits(() => {
+        if (!debounceTimerRef.current) return;
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+        onCodeChangeRef.current?.(editorRef.current?.getValue() ?? '');
+    }), []);
 
     // define custom theme to set the background transparent
     const baseTheme: any = {

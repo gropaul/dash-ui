@@ -12,6 +12,7 @@ import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {useGUIState} from "@/state/gui.state";
+import {registerPendingEdits} from "@/state/workspace/pending-edits";
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {EMPTY_LINE_PLACEHOLDER, PAGE_EDITOR_PLUGINS} from "@/components/page-editor/editor-plugins";
 import {BlockHoverPlugin, onEditorMouseOver} from "@/components/page-editor/block-hover";
@@ -82,6 +83,9 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
         onSubmit: name => renameBlock(editor, path, relation.id, name),
     }), [editor, path]);
     const sync = useMarkdownSync(editor, onMarkdownChange);
+    const flushAll = useRef(sync.flushAll);
+    flushAll.current = sync.flushAll;
+    useEffect(() => registerPendingEdits(() => flushAll.current()), []);
     useEffect(() => sync.applyExternal(markdown), [markdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Typing `/` at the start of a line or after a space, or `[[` anywhere, opens the add menu at the cursor;

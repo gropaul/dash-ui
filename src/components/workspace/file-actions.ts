@@ -130,14 +130,17 @@ export function deleteEntry(path: string) {
         title: isFolder ? 'Delete folder' : 'Delete file',
         description: `Delete "${path}"${isFolder ? ' and everything in it' : ''}? This can't be undone.`
             + (users.length ? `\n\nThese files use it and will show it as not found:\n${users.join('\n')}` : ''),
-        onDelete: async () => {
-            const nav = DashNavigator.instance();
-            const shown = nav.getCurrentPath();
-            await useWorkspace.getState().remove(path);
-            useFileStats.getState().remove(projectId(), path);
-            if (shown && isWithin(shown, path)) nav.navigateToLocation(DashLocations.CurrentProjectRoot(), true);
-        },
+        onDelete: () => removeEntry(path),
     });
+}
+
+/** Deletes a file or folder, leaving it if it is open. */
+export async function removeEntry(path: string) {
+    const nav = DashNavigator.instance();
+    const shown = nav.getCurrentPath();
+    await useWorkspace.getState().remove(path);
+    useFileStats.getState().remove(projectId(), path);
+    if (shown && isWithin(shown, path)) nav.navigateToLocation(DashLocations.CurrentProjectRoot(), true);
 }
 
 export function copyLink(path: string) {
