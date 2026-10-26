@@ -1,0 +1,9 @@
+[
+    {
+        "id": "claude",
+        "label": "Claude Code",
+        "package": "@agentclientprotocol/claude-agent-acp",
+        "args": [],
+        "env": {}
+    }
+]

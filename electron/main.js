@@ -7,7 +7,9 @@ import {fileURLToPath, pathToFileURL} from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // duckdb.cjs is CommonJS (neo is CJS); load it from this ESM module.
-const {initDuckDB} = createRequire(import.meta.url)('./duckdb.cjs');
+const require = createRequire(import.meta.url);
+const {initDuckDB} = require('./duckdb.cjs');
+const {initAgents} = require('./agents.cjs');
 
 const SCHEME = 'app';
 const APP_URL = `${SCHEME}://bundle/`;
@@ -97,6 +99,7 @@ function createWindow() {
 app.whenReady().then(() => {
     registerAppProtocol();
     initDuckDB();
+    initAgents();
     createWindow();
 
     app.on('activate', () => {

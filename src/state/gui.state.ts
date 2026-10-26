@@ -81,6 +81,8 @@ export interface GUIZustand {
     pageEditorMode: Exclude<PageEditorMode, 'view'>;
     // Width (0-1) of the markdown next to the page editor.
     pageMarkdownRatio: number;
+    // Whether the right-hand agent chat panel is open.
+    agentPanelOpen: boolean;
     // Global command palette / entity picker (not persisted — see partialize).
     command: CommandGUIZustand;
     // The folders open in the sidebar's workspace tree, per project id.
@@ -94,6 +96,7 @@ export interface GUIZustandActions {
     setEditorWordWrap: (wrap: boolean) => void;
     setPageEditorMode: (mode: Exclude<PageEditorMode, 'view'>) => void;
     setPageMarkdownRatio: (ratio: number) => void;
+    setAgentPanelOpen: (open: boolean) => void;
 
     relationFileDropEnabled: boolean;
     setRelationFileDropEnabled: (enabled: boolean) => void;
@@ -125,6 +128,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             editorWordWrap: false,
             pageEditorMode: 'edit',
             pageMarkdownRatio: 0.4,
+            agentPanelOpen: false,
             command: INITIAL_COMMAND_STATE,
             workspaceTreeOpen: {},
 
@@ -194,6 +198,10 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
 
             setPageMarkdownRatio: (ratio) => {
                 set({pageMarkdownRatio: ratio});
+            },
+
+            setAgentPanelOpen: (open: boolean) => {
+                set({agentPanelOpen: open});
             },
 
             openCommand: (request: CommandRequest) => {
