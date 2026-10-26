@@ -44,7 +44,7 @@ export function ChatRelationBlock({surface, text, bleed}: { surface: string, tex
     const rows = isInputView(model?.relation.viewState.selectedView) ? INPUT_ROWS : Number(header.rows) || DEFAULT_BLOCK_ROWS;
     const message = error ?? (!model ? `${header.input} not found` : undefined);
     return (
-        <div data-chat-block className={cn("overflow-hidden", bleed ? "bg-card" : "my-2 rounded-2xl")} style={{height: rows * GRID_ROW_PX}}>
+        <div data-chat-block className={cn("relative overflow-hidden", bleed ? "bg-card" : "my-2 rounded-2xl")} style={{height: rows * GRID_ROW_PX}}>
             {message || !model ? (
                 <div className={cn("flex h-full items-center justify-center bg-card p-3 text-sm text-destructive", !bleed && "rounded-2xl border")}>{message}</div>
             ) : (
