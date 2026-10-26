@@ -1,5 +1,4 @@
 import {
-    BarChart3,
     ChartColumnBig,
     Hand,
     Highlighter,
@@ -7,7 +6,6 @@ import {
     Pencil,
     PenTool,
     Sheet,
-    Text,
     Type
 } from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
@@ -17,7 +15,6 @@ import {
     CanvasState,
     DEFAULT_CHART_SIZE,
     DEFAULT_NODE_SIZE,
-    DEFAULT_TEXT_SIZE,
     DrawSettings,
     DrawToolVariant
 } from "@/components/canvas/logic/models";

@@ -3,7 +3,7 @@ import {buildWorkspaceTree} from "@/state/workspace/workspace-tree";
 import {relativePath, resolveRelative} from "@/state/workspace/paths";
 
 describe('buildWorkspaceTree', () => {
-    it('nests files in folders, folders first, by name ignoring case, without canvases', () => {
+    it('nests files in folders, folders first, by name ignoring case', () => {
         const tree = buildWorkspaceTree(
             ['b.md', 'Sales/orders.sql', 'Sales/Q3.md', 'A.canvas', 'notes.txt'],
             ['Sales', 'Empty'],
@@ -12,6 +12,7 @@ describe('buildWorkspaceTree', () => {
         expect(names()).toEqual([
             ['Empty', []],
             ['Sales', ['orders:query', 'Q3:page']],
+            'A:canvas',
             'b:page',
             'notes.txt:file',
         ]);

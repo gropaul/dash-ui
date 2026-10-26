@@ -22,8 +22,8 @@ export function kindOf(path: string): WorkspaceNodeKind {
 export const isQuery = (path: string) => kindOf(path) === 'query';
 export const isPage = (path: string) => kindOf(path) === 'page';
 
-/** Canvases are disabled while project content moves to files, and `dash.yaml` is the project's: no listing shows them. */
-export const isListed = (path: string) => kindOf(path) !== 'canvas' && path !== PROJECT_CONFIG_FILE;
+/** `dash.yaml` is the project's: no listing shows it. */
+export const isListed = (path: string) => path !== PROJECT_CONFIG_FILE;
 
 /** What a file is called: its name without a known extension (`Q3` for `Q3.md`); a folder's or other file's full name. */
 export function displayName(path: string, kind: WorkspaceNodeKind = kindOf(path)): string {

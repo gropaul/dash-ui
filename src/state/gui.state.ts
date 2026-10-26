@@ -15,7 +15,7 @@ export type SettingsTab = 'about' | 'connection' | 'sharing' | 'agents' | 'docum
 export type CommandActionType = 'open' | 'add-query-to-page' | 'move';
 
 /** The kinds of workspace entries the palette can list. */
-export type CommandEntityType = Extract<WorkspaceNodeKind, 'folder' | 'page' | 'query'>;
+export type CommandEntityType = Extract<WorkspaceNodeKind, 'folder' | 'page' | 'query' | 'canvas'>;
 
 /** A file or folder the palette hands back. */
 export interface CommandFile {

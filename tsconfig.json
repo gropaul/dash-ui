@@ -42,14 +42,6 @@
   ],
   "exclude": [
     "node_modules",
-    "dev",
-    "src/components/canvas",
-    "src/hooks/use-undoable-flow.ts",
-    "src/hooks/use-flow-shortcuts.ts",
-    "src/state/canvas-history.state.ts",
-    "src/state/relations/sql/dag-execution.ts",
-    "src/state/relations/relation-dependencies.ts",
-    "src/components/workbench/relation-delete-dialog.tsx",
-    "src/model/canvas-state.ts"
+    "dev"
   ]
 }

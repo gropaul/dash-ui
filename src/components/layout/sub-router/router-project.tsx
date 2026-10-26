@@ -6,6 +6,7 @@ import {ConnectionsView} from "@/components/connections/connections-view";
 import {CatalogView} from "@/components/catalog/catalog-view";
 import {QueryTab} from "@/components/relation/query-tab";
 import {PageTab} from "@/components/dashboard/page-tab";
+import {CanvasTab} from "@/components/canvas/canvas-tab";
 import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {SubRouterProps} from "@/components/layout/app-router";
@@ -66,6 +67,8 @@ function FileView({projectId, path}: { projectId: string, path: string }) {
             return <PageTab path={path}/>;
         case "query":
             return <QueryTab path={path}/>;
+        case "canvas":
+            return <CanvasTab path={path}/>;
         case "sources":
             return <ConnectionsView/>;
         default:

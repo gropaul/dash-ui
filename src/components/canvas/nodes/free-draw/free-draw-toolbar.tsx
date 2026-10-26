@@ -3,6 +3,7 @@ import {Button} from "@/components/ui/button";
 import {Trash2} from "lucide-react";
 import {ColorPalette} from "@/components/ui/color-palette";
 import {FreeDrawNodeData} from "../free-draw-node";
+import {useCanvasState} from "@/components/canvas/canvas-context";
 
 interface FreeDrawToolbarProps {
     nodeId: string;
@@ -11,7 +12,8 @@ interface FreeDrawToolbarProps {
 }
 
 export function FreeDrawToolbar({nodeId, isVisible, data}: FreeDrawToolbarProps) {
-    const {setNodes, deleteElements} = useReactFlow();
+    const {deleteElements} = useReactFlow();
+    const {setNodes} = useCanvasState();
 
     const updateNodeData = (updates: Partial<FreeDrawNodeData>) => {
         setNodes((nodes) =>

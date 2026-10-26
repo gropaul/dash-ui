@@ -31,14 +31,14 @@ function actionLabel(action: CommandActionType): string {
     }
 }
 
-const KIND_LABELS: Record<CommandFile['kind'], string> = {folder: 'Folder', page: 'Page', query: 'Query'};
+const KIND_LABELS: Record<CommandFile['kind'], string> = {folder: 'Folder', page: 'Page', query: 'Query', canvas: 'Canvas'};
 
-/** Every folder and every page and query of the workspace. */
+/** Every folder and every page, query and canvas of the workspace. */
 function workspaceEntries(paths: string[], dirs: Set<string>): CommandFile[] {
     const entries: CommandFile[] = [...dirs].map(path => ({path, name: displayName(path, 'folder'), kind: 'folder'}));
     for (const path of paths) {
         const kind = kindOf(path);
-        if (kind === 'page' || kind === 'query') entries.push({path, name: displayName(path, kind), kind});
+        if (kind === 'page' || kind === 'query' || kind === 'canvas') entries.push({path, name: displayName(path, kind), kind});
     }
     return entries;
 }
@@ -66,7 +66,7 @@ function CreateEntitySlot() {
 export function openSearchCommand() {
     useGUIState.getState().openCommand({
         action: 'open',
-        filter: ['page', 'query'],
+        filter: ['page', 'query', 'canvas'],
         slot: <CreateEntitySlot/>,
         onSelect: (file) => DashNavigator.instance().navigateToPath(file.path),
     });

@@ -24,7 +24,8 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {Trash2} from "lucide-react";
-import type {EdgeAnimationState} from "@/state/relations/sql/dag-execution";
+
+export type EdgeAnimationState = 'queued' | 'executing' | undefined;
 
 export type EdgeStyle = 'smoothstep' | 'bezier' | 'straight';
 

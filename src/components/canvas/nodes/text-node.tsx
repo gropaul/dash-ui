@@ -89,6 +89,8 @@ export function TextNode({id, data, selected, width, height}: NodeProps) {
             selection?.removeAllRanges();
             selection?.addRange(range);
         }
+        // Only when editing starts: the text typed afterwards must not be written over.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditing]);
 
     const handleDoubleClick = useCallback(() => {

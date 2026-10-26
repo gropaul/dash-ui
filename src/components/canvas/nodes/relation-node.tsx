@@ -7,8 +7,6 @@ import {RelationViewAPIProps, RelationViewProps} from "@/components/relation/rel
 import {RelationToolbar} from "@/components/canvas/nodes/relation/relation-toolbar";
 import {ConditionalHandles} from "@/components/canvas/nodes/relation/conditional-handles";
 import {useHoverWithPadding} from "@/hooks/use-hover-with-padding";
-import {createAutoEdge, diffEdges, extractNodeRefs} from "@/components/canvas/logic/ref-detection";
-import {refreshDownstream} from "@/state/relations/sql/dag-execution";
 
 
 import {
@@ -23,12 +21,9 @@ import {useCanvasState} from "@/components/canvas/canvas-context";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationState} from "@/model/relation-state";
 import {getDefaultSessionState, RelationViewMode} from "@/model/relation-view-state";
-import {onRelationEvent} from "@/state/relations/event/relation-events";
-import {useRelationsState} from "@/state/relations.state";
-import {shallow} from "zustand/shallow";
+import {RelationNodeData, useRelationNodeModel} from "@/components/canvas/logic/canvas-file";
 
-type RelationNodeProps = {
-    relationId: string;
+type RelationNodeProps = RelationNodeData & {
     connectionHover?: ConnectionHoverState | null;
 }
 
@@ -37,37 +32,35 @@ type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
 const VIEW_MODE: RelationViewMode = 'embedded';
 
 export function RelationNode(props: NodeProps<RelationNodeType>) {
-    const {openFullscreen, setNodes, setEdges, getNodes, getEdges} = useCanvasState();
+    const {canvasId: path, openFullscreen, setNodes} = useCanvasState();
+    const {body, showCode} = props.data;
 
-    // Read relation from the flat state map; fall back to a default if missing (e.g. during migration)
-    const data = useRelationsState(
-        s => s.relations[props.data.relationId] ?? RelationActions.create(),
-        shallow,
-    );
-    const storeUpdateRelation = useRelationsState(s => s.updateRelation);
+    const model = useRelationNodeModel(path, props.id, body, setNodes);
 
-    // Update relation data in Zustand state (no longer touches XyFlow node data)
+    // Whether the SQL shows is the node's, kept in the canvas file.
+    const data = useMemo(() => {
+        const relation = model?.relation ?? RelationActions.create();
+        const session = relation.viewState.embeddedSessionState ?? getDefaultSessionState('embedded');
+        if (session.codeFenceState.show === showCode) return relation;
+        return {
+            ...relation,
+            viewState: {...relation.viewState, embeddedSessionState: {...session, codeFenceState: {...session.codeFenceState, show: showCode}}},
+        };
+    }, [model?.relation, showCode]);
+
     const updateRelation = useCallback((updater: RelationState | ((prev: RelationState) => RelationState)) => {
-        const current = useRelationsState.getState().relations[props.data.relationId];
-        if (!current) return;
-        const newRelation = typeof updater === 'function' ? updater(current) : updater;
-        storeUpdateRelation(newRelation);
-    }, [props.data.relationId, storeUpdateRelation]);
+        if (!model) return;
+        model.updateRelation(typeof updater === 'function' ? updater(data) : updater);
+    }, [model, data]);
 
-    // Update node-level XyFlow properties (height, etc.) without touching relation data
-    const updateNodeHeight = useCallback((heightDelta: number) => {
-        setNodes((nodes) => nodes.map((node) => {
-            if (node.id !== props.id) return node;
-            return {...node, height: roundToGrid((node.height ?? DEFAULT_NODE_HEIGHT) + heightDelta)};
-        }));
-    }, [setNodes, props.id]);
-
-    // Refresh downstream nodes when this relation's query finishes
+    // A block not run yet runs once it shows.
     useEffect(() => {
-        return onRelationEvent(async () => {
-            await refreshDownstream(props.id, {getNodes, getEdges, setNodes, setEdges});
-        }, ["QUERY_RUN_FINISHED", "UPDATE_SELECTION"], data.id);
-    }, [props.id, getNodes, getEdges, setNodes, setEdges]);
+        if (model?.relation.executionState.state === 'not-started') {
+            void getRelationActions({mode: VIEW_MODE, relationState: model.relation, updateRelation: model.updateRelation})
+                .updateRelationDataWithBaseQuery(model.relation.query.baseQuery);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [model?.relation.id]);
 
     const actions = useMemo(() => {
         const inputProps: RelationViewAPIProps = {
@@ -78,31 +71,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
         }
         return getRelationActions(inputProps)
     }, [data, updateRelation])
-
-    // Auto-detect node_xxx() references in SQL and sync edges
-    const sql = data.query.baseQuery;
-    useEffect(() => {
-        const refs = extractNodeRefs(sql);
-        const currentEdges = getEdges();
-        const currentNodes = getNodes();
-        const {toAdd, toRemove} = diffEdges(props.id, refs, currentEdges, currentNodes);
-
-        if (toAdd.length === 0 && toRemove.length === 0) return;
-
-        setEdges((edges) => {
-            let updated = edges;
-            if (toRemove.length > 0) {
-                const removeSet = new Set(toRemove);
-                updated = updated.filter(e => !removeSet.has(e.id));
-            }
-            for (const {source, target} of toAdd) {
-                if (!updated.some(e => e.source === source && e.target === target)) {
-                    updated = [...updated, createAutoEdge(source, target)];
-                }
-            }
-            return updated;
-        });
-    }, [sql, props.id, setEdges, getEdges, getNodes]);
 
     const [closestHandle, setClosestHandle] = useState<Position | undefined>()
     const [lastCodeHeight, setLastCodeHeight] = useState(DEFAULT_CODE_VIEW_HEIGHT)
@@ -150,21 +118,12 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
             heightDelta = lastCodeHeight;
         }
 
-        updateRelation((prev) => {
-            const prevSession = prev.viewState.embeddedSessionState ?? getDefaultSessionState('embedded');
-            return {
-                ...prev,
-                viewState: {
-                    ...prev.viewState,
-                    embeddedSessionState: {
-                        ...prevSession,
-                        codeFenceState: {...prevSession.codeFenceState, show: !isCurrentlyShowing},
-                    },
-                },
-            };
-        });
-        updateNodeHeight(heightDelta);
-    }, [isCodeShowing, updateRelation, updateNodeHeight, lastCodeHeight]);
+        setNodes((nodes) => nodes.map((node) => node.id !== props.id ? node : {
+            ...node,
+            data: {...node.data, showCode: !isCurrentlyShowing},
+            height: roundToGrid((node.height ?? DEFAULT_NODE_HEIGHT) + heightDelta),
+        }));
+    }, [isCodeShowing, setNodes, props.id, lastCodeHeight]);
 
     const handleRun = useCallback(async () => {
         await actions.updateRelationDataWithBaseQuery(data.query.baseQuery);

@@ -1,8 +1,6 @@
 import {Node, Edge} from '@xyflow/react';
 import {deepClone} from '@/platform/object-utils';
-import {RelationActions} from "@/state/relations/actions/static-actions";
-import {useRelationsState} from "@/state/relations.state";
-import {addRelationForCanvas} from "@/components/canvas/logic/canvas-relations";
+import {blockBody, blockOf, freeBlockName, isRelationNode} from "@/components/canvas/logic/canvas-file";
 
 /**
  * Generate a unique ID for a cloned node
@@ -42,31 +40,25 @@ export function cloneEdgesForClipboard(edges: Edge[]): Edge[] {
 
 /**
  * Clone nodes with new IDs and position offset.
- * For relation nodes, copies the relation in state.relations and stores the new ID.
+ * A query node's block gets a name no node of `existing` (nor an earlier clone) has.
  */
 export function cloneNodes(
     nodes: Node[],
     idMapping: Map<string, string>,
     offset: { x: number; y: number },
-    canvasId: string,
+    existing: Node[],
 ): Node[] {
+    const taken = [...existing];
     return nodes.map(node => {
         const newId = generateClonedId(node.id);
         idMapping.set(node.id, newId);
 
         const clonedNode = deepClone(node);
 
-        // Copy relation into state.relations and store the new ID in node data
-        if (clonedNode.type === 'relationNode') {
-            const data = clonedNode.data as {relationId?: string};
-            if (data.relationId) {
-                const original = useRelationsState.getState().relations[data.relationId];
-                if (original) {
-                    const copied = RelationActions.copy(original);
-                    addRelationForCanvas(canvasId, copied);
-                    data.relationId = copied.id;
-                }
-            }
+        if (isRelationNode(clonedNode)) {
+            const {header, sql} = blockOf(clonedNode);
+            clonedNode.data = {...clonedNode.data, body: blockBody(freeBlockName(taken), header, sql)};
+            taken.push(clonedNode);
         }
 
         return {

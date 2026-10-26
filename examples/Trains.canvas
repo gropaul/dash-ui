@@ -1,0 +1,52 @@
+<node id="title" type="text" x="0" y="-160" width="1140" height="120" text-style="h1" text-align="left">
+
+Turn SQL into a canvas that runs itself.
+
+</node>
+
+<node id="stations" type="query" x="0" y="0" width="520" height="300">
+
+```sql stations
+-- view: select
+-- column: StationName
+SELECT StationName, count(DISTINCT TrainNumber) AS num_trains
+FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'
+GROUP BY ALL
+ORDER BY num_trains DESC
+```
+
+</node>
+
+<node id="types" type="query" x="0" y="360" width="520" height="520">
+
+```sql types_of_trains
+-- view: table
+SELECT ServiceType, count(DISTINCT TrainNumber) AS num_trains
+FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet'
+WHERE StationName IN (SELECT StationName FROM refs.stations())
+GROUP BY ALL
+ORDER BY num_trains DESC
+```
+
+</node>
+
+<node id="total" type="query" x="620" y="0" width="300" height="200" code="hidden">
+
+```sql total_trains
+-- view: text
+SELECT format('{:,}', sum(num_trains)) AS total_trains, 'trains through the picked stations' AS detail
+FROM refs.types_of_trains()
+```
+
+</node>
+
+<node id="chart" type="query" x="620" y="300" width="520" height="440" code="hidden">
+
+```sql types_bar_chart
+-- view: bar
+-- x: ServiceType
+-- y: num_trains
+SELECT * FROM refs.types_of_trains()
+```
+
+</node>

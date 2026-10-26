@@ -1,6 +1,6 @@
 import {NodeToolbar, Position} from '@xyflow/react';
 import {Button} from "@/components/ui/button";
-import {Code, Maximize, PanelTop} from "lucide-react";
+import {Code, Maximize} from "lucide-react";
 import {RelationViewTypeSwitcher, ViewSwitchEntry} from '../../../relation/settings/relation-view-type-switcher';
 import {Toggle} from "@/components/ui/toggle";
 import {RelationSettings} from "@/components/relation/relation-settings";

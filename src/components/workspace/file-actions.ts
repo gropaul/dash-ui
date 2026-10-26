@@ -14,8 +14,9 @@ import {RelationSource} from "@/model/relation";
 import {getBaseQueryFromSource} from "@/model/relation-state";
 import {nameForSource} from "@/state/workspace/query-files";
 import {confirmDelete} from "@/components/workspace/delete-file-dialog";
+import {formatCanvas} from "@/state/workspace/canvas-text";
 
-export type NewFileKind = 'page' | 'query' | 'folder';
+export type NewFileKind = 'page' | 'query' | 'canvas' | 'folder';
 
 const projectId = () => useProjectsState.getState().currentProjectId;
 
@@ -46,16 +47,16 @@ function validate(name: string, path: string, current?: string): string | undefi
 }
 
 export function newFile(kind: NewFileKind, folder: string = '') {
-    const extension = {page: '.md', query: '.sql', folder: ''}[kind];
+    const extension = {page: '.md', query: '.sql', canvas: '.canvas', folder: ''}[kind];
     const pathFor = (name: string) => joinPath(folder, fileName(name, extension));
     askForName({
-        title: {page: 'New Page', query: 'New Query', folder: 'New Folder'}[kind],
+        title: {page: 'New Page', query: 'New Query', canvas: 'New Canvas', folder: 'New Folder'}[kind],
         savedAs: name => kind === 'query' ? queryFileName(name) : undefined,
         validate: name => validate(name, pathFor(name)),
         onSubmit: async name => {
             const ws = useWorkspace.getState();
             if (kind === 'folder') return ws.mkdir(pathFor(name));
-            await ws.write(pathFor(name), kind === 'page' ? `# ${name}\n` : '');
+            await ws.write(pathFor(name), {page: `# ${name}\n`, query: '', canvas: formatCanvas([{id: 'title', type: 'text', x: 0, y: 0, width: 400, height: 80, attributes: {'text-style': 'h1', 'text-align': 'left'}, body: name}])}[kind]);
             DashNavigator.instance().navigateToPath(pathFor(name));
         },
     });

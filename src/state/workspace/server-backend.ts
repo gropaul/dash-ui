@@ -18,7 +18,7 @@ export class ServerBackend implements WorkspaceBackend {
 
     async load(): Promise<WorkspaceSnapshot> {
         const found = await this.connection.executeQuery(
-            `SELECT file FROM glob('**/*.md') UNION ALL SELECT file FROM glob('**/*.sql') UNION ALL SELECT file FROM glob('dash.yaml');`,
+            `SELECT file FROM glob('**/*.md') UNION ALL SELECT file FROM glob('**/*.sql') UNION ALL SELECT file FROM glob('**/*.canvas') UNION ALL SELECT file FROM glob('dash.yaml');`,
             false);
         const paths = found.rows.map(([file]) => String(file).replaceAll('\\', '/').replace(/^\.\//, '')).filter(isListed);
         if (paths.length === 0) return {files: {}, dirs: []};

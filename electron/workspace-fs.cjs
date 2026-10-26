@@ -6,7 +6,7 @@ const {app, ipcMain, dialog, BrowserWindow} = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const WORKSPACE_EXTENSIONS = ['.md', '.sql'];
+const WORKSPACE_EXTENSIONS = ['.md', '.sql', '.canvas'];
 const PROJECT_CONFIG_FILE = 'dash.yaml';
 const SKIPPED_DIRS = ['node_modules'];
 const DEBOUNCE_MS = 100;
