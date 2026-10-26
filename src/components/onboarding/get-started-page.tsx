@@ -108,7 +108,7 @@ export function GetStartedPage() {
 
                 <div className="w-full mt-2">
                     <p className="text-sm text-muted-foreground text-center mb-3">Or start from scratch</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                    <div className="grid grid-cols-3 gap-3 w-full">
                         <Card
                             className="cursor-pointer group hover:bg-muted/50 hover:border-primary/30 transition-all shadow-sm"
                             onClick={onNewQuery}

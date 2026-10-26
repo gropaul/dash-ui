@@ -14,10 +14,10 @@ export function ParagraphElement(props: PlateElementProps) {
 }
 
 // Headings space themselves with margin, not padding: it falls outside the block, so the block's bar sits right above the text.
-// h1 is one and a half grid rows, most of its space above it: 28 + 36 + 8. h2 to h4 are one row, with 4px below
-// so they stay close to their text: 16 + 28 + 4, and for h4 20 + 24 + 4.
+// h1 is one and a half grid rows, most of its space above it: 28 + 36 + 7 + a 1px underline. h2 to h4 are one row,
+// with 4px below so they stay close to their text: 16 + 28 + 4, and for h4 20 + 24 + 4.
 export function H1Element(props: PlateElementProps) {
-    return <PlateElement as="h1" {...props} className="mt-7 pb-2 text-3xl font-bold">{props.children}</PlateElement>;
+    return <PlateElement as="h1" {...props} className="mt-7 pb-[7px] border-b text-3xl font-bold">{props.children}</PlateElement>;
 }
 
 export function H2Element(props: PlateElementProps) {
@@ -71,8 +71,9 @@ interface TListElement extends TElement {
 function TodoMarker({element}: { element: TElement }) {
     const {checkboxProps} = useTodoListElement(useTodoListElementState({element}));
     return (
-        <div contentEditable={false} className="absolute -left-6 top-2.5">
-            <Checkbox {...checkboxProps}/>
+        // Centred on the 28px line: (28 - 20) / 2.
+        <div contentEditable={false} className="absolute -left-7 top-1 flex">
+            <Checkbox {...checkboxProps} className="size-5 rounded-[5px] [&_svg]:size-3.5"/>
         </div>
     );
 }

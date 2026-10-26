@@ -48,7 +48,7 @@ export function NavigationSidebar() {
     // const). CurrentProject* read the current project id from the store at call time.
     const projectItems: NavItem[] = [
         {key: 'connections', label: 'Connections', icon: Plug, location: DashLocations.CurrentProjectConnections()},
-        {key: 'catalog', label: 'Catalog', icon: Database, location: DashLocations.CurrentProjectData()},
+        {key: 'catalog', label: 'Data', icon: Database, location: DashLocations.CurrentProjectData()},
     ];
     const activeKey = activeKeyForLocation(location);
 

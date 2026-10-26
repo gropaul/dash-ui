@@ -242,7 +242,7 @@ export function toEChartOptions(
         if (cartesian.yRange.start !== undefined) {
             yAxis.min = cartesian.yRange.start;
         } else {
-            yAxis.min = 'dataMin';
+            yAxis.min = ({min}: { min: number }) => Math.min(0, min);
         }
         if (cartesian.yRange.end !== undefined) {
             yAxis.max = cartesian.yRange.end;

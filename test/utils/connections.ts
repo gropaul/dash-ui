@@ -2,7 +2,7 @@ import { expect, type Page } from '@playwright/test';
 import { SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS } from '@/platform/global-data';
 
 /**
- * Helpers for the per-project Connections tab (`sources.sql`) and the Catalog view it feeds.
+ * Helpers for the per-project Connections tab (`sources.sql`) and the Data view (catalog) it feeds.
  */
 
 /** The navigation sidebar, the nav holding the workspace's file tree; scoped so labels can't collide with the breadcrumb nav. */
@@ -16,7 +16,7 @@ export async function goToConnections(page: Page): Promise<void> {
 }
 
 export async function goToCatalog(page: Page): Promise<void> {
-  await sidebar(page).getByText('Catalog', { exact: true }).click();
+  await sidebar(page).getByText('Data', { exact: true }).click();
   await expect(page).toHaveURL(/\/projects\/[^/]+\/data$/);
 }
 

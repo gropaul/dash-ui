@@ -16,22 +16,31 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {useProjectsState, useRoutedProject} from "@/state/projects.state";
 import {useGUIState} from "@/state/gui.state";
-import {ancestorsOf} from "@/state/workspace/paths";
-import {displayName} from "@/state/workspace/workspace-tree";
+import {ancestorsOf, parentOf} from "@/state/workspace/paths";
+import {buildWorkspaceTree, displayName} from "@/state/workspace/workspace-tree";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {ChevronRight} from "lucide-react";
+import {ColoredIcon} from "@/components/basics/files/icon-factories";
+import {fileIconType} from "@/components/workspace/file-icon";
 
 // Above this many crumbs the middle collapses into an expandable ellipsis
 // (first + … + last two), keeping the bar on a single line.
-const MAX_VISIBLE = 4;
+const MAX_VISIBLE = 6;
+// A folder crumb's dropdown lists at most this many of the folder's entries.
+const MAX_FOLDER_ENTRIES = 20;
 
 /**
  * The path to the currently-routed view, rendered as a shadcn Breadcrumb. Handles the project sections:
- *  - `/projects/<id>/workspace/<path>`: the open file's path. A folder segment opens that folder in the file
- *    tree, since folders have no view of their own.
- *  - `/projects/<id>/data/...`: the catalog; a literal `Catalog / db / schema / table [/ column]` trail built
+ *  - `/projects/<id>/workspace/<path>`: the open file's path. A folder segment drops down the folder's
+ *    entries, since folders have no view of their own.
+ *  - `/projects/<id>/data/...`: the catalog; a literal `Data / db / schema / table [/ column]` trail built
  *    straight from the URL segments (see `dataTrail`).
  */
 /** There is no project-name root crumb: the ProjectSwitcher next to this serves as the root. */
@@ -87,31 +96,35 @@ interface BreadCrumb {
     label: string;
     to?: string;
     onClick?: () => void;
+    /** For a folder crumb: the folder whose entries its dropdown lists. */
+    folder?: {projectId: string; path: string};
     type: string;
 }
 
-/** The open file's folders, each opening in the file tree on a click, and the file's name. */
+function openFolderInTree(projectId: string, dir: string) {
+    const setOpen = useGUIState.getState().setWorkspaceFolderOpen;
+    [...ancestorsOf(dir), dir].forEach(d => setOpen(projectId, d, true));
+}
+
+/** The open file's folders, each dropping down its entries, and the file's name. */
 function workspaceTrail(projectId: string, segments: string[]): BreadCrumb[] {
     const path = segments.join('/');
-    const openFolder = (dir: string) => () => {
-        const setOpen = useGUIState.getState().setWorkspaceFolderOpen;
-        [...ancestorsOf(dir), dir].forEach(d => setOpen(projectId, d, true));
-    };
     const folders = ancestorsOf(path).map((dir, i): BreadCrumb => ({
-        id: `dir:${dir}`, label: segments[i], onClick: openFolder(dir), type: "folder",
+        id: `dir:${dir}`, label: segments[i], onClick: () => openFolderInTree(projectId, dir),
+        folder: {projectId, path: dir}, type: "folder",
     }));
     return [...folders, {id: path, label: displayName(path), type: "file"}];
 }
 
 /**
- * The `Catalog / db / schema / table [/ column]` trail for a `/projects/<id>/data/...` route.
+ * The `Data / db / schema / table [/ column]` trail for a `/projects/<id>/data/...` route.
  * Unlike the workspace tree, these are literal URL segments, and every prefix is a real,
  * linkable location: a database/schema prefix filters the catalog list, a table/column prefix
  * opens the detail (see catalog-model routing). So every crumb carries a `to`.
  */
 function dataTrail(segments: string[]): BreadCrumb[] {
     const nav = DashNavigator.instance();
-    const root: BreadCrumb = {id: "__data_root__", label: "Catalog", to: nav.getUrlFromLocation(DashLocations.CurrentProjectData()), type: "folder"};
+    const root: BreadCrumb = {id: "__data_root__", label: "Data", to: nav.getUrlFromLocation(DashLocations.CurrentProjectData()), type: "folder"};
     const crumbs = segments.map((seg, i): BreadCrumb => ({
         id: `data:${i}:${seg}`,
         label: seg,
@@ -142,7 +155,7 @@ function renderCrumb(crumb: BreadCrumb, isLast: boolean) {
     // A crumb links only when it has its own page (`to`) and isn't the current leaf. Structural
     // crumbs without a page (e.g. a `/data` database/schema) show as muted context labels.
     const navigable = !isLast && !!crumb.to;
-    const linkClass = "truncate max-w-[160px] rounded-2xl px-1.5 py-1 text-foreground transition-colors hover:bg-accent hover:text-accent-foreground";
+    const linkClass = "truncate max-w-[320px] rounded-2xl px-1.5 py-1 text-foreground transition-colors hover:bg-accent hover:text-accent-foreground";
     return (
         <BreadcrumbItem className="min-w-0">
             {navigable ? (
@@ -154,10 +167,17 @@ function renderCrumb(crumb: BreadCrumb, isLast: boolean) {
                 >
                     {crumb.label}
                 </BreadcrumbLink>
+            ) : crumb.folder && !isLast ? (
+                <DropdownMenu>
+                    <DropdownMenuTrigger className={linkClass}>{crumb.label}</DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="max-w-[320px]">
+                        <FolderEntries projectId={crumb.folder.projectId} folder={crumb.folder.path}/>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             ) : crumb.onClick && !isLast ? (
                 <button type="button" onClick={crumb.onClick} className={linkClass}>{crumb.label}</button>
             ) : (
-                <BreadcrumbPage className={`truncate max-w-[160px] px-1.5 py-1   hover:bg-accent rounded-2xl ${isLast ? "" : "text-muted-foreground"}`}>
+                <BreadcrumbPage className={`truncate max-w-[320px] px-1.5 py-1   hover:bg-accent rounded-2xl ${isLast ? "" : "text-muted-foreground"}`}>
                     {crumb.label}
                 </BreadcrumbPage>
             )}
@@ -186,5 +206,48 @@ function renderEllipsis(hidden: BreadCrumb[]) {
                 </DropdownMenuContent>
             </DropdownMenu>
         </BreadcrumbItem>
+    );
+}
+
+/**
+ * The folders and files directly in `folder`: a file opens, a folder is a submenu of its own entries. A submenu's
+ * content mounts only while it is open, so each folder is listed when first shown.
+ */
+function FolderEntries({projectId, folder}: {projectId: string; folder: string}) {
+    const files = useWorkspace(s => s.files);
+    const dirs = useWorkspace(s => s.dirs);
+    const nav = DashNavigator.instance();
+    const entries = React.useMemo(() => {
+        const inFolder = (p: string) => parentOf(p) === folder;
+        return buildWorkspaceTree(Object.keys(files).filter(inFolder), [...dirs].filter(inFolder));
+    }, [files, dirs, folder]);
+    const shown = entries.slice(0, MAX_FOLDER_ENTRIES);
+    return (
+        <>
+            {shown.map(node => node.kind === "folder" ? (
+                <DropdownMenuSub key={node.path}>
+                    <DropdownMenuSubTrigger>
+                        <ColoredIcon type={fileIconType(node)} size={16} background={false}/>
+                        <span className="truncate">{node.name}</span>
+                        <ChevronRight className="ml-auto text-muted-foreground"/>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="max-w-[320px]">
+                        <FolderEntries projectId={projectId} folder={node.path}/>
+                    </DropdownMenuSubContent>
+                </DropdownMenuSub>
+            ) : (
+                <DropdownMenuItem
+                    key={node.path}
+                    onClick={() => nav.navigateToLocation(DashLocations.ProjectWorkspace(projectId, node.path.split('/')))}
+                >
+                    <ColoredIcon type={fileIconType(node)} size={16} background={false}/>
+                    <span className="truncate">{node.name}</span>
+                </DropdownMenuItem>
+            ))}
+            {entries.length === 0 && <DropdownMenuItem disabled>Empty</DropdownMenuItem>}
+            {entries.length > shown.length && (
+                <DropdownMenuItem disabled>{entries.length - shown.length} more</DropdownMenuItem>
+            )}
+        </>
     );
 }
