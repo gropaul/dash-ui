@@ -9,9 +9,10 @@ import {useAgentChatState} from "@/state/agent/agent-chat.state";
 
 /** Lists the agent's stored sessions (for Claude Code: the CLI transcripts) and loads one into the panel. */
 export function SessionHistoryButton({disabled}: { disabled: boolean }) {
-    const {listSessions, loadSession} = useAgentChatState();
+    const {listSessions, loadSession, agentId} = useAgentChatState();
     const [open, setOpen] = useState(false);
     const [sessions, setSessions] = useState<SessionInfo[]>([]);
+    const [sizes, setSizes] = useState<Record<string, number>>({});
     const [cursor, setCursor] = useState<string | undefined>();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | undefined>();
@@ -22,6 +23,8 @@ export function SessionHistoryButton({disabled}: { disabled: boolean }) {
         try {
             const page = await listSessions(next);
             setSessions((s) => next ? [...s, ...page.sessions] : page.sessions);
+            const pageSizes = agentId ? await window.dashNative?.agent.sessionSizes(agentId, page.sessions.map(({sessionId, cwd}) => ({sessionId, cwd}))) : undefined;
+            setSizes((s) => ({...(next ? s : {}), ...pageSizes}));
             setCursor(page.nextCursor ?? undefined);
         } catch (e) {
             setError(e instanceof Error ? e.message : String(e));
@@ -56,8 +59,8 @@ export function SessionHistoryButton({disabled}: { disabled: boolean }) {
                         >
                             <span className="w-full truncate text-sm">{s.title || 'Untitled session'}</span>
                             <span className="flex w-full gap-2 text-xs text-muted-foreground">
-                                <span className="truncate">{s.cwd}</span>
-                                {s.updatedAt && <span className="ml-auto shrink-0">{formatDate(s.updatedAt)}</span>}
+                                {s.updatedAt && <span>{timeAgo(s.updatedAt)}</span>}
+                                {sizes[s.sessionId] !== undefined && <span className="ml-auto">{formatSize(sizes[s.sessionId])}</span>}
                             </span>
                         </button>
                     ))}
@@ -75,6 +78,18 @@ export function SessionHistoryButton({disabled}: { disabled: boolean }) {
     );
 }
 
-function formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {dateStyle: 'short', timeStyle: 'short'});
+const relativeTime = new Intl.RelativeTimeFormat(undefined, {numeric: 'auto'});
+const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [['year', 31_536_000], ['month', 2_592_000], ['week', 604_800], ['day', 86_400], ['hour', 3600], ['minute', 60]];
+
+/** "3 hours ago", "yesterday", or "just now" within a minute. */
+function timeAgo(iso: string): string {
+    const seconds = (Date.now() - new Date(iso).getTime()) / 1000;
+    const [unit, size] = UNITS.find(([, size]) => seconds >= size) ?? [];
+    return unit ? relativeTime.format(-Math.floor(seconds / size!), unit) : 'just now';
+}
+
+function formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }

@@ -29,6 +29,8 @@ export interface DashNativeAgentApi {
     list: () => Promise<AgentInfo[]>;
     /** Spawns the agent; `cwd` is the directory it runs in. */
     start: (agentId: string) => Promise<{ channelId: number; cwd: string }>;
+    /** The stored size in bytes of each session that has one (Claude Code's transcripts), by session id. */
+    sessionSizes: (agentId: string, sessions: { sessionId: string; cwd: string }[]) => Promise<Record<string, number>>;
     write: (channelId: number, chunk: string) => void;
     close: (channelId: number) => void;
     onData: (channelId: number, callback: (chunk: string) => void) => () => void;

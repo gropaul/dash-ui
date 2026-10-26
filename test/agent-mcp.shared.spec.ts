@@ -37,6 +37,12 @@ test.describe('Agent MCP server', () => {
     expect(await callTool('edit_file', { path: 'Notes.md', old_text: 'First line', new_text: 'Edited line' })).toEqual({ text: 'Done.', isError: false });
     await expect.poll(() => readFile(page, 'Notes.md')).toBe('# Notes\n\nEdited line\n');
     await expect(treeItem(page, 'Notes')).toBeVisible();
-    expect(await workspacePaths(page)).toEqual(['Notes.md', 'orders.sql']);
+
+    // Block refs are no macros: the query reads them only when run as a block of their page.
+    await callTool('write_file', { path: 'Picker.md', text: '# Picker\n\n```sql station\n-- view: select\n-- column: name\nSELECT * FROM (VALUES (\'Utrecht\'), (\'Delft\')) t(name)\n```\n' });
+    expect((await callTool('query', { sql: 'SELECT count(*) AS n FROM refs.station()' })).isError).toBe(true);
+    expect(JSON.parse((await callTool('query', { sql: 'SELECT count(*) AS n FROM refs.station()', page: 'Picker.md' })).text).rows).toEqual([{ n: 2 }]);
+    expect((await callTool('guide')).text).toContain('Blocks reading blocks');
+    expect(await workspacePaths(page)).toEqual(['Notes.md', 'Picker.md', 'orders.sql']);
   });
 });

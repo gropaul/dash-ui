@@ -108,7 +108,25 @@ function startAgent(sender, agentId) {
     });
 }
 
+// Claude Code keeps each session as <config dir>/projects/<cwd, non-alphanumerics as ->/<id>.jsonl; ACP's session
+// list doesn't carry its size, so it is read from there. Other agents give none.
+function sessionSizes(agentId, sessions) {
+    if (agentId !== 'claude') return {};
+    const configDir = process.env.CLAUDE_CONFIG_DIR ?? path.join(os.homedir(), '.claude');
+    const sizes = {};
+    for (const {sessionId, cwd} of sessions) {
+        const file = path.join(configDir, 'projects', path.resolve(cwd).replace(/[^a-zA-Z0-9]/g, '-'), `${sessionId}.jsonl`);
+        try {
+            sizes[sessionId] = fs.statSync(file).size;
+        } catch {
+            // not stored where expected
+        }
+    }
+    return sizes;
+}
+
 function initAgents() {
+    ipcMain.handle('agent:session-sizes', (_event, agentId, sessions) => sessionSizes(agentId, sessions));
     ipcMain.handle('agent:list', () => availableAgents().map(({id, label}) => ({id, label})));
     ipcMain.handle('agent:start', (event, agentId) => startAgent(event.sender, agentId));
     ipcMain.on('agent:write', (_event, channelId, chunk) => channels.get(channelId)?.stdin.write(chunk));

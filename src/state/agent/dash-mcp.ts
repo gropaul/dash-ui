@@ -5,6 +5,12 @@ import type {JSONRPCMessage} from "@modelcontextprotocol/sdk/types.js";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useProjectsState} from "@/state/projects.state";
 import {deleteFile, editFile, listFiles, moveFile, readFile, writeFile} from "@/state/agent/workspace-tools";
+import {ViewManager} from "@/model/relation-state/relation-view";
+import {expandPageRefs, missingRefs} from "@/state/relations/sql/page-refs";
+import {cleanAndSplitSQL, removeSemicolon} from "@/platform/sql-utils";
+import {qualifyRefCalls} from "@/platform/sql-refs";
+import {normalizePath} from "@/state/workspace/paths";
+import guide from "@/state/agent/dash-guide.md?raw";
 
 /**
  * Dash's MCP server for agents: SQL on the app's database and the project's workspace files. It runs here, in
@@ -13,17 +19,9 @@ import {deleteFile, editFile, listFiles, moveFile, readFile, writeFile} from "@/
 
 const MAX_ROWS = 1000;
 
-const INSTRUCTIONS = `Dash is a data exploration app on DuckDB. These tools reach the project open in it.
-
-Data: \`query\` runs one read-only SQL statement on Dash's DuckDB. The project's own tables are in the
-\`dash\` catalog (schema \`main\`); the project's data sources are attached as further catalogs. Each query
-file is a macro: \`FROM dash.refs.<file name>()\`. List what exists with
-\`SELECT database_name, schema_name, table_name FROM duckdb_tables()\`.
-
-Files: the project's pages (\`.md\`) and queries (\`.sql\`) are not on disk; read and change them only with
-these file tools. Paths are relative to the project root. A query file is SQL under \`-- key: value\` header
-lines; a page is markdown whose \`\`\`sql blocks are queries shown as tables, charts or inputs. Change files
-with \`edit_file\` (exact text, read the file first) rather than rewriting them.`;
+const INSTRUCTIONS = `Dash is a data exploration app on DuckDB; these tools reach the project open in it: read-only SQL
+(\`query\`) and the project's pages (.md) and queries (.sql), which are not on disk. Call \`guide\` before writing
+or changing a page or query: it describes the file format, how blocks are named and read each other, and the layout.`;
 
 const quote = (sql: string) => `'${sql.replace(/'/g, "''")}'`;
 
@@ -37,11 +35,23 @@ async function checkReading(sql: string) {
     if (parsed.statements.length !== 1) throw new Error(`Send exactly one statement (got ${parsed.statements.length}).`);
 }
 
-async function runQuery(sql: string, limit: number) {
-    if (!ConnectionsService.getInstance().hasDatabaseConnection()) throw new Error('Dash has no database connection.');
-    const statement = sql.trim().replace(/;+$/, '');
+/** `sql` as a block of `page` would run it: its refs to the page's blocks expanded into their queries. */
+async function asBlockOf(page: string, sql: string): Promise<string[]> {
+    const surface = `${normalizePath(page)}#`;
+    const missing = missingRefs(surface, sql);
+    if (missing.length > 0) throw new Error(`${missing.join(', ')} not found`);
+    return cleanAndSplitSQL(qualifyRefCalls(await expandPageRefs(surface, sql, r => ViewManager.instance.buildMacroQuery(r))));
+}
+
+async function runQuery(sql: string, limit: number, page?: string) {
+    const connection = ConnectionsService.getInstance();
+    if (!connection.hasDatabaseConnection()) throw new Error('Dash has no database connection.');
+    const statement = removeSemicolon(sql.trim());
     await checkReading(statement);
-    const result = await ConnectionsService.getInstance().executeQuery(`SELECT * FROM (${statement}) LIMIT ${limit + 1}`, true);
+    // Expanded blocks may bring setup statements of their own (the blocks' SQL, as the page runs it).
+    const statements = page ? await asBlockOf(page, statement) : [statement];
+    for (const setup of statements.slice(0, -1)) await connection.executeQuery(setup, false);
+    const result = await connection.executeQuery(`SELECT * FROM (${removeSemicolon(statements.at(-1)!)}) LIMIT ${limit + 1}`, true);
     const columns = result.columns.map(c => c.name);
     const rows = result.rows.slice(0, limit).map(row => Object.fromEntries(columns.map((name, i) => [name, row[i]])));
     return {columns, rows, truncated: result.rows.length > limit};
@@ -64,13 +74,18 @@ async function respond(run: () => unknown) {
 function createServer() {
     const server = new McpServer({name: 'dash', version: '1.0.0'}, {instructions: INSTRUCTIONS});
 
+    server.registerTool('guide', {
+        description: 'How Dash\'s pages and query files work: format, block names, refs between blocks, layout. Read it before writing or changing one.',
+    }, () => respond(() => guide));
+
     server.registerTool('query', {
         description: 'Runs one read-only SQL statement (SELECT, DESCRIBE, SHOW, …) on Dash\'s DuckDB and returns its rows as JSON.',
         inputSchema: {
             sql: z.string(),
+            page: z.string().optional().describe('A page\'s path: run the SQL as a block of it, so refs.<block>() reads its blocks.'),
             limit: z.number().int().min(1).max(MAX_ROWS).optional().describe(`Rows to return, 100 by default, at most ${MAX_ROWS}.`),
         },
-    }, ({sql, limit}) => respond(() => runQuery(sql, limit ?? 100)));
+    }, ({sql, page, limit}) => respond(() => runQuery(sql, limit ?? 100, page)));
 
     server.registerTool('list_files', {
         description: 'Lists the project\'s files and folders; folders end with /.',
@@ -82,12 +97,12 @@ function createServer() {
     }, ({path}) => respond(() => readFile(path)));
 
     server.registerTool('edit_file', {
-        description: 'Replaces old_text, which must occur exactly once in the file, with new_text.',
+        description: 'Replaces old_text, which must occur exactly once in the file, with new_text. See `guide` for the format of pages and queries.',
         inputSchema: {path: z.string(), old_text: z.string(), new_text: z.string()},
     }, ({path, old_text, new_text}) => respond(() => editFile(path, old_text, new_text)));
 
     server.registerTool('write_file', {
-        description: 'Creates a file, or replaces all of its text.',
+        description: 'Creates a file, or replaces all of its text. See `guide` for the format of pages and queries.',
         inputSchema: {path: z.string(), text: z.string()},
     }, ({path, text}) => respond(() => writeFile(path, text)));
 

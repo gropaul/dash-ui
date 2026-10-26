@@ -1,21 +1,40 @@
 'use client';
 
 import {diffLines} from "diff";
-import type {Diff, ToolCallContent} from "@agentclientprotocol/sdk";
+import type {Diff, ToolCallContent, ToolCallStatus} from "@agentclientprotocol/sdk";
 import {Tool, ToolContent, ToolHeader, ToolSection} from "@/components/ai-elements/tool";
 import {cn} from "@/lib/utils";
 import type {ToolCallState} from "@/state/agent/session-items";
 
 export function ToolCallView({call}: { call: ToolCallState }) {
-    const hasDiff = call.content?.some((c) => c.type === 'diff') ?? false;
     return (
-        <Tool defaultOpen={hasDiff}>
+        <Tool>
             <ToolHeader title={call.title} kind={call.kind} status={call.status}/>
             <ToolContent>
                 <ToolCallBody call={call}/>
             </ToolContent>
         </Tool>
     );
+}
+
+/** Tool calls in a row, as one collapsed card; each call in it opens on its own. */
+export function ToolCallGroup({calls}: { calls: ToolCallState[] }) {
+    if (calls.length === 1) return <ToolCallView call={calls[0]}/>;
+    return (
+        <Tool>
+            <ToolHeader title={`${calls.length} tool calls`} status={groupStatus(calls)}/>
+            <ToolContent className="space-y-2">
+                {calls.map(call => <ToolCallView key={call.toolCallId} call={call}/>)}
+            </ToolContent>
+        </Tool>
+    );
+}
+
+/** Running while any call is, failed when any did, else completed. */
+function groupStatus(calls: ToolCallState[]): ToolCallStatus {
+    const statuses = calls.map(call => call.status ?? 'pending');
+    if (statuses.some(s => s === 'pending' || s === 'in_progress')) return 'in_progress';
+    return statuses.includes('failed') ? 'failed' : 'completed';
 }
 
 export function ToolCallBody({call}: { call: Pick<ToolCallState, 'content' | 'rawInput' | 'rawOutput' | 'locations'> }) {

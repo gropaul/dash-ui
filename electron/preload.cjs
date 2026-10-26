@@ -33,6 +33,7 @@ contextBridge.exposeInMainWorld('dashNative', {
     agent: {
         list: () => ipcRenderer.invoke('agent:list'),
         start: (agentId) => ipcRenderer.invoke('agent:start', agentId),
+        sessionSizes: (agentId, sessions) => ipcRenderer.invoke('agent:session-sizes', agentId, sessions),
         write: (channelId, chunk) => ipcRenderer.send('agent:write', channelId, chunk),
         close: (channelId) => ipcRenderer.send('agent:close', channelId),
         // Returns an unsubscribe function.

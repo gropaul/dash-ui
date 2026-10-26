@@ -4,6 +4,8 @@ import {handleMcpMessage} from "@/state/agent/dash-mcp";
 import {applyEdit} from "@/state/agent/workspace-tools";
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {useProjectsState} from "@/state/projects.state";
+import {buildRelation} from "@/state/workspace/relation-config";
+import guide from "@/state/agent/dash-guide.md?raw";
 
 describe('applyEdit', () => {
     it('replaces text that occurs once, taking the new text literally', () => {
@@ -43,7 +45,7 @@ describe('Dash MCP server', () => {
         expect(await handleMcpMessage({jsonrpc: '2.0', method: 'notifications/initialized'} as JSONRPCMessage)).toBeNull();
 
         const list = resultOf<{ tools: { name: string }[] }>(await handleMcpMessage({jsonrpc: '2.0', id: 1, method: 'tools/list'}));
-        expect(list.tools.map(t => t.name)).toEqual(['query', 'list_files', 'read_file', 'edit_file', 'write_file', 'move_file', 'delete_file']);
+        expect(list.tools.map(t => t.name)).toEqual(['guide', 'query', 'list_files', 'read_file', 'edit_file', 'write_file', 'move_file', 'delete_file']);
     });
 
     it('reads and edits the live files, and reports a stale edit as an error', async () => {
@@ -52,5 +54,17 @@ describe('Dash MCP server', () => {
         expect(useWorkspace.getState().files['Sales/orders.sql']).toBe('select 1 from b');
         expect(await call('edit_file', {path: 'Sales/orders.sql', old_text: 'from a', new_text: 'from c'}))
             .toEqual({text: 'old_text is not in the file; read it again.', isError: true});
+    });
+});
+
+describe('the guide', () => {
+    it('gives settings examples that set up their view', () => {
+        const examples = [...guide.matchAll(/-- settings: (\{.*\})`/g)].map(m => JSON.parse(m[1]) as Record<string, object>);
+        expect(examples.length).toBeGreaterThan(2);
+        for (const example of examples) {
+            const [view, setup] = Object.entries(example)[0];
+            const relation = buildRelation({id: 'Page.md#block', name: 'block', sql: 'SELECT 1', header: {view, settings: JSON.stringify(example)}});
+            expect(relation.query.viewParameters[view as 'text']).toMatchObject(setup);
+        }
     });
 });

@@ -2,14 +2,14 @@
 
 import {useEffect, useState} from "react";
 import type {PlanEntry} from "@agentclientprotocol/sdk";
-import {Bot, CheckCircle2, Circle, CircleDot, Loader2, Plus, Send, Square, X} from "lucide-react";
+import {Bot, CheckCircle2, ChevronDown, Circle, CircleDot, Loader2, Plus, Send, Square} from "lucide-react";
 import {Button} from "@/components/ui/button";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {Conversation, ConversationContent, ConversationEmptyState, ConversationScrollButton} from "@/components/ai-elements/conversation";
 import {Reasoning} from "@/components/ai-elements/reasoning";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
-import {ToolCallView} from "@/components/agent-chat/tool-call-view";
+import {ToolCallGroup} from "@/components/agent-chat/tool-call-view";
 import {PermissionCard} from "@/components/agent-chat/permission-card";
 import {ElicitationForm} from "@/components/agent-chat/elicitation-form";
 import {SessionHistoryButton} from "@/components/agent-chat/session-history";
@@ -31,42 +31,34 @@ export function useAgentPanelShown(): boolean {
     return useAgentsAvailable() && open;
 }
 
-export function AgentChatPanel({onClose}: { onClose: () => void }) {
+export function AgentChatPanel() {
     return (
         <div className="flex h-full flex-col bg-background">
-            <AgentChatHeader onClose={onClose}/>
+            <AgentChatHeader/>
             <AgentChatBody/>
         </div>
     );
 }
 
-function AgentChatHeader({onClose}: { onClose: () => void }) {
+function AgentChatHeader() {
     const {agents, agentId, modes, currentModeId, status, startSession, setMode} = useAgentChatState();
     const connected = status === 'ready' || status === 'running';
     return (
         <div className="flex h-10 shrink-0 items-center gap-1 border-b px-2">
-            <Select value={agentId} onValueChange={(id) => startSession(id)}>
-                <SelectTrigger className="h-7 w-auto gap-1 border-none px-2 text-xs shadow-none">
-                    <SelectValue placeholder="Agent"/>
-                </SelectTrigger>
-                <SelectContent>
-                    {agents.map((a) => <SelectItem key={a.id} value={a.id}>{a.label}</SelectItem>)}
-                </SelectContent>
-            </Select>
+            <HeaderPicker
+                label={agents.find((a) => a.id === agentId)?.label ?? 'Agent'}
+                value={agentId}
+                options={agents.map((a) => ({id: a.id, name: a.label}))}
+                onChange={(id) => startSession(id)}
+            />
             {modes.length > 0 && (
-                <Select value={currentModeId} onValueChange={setMode} disabled={!connected}>
-                    <SelectTrigger className="h-7 w-auto gap-1 border-none px-2 text-xs shadow-none">
-                        <SelectValue placeholder="Mode"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                        {modes.map((m) => (
-                            <SelectItem key={m.id} value={m.id}>
-                                <div>{m.name}</div>
-                                {m.description && <div className="text-xs text-muted-foreground">{m.description}</div>}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <HeaderPicker
+                    label={modes.find((m) => m.id === currentModeId)?.name ?? 'Mode'}
+                    value={currentModeId}
+                    options={modes}
+                    onChange={setMode}
+                    disabled={!connected}
+                />
             )}
             <div className="flex-1"/>
             {agentId && <SessionHistoryButton disabled={!connected}/>}
@@ -77,10 +69,44 @@ function AgentChatHeader({onClose}: { onClose: () => void }) {
                     </Button>
                 </TooltipWrapper>
             )}
-            <Button variant="ghost" size="icon" className="size-7" aria-label="Close agent panel" onClick={onClose}>
-                <X className="size-4"/>
-            </Button>
         </div>
+    );
+}
+
+interface PickerOption {
+    id: string;
+    name: string;
+    description?: string | null;
+}
+
+function HeaderPicker({label, value, options, onChange, disabled}: {
+    label: string;
+    value?: string;
+    options: PickerOption[];
+    onChange: (id: string) => void;
+    disabled?: boolean;
+}) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild disabled={disabled}>
+                <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs">
+                    {label}
+                    <ChevronDown className="size-3.5 opacity-50"/>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-64">
+                <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+                    {options.map((o) => (
+                        <DropdownMenuRadioItem key={o.id} value={o.id} className="items-start">
+                            <div className="min-w-0">
+                                <div>{o.name}</div>
+                                {o.description && <div className="text-xs text-muted-foreground">{o.description}</div>}
+                            </div>
+                        </DropdownMenuRadioItem>
+                    ))}
+                </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
 
@@ -106,8 +132,8 @@ function AgentChatBody() {
                             title={status === 'starting' ? 'Starting agent…' : 'Ask the agent'}
                             description={status === 'starting' ? undefined : 'It runs locally with your existing login.'}
                         />
-                    ) : items.map((item, i) => (
-                        <ChatItemView key={item.id} item={item} isLast={i === items.length - 1} running={status === 'running'}/>
+                    ) : groupToolCalls(items).map((item, i, shown) => (
+                        <ChatItemView key={item.id} item={item} isLast={i === shown.length - 1} running={status === 'running'}/>
                     ))}
                     {status === 'running' && <Loader2 className="size-4 animate-spin text-muted-foreground"/>}
                 </ConversationContent>
@@ -123,19 +149,34 @@ function AgentChatBody() {
     );
 }
 
-function ChatItemView({item, isLast, running}: { item: ChatItem; isLast: boolean; running: boolean }) {
+type ToolItem = Extract<ChatItem, { kind: 'tool' }>;
+type ShownItem = Exclude<ChatItem, ToolItem> | { kind: 'tools', id: string, calls: ToolItem['call'][] };
+
+/** The items, with tool calls in a row merged into one. */
+function groupToolCalls(items: ChatItem[]): ShownItem[] {
+    const shown: ShownItem[] = [];
+    for (const item of items) {
+        const last = shown.at(-1);
+        if (item.kind !== 'tool') shown.push(item);
+        else if (last?.kind === 'tools') last.calls.push(item.call);
+        else shown.push({kind: 'tools', id: item.id, calls: [item.call]});
+    }
+    return shown;
+}
+
+function ChatItemView({item, isLast, running}: { item: ShownItem; isLast: boolean; running: boolean }) {
     const {answerPermission, answerElicitation} = useAgentChatState();
     switch (item.kind) {
         case 'user':
-            return <div className="ml-8 self-end whitespace-pre-wrap rounded-lg bg-muted px-3 py-2 text-sm">{item.text}</div>;
+            return <div className="ml-8 self-end whitespace-pre-wrap rounded-2xl rounded-br-none bg-primary px-3 py-2 text-sm text-primary-foreground">{item.text}</div>;
         case 'agent_text':
-            return <div className="text-sm"><MarkdownRenderer markdown={item.text}/></div>;
+            return <div className="w-full rounded-2xl rounded-bl-none bg-muted px-3 py-2 text-sm"><MarkdownRenderer markdown={item.text}/></div>;
         case 'thought':
             return <Reasoning text={item.text} isStreaming={isLast && running}/>;
         case 'plan':
             return <PlanView entries={item.entries}/>;
-        case 'tool':
-            return <ToolCallView call={item.call}/>;
+        case 'tools':
+            return <ToolCallGroup calls={item.calls}/>;
         case 'permission':
             return <PermissionCard request={item.request} answer={item.answer} onAnswer={(a) => answerPermission(item.id, a)}/>;
         case 'elicitation':
