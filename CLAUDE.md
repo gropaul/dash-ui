@@ -36,15 +36,15 @@ write SQL queries, and compose them on pages. It ships both as a browser app
 - **`src/state/`** - global state via **Zustand**, plus most of the non-UI logic:
   - Stores: `workspace/workspace.state.ts` (the project's files), `workspace/surfaces.state.ts` (what each
     query and page block shows, in memory), `relations-data.state.ts`, `projects.state.ts`,
-    `database.state.ts`, `data-sources.state.ts`, `chat.state.ts`, `language-model.state.ts`, `gui.state.ts`,
-    `init.state.ts`, `monaco.state.ts`, `onboarding.state.ts`, `save-status.state.ts`.
-  - The workspace is saved into the project's DuckDB (see below); `chat`, `database`, `gui`, `language-model`
-    (stored obfuscated) and `workspace/file-stats.state.ts` persist to localStorage. The rest are in-memory.
+    `database.state.ts`, `data-sources.state.ts`, `gui.state.ts`, `init.state.ts`, `monaco.state.ts`,
+    `onboarding.state.ts`, `save-status.state.ts`.
+  - The workspace is saved into the project's DuckDB (see below); `database`, `gui` and
+    `workspace/file-stats.state.ts` persist to localStorage. The rest are in-memory.
   - Subfolders: `workspace/` (files, paths, page text, references), `connections/` (backends),
     `persistency/` (storage seam), `routing/`, `projects/`, `relations/` (actions, events, SQL/DAG), `init/`,
     `sources/`.
 - **`src/components/`** - feature-organized React components: `canvas/`, `dashboard/`, `page-editor/`, `relation/`,
-  `workspace/` (file actions and dialogs), `workbench/`, `layout/`, `chat/`, `catalog/`, `projects/`,
+  `workspace/` (file actions and dialogs), `workbench/`, `layout/`, `agent-chat/`, `catalog/`, `projects/`,
   `connections/`, `onboarding/`, `ui/` (shadcn).
 - **`src/model/`** - TypeScript interfaces for domain objects (RelationState, RelationViewState,
   Project, ColumnStats, …).
@@ -148,6 +148,5 @@ features must not assume WASM.
   the sidebar file tree
 - ECharts + Recharts for visualization
 - Monaco Editor for SQL editing
-- Vercel AI SDK for LLM integration (OpenAI, Ollama, WebLLM)
 - Vitest (unit) + Playwright (e2e)
 - pnpm for package management

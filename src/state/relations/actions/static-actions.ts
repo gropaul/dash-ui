@@ -21,8 +21,6 @@ export class RelationActions {
 
         const showCode = options?.showCode ?? true;
         const viewType = options?.viewType ?? 'table';
-        // relation prefix is important as it is e.g. used in
-        // src/components/chat/model/chat-context.ts
         const fallbackBaseQuery = viewType === 'table' ?
             "SELECT 'Hello, World! 🦆' AS message;" :
             "SELECT range as x, x * x as y FROM range(-10,11);";
