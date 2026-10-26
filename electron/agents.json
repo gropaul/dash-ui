@@ -3,7 +3,10 @@
         "id": "claude",
         "label": "Claude Code",
         "package": "@agentclientprotocol/claude-agent-acp",
-        "args": [],
-        "env": {}
-    }
+        "executable": {"command": "claude", "env": "CLAUDE_CODE_EXECUTABLE"}
+    },
+    {"id": "codex", "label": "Codex", "command": "codex-acp"},
+    {"id": "gemini", "label": "Gemini CLI", "command": "gemini", "args": ["--acp"]},
+    {"id": "opencode", "label": "OpenCode", "command": "opencode", "args": ["acp"]},
+    {"id": "goose", "label": "Goose", "command": "goose", "args": ["acp"]}
 ]

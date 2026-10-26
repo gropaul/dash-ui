@@ -20,6 +20,13 @@ files:
   - "node_modules/@duckdb/node-bindings/**/*"
   - "node_modules/@duckdb/node-bindings-*/**/*"
   - "node_modules/detect-libc/**/*"
+  # The ACP adapter for Claude Code (electron/agents.json) and its chain. Not the SDK's bundled claude binary
+  # (@anthropic-ai/claude-agent-sdk-<platform>): the adapter runs the user's installed Claude Code.
+  - "node_modules/@agentclientprotocol/claude-agent-acp/**/*"
+  - "node_modules/@agentclientprotocol/sdk/**/*"
+  - "node_modules/@anthropic-ai/claude-agent-sdk/**/*"
+  - "node_modules/diff/**/*"
+  - "node_modules/zod/**/*"
 # Keep the export outside the asar so the app:// protocol can serve it from disk.
 extraResources:
   - from: out
@@ -30,6 +37,11 @@ npmRebuild: false
 # archive, so unpack them to app.asar.unpacked.
 asarUnpack:
   - "**/*.node"
+  # The adapter runs as a separate Node process (agents.cjs), so it lives on disk too.
+  - "node_modules/@agentclientprotocol/**/*"
+  - "node_modules/@anthropic-ai/**/*"
+  - "node_modules/diff/**/*"
+  - "node_modules/zod/**/*"
 
 mac:
   category: public.app-category.productivity

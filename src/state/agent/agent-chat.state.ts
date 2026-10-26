@@ -171,6 +171,9 @@ export const useAgentChatState = create<AgentChatZustand>()((set, get) => {
         loadAgents: async () => {
             const agents = await window.dashNative?.agent.list() ?? [];
             set({agents, agentId: get().agentId ?? agents[0]?.id});
+            if (!agents.length) {
+                notice('No agent is installed. Dash runs the one on this computer: Claude Code, Codex (codex-acp), Gemini CLI, OpenCode or Goose.');
+            }
         },
 
         startSession: (agentId) => openSession(agentId, async (connection, cwd) => {
