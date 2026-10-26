@@ -38,6 +38,8 @@ export interface DashNativeWorkspaceApi {
     writeConfig: (folder: string, text: string) => Promise<void>;
     /** Where new projects are created by default. */
     defaultParent: () => Promise<string>;
+    /** While `open` reads the files: how many of how many. */
+    onProgress: (callback: (read: number, total: number) => void) => () => void;
     /** Changes made outside Dash; `text` is null for a removed file. */
     onChanged: (callback: (path: string, text: string | null) => void) => () => void;
 }

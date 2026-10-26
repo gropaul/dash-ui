@@ -79,6 +79,9 @@ export interface InitZustand {
     currentStep: InitStep;
     downloadProgress: DownloadProgress | null;
     setDownloadProgress: (progress: DownloadProgress | null) => void;
+    /** The open project's files read so far, while its folder loads. */
+    fileProgress: { read: number; total: number } | null;
+    setFileProgress: (progress: { read: number; total: number } | null) => void;
     connectionHistory: DBConnectionSpec[];
     initializationComplete: () => boolean;
     setStep: (step: InitStep) => void;
@@ -117,9 +120,11 @@ export interface InitZustand {
 export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get) => ({
         currentStep: 'loading-stored-connections-configs',
         downloadProgress: null,
+        fileProgress: null,
         connectionHistory: [],
 
         setDownloadProgress: (downloadProgress) => set({downloadProgress}),
+        setFileProgress: (fileProgress) => set({fileProgress}),
 
         initializationComplete: () => {
             return get().currentStep === 'complete';
@@ -274,7 +279,7 @@ export const useInitState = createWithEqualityFn(persist<InitZustand>((set, get)
     {
         name: 'init-state',
         version: 1,
-        partialize: ({downloadProgress: _, ...rest}) => rest as InitZustand,
+        partialize: ({downloadProgress: _, fileProgress: __, ...rest}) => rest as InitZustand,
         // Hydrating starts the app (loadConnectionConfig below). AppGate does it once mounted: doing it while this
         // module is still being imported calls into modules that are themselves still loading.
         skipHydration: true,

@@ -41,6 +41,12 @@ contextBridge.exposeInMainWorld('dashNative', {
         readConfig: (folder) => ipcRenderer.invoke('workspace:read-config', folder),
         writeConfig: (folder, text) => ipcRenderer.invoke('workspace:write-config', folder, text),
         defaultParent: () => ipcRenderer.invoke('workspace:default-parent'),
+        // While `open` reads the files: how many of how many. Returns an unsubscribe function.
+        onProgress: (callback) => {
+            const listener = (_event, read, total) => callback(read, total);
+            ipcRenderer.on('workspace:progress', listener);
+            return () => ipcRenderer.removeListener('workspace:progress', listener);
+        },
         // Returns an unsubscribe function.
         onChanged: (callback) => {
             const listener = (_event, rel, text) => callback(rel, text);

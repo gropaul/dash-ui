@@ -91,7 +91,12 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     await connection.executeQuery(`USE ${DASH_CATALOG_STATE};`, false, false);
 
     useInitState.getState().setStep('loading-project-relations');
-    await useWorkspace.getState().load(projectHost().backend(project));
+    const {setFileProgress} = useInitState.getState();
+    try {
+        await useWorkspace.getState().load(projectHost().backend(project), (read, total) => setFileProgress({read, total}));
+    } finally {
+        setFileProgress(null);
+    }
     await syncProjectConfig(project);
 
     // Replay the project's data sources before registering the queries that may read them.

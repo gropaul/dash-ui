@@ -9,7 +9,8 @@ export interface WorkspaceSnapshot {
  * only persists; the store is what the app reads. See dev/workspace-files.md.
  */
 export interface WorkspaceBackend {
-    load(): Promise<WorkspaceSnapshot>;
+    /** `onProgress(read, total)` follows the reading of the files, where the backend can tell. */
+    load(onProgress?: (read: number, total: number) => void): Promise<WorkspaceSnapshot>;
     write(path: string, text: string): Promise<void>;
     mkdir(path: string): Promise<void>;
     /** A file or a folder with its contents. */

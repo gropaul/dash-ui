@@ -35,17 +35,46 @@ function absolute(rel) {
     return abs;
 }
 
-async function list(dir = root, prefix = '', files = {}, dirs = []) {
-    for (const entry of await fs.promises.readdir(dir, {withFileTypes: true})) {
+const READ_CONCURRENCY = 32;
+// Every file is read into memory when the project opens, so a bigger folder is refused instead of hanging.
+const MAX_FILES = 5000;
+
+async function walk(dir, prefix, paths, dirs) {
+    const entries = await fs.promises.readdir(dir, {withFileTypes: true});
+    await Promise.all(entries.map((entry) => {
         const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
-        if (isSkipped(rel)) continue;
+        if (isSkipped(rel)) return undefined;
         if (entry.isDirectory()) {
             dirs.push(rel);
-            await list(path.join(dir, entry.name), rel, files, dirs);
-        } else if (entry.isFile() && isWorkspaceFile(rel)) {
-            files[rel] = await fs.promises.readFile(path.join(dir, entry.name), 'utf8');
+            return walk(path.join(dir, entry.name), rel, paths, dirs);
         }
-    }
+        if (entry.isFile() && isWorkspaceFile(rel)) {
+            paths.push(rel);
+            if (paths.length > MAX_FILES) {
+                throw new Error(`The folder has more than ${MAX_FILES} .md and .sql files; Dash opens folders up to that size for now.`);
+            }
+        }
+        return undefined;
+    }));
+}
+
+// The folders first, then the files, read in parallel; `onProgress(read, total)` follows the reading.
+async function list(onProgress) {
+    const paths = [];
+    const dirs = [];
+    await walk(root, '', paths, dirs);
+    const files = {};
+    let next = 0;
+    let read = 0;
+    const worker = async () => {
+        while (next < paths.length) {
+            const rel = paths[next++];
+            files[rel] = await fs.promises.readFile(absolute(rel), 'utf8');
+            read++;
+            if (read % 50 === 0 || read === paths.length) onProgress(read, paths.length);
+        }
+    };
+    await Promise.all(Array.from({length: READ_CONCURRENCY}, worker));
     return {files, dirs};
 }
 
@@ -102,7 +131,9 @@ function initWorkspaceFs() {
         close();
         root = path.resolve(folder);
         sender = event.sender;
-        const snapshot = await list();
+        const snapshot = await list((read, total) => {
+            if (!event.sender.isDestroyed()) event.sender.send('workspace:progress', read, total);
+        });
         watcher = fs.watch(root, {recursive: true}, (_type, filename) => onWatchEvent(filename));
         return snapshot;
     });

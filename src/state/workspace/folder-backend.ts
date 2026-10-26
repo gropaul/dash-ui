@@ -6,8 +6,16 @@ export class FolderBackend implements WorkspaceBackend {
     constructor(private api: DashNativeWorkspaceApi, private folder: string) {
     }
 
-    load(): Promise<WorkspaceSnapshot> {
-        return this.api.open(this.folder);
+    async load(onProgress?: (read: number, total: number) => void): Promise<WorkspaceSnapshot> {
+        const unsubscribe = onProgress ? this.api.onProgress(onProgress) : undefined;
+        try {
+            return await this.api.open(this.folder);
+        } catch (e) {
+            // Electron prefixes errors from the main process with the IPC channel.
+            throw new Error(String(e instanceof Error ? e.message : e).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
+        } finally {
+            unsubscribe?.();
+        }
     }
 
     write = (path: string, text: string) => this.api.write(path, text);

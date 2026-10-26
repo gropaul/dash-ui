@@ -37,10 +37,16 @@ export class OpfsBackend implements WorkspaceBackend {
     constructor(private folder: string) {
     }
 
-    async load(): Promise<WorkspaceSnapshot> {
-        const snapshot: WorkspaceSnapshot = {files: {}, dirs: []};
-        await this.walk(await this.root(), '', snapshot);
-        return snapshot;
+    async load(onProgress?: (read: number, total: number) => void): Promise<WorkspaceSnapshot> {
+        const handles: [string, FileSystemFileHandle][] = [];
+        const dirs: string[] = [];
+        await this.walk(await this.root(), '', handles, dirs);
+        const files: Record<string, string> = {};
+        for (const [i, [path, handle]] of handles.entries()) {
+            files[path] = await (await handle.getFile()).text();
+            onProgress?.(i + 1, handles.length);
+        }
+        return {files, dirs};
     }
 
     write = (path: string, text: string) => this.run(async () => {
@@ -91,14 +97,14 @@ export class OpfsBackend implements WorkspaceBackend {
         return {dir: await this.directory(segments.join('/'), create), name};
     }
 
-    private async walk(dir: FileSystemDirectoryHandle, prefix: string, snapshot: WorkspaceSnapshot) {
+    private async walk(dir: FileSystemDirectoryHandle, prefix: string, files: [string, FileSystemFileHandle][], dirs: string[]) {
         for await (const [name, handle] of opfsEntries(dir)) {
             const path = prefix ? `${prefix}/${name}` : name;
             if (handle.kind === 'directory') {
-                snapshot.dirs.push(path);
-                await this.walk(handle as FileSystemDirectoryHandle, path, snapshot);
+                dirs.push(path);
+                await this.walk(handle as FileSystemDirectoryHandle, path, files, dirs);
             } else {
-                snapshot.files[path] = await (await (handle as FileSystemFileHandle).getFile()).text();
+                files.push([path, handle as FileSystemFileHandle]);
             }
         }
     }

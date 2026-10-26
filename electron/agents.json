@@ -5,7 +5,7 @@
         "package": "@agentclientprotocol/claude-agent-acp",
         "executable": {"command": "claude", "env": "CLAUDE_CODE_EXECUTABLE"},
         "setup": [
-            {"text": "Install Claude Code", "command": "npm install -g @anthropic-ai/claude-code"},
+            {"text": "Install Claude Code", "command": "curl -fsSL https://claude.ai/install.sh | bash"},
             {"text": "Log in once in a terminal", "command": "claude"}
         ]
     },
@@ -45,7 +45,7 @@
         "command": "goose",
         "args": ["acp"],
         "setup": [
-            {"text": "Install Goose", "command": "brew install block-goose-cli"},
+            {"text": "Install Goose", "command": "curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash"},
             {"text": "Choose a provider and log in", "command": "goose configure"}
         ]
     }

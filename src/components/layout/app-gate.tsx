@@ -21,6 +21,7 @@ export function AppGate({children}: { children: React.ReactNode }) {
     const initComplete = useInitState((state) => state.initializationComplete());
     const label = useInitState((state) => state.getCurrentStepLabel());
     const downloadProgress = useInitState((state) => state.downloadProgress);
+    const fileProgress = useInitState((state) => state.fileProgress);
 
     useEffect(() => {
         setMounted(true);
@@ -39,6 +40,12 @@ export function AppGate({children}: { children: React.ReactNode }) {
                     </Avatar>
                     <div className="text-muted-foreground">Loading...</div>
                     <div className="text-muted-foreground">{mounted ? label : " "}</div>
+                    {fileProgress && (
+                        <div className="flex w-48 flex-col items-center space-y-1 text-xs text-muted-foreground">
+                            <Progress value={fileProgress.read / fileProgress.total * 100}/>
+                            <div>{fileProgress.read} / {fileProgress.total} files</div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

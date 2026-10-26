@@ -15,7 +15,7 @@ interface WorkspaceState {
     /** Every folder, including those only implied by a file's path. */
     dirs: Set<string>;
 
-    load(backend: WorkspaceBackend): Promise<void>;
+    load(backend: WorkspaceBackend, onProgress?: (read: number, total: number) => void): Promise<void>;
     /** Empties the store and detaches it from its backend, when a project closes. */
     unload(): void;
     write(path: string, text: string): Promise<void>;
@@ -85,10 +85,10 @@ export const useWorkspace = createWithEqualityFn<WorkspaceState>()((set, get) =>
         files: {},
         dirs: new Set(),
 
-        async load(next) {
+        async load(next, onProgress) {
             stopWatching?.();
             backend = next;
-            const {files, dirs} = await next.load();
+            const {files, dirs} = await next.load(onProgress);
             const all = new Set(dirs);
             Object.keys(files).forEach(path => ancestorsOf(path).forEach(dir => all.add(dir)));
             set({files, dirs: all});

@@ -73,6 +73,8 @@ export interface GUIZustand {
     settings: SettingsGUIZustand;
     // Split ratio (0-1) between a relation view and its config panel. Shared across all relation views.
     sidebarSplitRatio: number;
+    // Width in pixels of the expanded navigation sidebar.
+    sidebarWidth: number;
     // When true, views stretch to full width (no max-width) with a uniform gutter.
     fullWidth: boolean;
     // Whether code editors wrap long lines.
@@ -96,6 +98,7 @@ export interface GUIZustand {
 export interface GUIZustandActions {
     setSidebarExpanded: (expanded: boolean) => void;
     setConfigSplitRatio: (ratio: number) => void;
+    setSidebarWidth: (width: number) => void;
     setFullWidth: (fullWidth: boolean) => void;
     setEditorWordWrap: (wrap: boolean) => void;
     setPageEditorMode: (mode: Exclude<PageEditorMode, 'view'>) => void;
@@ -130,6 +133,7 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             relationFileDropEnabled: true,
             settings: INITIAL_SETTINGS_STATE,
             sidebarSplitRatio: 0.3,
+            sidebarWidth: 240,
             fullWidth: true,
             editorWordWrap: false,
             pageEditorMode: 'edit',
@@ -190,6 +194,10 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
 
             setConfigSplitRatio: (ratio: number) => {
                 set({sidebarSplitRatio: ratio});
+            },
+
+            setSidebarWidth: (width: number) => {
+                set({sidebarWidth: width});
             },
 
             setFullWidth: (fullWidth: boolean) => {

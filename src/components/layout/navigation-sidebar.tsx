@@ -24,6 +24,11 @@ import {Avatar, AvatarImage} from "@/components/ui/avatar";
 
 type NavKey = 'connections' | 'catalog';
 
+// Limits for dragging the expanded sidebar's width; collapsed it is a fixed icon rail.
+const MIN_WIDTH = 180;
+const MAX_WIDTH = 480;
+const COLLAPSED_WIDTH = 64;
+
 interface NavItem {
     key: NavKey;
     label: string;
@@ -42,6 +47,9 @@ function activeKeyForLocation(location: DashLocation): NavKey | undefined {
 export function NavigationSidebar() {
     const expanded = useGUIState((s) => s.sidebarExpanded);
     const setExpanded = useGUIState((s) => s.setSidebarExpanded);
+    const savedWidth = useGUIState((s) => s.sidebarWidth);
+    // The width while a drag is under way; saved once the drag ends.
+    const [dragWidth, setDragWidth] = React.useState<number | undefined>();
     const location = useDashLocation();
 
     // Per-project hrefs depend on the current project, so this is built per render (not a module
@@ -69,10 +77,10 @@ export function NavigationSidebar() {
         <TooltipProvider delayDuration={300}>
             <nav
                 className={cn(
-                    "h-full flex flex-col bg-muted-background border-r shrink-0 overflow-hidden",
-                    "transition-[width] duration-200 ease-in-out",
-                    expanded ? "w-60" : "w-16",
+                    "relative h-full flex flex-col bg-muted-background border-r shrink-0 overflow-hidden",
+                    dragWidth === undefined && "transition-[width] duration-200 ease-in-out",
                 )}
+                style={{width: expanded ? dragWidth ?? savedWidth : COLLAPSED_WIDTH}}
             >
                 {/* Logo row, as high as the app bar so the toggle and the bottom line line up with it. Collapsed, only the toggle shows. */}
                 <div className={cn("flex h-10 shrink-0 items-center border-b", expanded ? "justify-between pl-4 pr-2" : "justify-center")}>
@@ -109,8 +117,44 @@ export function NavigationSidebar() {
                     {expanded && location.basePath === 'project' && <WorkspaceTree projectId={location.projectId}/>}
                 </div>
 
+                {expanded && <ResizeHandle width={savedWidth} onDrag={setDragWidth}/>}
+
             </nav>
         </TooltipProvider>
+    );
+}
+
+/** The right edge of the expanded sidebar; dragging it sets the width, which is saved when the drag ends. */
+function ResizeHandle({width, onDrag}: {width: number; onDrag: (width: number | undefined) => void}) {
+    const setSidebarWidth = useGUIState((s) => s.setSidebarWidth);
+    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const handle = e.currentTarget;
+        const startX = e.clientX;
+        let last = width;
+        const onMove = (ev: PointerEvent) => {
+            last = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width + ev.clientX - startX));
+            onDrag(last);
+        };
+        // Fires on release and on a cancelled drag alike.
+        const onEnd = () => {
+            handle.removeEventListener('pointermove', onMove);
+            handle.removeEventListener('lostpointercapture', onEnd);
+            setSidebarWidth(last);
+            onDrag(undefined);
+        };
+        handle.setPointerCapture(e.pointerId);
+        handle.addEventListener('pointermove', onMove);
+        handle.addEventListener('lostpointercapture', onEnd);
+    };
+    return (
+        <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+            onPointerDown={onPointerDown}
+            className="absolute inset-y-0 right-0 w-1 cursor-col-resize transition-colors hover:bg-border active:bg-border"
+        />
     );
 }
 
