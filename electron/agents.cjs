@@ -52,13 +52,15 @@ function findExecutable(command) {
     return null;
 }
 
-/** The agents of agents.json whose CLI is installed. */
+/** The agents of agents.json whose CLI is installed; under e2e only the script DASH_E2E_AGENT names. */
 function availableAgents() {
+    if (process.env.DASH_E2E_AGENT) return [{id: 'e2e', label: 'E2E agent', script: process.env.DASH_E2E_AGENT}];
     return AGENTS.filter((agent) => findExecutable(agent.executable?.command ?? agent.command));
 }
 
 // A `package` entry runs the package's bin with Electron's own Node, so no node on PATH is needed.
 function resolveCommand(agent) {
+    if (agent.script) return {command: process.execPath, args: [agent.script], env: {ELECTRON_RUN_AS_NODE: '1'}};
     if (!agent.package) return {command: findExecutable(agent.command), args: agent.args ?? [], env: {}};
     const pkgJsonPath = require.resolve(`${agent.package}/package.json`);
     const pkg = require(pkgJsonPath);

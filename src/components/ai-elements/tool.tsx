@@ -52,7 +52,7 @@ const statusIcons: Record<ToolCallStatus, ReactNode> = {
 };
 
 export const Tool = ({className, ...props}: ComponentProps<typeof Collapsible>) => (
-    <Collapsible className={cn("group not-prose w-full rounded-md border", className)} {...props}/>
+    <Collapsible className={cn("group not-prose w-full rounded-2xl border", className)} {...props}/>
 );
 
 export type ToolHeaderProps = {

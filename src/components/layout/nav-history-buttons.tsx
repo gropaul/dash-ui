@@ -5,6 +5,7 @@ import {ChevronLeft, ChevronRight} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {isElectron} from "@/platform/electron";
+import {cn} from "@/lib/utils";
 
 // Minimal typing for the parts of the Navigation API we use — TS 5.7's lib.dom doesn't ship it
 // yet. It's a Chromium-only web API, but we render this only in Electron (always Chromium), so
@@ -40,7 +41,7 @@ const getCanGoForward = (): boolean => (typeof window !== "undefined" && window.
  * disables itself when there's no history entry to move to, read straight from the built-in
  * Navigation API rather than tracked by hand.
  */
-export function NavHistoryButtons() {
+export function NavHistoryButtons({className}: { className?: string }) {
     // isElectron() differs between the static prerender (false) and the client, so reveal only
     // after mount to keep the first client render matching the server and avoid a hydration mismatch.
     const [electron, setElectron] = useState(false);
@@ -52,7 +53,7 @@ export function NavHistoryButtons() {
     if (!electron) return null;
 
     return (
-        <div className="flex items-center">
+        <div className={cn("flex items-center", className)}>
             <TooltipWrapper message="Back">
                 <Button
                     variant="ghost"

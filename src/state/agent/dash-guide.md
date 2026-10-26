@@ -7,6 +7,10 @@ before changing it, and change it with small `edit_file` calls rather than rewri
 Run every query with the `query` tool before putting it in a file, and check the column names you use in `x`,
 `y` and `column`. Pass `page` to run SQL as a block of that page (see "Blocks reading blocks").
 
+To show data in your reply, write a block fence (see "Blocks") in the message itself: Dash runs it and shows the
+chart or table under your text. Its SQL must be one reading statement. It can call `refs.<query file>()`, but not
+the blocks of a page, and an `input` path is from the project root.
+
 ## Query files (`.sql`)
 
 SQL under optional `-- key: value` header lines (the keys under "Header keys"). Without `view` a query shows as a

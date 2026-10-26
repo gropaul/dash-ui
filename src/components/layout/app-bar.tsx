@@ -32,11 +32,12 @@ export function AppBar() {
         <header className="h-10 flex items-center gap-3 bg-background border-b flex-shrink-0">
             {/* LEFT — current project + path */}
             <div className="flex items-center gap-2 min-w-0 flex-1 pl-2">
+                {/* Electron-only: fills in for the browser back/forward buttons the desktop shell lacks.
+                    -mr-1 takes back the project name's own left padding, so the arrows sit as far from it as from the edge. */}
+                <NavHistoryButtons className="-mr-1"/>
                 {/* The project switcher is the breadcrumb root, so the crumb drops its own "Workspace" root. */}
                 <ProjectSwitcher/>
                 <WorkspacePathBreadcrumb/>
-                {/* Electron-only: fills in for the browser back/forward buttons the desktop shell lacks. */}
-                <NavHistoryButtons/>
             </div>
 
             {/* RIGHT — app actions: settings + an overflow menu for the rest */}

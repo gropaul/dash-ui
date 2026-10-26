@@ -33,9 +33,9 @@ import {useWorkspace} from "@/state/workspace/workspace.state";
 export type PageEditorMode = 'edit' | 'view' | 'split';
 
 const MODES: { mode: PageEditorMode, label: string, icon: LucideIcon }[] = [
+    {mode: 'split', label: 'Edit next to the markdown', icon: Columns2},
     {mode: 'edit', label: 'Edit', icon: Pencil},
     {mode: 'view', label: 'View', icon: Eye},
-    {mode: 'split', label: 'Edit next to the markdown', icon: Columns2},
 ];
 
 // A block's name is what other blocks write in refs.<name>(), so it must be one as it stands.

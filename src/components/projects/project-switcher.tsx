@@ -25,6 +25,7 @@ import {useProjectsState, useRoutedProject} from "@/state/projects.state";
 import {DEFAULT_PROJECT_ICON, ProjectIconKey} from "@/model/project";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {deleteProjectArtifacts} from "@/state/projects/delete-project-artifacts";
+import {FolderEntries} from "@/components/layout/workspace-path-breadcrumb";
 
 type DialogState =
     | {mode: 'closed'}
@@ -108,25 +109,36 @@ export function ProjectSwitcher() {
 
     return (
         <>
-            <div className="flex items-center min-w-0 max-w-[240px] gap-0 rounded-2xl hover:bg-muted">
-                {/* The name opens the project root folder; only the chevron opens the switcher. */}
-                <Button
-                    variant="ghost"
-                    className="h-8 flex flex-row items-center gap-0 pl-1 pr-1 min-w-0 rounded-l-2xl"
-                    aria-label={!current ? "Select a project" : `Open ${current.name}`}
-                    onClick={() => !current
-                        ? nav.navigateToLocation(DashLocations.ProjectsList())
-                        : openProject(current.id)}
-                >
-                    {!current ? (
+            <div className="flex items-center min-w-0 max-w-[240px] gap-0 rounded-2xl hover:bg-accent">
+                {/* The name drops down the project's root entries, as a folder crumb does; only the chevron opens the switcher. */}
+                {!current ? (
+                    <Button
+                        variant="ghost"
+                        className="h-8 flex flex-row items-center gap-0 pl-1 pr-1 min-w-0 rounded-l-2xl rounded-r-none"
+                        aria-label="Select a project"
+                        onClick={() => nav.navigateToLocation(DashLocations.ProjectsList())}
+                    >
                         <span className="min-w-0 truncate font-medium text-muted-foreground px-1">Select a project</span>
-                    ) : (
-                        <span className="min-w-0 truncate font-medium px-1">{current.name}</span>
-                    )}
-                </Button>
+                    </Button>
+                ) : (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                className="h-8 flex flex-row items-center gap-0 pl-1 pr-1 min-w-0 rounded-l-2xl rounded-r-none"
+                                aria-label={`Show the files of ${current.name}`}
+                            >
+                                <span className="min-w-0 truncate font-medium px-1">{current.name}</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="max-w-[320px]">
+                            <FolderEntries projectId={current.id} folder=""/>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-4 pl-0 pr-1 rounded-r-2xl" aria-label="Switch project">
+                        <Button variant="ghost" size="icon" className="h-8 w-4 pl-0 pr-1 rounded-r-2xl rounded-l-none" aria-label="Switch project">
                             <ChevronDown size={4} className="text-muted-foreground"/>
                         </Button>
                     </DropdownMenuTrigger>

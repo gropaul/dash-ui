@@ -37,7 +37,7 @@ export function PermissionCard({request, answer, onAnswer}: PermissionCardProps)
     }
 
     return (
-        <Collapsible className="group rounded-md border px-3 py-2 text-sm">
+        <Collapsible className="group rounded-2xl border px-3 py-2 text-sm">
             <div className="flex items-center gap-2">
                 <ShieldQuestion className="size-4 shrink-0 text-muted-foreground"/>
                 <span className="min-w-0 flex-1 truncate font-medium">{title}</span>

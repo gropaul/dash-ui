@@ -51,7 +51,7 @@ function RelationBlockElement(props: PlateElementProps<TRelationBlock>) {
                  data-relation-block
                  className="relative select-none transition-[height] duration-150 ease-out"
                  style={{height: rows * GRID_ROW_PX - 2 * BOX_PADDING_PX}}>
-                <div className={cn("h-full w-full overflow-hidden", !input && "rounded-2xl bg-card")}>
+                <div className={cn("h-full w-full overflow-hidden", !input && "rounded-2xl")}>
                     {linked ? (
                         <RelationStateView
                             embedded

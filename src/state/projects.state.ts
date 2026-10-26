@@ -16,6 +16,7 @@ import {saveProjectMeta} from "@/state/projects/project-meta-storage";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {StateStorageInfo} from "@/model/database-connection";
+import {getRandomLowercaseId} from "@/platform/id-utils";
 
 // A single seeded project so the app always has a current project (WASM has no folder to
 // derive a name from). Fixed id so it isn't duplicated across reloads before persistence.
@@ -96,7 +97,8 @@ export const useProjectsState = create<ProjectsZustand>()(
             createProject: async ({name, icon, rootPath}) => {
                 const error = get().checkProjectName(name);
                 if (error) throw new Error(error);
-                const id = crypto.randomUUID();
+                let id = getRandomLowercaseId();
+                while (get().projects[id]) id = getRandomLowercaseId();
                 const project: Project = {
                     id,
                     name: name.trim(),

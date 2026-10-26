@@ -1,18 +1,20 @@
 'use client';
 
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import type {PlanEntry} from "@agentclientprotocol/sdk";
-import {Bot, CheckCircle2, ChevronDown, Circle, CircleDot, Loader2, Plus, Send, Square} from "lucide-react";
+import {CheckCircle2, ChevronDown, Circle, CircleDot, Loader2, Plus, Send, Square} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
-import {Conversation, ConversationContent, ConversationEmptyState, ConversationScrollButton} from "@/components/ai-elements/conversation";
+import {Conversation, ConversationContent, ConversationScrollButton} from "@/components/ai-elements/conversation";
 import {Reasoning} from "@/components/ai-elements/reasoning";
 import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
 import {ToolCallGroup} from "@/components/agent-chat/tool-call-view";
 import {PermissionCard} from "@/components/agent-chat/permission-card";
 import {ElicitationForm} from "@/components/agent-chat/elicitation-form";
-import {SessionHistoryButton} from "@/components/agent-chat/session-history";
+import {ChatRelationBlock} from "@/components/agent-chat/chat-relation-block";
+import {isChatBlock, leadingChatBlock} from "@/state/agent/chat-blocks";
+import {RecentSessions, SessionHistoryButton} from "@/components/agent-chat/session-history";
 import {useAgentChatState} from "@/state/agent/agent-chat.state";
 import type {ChatItem} from "@/state/agent/session-items";
 import {cn} from "@/lib/utils";
@@ -61,7 +63,6 @@ function AgentChatHeader() {
                 />
             )}
             <div className="flex-1"/>
-            {agentId && <SessionHistoryButton disabled={!connected}/>}
             {agentId && (
                 <TooltipWrapper message="New session">
                     <Button variant="ghost" size="icon" className="size-7" aria-label="New session" onClick={() => startSession(agentId)}>
@@ -69,6 +70,7 @@ function AgentChatHeader() {
                     </Button>
                 </TooltipWrapper>
             )}
+            {agentId && <SessionHistoryButton disabled={!connected}/>}
         </div>
     );
 }
@@ -127,11 +129,9 @@ function AgentChatBody() {
             <Conversation>
                 <ConversationContent>
                     {items.length === 0 ? (
-                        <ConversationEmptyState
-                            icon={status === 'starting' ? <Loader2 className="size-6 animate-spin"/> : <Bot className="size-6"/>}
-                            title={status === 'starting' ? 'Starting agent…' : 'Ask the agent'}
-                            description={status === 'starting' ? undefined : 'It runs locally with your existing login.'}
-                        />
+                        status === 'starting'
+                            ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin"/> Starting agent…</div>
+                            : <RecentSessions count={5}/>
                     ) : groupToolCalls(items).map((item, i, shown) => (
                         <ChatItemView key={item.id} item={item} isLast={i === shown.length - 1} running={status === 'running'}/>
                     ))}
@@ -144,8 +144,29 @@ function AgentChatBody() {
                     <Button size="sm" variant="outline" onClick={() => startSession(agentId)}>Restart agent</Button>
                 </div>
             )}
+            {items.length === 0 && <ExamplePrompts/>}
             <PromptInput/>
         </>
+    );
+}
+
+const EXAMPLE_PROMPTS = [
+    'What data do I have?',
+    'Create a dashboard from my data',
+    'Write a query that summarizes my largest table',
+];
+
+/** Starters for the empty chat; a click sends the prompt. */
+function ExamplePrompts() {
+    const {status, prompt} = useAgentChatState();
+    return (
+        <div className="flex shrink-0 flex-wrap gap-1.5 px-2 pb-2">
+            {EXAMPLE_PROMPTS.map((text) => (
+                <Button key={text} variant="outline" size="sm" className="h-7 rounded-full text-xs font-normal" disabled={status !== 'ready'} onClick={() => prompt(text)}>
+                    {text}
+                </Button>
+            ))}
+        </div>
     );
 }
 
@@ -170,7 +191,7 @@ function ChatItemView({item, isLast, running}: { item: ShownItem; isLast: boolea
         case 'user':
             return <div className="ml-8 self-end whitespace-pre-wrap rounded-2xl rounded-br-none bg-primary px-3 py-2 text-sm text-primary-foreground">{item.text}</div>;
         case 'agent_text':
-            return <div className="w-full rounded-2xl rounded-bl-none bg-muted px-3 py-2 text-sm"><MarkdownRenderer markdown={item.text}/></div>;
+            return <AgentTextView id={item.id} text={item.text} streaming={isLast && running}/>;
         case 'thought':
             return <Reasoning text={item.text} isStreaming={isLast && running}/>;
         case 'plan':
@@ -184,6 +205,29 @@ function ChatItemView({item, isLast, running}: { item: ShownItem; isLast: boolea
         case 'notice':
             return <div className={cn("text-xs", item.error ? "text-destructive" : "text-muted-foreground")}>{item.text}</div>;
     }
+}
+
+/**
+ * An agent's message; its data fences show as blocks once it is complete, as the SQL until then. A block it starts
+ * with fills the top of the bubble edge to edge.
+ */
+function AgentTextView({id, text, streaming}: { id: string; text: string; streaming: boolean }) {
+    const lead = streaming ? undefined : leadingChatBlock(text);
+    const restStart = lead?.end ?? 0;
+    const renderCode = useCallback(({language, text, offset}: { language?: string, text: string, offset: number }) =>
+        !streaming && isChatBlock(language, text) ? <ChatRelationBlock surface={`chat/${id}#${restStart + offset}`} text={text}/> : undefined,
+    [id, streaming, restStart]);
+    const rest = text.slice(restStart);
+    return (
+        <div data-agent-message className={cn("dashboard-prose w-full rounded-2xl rounded-bl-none bg-muted text-sm", lead ? "overflow-hidden border" : "px-3 py-2")}>
+            {lead && <ChatRelationBlock surface={`chat/${id}#${lead.start}`} text={lead.text} bleed/>}
+            {rest.trim() && (
+                <div className={cn(lead && "px-3 py-2")}>
+                    <MarkdownRenderer markdown={rest} renderCode={renderCode}/>
+                </div>
+            )}
+        </div>
+    );
 }
 
 function PlanView({entries}: { entries: PlanEntry[] }) {

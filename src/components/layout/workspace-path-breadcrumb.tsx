@@ -29,6 +29,7 @@ import {useWorkspace} from "@/state/workspace/workspace.state";
 import {ChevronRight} from "lucide-react";
 import {ColoredIcon} from "@/components/basics/files/icon-factories";
 import {fileIconType} from "@/components/workspace/file-icon";
+import {CopyButton} from "@/components/basics/input/copy-button";
 
 // Above this many crumbs the middle collapses into an expandable ellipsis
 // (first + … + last two), keeping the bar on a single line.
@@ -55,6 +56,7 @@ export function WorkspacePathBreadcrumb() {
     if (isUnknown) return null;
 
     let trail: BreadCrumb[];
+    let copyText = "";
     if (location.basePath === "project" && project) {
         if (location.section === "connections") {
             trail = [{
@@ -63,8 +65,10 @@ export function WorkspacePathBreadcrumb() {
             }];
         } else if (location.section === "data") {
             trail = dataTrail(location.segments);
+            copyText = location.segments.join('.');
         } else {
             trail = workspaceTrail(location.projectId, location.path);
+            copyText = location.path.join('/');
         }
     } else {
         // Project list: the switcher is enough; nothing to show here.
@@ -75,18 +79,23 @@ export function WorkspacePathBreadcrumb() {
     const leadingSeparator = trail.length > 0;
 
     return (
-        <Breadcrumb className="min-w-0">
-            <BreadcrumbList className="flex-nowrap gap-2 sm:gap-2">
-                {buildEntries(trail).map((entry, i) => (
-                    <React.Fragment key={entry.kind === "ellipsis" ? "ellipsis" : entry.crumb.id}>
-                        {(i > 0 || leadingSeparator) && <BreadcrumbSeparator className="-mx-1 text-muted-foreground">/</BreadcrumbSeparator>}
-                        {entry.kind === "ellipsis"
-                            ? renderEllipsis(entry.hidden)
-                            : renderCrumb(entry.crumb, entry.isLast)}
-                    </React.Fragment>
-                ))}
-            </BreadcrumbList>
-        </Breadcrumb>
+        <div className="group flex items-center gap-1 min-w-0">
+            <Breadcrumb className="min-w-0">
+                <BreadcrumbList className="flex-nowrap gap-2 sm:gap-2">
+                    {buildEntries(trail).map((entry, i) => (
+                        <React.Fragment key={entry.kind === "ellipsis" ? "ellipsis" : entry.crumb.id}>
+                            {(i > 0 || leadingSeparator) && <BreadcrumbSeparator className="-mx-1 text-foreground">/</BreadcrumbSeparator>}
+                            {entry.kind === "ellipsis"
+                                ? renderEllipsis(entry.hidden)
+                                : renderCrumb(entry.crumb, entry.isLast)}
+                        </React.Fragment>
+                    ))}
+                </BreadcrumbList>
+            </Breadcrumb>
+            {copyText && (
+                <CopyButton textToCopy={copyText} className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"/>
+            )}
+        </div>
     );
 }
 
@@ -213,7 +222,7 @@ function renderEllipsis(hidden: BreadCrumb[]) {
  * The folders and files directly in `folder`: a file opens, a folder is a submenu of its own entries. A submenu's
  * content mounts only while it is open, so each folder is listed when first shown.
  */
-function FolderEntries({projectId, folder}: {projectId: string; folder: string}) {
+export function FolderEntries({projectId, folder}: {projectId: string; folder: string}) {
     const files = useWorkspace(s => s.files);
     const dirs = useWorkspace(s => s.dirs);
     const nav = DashNavigator.instance();

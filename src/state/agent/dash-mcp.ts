@@ -11,6 +11,7 @@ import {cleanAndSplitSQL, removeSemicolon} from "@/platform/sql-utils";
 import {qualifyRefCalls} from "@/platform/sql-refs";
 import {normalizePath} from "@/state/workspace/paths";
 import guide from "@/state/agent/dash-guide.md?raw";
+import {checkReading} from "@/state/agent/read-only-sql";
 
 /**
  * Dash's MCP server for agents: SQL on the app's database and the project's workspace files. It runs here, in
@@ -22,18 +23,6 @@ const MAX_ROWS = 1000;
 const INSTRUCTIONS = `Dash is a data exploration app on DuckDB; these tools reach the project open in it: read-only SQL
 (\`query\`) and the project's pages (.md) and queries (.sql), which are not on disk. Call \`guide\` before writing
 or changing a page or query: it describes the file format, how blocks are named and read each other, and the layout.`;
-
-const quote = (sql: string) => `'${sql.replace(/'/g, "''")}'`;
-
-/** Throws unless `sql` is a single statement that only reads: DuckDB serializes nothing but SELECT statements. */
-async function checkReading(sql: string) {
-    const result = await ConnectionsService.getInstance().executeQuery(`SELECT json_serialize_sql(${quote(sql)})::VARCHAR`, true);
-    const parsed = JSON.parse(String(result.rows[0][0]));
-    if (parsed.error) {
-        throw new Error(parsed.error_type === 'not implemented' ? 'Only reading statements (SELECT, DESCRIBE, SHOW, …) are allowed.' : parsed.error_message);
-    }
-    if (parsed.statements.length !== 1) throw new Error(`Send exactly one statement (got ${parsed.statements.length}).`);
-}
 
 /** `sql` as a block of `page` would run it: its refs to the page's blocks expanded into their queries. */
 async function asBlockOf(page: string, sql: string): Promise<string[]> {
