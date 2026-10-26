@@ -9,9 +9,10 @@ import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
 import {AttachDatabaseDialog, DialogResult} from "@/components/connections/attach-database-dialog";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DASH_INTERNAL_CATALOGS} from "@/platform/global-data";
+import {DASH_INTERNAL_CATALOGS, SOURCES_FILE} from "@/platform/global-data";
 import {getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {useProjectsState} from "@/state/projects.state";
+import {useFile, useWorkspace} from "@/state/workspace/workspace.state";
 import {initProjectSources} from "@/state/sources/replay-sources";
 import {useSourcesHealthState} from "@/state/sources/sources-health.state";
 import {SourceSession} from "@/state/sources/source-session";
@@ -41,9 +42,9 @@ const SYSTEM_DATABASES = ['memory', 'system', 'temp'];
  * (sources-health). Editing the SQL / attaching a database rewrites `sources.sql`.
  */
 export function ConnectionsView() {
-    const projectId = useProjectsState((s) => s.currentMeta ? s.currentProjectId : undefined);
-    const setProjectSources = useProjectsState((s) => s.setProjectSources);
-    const projectSources = useProjectsState((s) => s.currentMeta?.sourcesSql ?? "");
+    const projectId = useProjectsState((s) => s.currentProjectId);
+    const projectSources = useFile(SOURCES_FILE) ?? "";
+    const setProjectSources = useCallback((text: string) => useWorkspace.getState().write(SOURCES_FILE, text), []);
 
     const [mode, setMode] = useState<ViewMode>('manage');
     const [attached, setAttached] = useState<ConnectionRow[]>([]);
@@ -74,7 +75,7 @@ export function ConnectionsView() {
     }, []);
 
     // Keep the editor draft in sync with the stored manifest (resets when switching projects, and
-    // after a save writes the project's sourcesSql back).
+    // after a save writes the project's sources.sql back).
     useEffect(() => {
         setManifest(projectSources);
     }, [projectId, projectSources]);
@@ -108,7 +109,7 @@ export function ConnectionsView() {
     const saveManifest = useCallback(async (text: string) => {
         setBusy(true);
         try {
-            if (projectId) setProjectSources(text);
+            if (projectId) await setProjectSources(text);
             await initProjectSources();
             await fetchAttached();
         } finally {
@@ -142,7 +143,7 @@ export function ConnectionsView() {
             await connection.executeQuery(statement, false);
             // run directly rather than via the replay, so the ledger has to be told about it
             SourceSession.instance().record(statement);
-            if (projectId) setProjectSources(appendStatement(projectSources, statement));
+            if (projectId) await setProjectSources(appendStatement(projectSources, statement));
             await fetchAttached();
             await useDataSourcesState.getState().refreshAllConnections();
         } finally {

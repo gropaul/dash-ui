@@ -38,6 +38,9 @@ contextBridge.exposeInMainWorld('dashNative', {
         move: (from, to) => ipcRenderer.invoke('workspace:move', from, to),
         remove: (rel) => ipcRenderer.invoke('workspace:remove', rel),
         chooseFolder: () => ipcRenderer.invoke('workspace:choose-folder'),
+        readConfig: (folder) => ipcRenderer.invoke('workspace:read-config', folder),
+        writeConfig: (folder, text) => ipcRenderer.invoke('workspace:write-config', folder, text),
+        defaultParent: () => ipcRenderer.invoke('workspace:default-parent'),
         // Returns an unsubscribe function.
         onChanged: (callback) => {
             const listener = (_event, rel, text) => callback(rel, text);

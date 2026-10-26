@@ -1,7 +1,7 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckdbWasmProvider, getStorageMode} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {removeOpfsFile} from "@/state/connections/duckdb-wasm/utils";
-import {getProjectCacheFileName} from "@/platform/global-data";
+import {getProjectCacheFileName, getProjectFileName} from "@/platform/global-data";
 import {Project} from "@/model/project";
 
 /**
@@ -19,7 +19,7 @@ export async function deleteProjectArtifacts(project: Project): Promise<void> {
     if (getStorageMode() !== 'opfs') return;
 
     const {db} = await DuckdbWasmProvider.getInstance().getCurrentWasm();
-    const files = [project.location, getProjectCacheFileName(project.id)];
+    const files = [getProjectFileName(project.id), getProjectCacheFileName(project.id)];
     for (const file of files.flatMap((f) => [f, `${f}.wal`])) {
         // Drop the DuckDB file registration first so its handle on the OPFS file is released.
         try { await db.dropFile('opfs://' + file); } catch { /* not registered */ }

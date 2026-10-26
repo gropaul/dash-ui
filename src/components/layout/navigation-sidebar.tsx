@@ -10,7 +10,7 @@ import {DashLocation, DashLocations, DashNavigator} from "@/state/routing/naviga
 import {useDashLocation} from "@/state/routing/use-dash-location";
 import {WorkspaceTree} from "@/components/layout/workspace-tree";
 import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-section";
-import {ProjectIcon} from "@/components/projects/project-icons";
+import {Avatar, AvatarImage} from "@/components/ui/avatar";
 
 /**
  * The single left navigation sidebar. Routing-driven (each item is a real link), grouped by
@@ -76,7 +76,11 @@ export function NavigationSidebar() {
             >
                 {/* Logo row, as high as the app bar so the toggle and the bottom line line up with it. Collapsed, only the toggle shows. */}
                 <div className={cn("flex h-10 shrink-0 items-center border-b", expanded ? "justify-between pl-4 pr-2" : "justify-center")}>
-                    {expanded && <ProjectIcon icon="dash"/>}
+                    {expanded && (
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                            <AvatarImage src="/favicon/web-app-manifest-192x192.png" alt="Dash"/>
+                        </Avatar>
+                    )}
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button

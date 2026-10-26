@@ -3,10 +3,50 @@
         "id": "claude",
         "label": "Claude Code",
         "package": "@agentclientprotocol/claude-agent-acp",
-        "executable": {"command": "claude", "env": "CLAUDE_CODE_EXECUTABLE"}
+        "executable": {"command": "claude", "env": "CLAUDE_CODE_EXECUTABLE"},
+        "setup": [
+            {"text": "Install Claude Code", "command": "npm install -g @anthropic-ai/claude-code"},
+            {"text": "Log in once in a terminal", "command": "claude"}
+        ]
     },
-    {"id": "codex", "label": "Codex", "command": "codex-acp"},
-    {"id": "gemini", "label": "Gemini CLI", "command": "gemini", "args": ["--acp"]},
-    {"id": "opencode", "label": "OpenCode", "command": "opencode", "args": ["acp"]},
-    {"id": "goose", "label": "Goose", "command": "goose", "args": ["acp"]}
+    {
+        "id": "codex",
+        "label": "Codex",
+        "command": "codex-acp",
+        "setup": [
+            {"text": "Install the Codex CLI", "command": "npm install -g @openai/codex"},
+            {"text": "Log in", "command": "codex login"},
+            {"text": "Install the ACP adapter Dash talks to", "command": "npm install -g @agentclientprotocol/codex-acp"}
+        ]
+    },
+    {
+        "id": "gemini",
+        "label": "Gemini CLI",
+        "command": "gemini",
+        "args": ["--acp"],
+        "setup": [
+            {"text": "Install the Gemini CLI", "command": "npm install -g @google/gemini-cli"},
+            {"text": "Log in once in a terminal", "command": "gemini"}
+        ]
+    },
+    {
+        "id": "opencode",
+        "label": "OpenCode",
+        "command": "opencode",
+        "args": ["acp"],
+        "setup": [
+            {"text": "Install OpenCode", "command": "npm install -g opencode-ai"},
+            {"text": "Log in to a provider", "command": "opencode auth login"}
+        ]
+    },
+    {
+        "id": "goose",
+        "label": "Goose",
+        "command": "goose",
+        "args": ["acp"],
+        "setup": [
+            {"text": "Install Goose", "command": "brew install block-goose-cli"},
+            {"text": "Choose a provider and log in", "command": "goose configure"}
+        ]
+    }
 ]

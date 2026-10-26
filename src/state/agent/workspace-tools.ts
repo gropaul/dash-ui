@@ -1,3 +1,4 @@
+import {PROJECT_CONFIG_FILE} from "@/platform/global-data";
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {flushPendingEdits} from "@/state/workspace/pending-edits";
 import {normalizePath} from "@/state/workspace/paths";
@@ -21,10 +22,11 @@ function currentText(path: string): string {
     return text;
 }
 
-/** The workspace's folders (ending in /) and files, one per line. */
+/** The workspace's folders (ending in /) and files, one per line; not the project's `dash.yaml`, as in the file tree. */
 export function listFiles(): string {
     const {files, dirs} = useWorkspace.getState();
-    return [...[...dirs].map(dir => dir + '/'), ...Object.keys(files)].sort().join('\n');
+    const listed = Object.keys(files).filter(path => path !== PROJECT_CONFIG_FILE);
+    return [...[...dirs].map(dir => dir + '/'), ...listed].sort().join('\n');
 }
 
 export function readFile(path: string): string {

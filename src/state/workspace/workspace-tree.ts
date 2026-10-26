@@ -1,6 +1,8 @@
 import {baseName, extensionOf, parentOf} from "@/state/workspace/paths";
+import {PROJECT_CONFIG_FILE, SOURCES_FILE} from "@/platform/global-data";
 
-export type WorkspaceNodeKind = 'folder' | 'page' | 'query' | 'canvas' | 'file';
+/** `sources` is the project's `sources.sql`, shown in the tree but opened as the data sources, not a query. */
+export type WorkspaceNodeKind = 'folder' | 'page' | 'query' | 'sources' | 'canvas' | 'file';
 
 export interface WorkspaceNode {
     path: string;
@@ -13,19 +15,20 @@ export interface WorkspaceNode {
 const KIND_BY_EXTENSION: Record<string, WorkspaceNodeKind> = {'.md': 'page', '.sql': 'query', '.canvas': 'canvas'};
 
 export function kindOf(path: string): WorkspaceNodeKind {
+    if (path === SOURCES_FILE) return 'sources';
     return KIND_BY_EXTENSION[extensionOf(path)] ?? 'file';
 }
 
 export const isQuery = (path: string) => kindOf(path) === 'query';
 export const isPage = (path: string) => kindOf(path) === 'page';
 
-/** Canvases are disabled while project content moves to files: no listing shows them. */
-export const isListed = (path: string) => kindOf(path) !== 'canvas';
+/** Canvases are disabled while project content moves to files, and `dash.yaml` is the project's: no listing shows them. */
+export const isListed = (path: string) => kindOf(path) !== 'canvas' && path !== PROJECT_CONFIG_FILE;
 
 /** What a file is called: its name without a known extension (`Q3` for `Q3.md`); a folder's or other file's full name. */
 export function displayName(path: string, kind: WorkspaceNodeKind = kindOf(path)): string {
     const name = baseName(path);
-    return kind === 'folder' || kind === 'file' ? name : name.slice(0, -extensionOf(path).length);
+    return kind === 'folder' || kind === 'file' || kind === 'sources' ? name : name.slice(0, -extensionOf(path).length);
 }
 
 /** Folders first, then by name ignoring case. */

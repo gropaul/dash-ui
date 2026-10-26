@@ -120,8 +120,7 @@ function DebugModeBadge() {
     );
 }
 
-// Shows whether the relation state has been persisted to disk, so the user knows when it's safe to
-// close/reload (writes are throttled, so a save can lag an edit by up to STORAGE_THROTTLE_TIME_MS).
+// Shows whether the workspace's changes have reached its folder, so the user knows when it's safe to close/reload.
 function SaveStatusIndicator() {
     const status = useSaveStatus((s) => s.status);
     const isError = status === 'error';

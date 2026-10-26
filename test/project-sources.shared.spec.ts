@@ -27,7 +27,8 @@ const CREATE_TABLE_SQL =
 const CE_TABLES = ['downloads', 'github_snapshots'];
 
 test.describe('Project data sources', () => {
-  test('an attached database follows its project and does not leak into the next one', async ({ app: page, appOrigin, appApi }) => {
+  test('an attached database follows its project and does not leak into the next one', async ({ app: page, appOrigin, appApi }, testInfo) => {
+    test.skip(testInfo.project.metadata.target === 'http', 'a duckdb-over-http server has a single project');
     test.setTimeout(240_000);
 
     await openApp(page, appOrigin, appApi);
@@ -53,7 +54,8 @@ test.describe('Project data sources', () => {
     for (const table of CE_TABLES) await expectCatalogTable(page, table, false);
   });
 
-  test('a table created by the manifest is rebuilt per project, not carried over', async ({ app: page, appOrigin, appApi }) => {
+  test('a table created by the manifest is rebuilt per project, not carried over', async ({ app: page, appOrigin, appApi }, testInfo) => {
+    test.skip(testInfo.project.metadata.target === 'http', 'a duckdb-over-http server has a single project');
     test.setTimeout(240_000);
 
     await openApp(page, appOrigin, appApi);

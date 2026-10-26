@@ -58,12 +58,12 @@ function availableAgents() {
     return AGENTS.filter((agent) => findExecutable(agent.executable?.command ?? agent.command));
 }
 
-/** Every agent of agents.json with the path its CLI was found at, null when it isn't installed. */
+/** Every agent of agents.json with the path its CLI was found at (null when it isn't installed) and its setup steps. */
 function listAgents() {
-    if (process.env.DASH_E2E_AGENT) return [{id: 'e2e', label: 'E2E agent', command: 'node', path: process.env.DASH_E2E_AGENT}];
-    return AGENTS.map(({id, label, executable, command}) => {
+    if (process.env.DASH_E2E_AGENT) return [{id: 'e2e', label: 'E2E agent', command: 'node', path: process.env.DASH_E2E_AGENT, setup: []}];
+    return AGENTS.map(({id, label, executable, command, setup}) => {
         const cli = executable?.command ?? command;
-        return {id, label, command: cli, path: findExecutable(cli)};
+        return {id, label, command: cli, path: findExecutable(cli), setup};
     });
 }
 

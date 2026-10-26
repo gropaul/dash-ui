@@ -38,10 +38,10 @@ write SQL queries, and compose them on pages. It ships both as a browser app
     query and page block shows, in memory), `relations-data.state.ts`, `projects.state.ts`,
     `database.state.ts`, `data-sources.state.ts`, `gui.state.ts`, `init.state.ts`, `monaco.state.ts`,
     `onboarding.state.ts`, `save-status.state.ts`.
-  - The workspace is saved into the project's DuckDB (see below); `database`, `gui` and
+  - The workspace is the project's folder (see below); `database`, `gui` and
     `workspace/file-stats.state.ts` persist to localStorage. The rest are in-memory.
-  - Subfolders: `workspace/` (files, paths, page text, references), `connections/` (backends),
-    `persistency/` (storage seam), `routing/`, `projects/`, `relations/` (actions, events, SQL/DAG), `init/`,
+  - Subfolders: `workspace/` (files, paths, page text, references, folder backends), `connections/` (backends),
+    `routing/`, `projects/` (project hosts, `dash.yaml`), `relations/` (actions, events, SQL/DAG), `init/`,
     `sources/`.
 - **`src/components/`** - feature-organized React components: `canvas/`, `dashboard/`, `page-editor/`, `relation/`,
   `workspace/` (file actions and dialogs), `workbench/`, `layout/`, `agent-chat/`, `catalog/`, `projects/`,
@@ -66,14 +66,15 @@ features must not assume WASM.
 
 ### Projects, storage and routing
 
-- A project is a workspace of files (`.md` pages, `.sql` queries, folders) and (in WASM) its own data
-  tables, backed by per-project DuckDB files. The registry lives in a per-connection meta database
-  (`projects.duckdb`, catalog `dash_projects`). See `docs/projects.md`.
-- Catalogs are aliased via constants in `global-data.ts`: `dash` (state: the `workspace` table,
-  `cache.*`, `refs.*`), `dash_data` (user tables, WASM only), `dash_projects`, `dash_temp`.
-- **`StorageDuckAPI`** / `persistency/duckdb-storage.ts` writes one JSON value per table of the project's
-  `dash` database (throttled, with a version-conflict check). The workspace store saves through it
-  (`workspace/blob-backend.ts`); Electron's folder backend is planned. See `dev/workspace-files.md`.
+- A project is a folder: `.md` pages, `.sql` queries, subfolders, `dash.yaml` (id, name; hidden) and `sources.sql`
+  (data sources, replayed on open). Electron opens any folder, the browser keeps one per project in OPFS,
+  duckdb-over-http has one, the server's working directory (`projects/project-hosts.ts`). Result cache and WASM
+  user tables are per-project DuckDB files named by the id. See `docs/projects.md`.
+- Catalogs are aliased via constants in `global-data.ts`: `dash` (the project database: user tables, `refs.*`),
+  `dash_cache`, `dash_temp`.
+- The workspace store saves each change through a `WorkspaceBackend`: `FolderBackend` (Electron,
+  `electron/workspace-fs.cjs`, watches for outside edits), `OpfsBackend`, `ServerBackend`. See
+  `dev/workspace-files.md`.
 - Routing is entirely client-side over the History API (`output: 'export'` cannot serve dynamic
   routes). `DashNavigator.instance()` in `src/state/routing/navigation.ts` is the only place that
   builds URLs; callers pass typed locations from the `DashLocations` factory. A file opens at its path,

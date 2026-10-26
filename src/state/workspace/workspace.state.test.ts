@@ -1,7 +1,6 @@
 import {beforeEach, describe, expect, it} from "vitest";
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {WorkspaceBackend, WorkspaceSnapshot} from "@/state/workspace/workspace-backend";
-import {BlobBackend} from "@/state/workspace/blob-backend";
 import {ancestorsOf, isWithin, movedPath} from "@/state/workspace/paths";
 
 /** A folder on disk, as the Electron backend has it: each operation changes only what it names. */
@@ -40,18 +39,9 @@ class FolderBackend implements WorkspaceBackend {
     }
 }
 
-function blobBackend() {
-    let stored: string | null = null;
-    return new BlobBackend(
-        {getItem: async () => stored, setItem: async value => void (stored = value)},
-        () => useWorkspace.getState().snapshot(),
-    );
-}
-
 const sorted = ({files, dirs}: WorkspaceSnapshot) => ({files, dirs: [...dirs].sort()});
 
 describe.each([
-    ['blob', blobBackend],
     ['folder', () => new FolderBackend()],
 ])('%s backend', (_name, makeBackend) => {
     let backend: WorkspaceBackend;

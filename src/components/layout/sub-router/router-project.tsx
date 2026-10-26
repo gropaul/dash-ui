@@ -66,6 +66,8 @@ function FileView({projectId, path}: { projectId: string, path: string }) {
             return <PageTab path={path}/>;
         case "query":
             return <QueryTab path={path}/>;
+        case "sources":
+            return <ConnectionsView/>;
         default:
             return <NotFound/>;
     }

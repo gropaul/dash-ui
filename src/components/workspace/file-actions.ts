@@ -108,7 +108,7 @@ export function moveEntryTo(path: string) {
 }
 
 export function renameEntry(path: string) {
-    const extension = kindOf(path) === 'file' ? '' : extensionOf(path);
+    const extension = kindOf(path) === 'file' || kindOf(path) === 'sources' ? '' : extensionOf(path);
     const pathFor = (name: string) => joinPath(parentOf(path), fileName(name, extension));
     const users = isQuery(path) ? usersOutside(useWorkspace.getState().files, path) : [];
     askForName({

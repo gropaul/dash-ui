@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { runQuery, setSql } from './query';
 
 /**
@@ -14,9 +14,25 @@ export interface QueryContext {
   queryUrl: string;
 }
 
-/** Create a project from the projects list and land inside its workspace. */
+/**
+ * Create a project from the projects list and land inside its workspace. A duckdb-over-http server has a
+ * single project, its working directory (`project`, see dash-server.ts), and no "New project": that one is
+ * opened and given the name.
+ */
 export async function createProject(page: Page, name: string): Promise<void> {
-  await page.getByRole('button', { name: 'New project' }).first().click();
+  if (test.info().project.metadata.target === 'http') {
+    await page.getByRole('button', { name: 'project', exact: true }).click();
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/, { timeout: 45_000 });
+    await page.getByRole('button', { name: 'Switch project' }).click();
+    await page.getByRole('menuitem', { name: 'Edit project' }).click();
+    const edit = page.getByRole('dialog', { name: 'Edit project' });
+    await edit.getByRole('textbox', { name: 'Name' }).fill(name);
+    await edit.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('button', { name: `Show the files of ${name}` })).toBeVisible();
+    return;
+  }
+  const newProject = page.getByRole('button', { name: 'New project' }).first();
+  await newProject.click();
   const dialog = page.getByRole('dialog', { name: 'New project' });
   await dialog.getByRole('textbox', { name: 'Name' }).fill(name);
   await dialog.getByRole('button', { name: 'Create' }).click();
@@ -107,11 +123,11 @@ export async function moveTo(page: Page, name: string, target: string): Promise<
   await expect.poll(() => workspacePaths(page)).not.toEqual(before);
 }
 
-/** The workspace's file paths, read from the store (e2e builds only). */
+/** The workspace's file paths, read from the store (e2e builds only), without the project's `dash.yaml`. */
 export async function workspacePaths(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const store = (window as unknown as { __workspaceStore?: any }).__workspaceStore;
-    return Object.keys(store?.getState().files ?? {}).sort();
+    return Object.keys(store?.getState().files ?? {}).filter(path => path !== 'dash.yaml').sort();
   });
 }
 

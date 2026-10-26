@@ -23,7 +23,7 @@ export interface DashNativeApi {
 
 /** The open project's folder (electron/workspace-fs.cjs); paths are posix, relative to the folder. */
 export interface DashNativeWorkspaceApi {
-    /** Creates the folder if missing, starts watching it, and returns its `.md` and `.sql` files and its folders. */
+    /** Starts watching the folder and returns its `.md` and `.sql` files, its `dash.yaml` and its folders. */
     open: (folder: string) => Promise<WorkspaceSnapshot>;
     close: () => Promise<void>;
     write: (path: string, text: string) => Promise<void>;
@@ -32,6 +32,12 @@ export interface DashNativeWorkspaceApi {
     remove: (path: string) => Promise<void>;
     /** The native folder picker; null when cancelled. */
     chooseFolder: () => Promise<string | null>;
+    /** A folder's `dash.yaml` before its project is opened; null when there is none. */
+    readConfig: (folder: string) => Promise<string | null>;
+    /** Writes a folder's `dash.yaml`, creating the folder if missing. */
+    writeConfig: (folder: string, text: string) => Promise<void>;
+    /** Where new projects are created by default. */
+    defaultParent: () => Promise<string>;
     /** Changes made outside Dash; `text` is null for a removed file. */
     onChanged: (callback: (path: string, text: string | null) => void) => () => void;
 }
@@ -43,6 +49,14 @@ export interface AgentInfo {
     command: string;
     /** Where that CLI was found; null when the agent isn't installed. */
     path: string | null;
+    /** What to do to install it, in order. */
+    setup: AgentSetupStep[];
+}
+
+export interface AgentSetupStep {
+    text: string;
+    /** A terminal command for the step. */
+    command?: string;
 }
 
 /** Raw stdio pipe to an ACP agent process spawned by electron/agents.cjs. */

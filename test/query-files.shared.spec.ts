@@ -101,7 +101,7 @@ test.describe('Query files', () => {
     await dialog.getByRole('button', { name: 'Save' }).click();
 
     await expect(page).toHaveURL(/\/workspace\/numbers\.sql$/);
-    expect(await workspacePaths(page)).toEqual(['numbers.sql']);
+    expect(await workspacePaths(page)).toEqual(['numbers.sql', 'sources.sql']);
     await runQuery(page);
     await expectRowCount(page, 3);
   });

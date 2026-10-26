@@ -1,5 +1,4 @@
 import { type Page } from '@playwright/test';
-import { STORAGE_THROTTLE_TIME_MS } from '@/platform/global-data';
 import { expectAppReady } from './app';
 import { goToProjectsList, openProject, openQuery, type QueryContext } from './project';
 
@@ -9,13 +8,15 @@ import { goToProjectsList, openProject, openQuery, type QueryContext } from './p
  */
 
 /**
- * Wait for the relation state to be flushed to the project's DuckDB storage.
- * Saves are autosaved on a trailing throttle (STORAGE_THROTTLE_TIME_MS); waiting
- * 2x guarantees the latest edits are on disk before a reload / reopen restores
- * from storage.
+ * Wait until the workspace's changes have reached the project's folder (the app bar's save status). Editors
+ * write after a pause in typing, so the wait starts once that pause is over.
  */
 export async function waitForPersist(page: Page): Promise<void> {
-  await page.waitForTimeout(2 * STORAGE_THROTTLE_TIME_MS);
+  await page.waitForTimeout(1_000);
+  await page.waitForFunction(() => {
+    const status = (window as unknown as { __saveStatus?: { getState(): { status: string } } }).__saveStatus;
+    return status?.getState().status === 'saved';
+  });
 }
 
 /**

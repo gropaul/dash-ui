@@ -3,6 +3,7 @@ import {createWithEqualityFn} from "zustand/traditional";
 import {WorkspaceBackend, WorkspaceSnapshot} from "@/state/workspace/workspace-backend";
 import {ancestorsOf, baseName, isWithin, movedPath, nameError, normalizePath, parentOf, samePath} from "@/state/workspace/paths";
 import {buildWorkspaceTree} from "@/state/workspace/workspace-tree";
+import {useSaveStatus} from "@/state/save-status.state";
 
 /**
  * The project's files, the working copy in both runtimes. The app reads and edits this store; each change
@@ -29,8 +30,23 @@ interface WorkspaceState {
 
 let backend: WorkspaceBackend | undefined;
 
-// The changes apply to the store at once (and throw at once when they can't); the promise is only the saving.
-const persist = (saving: Promise<void> | undefined) => saving ?? Promise.resolve();
+// The changes apply to the store at once (and throw at once when they can't); the promise is only the saving,
+// which the app bar's save indicator follows.
+let saving = 0;
+
+function persist(save: Promise<void> | undefined): Promise<void> {
+    if (!save) return Promise.resolve();
+    saving++;
+    useSaveStatus.getState().setStatus('saving');
+    return save.then(() => {
+        if (--saving === 0) useSaveStatus.getState().setStatus('saved');
+    }, (error) => {
+        saving--;
+        useSaveStatus.getState().setStatus('error');
+        console.error('Failed to save a workspace change:', error);
+        throw error;
+    });
+}
 let stopWatching: (() => void) | undefined;
 
 function withAncestors(dirs: Set<string>, path: string) {

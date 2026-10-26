@@ -6,17 +6,6 @@ import {AppShell} from "@/components/layout/app-shell";
 import {GlobalCommand} from "@/components/workbench/global-command";
 import {NameDialog} from "@/components/workspace/name-dialog";
 import {DeleteFileDialog} from "@/components/workspace/delete-file-dialog";
-import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
-import {WORKSPACE_STORAGE_DESTINATION} from "@/platform/global-data";
-import {AlertDialog} from "@radix-ui/react-alert-dialog";
-import {
-    AlertDialogAction,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {DownloadProgress, useInitState} from "@/state/init.state";
 import {Progress} from "@/components/ui/progress";
@@ -28,7 +17,6 @@ import {serveDashMcp} from "@/state/agent/dash-mcp";
  * `children`, rendered inside the shell once initialization completes.
  */
 export function AppGate({children}: { children: React.ReactNode }) {
-    const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
     const [mounted, setMounted] = useState(false);
     const initComplete = useInitState((state) => state.initializationComplete());
     const label = useInitState((state) => state.getCurrentStepLabel());
@@ -40,12 +28,6 @@ export function AppGate({children}: { children: React.ReactNode }) {
         void useInitState.persist.rehydrate();
         return serveDashMcp();
     }, []);
-
-    useEffect(() => {
-        StorageDuckAPI.getInstance(WORKSPACE_STORAGE_DESTINATION).then((duckdb) => {
-            duckdb.setOnForceReloadCallback(() => setShowForceReloadDialog(true));
-        });
-    });
 
     if (!initComplete) {
         return (
@@ -67,20 +49,6 @@ export function AppGate({children}: { children: React.ReactNode }) {
             <FileDropRelation className="h-[100dvh] w-full flex flex-col">
                 <AppShell>{children}</AppShell>
             </FileDropRelation>
-            <AlertDialog open={showForceReloadDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Changes detected!</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Another User or Tab has made changes. To ensure you have the latest data, please reload the
-                            page. Otherwise, your changes may be lost.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogAction onClick={() => window.location.reload()}>Reload</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
             <GlobalCommand/>
             <NameDialog/>
             <DeleteFileDialog/>

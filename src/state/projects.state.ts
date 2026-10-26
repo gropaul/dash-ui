@@ -1,48 +1,20 @@
 import {create} from "zustand";
-import {DEFAULT_PROJECT_ICON, Project, ProjectIconKey, ProjectMeta} from "@/model/project";
+import {Project} from "@/model/project";
 import {useDashLocation} from "@/state/routing/use-dash-location";
 import {useEffect} from "react";
-import {
-    DASH_CATALOG_PROJECTS,
-    DASH_PROJECTS_DATABASE_NAME,
-    DEFAULT_PROJECT_ID,
-    DEFAULT_STATE_STORAGE_DESTINATION,
-    getProjectFileName
-} from "@/platform/global-data";
+import {DEFAULT_STATE_STORAGE_DESTINATION, PROJECT_CONFIG_FILE} from "@/platform/global-data";
 import {loadOrSwitchProject} from "@/state/init/load-or-switch-project";
 import {useInitState} from "@/state/init.state";
-import {loadProjectsRegistry, saveProjectsRegistry} from "@/state/projects/project-registry-storage";
-import {saveProjectMeta} from "@/state/projects/project-meta-storage";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {StateStorageInfo} from "@/model/database-connection";
-import {getRandomLowercaseId} from "@/platform/id-utils";
-
-// A single seeded project so the app always has a current project (WASM has no folder to
-// derive a name from). Fixed id so it isn't duplicated across reloads before persistence.
-
-function makeDefaultProject(): Project {
-    return {
-        id: DEFAULT_PROJECT_ID,
-        name: "Untitled project",
-        icon: DEFAULT_PROJECT_ICON,
-        location: getProjectFileName(DEFAULT_PROJECT_ID),
-        rootPath: "/",
-        openedAt: Date.now(),
-    };
-}
-
-export interface CreateProjectInput {
-    name: string;
-    icon?: ProjectIconKey;
-    rootPath?: string;
-}
+import {projectHost, selectProjectHost} from "@/state/projects/project-hosts";
+import {projectConfigText} from "@/state/projects/project-config";
+import {useWorkspace} from "@/state/workspace/workspace.state";
 
 interface ProjectsZustand {
     projects: Record<string, Project>;
+    // The open project's id; '' while none is open.
     currentProjectId: string;
-    // The dash_meta row of the loaded project's file; null while no project is open.
-    currentMeta: ProjectMeta | null;
 
     getCurrentProject: () => Project | null;
     getCurrentProjectStorageInfo: () => StateStorageInfo;
@@ -52,26 +24,26 @@ interface ProjectsZustand {
     // dialog uses this to gate the submit button; create/rename below assume the caller checked.
     // `exceptId` excludes a project from the duplicate check (so re-saving its own name is fine).
     checkProjectName: (name: string, exceptId?: string) => string | null;
-    createProject: (input: CreateProjectInput) => Promise<Project>;
-    renameProject: (id: string, name: string) => void;
-    setProjectIcon: (id: string, icon: ProjectIconKey) => void;
-    /** Electron: the folder holding the project's files, "/" for the default; reopens the project if it is open. */
-    setProjectRoot: (id: string, rootPath: string) => void;
-    // The manifest belongs to the open project's file, so it can only be edited for that project.
-    setProjectSources: (sourcesSql: string) => void;
+    /** A new project, opened; in Electron a folder named after it in `parent`. */
+    createProject: (name: string, parent?: string) => Promise<Project>;
+    /** Electron: the project in an existing folder, added to the list and opened. */
+    openFolder: (folder: string) => Promise<Project>;
+    /** Renames the open project: its `dash.yaml` gets the name. */
+    renameProject: (name: string) => Promise<void>;
+    /** Takes the project off the list; the caller then lets the host remove it (see ProjectHost.remove). */
     removeProject: (id: string) => void;
     setCurrentProject: (id: string) => void;
-    setCurrentMeta: (meta: ProjectMeta | null) => void;
+    /** The open project's name as its `dash.yaml` has it. */
+    adoptProjectName: (id: string, name: string) => void;
 }
 
 export const useProjectsState = create<ProjectsZustand>()(
         (set, get) => ({
-            projects: {[DEFAULT_PROJECT_ID]: makeDefaultProject()},
-            currentProjectId: DEFAULT_PROJECT_ID,
-            currentMeta: null,
+            projects: {},
+            currentProjectId: '',
             getCurrentProject: () => {
                 const id = get().currentProjectId;
-                return get().projects[id];
+                return get().projects[id] ?? null;
             },
             getCurrentProjectStorageInfo: () => {
                 return {
@@ -96,56 +68,30 @@ export const useProjectsState = create<ProjectsZustand>()(
                 return null;
             },
 
-            createProject: async ({name, icon, rootPath}) => {
+            createProject: async (name, parent) => {
                 const error = get().checkProjectName(name);
                 if (error) throw new Error(error);
-                let id = getRandomLowercaseId();
-                while (get().projects[id]) id = getRandomLowercaseId();
-                const project: Project = {
-                    id,
-                    name: name.trim(),
-                    icon: icon ?? DEFAULT_PROJECT_ICON,
-                    location: getProjectFileName(id),
-                    // No filesystem in WASM mode, so default to the virtual root.
-                    rootPath: rootPath ?? "/",
-                    openedAt: Date.now(),
-                };
-                set((s) => ({
-                    projects: {...s.projects, [project.id]: project},
-                }));
+                const project = await projectHost().create!(name, parent);
+                set((s) => ({projects: {...s.projects, [project.id]: project}}));
                 await loadOrSwitchProject(project.id);
                 return project;
             },
 
-            renameProject: (id, name) => {
-                const error = get().checkProjectName(name, id);
+            openFolder: async (folder) => {
+                const project = await projectHost().openFolder!(folder);
+                set((s) => ({projects: {...s.projects, [project.id]: {...project, openedAt: Date.now()}}}));
+                await loadOrSwitchProject(project.id);
+                return project;
+            },
+
+            renameProject: async (name) => {
+                const project = get().getCurrentProject();
+                if (!project) return;
+                const error = get().checkProjectName(name, project.id);
                 if (error) throw new Error(error);
-                set((s) => {
-                    const project = s.projects[id];
-                    if (!project) return s;
-                    return {projects: {...s.projects, [id]: {...project, name: name.trim()}}};
-                });
-                if (id === get().currentProjectId) updateCurrentMeta({name: name.trim()});
-            },
-
-            setProjectIcon: (id, icon) => {
-                set((s) => {
-                    const project = s.projects[id];
-                    if (!project) return s;
-                    return {projects: {...s.projects, [id]: {...project, icon}}};
-                });
-                if (id === get().currentProjectId) updateCurrentMeta({icon});
-            },
-
-            setProjectRoot: (id, rootPath) => {
-                const project = get().projects[id];
-                if (!project || project.rootPath === rootPath) return;
-                set((s) => ({projects: {...s.projects, [id]: {...project, rootPath}}}));
-                if (id === get().currentProjectId) void loadOrSwitchProject(id, true);
-            },
-
-            setProjectSources: (sourcesSql) => {
-                updateCurrentMeta({sourcesSql});
+                get().adoptProjectName(project.id, name.trim());
+                const config = useWorkspace.getState().files[PROJECT_CONFIG_FILE];
+                await useWorkspace.getState().write(PROJECT_CONFIG_FILE, projectConfigText(config, project.id, name.trim()));
             },
 
             removeProject: (id) => {
@@ -153,16 +99,10 @@ export const useProjectsState = create<ProjectsZustand>()(
                     if (!s.projects[id]) return s;
                     const projects = {...s.projects};
                     delete projects[id];
-                    // Never leave zero projects; re-seed a default if this was the last one.
-                    if (Object.keys(projects).length === 0) {
-                        const fresh = makeDefaultProject();
-                        return {projects: {[fresh.id]: fresh}, currentProjectId: fresh.id};
-                    }
                     // If we removed the current project, fall back to the most-recently-opened one.
                     let currentProjectId = s.currentProjectId;
                     if (currentProjectId === id) {
-                        currentProjectId = Object.values(projects)
-                            .sort((a, b) => b.openedAt - a.openedAt)[0].id;
+                        currentProjectId = Object.values(projects).sort((a, b) => b.openedAt - a.openedAt)[0]?.id ?? '';
                     }
                     return {projects, currentProjectId};
                 });
@@ -179,56 +119,28 @@ export const useProjectsState = create<ProjectsZustand>()(
                 });
             },
 
-            setCurrentMeta: (meta) => set({currentMeta: meta}),
+            adoptProjectName: (id, name) => {
+                set((s) => {
+                    const project = s.projects[id];
+                    if (!project || project.name === name) return s;
+                    return {projects: {...s.projects, [id]: {...project, name}}};
+                });
+            },
         }),
 );
 
-// Change the open project's meta and write it to its file.
-function updateCurrentMeta(patch: Partial<ProjectMeta>): void {
-    const meta = useProjectsState.getState().currentMeta;
-    if (!meta) return;
-    const next = {...meta, ...patch};
-    useProjectsState.setState({currentMeta: next});
-    void saveProjectMeta(next);
-}
-
-// loads the projects from DASH_PROJECTS_DATABASE_NAME to useProjectsState
+/** Fills the store with the projects of the connection's runtime (see project-hosts.ts). */
 export async function loadProjectsIntoStore(): Promise<void> {
-
-    // ATTACH the projects database so we can read the registry row
-    const connection = ConnectionsService.getInstance().getDatabaseConnection();
-    const root = await connection.getStorageRoot();
-    const db_path = `${root}${DASH_PROJECTS_DATABASE_NAME}`;
-    console.log(`Loading ${DASH_PROJECTS_DATABASE_NAME} at ${db_path}`);
-
-    if (connection.type === 'duckdb-wasm'){
-        await DuckdbWasmProvider.getInstance().attachDatabase(db_path, DASH_CATALOG_PROJECTS);
-    } else {
-        await connection.executeQuery(`ATTACH IF NOT EXISTS '${db_path}' AS ${DASH_CATALOG_PROJECTS} (READ_WRITE);`, false, false);
-    }
-
-    console.log(`Attached ${DASH_PROJECTS_DATABASE_NAME}`);
-
-    const loaded = await loadProjectsRegistry();
-    if (loaded.status === 'ok') {
-        useProjectsState.setState({projects: loaded.projects});
-    } else {
-        // First run on this connection: seed a FRESH default. (Not the in-memory list — on a
-        // connection switch that would copy the previous backend's projects into this one.)
-        // Persist so the meta file has a starting point.
-        const projects = {};
-        useProjectsState.setState({projects});
-        await saveProjectsRegistry(projects);
-    }
+    const host = selectProjectHost(ConnectionsService.getInstance().getDatabaseConnection());
+    const projects = await host.list();
+    useProjectsState.setState({projects: Object.fromEntries(projects.map(p => [p.id, p]))});
 }
 
-// Persist the registry whenever the project list changes — but only after the initial load (so we
-// don't immediately re-save what we just read) and only once a connection exists to write to.
-// `currentProjectId` is intentionally excluded: it's a runtime pointer derived from the URL.
+// Keep the list between sessions whenever it changes (recents in Electron, opened times in the browser).
 useProjectsState.subscribe((state, prev) => {
     if (state.projects === prev.projects) return;
     if (!ConnectionsService.getInstance().hasDatabaseConnection()) return;
-    void saveProjectsRegistry(state.projects);
+    projectHost().save(Object.values(state.projects));
 });
 
 // E2E-only, like __workspaceStore in workspace.state.ts: the projects registry is not part

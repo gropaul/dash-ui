@@ -21,15 +21,15 @@ export async function goToCatalog(page: Page): Promise<void> {
 }
 
 /**
- * Write the project's `sources.sql` and replay it. Resolves once the manifest is in the projects
- * store and the replay has finished (the save button is enabled again).
+ * Write the project's `sources.sql` and replay it. Resolves once the manifest is in the project's
+ * files and the replay has finished (the save button is enabled again).
  *
  * Monaco's textarea is not fillable, so the model value is set directly - which fires the editor's
  * change event, exactly as typing would. Like `setSql`, the edit is retried: `@monaco-editor/react`
  * subscribes to changes in an effect just after mount, so a one-shot setValue can land in that gap
- * and be dropped, and the save would then store an empty manifest. The manifest lives in the
- * projects store (not the relation state), so that store is what we wait on - saving twice is
- * harmless, a replay reconciles rather than appends.
+ * and be dropped, and the save would then store an empty manifest. The manifest is the workspace
+ * file `sources.sql`, so the workspace store is what we wait on - saving twice is harmless, a
+ * replay reconciles rather than appends.
  */
 export async function setProjectSources(page: Page, sql: string, timeout = 120_000): Promise<void> {
   await goToConnections(page);
@@ -62,11 +62,11 @@ export async function setProjectSources(page: Page, sql: string, timeout = 120_0
   await expect(save).toBeEnabled({ timeout });
 }
 
-/** Wait until the current project's manifest equals `sql` (see the __projectsStore e2e hook). */
+/** Wait until the open project's `sources.sql` equals `sql` (see the __workspaceStore e2e hook). */
 async function expectProjectSources(page: Page, sql: string, timeout: number): Promise<void> {
   await page.waitForFunction((expected) => {
-    const store = (window as unknown as { __projectsStore?: any }).__projectsStore;
-    return store?.getState().currentMeta?.sourcesSql === expected;
+    const store = (window as unknown as { __workspaceStore?: any }).__workspaceStore;
+    return store?.getState().files['sources.sql'] === expected;
   }, sql, { timeout });
 }
 
