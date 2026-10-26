@@ -1,31 +1,37 @@
-import {FolderInput, FolderPlus, FileText, Link, PencilLine, Sheet, Trash} from "lucide-react";
-import {ContextMenuItem, ContextMenuSeparator} from "@/components/ui/context-menu";
-import {DropdownMenuItem, DropdownMenuSeparator} from "@/components/ui/dropdown-menu";
+import {Folder, FolderInput, FileText, Link, PencilLine, Sheet, Trash, Workflow} from "lucide-react";
+import {ContextMenuItem, ContextMenuLabel, ContextMenuSeparator} from "@/components/ui/context-menu";
+import {DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator} from "@/components/ui/dropdown-menu";
 import {copyLink, deleteEntry, moveEntryTo, newFile, renameEntry} from "@/components/workspace/file-actions";
 
 type MenuVariant = 'context' | 'dropdown';
 
 // Radix uses distinct item components per menu family.
 const itemsOf = (variant: MenuVariant) => variant === 'context'
-    ? {Item: ContextMenuItem, Separator: ContextMenuSeparator}
-    : {Item: DropdownMenuItem, Separator: DropdownMenuSeparator};
+    ? {Item: ContextMenuItem, Label: ContextMenuLabel, Separator: ContextMenuSeparator}
+    : {Item: DropdownMenuItem, Label: DropdownMenuLabel, Separator: DropdownMenuSeparator};
 
-/** New page, query and folder in `folder` ('' for the top level). */
+/** New page, query, canvas and folder in `folder` ('' for the top level). */
 export function NewFileItems({variant, folder}: { variant: MenuVariant, folder: string }) {
-    const {Item} = itemsOf(variant);
+    const {Item, Label, Separator} = itemsOf(variant);
     return (
         <>
+            <Label className="text-xs font-medium text-muted-foreground">New</Label>
             <Item onClick={() => newFile('page', folder)}>
                 <FileText size={16} className="mr-2"/>
-                <span>New page</span>
+                <span>Page</span>
             </Item>
             <Item onClick={() => newFile('query', folder)}>
                 <Sheet size={16} className="mr-2"/>
-                <span>New query</span>
+                <span>Query</span>
             </Item>
+            <Item onClick={() => newFile('canvas', folder)}>
+                <Workflow size={16} className="mr-2"/>
+                <span>Canvas</span>
+            </Item>
+            <Separator/>
             <Item onClick={() => newFile('folder', folder)}>
-                <FolderPlus size={16} className="mr-2"/>
-                <span>New folder</span>
+                <Folder size={16} className="mr-2"/>
+                <span>Folder</span>
             </Item>
         </>
     );
