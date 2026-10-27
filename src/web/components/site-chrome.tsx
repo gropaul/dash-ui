@@ -54,9 +54,6 @@ export function SiteFooter() {
                     <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">App</a>
                 </nav>
             </div>
-            <p className="mx-auto max-w-6xl px-4 pb-8 text-xs text-muted-foreground">
-                DuckDB is a trademark of the DuckDB Foundation. Dash is an independent project, not affiliated with it.
-            </p>
         </footer>
     );
 }

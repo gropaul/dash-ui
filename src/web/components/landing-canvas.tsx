@@ -39,8 +39,8 @@ export default function LandingCanvas({box, onShown}: { box: RefObject<HTMLEleme
             </div>
             <FitToBox pane={pane} box={box} onFit={onShown}/>
             {waiting && (
-                <div role="status" className="absolute bottom-4 right-4 flex items-center gap-2 rounded-xl border bg-background px-4 py-2.5 text-sm shadow-[var(--node-shadow)]">
-                    <Loader2 className="h-4 w-4 animate-spin"/>
+                <div role="status" className="absolute bottom-2 right-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin"/>
                     Loading DuckDB…
                 </div>
             )}
