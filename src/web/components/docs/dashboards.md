@@ -1,9 +1,9 @@
 ---
-title: DuckDB Dashboards in Markdown
-description: Write a DuckDB dashboard as one Markdown file - text, charts, tables and dropdowns as sql blocks, laid out in columns - and edit it as a page in Dash.
+title: Dashboards in Markdown
+description: Write a dashboard with DuckDB as one Markdown file - text, charts, tables and dropdowns as sql blocks, laid out in columns - and edit it as a page in Dash.
 ---
 
-# DuckDB Dashboards in Markdown
+# Dashboards in Markdown
 
 A dashboard in Dash is a page: one Markdown file with text, and `sql` blocks that show their result as a chart, a table, a number or a dropdown. You edit it like a document, block by block, or as the Markdown itself next to it. The file reads fine without Dash, works in git, and is easy for a coding agent to write.
 

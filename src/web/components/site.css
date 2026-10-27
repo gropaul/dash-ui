@@ -4,61 +4,6 @@
     background-size: 20px 20px;
 }
 
-/* The landing canvas drawn as HTML (landing-mirror.tsx): nodes placed in percent of the canvas, sized in its
-   pixels (--px), filling the box as the live canvas does. On a phone the text and links stack and the queries hide. */
-.landing-mirror {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    container-type: inline-size;
-}
-
-.landing-mirror-node {
-    --px: calc(100cqw / var(--canvas-width));
-    position: absolute;
-    left: calc(var(--x) * 1%);
-    top: calc(var(--y) * 1%);
-    width: calc(var(--w) * 1%);
-    height: calc(var(--h) * 1%);
-}
-
-.landing-mirror-text {
-    font-size: calc(var(--px) * var(--size));
-    white-space: pre-wrap;
-}
-
-.landing-mirror-link {
-    font-size: calc(var(--px) * 16);
-}
-
-@media (max-width: 767px) {
-    .landing-mirror {
-        height: auto;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
-
-    .landing-mirror-node {
-        --px: 1px;
-        position: static;
-        width: 100%;
-        height: auto;
-    }
-
-    .landing-mirror-node:has(.landing-mirror-link) {
-        width: auto;
-    }
-
-    .landing-mirror-link {
-        padding: 12px 20px;
-    }
-
-    .landing-mirror-query {
-        display: none;
-    }
-}
-
 /* Docs and long-form pages, on the app's theme colors. */
 .site-prose {
     line-height: 1.7;
@@ -100,14 +45,13 @@
     text-underline-offset: 3px;
 }
 
-.site-prose ul {
-    list-style: disc;
+.site-prose ul, .site-prose ol {
     padding-left: 1.4em;
+    list-style: disc;
 }
 
 .site-prose ol {
     list-style: decimal;
-    padding-left: 1.4em;
 }
 
 .site-prose :not(pre) > code {

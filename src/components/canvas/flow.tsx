@@ -67,8 +67,8 @@ export interface FlowProps {
     canvasId: string;
     openFullscreen: (nodeId: string) => void;
     /**
-     * Part of a page, e.g. the website: the nodes fill the view edge to edge and it stays there (no panning or zooming,
-     * the wheel scrolls the page), without a toolbar or background of its own. Nodes still move and work.
+     * Part of a page, e.g. the website: the page places the view and it stays there (no panning or zooming, the wheel
+     * scrolls the page), without a toolbar or background of its own. Nodes still move and work.
      */
     embedded?: boolean;
 }
@@ -264,7 +264,7 @@ export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
     }, []);
 
     return (
-        <CanvasProvider canvasId={canvasId} setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges} openFullscreen={openFullscreen}>
+        <CanvasProvider canvasId={canvasId} setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges} openFullscreen={openFullscreen} embedded={embedded}>
             <RenameRelationContext.Provider value={renameBlock}>
             <div
                 className={isPanning ? 'canvas-panning' : undefined}
@@ -299,8 +299,8 @@ export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
                 connectionMode={ConnectionMode.Loose}
                 colorMode={resolvedTheme === 'dark' ? 'dark' : 'light'}
                 defaultViewport={viewport}
-                fitView={!viewport}
-                fitViewOptions={{padding: embedded ? 0 : 0.1, maxZoom: 1}}
+                fitView={!viewport && !embedded}
+                fitViewOptions={{padding: 0.1, maxZoom: 1}}
                 onViewportChange={onViewportChange}
                 onMoveStart={() => setIsPanning(true)}
                 onMoveEnd={() => setIsPanning(false)}

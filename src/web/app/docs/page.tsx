@@ -5,7 +5,7 @@ import {allDocs} from "@web/components/docs";
 
 export const metadata: Metadata = {
     title: 'Docs',
-    description: 'How to use Dash: the DuckDB canvas, dashboards written in Markdown, and coding agents working on your project.',
+    description: 'How to use Dash: the canvas, dashboards written in Markdown, and coding agents working on your project.',
     alternates: {canonical: '/docs'},
 };
 

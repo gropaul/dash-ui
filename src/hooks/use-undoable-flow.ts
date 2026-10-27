@@ -27,12 +27,6 @@ const memoryOf = (path: string) => useCanvasMemory.getState().canvases[path];
 const putMemory = (path: string, memory: CanvasMemory) =>
     useCanvasMemory.setState(s => ({canvases: {...s.canvases, [path]: memory}}));
 
-/** Reads the file again when it changed outside the canvas, e.g. in its text or on disk. */
-function memoryFor(path: string, text: string): CanvasMemory {
-    const memory = memoryOf(path);
-    if (memory && memory.text === text) return memory;
-    return {...memory, edgeState: memory?.edgeState ?? {}, hiddenEdges: memory?.hiddenEdges ?? new Set(), nodes: readCanvas(text, memory?.nodes ?? []), text};
-}
 
 /** Keeps `nodes` and, unless a drag or resize is still under way, writes them to the canvas file. */
 function commitNodes(path: string, nodes: Node[], save: boolean) {
@@ -49,11 +43,17 @@ function deriveEdges(memory: CanvasMemory | undefined, nodes: Node[]): Edge[] {
         .map(edge => ({...edge, ...memory?.edgeState[edge.id]}));
 }
 
+const nodesOf = (path: string) => memoryOf(path)?.nodes ?? [];
+const edgesOf = (path: string) => deriveEdges(memoryOf(path), nodesOf(path));
+
 /** The canvas file at `path` as React Flow state, with undo and redo. */
 export function useUndoableFlow(path: string) {
     const text = useFile(path) ?? '';
     const stored = useCanvasMemory(s => s.canvases[path]);
-    const memory = useMemo(() => stored && stored.text === text ? stored : memoryFor(path, text), [stored, path, text]);
+    // Read again when the file changed outside the canvas, e.g. in its text or on disk.
+    const memory = useMemo((): CanvasMemory => stored && stored.text === text ? stored : {
+        ...(stored ?? {edgeState: {}, hiddenEdges: new Set()}), nodes: readCanvas(text, stored?.nodes ?? []), text,
+    }, [stored, text]);
     useEffect(() => {
         if (memory !== memoryOf(path)) putMemory(path, memory);
     }, [path, memory]);
@@ -65,23 +65,19 @@ export function useUndoableFlow(path: string) {
     const viewport = memory.viewport;
 
     const lastSnapshotTime = useRef<number>(0);
-    const currentNodes = () => memoryOf(path)?.nodes ?? nodes;
-    const currentEdges = () => deriveEdges(memoryOf(path), currentNodes());
 
     const maybeSnapshot = useCallback(() => {
         const now = Date.now();
         if (now - lastSnapshotTime.current > SNAPSHOT_DEBOUNCE_MS) {
-            takeSnapshot(path, currentNodes(), currentEdges());
+            takeSnapshot(path, nodesOf(path), edgesOf(path));
             lastSnapshotTime.current = now;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [path, takeSnapshot]);
 
     const setNodes = useCallback((nodesOrUpdater: Node[] | ((nodes: Node[]) => Node[])) => {
         maybeSnapshot();
-        const next = typeof nodesOrUpdater === 'function' ? nodesOrUpdater(currentNodes()) : nodesOrUpdater;
+        const next = typeof nodesOrUpdater === 'function' ? nodesOrUpdater(nodesOf(path)) : nodesOrUpdater;
         commitNodes(path, next, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [path, maybeSnapshot]);
 
     const keepEdges = useCallback((next: Edge[]) => {
@@ -89,49 +85,41 @@ export function useUndoableFlow(path: string) {
         if (!memory) return;
         const kept = new Set(next.map(e => e.id));
         const hiddenEdges = new Set(memory.hiddenEdges);
-        for (const edge of currentEdges()) if (!kept.has(edge.id)) hiddenEdges.add(edge.id);
+        for (const edge of edgesOf(path)) if (!kept.has(edge.id)) hiddenEdges.add(edge.id);
         const edgeState = {...memory.edgeState};
         for (const edge of next) edgeState[edge.id] = {data: edge.data, selected: edge.selected};
         putMemory(path, {...memory, edgeState, hiddenEdges});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [path]);
 
     const setEdges = useCallback((edgesOrUpdater: Edge[] | ((edges: Edge[]) => Edge[])) => {
-        keepEdges(typeof edgesOrUpdater === 'function' ? edgesOrUpdater(currentEdges()) : edgesOrUpdater);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [keepEdges]);
+        keepEdges(typeof edgesOrUpdater === 'function' ? edgesOrUpdater(edgesOf(path)) : edgesOrUpdater);
+    }, [path, keepEdges]);
 
     const onNodesChange: OnNodesChange = useCallback((changes) => {
         maybeSnapshot();
         // A drag or resize is saved once it ends.
         const gesture = changes.some(c => c.type === 'position' && c.dragging || c.type === 'dimensions' && c.resizing);
-        commitNodes(path, applyNodeChanges(changes, currentNodes()), !gesture);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        commitNodes(path, applyNodeChanges(changes, nodesOf(path)), !gesture);
     }, [path, maybeSnapshot]);
 
     const onEdgesChange: OnEdgesChange = useCallback((changes) => {
-        keepEdges(applyEdgeChanges(changes, currentEdges()));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [keepEdges]);
+        keepEdges(applyEdgeChanges(changes, edgesOf(path)));
+    }, [path, keepEdges]);
 
     const handleUndo = useCallback(() => {
-        const snapshot = undo(path, currentNodes(), currentEdges());
+        const snapshot = undo(path, nodesOf(path), edgesOf(path));
         if (snapshot) commitNodes(path, snapshot.nodes, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [path, undo]);
 
     const handleRedo = useCallback(() => {
-        const snapshot = redo(path, currentNodes(), currentEdges());
+        const snapshot = redo(path, nodesOf(path), edgesOf(path));
         if (snapshot) commitNodes(path, snapshot.nodes, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [path, redo]);
 
     const viewportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const onViewportChange = useCallback((newViewport: Viewport) => {
-        if (viewportTimeoutRef.current) {
-            clearTimeout(viewportTimeoutRef.current);
-        }
+        if (viewportTimeoutRef.current) clearTimeout(viewportTimeoutRef.current);
         viewportTimeoutRef.current = setTimeout(() => {
             const memory = memoryOf(path);
             if (memory) putMemory(path, {...memory, viewport: newViewport});

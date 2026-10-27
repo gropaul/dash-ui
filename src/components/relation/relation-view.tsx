@@ -30,6 +30,7 @@ export interface StaticDisplayProps {
     neverShowQueryEditor?: boolean; // if true, the sql editor will never be visible, even if the relation state allows it
     sqlEditorShowRunButton?: boolean; // whether to show the run button in the sql editor, defaults to true
     sqlEditorPanelMode?: EditorPanelPosition; // whether the sql editor should be displayed in an overlay or a panel, defaults to overlay
+    sqlEditorKeepsWheel?: boolean; // whether the sql editor takes the mouse wheel even when it can't scroll, defaults to !embedded
 }
 
 export interface RelationViewAPIProps extends RelationUpdate, StaticDisplayProps {

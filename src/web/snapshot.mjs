@@ -3,11 +3,12 @@
 // the website's dev server with the e2e hook:
 //
 //   NEXT_PUBLIC_E2E=1 pnpm dev:web
-//   node src/web/snapshot.mjs [http://localhost:3200]
+//   node src/web/snapshot.mjs <its URL, e.g. http://localhost:3000>
 import fs from 'node:fs';
 import {chromium} from 'playwright';
 
-const SITE = process.argv[2] ?? 'http://localhost:3200';
+const SITE = process.argv[2];
+if (!SITE) throw new Error('Usage: node src/web/snapshot.mjs <dev server URL>');
 const OUT = 'src/web/components/landing-snapshot.json';
 const CANVAS = 'src/web/components/landing.canvas';
 const TIMEOUT_MS = 120_000;

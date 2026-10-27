@@ -6,8 +6,8 @@ import {cn} from "@/lib/utils";
 import {APP_URL} from "@web/components/site-chrome";
 
 export const metadata: Metadata = {
-    title: 'DuckDB Dashboard in Your Browser',
-    description: 'Build a DuckDB dashboard from SQL: charts, tables and dropdown filters in one Markdown file, running on DuckDB in your browser. No server, open source.',
+    title: 'Dashboards with DuckDB in Your Browser',
+    description: 'Build dashboards with DuckDB from SQL: charts, tables and dropdown filters in one Markdown file, running on DuckDB in your browser. No server, open source.',
     alternates: {canonical: '/duckdb-dashboard'},
 };
 
@@ -56,7 +56,7 @@ SELECT DISTINCT ServiceType FROM 'services.parquet'
 ];
 
 const FAQ = [
-    {q: 'Does a DuckDB dashboard in Dash need a server?', a: 'No. In the browser, DuckDB WASM runs the queries in the page and your files stay on your machine. The desktop app and the DuckDB extension run DuckDB natively.'},
+    {q: 'Does a dashboard in Dash need a server?', a: 'No. In the browser, DuckDB WASM runs the queries in the page and your files stay on your machine. The desktop app and the extension for DuckDB run DuckDB natively.'},
     {q: 'Can I build a dashboard from a Parquet or CSV file?', a: 'Yes. Drop the file into Dash, or query it by its path or URL; DuckDB reads CSV, Parquet, JSON and Excel files directly.'},
     {q: 'Can I use my own DuckDB database?', a: 'Yes: open a .duckdb file in Dash, or run Dash inside your DuckDB with the community extension (INSTALL dash FROM community; LOAD dash; PRAGMA dash;).'},
     {q: 'How is this different from a canvas?', a: 'A page reads top to bottom like a report; a canvas places the same kind of queries freely and draws how they feed each other. Both use the same sql blocks and refs.'},
@@ -73,7 +73,7 @@ export default function DuckDBDashboard() {
     return (
         <div className="mx-auto max-w-4xl px-4 py-20">
             <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(FAQ_DATA)}}/>
-            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">A DuckDB dashboard, written in SQL and Markdown</h1>
+            <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Dashboards with DuckDB, written in SQL and Markdown</h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
                 Dash turns SQL into a dashboard that runs on DuckDB in your browser: charts, tables and dropdown
                 filters in one Markdown file. No server, no upload, no build step.

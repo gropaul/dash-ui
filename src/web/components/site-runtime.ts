@@ -1,3 +1,4 @@
+import {create} from "zustand";
 import {DatabaseConnection} from "@/model/database-connection";
 import {RelationState} from "@/model/relation-state";
 import {RelationData} from "@/model/relation";
@@ -21,6 +22,12 @@ export interface CanvasSnapshot {
 
 const connection = specToConnection(getDefaultSpec('duckdb-wasm'));
 let database: Promise<DatabaseConnection> | undefined;
+let ready = false;
+// Run once DuckDB is up, before any query: e.g. views the canvas reads.
+let canvasSetup: string[] = [];
+
+/** Whether a query is waiting for DuckDB to start. */
+export const useWaitingForDatabase = create<boolean>(() => false);
 
 /** Starts DuckDB WASM with in-memory catalogs in place of a project's; once, however often it is called. */
 export function startDatabase(): Promise<DatabaseConnection> {
@@ -31,19 +38,29 @@ export function startDatabase(): Promise<DatabaseConnection> {
             `ATTACH IF NOT EXISTS ':memory:' AS ${DASH_CATALOG_CACHE};`,
             ...DASH_INTERNAL_SCHEMAS.map(schema => `CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG_STATE}.${schema};`),
             `USE ${DASH_CATALOG_STATE};`,
+            ...canvasSetup,
         ];
         for (const sql of setup) await connection.executeQuery(sql, false, false);
+        ready = true;
+        useWaitingForDatabase.setState(false, true);
         return connection;
     })();
     return database;
 }
 
-/** Makes the canvas file at `path` the workspace and sets up the connection its queries wait on. */
-export function openSiteCanvas(path: string, text: string, snapshot?: CanvasSnapshot) {
+/**
+ * Makes the canvas file at `path` the workspace and sets up the connection its queries wait on, which runs `setup`
+ * first.
+ */
+export function openSiteCanvas(path: string, text: string, setup: string[], snapshot?: CanvasSnapshot) {
+    canvasSetup = setup;
     const waiting = new Proxy(connection, {
         get(target, property, receiver) {
             if (property !== 'executeQuery') return Reflect.get(target, property, receiver);
-            return async (...args: Parameters<DatabaseConnection['executeQuery']>) => (await startDatabase()).executeQuery(...args);
+            return async (...args: Parameters<DatabaseConnection['executeQuery']>) => {
+                if (!ready) useWaitingForDatabase.setState(true, true);
+                return (await startDatabase()).executeQuery(...args);
+            };
         },
     });
     void ConnectionsService.getInstance().setDatabaseConnection(waiting);

@@ -111,17 +111,18 @@ export function writeCanvas(nodes: Node[]): string {
 
 const round = (value: number, digits: number) => Math.round(value * 10 ** digits) / 10 ** digits;
 
-/** The name of a query node's block: what `refs.<name>()` calls it by. */
-export function blockNameOf(node: Node): string | undefined {
-    return sqlFences((node.data as RelationNodeData).body ?? '')[0]?.name;
-}
-
-/** The SQL and header lines of a query node's block. */
-export function blockOf(node: Node): { name?: string, header: Record<string, string>, sql: string } {
-    const fence = sqlFences((node.data as RelationNodeData).body ?? '')[0];
+/** The name, header lines and SQL of a ```sql block. */
+function parseBlock(body: string): { name?: string, header: Record<string, string>, sql: string } {
+    const fence = sqlFences(body)[0];
     // The line break before the closing fence is the fence's, which blockBody writes back.
     return {name: fence?.name, ...splitHeader((fence?.body ?? '').replace(/\n$/, ''))};
 }
+
+/** A query node's block. */
+export const blockOf = (node: Node) => parseBlock((node.data as RelationNodeData).body ?? '');
+
+/** The name of a query node's block: what `refs.<name>()` calls it by. */
+export const blockNameOf = (node: Node) => blockOf(node).name;
 
 export function blockBody(name: string, header: Record<string, string>, sql: string): string {
     return `\`\`\`sql ${name}\n${joinHeader(header, sql)}\n\`\`\``;
@@ -160,7 +161,7 @@ export function useRelationNodeModel(
     body: string,
     setNodes: (updater: (nodes: Node[]) => Node[]) => void,
 ): RelationModel | undefined {
-    const block = useMemo(() => blockOf({data: {body}} as unknown as Node), [body]);
+    const block = useMemo(() => parseBlock(body), [body]);
     const config = useMemo(() => ({
         id: `${path}#${block.name ?? nodeId}`, name: block.name ?? '', sql: block.sql, header: block.header,
     }), [path, block, nodeId]);

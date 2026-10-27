@@ -9,7 +9,7 @@ const DESCRIPTION = 'Dash is a SQL workspace on DuckDB: query nodes on a canvas 
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
-    title: {default: 'Dash - DuckDB Canvas and Dashboards in Your Browser', template: '%s - Dash'},
+    title: {default: 'Dash - SQL Canvas and Dashboards with DuckDB', template: '%s - Dash'},
     description: DESCRIPTION,
     alternates: {canonical: '/'},
     openGraph: {type: 'website', siteName: 'Dash', url: '/', images: ['/og.png']},

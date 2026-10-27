@@ -63,7 +63,7 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
             <SqlEditor
                 path={`relation-${relationId}`}
                 embedded={embedded}
-                alwaysConsumeMouseWheel={!embedded}
+                alwaysConsumeMouseWheel={props.statics.sqlEditorKeepsWheel ?? !embedded}
                 panelMode={props.statics.sqlEditorPanelMode ?? "panel"}
                 showLineNumbers={true}
                 height={'100%'}

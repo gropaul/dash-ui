@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import {Github} from "lucide-react";
+import {AppWindow, BookOpen, Github} from "lucide-react";
 import {buttonVariants} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
 
@@ -19,12 +19,18 @@ export function SiteHeader() {
                     Dash
                 </Link>
                 <nav className="flex items-center gap-1 text-sm">
-                    <Link href="/docs" className={buttonVariants({variant: 'ghost', size: 'sm'})}>Docs</Link>
+                    <Link href="/docs" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2")}>
+                        <BookOpen className="h-4 w-4"/>
+                        <span className="hidden sm:inline">Docs</span>
+                    </Link>
                     <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2")}>
                         <Github className="h-4 w-4"/>
                         <span className="hidden sm:inline">GitHub</span>
                     </a>
-                    <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({size: 'sm'}), "ml-1")}>Open the app</a>
+                    <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2")}>
+                        <AppWindow className="h-4 w-4"/>
+                        <span className="hidden sm:inline">App</span>
+                    </a>
                 </nav>
             </div>
         </header>
@@ -42,12 +48,15 @@ export function SiteFooter() {
                 </div>
                 <nav className="flex items-center gap-5">
                     <Link href="/docs/canvas" className="hover:text-foreground">Canvas</Link>
-                    <Link href="/duckdb-dashboard" className="hover:text-foreground">DuckDB dashboards</Link>
+                    <Link href="/duckdb-dashboard" className="hover:text-foreground">Dashboards</Link>
                     <Link href="/docs" className="hover:text-foreground">Docs</Link>
                     <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">GitHub</a>
                     <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">App</a>
                 </nav>
             </div>
+            <p className="mx-auto max-w-6xl px-4 pb-8 text-xs text-muted-foreground">
+                DuckDB is a trademark of the DuckDB Foundation. Dash is an independent project, not affiliated with it.
+            </p>
         </footer>
     );
 }

@@ -40,8 +40,8 @@ export function getDownstreamQueue(startNodeId: string, edges: Edge[]): string[]
 /**
  * Build the relation dependency graph from SQL alone — no canvas required.
  *
- * Mirrors what the canvas derives into xyflow edges (ref-detection.ts): a relation that references
- * `node_<name>()` in its SQL depends on the relation whose display name sanitizes to `<name>`.
+ * Mirrors what the canvas draws as edges (`refEdges` in canvas-file.ts): a relation that references
+ * `refs.<name>()` in its SQL depends on the relation whose display name sanitizes to `<name>`.
  * Returns {source → target} edges (source is upstream, target depends on it).
  */
 function buildRelationEdges(relations: Record<string, RelationState>): Edge[] {

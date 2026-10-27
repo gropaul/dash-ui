@@ -32,7 +32,7 @@ type RelationNodeType = Node<RelationNodeProps, 'relationNode'>;
 const VIEW_MODE: RelationViewMode = 'embedded';
 
 export function RelationNode(props: NodeProps<RelationNodeType>) {
-    const {canvasId: path, openFullscreen, setNodes} = useCanvasState();
+    const {canvasId: path, openFullscreen, setNodes, embedded: onPage} = useCanvasState();
     const {body, showCode} = props.data;
 
     const model = useRelationNodeModel(path, props.id, body, setNodes);
@@ -180,6 +180,8 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                             embedded={false}
                             sqlEditorShowRunButton={false}
                             sqlEditorPanelMode={'overlay'}
+                            // On a canvas the wheel pans, so the editor keeps it; on a page it scrolls the page.
+                            sqlEditorKeepsWheel={!onPage}
                             height={'fit'}
                             codeFenceRef={codeFenceRef}
                         />

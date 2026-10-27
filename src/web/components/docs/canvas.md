@@ -1,9 +1,9 @@
 ---
-title: DuckDB Canvas
-description: Arrange DuckDB queries as nodes on a canvas. Nodes read each other with refs, and the ones downstream re-run when a pick upstream changes.
+title: Canvas
+description: Arrange queries as nodes on a canvas, running on DuckDB. Nodes read each other with refs, and the ones downstream re-run when a pick upstream changes.
 ---
 
-# DuckDB Canvas
+# Canvas
 
 A canvas is a `.canvas` file of your project: SQL nodes placed freely, wired together by the queries themselves. Instead of running disconnected queries one by one, you see how the data flows from one to the next, and every node re-runs when something upstream changes. Everything runs on DuckDB, in your browser or in DuckDB itself.
 
