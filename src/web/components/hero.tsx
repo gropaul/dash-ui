@@ -29,8 +29,8 @@ export function Hero({phone}: { phone: React.ReactNode }) {
     const box = useRef<HTMLDivElement>(null);
 
     return (
-        <section className="landing-dots relative border-b">
-            <div className="mx-auto max-w-6xl px-4 py-10 md:py-16">
+        <section className="landing-dots relative border-b bg-background">
+            <div className="mx-auto max-w-6xl px-4 py-10 md:py-16 lg:py-24 2xl:py-28">
                 <div ref={box} className="relative md:aspect-[var(--canvas-aspect)]" style={{'--canvas-aspect': LANDING_BOUNDS.width / LANDING_BOUNDS.height} as CSSProperties}>
                     <div className="md:hidden">{phone}</div>
                 </div>

@@ -26,6 +26,10 @@ export interface TextNodeData {
     textAlign: 'left' | 'center' | 'right';
     verticalAlign: 'top' | 'center' | 'bottom';
     color: string;
+    /** Behind the node's whole box; none when unset. */
+    background?: string;
+    /** How far the background's edges blur, in pixels; set in the file only. */
+    backgroundBlur?: number;
 }
 
 export const DEFAULT_TEXT_NODE_DATA: TextNodeData = {

@@ -18,7 +18,8 @@ export interface RelationNodeData extends Record<string, unknown> {
 // The text node's settings, by their attribute in the file.
 const TEXT_ATTRIBUTES: [keyof TextNodeData, string][] = [
     ['textStyle', 'text-style'], ['fontStyle', 'font-style'], ['textAlign', 'text-align'],
-    ['verticalAlign', 'vertical-align'], ['color', 'color'],
+    ['verticalAlign', 'vertical-align'], ['color', 'color'], ['background', 'background'],
+    ['backgroundBlur', 'background-blur'],
 ];
 
 /** The nodes of a canvas file as React Flow nodes, keeping which of `previous` were selected. */

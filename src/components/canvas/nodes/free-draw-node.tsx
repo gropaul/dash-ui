@@ -90,7 +90,6 @@ export function FreeDrawNode({id, data, selected, width: nodeWidth, height: node
         >
             <FreeDrawToolbar
                 nodeId={id}
-                isVisible={selected ?? false}
                 data={nodeData}
             />
             <NodeResizer

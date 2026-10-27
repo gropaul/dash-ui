@@ -7,11 +7,10 @@ import {useCanvasState} from "@/components/canvas/canvas-context";
 
 interface FreeDrawToolbarProps {
     nodeId: string;
-    isVisible: boolean;
     data: FreeDrawNodeData;
 }
 
-export function FreeDrawToolbar({nodeId, isVisible, data}: FreeDrawToolbarProps) {
+export function FreeDrawToolbar({nodeId, data}: FreeDrawToolbarProps) {
     const {deleteElements} = useReactFlow();
     const {setNodes} = useCanvasState();
 
@@ -30,7 +29,7 @@ export function FreeDrawToolbar({nodeId, isVisible, data}: FreeDrawToolbarProps)
     };
 
     return (
-        <NodeToolbar isVisible={isVisible} position={Position.Top} align="center">
+        <NodeToolbar position={Position.Top} align="center">
             <div className="flex flex-row items-center bg-background border rounded-2xl shadow-sm pr-2">
                 <Button
                     className="rounded-[0px] rounded-l-2xl w-10 h-10"

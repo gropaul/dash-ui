@@ -14,7 +14,7 @@ const verticalAlignToFlex = {
 export function TextNode({id, data, selected, width, height}: NodeProps) {
     const rawData = data as unknown as Partial<TextNodeData> & { isNew?: boolean };
     const nodeData = {...DEFAULT_TEXT_NODE_DATA, ...rawData};
-    const {text, textStyle, fontStyle, textAlign, verticalAlign, color} = nodeData;
+    const {text, textStyle, fontStyle, textAlign, verticalAlign, color, background, backgroundBlur} = nodeData;
     const styleConfig = TEXT_STYLES[textStyle];
     const {setNodes} = useCanvasState();
 
@@ -94,14 +94,18 @@ export function TextNode({id, data, selected, width, height}: NodeProps) {
                 position: 'relative',
                 width: nodeWidth,
                 height: nodeHeight,
-                backgroundColor: 'transparent',
                 boxSizing: 'border-box',
             }}
             onDoubleClick={handleDoubleClick}
         >
+            {background && (
+                <div
+                    className="pointer-events-none absolute inset-0 rounded-2xl"
+                    style={{backgroundColor: background, filter: backgroundBlur ? `blur(${Number(backgroundBlur)}px)` : undefined}}
+                />
+            )}
             <TextToolbar
                 nodeId={id}
-                isVisible={selected ?? false}
                 data={nodeData}
             />
             <NodeResizer
@@ -111,7 +115,7 @@ export function TextNode({id, data, selected, width, height}: NodeProps) {
                 minHeight={2 * GRID_SIZE}
             />
             <div
-                className={`w-full h-full p-0.5 flex ${isEditing ? 'nodrag' : ''}`}
+                className={`relative w-full h-full flex ${isEditing ? 'nodrag' : ''}`}
                 style={{
                     justifyContent: textAlign,
                     alignItems: verticalAlignToFlex[verticalAlign],

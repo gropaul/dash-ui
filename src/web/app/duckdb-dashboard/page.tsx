@@ -79,8 +79,8 @@ export default function DuckDBDashboard() {
                 filters in one Markdown file. No server, no upload, no build step.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-                <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={buttonVariants({size: 'lg'})}>Open the app</a>
-                <Link href="/docs/dashboards" className={cn(buttonVariants({variant: 'outline', size: 'lg'}), "gap-2")}>
+                <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({size: 'lg'}), "rounded-2xl")}>Open the app</a>
+                <Link href="/docs/dashboards" className={cn(buttonVariants({variant: 'outline', size: 'lg'}), "gap-2 rounded-2xl")}>
                     The page format <ArrowRight className="h-4 w-4"/>
                 </Link>
             </div>

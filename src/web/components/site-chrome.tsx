@@ -19,15 +19,15 @@ export function SiteHeader() {
                     Dash
                 </Link>
                 <nav className="flex items-center gap-1 text-sm">
-                    <Link href="/docs" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2")}>
+                    <Link href="/docs" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2 rounded-2xl")}>
                         <BookOpen className="h-4 w-4"/>
                         <span className="hidden sm:inline">Docs</span>
                     </Link>
-                    <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2")}>
+                    <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2 rounded-2xl")}>
                         <Github className="h-4 w-4"/>
                         <span className="hidden sm:inline">GitHub</span>
                     </a>
-                    <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2")}>
+                    <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2 rounded-2xl")}>
                         <AppWindow className="h-4 w-4"/>
                         <span className="hidden sm:inline">App</span>
                     </a>
@@ -44,7 +44,6 @@ export function SiteFooter() {
                 <div className="flex items-center gap-2 text-foreground">
                     <Image src="/logo.png" alt="" width={24} height={24}/>
                     <span className="font-semibold">Dash</span>
-                    <span className="text-muted-foreground">SQL canvas and dashboards on DuckDB</span>
                 </div>
                 <nav className="flex items-center gap-5">
                     <Link href="/docs/canvas" className="hover:text-foreground">Canvas</Link>

@@ -315,7 +315,7 @@ export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
                 panOnScrollSpeed={1.5}
                 panOnDrag={embedded ? false : canvasState.selectedTool === 'drag-canvas' ? true : [1]}
                 style={{cursor: cursorStyle, ...(embedded && {'--xy-background-color': 'transparent'})}}
-                attributionPosition={embedded ? 'bottom-left' : 'bottom-right'}
+                proOptions={{hideAttribution: embedded}}
                 zoomOnScroll={false}
                 selectionOnDrag={canvasState.selectedTool === 'pointer'}
                 elementsSelectable={canvasState.selectedTool === 'pointer'}

@@ -16,6 +16,7 @@ import {
     Heading4,
     Heading5,
     Italic,
+    PaintBucket,
     Text,
     Trash2
 } from "lucide-react";
@@ -54,13 +55,15 @@ const verticalAlignOptions: { id: VerticalAlign; label: string; icon: React.Reac
     {id: 'bottom', label: 'Bottom', icon: <AlignVerticalJustifyEnd className="h-4 w-4"/>},
 ];
 
+// White as the page's background, so it follows dark mode.
+const BACKGROUND_COLORS = ['hsl(var(--background))'];
+
 interface TextToolbarProps {
     nodeId: string;
-    isVisible: boolean;
     data: TextNodeData;
 }
 
-export function TextToolbar({nodeId, isVisible, data}: TextToolbarProps) {
+export function TextToolbar({nodeId, data}: TextToolbarProps) {
     const {deleteElements} = useReactFlow();
     const {setNodes} = useCanvasState();
 
@@ -83,7 +86,7 @@ export function TextToolbar({nodeId, isVisible, data}: TextToolbarProps) {
     const currentVerticalAlign = verticalAlignOptions.find(opt => opt.id === data.verticalAlign) || verticalAlignOptions[1];
 
     return (
-        <NodeToolbar isVisible={isVisible} position={Position.Top} align="center">
+        <NodeToolbar position={Position.Top} align="center">
             <div className="flex flex-row items-center bg-background border rounded-2xl shadow-sm">
                 <Button
                     className="rounded-l-2xl rounded-r-none w-10 h-10"
@@ -190,6 +193,17 @@ export function TextToolbar({nodeId, isVisible, data}: TextToolbarProps) {
                     <ColorPalette
                         color={data.color}
                         onChange={(color) => updateNodeData({color})}
+                    />
+                </div>
+                <div className="w-[1px] h-10 bg-border"/>
+
+                <div className="flex items-center gap-1.5 px-2">
+                    <PaintBucket className="h-4 w-4 text-muted-foreground"/>
+                    <ColorPalette
+                        color={data.background}
+                        onChange={(background) => updateNodeData({background})}
+                        colors={BACKGROUND_COLORS}
+                        defaultSwatch="transparent"
                     />
                 </div>
             </div>

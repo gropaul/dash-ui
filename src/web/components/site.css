@@ -69,7 +69,7 @@ body {
     overflow-x: auto;
     padding: 1em 1.2em;
     border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
+    border-radius: 1rem;
     background: hsl(var(--muted-background));
     font-size: 0.85rem;
     line-height: 1.55;

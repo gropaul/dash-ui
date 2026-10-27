@@ -152,7 +152,6 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                     viewType={data.viewState.selectedView}
                 >
                     <RelationToolbar
-                        isVisible={props.selected}
                         showCode={isCodeShowing}
                         runState={data.executionState}
                         onRun={handleRun}

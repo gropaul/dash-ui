@@ -12,7 +12,6 @@ import {RelationViewRunButton} from "@/components/relation/settings/relation-vie
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 interface RelationToolbarProps {
-    isVisible: boolean;
     showCode: boolean;
     onToggleCode: () => void;
     viewProps: RelationViewProps,
@@ -25,7 +24,6 @@ interface RelationToolbarProps {
 }
 
 export function RelationToolbar({
-                            isVisible,
                             showCode,
                             onToggleCode,
                             viewProps,
@@ -39,7 +37,7 @@ export function RelationToolbar({
 
 
     return (
-        <NodeToolbar isVisible={isVisible} position={Position.Top} align={'center'}>
+        <NodeToolbar position={Position.Top} align={'center'}>
             <div className="flex flex-row  bg-background border rounded-2xl shadow-sm px-1">
                 <RelationViewRunButton
                     onStopRun={onStopRun}

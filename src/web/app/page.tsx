@@ -1,10 +1,11 @@
 import Link from "next/link";
-import {ArrowRight, Github} from "lucide-react";
+import {ArrowRight} from "lucide-react";
 import {buttonVariants} from "@/components/ui/button";
+import {CopyButton} from "@/components/basics/input/copy-button";
 import {cn} from "@/lib/utils";
 import {Hero} from "@web/components/hero";
 import {PhoneHero} from "@web/components/phone-hero";
-import {APP_URL, GITHUB_URL, RELEASES_URL} from "@web/components/site-chrome";
+import {APP_URL, RELEASES_URL} from "@web/components/site-chrome";
 import canvasText from "@web/components/landing.canvas?raw";
 
 const PAGE_EXAMPLE = `# Train services
@@ -26,6 +27,10 @@ WHERE ServiceType IN
 GROUP BY ALL ORDER BY stops DESC LIMIT 10
 \`\`\``;
 
+const EXTENSION_SETUP = `INSTALL dash FROM community;
+LOAD dash;
+PRAGMA dash;`;
+
 const CAPABILITIES = [
     {tag: 'CANVAS', name: 'Canvas', body: 'SQL nodes, text, links and drawings on an infinite canvas, wired into a dataflow by the queries themselves.'},
     {tag: 'PAGES', name: 'Dashboards in Markdown', body: 'Pages of text and sql blocks: charts, tables, numbers and dropdowns, laid out in columns.'},
@@ -40,7 +45,40 @@ export default function Landing() {
         <>
             <Hero phone={<PhoneHero text={canvasText}/>}/>
 
-            <section className="border-b bg-muted-background">
+            <section className="mx-auto max-w-6xl px-4 py-24">
+                <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Get started</h2>
+                <div className="mt-6 grid gap-10 md:grid-cols-3">
+                    <div className="border-t pt-6">
+                        <h3 className="text-lg font-semibold">In your browser</h3>
+                        <p className="mt-2 leading-relaxed text-muted-foreground">
+                            Nothing to install. DuckDB runs in the page, your files stay on your machine, and projects are
+                            kept in the browser.
+                        </p>
+                        <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants(), "mt-6 rounded-2xl")}>Open the app</a>
+                    </div>
+                    <div className="border-t pt-6">
+                        <h3 className="text-lg font-semibold">On your desktop</h3>
+                        <p className="mt-2 leading-relaxed text-muted-foreground">
+                            Runs DuckDB natively, opens any folder as a project and has the agent panel. For macOS,
+                            Windows and Linux.
+                        </p>
+                        <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'outline'}), "mt-6 rounded-2xl")}>Download</a>
+                    </div>
+                    <div className="border-t pt-6">
+                        <h3 className="text-lg font-semibold">Inside DuckDB</h3>
+                        <p className="mt-2 leading-relaxed text-muted-foreground">
+                            Load the community extension and Dash runs inside your own DuckDB, next to your local files
+                            and databases.
+                        </p>
+                        <div className="group relative mt-6">
+                            <pre className="rounded-2xl border bg-muted-background p-4 font-mono text-xs leading-relaxed">{EXTENSION_SETUP}</pre>
+                            <CopyButton textToCopy={EXTENSION_SETUP} className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100"/>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="border-y bg-muted-background">
                 <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-24 md:grid-cols-2">
                     <div>
                         <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Dashboards with DuckDB, written in Markdown</h2>
@@ -49,7 +87,7 @@ export default function Landing() {
                             chart, a table, a number or a dropdown. Edit it block by block, or as the Markdown next to it.
                             It reads fine without Dash, and a coding agent writes it as easily as you do.
                         </p>
-                        <Link href="/duckdb-dashboard" className={cn(buttonVariants(), "mt-8 gap-2")}>
+                        <Link href="/duckdb-dashboard" className={cn(buttonVariants(), "mt-8 gap-2 rounded-2xl")}>
                             Dashboards with DuckDB <ArrowRight className="h-4 w-4"/>
                         </Link>
                     </div>
@@ -58,40 +96,6 @@ export default function Landing() {
             </section>
 
             <section className="mx-auto max-w-6xl px-4 py-24">
-                <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Three ways to run it</h2>
-                <div className="mt-10 grid gap-10 md:grid-cols-3">
-                    <div className="border-t pt-6">
-                        <h3 className="text-lg font-semibold">In your browser</h3>
-                        <p className="mt-2 leading-relaxed text-muted-foreground">
-                            Nothing to install. DuckDB runs in the page, your files stay on your machine, and projects are
-                            kept in the browser.
-                        </p>
-                        <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants(), "mt-6")}>Open the app</a>
-                    </div>
-                    <div className="border-t pt-6">
-                        <h3 className="text-lg font-semibold">On your desktop</h3>
-                        <p className="mt-2 leading-relaxed text-muted-foreground">
-                            The desktop app runs DuckDB natively and opens any folder as a project, with the agent panel
-                            next to it. For macOS, Windows and Linux.
-                        </p>
-                        <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'outline'}), "mt-6")}>Download</a>
-                    </div>
-                    <div className="border-t pt-6">
-                        <h3 className="text-lg font-semibold">Inside DuckDB</h3>
-                        <p className="mt-2 leading-relaxed text-muted-foreground">
-                            Load the community extension and Dash runs on your DuckDB, with your local files and databases.
-                        </p>
-                        <pre className="mt-6 rounded-xl border bg-muted-background p-4 font-mono text-sm leading-relaxed">{`INSTALL dash FROM community;
-LOAD dash;
-PRAGMA dash;`}</pre>
-                        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'outline'}), "mt-6 gap-2")}>
-                            <Github className="h-4 w-4"/> The extension on GitHub
-                        </a>
-                    </div>
-                </div>
-            </section>
-
-            <section className="mx-auto max-w-6xl px-4 pb-24">
                 <dl className="grid gap-x-14 md:grid-cols-2">
                     {CAPABILITIES.map(c => (
                         <div key={c.tag} className="flex gap-5 border-t py-5">

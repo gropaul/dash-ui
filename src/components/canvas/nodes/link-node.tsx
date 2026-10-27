@@ -19,7 +19,7 @@ export function LinkNode({id, data, selected}: NodeProps) {
 
     return (
         <div className="h-full w-full">
-            <LinkToolbar nodeId={id} isVisible={selected ?? false} data={{label, href, variant}}/>
+            <LinkToolbar nodeId={id} data={{label, href, variant}}/>
             <NodeResizer lineClassName="z-40" isVisible={selected} minWidth={3 * GRID_SIZE} minHeight={2 * GRID_SIZE}/>
             <a href={href}
                target="_blank"
@@ -37,7 +37,7 @@ export function LinkNode({id, data, selected}: NodeProps) {
     );
 }
 
-function LinkToolbar({nodeId, isVisible, data}: { nodeId: string, isVisible: boolean, data: LinkNodeData }) {
+function LinkToolbar({nodeId, data}: { nodeId: string, data: LinkNodeData }) {
     const {deleteElements} = useReactFlow();
     const {setNodes} = useCanvasState();
 
@@ -45,7 +45,7 @@ function LinkToolbar({nodeId, isVisible, data}: { nodeId: string, isVisible: boo
         nodes.map((node) => node.id === nodeId ? {...node, data: {...node.data, ...updates}} : node));
 
     return (
-        <NodeToolbar isVisible={isVisible} position={Position.Top} align="center">
+        <NodeToolbar position={Position.Top} align="center">
             <div className="nodrag flex flex-row items-center gap-1 rounded-2xl border bg-background p-1 shadow-sm">
                 <Button className="h-8 w-8 rounded-xl" variant="ghost" size="icon" aria-label="Delete"
                         onClick={() => deleteElements({nodes: [{id: nodeId}]})}>
