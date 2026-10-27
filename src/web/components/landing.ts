@@ -2,7 +2,7 @@ import {create} from "zustand";
 import {canvasNodes} from "@/state/workspace/canvas-text";
 import canvasText from "@web/components/landing.canvas?raw";
 
-/** Whether the landing canvas has shown, or won't on this screen; what loads after it waits for this. */
+/** Whether the landing canvas has shown; what loads after it waits for this. A phone shows no canvas, so it never is. */
 export const useCanvasDone = create<boolean>(() => false);
 
 /** The landing canvas's path: its query nodes are kept under `Landing.canvas#<name>`. */

@@ -1,6 +1,6 @@
 'use client';
 
-import React, {CSSProperties, useCallback, useEffect, useRef, useState, useSyncExternalStore} from "react";
+import React, {CSSProperties, useCallback, useRef, useState, useSyncExternalStore} from "react";
 import dynamic from "next/dynamic";
 import {cn} from "@/lib/utils";
 import {LANDING_BOUNDS, useCanvasDone} from "@web/components/landing";
@@ -28,10 +28,6 @@ export function Hero({phone}: { phone: React.ReactNode }) {
     const onShown = useCallback(() => {
         setShown(true);
         useCanvasDone.setState(true, true);
-    }, []);
-    // A phone shows no canvas, so nothing waits for one.
-    useEffect(() => {
-        if (!window.matchMedia(CANVAS_MEDIA).matches) useCanvasDone.setState(true, true);
     }, []);
     const box = useRef<HTMLDivElement>(null);
 

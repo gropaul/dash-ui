@@ -10,13 +10,13 @@ import snapshot from "@web/components/landing-snapshot.json";
 
 /**
  * The landing page's dashboard in the app's page editor: the page next to its markdown, each editable and each
- * updating the other. On a phone, the page alone.
+ * updating the other.
  */
 export default function LiveDashboard() {
     // Before the blocks render, which read the stores.
     useState(() => openSiteFile(LANDING_DASHBOARD, dashboardText, LANDING_SETUP, snapshot as unknown as SiteSnapshot));
     useStartDatabaseWhenIdle();
-    const [mode, setMode] = useState<PageEditorMode>(() => window.matchMedia('(min-width: 768px)').matches ? 'split' : 'edit');
+    const [mode, setMode] = useState<PageEditorMode>('split');
     // The blocks read each other through the page's text.
     const onMarkdownChange = useCallback((markdown: string) => {
         useWorkspace.setState(state => ({files: {...state.files, [LANDING_DASHBOARD]: markdown}}));
