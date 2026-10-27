@@ -180,8 +180,8 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                             embedded={false}
                             sqlEditorShowRunButton={false}
                             sqlEditorPanelMode={'overlay'}
-                            // On a canvas the wheel pans, so the editor keeps it; on a page it scrolls the page.
-                            sqlEditorKeepsWheel={!onPage}
+                            // On a page, e.g. the website, a text area in place of Monaco, which is heavy to load.
+                            plainSqlEditor={onPage}
                             height={'fit'}
                             codeFenceRef={codeFenceRef}
                         />

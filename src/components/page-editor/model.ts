@@ -1,5 +1,5 @@
 import type {MouseEvent, TouchEvent} from "react";
-import {KEYS, SlateEditor, TElement} from "platejs";
+import type {SlateEditor, TElement} from "platejs";
 
 export const RELATION_BLOCK_KEY = 'relation';
 export const GRID_COLUMNS = 12;
@@ -63,13 +63,4 @@ export function uniqueBlockName(editor: SlateEditor, base: string): string {
     let n = 1;
     while (taken.has(`${base}_${n}`)) n++;
     return `${base}_${n}`;
-}
-
-/** Each argument is one column: a single block or the blocks stacked in it. */
-export function createColumnGroup(...columns: (TElement | TElement[])[]): TElement {
-    const spans = evenSpans(columns.length);
-    return {
-        type: KEYS.columnGroup,
-        children: columns.map((blocks, i) => ({type: KEYS.column, width: spanToWidth(spans[i]), children: [blocks].flat()})),
-    };
 }

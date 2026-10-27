@@ -16,21 +16,8 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/compon
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 import {MobileAppBar} from "@/components/layout/mobile-app-bar";
+import {ForceOpenReason, SettingsTab} from "@/components/settings/settings-tabs";
 
-// Define the tab types
-export type SettingsTab = 'about' | 'connection' | 'sharing' | 'agents' | 'documentation' | 'get-started';
-
-export interface ForceOpenReason {
-    tab: SettingsTab;
-    message: string;
-    id: string; // Unique identifier for the reason
-}
-
-export const NO_CONNECTION_FORCE_OPEN_REASON: ForceOpenReason = {
-    tab: 'connection',
-    message: 'No database connection available. Please configure a connection.',
-    id: 'no-connection'
-}
 
 // Interface for tab definition to make it extensible
 export interface SettingsTabDefinition {

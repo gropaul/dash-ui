@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useMemo} from "react";
-import {create} from "zustand";
 import {TElement} from "platejs";
 import {createPlatePlugin, useEditorRef, usePluginOption} from "platejs/react";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
@@ -17,12 +16,6 @@ export const PagePathPlugin = createPlatePlugin({
     key: 'pagePath',
     options: {path: ''},
 });
-
-/** The block open in the fullscreen dialog, by its node id. */
-export const useBlockFullscreen = create<{ blockId: string | null, open: (blockId: string | null) => void }>((set) => ({
-    blockId: null,
-    open: (blockId) => set({blockId}),
-}));
 
 /**
  * The surface key of a block: `page.md#name`, what its refs and in-memory state go by. An unnamed block can't be

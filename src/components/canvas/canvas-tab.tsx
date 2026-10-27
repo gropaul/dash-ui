@@ -1,6 +1,6 @@
 import {Flow} from "@/components/canvas/flow";
 import {ReactFlowProvider} from "@xyflow/react";
-import {useBlockFullscreen} from "@/components/page-editor/block-relation";
+import {useBlockFullscreen} from "@/components/page-editor/block-fullscreen";
 
 
 export interface WorkflowTabProps {

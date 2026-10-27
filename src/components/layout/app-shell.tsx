@@ -4,7 +4,8 @@ import React from "react";
 import {NavigationSidebar} from "@/components/layout/navigation-sidebar";
 import {AppBar} from "@/components/layout/app-bar";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
-import {AgentChatPanel, useAgentPanelShown} from "@/components/agent-chat/agent-chat-panel";
+import {AgentChatPanel} from "@/components/agent-chat/agent-chat-panel";
+import {useAgentPanelShown} from "@/components/agent-chat/agent-panel-shown";
 
 /**
  * Router-driven shell. The full-height left navigation sidebar (holds the logo), then the

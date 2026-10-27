@@ -19,7 +19,8 @@ import {BLOCK_TYPES, getElementType, selectBlocks, setBlockType} from "@/compone
 import {BlockTypeButton} from "@/components/page-editor/add-menu";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {VIEW_MODES} from "@/components/relation/settings/view-mode-picker";
-import {useBlockFullscreen, useBlockRelation} from "@/components/page-editor/block-relation";
+import {useBlockRelation} from "@/components/page-editor/block-relation";
+import {useBlockFullscreen} from "@/components/page-editor/block-fullscreen";
 import {RelationViewType} from "@/model/relation-view-state";
 import {
     canDrop,

@@ -1,3 +1,7 @@
+body {
+    font-family: var(--font-inter), sans-serif;
+}
+
 /* The landing canvas's ground: dots as on a canvas, out to the window's edges (the live canvas draws none). */
 .landing-dots {
     background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.3) 1px, transparent 1.2px);

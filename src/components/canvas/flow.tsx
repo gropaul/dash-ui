@@ -53,7 +53,7 @@ import {useSurfaces} from "@/state/workspace/surfaces.state";
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {queryByName} from "@/state/workspace/file-references";
 import {renameRefCalls} from "@/platform/sql-refs";
-import {useRelationLinks} from "@/components/page-editor/use-relation-links";
+import {useRelationLinks} from "@/state/relations/sql/page-refresh";
 import {RenameRelationContext} from "@/components/relation/common/rename-relation-context";
 import {askForName} from "@/components/workspace/name-dialog";
 import {blockBody, blockNameOf, blockOf, isRelationNode} from "@/components/canvas/logic/canvas-file";
@@ -270,7 +270,8 @@ export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
                 className={isPanning ? 'canvas-panning' : undefined}
                 style={{width: '100%', height: '100%'}}
                 onKeyDownCapture={(e) => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    // The plain SQL editor runs its own text.
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !(e.target as HTMLElement).closest('[data-plain-sql-editor]')) {
                         e.stopPropagation();
                         e.preventDefault();
                         runSelectedNode();

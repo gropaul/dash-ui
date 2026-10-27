@@ -21,7 +21,8 @@ import {AddMenuAt, AddMenuEntry, AddMenuExtraContext} from "@/components/page-ed
 import {CooldownIndicator} from "@/components/page-editor/use-cooldown";
 import {useMarkdownSync} from "@/components/page-editor/use-markdown-sync";
 import {RelationFullscreenDialog} from "@/components/page-editor/relation-fullscreen-dialog";
-import {renameBlock, useRelationLinks} from "@/components/page-editor/use-relation-links";
+import {renameBlock} from "@/components/page-editor/use-relation-links";
+import {useRelationLinks} from "@/state/relations/sql/page-refresh";
 import {PagePathPlugin} from "@/components/page-editor/block-relation";
 import {RelationState} from "@/model/relation-state";
 import {RenameRelationContext} from "@/components/relation/common/rename-relation-context";

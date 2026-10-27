@@ -12,7 +12,8 @@ import {DASH_CATALOG_CACHE, DASH_CATALOG_STATE, DASH_INTERNAL_SCHEMAS} from "@/p
 /**
  * The website runs a canvas without the app around it: no project, its file only in memory, and DuckDB WASM
  * started late. What the canvas showed when its snapshot was taken (src/web/snapshot.mjs) shows at once;
- * a query waits until DuckDB is up.
+ * a query waits until DuckDB is up, and DuckDB starts only when the page asks for it (startDatabase), so the
+ * canvas's own queries on mount don't pull its download in before the canvas has loaded.
  */
 
 export interface CanvasSnapshot {
@@ -23,6 +24,8 @@ export interface CanvasSnapshot {
 const connection = specToConnection(getDefaultSpec('duckdb-wasm'));
 let database: Promise<DatabaseConnection> | undefined;
 let ready = false;
+let allowStart: () => void;
+const allowed = new Promise<void>(resolve => allowStart = resolve);
 // Run once DuckDB is up, before any query: e.g. views the canvas reads.
 let canvasSetup: string[] = [];
 
@@ -31,6 +34,7 @@ export const useWaitingForDatabase = create<boolean>(() => false);
 
 /** Starts DuckDB WASM with in-memory catalogs in place of a project's; once, however often it is called. */
 export function startDatabase(): Promise<DatabaseConnection> {
+    allowStart();
     database ??= (async () => {
         await connection.initialise();
         const setup = [
@@ -59,6 +63,7 @@ export function openSiteCanvas(path: string, text: string, setup: string[], snap
             if (property !== 'executeQuery') return Reflect.get(target, property, receiver);
             return async (...args: Parameters<DatabaseConnection['executeQuery']>) => {
                 if (!ready) useWaitingForDatabase.setState(true, true);
+                await allowed;
                 return (await startDatabase()).executeQuery(...args);
             };
         },

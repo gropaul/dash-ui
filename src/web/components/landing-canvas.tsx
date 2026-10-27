@@ -3,7 +3,7 @@
 import {RefObject, useEffect, useRef, useState} from "react";
 import {ReactFlowProvider, useReactFlow} from "@xyflow/react";
 import {Flow} from "@/components/canvas/flow";
-import {useBlockFullscreen} from "@/components/page-editor/block-relation";
+import {useBlockFullscreen} from "@/components/page-editor/block-fullscreen";
 import {Loader2} from "lucide-react";
 import {CanvasSnapshot, openSiteCanvas, startDatabase, takeSnapshot, useWaitingForDatabase} from "@web/components/site-runtime";
 import {LANDING_BOUNDS, LANDING_CANVAS, LANDING_SETUP} from "@web/components/landing";

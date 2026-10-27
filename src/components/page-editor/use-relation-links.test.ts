@@ -15,7 +15,8 @@ vi.mock("@/model/relation-state", async (importOriginal) => ({
     }),
 }));
 
-const {onBlockRelationEvent, renameBlock} = await import("@/components/page-editor/use-relation-links");
+const {renameBlock} = await import("@/components/page-editor/use-relation-links");
+const {onBlockRelationEvent} = await import("@/state/relations/sql/page-refresh");
 const {createPlateEditor} = await import("platejs/react");
 const {BlockSelectionPlugin} = await import("@platejs/selection/react");
 const {createRelationBlock} = await import("@/components/page-editor/model");

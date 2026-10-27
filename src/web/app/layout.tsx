@@ -1,8 +1,12 @@
 import type {Metadata} from "next";
 import {Analytics} from "@vercel/analytics/next";
+import {Inter} from "next/font/google";
 import "@/styles/globals.css";
 import "@web/components/site.css";
 import {APP_URL, GITHUB_URL, SITE_URL, SiteFooter, SiteHeader} from "@web/components/site-chrome";
+
+// The app's Inter as a small woff2 subset, in place of its full TrueType file (site.css).
+const inter = Inter({subsets: ['latin'], variable: '--font-inter'});
 
 const DESCRIPTION = 'Dash is a SQL workspace on DuckDB: query nodes on a canvas and dashboards written in Markdown, '
     + 'running locally in your browser or inside DuckDB as an extension. Open source.';
@@ -32,7 +36,7 @@ const STRUCTURED_DATA = {
 
 export default function SiteLayout({children}: { children: React.ReactNode }) {
     return (
-        <html lang="en">
+        <html lang="en" className={inter.variable}>
         <body className="min-h-dvh bg-background text-foreground antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(STRUCTURED_DATA)}}/>
         <SiteHeader/>

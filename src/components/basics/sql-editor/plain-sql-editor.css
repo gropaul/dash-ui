@@ -1,0 +1,45 @@
+/* The plain SQL editor (plain-sql-editor.tsx): a transparent text area over its highlighted copy, both laid out
+   alike so the colors sit under the letters. Colors as in the app's Monaco themes (vs, vs-dark). */
+.plain-sql-editor pre,
+.plain-sql-editor textarea {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 12px 16px;
+    overflow: auto;
+    border: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    text-align: left;
+    tab-size: 4;
+}
+
+.plain-sql-editor pre {
+    pointer-events: none;
+    scrollbar-width: none;
+}
+
+.plain-sql-editor textarea {
+    resize: none;
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: hsl(var(--foreground));
+}
+
+.plain-sql-editor .sql-keyword { color: #0000ff; }
+.plain-sql-editor .sql-function { color: #af00db; }
+.plain-sql-editor .sql-string { color: #22863a; }
+.plain-sql-editor .sql-quoted { color: #a31515; }
+.plain-sql-editor .sql-number { color: #098658; }
+.plain-sql-editor .sql-comment { color: #008000; }
+
+.dark .plain-sql-editor .sql-keyword { color: #569cd6; }
+.dark .plain-sql-editor .sql-function { color: #c586c0; }
+.dark .plain-sql-editor .sql-string { color: #7ec699; }
+.dark .plain-sql-editor .sql-quoted { color: #ce9178; }
+.dark .plain-sql-editor .sql-number { color: #b5cea8; }
+.dark .plain-sql-editor .sql-comment { color: #6a9955; }

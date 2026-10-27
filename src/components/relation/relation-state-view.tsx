@@ -11,7 +11,7 @@ import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {ViewPadding} from "@/components/ui/view-padding";
 import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
-import {useAgentPanelShown} from "@/components/agent-chat/agent-chat-panel";
+import {useAgentPanelShown} from "@/components/agent-chat/agent-panel-shown";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement | null>;

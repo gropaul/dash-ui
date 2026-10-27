@@ -3,7 +3,6 @@ import {BlockSelectionPlugin} from "@platejs/selection/react";
 import {ElementApi, KEYS, NodeEntry, Path, PathApi, Point, TElement} from "platejs";
 import {PlateEditor} from "platejs/react";
 import {
-    createColumnGroup,
     evenSpans,
     GRID_COLUMNS,
     MIN_COLUMN_SPAN,
@@ -185,4 +184,13 @@ export function moveBlocks(editor: PlateEditor, dragIds: string[], targetId: str
         }
     });
     if (selected.length > 0) editor.getApi(BlockSelectionPlugin).blockSelection.set(selected);
+}
+
+/** Each argument is one column: a single block or the blocks stacked in it. */
+export function createColumnGroup(...columns: (TElement | TElement[])[]): TElement {
+    const spans = evenSpans(columns.length);
+    return {
+        type: KEYS.columnGroup,
+        children: columns.map((blocks, i) => ({type: KEYS.column, width: spanToWidth(spans[i]), children: [blocks].flat()})),
+    };
 }

@@ -9,6 +9,12 @@ const config = {
     headers: undefined,
     experimental: {externalDir: true},
     outputFileTracingRoot: path.join(path.dirname(fileURLToPath(import.meta.url)), '../..'),
+    webpack(config, context) {
+        const result = app.webpack(config, context);
+        // Its cache misses changes to the app's files outside src/web (e.g. src/styles), so a build starts afresh.
+        if (!context.dev) result.cache = false;
+        return result;
+    },
 };
 
 export default config;

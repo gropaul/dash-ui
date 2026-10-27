@@ -18,7 +18,7 @@ import {useGUIState} from "@/state/gui.state";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {WorkspacePathBreadcrumb} from "@/components/layout/workspace-path-breadcrumb";
-import {useAgentsAvailable} from "@/components/agent-chat/agent-chat-panel";
+import {useAgentsAvailable} from "@/components/agent-chat/agent-panel-shown";
 import {NavHistoryButtons} from "@/components/layout/nav-history-buttons";
 import {ProjectSwitcher} from "@/components/projects/project-switcher";
 import {openSearchCommand} from "@/components/workbench/global-command";

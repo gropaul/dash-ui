@@ -4,7 +4,7 @@ import React from "react";
 import {Node} from "@xyflow/react";
 import {Dialog, DialogContent, DialogTitle} from "@/components/ui/dialog";
 import {RelationView} from "@/components/relation/relation-view";
-import {useBlockFullscreen} from "@/components/page-editor/block-relation";
+import {useBlockFullscreen} from "@/components/page-editor/block-fullscreen";
 import {useCanvasState} from "@/components/canvas/canvas-context";
 import {RelationNodeData, useRelationNodeModel} from "@/components/canvas/logic/canvas-file";
 

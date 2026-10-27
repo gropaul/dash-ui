@@ -1,7 +1,7 @@
 import type {ReactNode} from "react";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
-import {ForceOpenReason} from "@/components/settings/settings-dialog";
+import type {ForceOpenReason} from "@/components/settings/settings-tabs";
 import type {WorkspaceNodeKind} from "@/state/workspace/workspace-tree";
 import type {PageEditorMode} from "@/components/page-editor/page-editor";
 

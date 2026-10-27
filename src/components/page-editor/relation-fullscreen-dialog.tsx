@@ -5,7 +5,8 @@ import {TElement} from "platejs";
 import {useEditorRef} from "platejs/react";
 import {Dialog, DialogContent, DialogTitle} from "@/components/ui/dialog";
 import {RelationView} from "@/components/relation/relation-view";
-import {useBlockFullscreen, useBlockRelation} from "@/components/page-editor/block-relation";
+import {useBlockRelation} from "@/components/page-editor/block-relation";
+import {useBlockFullscreen} from "@/components/page-editor/block-fullscreen";
 
 /** A block's relation in the full view, in a dialog; its changes go into the block's fence as they are made. */
 export function RelationFullscreenDialog() {
