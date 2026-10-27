@@ -1,4 +1,4 @@
-import {SITE_URL} from "@/components/site/site-chrome";
+import {SITE_URL} from "@web/components/site-chrome";
 
 export const dynamic = 'force-static';
 

@@ -1,8 +1,8 @@
 import type {Metadata} from "next";
 import {Analytics} from "@vercel/analytics/next";
-import "../styles/globals.css";
-import "@/components/site/site.css";
-import {APP_URL, GITHUB_URL, SITE_URL, SiteFooter, SiteHeader} from "@/components/site/site-chrome";
+import "@/styles/globals.css";
+import "@web/components/site.css";
+import {APP_URL, GITHUB_URL, SITE_URL, SiteFooter, SiteHeader} from "@web/components/site-chrome";
 
 const DESCRIPTION = 'Dash is a SQL workspace on DuckDB: query nodes on a canvas and dashboards written in Markdown, '
     + 'running locally in your browser or inside DuckDB as an extension. Open source.';

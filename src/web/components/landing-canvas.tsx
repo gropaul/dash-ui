@@ -4,10 +4,10 @@ import {useEffect, useState} from "react";
 import {ReactFlowProvider} from "@xyflow/react";
 import {Flow} from "@/components/canvas/flow";
 import {useBlockFullscreen} from "@/components/page-editor/block-relation";
-import {CanvasSnapshot, openSiteCanvas, startDatabase, takeSnapshot} from "@/components/site/site-runtime";
-import {LANDING_CANVAS} from "@/components/site/landing";
-import canvasText from "@/components/site/landing.canvas?raw";
-import snapshot from "@/components/site/landing-snapshot.json";
+import {CanvasSnapshot, openSiteCanvas, startDatabase, takeSnapshot} from "@web/components/site-runtime";
+import {LANDING_CANVAS} from "@web/components/landing";
+import canvasText from "@web/components/landing.canvas?raw";
+import snapshot from "@web/components/landing-snapshot.json";
 
 // `?fresh` (e2e builds only) runs every query instead of showing the snapshot, so a new one can be taken.
 const fresh = () => process.env.NEXT_PUBLIC_E2E === '1' && new URLSearchParams(window.location.search).has('fresh');

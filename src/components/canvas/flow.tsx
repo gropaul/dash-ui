@@ -66,7 +66,10 @@ export interface FlowProps {
     /** The canvas file's path. */
     canvasId: string;
     openFullscreen: (nodeId: string) => void;
-    /** Part of a page that scrolls: the wheel scrolls the page instead of panning the canvas. */
+    /**
+     * Part of a page, e.g. the website: the nodes fill the view edge to edge and it stays there (no panning or zooming,
+     * the wheel scrolls the page), without a toolbar or background of its own. Nodes still move and work.
+     */
     embedded?: boolean;
 }
 
@@ -297,7 +300,7 @@ export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
                 colorMode={resolvedTheme === 'dark' ? 'dark' : 'light'}
                 defaultViewport={viewport}
                 fitView={!viewport}
-                fitViewOptions={{padding: 0.1, maxZoom: 1}}
+                fitViewOptions={{padding: embedded ? 0 : 0.1, maxZoom: 1}}
                 onViewportChange={onViewportChange}
                 onMoveStart={() => setIsPanning(true)}
                 onMoveEnd={() => setIsPanning(false)}
@@ -306,9 +309,12 @@ export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
                 panOnScroll={!embedded}
                 preventScrolling={!embedded}
                 minZoom={embedded ? 0.2 : 0.5}
+                zoomOnPinch={!embedded}
+                zoomOnDoubleClick={!embedded}
                 panOnScrollSpeed={1.5}
-                panOnDrag={canvasState.selectedTool === 'drag-canvas' ? true : [1]}
-                style={{cursor: cursorStyle}}
+                panOnDrag={embedded ? false : canvasState.selectedTool === 'drag-canvas' ? true : [1]}
+                style={{cursor: cursorStyle, ...(embedded && {'--xy-background-color': 'transparent'})}}
+                attributionPosition={embedded ? 'bottom-left' : 'bottom-right'}
                 zoomOnScroll={false}
                 selectionOnDrag={canvasState.selectedTool === 'pointer'}
                 elementsSelectable={canvasState.selectedTool === 'pointer'}
@@ -316,22 +322,22 @@ export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
                 connectionRadius={32}
                 edgesFocusable={true}
                 defaultEdgeOptions={{interactionWidth: 20}}
-                deleteKeyCode={['Delete', 'Backspace']}
+                deleteKeyCode={embedded ? null : ['Delete', 'Backspace']}
                 panActivationKeyCode={null}
             >
-                <Background
+                {!embedded && <Background
                     id={canvasId}
                     offset={GRID_SIZE}
                     gap={GRID_SIZE}
-                />
+                />}
 
-                <Controls/>
+                {!embedded && <Controls/>}
                 <HelperLines helperLines={helperLines}/>
                 <NodePreview canvasState={canvasState}/>
                 <FreeDrawPreview
                     currentStroke={canvasState.selectedTool === 'free-draw' ? (canvasState as CanvasStateFreeDraw).currentStroke : undefined}
                 />
-                <FlowPalette canvasState={canvasState} setCanvasState={setCanvasState}/>
+                {!embedded && <FlowPalette canvasState={canvasState} setCanvasState={setCanvasState}/>}
                 </ReactFlow>
             </div>
             <RelationFullscreenDialog nodes={nodes}/>

@@ -1,15 +1,15 @@
 // Takes the landing canvas's snapshot: what its queries show, so the site paints them before DuckDB has loaded
-// (src/components/site/site-runtime.ts). Run it after changing src/components/site/landing.canvas, against the
-// site's dev server with the e2e hook:
+// (components/site-runtime.ts). Run it from the repository root after changing components/landing.canvas, against
+// the website's dev server with the e2e hook:
 //
-//   NEXT_PUBLIC_E2E=1 pnpm dev:site
-//   node scripts/site-snapshot.mjs [http://localhost:3200]
+//   NEXT_PUBLIC_E2E=1 pnpm dev:web
+//   node src/web/snapshot.mjs [http://localhost:3200]
 import fs from 'node:fs';
 import {chromium} from 'playwright';
 
 const SITE = process.argv[2] ?? 'http://localhost:3200';
-const OUT = 'src/components/site/landing-snapshot.json';
-const CANVAS = 'src/components/site/landing.canvas';
+const OUT = 'src/web/components/landing-snapshot.json';
+const CANVAS = 'src/web/components/landing.canvas';
 const TIMEOUT_MS = 120_000;
 
 const queries = [...fs.readFileSync(CANVAS, 'utf8').matchAll(/^```sql (\w+)/gm)].length;

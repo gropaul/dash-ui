@@ -6,9 +6,9 @@
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev --webpack",
-    "dev:site": "DASH_TARGET=site NEXT_DIST_DIR=.next-site next dev --webpack --port 3200",
+    "dev:web": "next dev src/web --webpack",
     "build": "next build --webpack",
-    "build:site": "DASH_TARGET=site next build --webpack",
+    "build:web": "next build src/web --webpack",
     "start": "next start",
     "lint": "eslint .",
     "tsc": "tsc --noEmit",

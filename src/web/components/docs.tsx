@@ -1,7 +1,8 @@
-import fs from "fs";
-import path from "path";
 import ReactMarkdown, {Components} from "react-markdown";
 import remarkGfm from "remark-gfm";
+import canvas from "@web/components/docs/canvas.md?raw";
+import dashboards from "@web/components/docs/dashboards.md?raw";
+import assistant from "@web/components/docs/assistant.md?raw";
 
 export interface Doc {
     slug: string;
@@ -10,15 +11,13 @@ export interface Doc {
     markdown: string;
 }
 
-const DOCS_DIR = path.join(process.cwd(), 'src/components/site/docs');
-// The order of the docs' navigation.
-const ORDER = ['canvas', 'dashboards', 'assistant'];
+// By their path, in the order of the docs' navigation.
+const SOURCES: Record<string, string> = {canvas, dashboards, assistant};
 const FRONT_MATTER = /^---\n([\s\S]*?)\n---\n/;
 
-/** The site's docs, from `src/components/site/docs/*.md` with a `title` and `description` in their front matter. */
+/** The site's docs, from `docs/*.md` with a `title` and `description` in their front matter. */
 export function allDocs(): Doc[] {
-    return ORDER.map(slug => {
-        const text = fs.readFileSync(path.join(DOCS_DIR, `${slug}.md`), 'utf8');
+    return Object.entries(SOURCES).map(([slug, text]) => {
         const front = Object.fromEntries((FRONT_MATTER.exec(text)?.[1] ?? '').split('\n')
             .map(line => line.split(/:\s(.*)/s).slice(0, 2) as [string, string]));
         return {slug, title: front.title ?? slug, description: front.description ?? '', markdown: text.replace(FRONT_MATTER, '')};

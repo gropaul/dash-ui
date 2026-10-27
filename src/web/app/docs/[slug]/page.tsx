@@ -2,7 +2,7 @@ import type {Metadata} from "next";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {cn} from "@/lib/utils";
-import {allDocs, DocContent, headingId} from "@/components/site/docs";
+import {allDocs, DocContent, headingId} from "@web/components/docs";
 
 type Props = { params: Promise<{ slug: string }> };
 

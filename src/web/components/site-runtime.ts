@@ -10,7 +10,7 @@ import {DASH_CATALOG_CACHE, DASH_CATALOG_STATE, DASH_INTERNAL_SCHEMAS} from "@/p
 
 /**
  * The website runs a canvas without the app around it: no project, its file only in memory, and DuckDB WASM
- * started late. What the canvas showed when its snapshot was taken (scripts/site-snapshot.mjs) shows at once;
+ * started late. What the canvas showed when its snapshot was taken (src/web/snapshot.mjs) shows at once;
  * a query waits until DuckDB is up.
  */
 

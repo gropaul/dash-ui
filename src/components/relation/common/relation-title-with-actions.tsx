@@ -10,6 +10,8 @@ import {H4, H5} from "@/components/ui/typography";
 
 export interface RelationTitleWithActionsProps {
     relationState: RelationState;
+    /** What the title shows, if not the relation's name as it stands, e.g. a canvas node's "Total trains". */
+    title?: string;
     className?: string;
     executionInfoClassName?: string;
 }
@@ -21,6 +23,7 @@ export interface RelationTitleWithActionsProps {
  */
 export function RelationTitleWithActions({
                                              relationState,
+                                             title,
                                              className,
                                              executionInfoClassName,
                                          }: RelationTitleWithActionsProps) {
@@ -54,7 +57,7 @@ export function RelationTitleWithActions({
                     <H5
                         className="font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
                     >
-                        {displayName}
+                        {title ?? displayName}
                     </H5>
                 {showExecInfo && executionState && (
                     <span className="overflow-hidden text-ellipsis min-w-0 flex-shrink">

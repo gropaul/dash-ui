@@ -8,6 +8,9 @@ export default defineConfig([
     globalIgnores([
         ".next*/**",
         "out/**",
+        "src/web/.next*/**",
+        "src/web/out/**",
+        "src/web/next-env.d.ts",
         "dist/**",
         "dist-*/**",
         ".e2e-data/**",

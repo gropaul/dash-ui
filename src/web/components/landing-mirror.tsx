@@ -6,30 +6,22 @@ import {splitHeader} from "@/state/workspace/header-lines";
 import {RelationData} from "@/model/relation";
 import {buttonVariants} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
+import {humanizeName} from "@/platform/string-utils";
 import {TEXT_STYLES, TextStyle} from "@/components/canvas/nodes/node-data";
-import {LANDING_CANVAS} from "@/components/site/landing";
+import {canvasBounds, LANDING_CANVAS} from "@web/components/landing";
 
-// As the canvas fits its nodes into view: 10% padding, never above 100% zoom.
-const FIT_PADDING = 1.1;
 const TABLE_ROWS = 8;
 
 /**
- * The canvas drawn as plain HTML from its file and snapshot, at the size the live canvas will fit it to: what
- * shows before the canvas has loaded, and what a crawler reads. On a phone the text and links stack instead.
+ * The canvas drawn as plain HTML from its file and snapshot, filling its box as the live canvas will: what shows
+ * before the canvas has loaded, and what a crawler reads. On a phone the text and links stack instead.
  */
 export function LandingMirror({text, data}: { text: string, data: Record<string, RelationData> }) {
     const nodes = canvasNodes(text);
-    const minX = Math.min(...nodes.map(n => n.x));
-    const minY = Math.min(...nodes.map(n => n.y));
-    const width = Math.max(...nodes.map(n => n.x + (n.width ?? 0))) - minX;
-    const height = Math.max(...nodes.map(n => n.y + (n.height ?? 0))) - minY;
+    const {x: minX, y: minY, width, height} = canvasBounds(nodes);
 
     return (
-        <div className="landing-mirror" style={{
-            width: `min(calc(100cqw / ${FIT_PADDING}), calc(100cqh / ${FIT_PADDING} * ${width / height}), ${width}px)`,
-            aspectRatio: `${width} / ${height}`,
-            '--canvas-width': width,
-        } as CSSProperties}>
+        <div className="landing-mirror" style={{'--canvas-width': width} as CSSProperties}>
             {nodes.map(node => (
                 <div key={node.id}
                      className={cn("landing-mirror-node", node.type === 'query' && "landing-mirror-query")}
@@ -81,10 +73,10 @@ function MirrorQuery({node, data}: { node: CanvasNodeText, data: Record<string, 
     return (
         <div className="flex h-full w-full flex-col overflow-hidden rounded-[calc(var(--px)*16)] border bg-background shadow-[var(--node-shadow)]">
             <div className="flex h-[calc(var(--px)*40)] shrink-0 items-center border-b px-[calc(var(--px)*12)] text-[length:calc(var(--px)*14)] font-medium">
-                {fence?.name}
+                {humanizeName(fence?.name ?? '')}
             </div>
             {node.attributes.code !== 'hidden' && (
-                <pre className="h-[calc(var(--px)*170)] shrink-0 overflow-hidden border-b px-[calc(var(--px)*16)] py-[calc(var(--px)*12)] font-mono text-[length:calc(var(--px)*12)] leading-[1.45]">
+                <pre className="h-[calc(var(--px)*120)] shrink-0 overflow-hidden border-b px-[calc(var(--px)*16)] py-[calc(var(--px)*12)] font-mono text-[length:calc(var(--px)*12)] leading-[1.45]">
                     {sql}
                 </pre>
             )}

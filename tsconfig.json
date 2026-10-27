@@ -38,12 +38,11 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     ".next-e2e/types/**/*.ts",
-    ".next-e2e/dev/types/**/*.ts",
-    ".next-site/types/**/*.ts",
-    ".next-site/dev/types/**/*.ts"
+    ".next-e2e/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dev"
+    "dev",
+    "src/web"
   ]
 }

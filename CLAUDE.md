@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 pnpm dev              # Start dev server (webpack)
 pnpm build            # Production build (static export to out/)
-pnpm dev:site         # The website's dev server, port 3200
-pnpm build:site       # The website's static export to out-site/
+pnpm dev:web          # The website's dev server (src/web)
+pnpm build:web        # The website's static export to src/web/out/
 pnpm lint             # ESLint
 pnpm tsc              # TypeScript type-check (no emit)
 pnpm test             # Vitest unit tests (watch)
@@ -107,12 +107,13 @@ features must not assume WASM.
 
 ### Website
 
-The website (dash.builders) is a second build of this repo: `pnpm dev:site` / `pnpm build:site` set
-`DASH_TARGET=site`, so Next.js routes only the `src/app/**/*.site.tsx` files and exports to `out-site/`; the app's
-build ignores them. Its components are in `src/components/site/`. The landing page runs a real canvas
-(`landing.canvas`) without a project: it shows `landing-snapshot.json` at once and starts DuckDB WASM when the page
-is idle (`site-runtime.ts`); regenerate the snapshot with `scripts/site-snapshot.mjs` after changing the canvas.
-`site/vercel.json` is the site's Vercel config (root directory `site`).
+The website (dash.builders) is its own Next.js project in `src/web/`: `app/` for its routes, `components/` for its
+parts, `public/` (fonts and favicons linked from the app's). It imports the app's code with `@/…` (its own with
+`@web/…`) and reuses the app's `next.config.mjs` without the cross-origin isolation headers. The landing page runs a
+real canvas (`components/landing.canvas`) without a project, embedded (`Flow`'s `embedded`: no toolbar, no panning or
+zooming): it shows `landing-snapshot.json` at once and starts DuckDB WASM when the page is idle (`site-runtime.ts`).
+Regenerate the snapshot with `src/web/snapshot.mjs` after changing the canvas's queries. `src/web/vercel.json` is the
+site's Vercel config (root directory `src/web`).
 
 ### Notable config
 

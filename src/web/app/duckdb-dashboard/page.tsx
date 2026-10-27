@@ -3,7 +3,7 @@ import Link from "next/link";
 import {ArrowRight} from "lucide-react";
 import {buttonVariants} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
-import {APP_URL} from "@/components/site/site-chrome";
+import {APP_URL} from "@web/components/site-chrome";
 
 export const metadata: Metadata = {
     title: 'DuckDB Dashboard in Your Browser',

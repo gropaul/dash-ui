@@ -3,8 +3,8 @@
 # dependencies
 /node_modules
 /out
-/out-site
-/.next-site
+/src/web/.next*
+/src/web/out
 /.pnp
 /.next
 /.next-e2e
@@ -35,4 +35,4 @@ yarn-error.log*
 /playwright-report/
 /test-results/
 /.playwright-mcp/
-/site/out
+/src/web/next-env.d.ts

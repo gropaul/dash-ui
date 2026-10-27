@@ -1,28 +1,28 @@
-<node id="title" type="text" x="0" y="0" width="560" height="140" text-style="h1" text-align="left" vertical-align="top">
+<node id="title" type="text" x="0" y="0" width="430" height="110" text-style="h1" text-align="left" vertical-align="top">
 
 Turn SQL into a canvas that runs itself.
 
 </node>
 
-<node id="intro" type="text" x="0" y="160" width="520" height="120" text-align="left" vertical-align="top">
+<node id="intro" type="text" x="0" y="130" width="400" height="110" text-align="left" vertical-align="top">
 
-Every node is a DuckDB query, running here in your browser. Pick a station: the nodes reading it run again. Drag them around, edit the SQL, draw on it.
+Every node is a DuckDB query, running here in your browser. Pick a station: the nodes reading it run again. Drag them around, or edit their SQL.
 
 </node>
 
-<node id="open-app" type="link" x="0" y="300" width="200" height="60" href="https://app.dash.builders/">
+<node id="open-app" type="link" x="0" y="260" width="180" height="52" href="https://app.dash.builders/">
 
 Open the app
 
 </node>
 
-<node id="extension" type="link" x="220" y="300" width="220" height="60" href="https://github.com/gropaul/dash" variant="outline">
+<node id="extension" type="link" x="196" y="260" width="200" height="52" href="https://github.com/gropaul/dash" variant="outline">
 
 DuckDB extension
 
 </node>
 
-<node id="stations" type="query" x="660" y="0" width="520" height="300">
+<node id="stations" type="query" x="460" y="0" width="400" height="220">
 
 ```sql stations
 -- view: select
@@ -35,7 +35,7 @@ ORDER BY num_trains DESC
 
 </node>
 
-<node id="types" type="query" x="660" y="360" width="520" height="460">
+<node id="types" type="query" x="510" y="250" width="400" height="440">
 
 ```sql types_of_trains
 -- view: table
@@ -48,7 +48,7 @@ ORDER BY num_trains DESC
 
 </node>
 
-<node id="total" type="query" x="1260" y="0" width="320" height="200" code="hidden">
+<node id="total" type="query" x="960" y="30" width="300" height="170" code="hidden">
 
 ```sql total_trains
 -- view: text
@@ -58,7 +58,7 @@ FROM refs.types_of_trains()
 
 </node>
 
-<node id="chart" type="query" x="1260" y="300" width="520" height="520" code="hidden">
+<node id="chart" type="query" x="940" y="250" width="360" height="440" code="hidden">
 
 ```sql types_bar_chart
 -- view: bar

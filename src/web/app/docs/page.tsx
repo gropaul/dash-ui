@@ -1,7 +1,7 @@
 import type {Metadata} from "next";
 import Link from "next/link";
 import {ArrowRight} from "lucide-react";
-import {allDocs} from "@/components/site/docs";
+import {allDocs} from "@web/components/docs";
 
 export const metadata: Metadata = {
     title: 'Docs',

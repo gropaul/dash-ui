@@ -1,5 +1,5 @@
-import {allDocs} from "@/components/site/docs";
-import {SITE_URL} from "@/components/site/site-chrome";
+import {allDocs} from "@web/components/docs";
+import {SITE_URL} from "@web/components/site-chrome";
 
 export const dynamic = 'force-static';
 

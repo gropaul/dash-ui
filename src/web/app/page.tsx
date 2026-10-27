@@ -1,16 +1,17 @@
-import fs from "fs";
-import path from "path";
 import Link from "next/link";
 import {ArrowRight, Github} from "lucide-react";
 import {buttonVariants} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
 import {DASH_VIDEO_BASE_URL} from "@/platform/global-data";
 import {RelationData} from "@/model/relation";
-import {Hero} from "@/components/site/hero";
-import {LandingMirror} from "@/components/site/landing-mirror";
-import {SiteVideo} from "@/components/site/site-video";
-import {APP_URL, GITHUB_URL, RELEASES_URL} from "@/components/site/site-chrome";
-import snapshot from "@/components/site/landing-snapshot.json";
+import {Hero} from "@web/components/hero";
+import {canvasBounds} from "@web/components/landing";
+import {canvasNodes} from "@/state/workspace/canvas-text";
+import {LandingMirror} from "@web/components/landing-mirror";
+import {SiteVideo} from "@web/components/site-video";
+import {APP_URL, GITHUB_URL, RELEASES_URL} from "@web/components/site-chrome";
+import snapshot from "@web/components/landing-snapshot.json";
+import canvasText from "@web/components/landing.canvas?raw";
 
 const FEATURES = [
     {
@@ -59,11 +60,11 @@ const CAPABILITIES = [
 ];
 
 export default function Landing() {
-    const canvasText = fs.readFileSync(path.join(process.cwd(), 'src/components/site/landing.canvas'), 'utf8');
-
+    const bounds = canvasBounds(canvasNodes(canvasText));
+    const aspect = bounds.width / bounds.height;
     return (
         <>
-            <Hero phone={<SiteVideo src={`${DASH_VIDEO_BASE_URL}/demo_canvas_big_example.mp4`} label="A canvas of nodes reading each other"/>}>
+            <Hero aspect={aspect} phone={<SiteVideo src={`${DASH_VIDEO_BASE_URL}/demo_canvas_big_example.mp4`} label="A canvas of nodes reading each other"/>}>
                 <LandingMirror text={canvasText} data={snapshot.data as unknown as Record<string, RelationData>}/>
             </Hero>
 
