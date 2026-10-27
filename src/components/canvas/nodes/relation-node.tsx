@@ -22,6 +22,7 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationState} from "@/model/relation-state";
 import {getDefaultSessionState, RelationViewMode} from "@/model/relation-view-state";
 import {RelationNodeData, useRelationNodeModel} from "@/components/canvas/logic/canvas-file";
+import {isInputView} from "@/components/page-editor/model";
 
 type RelationNodeProps = RelationNodeData & {
     connectionHover?: ConnectionHoverState | null;
@@ -183,6 +184,8 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
                             // On a page, e.g. the website, a text area in place of Monaco, which is heavy to load.
                             plainSqlEditor={onPage}
                             height={'fit'}
+                            bare={isInputView(data.viewState.selectedView)}
+                            framed
                             codeFenceRef={codeFenceRef}
                         />
                     </div>

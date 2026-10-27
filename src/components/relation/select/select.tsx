@@ -72,7 +72,8 @@ export function Select(props: RelationViewContentProps) {
                         aria-expanded={open}
                         // A bare view has no card behind it, so the field brings the card's surface and corners itself,
                         // and fills its box so it lines up with a card beside it.
-                        className={cn("w-full justify-between relative flex-row", props.bare && "h-full rounded-2xl bg-card")}
+                        className={cn("w-full justify-between relative flex-row", props.bare && "h-full rounded-2xl bg-card",
+                            props.framed && "rounded-none rounded-b-2xl border-0 bg-transparent shadow-none hover:bg-muted/50")}
                     >
                         {params.label && (
                             <>
@@ -86,7 +87,9 @@ export function Select(props: RelationViewContentProps) {
                         <ChevronsUpDown className="opacity-50"/>
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-full p-0">
+                {/* In a frame of its own, as wide as the frame. */}
+                <PopoverContent align="start"
+                                className={cn("w-full overflow-hidden p-0", props.framed && "w-[var(--radix-popover-trigger-width)]")}>
                     <Command>
                         <CommandInput placeholder="Search..." className="h-9"/>
                         <CommandList className="max-h-60">

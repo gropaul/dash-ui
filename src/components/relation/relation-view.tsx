@@ -27,6 +27,7 @@ export interface StaticDisplayProps {
     showHeader?: boolean;
     showBorder?: boolean;
     bare?: boolean; // no card behind the view and no padding around inputs, for views placed directly on a page
+    framed?: boolean; // inside a frame of its own, e.g. a canvas node: an input field draws no border or corners
     neverShowQueryEditor?: boolean; // if true, the sql editor will never be visible, even if the relation state allows it
     sqlEditorShowRunButton?: boolean; // whether to show the run button in the sql editor, defaults to true
     sqlEditorPanelMode?: EditorPanelPosition; // whether the sql editor should be displayed in an overlay or a panel, defaults to overlay
