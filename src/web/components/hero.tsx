@@ -35,7 +35,7 @@ export function Hero({phone}: { phone: React.ReactNode }) {
         <section className="landing-dots relative border-b bg-background">
             {/* What the page is about, for search engines and screen readers; the canvas's title is the visible one. */}
             <h1 className="sr-only">Canvases and Dashboards using DuckDB</h1>
-            <div className="mx-auto max-w-6xl px-4 py-10 md:py-16 lg:py-24 2xl:py-28">
+            <div className="mx-auto max-w-6xl px-4 py-5 md:py-8 lg:py-12 2xl:py-14">
                 <div ref={box} className="relative md:aspect-[var(--canvas-aspect)]" style={{'--canvas-aspect': LANDING_BOUNDS.width / LANDING_BOUNDS.height} as CSSProperties}>
                     <div className="md:hidden">{phone}</div>
                 </div>
