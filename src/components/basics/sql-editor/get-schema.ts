@@ -3,7 +3,7 @@ import {DASH_CATALOG_STATE, DASH_REFS_SCHEMA, dashInternalObjectsFilter} from "@
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {queryName} from "@/state/workspace/file-references";
 import {isQuery} from "@/state/workspace/workspace-tree";
-import {splitHeader} from "@/state/workspace/relation-config";
+import {splitHeader} from "@/state/workspace/header-lines";
 import {getMacroName} from "@/state/relations/sql/table-macros";
 
 export type {Column, Database, DatabaseFunction, DatabaseKeyword, Table} from './schema-utils';

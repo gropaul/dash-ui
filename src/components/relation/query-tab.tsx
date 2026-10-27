@@ -2,7 +2,8 @@ import {useCallback, useMemo} from "react";
 import {RelationView} from "@/components/relation/relation-view";
 import {useRelationModel} from "@/components/relation/use-relation-model";
 import {useFile, useWorkspace} from "@/state/workspace/workspace.state";
-import {joinHeader, RelationConfig, splitHeader} from "@/state/workspace/relation-config";
+import {RelationConfig} from "@/state/workspace/relation-config";
+import {joinHeader, splitHeader} from "@/state/workspace/header-lines";
 import {queryName} from "@/state/workspace/file-references";
 
 /** A `.sql` file of the workspace, shown and edited as a query. */

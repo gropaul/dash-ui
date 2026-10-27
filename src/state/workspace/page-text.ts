@@ -1,4 +1,4 @@
-import {splitHeader} from "@/state/workspace/relation-config";
+import {splitHeader} from "@/state/workspace/header-lines";
 import {resolveRelative} from "@/state/workspace/paths";
 import {isPage} from "@/state/workspace/workspace-tree";
 

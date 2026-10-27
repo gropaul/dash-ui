@@ -1,7 +1,8 @@
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useDatabaseState} from "@/state/database.state";
 import {dropRelationMacro, generateCreateMacroSQLInternal, orderMacroStatements} from "@/state/relations/sql/table-macros";
-import {buildRelation, splitHeader} from "@/state/workspace/relation-config";
+import {buildRelation} from "@/state/workspace/relation-config";
+import {splitHeader} from "@/state/workspace/header-lines";
 import {queryName} from "@/state/workspace/file-references";
 import {isQuery} from "@/state/workspace/workspace-tree";
 import {useWorkspace} from "@/state/workspace/workspace.state";

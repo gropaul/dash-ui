@@ -1,0 +1,141 @@
+/* The landing canvas drawn as HTML (landing-mirror.tsx): nodes placed in percent of the canvas, sized in its
+   pixels (--px), as the live canvas fits them. On a phone the text and links stack and the queries hide. */
+.landing-mirror {
+    position: relative;
+    container-type: inline-size;
+}
+
+.landing-mirror-node {
+    --px: calc(100cqw / var(--canvas-width));
+    position: absolute;
+    left: calc(var(--x) * 1%);
+    top: calc(var(--y) * 1%);
+    width: calc(var(--w) * 1%);
+    height: calc(var(--h) * 1%);
+}
+
+.landing-mirror-text {
+    font-size: calc(var(--px) * var(--size));
+    white-space: pre-wrap;
+}
+
+.landing-mirror-link {
+    font-size: calc(var(--px) * 16);
+}
+
+@media (max-width: 767px) {
+    .landing-mirror {
+        width: 100% !important;
+        aspect-ratio: auto !important;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .landing-mirror-node {
+        --px: 1px;
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+
+    .landing-mirror-node:has(.landing-mirror-link) {
+        width: auto;
+    }
+
+    .landing-mirror-link {
+        padding: 12px 20px;
+    }
+
+    .landing-mirror-query {
+        display: none;
+    }
+}
+
+/* Docs and long-form pages, on the app's theme colors. */
+.site-prose {
+    line-height: 1.7;
+    color: hsl(var(--foreground));
+}
+
+.site-prose > * + * {
+    margin-top: 1.1em;
+}
+
+.site-prose h1 {
+    font-size: 2.25rem;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.site-prose h2 {
+    margin-top: 2.4em;
+    font-size: 1.5rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    scroll-margin-top: 5rem;
+}
+
+.site-prose h3 {
+    margin-top: 1.8em;
+    font-size: 1.15rem;
+    font-weight: 600;
+    scroll-margin-top: 5rem;
+}
+
+.site-prose p, .site-prose li {
+    color: hsl(var(--foreground) / 0.85);
+}
+
+.site-prose a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.site-prose ul {
+    list-style: disc;
+    padding-left: 1.4em;
+}
+
+.site-prose ol {
+    list-style: decimal;
+    padding-left: 1.4em;
+}
+
+.site-prose :not(pre) > code {
+    padding: 0.1em 0.35em;
+    border-radius: 0.3em;
+    background: hsl(var(--muted));
+    font-size: 0.875em;
+}
+
+.site-prose pre {
+    overflow-x: auto;
+    padding: 1em 1.2em;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--muted-background));
+    font-size: 0.85rem;
+    line-height: 1.55;
+}
+
+.site-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.site-prose th, .site-prose td {
+    padding: 0.5em 0.75em;
+    border-bottom: 1px solid hsl(var(--border));
+    text-align: left;
+    vertical-align: top;
+}
+
+.site-prose video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) * 2);
+}

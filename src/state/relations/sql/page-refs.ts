@@ -5,7 +5,8 @@ import {pageOfSurface, surfacesOfPage} from "@/state/workspace/surfaces.state";
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {queryByName} from "@/state/workspace/file-references";
 import {blockNamesOf, sqlFences} from "@/state/workspace/page-text";
-import {buildRelation, splitHeader} from "@/state/workspace/relation-config";
+import {buildRelation} from "@/state/workspace/relation-config";
+import {splitHeader} from "@/state/workspace/header-lines";
 import {extractMacroRefs} from "@/state/relations/sql/table-macros";
 
 /**

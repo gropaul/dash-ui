@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {buildRelation, headerOf, joinHeader, RelationConfig, splitHeader, withRuntime} from "@/state/workspace/relation-config";
+import {buildRelation, headerOf, RelationConfig, withRuntime} from "@/state/workspace/relation-config";
+import {joinHeader, splitHeader} from "@/state/workspace/header-lines";
 
 const sql = 'SELECT 1 AS month, 2 AS revenue, 3 AS cost';
 const chart: RelationConfig = {id: 'Sales.md#revenue', name: 'monthly_revenue', sql, header: {view: 'line', x: 'month', y: 'revenue'}};

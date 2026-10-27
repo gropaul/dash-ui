@@ -1,4 +1,4 @@
-import {splitHeader} from "@/state/workspace/relation-config";
+import {splitHeader} from "@/state/workspace/header-lines";
 
 /** Whether a fence in an agent's message shows data, by the rule pages use: a `view` or `input` header line. */
 export function isChatBlock(language: string | undefined, text: string): boolean {

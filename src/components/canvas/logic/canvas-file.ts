@@ -3,9 +3,9 @@ import {useCallback, useMemo} from 'react';
 import {RelationModel, useRelationModel} from "@/components/relation/use-relation-model";
 import {CanvasNodeText, canvasNodes, formatCanvas} from "@/state/workspace/canvas-text";
 import {sqlFences} from "@/state/workspace/page-text";
-import {joinHeader, splitHeader} from "@/state/workspace/relation-config";
+import {joinHeader, splitHeader} from "@/state/workspace/header-lines";
 import {StrokePoint} from "@/components/canvas/logic/models";
-import {DEFAULT_TEXT_NODE_DATA, TextNodeData} from "@/components/canvas/nodes/text-node";
+import {DEFAULT_LINK_NODE_DATA, DEFAULT_TEXT_NODE_DATA, LinkNodeData, TextNodeData} from "@/components/canvas/nodes/node-data";
 import {FreeDrawNodeData} from "@/components/canvas/nodes/free-draw-node";
 import {createAutoEdge, extractNodeRefs} from "@/components/canvas/logic/ref-detection";
 
@@ -44,6 +44,14 @@ function typeAndData(node: CanvasNodeText): Pick<Node, 'type' | 'data'> {
             }
             return {type: 'textNode', data};
         }
+        case 'link': {
+            const data: LinkNodeData = {
+                label: body,
+                href: attributes.href ?? DEFAULT_LINK_NODE_DATA.href,
+                variant: attributes.variant === 'outline' ? 'outline' : 'primary',
+            };
+            return {type: 'linkNode', data: {...data}};
+        }
         case 'drawing': {
             const data: FreeDrawNodeData = {
                 points: parsePoints(body),
@@ -77,6 +85,12 @@ export function writeCanvas(nodes: Node[]): string {
                     .filter(([key]) => data[key] !== DEFAULT_TEXT_NODE_DATA[key])
                     .map(([key, attribute]) => [attribute, String(data[key])]));
                 return [{...place, type: 'text' as const, attributes, body: data.text}];
+            }
+            case 'linkNode': {
+                const data = {...DEFAULT_LINK_NODE_DATA, ...(node.data as Partial<LinkNodeData>)};
+                const attributes: Record<string, string> = {href: data.href};
+                if (data.variant !== 'primary') attributes.variant = data.variant;
+                return [{...place, type: 'link' as const, attributes, body: data.label}];
             }
             case 'freeDrawNode': {
                 const data = node.data as unknown as FreeDrawNodeData;

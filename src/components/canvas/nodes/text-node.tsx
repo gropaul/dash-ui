@@ -3,43 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {TextToolbar} from "./text/text-toolbar";
 import {useCanvasState} from "@/components/canvas/canvas-context";
 import {GRID_SIZE} from "@/components/canvas/logic/models";
-
-export type TextStyle = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body' | 'code';
-
-export interface TextStyleConfig {
-    fontSize: number;
-    fontWeight: 'normal' | 'bold';
-    fontFamily: string;
-    lineHeight: number;
-}
-
-export const TEXT_STYLES: Record<TextStyle, TextStyleConfig> = {
-    h1: {fontSize: 36, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.2},
-    h2: {fontSize: 30, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.25},
-    h3: {fontSize: 24, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.3},
-    h4: {fontSize: 20, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.35},
-    h5: {fontSize: 16, fontWeight: 'bold', fontFamily: 'inherit', lineHeight: 1.4},
-    body: {fontSize: 16, fontWeight: 'normal', fontFamily: 'inherit', lineHeight: 1.5},
-    code: {fontSize: 14, fontWeight: 'normal', fontFamily: 'monospace', lineHeight: 1.4},
-};
-
-export interface TextNodeData {
-    text: string;
-    textStyle: TextStyle;
-    fontStyle: 'normal' | 'italic';
-    textAlign: 'left' | 'center' | 'right';
-    verticalAlign: 'top' | 'center' | 'bottom';
-    color: string;
-}
-
-export const DEFAULT_TEXT_NODE_DATA: TextNodeData = {
-    text: '',
-    textStyle: 'body',
-    fontStyle: 'normal',
-    textAlign: 'center',
-    verticalAlign: 'center',
-    color: '#000000',
-};
+import {DEFAULT_TEXT_NODE_DATA, TEXT_STYLES, TextNodeData} from "@/components/canvas/nodes/node-data";
 
 const verticalAlignToFlex = {
     top: 'flex-start',

@@ -17,6 +17,7 @@ import '@xyflow/react/dist/style.css';
 import {RelationNode} from "@/components/canvas/nodes/relation-node";
 import {FreeDrawNode} from "@/components/canvas/nodes/free-draw-node";
 import {TextNode} from "@/components/canvas/nodes/text-node";
+import {LinkNode} from "@/components/canvas/nodes/link-node";
 import FloatingEdge from "@/components/canvas/edge/floating-edge";
 import {FlowPalette} from "@/components/canvas/flow-palette";
 import {
@@ -65,15 +66,18 @@ export interface FlowProps {
     /** The canvas file's path. */
     canvasId: string;
     openFullscreen: (nodeId: string) => void;
+    /** Part of a page that scrolls: the wheel scrolls the page instead of panning the canvas. */
+    embedded?: boolean;
 }
 
 
-export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'freeDrawNode';
+export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'linkNode' | 'freeDrawNode';
 
 const nodeTypes: Record<NodeType, NodeTypes[string]> = {
     relationNode: RelationNode,
     chartNode: RelationNode, // Template - uses RelationNode for now
     textNode: TextNode,
+    linkNode: LinkNode,
     freeDrawNode: FreeDrawNode,
 };
 
@@ -91,7 +95,7 @@ export interface NodeTemplate {
     size: { width: number; height: number };
 }
 
-export function Flow({canvasId, openFullscreen}: FlowProps) {
+export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
     const {
         nodes,
         edges,
@@ -299,7 +303,9 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
                 onMoveEnd={() => setIsPanning(false)}
                 snapToGrid={canvasState.selectedTool !== 'free-draw'}
                 snapGrid={[GRID_SIZE, GRID_SIZE]}
-                panOnScroll={true}
+                panOnScroll={!embedded}
+                preventScrolling={!embedded}
+                minZoom={embedded ? 0.2 : 0.5}
                 panOnScrollSpeed={1.5}
                 panOnDrag={canvasState.selectedTool === 'drag-canvas' ? true : [1]}
                 style={{cursor: cursorStyle}}

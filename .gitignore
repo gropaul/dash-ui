@@ -3,6 +3,8 @@
 # dependencies
 /node_modules
 /out
+/out-site
+/.next-site
 /.pnp
 /.next
 /.next-e2e
@@ -33,3 +35,4 @@ yarn-error.log*
 /playwright-report/
 /test-results/
 /.playwright-mcp/
+/site/out

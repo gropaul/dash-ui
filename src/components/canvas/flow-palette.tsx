@@ -2,6 +2,7 @@ import {
     ChartColumnBig,
     Hand,
     Highlighter,
+    Link,
     MousePointer2,
     Pencil,
     PenTool,
@@ -14,6 +15,7 @@ import {ReactNode} from "react";
 import {
     CanvasState,
     DEFAULT_CHART_SIZE,
+    DEFAULT_LINK_SIZE,
     DEFAULT_NODE_SIZE,
     DrawSettings,
     DrawToolVariant
@@ -50,6 +52,10 @@ export const nodeTypes: NodePaletteItem[] = [
     },
     {   type: 'chartNode', label: 'Chart',
         icon: <ChartColumnBig size={20} strokeWidth={1.5}/>, size: DEFAULT_CHART_SIZE,
+        selectAfterCreation: true
+    },
+    {   type: 'linkNode', label: 'Link',
+        icon: <Link size={20} strokeWidth={1.5}/>, size: DEFAULT_LINK_SIZE,
         selectAfterCreation: true
     },
 ];

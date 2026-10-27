@@ -1,10 +1,10 @@
 /**
  * A canvas file (`.canvas`): one `<node id="…" type="…" x="…" y="…" width="…" height="…">` section per canvas node.
- * A `query` node holds a ```sql block, named and read as on a page; a `text` node its text; a `drawing` node its
- * stroke points as JSON. Settings of a node beyond its place and size are further attributes.
+ * A `query` node holds a ```sql block, named and read as on a page; a `text` node its text; a `link` node its label;
+ * a `drawing` node its stroke points as JSON. Settings of a node beyond its place and size are further attributes.
  */
 
-export type CanvasNodeType = 'query' | 'text' | 'drawing';
+export type CanvasNodeType = 'query' | 'text' | 'link' | 'drawing';
 
 export interface CanvasNodeText {
     id: string;
@@ -27,7 +27,7 @@ export function canvasNodes(text: string): CanvasNodeText[] {
         const all = Object.fromEntries([...rawAttributes.matchAll(ATTRIBUTE)].map(([, key, value]) => [key, unescape(value)]));
         const number = (key: string) => all[key] === undefined ? undefined : Number(all[key]) || 0;
         const attributes = Object.fromEntries(Object.entries(all).filter(([key]) => !PLACE.has(key)));
-        const type = all.type === 'text' || all.type === 'drawing' ? all.type : 'query';
+        const type = all.type === 'text' || all.type === 'link' || all.type === 'drawing' ? all.type : 'query';
         return {
             id: all.id || `node-${index}`, type, x: number('x') ?? 0, y: number('y') ?? 0,
             width: number('width'), height: number('height'), attributes, body,

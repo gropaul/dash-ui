@@ -9,7 +9,7 @@ import {
 } from "@/components/canvas/logic/models";
 import {NodeTemplate, Position} from "@/components/canvas/flow";
 import {FreeDrawNodeData} from "@/components/canvas/nodes/free-draw-node";
-import {DEFAULT_TEXT_NODE_DATA} from "@/components/canvas/nodes/text-node";
+import {DEFAULT_LINK_NODE_DATA, DEFAULT_TEXT_NODE_DATA} from "@/components/canvas/nodes/node-data";
 import {blockBody, freeBlockName, RelationNodeData} from "@/components/canvas/logic/canvas-file";
 
 export interface PointerHandlerContext {
@@ -269,6 +269,8 @@ function getDefaultNodeData(type: string, nodes: Node[]): Record<string, unknown
     switch (type) {
         case 'textNode':
             return {...DEFAULT_TEXT_NODE_DATA};
+        case 'linkNode':
+            return {...DEFAULT_LINK_NODE_DATA};
         case 'relationNode':
         case 'chartNode': {
             const view = type === 'chartNode' ? 'bar' : 'table';

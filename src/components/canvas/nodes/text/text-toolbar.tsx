@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import {Toggle} from "@/components/ui/toggle";
 import {ColorPalette} from "@/components/ui/color-palette";
-import {TextNodeData, TextStyle} from "../text-node";
+import {TextNodeData, TextStyle} from "@/components/canvas/nodes/node-data";
 import {
     DropdownMenu,
     DropdownMenuContent,

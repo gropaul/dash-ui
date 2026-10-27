@@ -18,7 +18,7 @@ import {
     TColumnElement,
     TRelationBlock,
 } from "@/components/page-editor/model";
-import {joinHeader, splitHeader} from "@/state/workspace/relation-config";
+import {joinHeader, splitHeader} from "@/state/workspace/header-lines";
 
 /**
  * A relation block is a plain ```sql fence, optionally named after the language (```sql revenue_per_month),

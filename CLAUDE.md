@@ -7,6 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 pnpm dev              # Start dev server (webpack)
 pnpm build            # Production build (static export to out/)
+pnpm dev:site         # The website's dev server, port 3200
+pnpm build:site       # The website's static export to out-site/
 pnpm lint             # ESLint
 pnpm tsc              # TypeScript type-check (no emit)
 pnpm test             # Vitest unit tests (watch)
@@ -99,8 +101,18 @@ features must not assume WASM.
   expanded into its query when it runs (`relations/sql/page-refs.ts`).
 - Renaming or moving a file rewrites the links, inputs and `refs` calls pointing at it
   (`workspace/rewrite-references.ts`).
-- Canvases are disabled: their code is kept but excluded from `tsconfig.json` until they return as files that
-  work like pages.
+- A canvas is a `.canvas` file (`workspace/canvas-text.ts`): `<node>` sections with a place, a size and a body. Query
+  nodes hold a named `sql` block and run as page blocks keyed `file.canvas#name`; edges follow from their `refs`.
+  The canvas UI (`src/components/canvas/`) reads and writes the file through `hooks/use-undoable-flow.ts`.
+
+### Website
+
+The website (dash.builders) is a second build of this repo: `pnpm dev:site` / `pnpm build:site` set
+`DASH_TARGET=site`, so Next.js routes only the `src/app/**/*.site.tsx` files and exports to `out-site/`; the app's
+build ignores them. Its components are in `src/components/site/`. The landing page runs a real canvas
+(`landing.canvas`) without a project: it shows `landing-snapshot.json` at once and starts DuckDB WASM when the page
+is idle (`site-runtime.ts`); regenerate the snapshot with `scripts/site-snapshot.mjs` after changing the canvas.
+`site/vercel.json` is the site's Vercel config (root directory `site`).
 
 ### Notable config
 
@@ -145,7 +157,7 @@ features must not assume WASM.
 - Tailwind CSS + shadcn/ui (Radix UI)
 - Zustand for state management
 - DuckDB WASM in the browser, `@duckdb/node-api` natively in Electron
-- @xyflow/react for canvases (disabled), Plate for pages (page editor), dnd-kit for sorting, Headless Tree for
+- @xyflow/react for canvases, Plate for pages (page editor), dnd-kit for sorting, Headless Tree for
   the sidebar file tree
 - ECharts + Recharts for visualization
 - Monaco Editor for SQL editing
