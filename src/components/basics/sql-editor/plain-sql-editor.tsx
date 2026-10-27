@@ -27,15 +27,37 @@ function highlight(sql: string): ReactNode[] {
     return parts;
 }
 
+/** Markdown with its headings and ```sql fences marked and the SQL inside the fences highlighted. */
+function highlightMarkdown(markdown: string): ReactNode[] {
+    const parts: ReactNode[] = [];
+    // The SQL of the fence so far, while in one.
+    let sql: string | undefined;
+    markdown.split(/(?<=\n)/).forEach((line, i) => {
+        if (line.startsWith('```')) {
+            if (sql !== undefined) parts.push(<span key={`sql-${i}`}>{highlight(sql)}</span>);
+            sql = sql === undefined ? '' : undefined;
+            parts.push(<span key={i} className="md-fence">{line}</span>);
+        } else if (sql !== undefined) {
+            sql += line;
+        } else {
+            parts.push(line.startsWith('#') ? <span key={i} className="md-heading">{line}</span> : line);
+        }
+    });
+    if (sql) parts.push(<span key="sql-end">{highlight(sql)}</span>);
+    return parts;
+}
+
 /**
  * SQL in a plain text area, in place of the Monaco editor where loading Monaco isn't worth it (the website's
  * canvas). The text area's own text is transparent over a highlighted copy. Changes go out after a short pause, as
- * from the full editor; Cmd/Ctrl+Enter runs the text as it stands.
+ * from the full editor; Cmd/Ctrl+Enter runs the text as it stands. In `markdown`, only the SQL of its fences is
+ * highlighted.
  */
-export function PlainSqlEditor({code, onCodeChange, onRun}: {
+export function PlainSqlEditor({code, onCodeChange, onRun, language = 'sql'}: {
     code: string,
     onCodeChange?: (code: string) => void,
     onRun?: (code: string) => void,
+    language?: 'sql' | 'markdown',
 }) {
     const [text, setText] = useState(code);
     const [typed, setTyped] = useState(code);
@@ -51,11 +73,11 @@ export function PlainSqlEditor({code, onCodeChange, onRun}: {
     return (
         <div className="plain-sql-editor relative h-full w-full">
             {/* The trailing space keeps a last empty line as tall as in the text area. */}
-            <pre ref={copy} aria-hidden>{highlight(text)} </pre>
+            <pre ref={copy} aria-hidden>{language === 'markdown' ? highlightMarkdown(text) : highlight(text)} </pre>
             <textarea
                 value={text}
                 spellCheck={false}
-                aria-label="SQL"
+                aria-label={language === 'markdown' ? 'Markdown' : 'SQL'}
                 data-plain-sql-editor
                 onScroll={e => copy.current?.scrollTo(e.currentTarget.scrollLeft, e.currentTarget.scrollTop)}
                 onChange={e => {

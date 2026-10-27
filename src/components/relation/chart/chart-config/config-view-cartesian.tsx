@@ -212,7 +212,7 @@ export function ConfigViewCartesian(props: ChartConfigProps) {
                         min={-90}
                         max={90}
                         step={1}
-                        placeholder="0"
+                        placeholder="Auto"
                         value={cartesian.xLabelRotation ?? ''}
                         onChange={(e) => updateXTickAngle(e.target.value)}
                     />

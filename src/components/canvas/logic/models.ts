@@ -59,21 +59,22 @@ export type StrokePoint = [number, number, number]; // x, y, pressure
 export interface Stroke {
     id: string;
     points: StrokePoint[];
-    color: string;
+    /** The theme's text color when unset, so it follows dark mode. */
+    color?: string;
     size: number;
     opacity: number; // 0-1
     toolVariant: DrawToolVariant;
 }
 
 export interface DrawSettings {
-    color: string;
+    /** The theme's text color when unset. */
+    color?: string;
     size: number;
     opacity: number;
     toolVariant: DrawToolVariant;
 }
 
 export const DEFAULT_DRAW_SETTINGS: DrawSettings = {
-    color: '#000000',
     size: 8,
     opacity: 1,
     toolVariant: 'pen',

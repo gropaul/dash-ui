@@ -5,7 +5,7 @@ keep it local.
 
 </node>
 
-<node id="intro" type="text" x="0" y="160" width="440" height="100" text-align="left" background="hsl(var(--background))" background-blur="12">
+<node id="intro" type="text" x="0" y="180" width="440" height="160" text-align="left" vertical-align="top" background="hsl(var(--background))" background-blur="12">
 
 Lay out your data on the canvas and make connections. Create and combine interactive elements to better understand and play with your data.
 
@@ -13,7 +13,7 @@ Lay out your data on the canvas and make connections. Create and combine interac
 
 <node id="open-app" type="link" x="0" y="280" width="180" height="60" href="https://app.dash.builders/">
 
-Open the app
+Open in browser
 
 </node>
 
@@ -57,7 +57,7 @@ FROM refs.types_of_trains()
 
 <node id="chart" type="query" x="920" y="180" width="400" height="440" code="hidden">
 
-```sql types_bar_chart
+```sql train_types
 -- view: bar
 -- x: ServiceType
 -- y: num_trains
@@ -66,21 +66,4 @@ SELECT * FROM refs.types_of_trains()
 ```
 
 </node>
-
-<node id="note" type="text" x="665" y="315" width="240" height="60" text-style="h5" text-align="left" color="#000000">
-
-Picking a station runs this query again.
-
-</node>
-
-<node id="arrow" type="drawing" x="630" y="200" width="57" height="140" color="#000000" size="4" opacity="1">
-
-[[846.0,170.0,0.45],[851.8,183.0,0.49],[859.8,201.5,0.53],[866.0,220.0,0.56],[869.1,237.1,0.58],[870.4,254.2,0.59],[870.0,270.0,0.6],[867.8,284.4,0.59],[863.8,297.4,0.58],[858.0,308.0,0.56],[848.8,315.6,0.53],[837.9,320.7,0.49],[830,324,0.45]]
-
-</node>
-
-<node id="arrow-head" type="drawing" x="625" y="310" width="36" height="31" color="#000000" size="4" opacity="1">
-
-[[658.0,334.8,0.45],[638.1,333.4,0.6],[653.0,320.1,0.45]]
-
-</node>
+Test

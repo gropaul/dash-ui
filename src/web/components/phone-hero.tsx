@@ -11,9 +11,8 @@ export function PhoneHero({text}: { text: string }) {
     const nodes = canvasNodes(text);
     return (
         <div className="space-y-5">
-            {/* `note…` texts annotate the canvas, which phones don't show. */}
-            {nodes.filter(n => n.type === 'text' && !n.id.startsWith('note')).map(node => node.attributes['text-style'] === 'h1'
-                ? <h1 key={node.id} className="text-4xl font-bold tracking-tight">{node.body}</h1>
+            {nodes.filter(n => n.type === 'text').map(node => node.attributes['text-style'] === 'h1'
+                ? <h2 key={node.id} className="text-4xl font-bold tracking-tight">{node.body}</h2>
                 : <p key={node.id} className="text-lg text-muted-foreground">{node.body}</p>)}
             <div className="flex flex-wrap gap-3">
                 {nodes.filter(n => n.type === 'link').map(node => (

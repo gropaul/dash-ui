@@ -28,7 +28,7 @@ import {joinHeader, splitHeader} from "@/state/workspace/header-lines";
  *     -- x: month
  *     -- y: revenue
  *     -- settings: {...}       (optional: the views' setup beyond the keys above, as JSON)
- *     -- rows: 6               (height in grid rows; inputs have none)
+ *     -- rows: 8               (height in grid rows; 6 when left out; inputs have none)
  *     SELECT ...
  *
  * A block can take in a query of the project, a `.sql` file in the same format, by its path relative to the page;
@@ -50,7 +50,8 @@ export function parseRelationFence(lang: string | null | undefined, value: strin
 }
 
 export function relationToFence(block: TRelationBlock): string {
-    return joinHeader(isInputBlock(block) ? block.header : {...block.header, rows: String(block.rows)}, block.sql);
+    const sized = !isInputBlock(block) && block.rows !== DEFAULT_BLOCK_ROWS;
+    return joinHeader(sized ? {...block.header, rows: String(block.rows)} : block.header, block.sql);
 }
 
 function attribute(mdastNode: MdMdxJsxFlowElement, name: string): string | undefined {

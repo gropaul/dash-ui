@@ -1,5 +1,6 @@
-// Takes the landing canvas's snapshot: what its queries show, so the site paints them before DuckDB has loaded
-// (components/site-runtime.ts). Run it from the repository root after changing components/landing.canvas, against
+// Takes the landing page's snapshot: what the queries of its canvas and dashboard show, so the site paints them before
+// DuckDB has loaded (components/site-runtime.ts). Run it from the repository root after changing
+// components/landing.canvas or components/landing-dashboard.md, against
 // the website's dev server with the e2e hook:
 //
 //   NEXT_PUBLIC_E2E=1 pnpm dev:web
@@ -10,10 +11,10 @@ import {chromium} from 'playwright';
 const SITE = process.argv[2];
 if (!SITE) throw new Error('Usage: node src/web/snapshot.mjs <dev server URL>');
 const OUT = 'src/web/components/landing-snapshot.json';
-const CANVAS = 'src/web/components/landing.canvas';
+const FILES = ['src/web/components/landing.canvas', 'src/web/components/landing-dashboard.md'];
 const TIMEOUT_MS = 120_000;
 
-const queries = [...fs.readFileSync(CANVAS, 'utf8').matchAll(/^```sql (\w+)/gm)].length;
+const queries = FILES.reduce((count, file) => count + [...fs.readFileSync(file, 'utf8').matchAll(/^```sql (\w+)/gm)].length, 0);
 const browser = await chromium.launch();
 try {
     const page = await browser.newPage({viewport: {width: 1600, height: 1000}});

@@ -36,6 +36,8 @@
 .plain-sql-editor .sql-quoted { color: #a31515; }
 .plain-sql-editor .sql-number { color: #098658; }
 .plain-sql-editor .sql-comment { color: #008000; }
+.plain-sql-editor .md-heading { color: #800000; }
+.plain-sql-editor .md-fence { color: #808080; }
 
 .dark .plain-sql-editor .sql-keyword { color: #569cd6; }
 .dark .plain-sql-editor .sql-function { color: #c586c0; }
@@ -43,3 +45,5 @@
 .dark .plain-sql-editor .sql-quoted { color: #ce9178; }
 .dark .plain-sql-editor .sql-number { color: #b5cea8; }
 .dark .plain-sql-editor .sql-comment { color: #6a9955; }
+.dark .plain-sql-editor .md-heading { color: #569cd6; }
+.dark .plain-sql-editor .md-fence { color: #808080; }

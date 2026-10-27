@@ -1,6 +1,6 @@
 ---
 title: Agents
-description: Let a coding agent you already have - Claude Code, Codex, Gemini CLI, OpenCode or Goose - work on your Dash project: write queries, build pages, answer questions about your data.
+description: Let the coding agent you already use - Claude Code, Codex, Gemini CLI, OpenCode or Goose - write queries and pages in your Dash project.
 ---
 
 # Agents

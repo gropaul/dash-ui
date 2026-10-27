@@ -56,7 +56,7 @@ function typeAndData(node: CanvasNodeText): Pick<Node, 'type' | 'data'> {
         case 'drawing': {
             const data: FreeDrawNodeData = {
                 points: parsePoints(body),
-                color: attributes.color ?? '#000000',
+                color: attributes.color,
                 strokeSize: Number(attributes.size ?? 4),
                 opacity: Number(attributes.opacity ?? 1),
             };
@@ -96,7 +96,7 @@ export function writeCanvas(nodes: Node[]): string {
             case 'freeDrawNode': {
                 const data = node.data as unknown as FreeDrawNodeData;
                 const points = data.points.map(([x, y, pressure]) => [round(x, 1), round(y, 1), round(pressure, 2)]);
-                const attributes = {color: data.color, size: String(data.strokeSize), opacity: String(data.opacity)};
+                const attributes = {...(data.color && {color: data.color}), size: String(data.strokeSize), opacity: String(data.opacity)};
                 return [{...place, type: 'drawing' as const, attributes, body: JSON.stringify(points)}];
             }
             case 'relationNode':

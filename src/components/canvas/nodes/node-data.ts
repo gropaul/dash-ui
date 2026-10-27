@@ -25,7 +25,8 @@ export interface TextNodeData {
     fontStyle: 'normal' | 'italic';
     textAlign: 'left' | 'center' | 'right';
     verticalAlign: 'top' | 'center' | 'bottom';
-    color: string;
+    /** The theme's text color when unset, so it follows dark mode. */
+    color?: string;
     /** Behind the node's whole box; none when unset. */
     background?: string;
     /** How far the background's edges blur, in pixels; set in the file only. */
@@ -38,7 +39,6 @@ export const DEFAULT_TEXT_NODE_DATA: TextNodeData = {
     fontStyle: 'normal',
     textAlign: 'center',
     verticalAlign: 'center',
-    color: '#000000',
 };
 
 export interface LinkNodeData {

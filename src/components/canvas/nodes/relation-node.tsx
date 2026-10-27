@@ -23,6 +23,7 @@ import {RelationState} from "@/model/relation-state";
 import {getDefaultSessionState, RelationViewMode} from "@/model/relation-view-state";
 import {RelationNodeData, useRelationNodeModel} from "@/components/canvas/logic/canvas-file";
 import {isInputView} from "@/components/page-editor/model";
+import {humanizeName} from "@/platform/string-utils";
 
 type RelationNodeProps = RelationNodeData & {
     connectionHover?: ConnectionHoverState | null;
@@ -40,7 +41,7 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
 
     // Whether the SQL shows is the node's, kept in the canvas file.
     const data = useMemo(() => {
-        const relation = model?.relation ?? RelationActions.create();
+        const relation = withoutHeaderTitle(model?.relation ?? RelationActions.create());
         const session = relation.viewState.embeddedSessionState ?? getDefaultSessionState('embedded');
         if (session.codeFenceState.show === showCode) return relation;
         return {
@@ -194,4 +195,13 @@ export function RelationNode(props: NodeProps<RelationNodeType>) {
             </RelationContextProvider>
         </div>
     );
+}
+
+/** The node header already shows the name, so the chart doesn't draw it again as its title. */
+function withoutHeaderTitle(relation: RelationState): RelationState {
+    const chart = relation.query.viewParameters.chart;
+    const title = chart?.plot.title;
+    if (!relation.viewState.showHeader || !title || title !== humanizeName(relation.viewState.displayName)) return relation;
+    const {title: _title, ...plot} = chart.plot;
+    return {...relation, query: {...relation.query, viewParameters: {...relation.query.viewParameters, chart: {...chart, plot}}}};
 }

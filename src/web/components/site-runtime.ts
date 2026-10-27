@@ -1,3 +1,4 @@
+import {useEffect} from "react";
 import {create} from "zustand";
 import {DatabaseConnection} from "@/model/database-connection";
 import {RelationState} from "@/model/relation-state";
@@ -10,13 +11,13 @@ import {useWorkspace} from "@/state/workspace/workspace.state";
 import {DASH_CATALOG_CACHE, DASH_CATALOG_STATE, DASH_INTERNAL_SCHEMAS} from "@/platform/global-data";
 
 /**
- * The website runs a canvas without the app around it: no project, its file only in memory, and DuckDB WASM
- * started late. What the canvas showed when its snapshot was taken (src/web/snapshot.mjs) shows at once;
+ * The website runs a canvas and a page without the app around them: no project, their files only in memory, and
+ * DuckDB WASM started late. What they showed when the snapshot was taken (src/web/snapshot.mjs) shows at once;
  * a query waits until DuckDB is up, and DuckDB starts only when the page asks for it (startDatabase), so the
- * canvas's own queries on mount don't pull its download in before the canvas has loaded.
+ * queries run on mount don't pull its download in before the page has loaded.
  */
 
-export interface CanvasSnapshot {
+export interface SiteSnapshot {
     relations: Record<string, RelationState>;
     data: Record<string, RelationData>;
 }
@@ -24,13 +25,17 @@ export interface CanvasSnapshot {
 const connection = specToConnection(getDefaultSpec('duckdb-wasm'));
 let database: Promise<DatabaseConnection> | undefined;
 let ready = false;
+let connected = false;
 let allowStart: () => void;
 const allowed = new Promise<void>(resolve => allowStart = resolve);
-// Run once DuckDB is up, before any query: e.g. views the canvas reads.
-let canvasSetup: string[] = [];
+// Run once DuckDB is up, before any query: e.g. views the queries read.
+let siteSetup: string[] = [];
 
 /** Whether a query is waiting for DuckDB to start. */
 export const useWaitingForDatabase = create<boolean>(() => false);
+
+// `?fresh` (e2e builds only) runs every query instead of showing the snapshot, so a new one can be taken.
+const fresh = () => process.env.NEXT_PUBLIC_E2E === '1' && new URLSearchParams(window.location.search).has('fresh');
 
 /** Starts DuckDB WASM with in-memory catalogs in place of a project's; once, however often it is called. */
 export function startDatabase(): Promise<DatabaseConnection> {
@@ -42,7 +47,7 @@ export function startDatabase(): Promise<DatabaseConnection> {
             `ATTACH IF NOT EXISTS ':memory:' AS ${DASH_CATALOG_CACHE};`,
             ...DASH_INTERNAL_SCHEMAS.map(schema => `CREATE SCHEMA IF NOT EXISTS ${DASH_CATALOG_STATE}.${schema};`),
             `USE ${DASH_CATALOG_STATE};`,
-            ...canvasSetup,
+            ...siteSetup,
         ];
         for (const sql of setup) await connection.executeQuery(sql, false, false);
         ready = true;
@@ -52,12 +57,19 @@ export function startDatabase(): Promise<DatabaseConnection> {
     return database;
 }
 
-/**
- * Makes the canvas file at `path` the workspace and sets up the connection its queries wait on, which runs `setup`
- * first.
- */
-export function openSiteCanvas(path: string, text: string, setup: string[], snapshot?: CanvasSnapshot) {
-    canvasSetup = setup;
+/** Starts DuckDB once the page is idle. */
+export function useStartDatabaseWhenIdle() {
+    useEffect(() => {
+        const idle = requestIdleCallback(() => void startDatabase(), {timeout: 4000});
+        return () => cancelIdleCallback(idle);
+    }, []);
+}
+
+/** Sets up the connection the site's queries wait on, which runs `setup` first; once. */
+function connect(setup: string[]) {
+    if (connected) return;
+    connected = true;
+    siteSetup = setup;
     const waiting = new Proxy(connection, {
         get(target, property, receiver) {
             if (property !== 'executeQuery') return Reflect.get(target, property, receiver);
@@ -69,23 +81,33 @@ export function openSiteCanvas(path: string, text: string, setup: string[], snap
         },
     });
     void ConnectionsService.getInstance().setDatabaseConnection(waiting);
+    if (process.env.NEXT_PUBLIC_E2E === '1') {
+        (window as unknown as { __dashSiteSnapshot?: () => SiteSnapshot }).__dashSiteSnapshot = takeSnapshot;
+    }
+}
 
-    useWorkspace.setState({files: {[path]: text}, dirs: new Set()});
-    if (!snapshot) return;
+/**
+ * Adds the file at `path` to the workspace, with what `snapshot` holds for its queries, and sets up the connection
+ * they wait on, which runs `setup` first.
+ */
+export function openSiteFile(path: string, text: string, setup: string[], snapshot: SiteSnapshot) {
+    connect(setup);
+    useWorkspace.setState(state => ({files: {...state.files, [path]: text}, dirs: new Set()}));
+    if (fresh()) return;
+    const prefix = `${path}#`;
+    const own = <T, >(entries: Record<string, T>) =>
+        Object.fromEntries(Object.entries(entries).filter(([id]) => id.startsWith(prefix)));
     // Shown as run just now, not when the snapshot was taken.
     const now = Date.now();
-    const relations = Object.fromEntries(Object.entries(snapshot.relations).map(([id, relation]) => [id, {
+    const relations = Object.fromEntries(Object.entries(own(snapshot.relations)).map(([id, relation]) => [id, {
         ...relation,
         lastExecutionMetaData: relation.lastExecutionMetaData && {...relation.lastExecutionMetaData, lastExecutedAt: now},
     }]));
-    useSurfaces.setState({relations});
-    useRelationDataState.setState(state => ({data: {...state.data, ...snapshot.data}}));
+    useSurfaces.setState(state => ({relations: {...state.relations, ...relations}}));
+    useRelationDataState.setState(state => ({data: {...state.data, ...own(snapshot.data)}}));
 }
 
-/** What the canvas at `path` shows now, to save as its snapshot. */
-export function takeSnapshot(path: string): CanvasSnapshot {
-    const prefix = `${path}#`;
-    const pick = <T, >(entries: Record<string, T>) =>
-        Object.fromEntries(Object.entries(entries).filter(([id]) => id.startsWith(prefix)));
-    return {relations: pick(useSurfaces.getState().relations), data: pick(useRelationDataState.getState().data)};
+/** What the site's queries show now, to save as its snapshot. */
+function takeSnapshot(): SiteSnapshot {
+    return {relations: useSurfaces.getState().relations, data: useRelationDataState.getState().data};
 }

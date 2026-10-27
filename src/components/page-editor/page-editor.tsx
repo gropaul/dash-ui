@@ -14,6 +14,7 @@ import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components
 import {useGUIState} from "@/state/gui.state";
 import {registerPendingEdits} from "@/state/workspace/pending-edits";
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
+import {PlainSqlEditor} from "@/components/basics/sql-editor/plain-sql-editor";
 import {EMPTY_LINE_PLACEHOLDER, PAGE_EDITOR_PLUGINS} from "@/components/page-editor/editor-plugins";
 import {BlockHoverPlugin, onEditorMouseOver} from "@/components/page-editor/block-hover";
 import {focusEnd, insertAtSlash} from "@/components/page-editor/block-moves";
@@ -54,10 +55,16 @@ export interface PageEditorProps {
     /** The mode, when the host keeps it (e.g. in the URL); otherwise the editor keeps it itself. */
     mode?: PageEditorMode;
     onModeChange?: (mode: PageEditorMode) => void;
+    /** Split: the markdown in a plain text area instead of Monaco, e.g. on the website. */
+    plainMarkdownEditor?: boolean;
+    /** Split: the markdown right of the page instead of left. */
+    markdownRight?: boolean;
+    /** Room below the last block, so it can be scrolled up from the bottom edge; off where the page is embedded. */
+    scrollPastEnd?: boolean;
 }
 
 /** A page as one markdown document: text and relation blocks, edited as blocks, read-only, or next to its markdown. */
-export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode: modeProp, onModeChange}: PageEditorProps) {
+export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode: modeProp, onModeChange, plainMarkdownEditor = false, markdownRight = false, scrollPastEnd = true}: PageEditorProps) {
     const [ownMode, setOwnMode] = useState<PageEditorMode>('edit');
     const mode = modeProp ?? ownMode;
     const readOnly = mode === 'view';
@@ -154,10 +161,10 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
                             "[&_.slate-selection-area]:z-50 [&_.slate-selection-area]:rounded-sm",
                             "[&_.slate-selection-area]:border [&_.slate-selection-area]:border-primary/40 [&_.slate-selection-area]:bg-primary/10",
                         )}>
-            {/* The bottom padding lets the page scroll the last block up from the bottom edge. */}
             {/* Slate fades its placeholder with an inline opacity; it takes the empty line hint's colour instead. */}
             <PlateContent className={cn(
-                              "mx-auto max-w-5xl px-12 pt-8 pb-[40vh] text-foreground outline-none",
+                              "mx-auto max-w-5xl px-12 pt-8 text-foreground outline-none",
+                              scrollPastEnd ? "pb-[40vh]" : "pb-8",
                               "[&_[data-slate-placeholder]]:!opacity-100 [&_[data-slate-placeholder]]:text-muted-foreground/50",
                           )}
                           placeholder={readOnly ? undefined : EMPTY_LINE_PLACEHOLDER}
@@ -166,6 +173,40 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
                           onMouseOver={e => onEditorMouseOver(editor, e.target)}
                           onMouseLeave={() => editor.setOption(BlockHoverPlugin, 'hoveredId', null)}/>
         </PlateContainer>
+    );
+
+    const markdownPanel = (
+        <ResizablePanel defaultSize={markdownSize} minSize={20}
+                        onResize={size => useGUIState.getState().setPageMarkdownRatio(size / 100)}>
+            <div className="relative flex h-full flex-col"
+                 onFocusCapture={sync.viewToText.flush}
+                 onPointerDownCapture={sync.viewToText.flush}>
+                <CooldownIndicator pending={sync.viewToText.pending}/>
+                {/* Room above the plain editor's text, clear of the mode toggle. */}
+                <div className={cn("min-h-0 flex-1", plainMarkdownEditor && "pt-20")}>
+                    {plainMarkdownEditor
+                        ? <PlainSqlEditor language="markdown" code={sync.text} onCodeChange={sync.onTextChange}/>
+                        : <SqlEditor
+                            embedded
+                            language="markdown"
+                            displayCode={sync.text}
+                            onCodeChange={sync.onTextChange}
+                            showLineNumbers
+                            height="100%"
+                            width="100%"
+                        />}
+                </div>
+                {sync.parseError && <div className="border-t px-3 py-1 text-xs text-destructive">{sync.parseError}</div>}
+            </div>
+        </ResizablePanel>
+    );
+    const pagePanel = (
+        <ResizablePanel defaultSize={100 - markdownSize}>
+            <div className="relative h-full" onPointerDownCapture={sync.textToView.flush}>
+                <CooldownIndicator pending={sync.textToView.pending}/>
+                <div className="h-full overflow-auto">{content}</div>
+            </div>
+        </ResizablePanel>
     );
 
     return (
@@ -188,33 +229,7 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
                         </div>
                         {mode === 'split' ? (
                             <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
-                                <ResizablePanel defaultSize={markdownSize} minSize={20}
-                                                onResize={size => useGUIState.getState().setPageMarkdownRatio(size / 100)}>
-                                    <div className="relative flex h-full flex-col"
-                                         onFocusCapture={sync.viewToText.flush}
-                                         onPointerDownCapture={sync.viewToText.flush}>
-                                        <CooldownIndicator pending={sync.viewToText.pending}/>
-                                        <div className="min-h-0 flex-1">
-                                            <SqlEditor
-                                                embedded
-                                                language="markdown"
-                                                displayCode={sync.text}
-                                                onCodeChange={sync.onTextChange}
-                                                showLineNumbers
-                                                height="100%"
-                                                width="100%"
-                                            />
-                                        </div>
-                                        {sync.parseError && <div className="border-t px-3 py-1 text-xs text-destructive">{sync.parseError}</div>}
-                                    </div>
-                                </ResizablePanel>
-                                <ResizableHandle/>
-                                <ResizablePanel defaultSize={100 - markdownSize}>
-                                    <div className="relative h-full" onPointerDownCapture={sync.textToView.flush}>
-                                        <CooldownIndicator pending={sync.textToView.pending}/>
-                                        <div className="h-full overflow-auto">{content}</div>
-                                    </div>
-                                </ResizablePanel>
+                                {markdownRight ? <>{pagePanel}<ResizableHandle/>{markdownPanel}</> : <>{markdownPanel}<ResizableHandle/>{pagePanel}</>}
                             </ResizablePanelGroup>
                         ) : (
                             <div className="min-h-0 flex-1 overflow-auto">{content}</div>

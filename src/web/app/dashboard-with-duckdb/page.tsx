@@ -8,7 +8,7 @@ import {APP_URL} from "@web/components/site-chrome";
 export const metadata: Metadata = {
     title: 'Dashboards with DuckDB in Your Browser',
     description: 'Build dashboards with DuckDB from SQL: charts, tables and dropdown filters in one Markdown file, running on DuckDB in your browser. No server, open source.',
-    alternates: {canonical: '/duckdb-dashboard'},
+    alternates: {canonical: '/dashboard-with-duckdb'},
 };
 
 const STEPS = [
@@ -79,7 +79,7 @@ export default function DuckDBDashboard() {
                 filters in one Markdown file. No server, no upload, no build step.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-                <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({size: 'lg'}), "rounded-2xl")}>Open the app</a>
+                <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({size: 'lg'}), "rounded-2xl")}>Open in browser</a>
                 <Link href="/docs/dashboards" className={cn(buttonVariants({variant: 'outline', size: 'lg'}), "gap-2 rounded-2xl")}>
                     The page format <ArrowRight className="h-4 w-4"/>
                 </Link>

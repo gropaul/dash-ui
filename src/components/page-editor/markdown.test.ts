@@ -65,11 +65,18 @@ describe('chart fence header', () => {
 
 describe('block names', () => {
     it('are read from and written to the fence info string', () => {
-        const markdown = '```sql monthly_revenue\n-- view: bar\n-- rows: 6\nSELECT 1\n```\n';
+        const markdown = '```sql monthly_revenue\n-- view: bar\nSELECT 1\n```\n';
         const editor = createEditor();
         const value = editor.getApi(MarkdownPlugin).markdown.deserialize(markdown);
         expect(value[0]).toMatchObject({type: RELATION_BLOCK_KEY, name: 'monthly_revenue'});
         expect(serializePage(editor, value)).toBe(markdown);
+    });
+});
+
+describe('block height', () => {
+    it('is left out at the default', () => {
+        const chart = parseRelationFence('sql', '-- view: bar\n-- rows: 6\nSELECT 1')!;
+        expect(relationToFence(chart)).toBe('-- view: bar\nSELECT 1');
     });
 });
 

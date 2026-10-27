@@ -16,7 +16,6 @@ A `sql` fence with a `view` line is a block that shows data:
 -- view: bar
 -- x: StationName
 -- y: num_services
--- rows: 6
 SELECT StationName, count(*) AS num_services
 FROM 'https://example.org/services.parquet'
 GROUP BY ALL ORDER BY num_services DESC LIMIT 10
@@ -31,7 +30,7 @@ The word after `sql` names the block (`busiest_stations`) and is its title, "Bus
 | `x` | A chart's x axis column; for `pie` the slice label |
 | `y` | A chart's value columns, comma separated |
 | `column` | The column a `select` offers |
-| `rows` | Height in rows of 48 px |
+| `rows` | Height in rows of 48 px, 6 when left out |
 | `input` | A query file to show instead of SQL of its own: `-- input: ../orders.sql` |
 
 ## Blocks reading blocks

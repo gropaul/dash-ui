@@ -5,13 +5,10 @@ import {ReactFlowProvider, useReactFlow} from "@xyflow/react";
 import {Flow} from "@/components/canvas/flow";
 import {useBlockFullscreen} from "@/components/page-editor/block-fullscreen";
 import {Loader2} from "lucide-react";
-import {CanvasSnapshot, openSiteCanvas, startDatabase, takeSnapshot, useWaitingForDatabase} from "@web/components/site-runtime";
+import {openSiteFile, SiteSnapshot, useStartDatabaseWhenIdle, useWaitingForDatabase} from "@web/components/site-runtime";
 import {LANDING_BOUNDS, LANDING_CANVAS, LANDING_SETUP} from "@web/components/landing";
 import canvasText from "@web/components/landing.canvas?raw";
 import snapshot from "@web/components/landing-snapshot.json";
-
-// `?fresh` (e2e builds only) runs every query instead of showing the snapshot, so a new one can be taken.
-const fresh = () => process.env.NEXT_PUBLIC_E2E === '1' && new URLSearchParams(window.location.search).has('fresh');
 
 /**
  * The landing page's canvas, live: shown from its snapshot first, with DuckDB starting once the page is idle. It covers
@@ -19,18 +16,12 @@ const fresh = () => process.env.NEXT_PUBLIC_E2E === '1' && new URLSearchParams(w
  */
 export default function LandingCanvas({box, onShown}: { box: RefObject<HTMLElement | null>, onShown: () => void }) {
     // Before the canvas renders, which reads the stores.
-    useState(() => openSiteCanvas(LANDING_CANVAS, canvasText, LANDING_SETUP, fresh() ? undefined : snapshot as unknown as CanvasSnapshot));
+    useState(() => openSiteFile(LANDING_CANVAS, canvasText, LANDING_SETUP, snapshot as unknown as SiteSnapshot));
     const openFullscreen = useBlockFullscreen(s => s.open);
     const pane = useRef<HTMLDivElement>(null);
     const waiting = useWaitingForDatabase();
 
-    useEffect(() => {
-        if (process.env.NEXT_PUBLIC_E2E === '1') {
-            (window as unknown as { __dashSiteSnapshot?: () => CanvasSnapshot }).__dashSiteSnapshot = () => takeSnapshot(LANDING_CANVAS);
-        }
-        const idle = requestIdleCallback(() => void startDatabase(), {timeout: 4000});
-        return () => cancelIdleCallback(idle);
-    }, []);
+    useStartDatabaseWhenIdle();
 
     return (
         <ReactFlowProvider>

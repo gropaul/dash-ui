@@ -35,7 +35,6 @@ plain code block.
 -- view: bar
 -- x: StationName
 -- y: num_services
--- rows: 6
 SELECT StationName, count(*) AS num_services
 FROM 'https://example.org/services.parquet'
 GROUP BY ALL ORDER BY num_services DESC LIMIT 10
@@ -57,7 +56,7 @@ GROUP BY ALL ORDER BY num_services DESC LIMIT 10
 | `x` | Chart: the column on the x axis; `pie`: the slice label. |
 | `y` | Chart: value column(s), comma separated; `pie`: the first is the slice size. |
 | `column` | `select`: the column whose values the dropdown offers. |
-| `rows` | Pages only: height in grid rows of 48px; 6 suits charts and tables. Leave it out for `select` and `slider`. |
+| `rows` | Pages only: height in grid rows of 48px, 6 when left out, which suits charts and tables. Leave it out for `select` and `slider`. |
 | `input` | Pages only: a query file to show, by its path relative to the page (`-- input: ../orders.sql`). The block takes its SQL and view and has no SQL of its own; its other keys override the view. |
 | `settings` | JSON with setup the keys above can't say, under the view's name (below). Leave it out otherwise. |
 
@@ -86,7 +85,6 @@ SELECT DISTINCT ServiceType FROM 'https://example.org/services.parquet'
 -- view: bar
 -- x: StationName
 -- y: num_services
--- rows: 6
 SELECT StationName, count(*) AS num_services
 FROM 'https://example.org/services.parquet'
 WHERE ServiceType IN (SELECT ServiceType FROM refs.service_type())

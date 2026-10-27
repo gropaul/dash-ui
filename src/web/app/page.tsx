@@ -6,26 +6,8 @@ import {cn} from "@/lib/utils";
 import {Hero} from "@web/components/hero";
 import {PhoneHero} from "@web/components/phone-hero";
 import {APP_URL, RELEASES_URL} from "@web/components/site-chrome";
+import {DashboardDemo} from "@web/components/dashboard-demo";
 import canvasText from "@web/components/landing.canvas?raw";
-
-const PAGE_EXAMPLE = `# Train services
-
-\`\`\`sql service_type
--- view: select
--- column: ServiceType
-SELECT DISTINCT ServiceType FROM 'services.parquet'
-\`\`\`
-
-\`\`\`sql busiest_stations
--- view: bar
--- x: StationName
--- y: stops
-SELECT StationName, count(*) AS stops
-FROM 'services.parquet'
-WHERE ServiceType IN
-  (SELECT ServiceType FROM refs.service_type())
-GROUP BY ALL ORDER BY stops DESC LIMIT 10
-\`\`\``;
 
 const EXTENSION_SETUP = `INSTALL dash FROM community;
 LOAD dash;
@@ -54,7 +36,7 @@ export default function Landing() {
                             Nothing to install. DuckDB runs in the page, your files stay on your machine, and projects are
                             kept in the browser.
                         </p>
-                        <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants(), "mt-6 rounded-2xl")}>Open the app</a>
+                        <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants(), "mt-6 rounded-2xl")}>Open in browser</a>
                     </div>
                     <div className="border-t pt-6">
                         <h3 className="text-lg font-semibold">On your desktop</h3>
@@ -79,19 +61,11 @@ export default function Landing() {
             </section>
 
             <section className="border-y bg-muted-background">
-                <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-24 md:grid-cols-2">
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Dashboards with DuckDB, written in Markdown</h2>
-                        <p className="mt-4 text-lg text-muted-foreground">
-                            A dashboard is a page: one Markdown file with text and sql blocks that show their result as a
-                            chart, a table, a number or a dropdown. Edit it block by block, or as the Markdown next to it.
-                            It reads fine without Dash, and a coding agent writes it as easily as you do.
-                        </p>
-                        <Link href="/duckdb-dashboard" className={cn(buttonVariants(), "mt-8 gap-2 rounded-2xl")}>
-                            Dashboards with DuckDB <ArrowRight className="h-4 w-4"/>
-                        </Link>
-                    </div>
-                    <pre className="overflow-x-auto rounded-2xl border bg-background p-6 font-mono text-[13px] leading-relaxed shadow-[var(--node-shadow)]">{PAGE_EXAMPLE}</pre>
+                <div className="mx-auto max-w-6xl px-4 py-24">
+                    <DashboardDemo/>
+                    <Link href="/dashboard-with-duckdb" className={cn(buttonVariants({variant: 'outline'}), "mt-8 gap-2 rounded-2xl")}>
+                        Dashboards with DuckDB <ArrowRight className="h-4 w-4"/>
+                    </Link>
                 </div>
             </section>
 

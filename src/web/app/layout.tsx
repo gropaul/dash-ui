@@ -1,6 +1,7 @@
 import type {Metadata} from "next";
 import {Analytics} from "@vercel/analytics/next";
 import {Inter} from "next/font/google";
+import {ThemeProvider} from "@/components/provider/theme-provider";
 import "@/styles/globals.css";
 import "@web/components/site.css";
 import {APP_URL, GITHUB_URL, SITE_URL, SiteFooter, SiteHeader} from "@web/components/site-chrome";
@@ -8,15 +9,15 @@ import {APP_URL, GITHUB_URL, SITE_URL, SiteFooter, SiteHeader} from "@web/compon
 // The app's Inter as a small woff2 subset, in place of its full TrueType file (site.css).
 const inter = Inter({subsets: ['latin'], variable: '--font-inter'});
 
-const DESCRIPTION = 'Dash is a SQL workspace on DuckDB: query nodes on a canvas and dashboards written in Markdown, '
-    + 'running locally in your browser or inside DuckDB as an extension. Open source.';
+const DESCRIPTION = 'Dash is an open-source SQL workspace on DuckDB: queries on a canvas and dashboards written in '
+    + 'Markdown, running locally in your browser or inside DuckDB.';
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
     title: {default: 'Dash - SQL Canvas and Dashboards with DuckDB', template: '%s - Dash'},
     description: DESCRIPTION,
     alternates: {canonical: '/'},
-    openGraph: {type: 'website', siteName: 'Dash', url: '/', images: ['/og.png']},
+    openGraph: {type: 'website', siteName: 'Dash', images: ['/og.png']},
     twitter: {card: 'summary_large_image', images: ['/og.png']},
 };
 
@@ -35,13 +36,16 @@ const STRUCTURED_DATA = {
 };
 
 export default function SiteLayout({children}: { children: React.ReactNode }) {
+    // next-themes sets the theme class on <html> before it paints, hence the hydration warning off.
     return (
-        <html lang="en" className={inter.variable}>
+        <html lang="en" className={inter.variable} suppressHydrationWarning>
         <body className="min-h-dvh bg-background text-foreground antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(STRUCTURED_DATA)}}/>
-        <SiteHeader/>
-        <main>{children}</main>
-        <SiteFooter/>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <SiteHeader/>
+            <main>{children}</main>
+            <SiteFooter/>
+        </ThemeProvider>
         <Analytics/>
         </body>
         </html>

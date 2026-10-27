@@ -13,6 +13,11 @@ export function plotUsesGroup(plot: PlotConfig) {
     return plotIsCartesian(plot) && plot.cartesian.groupBy
 }
 
+function averageLength(values: unknown[]): number {
+    const texts = values.filter((v): v is string => typeof v === 'string');
+    return texts.length ? texts.reduce((sum, t) => sum + t.length, 0) / texts.length : 0;
+}
+
 export function toEChartOptions(
     config: ChartConfig,
     data: RelationData,
@@ -212,11 +217,13 @@ export function toEChartOptions(
         } else {
             xAxis.max = 'dataMax';
         }
-        if (cartesian?.xLabelRotation) {
+        // Without a set angle, long text labels default to 45°.
+        const xRotation = cartesian.xLabelRotation ?? (xAxisType === 'category' && averageLength(xData) > 8 ? 45 : undefined);
+        if (xRotation) {
             xAxis.axisLabel = {
                 ...xAxis.axisLabel,
                 interval: 0,
-                rotate: cartesian.xLabelRotation,
+                rotate: xRotation,
             }
         }
 
