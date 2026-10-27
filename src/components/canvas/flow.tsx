@@ -54,6 +54,7 @@ import {useWorkspace} from "@/state/workspace/workspace.state";
 import {queryByName} from "@/state/workspace/file-references";
 import {renameRefCalls} from "@/platform/sql-refs";
 import {useRelationLinks} from "@/state/relations/sql/page-refresh";
+import {renameBlockSurfaces} from "@/state/workspace/rename-block";
 import {RenameRelationContext} from "@/components/relation/common/rename-relation-context";
 import {askForName} from "@/components/workspace/name-dialog";
 import {blockBody, blockNameOf, blockOf, isRelationNode} from "@/components/canvas/logic/canvas-file";
@@ -145,6 +146,7 @@ export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
                 : queryByName(useWorkspace.getState().files, name) ? `A query is named ${name}.` : undefined,
         onSubmit: name => {
             const from = relation.viewState.displayName.toLowerCase();
+            renameBlockSurfaces(relation.id, name);
             setNodes(nds => nds.map(node => {
                 if (!isRelationNode(node)) return node;
                 const block = blockOf(node);

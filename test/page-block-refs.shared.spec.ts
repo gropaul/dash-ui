@@ -11,6 +11,7 @@ import {
   expectRowCount,
   openApp,
   pickSelectValue,
+  readFile,
   widgetWith,
   widgetWithout,
   writeFile,
@@ -69,5 +70,40 @@ test.describe('Page blocks reading each other', () => {
     await expect(page.getByRole('dialog')).toBeHidden();
     await openBlockView(page, numbersBlock);
     await expectReferences(page, 'Used by', ['filtered']);
+  });
+
+  test('renaming a block rewrites the refs to it, and the block reading it still runs', async ({ app: page, appOrigin, appApi }) => {
+    test.setTimeout(120_000);
+
+    await openApp(page, appOrigin, appApi);
+    await createProject(page, 'E2E Block Rename');
+    await createEntity(page, 'Page', 'Overview');
+    await writeFile(page, 'Overview.md', PAGE);
+
+    const filteredBlock = widgetWith(page, page.getByRole('table'));
+    const numbersBlock = widgetWithout(page, page.getByRole('table'));
+    await expectRowCount(filteredBlock, 10);
+    await pickSelectValue(page, '4', numbersBlock);
+    await expectRowCount(filteredBlock, 1);
+
+    // A block's rename button is in its full view, on hovering its title.
+    await openBlockView(page, numbersBlock);
+    const view = page.getByRole('dialog');
+    await view.getByRole('heading', { level: 5 }).hover();
+    await view.getByRole('button', { name: 'Rename' }).click();
+    const rename = page.getByRole('dialog', { name: 'Rename block' });
+    await rename.getByRole('textbox').fill('digits');
+    await rename.getByRole('button', { name: 'Rename' }).click();
+    await expect(rename).toBeHidden();
+    await expect(view).toHaveAccessibleName('digits');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toBeHidden();
+
+    await expect.poll(() => readFile(page, 'Overview.md')).toContain('FROM refs.digits()');
+    // The pick moved with the block, and the block reading it runs with the new name.
+    await expectRowCount(filteredBlock, 1);
+    await expectFirstDataRow(filteredBlock, '4');
+    await clearSelectValue(page, '4', numbersBlock);
+    await expectRowCount(filteredBlock, 10);
   });
 });

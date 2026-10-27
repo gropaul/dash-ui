@@ -69,11 +69,12 @@ export async function goToWorkspaceRoot(page: Page, projectName: string): Promis
   await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
 }
 
-export type FileKind = 'Page' | 'Query' | 'Folder';
+export type FileKind = 'Page' | 'Query' | 'Canvas' | 'Folder';
 
 /**
- * Create a page, query or folder from the file tree: the + menu of the "Workspace" header for the top level, or the
- * context menu of `folder` (its name in the tree). A new page or query opens; returns the URL then.
+ * Create a page, query, canvas or folder from the file tree: the + menu of the "Workspace" header for the top level,
+ * or the context menu of `folder` (its name in the tree), where the kinds are listed under a "New" heading. A new
+ * file opens; returns the URL then.
  */
 export async function createEntity(page: Page, kind: FileKind, name: string, folder?: string): Promise<string> {
   if (folder) {
@@ -81,7 +82,7 @@ export async function createEntity(page: Page, kind: FileKind, name: string, fol
   } else {
     await fileTree(page).getByRole('button', { name: 'New', exact: true }).click();
   }
-  await page.getByRole('menuitem', { name: `New ${kind.toLowerCase()}`, exact: true }).click();
+  await page.getByRole('menuitem', { name: kind, exact: true }).click();
   const dialog = page.getByRole('dialog', { name: `New ${kind}` });
   await dialog.getByRole('textbox', { name: 'Enter a name' }).fill(name);
   await dialog.getByRole('button', { name: 'Create' }).click();
@@ -89,7 +90,7 @@ export async function createEntity(page: Page, kind: FileKind, name: string, fol
     await expect(dialog).toBeHidden();
     return page.url();
   }
-  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/.+\.(md|sql)$/);
+  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/.+\.(md|sql|canvas)$/);
   return page.url();
 }
 

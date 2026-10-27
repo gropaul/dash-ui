@@ -149,6 +149,9 @@ function PaletteItem({selected, icon, label, onClick}: PaletteItemProps) {
         <Tooltip>
             <TooltipTrigger asChild>
                 <div
+                    role="button"
+                    aria-label={label}
+                    aria-pressed={selected}
                     className={`w-8 h-8 rounded-sm flex items-center justify-center ${selected ? 'text-white bg-blue-600' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={(event) => {
                         event.stopPropagation();

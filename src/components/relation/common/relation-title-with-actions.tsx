@@ -72,6 +72,7 @@ export function RelationTitleWithActions({
             <div className="flex items-center gap-1 flex-shrink-0 overflow-hidden max-w-0 opacity-0 group-hover/title:max-w-16 group-hover/title:opacity-100 transition-all duration-200 ease-out">
                 <Button
                     className="h-6 w-6 flex-shrink-0 ml-1.5"
+                    aria-label="Rename"
                     onClick={(e) => {
                         e.stopPropagation();
                         handleOpenRename();
