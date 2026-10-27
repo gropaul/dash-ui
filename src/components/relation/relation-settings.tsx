@@ -8,39 +8,24 @@ import {EllipsisVertical} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {RelationViewProps} from "@/components/relation/relation-view";
 import React from "react";
-import {useRelationsState} from "@/state/relations.state";
-import {findPathById, TreeNode} from "@/components/basics/files/tree-utils";
-import {useEntityActions} from "@/components/workbench/editor-overview/use-entity-actions";
-import {EntityMenuItems} from "@/components/workbench/editor-overview/entity-menu-items";
+import {FileMenuItems} from "@/components/workspace/file-menu-items";
+import {useWorkspace} from "@/state/workspace/workspace.state";
 
 export interface RelationSettingsProps extends RelationViewProps {
     align?: "start" | "center" | "end";
     className?: string;
-    /** View-specific extras rendered above the shared entity actions (e.g. the Show Query toggle). */
+    /** View-specific extras rendered above the file actions (e.g. the Show Query toggle). */
     children?: React.ReactNode;
 }
 
 /**
- * The `⋮` settings menu shown on a relation (detail-view header and canvas node). Its base is the
- * same shared entity-action list used by the folder view and sidebar (Rename / Duplicate / Copy
- * link / Delete / Add to Dashboard / Add to Canvas); callers inject view-specific extras (like the
- * Show Query toggle) through `children`, rendered above that base.
+ * The `⋮` settings menu shown on a relation. Callers inject view-specific extras (like the Show Query toggle)
+ * through `children`; a query shown from its own file adds the file's actions (Rename / Copy link / Delete).
  */
 export function RelationSettings(props: RelationSettingsProps) {
-    const editorElements = useRelationsState((state) => state.editorElements);
-    // Only `handlers` are needed here: RelationSettings always acts on a relation, whose
-    // rename / delete / add-to-* flows are driven by app-root global dialogs (rename dialog,
-    // RelationDeleteDialog, command palette). The local DeleteDialog only serves non-relation
-    // entities, so it isn't rendered per settings-menu (avoids duplicate modals per canvas node).
-    const {handlers} = useEntityActions();
-
-    const relation = props.relationState;
-    const path = findPathById(editorElements, relation.id) ?? [];
-    const tree: TreeNode = {
-        id: relation.id,
-        name: relation.viewState.displayName,
-        type: 'relations',
-    };
+    // A query's id is its file's path; a page block's is `page.md#name`, which is no file.
+    const path = props.relationState.id;
+    const isFile = useWorkspace(s => path in s.files);
 
     return (
         <DropdownMenu>
@@ -52,8 +37,8 @@ export function RelationSettings(props: RelationSettingsProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align={props.align ?? "start"}>
                 {props.children}
-                {props.children && <DropdownMenuSeparator/>}
-                <EntityMenuItems variant="dropdown" path={path} tree={tree} handlers={handlers}/>
+                {props.children && isFile && <DropdownMenuSeparator/>}
+                {isFile && <FileMenuItems variant="dropdown" path={path} isFolder={false}/>}
             </DropdownMenuContent>
         </DropdownMenu>
     );

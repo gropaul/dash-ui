@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useState} from "react";
-import {AlertTriangle, Bug, BookOpen, HelpCircle, LoaderCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
+import {AlertTriangle, Bot, Bug, BookOpen, HelpCircle, LoaderCircle, Maximize2, MoreVertical, Search, Settings, Star} from "lucide-react";
 import {AnimatePresence, motion} from "framer-motion";
 import {Button} from "@/components/ui/button";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
@@ -18,27 +18,26 @@ import {useGUIState} from "@/state/gui.state";
 import {useOnboardingState} from "@/state/onboarding.state";
 import {ExportDatabaseButton} from "@/components/export/export-database-button";
 import {WorkspacePathBreadcrumb} from "@/components/layout/workspace-path-breadcrumb";
+import {useAgentsAvailable} from "@/components/agent-chat/agent-panel-shown";
 import {NavHistoryButtons} from "@/components/layout/nav-history-buttons";
 import {ProjectSwitcher} from "@/components/projects/project-switcher";
 import {openSearchCommand} from "@/components/workbench/global-command";
 
 /**
- * The global top app bar — a full-width, slot-based shell above the icon rail + sidebar.
- *
- * Three regions keep it extensible: future items drop into a region without reflowing the
- * others. Today only the breadcrumb (LEFT) is functional; the logo and search are visual
- * placeholders to be wired later, and the RIGHT region is reserved for future actions.
+ * The global top app bar - a slot-based shell above the routed view, right of the sidebar.
+ * Future items drop into the LEFT or RIGHT region without reflowing the other.
  */
 export function AppBar() {
     return (
-        <header className="h-12 flex items-center gap-3 border-b bg-background flex-shrink-0">
-            {/* LEFT — current project + path. The project switcher's icon replaces the old app logo. */}
+        <header className="h-10 flex items-center gap-3 bg-background border-b flex-shrink-0">
+            {/* LEFT — current project + path */}
             <div className="flex items-center gap-2 min-w-0 flex-1 pl-2">
+                {/* Electron-only: fills in for the browser back/forward buttons the desktop shell lacks.
+                    -mr-1 takes back the project name's own left padding, so the arrows sit as far from it as from the edge. */}
+                <NavHistoryButtons className="-mr-1"/>
                 {/* The project switcher is the breadcrumb root, so the crumb drops its own "Workspace" root. */}
                 <ProjectSwitcher/>
                 <WorkspacePathBreadcrumb/>
-                {/* Electron-only: fills in for the browser back/forward buttons the desktop shell lacks. */}
-                <NavHistoryButtons/>
             </div>
 
             {/* RIGHT — app actions: settings + an overflow menu for the rest */}
@@ -58,8 +57,18 @@ function AppBarActions() {
     const openSettingsTab = useGUIState((s) => s.openSettingsTab);
     const fullWidth = useGUIState((s) => s.fullWidth);
     const setFullWidth = useGUIState((s) => s.setFullWidth);
+    const agentPanelOpen = useGUIState((s) => s.agentPanelOpen);
+    const setAgentPanelOpen = useGUIState((s) => s.setAgentPanelOpen);
+    const agentsAvailable = useAgentsAvailable();
     return (
         <>
+            {agentsAvailable && (
+                <TooltipWrapper message="Agent chat">
+                    <Button variant={agentPanelOpen ? "secondary" : "ghost"} size="icon" aria-label="Agent chat" onClick={() => setAgentPanelOpen(!agentPanelOpen)}>
+                        <Bot/>
+                    </Button>
+                </TooltipWrapper>
+            )}
             <Button variant="ghost" size="icon" aria-label="Settings" onClick={() => openSettingsTab('connection')}>
                 <Settings/>
             </Button>
@@ -111,8 +120,7 @@ function DebugModeBadge() {
     );
 }
 
-// Shows whether the relation state has been persisted to disk, so the user knows when it's safe to
-// close/reload (writes are throttled, so a save can lag an edit by up to STORAGE_THROTTLE_TIME_MS).
+// Shows whether the workspace's changes have reached its folder, so the user knows when it's safe to close/reload.
 function SaveStatusIndicator() {
     const status = useSaveStatus((s) => s.status);
     const isError = status === 'error';

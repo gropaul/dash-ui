@@ -9,6 +9,7 @@ export const HEADER_HEIGHT = 40; // 2 * GRID_SIZE, Height of the node header (8p
 export const DEFAULT_NODE_SIZE = {width: 25 * GRID_SIZE, height: 25 * GRID_SIZE};
 export const DEFAULT_CHART_SIZE = {width: 25 * GRID_SIZE, height: 25 * GRID_SIZE};
 export const DEFAULT_TEXT_SIZE = {width: 5 * GRID_SIZE, height: 2 * GRID_SIZE};
+export const DEFAULT_LINK_SIZE = {width: 10 * GRID_SIZE, height: 3 * GRID_SIZE};
 
 export function roundToGrid(value: number): number {
     return Math.round(value / GRID_SIZE) * GRID_SIZE;
@@ -58,21 +59,22 @@ export type StrokePoint = [number, number, number]; // x, y, pressure
 export interface Stroke {
     id: string;
     points: StrokePoint[];
-    color: string;
+    /** The theme's text color when unset, so it follows dark mode. */
+    color?: string;
     size: number;
     opacity: number; // 0-1
     toolVariant: DrawToolVariant;
 }
 
 export interface DrawSettings {
-    color: string;
+    /** The theme's text color when unset. */
+    color?: string;
     size: number;
     opacity: number;
     toolVariant: DrawToolVariant;
 }
 
 export const DEFAULT_DRAW_SETTINGS: DrawSettings = {
-    color: '#000000',
     size: 8,
     opacity: 1,
     toolVariant: 'pen',

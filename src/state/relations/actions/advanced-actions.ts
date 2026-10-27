@@ -6,7 +6,6 @@ import {
     setRelationRunning,
     RelationQueryParameters
 } from "@/model/relation-state";
-import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {deepClone, DeepPartial, safeDeepUpdate} from "@/platform/object-utils";
 import {RelationViewState} from "@/model/relation-view-state";
 import {RelationViewAPIProps} from "@/components/relation/relation-view";
@@ -18,7 +17,12 @@ import {RelationQueryState} from "@/model/relation-query-state";
 
 export type UpdateRelationFunction = (relation: RelationState) => void;
 
-export interface AdvancedRelationActions extends DefaultRelationZustandActions {
+export interface RelationUpdate {
+    // the ID of a relation may never be updated!
+    updateRelation: UpdateRelationFunction,
+}
+
+export interface AdvancedRelationActions extends RelationUpdate {
     // Updates the relation data based on new query parameters. If the baseQuery changes, it should be provided.
     // here
     updateRelationDataWithParams: (query: RelationQueryParameters) => Promise<void>,

@@ -11,6 +11,7 @@ import {RelationViewHeader} from "@/components/relation/relation-view-header";
 import {ViewPadding} from "@/components/ui/view-padding";
 import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
+import {useAgentPanelShown} from "@/components/agent-chat/agent-panel-shown";
 
 export interface RelationStateViewProps extends RelationViewAPIProps {
     codeFenceRef?: RefObject<HTMLDivElement | null>;
@@ -41,6 +42,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
     const showConfig = props.mode === 'fullscreen' && hasConfigPanel(props);
     const configSplitRatio = useGUIState(state => state.sidebarSplitRatio);
     const setConfigSplitRatio = useGUIState(state => state.setConfigSplitRatio);
+    const agentPanelShown = useAgentPanelShown();
     const configSize = Math.round(configSplitRatio * 100);
 
     function onConfigResize(size: number) {
@@ -50,12 +52,12 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
     return (
         <DefaultErrorBoundary>
             {showConfig ? (
-                <ResizablePanelGroup direction="horizontal" className="w-full h-full bg-inherit">
+                <ResizablePanelGroup direction="horizontal" className={"w-full h-full bg-inherit"}>
                     <ResizablePanel defaultSize={100 - configSize} minSize={30} className={'bg-inherit'}>
                         <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'}>
                             <div className={'flex flex-col w-full h-full'}>
                                 {props.showHeader && <RelationViewHeader {...inputProps}/>}
-                                <div className={cn("rounded-2xl flex-1 min-h-0 w-full bg-card", inputProps.showBorder && 'border')}>
+                                <div className={cn("rounded-2xl flex-1 min-h-0 w-full", !inputProps.bare && 'bg-card', inputProps.showBorder && 'border')}>
                                     <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
                                 </div>
                             </div>
@@ -63,7 +65,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                     </ResizablePanel>
                     <ResizableHandle/>
                     <ResizablePanel defaultSize={configSize} onResize={onConfigResize} minSize={15}>
-                        <div className="pr-1 w-full h-full overflow-y-auto">
+                        <div className={cn("w-full h-full overflow-y-auto", !agentPanelShown && "pr-1")}>
                             <RelationViewConfig {...props}/>
                         </div>
                     </ResizablePanel>
@@ -72,7 +74,7 @@ export function RelationStateView(inputProps: RelationStateViewProps) {
                 <ViewPadding active={props.showHeader} addPaddingBottom className={'h-full w-full'}>
                     <div className={'flex flex-col w-full h-full'}>
                         {props.showHeader && <RelationViewHeader {...inputProps}/>}
-                        <div className={cn("rounded-2xl flex-1 min-h-0 w-full bg-card", inputProps.showBorder && 'border')}>
+                        <div className={cn("rounded-2xl flex-1 min-h-0 w-full", !inputProps.bare && 'bg-card', inputProps.showBorder && 'border')}>
                             <RelationStateContainer {...inputProps} codeFenceRef={inputProps.codeFenceRef}/>
                         </div>
                     </div>

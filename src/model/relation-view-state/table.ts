@@ -1,6 +1,5 @@
 import {RelationData} from "@/model/relation";
 import {ColumnDecoration} from "@/model/relation-view-state/decoration";
-import z from "zod";
 
 /**
  * LLM-controllable subset of the table view configuration.
@@ -12,14 +11,6 @@ export interface TableViewConfig {
     showStats?: boolean;
     showIndexColumn?: boolean;
 }
-
-/** Zod schema matching TableViewConfig — used as tool input schema. */
-export const TableViewConfigSchema = z.object({
-    columnsOrder: z.array(z.string()).describe('Order of columns to display. Columns not listed appear at the end.'),
-    columnsHidden: z.array(z.string()).describe('Columns to hide from the table.'),
-    showStats: z.boolean().optional().describe('Whether to show column statistics.'),
-    showIndexColumn: z.boolean().optional().describe('Whether to show the row index column. Defaults to true.'),
-});
 
 export interface ColumnViewState {
     width: number;

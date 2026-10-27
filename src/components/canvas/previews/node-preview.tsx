@@ -1,5 +1,5 @@
 import {CanvasState} from "@/components/canvas/logic/models";
-import {useReactFlow, useViewport} from "@xyflow/react";
+import {useReactFlow} from "@xyflow/react";
 
 export interface NodePreviewProps {
     canvasState: CanvasState

@@ -18,7 +18,6 @@ interface ClipboardData {
 }
 
 interface UseFlowShortcutsOptions<E extends Edge = Edge> {
-    canvasId: string;
     nodes: Node[];
     edges: E[];
     setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
@@ -28,7 +27,6 @@ interface UseFlowShortcutsOptions<E extends Edge = Edge> {
 }
 
 export function useFlowShortcuts<E extends Edge = Edge>({
-    canvasId,
     nodes,
     edges,
     setNodes,
@@ -88,7 +86,7 @@ export function useFlowShortcuts<E extends Edge = Edge>({
         };
 
         const idMapping = new Map<string, string>();
-        const clonedNodes = cloneNodes(clipboardRef.current.nodes, idMapping, offset, canvasId);
+        const clonedNodes = cloneNodes(clipboardRef.current.nodes, idMapping, offset, nodes);
         const copiedNodeIds = new Set(clipboardRef.current.nodes.map(n => n.id));
         const clonedEdges = cloneEdges(clipboardRef.current.edges, copiedNodeIds, idMapping);
 
@@ -101,7 +99,7 @@ export function useFlowShortcuts<E extends Edge = Edge>({
             ...eds.map(e => ({...e, selected: false})),
             ...clonedEdges as E[],
         ]);
-    }, [setNodes, setEdges]);
+    }, [nodes, setNodes, setEdges]);
 
     const duplicateSelectedNodes = useCallback((e?: KeyboardEvent) => {
         if (isTextInput(e)) return;
@@ -115,7 +113,7 @@ export function useFlowShortcuts<E extends Edge = Edge>({
 
         const offset = {x: GRID_SIZE, y: GRID_SIZE};
         const idMapping = new Map<string, string>();
-        const clonedNodes = cloneNodes(selectedNodes, idMapping, offset, canvasId);
+        const clonedNodes = cloneNodes(selectedNodes, idMapping, offset, nodes);
         const clonedEdges = cloneEdges(internalEdges, selectedNodeIds, idMapping);
 
         // Deselect existing nodes/edges and add cloned ones

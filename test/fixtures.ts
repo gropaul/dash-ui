@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
 import {
   E2E_BASE_URL,
@@ -132,6 +133,8 @@ export const test = base.extend<AppFixtures & ServerFixture>({
         ELECTRON_START_URL: E2E_BASE_URL,
         DASH_STORAGE_DIR: E2E_DUCKDB_DIR,
         DASH_HEADLESS: '1',
+        // The agent chat runs this echo agent instead of any agent installed on the machine.
+        DASH_E2E_AGENT: path.resolve('test/agents/echo-agent.mjs'),
       } as Record<string, string>,
     });
     const window = await electronApp.firstWindow();

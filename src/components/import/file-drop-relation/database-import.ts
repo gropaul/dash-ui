@@ -1,11 +1,8 @@
 import {toast} from "sonner";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useDataSourcesState} from "@/state/data-sources.state";
-import {RelationZustand, useRelationsState} from "@/state/relations.state";
 import {getImportQuery} from "@/state/connections/duckdb-wasm/utils";
 import {FileUploadState} from "./file-drop-overlay";
-import {DatabaseConnection} from "@/model/database-connection";
-import {GetDatabaseState} from "@/state/data-source/duckdb-helper";
 
 /**
  * Handles the import of a database file
@@ -60,20 +57,8 @@ export const handleDatabaseImport = async (
             const refreshConnection = useDataSourcesState.getState().refreshConnection;
             await refreshConnection(connection.id);
 
-            const databaseState = GetDatabaseState(connection.id, databaseName);
-            useRelationsState.getState().addEntity('databases', databaseState, []);
-
-            const dashState = await getDashStateIfExits(connection, databaseName);
-            if (dashState) {
-                setFileUploadState({
-                    state: 'database_found_dash_state',
-                    message: 'Found Dashboards in imported Database',
-                    dashState: dashState
-                });
-            } else {
-                setFileUploadState({state: 'done', message: 'Database imported successfully!'});
-                toast.success('Database imported successfully!');
-            }
+            setFileUploadState({state: 'done', message: 'Database imported successfully!'});
+            toast.success('Database imported successfully!');
         }
     } catch (err: any) {
         console.error('Database import failed', err);
@@ -81,37 +66,3 @@ export const handleDatabaseImport = async (
         toast.error('Failed to import database');
     }
 };
-
-
-export async function getDashStateIfExits(
-    connection: DatabaseConnection,
-    database_name: string,
-): Promise<RelationZustand | undefined> {
-    // get the schema now with the new database, look for schema dash and table relationState
-    const query = ` SELECT table_catalog, table_schema, table_name
-                    FROM information_schema.tables
-                    WHERE table_catalog = '${database_name}'
-                      AND table_schema = 'dash'
-                      AND table_name = 'relationState'`
-    const tables = await connection.executeQuery(query, false);
-
-    if (tables.rows.length > 0) {
-        const table = tables.rows[0];
-        const tableCatalog = table[0] as string;
-        const tableSchema = table[1] as string;
-        const tableName = table[2] as string;
-
-        // get the relationState
-        const relationState = await connection.executeQuery(`SELECT id, value, version
-                                                             FROM ${tableCatalog}.${tableSchema}.${tableName}`, false);
-        const json_value_string = relationState.rows[0][1] as string;
-
-        const json_value = JSON.parse(json_value_string);
-        // this is a relationState json
-        return json_value.state as RelationZustand;
-    }
-
-    // if no relationState table is found, return undefined
-    return undefined;
-
-}

@@ -1,89 +1,17 @@
 import {duckDBTypeToValueType} from "@/model/value-type";
 import {RelationData, RelationSource} from "@/model/relation";
-import {useRelationsState} from "@/state/relations.state";
-import {DataSource, DataSourceConnection, DataSourceElement, DataSourceGroup} from "@/model/data-source-connection";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
-import {findNodeInTrees} from "@/components/basics/files/tree-utils";
+import {DataSource, DataSourceElement, DataSourceGroup} from "@/model/data-source-connection";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {removeSemicolon} from "@/platform/sql-utils";
-import {useDataSourcesState} from "@/state/data-sources.state";
-import {DatabaseState, getDatabaseId} from "@/model/database-state";
-import {getSchemaId, SchemaState} from "@/model/schema-state";
 import {dashInternalObjectsFilter} from "@/platform/global-data";
 import {isDebugMode} from "@/components/settings/about-content";
 
 
-export function GetDatabaseState(connectionId: string, databaseId: string): DatabaseState {
-    const sourceConnection = useDataSourcesState.getState().getSourceConnection(connectionId);
-    const databaseSource = sourceConnection?.dataSources[databaseId]!;
-    const databaseTabId = getDatabaseId(connectionId, databaseId); // Generate the database ID
-
-    if (!databaseSource) {
-        throw new Error(`Database ${databaseId} not found`);
-    }
-    return {
-        ...databaseSource as any,
-        id: databaseTabId,
-        databaseId: databaseId,
-        connectionId,
-    };
-}
-
-export function GetSchemaState(
-        connectionId: string,
-        databaseId: string,
-        schema: DataSourceGroup
-): SchemaState {
-    const schemaId = getSchemaId(connectionId, databaseId, schema); // Generate the schema ID
-
-    return {
-        ...schema,
-        connectionId,
-        databaseId: databaseId,
-        schemaId: schema.id,
-        id: schemaId,
-    };
-}
-
-export async function onDuckDBDataSourceClick(
-    connection: DataSourceConnection,
-    id_path: string[],
-    dataSources: { [key: string]: DataSource },
-) {
-
-    // if path has one element, it’s a database
-    if (id_path.length === 1) {
-        const database = findNodeInTrees(Object.values(dataSources), id_path);
-        if (database) {
-            const state = GetDatabaseState(connection.id, database.id);
-            return useRelationsState.getState().addEntity('databases', state, [])
-        }
-    }
-
-    // if the path has two elements, it’s a schema
-    else if (id_path.length === 2) {
-        const schema = findNodeInTrees(Object.values(dataSources), id_path)  as DataSourceGroup;
-        if (schema) {
-            const state = GetSchemaState(connection.id, id_path[0], schema);
-            return useRelationsState.getState().addEntity('schemas', state, []);
-        }
-    }
-
-
-    // if path has tree elements, it’s a table
-    else if (id_path.length === 3) {
-
-        const showRelation = useRelationsState.getState().showRelationFromSource;
-
-        const [databaseName, schemaName, relationName] = id_path;
-        const source: RelationSource = {
-            type: 'table',
-            database: databaseName,
-            schema: schemaName,
-            tableName: relationName,
-        };
-        await showRelation(connection.id, source, DEFAULT_RELATION_VIEW_PATH);
-    }
+/** A table of the tree, three levels down: database, schema, table. Databases and schemas open nothing. */
+export async function onDuckDBDataSourceClick(id_path: string[]): Promise<RelationSource | undefined> {
+    if (id_path.length !== 3) return;
+    const [database, schema, tableName] = id_path;
+    return {type: 'table', database, schema, tableName};
 }
 
 export async function attachDatabase(path: string, executeQuery: (query: string) => Promise<RelationData>) {

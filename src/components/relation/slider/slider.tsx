@@ -7,6 +7,7 @@ import {isRangeMode} from "@/model/relation-view-state/slider"
 import {ViewManager} from "@/model/relation-state/relation-view"
 import {getRelationActions} from "@/state/relations/actions/end-user-actions"
 import {SliderQueryState} from "@/model/relation-state/relation-view-slider"
+import {cn} from "@/lib/utils"
 
 export function Slider(props: RelationViewContentProps) {
     return <SliderContent {...props}/>;
@@ -56,7 +57,12 @@ function SliderContent(props: RelationViewContentProps) {
     }
 
     return (
-        <div className="pt-0.5 pb-0.5 px-2 flex flex-row w-full gap-2 items-center justify-start">
+        // A bare view has no card behind it, so the slider brings the card's surface and corners itself,
+        // and fills its box so it lines up with a card beside it.
+        <div className={cn(
+            "flex flex-row w-full gap-2 items-center justify-start",
+            props.bare ? "h-full rounded-2xl border bg-card px-3" : "pt-0.5 pb-0.5 px-2",
+        )}>
             <span className="text-xs text-muted-foreground shrink-0">{min}</span>
             <SliderUI
                 mode={mode}

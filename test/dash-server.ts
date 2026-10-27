@@ -85,7 +85,11 @@ export async function startDashServer(homeDir: string): Promise<DashServer> {
 
   // stdio 'pipe' on stdin keeps the CLI in its read loop; on EOF it exits and takes the
   // server thread with it.
+  // The server's working directory is Dash's one project there.
+  const projectDir = path.join(homeDir, 'project');
+  fs.mkdirSync(projectDir);
   const child: ChildProcess = spawn(E2E_DUCKDB_BIN!, ['-unsigned', '-init', initSql], {
+    cwd: projectDir,
     env: { ...process.env, HOME: homeDir },
     stdio: ['pipe', 'pipe', 'pipe'],
   });

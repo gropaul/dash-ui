@@ -9,9 +9,8 @@ import {
 } from "@/components/canvas/logic/models";
 import {NodeTemplate, Position} from "@/components/canvas/flow";
 import {FreeDrawNodeData} from "@/components/canvas/nodes/free-draw-node";
-import {DEFAULT_TEXT_NODE_DATA} from "@/components/canvas/nodes/text-node";
-import {RelationActions} from "@/state/relations/actions/static-actions";
-import {addRelationForCanvas} from "@/components/canvas/logic/canvas-relations";
+import {DEFAULT_LINK_NODE_DATA, DEFAULT_TEXT_NODE_DATA} from "@/components/canvas/nodes/node-data";
+import {blockBody, freeBlockName, RelationNodeData} from "@/components/canvas/logic/canvas-file";
 
 export interface PointerHandlerContext {
     canvasId: string;
@@ -253,7 +252,7 @@ export function handlePointerUp(
     };
 
     // if there is no drag, the node size is already canvas size
-    let copy = {...nodeCreationState.nodeAdded};
+    const copy = {...nodeCreationState.nodeAdded};
     if (useDragSize) {
         copy['size'] = flowNodeSize;
     }
@@ -266,19 +265,16 @@ export function handlePointerUp(
     });
 }
 
-function getDefaultNodeData(type: string, canvasId: string): Record<string, unknown> {
+function getDefaultNodeData(type: string, nodes: Node[]): Record<string, unknown> {
     switch (type) {
         case 'textNode':
             return {...DEFAULT_TEXT_NODE_DATA};
-        case 'relationNode': {
-            const relation = RelationActions.create({showCode: true, viewType: 'table'});
-            addRelationForCanvas(canvasId, relation);
-            return {relationId: relation.id};
-        }
+        case 'linkNode':
+            return {...DEFAULT_LINK_NODE_DATA};
+        case 'relationNode':
         case 'chartNode': {
-            const relation = RelationActions.create({showCode: true, viewType: 'chart'});
-            addRelationForCanvas(canvasId, relation);
-            return {relationId: relation.id};
+            const view = type === 'chartNode' ? 'bar' : 'table';
+            return {body: blockBody(freeBlockName(nodes), {view}, ''), showCode: true} satisfies RelationNodeData;
         }
         default:
             return {};
@@ -293,7 +289,7 @@ function createNode(ctx: PointerHandlerContext, template: NodeTemplate, position
         width: template.size.width,
         height: template.size.height,
         selected: true,
-        data: getDefaultNodeData(template.type, ctx.canvasId),
+        data: getDefaultNodeData(template.type, ctx.nodes),
     };
     // deselect all other nodes
     ctx.setNodes((nds) =>

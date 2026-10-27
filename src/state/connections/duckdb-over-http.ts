@@ -124,6 +124,24 @@ export class DuckDBOverHttp implements DatabaseConnection {
         }
     }
 
+    /** The server's file endpoints (`/api/write-file`, `/api/move-file`, …); paths are relative to its working directory. */
+    async fileRequest(endpoint: 'write-file' | 'move-file' | 'remove-file' | 'make-directory', body: Record<string, unknown>): Promise<void> {
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+        };
+        if (this.config.useToken) {
+            headers['X-API-Key'] = this.config.token!;
+        }
+        const response = await fetch(`${this.config.url}/api/${endpoint}`, {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers,
+        });
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+    }
+
     private async post(query: string): Promise<RelationData> {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json'

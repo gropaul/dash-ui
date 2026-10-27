@@ -1,52 +1,50 @@
 import type {ReactNode} from "react";
 import {createJSONStorage, persist} from "zustand/middleware";
 import {createWithEqualityFn} from "zustand/traditional";
-import {ForceOpenReason} from "@/components/settings/settings-dialog";
-import {EntityBase} from "@/state/entities/entity-base";
+import type {ForceOpenReason} from "@/components/settings/settings-tabs";
+import type {WorkspaceNodeKind} from "@/state/workspace/workspace-tree";
+import type {PageEditorMode} from "@/components/page-editor/page-editor";
 
-export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation' | 'get-started'
+export type SettingsTab = 'about' | 'connection' | 'sharing' | 'agents' | 'documentation' | 'get-started'
 
-// --- Global command palette (entity picker) --------------------------------
-// A single palette, opened from anywhere (AppBar search, ⌘K, double-Shift, or the
-// "Add to …" actions). The caller supplies the action label, an optional type
-// filter, and a callback; the palette just returns the chosen entity — the caller
-// performs the actual work (navigate, add-to-canvas, …).
+// --- Global command palette (file picker) ----------------------------------
+// A single palette, opened from anywhere (AppBar search, ⌘K, double-Shift, or a page's
+// "Existing query…"). The caller supplies the action label, an optional kind filter and a
+// callback; the palette just returns the chosen file, the caller does the work.
 
-export type CommandActionType = 'open' | 'add-relation-to-dashboard' | 'add-relation-to-canvas' | 'move';
+export type CommandActionType = 'open' | 'add-query-to-page' | 'move';
 
-/** Entity kinds the palette can list (mirrors the folder-view element kinds). */
-export type CommandEntityType = 'folder' | 'relations' | 'dashboards' | 'canvas';
+/** The kinds of workspace entries the palette can list. */
+export type CommandEntityType = Extract<WorkspaceNodeKind, 'folder' | 'page' | 'query' | 'canvas'>;
 
-/** A pinned row shown above the results (e.g. the "Workspace" root target in move mode). */
-export interface CommandRootOption {
-    label: string;
-    onSelect: () => void;
+/** A file or folder the palette hands back. */
+export interface CommandFile {
+    path: string;
+    name: string;
+    kind: CommandEntityType;
 }
 
 export interface CommandRequest {
     action: CommandActionType;
-    // which entity kinds to show; undefined = all kinds
+    // which kinds to show; undefined = all kinds
     filter?: CommandEntityType[];
-    // entity ids to hide from the list (e.g. a move can't target itself or its own subtree)
-    excludeIds?: string[];
-    // show each row's full breadcrumb path (used by move, where identical folder names collide)
-    showPaths?: boolean;
-    // optional pinned row rendered above the results
-    rootOption?: CommandRootOption;
     // optional element rendered between the search field and the filter tags (e.g. quick-add buttons)
     slot?: ReactNode;
-    onSelect: (entity: EntityBase) => void;
+    /** Lists the top level of the workspace (path '') first, as a folder to pick. */
+    includeTopLevel?: boolean;
+    /** Entries to leave out. */
+    exclude?: (file: CommandFile) => boolean;
+    onSelect: (file: CommandFile) => void;
 }
 
 export interface CommandGUIZustand {
     isOpen: boolean;
     action: CommandActionType;
     filter?: CommandEntityType[];
-    excludeIds?: string[];
-    showPaths?: boolean;
-    rootOption?: CommandRootOption;
     slot?: ReactNode;
-    onSelect?: (entity: EntityBase) => void;
+    includeTopLevel?: boolean;
+    exclude?: (file: CommandFile) => boolean;
+    onSelect?: (file: CommandFile) => void;
 }
 
 const INITIAL_COMMAND_STATE: CommandGUIZustand = {
@@ -75,16 +73,39 @@ export interface GUIZustand {
     settings: SettingsGUIZustand;
     // Split ratio (0-1) between a relation view and its config panel. Shared across all relation views.
     sidebarSplitRatio: number;
+    // Width in pixels of the expanded navigation sidebar.
+    sidebarWidth: number;
     // When true, views stretch to full width (no max-width) with a uniform gutter.
     fullWidth: boolean;
+    // Whether code editors wrap long lines.
+    editorWordWrap: boolean;
+    // Whether pages open in the editor alone or next to their markdown; view mode is in the URL instead.
+    pageEditorMode: Exclude<PageEditorMode, 'view'>;
+    // Width (0-1) of the markdown next to the page editor.
+    pageMarkdownRatio: number;
+    // Whether the right-hand agent chat panel is open.
+    agentPanelOpen: boolean;
+    // Whether agent chat is offered at all (Settings › Agents).
+    agentsEnabled: boolean;
+    // The agent the chat starts with, when it is installed.
+    preferredAgentId: string | undefined;
     // Global command palette / entity picker (not persisted — see partialize).
     command: CommandGUIZustand;
+    // The folders open in the sidebar's workspace tree, per project id.
+    workspaceTreeOpen: Record<string, string[]>;
 }
 
 export interface GUIZustandActions {
     setSidebarExpanded: (expanded: boolean) => void;
     setConfigSplitRatio: (ratio: number) => void;
+    setSidebarWidth: (width: number) => void;
     setFullWidth: (fullWidth: boolean) => void;
+    setEditorWordWrap: (wrap: boolean) => void;
+    setPageEditorMode: (mode: Exclude<PageEditorMode, 'view'>) => void;
+    setPageMarkdownRatio: (ratio: number) => void;
+    setAgentPanelOpen: (open: boolean) => void;
+    setAgentsEnabled: (enabled: boolean) => void;
+    setPreferredAgentId: (agentId: string) => void;
 
     relationFileDropEnabled: boolean;
     setRelationFileDropEnabled: (enabled: boolean) => void;
@@ -97,6 +118,8 @@ export interface GUIZustandActions {
 
     openCommand: (request: CommandRequest) => void;
     closeCommand: () => void;
+
+    setWorkspaceFolderOpen: (projectId: string, folderId: string, open: boolean) => void;
 }
 
 type GUIZustandCombined = GUIZustand & GUIZustandActions;
@@ -110,8 +133,16 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
             relationFileDropEnabled: true,
             settings: INITIAL_SETTINGS_STATE,
             sidebarSplitRatio: 0.3,
+            sidebarWidth: 240,
             fullWidth: true,
+            editorWordWrap: false,
+            pageEditorMode: 'edit',
+            pageMarkdownRatio: 0.4,
+            agentPanelOpen: false,
+            agentsEnabled: true,
+            preferredAgentId: undefined,
             command: INITIAL_COMMAND_STATE,
+            workspaceTreeOpen: {},
 
             setRelationFileDropEnabled: (enabled: boolean) => {
                 set({relationFileDropEnabled: enabled});
@@ -165,8 +196,36 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                 set({sidebarSplitRatio: ratio});
             },
 
+            setSidebarWidth: (width: number) => {
+                set({sidebarWidth: width});
+            },
+
             setFullWidth: (fullWidth: boolean) => {
                 set({fullWidth});
+            },
+
+            setEditorWordWrap: (wrap: boolean) => {
+                set({editorWordWrap: wrap});
+            },
+
+            setPageEditorMode: (mode) => {
+                set({pageEditorMode: mode});
+            },
+
+            setPageMarkdownRatio: (ratio) => {
+                set({pageMarkdownRatio: ratio});
+            },
+
+            setAgentPanelOpen: (open: boolean) => {
+                set({agentPanelOpen: open});
+            },
+
+            setAgentsEnabled: (enabled: boolean) => {
+                set({agentsEnabled: enabled});
+            },
+
+            setPreferredAgentId: (agentId: string) => {
+                set({preferredAgentId: agentId});
             },
 
             openCommand: (request: CommandRequest) => {
@@ -175,16 +234,21 @@ export const useGUIState = createWithEqualityFn<GUIZustandCombined>()(
                         isOpen: true,
                         action: request.action,
                         filter: request.filter,
-                        excludeIds: request.excludeIds,
-                        showPaths: request.showPaths,
-                        rootOption: request.rootOption,
                         slot: request.slot,
+                        includeTopLevel: request.includeTopLevel,
+                        exclude: request.exclude,
                         onSelect: request.onSelect,
                     }
                 });
             },
             closeCommand: () => {
                 set((state) => ({command: {...state.command, isOpen: false}}));
+            },
+            setWorkspaceFolderOpen: (projectId: string, folderId: string, open: boolean) => {
+                const ids = get().workspaceTreeOpen[projectId] ?? [];
+                if (ids.includes(folderId) === open) return;
+                const next = open ? [...ids, folderId] : ids.filter(id => id !== folderId);
+                set((state) => ({workspaceTreeOpen: {...state.workspaceTreeOpen, [projectId]: next}}));
             },
         }),
         {

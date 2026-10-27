@@ -2,10 +2,8 @@
 
 import type {StorageDestination} from "@/model/database-connection";
 
-export const DASH_STORAGE_VERSION = 1 // increment this if there are breaking changes to the storage format
 export const LOADING_TIMER_OFFSET_MS = 150; // how long the query needs to run before showing the loading spinner [ms]
 
-export const STORAGE_THROTTLE_TIME_MS = 1_000; // how long to wait before saving the state again [ms]
 
 export const ENABLE_AUTOLOAD_IN_DEBUG = false
 export const DASH_DOMAIN = 'app.dash.builders'
@@ -19,28 +17,23 @@ export const PARAMETERS_SUPPORTED = false
 export const DASH_CATALOG_STATE = 'dash' // the project database: user tables in main, app state in the DASH_INTERNAL_SCHEMAS
 export const DASH_CATALOG_CACHE = 'dash_cache' // per-project cache database, never shared
 export const DASH_CATALOG_TEMP = 'dash_temp'
-export const DASH_CATALOG_PROJECTS = 'dash_projects' // catalog alias for the GLOBAL (per-connection) meta database: the projects registry
 
 export const DASH_INTERNAL_CATALOGS = [
     DASH_CATALOG_STATE,
     DASH_CATALOG_CACHE,
-    DASH_CATALOG_PROJECTS,
     DASH_CATALOG_TEMP,
 ]
 
-export const DASH_PROJECTS_DATABASE_NAME = 'projects.duckdb'
-export const DASH_PROJECTS_TABLE_NAME = 'projects'
-
-// Id of the always-present seeded project (WASM has no folder to derive a name from). Kept here so
-// the storage seam can special-case it without importing the projects state (avoids an import cycle).
-export const DEFAULT_PROJECT_ID = 'default';
+/** At a project folder's root: its id and name. Hidden from the file tree. See dev/folder-projects.md. */
+export const PROJECT_CONFIG_FILE = 'dash.yaml';
+/** At a project folder's root: the data sources (ATTACH, CREATE SECRET, …), replayed on open. Not a query. */
+export const SOURCES_FILE = 'sources.sql';
 
 export const DASH_REFS_SCHEMA = 'refs';
-export const DASH_META_SCHEMA = 'dash_meta';
 export const DASH_STATE_SCHEMA = 'dash_state';
 
 // schemas of the project catalog that are not user tables
-export const DASH_INTERNAL_SCHEMAS = [DASH_META_SCHEMA, DASH_STATE_SCHEMA, DASH_REFS_SCHEMA];
+export const DASH_INTERNAL_SCHEMAS = [DASH_STATE_SCHEMA, DASH_REFS_SCHEMA];
 
 // SQL predicate that drops dash's own objects from a catalog listing: the cache database and the
 // internal schemas of the project database. `catalogCol` / `schemaCol` name the columns to test.
@@ -103,8 +96,6 @@ export const DEFAULT_LLM_SETTINGS: LLMSettings = {
 
 export const N_RELATIONS_DATA_TO_LOAD = 30;
 
-export const DEFAULT_RELATION_VIEW_PATH =[]
-
 export const DASH_CACHE_TABLE_PREFIX = 'dash-cache-';
 
 export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
@@ -116,6 +107,8 @@ export const DEFAULT_STATE_STORAGE_DESTINATION: StorageDestination = {
 export const ERROR_MESSAGE_QUERY_ABORTED = 'Query aborted by user';
 
 export const TABLE_FOOTER_SMALL_WIDTH_THRESHOLD = 512;
+// Results with fewer rows show without the paging footer.
+export const TABLE_FOOTER_MIN_ROWS = 30;
 
 // Container-query widths (px) at which ViewPadding steps up its horizontal gutter: tight below
 // MEDIUM, medium between MEDIUM and WIDE, wide at/above WIDE. Registered as the `view-medium` /

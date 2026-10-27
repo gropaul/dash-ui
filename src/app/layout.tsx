@@ -1,6 +1,7 @@
 'use client';
 
 import "../styles/globals.css";
+import "../styles/app-font.css";
 import SettingsProvider from "@/components/provider/settings-provider";
 import {ThemeProvider} from "@/components/provider/theme-provider";
 import {cn} from "@/lib/utils";

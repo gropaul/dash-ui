@@ -1,14 +1,16 @@
 'use client';
 
 import React from "react";
-import {Database, Folder, LayoutGrid, LucideIcon, PanelLeftClose, PanelLeftOpen, Plug} from "lucide-react";
+import {Database, LucideIcon, PanelLeftClose, PanelLeftOpen, Plug} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {cn} from "@/lib/utils";
 import {useGUIState} from "@/state/gui.state";
 import {DashLocation, DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {useDashLocation} from "@/state/routing/use-dash-location";
+import {WorkspaceTree} from "@/components/layout/workspace-tree";
 import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-section";
+import {Avatar, AvatarImage} from "@/components/ui/avatar";
 
 /**
  * The single left navigation sidebar. Routing-driven (each item is a real link), grouped by
@@ -20,7 +22,12 @@ import {RecentlyAccessedSection} from "@/components/layout/recently-accessed-sec
  * state persisted in gui.state; the active item is derived purely from the URL.
  */
 
-type NavKey = 'workspace' | 'connections' | 'catalog' | 'projects';
+type NavKey = 'connections' | 'catalog';
+
+// Limits for dragging the expanded sidebar's width; collapsed it is a fixed icon rail.
+const MIN_WIDTH = 180;
+const MAX_WIDTH = 480;
+const COLLAPSED_WIDTH = 64;
 
 interface NavItem {
     key: NavKey;
@@ -29,27 +36,27 @@ interface NavItem {
     location: DashLocation;
 }
 
-function activeKeyForLocation(location: DashLocation): NavKey {
-    if (location.basePath === 'projects') return 'projects';
+// The workspace has no entry: the project's name in the app bar opens it, and the file tree browses it. The
+// projects list is in the project switcher.
+function activeKeyForLocation(location: DashLocation): NavKey | undefined {
+    if (location.basePath === 'projects') return;
     if (location.section === 'connections') return 'connections';
     if (location.section === 'data') return 'catalog';
-    return 'workspace';
 }
 
 export function NavigationSidebar() {
     const expanded = useGUIState((s) => s.sidebarExpanded);
     const setExpanded = useGUIState((s) => s.setSidebarExpanded);
+    const savedWidth = useGUIState((s) => s.sidebarWidth);
+    // The width while a drag is under way; saved once the drag ends.
+    const [dragWidth, setDragWidth] = React.useState<number | undefined>();
     const location = useDashLocation();
 
     // Per-project hrefs depend on the current project, so this is built per render (not a module
     // const). CurrentProject* read the current project id from the store at call time.
     const projectItems: NavItem[] = [
-        {key: 'workspace', label: 'Workspace', icon: Folder, location: DashLocations.CurrentProjectRoot()},
         {key: 'connections', label: 'Connections', icon: Plug, location: DashLocations.CurrentProjectConnections()},
-        {key: 'catalog', label: 'Catalog', icon: Database, location: DashLocations.CurrentProjectData()},
-    ];
-    const generalItems: NavItem[] = [
-        {key: 'projects', label: 'All projects', icon: LayoutGrid, location: DashLocations.ProjectsList()},
+        {key: 'catalog', label: 'Data', icon: Database, location: DashLocations.CurrentProjectData()},
     ];
     const activeKey = activeKeyForLocation(location);
 
@@ -70,25 +77,18 @@ export function NavigationSidebar() {
         <TooltipProvider delayDuration={300}>
             <nav
                 className={cn(
-                    "h-full flex flex-col bg-muted-background border-r shrink-0 overflow-hidden",
-                    "transition-[width] duration-200 ease-in-out",
-                    expanded ? "w-60" : "w-16",
+                    "relative h-full flex flex-col bg-muted-background border-r shrink-0 overflow-hidden",
+                    dragWidth === undefined && "transition-[width] duration-200 ease-in-out",
                 )}
+                style={{width: expanded ? dragWidth ?? savedWidth : COLLAPSED_WIDTH}}
             >
-                {/* Nav destinations, grouped by scope. */}
-                <div className="flex flex-col gap-3 p-2 pt-5">
-                    {renderGroup("General", generalItems)}
-                    {inProject && renderGroup("Project", projectItems)}
-                </div>
-
-                {/* Middle region: extra sections when expanded, otherwise a spacer so the
-                    footer stays pinned to the bottom. Slot-based — future sections drop in here. */}
-                <div className="flex-1 min-h-0 overflow-y-auto">
-                    {expanded && <RecentlyAccessedSection/>}
-                </div>
-
-                {/* Collapse / expand toggle */}
-                <div className={cn("p-2 flex", expanded ? "justify-end" : "justify-center")}>
+                {/* Logo row, as high as the app bar so the toggle and the bottom line line up with it. Collapsed, only the toggle shows. */}
+                <div className={cn("flex h-10 shrink-0 items-center border-b", expanded ? "justify-between pl-4 pr-2" : "justify-center")}>
+                    {expanded && (
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                            <AvatarImage src="/favicon/web-app-manifest-192x192.png" alt="Dash"/>
+                        </Avatar>
+                    )}
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
@@ -104,8 +104,57 @@ export function NavigationSidebar() {
                         <TooltipContent side="right">{expanded ? "Collapse sidebar" : "Expand sidebar"}</TooltipContent>
                     </Tooltip>
                 </div>
+
+                {/* Nav destinations, grouped by scope. */}
+                <div className="flex flex-col gap-3 p-2 pt-5">
+                    {inProject && renderGroup("Project", projectItems)}
+                </div>
+
+                {/* Extra sections when expanded, scrolling together: the few recent files first, then the workspace.
+                    Slot-based — future sections drop in here. */}
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                    {expanded && <RecentlyAccessedSection/>}
+                    {expanded && location.basePath === 'project' && <WorkspaceTree projectId={location.projectId}/>}
+                </div>
+
+                {expanded && <ResizeHandle width={savedWidth} onDrag={setDragWidth}/>}
+
             </nav>
         </TooltipProvider>
+    );
+}
+
+/** The right edge of the expanded sidebar; dragging it sets the width, which is saved when the drag ends. */
+function ResizeHandle({width, onDrag}: {width: number; onDrag: (width: number | undefined) => void}) {
+    const setSidebarWidth = useGUIState((s) => s.setSidebarWidth);
+    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const handle = e.currentTarget;
+        const startX = e.clientX;
+        let last = width;
+        const onMove = (ev: PointerEvent) => {
+            last = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width + ev.clientX - startX));
+            onDrag(last);
+        };
+        // Fires on release and on a cancelled drag alike.
+        const onEnd = () => {
+            handle.removeEventListener('pointermove', onMove);
+            handle.removeEventListener('lostpointercapture', onEnd);
+            setSidebarWidth(last);
+            onDrag(undefined);
+        };
+        handle.setPointerCapture(e.pointerId);
+        handle.addEventListener('pointermove', onMove);
+        handle.addEventListener('lostpointercapture', onEnd);
+    };
+    return (
+        <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+            onPointerDown={onPointerDown}
+            className="absolute inset-y-0 right-0 w-1 cursor-col-resize transition-colors hover:bg-border active:bg-border"
+        />
     );
 }
 

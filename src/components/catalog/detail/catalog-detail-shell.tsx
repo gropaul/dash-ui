@@ -7,7 +7,7 @@ import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {defaultIconFactory} from "@/components/basics/files/icon-factories";
 import {cn} from "@/lib/utils";
-import {CatalogObject, openObjectAsRelation} from "@/components/catalog/catalog-model";
+import {CatalogObject, saveObjectAsQuery} from "@/components/catalog/catalog-model";
 
 export type DetailMode = 'embedded' | 'full';
 
@@ -104,12 +104,12 @@ function DetailActions({compact, object, onToggleExpand, onClose}: {
 
     const buttonVariant = compact ? 'ghost' : 'outline';
 
-    const openInQueryText = 'Query this table'
+    const openInQueryText = 'Save as query'
     return (
         <>
             <TooltipWrapper message={openInQueryText}>
                 <Button variant={buttonVariant} size={compact ? 'icon' : 'sm'}
-                        className={compact ? 'h-7 w-7' : 'h-8 gap-1'} onClick={() => openObjectAsRelation(object)}
+                        className={compact ? 'h-7 w-7' : 'h-8 gap-1'} onClick={() => saveObjectAsQuery(object)}
                         aria-label={openInQueryText}>
                     <ExternalLink size={14}/>{!compact && <span>{openInQueryText}</span>}
                 </Button>

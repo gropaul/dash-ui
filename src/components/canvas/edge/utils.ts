@@ -1,25 +1,25 @@
-import {Position} from '@xyflow/react';
+import {InternalNode, Position} from '@xyflow/react';
 
 const EDGE_PADDING = 2;
 
-function getNodeCenter(node: any) {
+function getNodeCenter(node: InternalNode) {
     return {
-        x: node.internals.positionAbsolute.x + node.measured.width / 2,
-        y: node.internals.positionAbsolute.y + node.measured.height / 2,
+        x: node.internals.positionAbsolute.x + (node.measured.width ?? 0) / 2,
+        y: node.internals.positionAbsolute.y + (node.measured.height ?? 0) / 2,
     };
 }
 
-function getNodeBounds(node: any) {
+function getNodeBounds(node: InternalNode) {
     return {
         x: node.internals.positionAbsolute.x,
         y: node.internals.positionAbsolute.y,
-        width: node.measured.width,
-        height: node.measured.height,
+        width: node.measured.width ?? 0,
+        height: node.measured.height ?? 0,
     };
 }
 
 // Get the intersection point of a line from center to target on the node's border
-function getNodeIntersection(node: any, targetPoint: {x: number; y: number}, snapToCenter: boolean = false) {
+function getNodeIntersection(node: InternalNode, targetPoint: {x: number; y: number}, snapToCenter: boolean = false) {
     const bounds = getNodeBounds(node);
     const center = getNodeCenter(node);
 
@@ -68,8 +68,8 @@ export interface EdgeParams {
 
 // Returns the parameters for a floating edge between two nodes
 export function getEdgeParams(
-    source: any,
-    target: any,
+    source: InternalNode,
+    target: InternalNode,
     snapToCenter: boolean = false
 ): EdgeParams {
     const sourceCenter = getNodeCenter(source);

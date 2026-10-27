@@ -1,13 +1,12 @@
 import {
-    BarChart3,
     ChartColumnBig,
     Hand,
     Highlighter,
+    Link,
     MousePointer2,
     Pencil,
     PenTool,
     Sheet,
-    Text,
     Type
 } from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
@@ -16,8 +15,8 @@ import {ReactNode} from "react";
 import {
     CanvasState,
     DEFAULT_CHART_SIZE,
+    DEFAULT_LINK_SIZE,
     DEFAULT_NODE_SIZE,
-    DEFAULT_TEXT_SIZE,
     DrawSettings,
     DrawToolVariant
 } from "@/components/canvas/logic/models";
@@ -53,6 +52,10 @@ export const nodeTypes: NodePaletteItem[] = [
     },
     {   type: 'chartNode', label: 'Chart',
         icon: <ChartColumnBig size={20} strokeWidth={1.5}/>, size: DEFAULT_CHART_SIZE,
+        selectAfterCreation: true
+    },
+    {   type: 'linkNode', label: 'Link',
+        icon: <Link size={20} strokeWidth={1.5}/>, size: DEFAULT_LINK_SIZE,
         selectAfterCreation: true
     },
 ];
@@ -146,6 +149,9 @@ function PaletteItem({selected, icon, label, onClick}: PaletteItemProps) {
         <Tooltip>
             <TooltipTrigger asChild>
                 <div
+                    role="button"
+                    aria-label={label}
+                    aria-pressed={selected}
                     className={`w-8 h-8 rounded-sm flex items-center justify-center ${selected ? 'text-white bg-blue-600' : 'text-muted-foreground hover:text-foreground'}`}
                     onClick={(event) => {
                         event.stopPropagation();

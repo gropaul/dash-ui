@@ -1,12 +1,9 @@
 import {DASH_CATALOG_STATE, DASH_REFS_SCHEMA} from "@/platform/global-data";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {onRelationEvent, RelationEvent} from "../event/relation-events";
 import {StateStorageInfoLoaded} from "@/model/database-connection";
 import {extractParameters, ParameterDefinition} from "@/model/relation-view-state/parameters";
-import {getAllRelations, RelationWithOrigin} from "@/state/relations/all-relation-utils";
-import {removeComments} from "@/platform/sql-utils";
+import {removeComments, sanitizeMacroName} from "@/platform/sql-utils";
 
-import {useDatabaseState} from "@/state/database.state";
 import {ViewManager} from "@/model/relation-state/relation-view";
 import {RelationState} from "@/model/relation-state";
 
@@ -34,18 +31,6 @@ const DUCKDB_RESERVED_KEYWORDS = new Set([
  */
 export function isReservedMacroName(sanitized: string): boolean {
     return DUCKDB_RESERVED_KEYWORDS.has(sanitized);
-}
-
-/**
- * Sanitize relation name for use as a macro name.
- * Converts "My Query!" -> "my_query" and MyQuery -> "myquery"
- */
-export function sanitizeMacroName(name: string): string {
-    return name
-        .toLowerCase()
-        .replace(/[^a-z0-9_]/g, '_')  // Replace non-alphanumeric chars with underscore
-        .replace(/_+/g, '_')           // Collapse multiple underscores
-        .replace(/^_|_$/g, '');        // Trim leading/trailing underscores
 }
 
 /**
@@ -143,53 +128,6 @@ export function extractMacroRefs(sqlRaw: string): string[] {
     return [...new Set(refs)];
 }
 
-export interface MacroReference {
-    relation: RelationWithOrigin;
-    macroName: string;
-}
-
-/**
- * Build a regex that matches a macro name followed by '(' (with optional whitespace).
- * Ensures exact match: node_a() won't match node_ab().
- */
-function macroCallRegex(macroName: string, flags: string = 'g'): RegExp {
-    return new RegExp(`\\b${escapeRegExp(macroName)}\\s*\\(`, flags);
-}
-
-function escapeRegExp(s: string): string {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Check if SQL contains an exact macro call (not a prefix match).
- */
-export function sqlContainsMacroCall(sql: string, macroName: string): boolean {
-    return macroCallRegex(macroName).test(sql);
-}
-
-/**
- * Find all relations whose SQL references the given macro name.
- * Searches across standalone relations, canvas nodes, and dashboard blocks.
- */
-export function findMacroReferences(macroName: string, excludeId: string): MacroReference[] {
-    const allRelations = getAllRelations();
-    const references: MacroReference[] = [];
-
-    for (const entry of allRelations) {
-        if (entry.relation.id === excludeId) continue;
-        const sql = entry.relation.query.baseQuery;
-        if (sql && sqlContainsMacroCall(sql, macroName)) {
-            references.push({relation: entry, macroName});
-        }
-    }
-
-    return references;
-}
-
-export async function checkMacroName(_relationName: string): Promise<string | null> {
-    return null;
-}
-
 /**
  * Register a relation as a table macro in DuckDB.
  * Uses TEMP macro if database is read-only.
@@ -221,38 +159,6 @@ export async function dropRelationMacro(relationName: string): Promise<void> {
     }
 }
 
-/**
- * Handle relation actions for macro management.
- * Note: SQL editor already debounces onCodeChange (300ms), so no extra debouncing needed here.
- */
-async function handleRelationAction(action: RelationEvent): Promise<void> {
-    switch (action.type) {
-        case 'CREATE':
-        case 'UPDATE_SQL':
-        case 'UPDATE_PARAMS':
-        case 'UPDATE_SELECTION': {
-            await registerRelationMacro(action.new!);
-            break;
-        }
-        case 'DELETE':
-            await dropRelationMacro(action.old!.viewState.displayName);
-            break;
-        case 'RENAME': {
-            await dropRelationMacro(action.old!.viewState.displayName);
-            await registerRelationMacro(action.new!);
-            break;
-        }
-    }
-    await useDatabaseState.getState().refresh(['structure']);
-}
-
-// Subscribe to relation actions
-onRelationEvent(handleRelationAction);
-
-/**
- * Re-register all existing relation macros.
- * Called when the database connection changes, since macros are not persistent across connections.
- */
 /**
  * Build a dependency map for a set of macros.
  * For each key, returns the list of other keys it depends on (references in its SQL).
@@ -306,26 +212,4 @@ export function orderMacroStatements(macros: { key: string; createSql: string }[
     const ordered = topologicalSort(macros.map(m => m.key), deps);
     const sqlByKey = new Map(macros.map(m => [m.key, m.createSql]));
     return ordered.map(key => sqlByKey.get(key)!);
-}
-
-export async function reregisterMacrosFromRelationState(): Promise<void> {
-    const entries = getAllRelations();
-
-    const macros: { key: string; createSql: string }[] = [];
-    for (const {relation} of entries) {
-        if (relation.viewState.displayName && relation.query.baseQuery) {
-            const key = sanitizeMacroName(relation.viewState.displayName);
-            const createSql = await generateCreateMacroSQLInternal(relation);
-            macros.push({key, createSql});
-        }
-    }
-
-    const orderedSqls = orderMacroStatements(macros);
-    for (const sql of orderedSqls) {
-        try {
-            await ConnectionsService.getInstance().executeQuery(sql);
-        } catch (error) {
-            console.error(`Failed to re-register relation macro: ${sql}`, error);
-        }
-    }
 }

@@ -5,16 +5,43 @@ import {
     returnEmptyErrorState,
     setRelationRunning,
 } from '@/model/relation-state';
-import {useRelationsState} from '@/state/relations.state';
-import {extractMacroRefs, sanitizeMacroName} from './table-macros';
-import {registerRelationMacro} from './table-macros';
-import {getDownstreamQueue} from './dag-execution';
+import {sanitizeMacroName} from '@/platform/sql-utils';
+import {extractMacroRefs} from './table-macros';
+
+/**
+ * All downstream relation ids in topological (BFS) order.
+ * Excludes the start node itself.
+ */
+export function getDownstreamQueue(startNodeId: string, edges: Edge[]): string[] {
+    // Build adjacency: source → [targets]
+    const adj = new Map<string, string[]>();
+    for (const edge of edges) {
+        if (!adj.has(edge.source)) adj.set(edge.source, []);
+        adj.get(edge.source)!.push(edge.target);
+    }
+
+    const visited = new Set<string>();
+    const queue: string[] = [startNodeId];
+    const order: string[] = [];
+
+    while (queue.length > 0) {
+        const id = queue.shift()!;
+        if (visited.has(id)) continue;
+        visited.add(id);
+        if (id !== startNodeId) order.push(id);
+        for (const child of adj.get(id) ?? []) {
+            queue.push(child);
+        }
+    }
+
+    return order;
+}
 
 /**
  * Build the relation dependency graph from SQL alone — no canvas required.
  *
- * Mirrors what the canvas derives into xyflow edges (ref-detection.ts): a relation that references
- * `node_<name>()` in its SQL depends on the relation whose display name sanitizes to `<name>`.
+ * Mirrors what the canvas draws as edges (`refEdges` in canvas-file.ts): a relation that references
+ * `refs.<name>()` in its SQL depends on the relation whose display name sanitizes to `<name>`.
  * Returns {source → target} edges (source is upstream, target depends on it).
  */
 function buildRelationEdges(relations: Record<string, RelationState>): Edge[] {
@@ -36,26 +63,24 @@ function buildRelationEdges(relations: Record<string, RelationState>): Edge[] {
 }
 
 /**
- * Re-run every relation downstream of `relationId`, sequentially in topological order.
- *
- * Uses the raw store `updateRelation` + `executeQueryOfRelation` directly (like the canvas'
- * refreshDownstream) so it does NOT re-dispatch relation events — no feedback loop.
+ * Re-runs every relation of `getRelations()` downstream of `relationId`, sequentially in topological order. Uses
+ * `update` and `executeQueryOfRelation` directly, so it doesn't dispatch relation events again: no feedback loop.
  */
-export async function refreshDownstreamRelations(relationId: string): Promise<void> {
-    const relations = useRelationsState.getState().relations;
-    const queue = getDownstreamQueue(relationId, buildRelationEdges(relations));
+export async function refreshDownstreamIn(
+    relationId: string,
+    getRelations: () => Record<string, RelationState>,
+    update: (relation: RelationState) => void,
+): Promise<void> {
+    const queue = getDownstreamQueue(relationId, buildRelationEdges(getRelations()));
     if (queue.length === 0) return;
 
-    const update = (r: RelationState) => useRelationsState.getState().updateRelation(r);
-
     for (const downstreamId of queue) {
-        const relation = useRelationsState.getState().relations[downstreamId];
+        const relation = getRelations()[downstreamId];
         if (!relation) continue;
         try {
             update(setRelationRunning(relation));
             const executed = await executeQueryOfRelation({...relation});
             update(executed);
-            await registerRelationMacro(relation);
         } catch (e) {
             update(returnEmptyErrorState(setRelationRunning(relation), e));
         }

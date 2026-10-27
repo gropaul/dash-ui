@@ -5,7 +5,7 @@ import {cn} from "@/lib/utils";
 
 /**
  * A single filter chip: matches items for which `predicate` is true. Generic over
- * the item type so it works for table columns, folder-view elements, etc.
+ * the item type so it works for table columns, workspace files, etc.
  */
 export interface FilterTag<T> {
     key: string;

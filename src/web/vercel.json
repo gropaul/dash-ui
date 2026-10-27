@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "cd ../.. && ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm build:web",
+  "outputDirectory": "out",
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/duckdb-dashboard",
+      "destination": "/dashboard-with-duckdb",
+      "permanent": true
+    }
+  ]
+}

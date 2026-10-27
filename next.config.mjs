@@ -53,6 +53,9 @@ const nextConfig = {
         config.output.webassemblyModuleFilename = isServer && !dev ? '..static/wasm/[name].[moduleHash].wasm' : 'static/wasm/[name].[moduleHash].wasm'
         config.experiments = {...config.experiments, asyncWebAssembly: true}
 
+        // `import text from './file.md?raw'` gives the file's text (Vitest does the same natively).
+        config.module.rules.push({resourceQuery: /raw/, type: 'asset/source'})
+
         config.module.rules.push({
             test: /.*\.wasm$/,
             type: "asset/resource",

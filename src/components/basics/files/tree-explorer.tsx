@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {TreeExplorerNode} from "@/components/basics/files/tree-explorer-node";
-import {TreeDndContext} from "@/components/basics/files/tree-dnd-context";
 
 
 export type TreeContextMenuFactory = (tree_id_path: string[], tree: TreeNode) => React.ReactNode;
@@ -25,7 +24,6 @@ export interface TreeExplorerProps {
     orderBy?: (a: TreeNode, b: TreeNode) => number;
 
     selectedIds?: string[][];
-    enableDnd?: boolean;
 }
 
 export function TreeExplorer({
@@ -39,7 +37,6 @@ export function TreeExplorer({
                                  onExpandedChange,
                                  orderBy,
                                  selectedIds,
-                                 enableDnd = true,
                              }: TreeExplorerProps) {
     // Convert tree to array if it’s a single TreeNode
     const trees = Array.isArray(tree) ? tree : [tree];
@@ -74,13 +71,7 @@ export function TreeExplorer({
     }, []);
     return (
         <div className="h-fit" ref={containerRef}>
-            <TreeDndContext
-                enabled={enableDnd}
-                tree={sortedTrees}
-                selectedIds={selectedIds}
-                iconFactory={iconFactory}
-            >
-                {sortedTrees.map((treeNode, index) => (
+            {sortedTrees.map((treeNode, index) => (
                     <TreeExplorerNode
                         orderBy={orderBy}
                         parent_id_path={[]}
@@ -93,12 +84,10 @@ export function TreeExplorer({
                         iconFactory={iconFactory}
                         contextMenuFactory={contextMenuFactory}
                         onExpandedChange={onExpandedChange}
-                        enableDnd={enableDnd}
                         selectedIds={selectedIds}
                         selectionMode={selectedIds === undefined ? "passive" : selectionMode}
                     />
                 ))}
-            </TreeDndContext>
         </div>
     )
 }

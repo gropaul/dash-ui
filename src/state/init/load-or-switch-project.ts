@@ -1,82 +1,60 @@
-import type {PersistStorage} from "zustand/middleware";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
-import {setDatabaseConnection} from "@/state/init/initialize-connections";
-import {loadRelationStateFromConnections} from "@/state/persistency/api";
-import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
 import {getInitialRelationDataZustandState, useCacheStore, useRelationDataState} from "@/state/relations-data.state";
-import {INIT, RelationZustandCombined, useRelationsState} from "@/state/relations.state";
 import {useInitState} from "@/state/init.state";
+import {ContentLifecycle} from "@/state/content-lifecycle";
+import {useWorkspace} from "@/state/workspace/workspace.state";
 import {DatabaseConnection} from "@/model/database-connection";
 import {initProjectSources, teardownProjectSources} from "@/state/sources/replay-sources";
 import {useProjectsState} from "@/state/projects.state";
+import {projectHost} from "@/state/projects/project-hosts";
+import {parseProjectConfig, projectConfigText} from "@/state/projects/project-config";
 import {
     DASH_CATALOG_CACHE,
     DASH_CATALOG_STATE,
     DASH_CATALOG_TEMP,
     DASH_INTERNAL_SCHEMAS,
-    DASH_STORAGE_VERSION,
-    getProjectCacheFileName
+    getProjectCacheFileName,
+    getProjectFileName,
+    PROJECT_CONFIG_FILE
 } from "@/platform/global-data";
-import {reregisterMacrosFromRelationState} from "@/state/relations/sql/table-macros";
-import {loadProjectMeta, saveProjectMeta} from "@/state/projects/project-meta-storage";
-import {Project, ProjectMeta} from "@/model/project";
-
-// A persist storage that drops every write. We swap the relation store onto this while clearing the
-// outgoing project's in-memory state, so `setState(INIT)` cannot write an empty blob into either
-// project's dash file. loadRelationStateFromConnections() swaps the real storage back before rehydrate.
-const DISCARD_STORAGE: PersistStorage<RelationZustandCombined> = {
-    getItem: async () => null,
-    setItem: async () => undefined,
-    removeItem: async () => undefined,
-};
+import {followQueryMacros, registerQueryMacros} from "@/state/workspace/query-macros";
+import {Project} from "@/model/project";
+import {toast} from "sonner";
 
 /**
- * Tear down the outgoing project's in-memory state so the incoming project starts clean.
- *
- * Shows the init loading splash (a non-'complete' step) and clears the in-memory relation state +
- * data. The clear must be explicit — rehydrate MERGES persisted-over-current, so if the target
- * project's stored state is empty (a fresh project) it would leave the OUTGOING project's relations
- * in memory. We detach persistence first (DISCARD_STORAGE) so clearing doesn't write the empty state
- * into the outgoing file, and cancel any pending throttled write so nothing clobbers the new file.
+ * Tear down the outgoing project's in-memory state so the incoming project starts clean: shows the init
+ * loading splash (a non-'complete' step), empties the workspace and the results.
  */
+let stopFollowing: (() => void)[] = [];
+
 function closeOldProject(): void {
+    stopFollowing.forEach(stop => stop());
+    stopFollowing = [];
     useInitState.getState().setStep('closing-current-project');
-    useRelationsState.persist.setOptions({storage: DISCARD_STORAGE});
-    useRelationsState.setState(INIT);
+    useWorkspace.getState().unload();
     useRelationDataState.setState(getInitialRelationDataZustandState());
     useCacheStore.getState().clear();
-    useProjectsState.getState().setCurrentMeta(null);
-    StorageDuckAPI.resetForProjectSwitch();
+}
+
+/** The open project's `dash.yaml`: written when the folder has none, and the name taken from it. */
+async function syncProjectConfig(project: Project): Promise<void> {
+    const text = useWorkspace.getState().files[PROJECT_CONFIG_FILE];
+    const config = parseProjectConfig(text);
+    if (config.id !== project.id || !config.name) {
+        await useWorkspace.getState().write(PROJECT_CONFIG_FILE, projectConfigText(text, project.id, config.name ?? project.name));
+    }
+    if (config.name) useProjectsState.getState().adoptProjectName(project.id, config.name);
 }
 
 /**
- * The meta row of the freshly attached project file, mirrored from the registry: the registry is the
- * local truth for name and icon, the file copy exists so they travel with a shared file. A fresh file
- * gets a row seeded from the registry entry.
- */
-async function loadOrSeedProjectMeta(project: Project): Promise<ProjectMeta> {
-    const stored = await loadProjectMeta();
-    const meta: ProjectMeta = {
-        ...(stored ?? {sourcesSql: "", createdAt: Date.now(), layoutVersion: DASH_STORAGE_VERSION}),
-        name: project.name,
-        icon: project.icon,
-    };
-    if (!stored || stored.name !== meta.name || stored.icon !== meta.icon) await saveProjectMeta(meta);
-    return meta;
-}
-
-/**
- * Point the app at `projectId`, reopen its file and cache database, replay its sources, and
- * rehydrate its workspace.
+ * Point the app at `projectId`: reopen its databases, load its folder, replay its sources.
  *
- *   1. Re-attach the project catalog (`dash`, the project file) and the cache catalog against the new
+ *   1. Re-attach the project catalog (`dash`, `<id>.dash.duckdb`) and the cache catalog against the new
  *      project's files (WASM registers the OPFS handles first) and make `dash` the default catalog, so
  *      unqualified `CREATE TABLE` lands in the project file.
- *   2. Read the file's meta row (seeding it from the registry for a fresh file), then replay its
- *      `sources.sql` (ATTACH / CREATE VIEW / secrets) so its data is back before relations run.
- *   3. Rehydrate relation state + last-used from the file. The rehydrate pipeline
- *      (onRelationStateLoadedFromConnection) drives the init step back to 'complete', hiding the splash.
+ *   2. Load the project's folder into the workspace store, then replay its `sources.sql` (ATTACH / CREATE VIEW /
+ *      secrets) so its data is back before the queries are registered.
  */
 async function loadProject(projectId: string, connection: DatabaseConnection): Promise<void> {
 
@@ -93,10 +71,10 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     await connection.executeQuery(`DETACH DATABASE IF EXISTS ${DASH_CATALOG_STATE};`, false, false);
 
     const root = await connection.getStorageRoot();
-    const projectPath = root + project.location;
+    const projectPath = root + getProjectFileName(projectId);
     const cachePath = root + getProjectCacheFileName(projectId);
 
-    console.log(`Loading project ${projectId} from ${projectPath} (cache: ${cachePath})`);
+    console.log(`Loading project ${projectId} from ${project.folder || 'the working directory'} (databases: ${projectPath}, ${cachePath})`);
 
     if (connection.type === 'duckdb-wasm') {
         const wasm = DuckdbWasmProvider.getInstance();
@@ -112,18 +90,25 @@ async function loadProject(projectId: string, connection: DatabaseConnection): P
     }
     await connection.executeQuery(`USE ${DASH_CATALOG_STATE};`, false, false);
 
-    // Replay the project's data sources before rehydrating relations that may reference them.
+    useInitState.getState().setStep('loading-project-relations');
+    const {setFileProgress} = useInitState.getState();
+    try {
+        await useWorkspace.getState().load(projectHost().backend(project), (read, total) => setFileProgress({read, total}));
+    } finally {
+        setFileProgress(null);
+    }
+    await syncProjectConfig(project);
+
+    // Replay the project's data sources before registering the queries that may read them.
     useInitState.getState().setStep('loading-project-connections');
-    useProjectsState.getState().setCurrentMeta(await loadOrSeedProjectMeta(project));
     await initProjectSources();
 
-    useInitState.getState().setStep('loading-project-relations');
-    await loadRelationStateFromConnections(connection);
-
     useInitState.getState().setStep('loading-project-macros');
-    await reregisterMacrosFromRelationState();
+    await registerQueryMacros(useWorkspace.getState().files);
+    stopFollowing = [followQueryMacros(), ContentLifecycle.followRemovedFiles()];
 
     useInitState.getState().setStep('loading-project-cached-results');
+    await ContentLifecycle.onProjectLoad(useWorkspace.getState().files);
     await useRelationDataState.getState().loadLastUsed();
 }
 
@@ -148,6 +133,7 @@ async function runLoadOrSwitchProject(projectId: string): Promise<void> {
     } catch (e) {
         // Never leave the app stuck on the loading splash if the swap fails.
         console.error("Failed to switch project:", projectId, e);
+        toast.error(`Couldn't open the project: ${e instanceof Error ? e.message : String(e)}`);
     }
     useInitState.getState().setStep('complete');
 }

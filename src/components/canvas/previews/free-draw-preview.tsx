@@ -68,7 +68,7 @@ export function FreeDrawPreview({currentStroke}: FreeDrawPreviewProps) {
         >
             <path
                 d={renderStroke(currentStroke, viewport)}
-                fill={currentStroke.color}
+                fill={currentStroke.color ?? 'currentColor'}
                 fillOpacity={currentStroke.opacity}
                 stroke="none"
             />

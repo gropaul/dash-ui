@@ -5,7 +5,8 @@ import {FreeDrawToolbar} from "./free-draw/free-draw-toolbar";
 
 export interface FreeDrawNodeData {
     points: StrokePoint[];
-    color: string;
+    /** The theme's text color when unset, so it follows dark mode. */
+    color?: string;
     strokeSize: number;
     opacity: number;
 }
@@ -90,7 +91,6 @@ export function FreeDrawNode({id, data, selected, width: nodeWidth, height: node
         >
             <FreeDrawToolbar
                 nodeId={id}
-                isVisible={selected ?? false}
                 data={nodeData}
             />
             <NodeResizer
@@ -114,7 +114,7 @@ export function FreeDrawNode({id, data, selected, width: nodeWidth, height: node
             >
                 <path
                     d={pathData}
-                    fill={color}
+                    fill={color ?? 'currentColor'}
                     fillOpacity={opacity}
                     stroke="none"
                 />

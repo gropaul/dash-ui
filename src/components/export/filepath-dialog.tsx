@@ -2,7 +2,7 @@ import React from "react";
 import {exportQueryToFile, FileFormat} from "@/state/data-source/duckdb-helper";
 import {FilepathDialogContentView} from "@/components/export/filepath-dialog-content-view";
 import {MyDialog} from "@/components/ui/my-dialog";
-import {useRelationsState} from "@/state/relations.state";
+import {useSurfaces} from "@/state/workspace/surfaces.state";
 import {toast} from "sonner";
 
 
@@ -23,7 +23,7 @@ export function FilepathDialog(props: FilepathDialogProps) {
     const {state: dialogState, setState: setDialogState} = props;
 
     async function onPathSelected(path: string) {
-        const relation = useRelationsState.getState().getRelation(dialogState.relationId);
+        const relation = useSurfaces.getState().relations[dialogState.relationId];
         if (!relation) {
             toast.error('Relation not found: ' + dialogState.relationId);
             return;

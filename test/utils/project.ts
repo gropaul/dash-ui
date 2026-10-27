@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { runQuery, setSql } from './query';
 
 /**
@@ -14,14 +14,39 @@ export interface QueryContext {
   queryUrl: string;
 }
 
-/** Create a project from the projects list and land inside its workspace. */
+/**
+ * Create a project from the projects list and land inside its workspace. A duckdb-over-http server has a
+ * single project, its working directory (`project`, see dash-server.ts), and no "New project": that one is
+ * opened and given the name.
+ */
 export async function createProject(page: Page, name: string): Promise<void> {
-  await page.getByRole('button', { name: 'New project' }).first().click();
+  if (test.info().project.metadata.target === 'http') {
+    await page.getByRole('button', { name: 'project', exact: true }).click();
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/, { timeout: 45_000 });
+    await page.getByRole('button', { name: 'Switch project' }).click();
+    await page.getByRole('menuitem', { name: 'Edit project' }).click();
+    const edit = page.getByRole('dialog', { name: 'Edit project' });
+    await edit.getByRole('textbox', { name: 'Name' }).fill(name);
+    await edit.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('button', { name: `Show the files of ${name}` })).toBeVisible();
+    return;
+  }
+  const newProject = page.getByRole('button', { name: 'New project' }).first();
+  await newProject.click();
   const dialog = page.getByRole('dialog', { name: 'New project' });
   await dialog.getByRole('textbox', { name: 'Name' }).fill(name);
   await dialog.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
-  await expect(page.getByRole('button', { name: `Open ${name}` })).toBeVisible();
+  // The URL changes once the project has loaded (its database files attached), which a cold start can take a while.
+  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/, { timeout: 45_000 });
+  await expect(page.getByRole('button', { name: `Show the files of ${name}` })).toBeVisible();
+}
+
+/**
+ * The name a query's file gets: an identifier, as the new-query dialog saves it (`Range Query` → `range_query`).
+ * The file tree shows queries by it.
+ */
+export function queryFileStem(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
 }
 
 /**
@@ -33,38 +58,84 @@ export async function createQuery(page: Page, name: string): Promise<string> {
   const dialog = page.getByRole('dialog', { name: 'New Query' });
   await dialog.getByRole('textbox', { name: 'Enter a name' }).fill(name);
   await dialog.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/[^/]+$/);
+  await expect(page).toHaveURL(new RegExp(`/workspace/${queryFileStem(name)}\\.sql$`));
   return page.url();
 }
 
-/** Go to the project's workspace root - the folder view listing every entity. */
-export async function goToWorkspaceRoot(page: Page): Promise<void> {
-  // Sidebar entries are <a> elements without href (client-side nav), so they are
-  // not exposed as links; match by text like `goToProjectsList` does.
-  await page.getByText('Workspace', { exact: true }).click();
+/** Go to the bare workspace, the welcome screen: picking the project in the app bar's switcher opens it. */
+export async function goToWorkspaceRoot(page: Page, projectName: string): Promise<void> {
+  await page.getByRole('button', { name: 'Switch project' }).click();
+  await page.getByRole('menuitem', { name: new RegExp(`${projectName}$`) }).click();
   await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
 }
 
+export type FileKind = 'Page' | 'Query' | 'Canvas' | 'Folder';
+
 /**
- * Create an entity from the workspace folder view's "New" menu. Creating opens the
- * new entity, so the returned URL is its own. Requires the workspace root (see
- * `goToWorkspaceRoot`); the fresh-project welcome screen uses `createQuery`.
+ * Create a page, query, canvas or folder from the file tree: the + menu of the "Workspace" header for the top level,
+ * or the context menu of `folder` (its name in the tree), where the kinds are listed under a "New" heading. A new
+ * file opens; returns the URL then.
  */
-export async function createEntity(page: Page, kind: 'Query' | 'Dashboard' | 'Canvas', name: string): Promise<string> {
-  await page.getByRole('button', { name: 'New', exact: true }).click();
+export async function createEntity(page: Page, kind: FileKind, name: string, folder?: string): Promise<string> {
+  if (folder) {
+    await treeItem(page, folder).click({ button: 'right' });
+  } else {
+    await fileTree(page).getByRole('button', { name: 'New', exact: true }).click();
+  }
   await page.getByRole('menuitem', { name: kind, exact: true }).click();
   const dialog = page.getByRole('dialog', { name: `New ${kind}` });
   await dialog.getByRole('textbox', { name: 'Enter a name' }).fill(name);
   await dialog.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/[^/]+$/);
+  if (kind === 'Folder') {
+    await expect(dialog).toBeHidden();
+    return page.url();
+  }
+  await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace\/.+\.(md|sql|canvas)$/);
   return page.url();
 }
 
-/** Go back to the projects list. */
+/** The sidebar's file tree. */
+export function fileTree(page: Page) {
+  return page.getByRole('tree', { name: 'Workspace' });
+}
+
+/** A file or folder in the file tree by the name it shows (a query's file name, a page's name). */
+export function treeItem(page: Page, name: string) {
+  return fileTree(page).getByRole('treeitem', { name, exact: true });
+}
+
+/** Open a folder in the file tree, if it is closed. */
+export async function expandFolder(page: Page, name: string): Promise<void> {
+  const folder = treeItem(page, name);
+  if (await folder.getAttribute('aria-expanded') !== 'true') await folder.click();
+  await expect(folder).toHaveAttribute('aria-expanded', 'true');
+}
+
+/**
+ * Move a file or folder through its context menu's "Move to…" picker; `target` is a folder path or 'Top level'.
+ * Returns once the move is in the workspace, so the next step doesn't act on a tree that is still re-rendering.
+ */
+export async function moveTo(page: Page, name: string, target: string): Promise<void> {
+  const before = await workspacePaths(page);
+  await treeItem(page, name).click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Move to…' }).click();
+  await page.getByRole('option', { name: new RegExp(`^${target.split('/').pop()}\\b`) }).first().click();
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect.poll(() => workspacePaths(page)).not.toEqual(before);
+}
+
+/** The workspace's file paths, read from the store (e2e builds only), without the project's `dash.yaml`. */
+export async function workspacePaths(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const store = (window as unknown as { __workspaceStore?: any }).__workspaceStore;
+    return Object.keys(store?.getState().files ?? {}).filter(path => path !== 'dash.yaml').sort();
+  });
+}
+
+/** Go back to the projects list, through the project switcher. */
 export async function goToProjectsList(page: Page): Promise<void> {
-  // The sidebar "All projects" entry is an <a> without href (client-side nav),
-  // so it is not exposed as a link role; match it by text.
-  await page.getByText('All projects', { exact: true }).click();
+  await page.getByRole('button', { name: 'Switch project' }).click();
+  await page.getByRole('menuitem', { name: 'All projects' }).click();
   await expect(page).toHaveURL(/\/projects$/);
 }
 
@@ -74,10 +145,10 @@ export async function openProject(page: Page, name: string): Promise<void> {
   await expect(page).toHaveURL(/\/projects\/[^/]+\/workspace$/);
 }
 
-/** Open a query by name from the project workspace overview. */
+/** Open a query by the name it was created with, from the file tree. */
 export async function openQuery(page: Page, name: string): Promise<void> {
-  await page.getByRole('link', { name }).click();
-  await expect(page).toHaveURL(/\/workspace\/[^/]+$/);
+  await treeItem(page, queryFileStem(name)).click();
+  await expect(page).toHaveURL(new RegExp(`/workspace/(.+/)?${queryFileStem(name)}\\.sql$`));
 }
 
 /**

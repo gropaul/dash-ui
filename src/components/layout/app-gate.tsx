@@ -3,21 +3,13 @@
 import React, {useEffect, useState} from "react";
 import {FileDropRelation} from "@/components/import/file-drop-relation";
 import {AppShell} from "@/components/layout/app-shell";
-import {RenameDialog} from "@/components/workbench/rename-dialog";
 import {GlobalCommand} from "@/components/workbench/global-command";
-import {RelationDeleteDialog} from "@/components/workbench/relation-delete-dialog";
-import {StorageDuckAPI} from "@/state/persistency/duckdb-storage";
-import {AlertDialog} from "@radix-ui/react-alert-dialog";
-import {
-    AlertDialogAction,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import {NameDialog} from "@/components/workspace/name-dialog";
+import {DeleteFileDialog} from "@/components/workspace/delete-file-dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {useInitState} from "@/state/init.state";
+import {DownloadProgress, useInitState} from "@/state/init.state";
+import {Progress} from "@/components/ui/progress";
+import {serveDashMcp} from "@/state/agent/dash-mcp";
 
 /**
  * Hosts the one-time init gate + global dialogs, ABOVE the router so they are
@@ -25,20 +17,18 @@ import {useInitState} from "@/state/init.state";
  * `children`, rendered inside the shell once initialization completes.
  */
 export function AppGate({children}: { children: React.ReactNode }) {
-    const [showForceReloadDialog, setShowForceReloadDialog] = useState(false);
     const [mounted, setMounted] = useState(false);
     const initComplete = useInitState((state) => state.initializationComplete());
     const label = useInitState((state) => state.getCurrentStepLabel());
+    const downloadProgress = useInitState((state) => state.downloadProgress);
+    const fileProgress = useInitState((state) => state.fileProgress);
 
     useEffect(() => {
         setMounted(true);
+        // Starts initialization (see init.state.ts).
+        void useInitState.persist.rehydrate();
+        return serveDashMcp();
     }, []);
-
-    useEffect(() => {
-        StorageDuckAPI.getInstance().then((duckdb) => {
-            duckdb.setOnForceReloadCallback(() => setShowForceReloadDialog(true));
-        });
-    });
 
     if (!initComplete) {
         return (
@@ -50,6 +40,12 @@ export function AppGate({children}: { children: React.ReactNode }) {
                     </Avatar>
                     <div className="text-muted-foreground">Loading...</div>
                     <div className="text-muted-foreground">{mounted ? label : " "}</div>
+                    {fileProgress && (
+                        <div className="flex w-48 flex-col items-center space-y-1 text-xs text-muted-foreground">
+                            <Progress value={fileProgress.read / fileProgress.total * 100}/>
+                            <div>{fileProgress.read} / {fileProgress.total} files</div>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -60,23 +56,21 @@ export function AppGate({children}: { children: React.ReactNode }) {
             <FileDropRelation className="h-[100dvh] w-full flex flex-col">
                 <AppShell>{children}</AppShell>
             </FileDropRelation>
-            <AlertDialog open={showForceReloadDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Changes detected!</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Another User or Tab has made changes. To ensure you have the latest data, please reload the
-                            page. Otherwise, your changes may be lost.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogAction onClick={() => window.location.reload()}>Reload</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-            <RenameDialog/>
             <GlobalCommand/>
-            <RelationDeleteDialog/>
+            <NameDialog/>
+            <DeleteFileDialog/>
         </>
+    );
+}
+
+function DownloadProgressView({progress}: { progress: DownloadProgress }) {
+    const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
+    const {bytesLoaded, bytesTotal} = progress;
+    const known = bytesTotal > 0 && bytesLoaded <= bytesTotal;
+    return (
+        <div className="flex w-48 flex-col items-center space-y-1 text-xs text-muted-foreground">
+            {known && <Progress value={bytesLoaded / bytesTotal * 100}/>}
+            <div>{known ? `${mb(bytesLoaded)} / ${mb(bytesTotal)} MB` : `${mb(bytesLoaded)} MB`}</div>
+        </div>
     );
 }

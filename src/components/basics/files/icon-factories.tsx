@@ -7,7 +7,7 @@ import {
     File,
     Folder,
     Hash,
-    LayoutDashboard,
+    FileText,
     LoaderCircle,
     Map,
     Network, Settings2,
@@ -109,7 +109,7 @@ export const defaultIconFactory = (type: string): ReactNode => {
             return <Database size={iconSize} />
         case 'dashboard':
         case 'dashboards':
-            return <LayoutDashboard size={iconSize} />
+            return <FileText size={iconSize} />
         case 'canvas':
             return <WorkflowIcon size={iconSize} />
         case 'schema':

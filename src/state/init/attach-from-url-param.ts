@@ -1,8 +1,6 @@
 import {decompressString} from "@/lib/string-compression";
 import {getImportQuery} from "@/state/connections/duckdb-wasm/utils";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {getDashStateIfExits} from "@/components/import/file-drop-relation/database-import";
-import {useRelationsState} from "@/state/relations.state";
 import {toast} from "sonner";
 import {useProjectsState} from "@/state/projects.state";
 
@@ -15,7 +13,6 @@ export async function maybeAttachDatabaseFromUrlParam(): Promise<void> {
         const attach = urlParams.get('attach');
         if (attach && ConnectionsService.getInstance().hasDatabaseConnection()) {
             const decodedDatabaseUrl = decompressString(attach);
-            const connection = ConnectionsService.getInstance().getDatabaseConnection();
 
             const fileName = decodedDatabaseUrl.split('/').pop() || 'database.duckdb';
             // remove the file extension from the file name (database.duckdb -> database)
@@ -25,12 +22,6 @@ export async function maybeAttachDatabaseFromUrlParam(): Promise<void> {
 
             // copy cached relations from the attached database to the current relations state
             await copyCacheFromAttachedDB(fileNameWithoutExtension);
-
-            const dashState = await getDashStateIfExits(connection, fileNameWithoutExtension);
-            if (dashState) {
-                useRelationsState.getState().mergeState(dashState, true);
-            }
-
 
             toast.success(`Database ${fileName} attached successfully.`);
         }

@@ -4,12 +4,14 @@ import {RelationState} from "@/model/relation-state";
 import {JsonViewer} from "@/components/ui/json-viewer";
 import {RelationStateView} from "@/components/relation/relation-state-view";
 import {TriangleAlert} from "lucide-react";
-import {DefaultRelationZustandActions} from "@/state/relations.state";
 import {RelationContextProvider} from "@/components/relation/chart/chart-export-context";
 import {EditorPanelPosition} from "@/components/basics/sql-editor/sql-editor";
 import {EndUserRelationActions} from "@/state/relations/actions/end-user-actions";
+import {RelationUpdate} from "@/state/relations/actions/advanced-actions";
 import {RelationViewMode} from "@/model/relation-view-state";
 import {DefaultErrorBoundary} from "@/components/basics/error-bundary";
+import {CopyButton} from "@/components/basics/input/copy-button";
+import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {ViewPadding} from "@/components/ui/view-padding";
 
 // If resizable, the relation view will have a draggable handle to adjust its height, if
@@ -24,12 +26,15 @@ export interface StaticDisplayProps {
     height?: HeightType;
     showHeader?: boolean;
     showBorder?: boolean;
+    bare?: boolean; // no card behind the view and no padding around inputs, for views placed directly on a page
+    framed?: boolean; // inside a frame of its own, e.g. a canvas node: an input field draws no border or corners
     neverShowQueryEditor?: boolean; // if true, the sql editor will never be visible, even if the relation state allows it
     sqlEditorShowRunButton?: boolean; // whether to show the run button in the sql editor, defaults to true
     sqlEditorPanelMode?: EditorPanelPosition; // whether the sql editor should be displayed in an overlay or a panel, defaults to overlay
+    plainSqlEditor?: boolean; // a plain text area for the sql instead of the Monaco editor, e.g. on the website
 }
 
-export interface RelationViewAPIProps extends DefaultRelationZustandActions, StaticDisplayProps {
+export interface RelationViewAPIProps extends RelationUpdate, StaticDisplayProps {
     relationState: RelationState;
     className?: string;
 }
@@ -77,11 +82,15 @@ export function ContentWrapper(props: RelationViewProps) {
 }
 
 export function RelationViewError({error}: { error: Record<string, any> }) {
+    const message = typeof error.message === 'string' ? error.message : JSON.stringify(error, null, 2);
     return (
         <div className="p-4 w-full bg-inherit h-full flex flex-col items-start justify-start">
             <div className={'flex bg-inherit flex-row text-red-500 items-center space-x-2 h-6'}>
                 <TriangleAlert size={16}/>
                 <span>Error executing query</span>
+                <TooltipWrapper message="Copy error message">
+                    <span className="inline-flex"><CopyButton textToCopy={message}/></span>
+                </TooltipWrapper>
             </div>
             <JsonViewer className="w-full text-red-500" json={error}/>
         </div>

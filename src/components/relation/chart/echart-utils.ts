@@ -13,13 +13,21 @@ export function plotUsesGroup(plot: PlotConfig) {
     return plotIsCartesian(plot) && plot.cartesian.groupBy
 }
 
+function averageLength(values: unknown[]): number {
+    const texts = values.filter((v): v is string => typeof v === 'string');
+    return texts.length ? texts.reduce((sum, t) => sum + t.length, 0) / texts.length : 0;
+}
+
 export function toEChartOptions(
     config: ChartConfig,
     data: RelationData,
     textColor: string = '#333',
     interactionMode: ChartInteractionMode = 'click',
-    queryState: ChartQueryState = {}
+    queryState: ChartQueryState = {},
+    // The axis and grid lines; ECharts' own light grey stands out on a dark background.
+    gridColor?: string,
 ): EChartsOption {
+    const lines = gridColor ? {lineStyle: {color: gridColor}} : {};
 
     const {plot} = config;
 
@@ -43,7 +51,8 @@ export function toEChartOptions(
         title: {
             text: plot.title ? plot.title : null,
             left: '16px',
-            top: '8px',
+            top: '13px',
+            padding: 0,
             textStyle: {color: textColor, fontSize: 16},
         },
         tooltip: {trigger: 'axis', appendToBody: true},
@@ -54,6 +63,7 @@ export function toEChartOptions(
             orient: 'horizontal',
             top: plot.title ? '32px' : '8px',
             left: '16px',
+            padding: [5, 0],
             textStyle: {color: textColor},
         },
         grid: {
@@ -97,6 +107,7 @@ export function toEChartOptions(
         const labelIdx = GetColumnIdx(labelAxis.columnId);
         const radiusIdx = GetColumnIdx(radiusAxis.columnId);
         const dec = radiusAxis.decoration.pie;
+        const legendBottom = (plot.title ? 32 : 8) + legendHeight;
         //
         const seriesData = data.rows.map(row => ({
             name: row[labelIdx],
@@ -117,8 +128,11 @@ export function toEChartOptions(
             color: DEFAULT_COLORS,
             series: [{
                 type: "pie",
-                radius: [dec.innerRadius, "65%"],
-                center: ['50%', '58%'],
+                // The box below the legend; ECharts shifts outside labels to stay inside it.
+                radius: [dec.innerRadius, "70%"],
+                top: `${legendBottom + 8}px`,
+                bottom: '8px',
+                center: ['50%', '50%'],
                 padAngle: dec.padAngle,
                 data: pieData,
                 itemStyle: {
@@ -172,6 +186,9 @@ export function toEChartOptions(
             data: xData,
             axisLabel: {color: textColor},
             nameTextStyle: {color: textColor},
+            axisLine: lines,
+            axisTick: lines,
+            splitLine: lines,
         };
         // x-axis label: rendered as a bottom-pinned graphic (not xAxis.name) so it
         // sits below the tick labels instead of overlapping them.
@@ -200,11 +217,13 @@ export function toEChartOptions(
         } else {
             xAxis.max = 'dataMax';
         }
-        if (cartesian?.xLabelRotation) {
+        // Without a set angle, long text labels default to 45°.
+        const xRotation = cartesian.xLabelRotation ?? (xAxisType === 'category' && averageLength(xData) > 8 ? 45 : undefined);
+        if (xRotation) {
             xAxis.axisLabel = {
                 ...xAxis.axisLabel,
                 interval: 0,
-                rotate: cartesian.xLabelRotation,
+                rotate: xRotation,
             }
         }
 
@@ -212,6 +231,9 @@ export function toEChartOptions(
             type: "value",
             axisLabel: {color: textColor},
             nameTextStyle: {color: textColor},
+            axisLine: lines,
+            axisTick: lines,
+            splitLine: lines,
         };
         if (cartesian.yLabel) {
             yAxis.name = cartesian.yLabel;
@@ -227,7 +249,7 @@ export function toEChartOptions(
         if (cartesian.yRange.start !== undefined) {
             yAxis.min = cartesian.yRange.start;
         } else {
-            yAxis.min = 'dataMin';
+            yAxis.min = ({min}: { min: number }) => Math.min(0, min);
         }
         if (cartesian.yRange.end !== undefined) {
             yAxis.max = cartesian.yRange.end;

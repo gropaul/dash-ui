@@ -30,7 +30,7 @@ export function DeleteDialog(props: RenameDialogProps) {
             <DialogContent>
                 <DialogHeader>
                     {props.title && <DialogTitle>{props.title}</DialogTitle>}
-                    {props.description && <DialogDescription>{props.description}</DialogDescription>}
+                    {props.description && <DialogDescription className="whitespace-pre-line">{props.description}</DialogDescription>}
                 </DialogHeader>
                 <DialogFooter>
                     <Button variant="secondary" onClick={() => props.onOpenChange(false)}>

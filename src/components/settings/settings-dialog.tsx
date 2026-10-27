@@ -7,30 +7,17 @@ import {isDebugMode} from "@/components/settings/about-content";
 import {toast} from "sonner";
 import {AboutContent} from "./about-content";
 import {ConnectionContent} from "./connection-content";
-import {AlertCircle, BookOpen, Database, Info, Rocket, Share2, Wand2} from "lucide-react";
+import {AlertCircle, Bot, BookOpen, Database, Info, Rocket, Share2} from "lucide-react";
 import {ShareContent} from "@/components/settings/share-content";
-import {LanguageModelContent} from "@/components/settings/language-model-content";
+import {AgentsContent} from "@/components/settings/agents-content";
 import {DocumentationContent} from "@/components/settings/documentation-content";
 import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {useIsMobile} from "@/components/provider/responsive-node-provider";
 import {cn} from "@/lib/utils";
 import {MobileAppBar} from "@/components/layout/mobile-app-bar";
+import {ForceOpenReason, SettingsTab} from "@/components/settings/settings-tabs";
 
-// Define the tab types
-export type SettingsTab = 'about' | 'connection' | 'sharing' | 'language-model' | 'documentation' | 'get-started';
-
-export interface ForceOpenReason {
-    tab: SettingsTab;
-    message: string;
-    id: string; // Unique identifier for the reason
-}
-
-export const NO_CONNECTION_FORCE_OPEN_REASON: ForceOpenReason = {
-    tab: 'connection',
-    message: 'No database connection available. Please configure a connection.',
-    id: 'no-connection'
-}
 
 // Interface for tab definition to make it extensible
 export interface SettingsTabDefinition {
@@ -100,12 +87,13 @@ export function SettingsDialog(props: SettingsViewProps) {
                 onSpecSave={props.onSpecSave}
             />
         }] : []),
-        {
-            id: 'language-model',
-            label: 'Assistant',
-            icon: <Wand2 className="h-4 w-4 mr-1 sm:mr-2"/>,
-            content: <LanguageModelContent/>
-        },
+        // Agents run only in the desktop app.
+        ...(isElectron() ? [{
+            id: 'agents' as const,
+            label: 'Agents',
+            icon: <Bot className="h-4 w-4 mr-1 sm:mr-2"/>,
+            content: <AgentsContent/>
+        }] : []),
         {
             id: 'sharing',
             label: 'Sharing',
@@ -135,7 +123,7 @@ export function SettingsDialog(props: SettingsViewProps) {
         <Dialog open={props.open} onOpenChange={onLocalOpenChange}
 
         >
-            <DialogContent  className={cn("flex p-0 gap-0", dialogClass)}>
+            <DialogContent  className={cn("flex p-0 gap-0 text-sm", dialogClass)}>
                 <DialogTitle className="sr-only">Settings</DialogTitle>
                 <SettingsContent
                     tabs={tabs}
@@ -265,7 +253,7 @@ export function SettingsSideBar(props: SettingsSideBarProps) {
                     label={'Settings'}
                 />
                 :
-                <h5 className={cn("text-lg font-bold")}>
+                <h5 className={cn("text-base font-bold")}>
                     Settings
                 </h5>
         }

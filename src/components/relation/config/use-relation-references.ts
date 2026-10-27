@@ -1,112 +1,82 @@
 import {useMemo} from "react";
-import {useRelationsState} from "@/state/relations.state";
 import {RelationState} from "@/model/relation-state";
-import {extractMacroRefs, sanitizeMacroName} from "@/state/relations/sql/table-macros";
-import {getRelationDependencies} from "@/state/relations/relation-dependencies";
-import {objectSlugPathForId} from "@/state/routing/core-model";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {queriesCalledBy, usersOf} from "@/state/workspace/file-references";
+import {pageOfSurface} from "@/state/workspace/surfaces.state";
+import {sqlFences} from "@/state/workspace/page-text";
+import {viewOfQuery} from "@/state/workspace/relation-config";
+import {callsRef} from "@/platform/sql-refs";
+import {fileIconType} from "@/components/workspace/file-icon";
+import {displayName, kindOf} from "@/state/workspace/workspace-tree";
 
 export interface ReferenceEntry {
-    /** Object id, or the raw macro name when the reference could not be resolved. */
+    /** The file's path, or the called name when no query has it. */
     id: string;
     name: string;
-    /** Icon key for `defaultIconFactory` - a relation view type, 'dashboard' or 'canvas'. */
+    /** Icon key for `defaultIconFactory`: a view type or 'dashboards'. */
     iconType: string;
     /** Secondary text on the right of the row. */
     detail?: string;
-    /** False when the object has no address in the workspace tree, e.g. a canvas-only relation. */
+    /** False for a name no query has. */
     navigable: boolean;
 }
 
 export interface RelationReferences {
-    /** Relations whose SQL calls this relation's `refs.<name>()` macro. */
+    /** Queries whose SQL calls this query's `refs.<name>()`. */
     usedByRelations: ReferenceEntry[];
-    /** Relations this relation's SQL calls. */
+    /** Queries this one's SQL calls. */
     usesRelations: ReferenceEntry[];
-    dashboards: ReferenceEntry[];
-    canvases: ReferenceEntry[];
+    /** Pages calling this query or taking it in. */
+    pages: ReferenceEntry[];
 }
 
-/**
- * Everything the References tab shows, recomputed whenever the relations, dashboards or canvases
- * change. Both relation directions come from `extractMacroRefs` rather than
- * `findMacroReferences`, because the sanitized-name comparison also matches calls written without
- * the `dash.` catalog prefix.
- */
-export function useRelationReferences(relationState: RelationState): RelationReferences {
-    const relations = useRelationsState(state => state.relations);
-    const dashboards = useRelationsState(state => state.dashboards);
-    const canvas = useRelationsState(state => state.canvas);
-    const editorElements = useRelationsState(state => state.editorElements);
-
-    const id = relationState.id;
-    const macroName = sanitizeMacroName(relationState.viewState.displayName);
-    const baseQuery = relationState.query.baseQuery;
-
-    return useMemo(() => {
-        const navigable = (objectId: string) =>
-            objectSlugPathForId(editorElements, objectId) !== undefined;
-
-        const others = Object.values(relations).filter(r => r.id !== id);
-
-        const usedByRelations: ReferenceEntry[] = others
-            .filter(r => extractMacroRefs(r.query.baseQuery ?? '').includes(macroName))
-            .map(r => toRelationEntry(r, navigable(r.id)));
-
-        // resolve each ref in our own SQL back to the relation that owns that macro name
-        const byMacroName = new Map(
-            others.map(r => [sanitizeMacroName(r.viewState.displayName), r] as const),
-        );
-        const usesRelations: ReferenceEntry[] = extractMacroRefs(baseQuery ?? '').map(ref => {
-            const target = byMacroName.get(ref);
-            if (!target) {
-                // the macro is called but no relation owns that name (renamed or deleted)
-                return {id: ref, name: `refs.${ref}()`, iconType: 'relation', detail: 'unresolved', navigable: false};
-            }
-            return toRelationEntry(target, navigable(target.id));
-        });
-
-        const dependencies = getRelationDependencies(id);
-
-        const dashboardEntries: ReferenceEntry[] = dependencies.dashboards.map(d => ({
-            id: d.dashboardId,
-            name: d.dashboardName,
-            iconType: 'dashboard',
-            detail: widgetCount(d.widgetIds.length),
-            navigable: navigable(d.dashboardId),
-        }));
-
-        const canvasEntries: ReferenceEntry[] = dependencies.canvases.map(c => ({
-            id: c.canvasId,
-            name: c.canvasName,
-            iconType: 'canvas',
-            detail: nodeCount(c.nodeIds.length),
-            navigable: navigable(c.canvasId),
-        }));
-
-        return {
-            usedByRelations,
-            usesRelations,
-            dashboards: dashboardEntries,
-            canvases: canvasEntries,
-        };
-        // `dashboards` and `canvas` are read through getRelationDependencies, not directly
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [relations, dashboards, canvas, editorElements, id, macroName, baseQuery]);
+function fileEntry(path: string): ReferenceEntry {
+    const kind = kindOf(path);
+    return {id: path, name: displayName(path), iconType: fileIconType({kind, path}), navigable: true};
 }
 
-function toRelationEntry(relation: RelationState, navigable: boolean): ReferenceEntry {
+/** Another block of the page; it is on screen already, so not a link. */
+function blockEntry(page: string, name: string, body: string): ReferenceEntry {
+    return {id: `${page}#${name}`, name, iconType: viewOfQuery(body), detail: 'block', navigable: false};
+}
+
+/** The blocks of `page` calling the block `name`, and what the block's `sql` calls: blocks of the page, then queries. */
+function blockReferences(files: Record<string, string>, page: string, name: string, sql: string): RelationReferences {
+    const fences = sqlFences(files[page] ?? '').filter((f): f is { name: string, body: string } => !!f.name);
+    const byName = new Map(fences.map(f => [f.name.toLowerCase(), f]));
+    const self = name.toLowerCase();
     return {
-        id: relation.id,
-        name: relation.viewState.displayName,
-        iconType: relation.viewState.selectedView,
-        navigable,
+        usedByRelations: fences.filter(f => f.name.toLowerCase() !== self && callsRef(f.body, self))
+            .map(f => blockEntry(page, f.name, f.body)),
+        usesRelations: queriesCalledBy(files, sql).map(({name, path}) => {
+            const block = byName.get(name.toLowerCase());
+            if (block) return blockEntry(page, block.name, block.body);
+            return path ? fileEntry(path)
+                : {id: name, name: `refs.${name}()`, iconType: 'relation', detail: 'unresolved', navigable: false};
+        }),
+        pages: [],
     };
 }
 
-function widgetCount(count: number): string | undefined {
-    return count > 1 ? `${count} widgets` : undefined;
-}
+/**
+ * Everything the References tab shows, found in the text of the workspace's files. A query's id is its path; a
+ * page block's (`page.md#name`) is read within its page, where blocks call each other by name.
+ */
+export function useRelationReferences(relationState: RelationState): RelationReferences {
+    const files = useWorkspace(s => s.files);
+    const path = relationState.id;
+    const baseQuery = relationState.query.baseQuery;
 
-function nodeCount(count: number): string | undefined {
-    return count > 1 ? `${count} nodes` : undefined;
+    return useMemo(() => {
+        const page = pageOfSurface(path);
+        if (page) return blockReferences(files, page, path.slice(page.length + 1), baseQuery ?? '');
+        const users = path in files ? usersOf(files, path) : {queries: [], pages: []};
+        return {
+            usedByRelations: users.queries.map(fileEntry),
+            usesRelations: queriesCalledBy(files, baseQuery ?? '').map(({name, path}) => path
+                ? fileEntry(path)
+                : {id: name, name: `refs.${name}()`, iconType: 'relation', detail: 'unresolved', navigable: false}),
+            pages: users.pages.map(fileEntry),
+        };
+    }, [files, path, baseQuery]);
 }

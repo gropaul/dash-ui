@@ -15,6 +15,8 @@ interface CanvasContextValue {
     getNodes: GetNodes;
     getEdges: GetEdges;
     openFullscreen: (nodeId: string) => void;
+    /** The canvas is part of a page that scrolls (see Flow's `embedded`). */
+    embedded: boolean;
 }
 
 const CanvasContext = createContext<CanvasContextValue | null>(null);
@@ -27,6 +29,7 @@ export function CanvasProvider({
     getNodes,
     getEdges,
     openFullscreen,
+    embedded,
 }: {
     children: ReactNode;
     canvasId: string;
@@ -35,9 +38,10 @@ export function CanvasProvider({
     getNodes: GetNodes;
     getEdges: GetEdges;
     openFullscreen: (nodeId: string) => void;
+    embedded: boolean;
 }) {
     return (
-        <CanvasContext.Provider value={{canvasId, setNodes, setEdges, getNodes, getEdges, openFullscreen}}>
+        <CanvasContext.Provider value={{canvasId, setNodes, setEdges, getNodes, getEdges, openFullscreen, embedded}}>
             {children}
         </CanvasContext.Provider>
     );

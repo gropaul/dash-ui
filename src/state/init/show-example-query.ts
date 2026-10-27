@@ -1,13 +1,13 @@
 import {getRandomId} from "@/platform/id-utils";
 import {RelationSourceQuery} from "@/model/relation";
-import {useRelationsState} from "@/state/relations.state";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {createQueryFileFromSource} from "@/state/workspace/query-files";
 import {ConnectionsService} from "@/state/connections/connections-service";
 
 
 export async function showExampleQuery(delay: number = 1000) {
     await new Promise(resolve => setTimeout(resolve, delay));
-    if (Object.keys(useRelationsState.getState().relations).length === 0) {
+    if (Object.keys(useWorkspace.getState().files).length === 0) {
         const id = ConnectionsService.getInstance().getDatabaseConnection().id;
         showExampleQueryInternal(id);
     }
@@ -30,6 +30,5 @@ LIMIT 10;`;
         id: randomId,
         name: "Train Station Services"
     }
-    const showRelationFromSource = useRelationsState.getState().showRelationFromSource;
-    showRelationFromSource(connectionId, source, DEFAULT_RELATION_VIEW_PATH);
+    void createQueryFileFromSource(source);
 }

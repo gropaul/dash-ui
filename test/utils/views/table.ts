@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
+import { TABLE_FOOTER_MIN_ROWS } from '@/platform/global-data';
 
 /**
  * Table-view helpers.
@@ -10,13 +11,18 @@ import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * Sort a table column. Clicking a column header cycles none -> ASC -> DESC, so
- * we click once for ASC and twice for DESC (from an unsorted column).
+ * we click once for ASC and twice for DESC (from an unsorted column). Each click
+ * waits for the header's `aria-sort`: the next state is computed from the shown
+ * one, so a second click before the first lands would only repeat it.
  */
 export async function sortColumn(page: Page, column: string, direction: 'ASC' | 'DESC'): Promise<void> {
-  const header = page.getByRole('columnheader', { name: column }).getByRole('button', { name: column });
-  await header.click();
+  const header = page.getByRole('columnheader', { name: column });
+  const button = header.getByRole('button', { name: column });
+  await button.click();
+  await expect(header).toHaveAttribute('aria-sort', 'ascending');
   if (direction === 'DESC') {
-    await header.click();
+    await button.click();
+    await expect(header).toHaveAttribute('aria-sort', 'descending');
   }
 }
 
@@ -36,11 +42,15 @@ export async function expectFirstDataRow(scope: Page | Locator, text: string): P
 }
 
 /**
- * Assert how many rows the table holds, read off its footer ("1 to N of N").
- * The rendered rows themselves are virtualized (and padded with spacer `<tr>`s),
- * so the footer is the reliable count. A narrow footer drops the " of N" half,
- * hence only the "1 to N" prefix is matched.
+ * Assert how many rows the table holds. A result shown whole below TABLE_FOOTER_MIN_ROWS rows has no footer and
+ * renders every row, so those rows are counted. Larger ones are virtualized (padded with spacer `<tr>`s), so the
+ * footer ("1 to N of N") is the count; a narrow footer drops the " of N" half, hence only "1 to N" is matched.
  */
 export async function expectRowCount(scope: Page | Locator, count: number): Promise<void> {
-  await expect(scope.getByText(new RegExp(`\\b1 to ${count}\\b`))).toBeVisible();
+  if (count < TABLE_FOOTER_MIN_ROWS) {
+    const page = 'page' in scope && typeof scope.page === 'function' ? scope.page() : scope as Page;
+    await expect(dataRows(scope).filter({ has: page.getByRole('cell') })).toHaveCount(count);
+  } else {
+    await expect(scope.getByText(new RegExp(`\\b1 to ${count}\\b`))).toBeVisible();
+  }
 }

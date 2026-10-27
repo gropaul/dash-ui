@@ -4,7 +4,7 @@ import {ColumnSorting} from "@/model/relation-state/relation-view-table";
 
 /**
  * Tri-state sort indicator shared by the relation table column headers and the
- * folder-view table: up when ascending, down when descending, and the neutral
+ * catalog grid: up when ascending, down when descending, and the neutral
  * up/down glyph when the column is not the active sort.
  *
  * Styling lives here: an active (sorted) column shows an indigo arrow; an inactive

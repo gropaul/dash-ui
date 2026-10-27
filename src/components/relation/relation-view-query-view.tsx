@@ -1,4 +1,5 @@
 import {SqlEditor} from "@/components/basics/sql-editor/sql-editor";
+import {PlainSqlEditor} from "@/components/basics/sql-editor/plain-sql-editor";
 import {RelationState} from "@/model/relation-state";
 import {splitSQL} from "@/platform/sql-utils";
 import {forwardRef} from "react";
@@ -60,7 +61,7 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
     const embedded = props.statics.embedded ?? false;
     return (
         <div ref={ref} className={"w-full h-full overflow-hidden"}>
-            <SqlEditor
+            {props.statics.plainSqlEditor ? <PlainSqlEditor code={queryString} onCodeChange={onCodeChange} onRun={runQueryIfNotRunning}/> : <SqlEditor
                 path={`relation-${relationId}`}
                 embedded={embedded}
                 alwaysConsumeMouseWheel={!embedded}
@@ -81,7 +82,7 @@ export const RelationViewQueryView = forwardRef<HTMLDivElement, RelationViewQuer
                 onLayoutChange={(layout) => {
                     props.updateSessionState(props.statics.mode, {codeFenceState: {layout}});
                 }}
-            />
+            />}
         </div>
     );
 });

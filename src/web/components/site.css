@@ -1,0 +1,96 @@
+body {
+    font-family: var(--font-inter), sans-serif;
+}
+
+/* The landing canvas's ground: dots as on a canvas, out to the window's edges (the live canvas draws none). */
+.landing-dots {
+    background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.3) 1px, transparent 1.2px);
+    background-size: 20px 20px;
+}
+
+/* Docs and long-form pages, on the app's theme colors. */
+.site-prose {
+    line-height: 1.7;
+    color: hsl(var(--foreground));
+}
+
+.site-prose > * + * {
+    margin-top: 1.1em;
+}
+
+.site-prose h1 {
+    font-size: 2.25rem;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.site-prose h2 {
+    margin-top: 2.4em;
+    font-size: 1.5rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    scroll-margin-top: 5rem;
+}
+
+.site-prose h3 {
+    margin-top: 1.8em;
+    font-size: 1.15rem;
+    font-weight: 600;
+    scroll-margin-top: 5rem;
+}
+
+.site-prose p, .site-prose li {
+    color: hsl(var(--foreground) / 0.85);
+}
+
+.site-prose a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.site-prose ul, .site-prose ol {
+    padding-left: 1.4em;
+    list-style: disc;
+}
+
+.site-prose ol {
+    list-style: decimal;
+}
+
+.site-prose :not(pre) > code {
+    padding: 0.1em 0.35em;
+    border-radius: 0.3em;
+    background: hsl(var(--muted));
+    font-size: 0.875em;
+}
+
+.site-prose pre {
+    overflow-x: auto;
+    padding: 1em 1.2em;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    background: hsl(var(--muted-background));
+    font-size: 0.85rem;
+    line-height: 1.55;
+}
+
+.site-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.site-prose th, .site-prose td {
+    padding: 0.5em 0.75em;
+    border-bottom: 1px solid hsl(var(--border));
+    text-align: left;
+    vertical-align: top;
+}
+
+.site-prose video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) * 2);
+}

@@ -1,13 +1,12 @@
 import {useMemo} from "react";
 import commandScore from "command-score";
 import {useDataSourcesState} from "@/state/data-sources.state";
-import {useRelationsState} from "@/state/relations.state";
+import {saveAsQuery} from "@/components/workspace/file-actions";
 import {TreeNode} from "@/components/basics/files/tree-utils";
 import {getValueTypeGroup, ValueTypeGroup} from "@/model/value-type";
 import {Column} from "@/model/data-source-connection";
 import {getBaseQueryFromSource} from "@/model/relation-state";
 import {RelationSourceTable} from "@/model/relation";
-import {DEFAULT_RELATION_VIEW_PATH} from "@/platform/global-data";
 import {formatNumber} from "@/platform/number-utils";
 
 /**
@@ -119,9 +118,9 @@ export function sourceForObject(o: CatalogObject): RelationSourceTable {
     return {type: 'table', database: o.database, schema: o.schema, tableName: o.name};
 }
 
-/** Open a catalog object as a relation in the workspace — the one real action beyond browsing. */
-export function openObjectAsRelation(o: CatalogObject) {
-    useRelationsState.getState().showRelationFromSource(o.connectionId, sourceForObject(o), DEFAULT_RELATION_VIEW_PATH);
+/** Save a catalog object's `SELECT *` as a query of the workspace: the one action beyond browsing. */
+export function saveObjectAsQuery(o: CatalogObject) {
+    saveAsQuery(o.name, sqlForObject(o));
 }
 
 export function columnGroup(col: Column): ValueTypeGroup {

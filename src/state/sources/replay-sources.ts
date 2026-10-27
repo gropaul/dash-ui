@@ -1,13 +1,14 @@
 import {DatabaseConnection} from "@/model/database-connection";
 import {splitSQL} from "@/platform/sql-utils";
-import {useProjectsState} from "@/state/projects.state";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {SOURCES_FILE} from "@/platform/global-data";
 import {SourceReplayResult, useSourcesHealthState} from "@/state/sources/sources-health.state";
 import {SourceSession} from "@/state/sources/source-session";
 import {ConnectionsService} from "@/state/connections/connections-service";
 import {useDataSourcesState} from "@/state/data-sources.state";
 
 /**
- * Replay the current project's data-sources manifest (`currentMeta.sourcesSql`, read from its file) against the connection:
+ * Replay the open project's data-sources manifest (its `sources.sql`) against the connection:
  * execute each statement (ATTACH / CREATE VIEW / secrets …) so the project's data is reconstituted on
  * open. Runs once per project open/switch, right after the dash catalog is attached and before data
  * sources are enumerated, so re-attached databases show up in the catalog.
@@ -23,7 +24,7 @@ export async function initProjectSources(): Promise<void> {
     // no-op on a project switch, where teardownProjectSources() has already run
     await undoRecordedEffects(connection);
 
-    const sql = useProjectsState.getState().currentMeta?.sourcesSql ?? "";
+    const sql = useWorkspace.getState().files[SOURCES_FILE] ?? "";
     if (!sql.trim()) {
         useSourcesHealthState.getState().clear();
         await useDataSourcesState.getState().refreshAllConnections();

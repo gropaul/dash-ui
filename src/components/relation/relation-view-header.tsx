@@ -1,4 +1,4 @@
-import {ChartSpline, Code, LayoutDashboard, Map, Maximize2, Menu, Sheet} from "lucide-react";
+import {ChartSpline, Code, Map, Maximize2, Menu, Sheet} from "lucide-react";
 import {ViewHeader} from "@/components/basics/basic-view/view-header";
 import {RelationViewType} from "@/model/relation-view-state";
 import {Separator} from "@/components/ui/separator";

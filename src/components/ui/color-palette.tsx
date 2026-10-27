@@ -38,6 +38,8 @@ interface ColorPaletteProps {
     colors?: string[];
     showPicker?: boolean;
     debounceMs?: number;
+    /** What the swatch for no color (`undefined`) shows. */
+    defaultSwatch?: string;
 }
 
 export function ColorPalette({
@@ -46,6 +48,7 @@ export function ColorPalette({
     colors = DEFAULT_COLORS.slice(0, 4),
     showPicker = true,
     debounceMs = 100,
+    defaultSwatch = 'hsl(var(--foreground))',
 }: ColorPaletteProps) {
     const [localColor, setLocalColor] = useState(color);
     const [pickerOpen, setPickerOpen] = useState(false);
@@ -74,7 +77,7 @@ export function ColorPalette({
         <div className="flex items-center gap-1.5">
             {/* Default color: theme-dependent primary text color, represented as null */}
             <ColorSwatch
-                color="hsl(var(--foreground))"
+                color={defaultSwatch}
                 selected={localColor == null}
                 onClick={() => handleColorChange(undefined)}
                 size="sm"

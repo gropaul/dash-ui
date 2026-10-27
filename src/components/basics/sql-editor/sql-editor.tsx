@@ -16,8 +16,10 @@ import {registerHighlighting} from "@/components/basics/sql-editor/register-high
 import {registerCompletionDuckDB} from "@/components/basics/sql-editor/register-autocomplete";
 import {SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS} from "@/platform/global-data";
 import {useMonacoState} from "@/state/monaco.state";
+import {useGUIState} from "@/state/gui.state";
+import {registerPendingEdits} from "@/state/workspace/pending-edits";
 
-export type SupportedLanguages = "sql" | "plaintext";
+export type SupportedLanguages = "sql" | "plaintext" | "markdown";
 
 export type EditorPanelPosition = "panel" | "overlay";
 
@@ -51,6 +53,7 @@ export interface SqlEditorProps {
 export function SqlEditor(
     {
         displayCode,
+        language,
         copyCode,
         onRun,
         onCodeChange,
@@ -79,10 +82,10 @@ export function SqlEditor(
     const editorPath = `sql-editor-${uniqueId}`;
 
     const editorTheme = resolvedTheme === "dark" ? "customThemeDark" : "customTheme";
+    const wordWrap = useGUIState(s => s.editorWordWrap);
 
     // Use refs to avoid stale closures in debounced callbacks
     const editorRef = useRef<any>(null);
-    // const aiCompletionRef = useRef<ReturnType<typeof registerAiCompletion> | null>(null);
     const onCodeChangeRef = useRef(onCodeChange);
     const onRunRef = useRef(onRun);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -140,6 +143,7 @@ export function SqlEditor(
 
             // Debounce the state update
             debounceTimerRef.current = setTimeout(() => {
+                debounceTimerRef.current = null;
                 onCodeChangeRef.current?.(value);
             }, SQL_EDITOR_CODE_CHANGE_DEBOUNCE_MS);
         }
@@ -156,9 +160,16 @@ export function SqlEditor(
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
             }
-            // aiCompletionRef.current?.deregister();
         };
     }, []);
+
+    // Typing still waiting for the debounce goes out at once when asked.
+    useEffect(() => registerPendingEdits(() => {
+        if (!debounceTimerRef.current) return;
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+        onCodeChangeRef.current?.(editorRef.current?.getValue() ?? '');
+    }), []);
 
     // define custom theme to set the background transparent
     const baseTheme: any = {
@@ -196,20 +207,22 @@ export function SqlEditor(
 
         registerHotkeys(editor, monaco, () => handleRun());
         registerFormatter(monaco);
+        editor.addAction({
+            id: 'dash.toggle-word-wrap',
+            label: 'Toggle Line Wrapping',
+            contextMenuGroupId: '1_modification',
+            run: () => {
+                const {editorWordWrap, setEditorWordWrap} = useGUIState.getState();
+                setEditorWordWrap(!editorWordWrap);
+            },
+        });
 
         registerHighlighting(editor, monaco);
         registerCompletionDuckDB(monaco);
-
-        if (!readOnly) {
-
-            // disabled until we have https://huggingface.co/stabilityai/stable-code-3b available in the WebLLM provider,
-            // as the completions are currently very low quality and we don't want to set that expectation for users
-            // aiCompletionRef.current = registerAiCompletion(editor, monaco);
-        }
     }
 
     return (
-        <div className="flex flex-col h-full w-full relative bg-card rounded-2xl">
+        <div className="group/sql-editor flex flex-col h-full w-full relative bg-card rounded-2xl">
             {panelMode === "panel" && (
                 <EditorButtonPanel
                     embedded={embedded}
@@ -230,8 +243,8 @@ export function SqlEditor(
                 className={'nodrag'}
                 height={height}
                 width={width}
-                defaultLanguage={'sql'}
-                language={'sql'}
+                defaultLanguage={language}
+                language={language}
                 defaultValue={displayCode}
                 path={editorPath}
                 options={{
@@ -243,6 +256,7 @@ export function SqlEditor(
                     theme: editorTheme,
                     padding: {top: 12, bottom: 12},
                     tabSize: 2,
+                    wordWrap: wordWrap ? "on" : "off",
                     scrollBeyondLastLine: false,
                     scrollbar: {
                         alwaysConsumeMouseWheel: alwaysConsumeMouseWheel,

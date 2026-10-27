@@ -5,7 +5,6 @@ import {FileFormat} from "@/state/data-source/duckdb-helper";
 import {FileDropOverlay, FileUploadState} from "@/components/import/file-drop-relation/file-drop-overlay";
 import {handleFileDrop, handleFileImport} from "@/components/import/file-drop-relation/file-import";
 import {handleDatabaseImport} from "@/components/import/file-drop-relation/database-import";
-import {RelationZustand, useRelationsState} from "@/state/relations.state";
 
 
 interface Props {
@@ -44,18 +43,6 @@ export function FileDropRelation({className, children}: Props) {
         await handleFileImport(format, file, setFileUploadState);
     };
 
-    const onDashboardImport = (importDashboards: boolean, dashState: RelationZustand) => {
-        if (importDashboards) {
-            // Import dashboards using the mergeState function
-            const mergeState = useRelationsState.getState().mergeState;
-            mergeState(dashState, true);
-            setFileUploadState({state: 'done', message: 'Dashboards & Database imported successfully!'});
-        } else {
-            // Skip dashboard import
-            setFileUploadState({state: 'done', message: 'Database imported successfully!'});
-        }
-    };
-
     return (
         <FileDrop
             className={className}
@@ -75,7 +62,6 @@ export function FileDropRelation({className, children}: Props) {
                 onErrorConfirm={onErrorConfirm}
                 onFormatSelect={onFormatSelect}
                 onDatabaseImportSelect={onDatabaseImportSelect}
-                onDashboardImport={onDashboardImport}
             />
         </FileDrop>
     );

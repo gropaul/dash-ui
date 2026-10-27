@@ -5,7 +5,9 @@ import {
     Background,
     ConnectionMode,
     Controls,
+    Connection,
     Node,
+    NodeTypes,
     OnConnectStartParams,
     ReactFlow,
     SelectionMode,
@@ -15,6 +17,7 @@ import '@xyflow/react/dist/style.css';
 import {RelationNode} from "@/components/canvas/nodes/relation-node";
 import {FreeDrawNode} from "@/components/canvas/nodes/free-draw-node";
 import {TextNode} from "@/components/canvas/nodes/text-node";
+import {LinkNode} from "@/components/canvas/nodes/link-node";
 import FloatingEdge from "@/components/canvas/edge/floating-edge";
 import {FlowPalette} from "@/components/canvas/flow-palette";
 import {
@@ -46,23 +49,39 @@ import {useUndoableFlow} from "@/hooks/use-undoable-flow";
 import {CanvasProvider} from "@/components/canvas/canvas-context";
 import {RelationState} from "@/model/relation-state";
 import {getRelationActions} from "@/state/relations/actions/end-user-actions";
-import {useRelationsState} from "@/state/relations.state";
-import {getRelationDependencies} from "@/state/relations/relation-dependencies";
-import {useRelationDeleteDialog} from "@/components/workbench/relation-delete-dialog";
-import {findPathById} from "@/components/basics/files/tree-utils";
+import {useSurfaces} from "@/state/workspace/surfaces.state";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {queryByName} from "@/state/workspace/file-references";
+import {renameRefCalls} from "@/platform/sql-refs";
+import {useRelationLinks} from "@/state/relations/sql/page-refresh";
+import {renameBlockSurfaces} from "@/state/workspace/rename-block";
+import {RenameRelationContext} from "@/components/relation/common/rename-relation-context";
+import {askForName} from "@/components/workspace/name-dialog";
+import {blockBody, blockNameOf, blockOf, isRelationNode} from "@/components/canvas/logic/canvas-file";
+import {RelationFullscreenDialog} from "@/components/canvas/nodes/relation/relation-fullscreen";
+
+// A block's name is what other blocks write in refs.<name>(), so it must be one as it stands.
+const BLOCK_NAME = /^[a-z_][a-z0-9_]*$/;
 
 export interface FlowProps {
+    /** The canvas file's path. */
     canvasId: string;
     openFullscreen: (nodeId: string) => void;
+    /**
+     * Part of a page, e.g. the website: the page places the view and it stays there (no panning or zooming, the wheel
+     * scrolls the page), without a toolbar or background of its own. Nodes still move and work.
+     */
+    embedded?: boolean;
 }
 
 
-export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'freeDrawNode';
+export type NodeType = 'relationNode' | 'chartNode' | 'textNode' | 'linkNode' | 'freeDrawNode';
 
-const nodeTypes: { [key in NodeType]: React.FC<any> } = {
+const nodeTypes: Record<NodeType, NodeTypes[string]> = {
     relationNode: RelationNode,
     chartNode: RelationNode, // Template - uses RelationNode for now
     textNode: TextNode,
+    linkNode: LinkNode,
     freeDrawNode: FreeDrawNode,
 };
 
@@ -80,7 +99,7 @@ export interface NodeTemplate {
     size: { width: number; height: number };
 }
 
-export function Flow({canvasId, openFullscreen}: FlowProps) {
+export function Flow({canvasId, openFullscreen, embedded = false}: FlowProps) {
     const {
         nodes,
         edges,
@@ -101,23 +120,56 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     const {screenToFlowPosition, getIntersectingNodes, getNodes, getEdges} = useReactFlow();
     const connectingFrom = useRef<OnConnectStartParams | null>(null);
     const {resolvedTheme} = useTheme();
+    // Query nodes reading another re-run once it ran or its pick changed, as blocks of a page do.
+    useRelationLinks(canvasId);
 
     const runSelectedNode = useCallback(() => {
-        const selected = nodes.find(n => n.selected && n.type === 'relationNode');
+        const selected = nodes.find(n => n.selected && isRelationNode(n));
         if (!selected) return;
-        const relationId = (selected.data as {relationId?: string}).relationId;
-        if (!relationId) return;
-        const relationData = useRelationsState.getState().relations[relationId];
+        const relationData = useSurfaces.getState().relations[`${canvasId}#${blockNameOf(selected) ?? selected.id}`];
         if (!relationData) return;
         const updateRelation = (newRelation: RelationState) => {
-            useRelationsState.getState().updateRelation(newRelation);
+            useSurfaces.getState().set(newRelation);
         };
         const actions = getRelationActions({mode: 'embedded', relationState: relationData, updateRelation});
         actions.updateRelationDataWithBaseQuery(relationData.query.baseQuery);
-    }, [nodes]);
+    }, [nodes, canvasId]);
+
+    // Renames a query node's block and the refs to it in the other query nodes.
+    const renameBlock = useCallback((relation: RelationState) => askForName({
+        title: 'Rename block',
+        initial: relation.viewState.displayName,
+        submitLabel: 'Rename',
+        validate: name => !BLOCK_NAME.test(name) ? 'A block name is a lowercase SQL identifier, e.g. sales_by_region.'
+            : name !== relation.viewState.displayName && nodes.some(n => isRelationNode(n) && blockNameOf(n) === name)
+                ? `Another block on the canvas is named ${name}.`
+                : queryByName(useWorkspace.getState().files, name) ? `A query is named ${name}.` : undefined,
+        onSubmit: name => {
+            const from = relation.viewState.displayName.toLowerCase();
+            renameBlockSurfaces(relation.id, name);
+            setNodes(nds => nds.map(node => {
+                if (!isRelationNode(node)) return node;
+                const block = blockOf(node);
+                const sql = renameRefCalls(block.sql, from, name);
+                const newName = block.name?.toLowerCase() === from ? name : block.name ?? '';
+                if (sql === block.sql && newName === block.name) return node;
+                return {...node, data: {...node.data, body: blockBody(newName, block.header, sql)}};
+            }));
+        },
+    }), [nodes, setNodes]);
+
+    // The arrows into a query node move while it runs.
+    const running = useSurfaces(s => Object.values(s.relations)
+        .filter(r => r.id.startsWith(`${canvasId}#`) && r.executionState.state === 'running')
+        .map(r => r.viewState.displayName.toLowerCase()).sort().join(','));
+    const animatedEdges = useMemo(() => {
+        if (!running) return edges;
+        const names = new Set(running.split(','));
+        const runningIds = new Set(nodes.filter(n => isRelationNode(n) && names.has(blockNameOf(n)?.toLowerCase() ?? '')).map(n => n.id));
+        return edges.map(e => runningIds.has(e.target) ? {...e, data: {...e.data, animationState: 'executing'}} : e);
+    }, [edges, nodes, running]);
 
     useFlowShortcuts({
-        canvasId,
         nodes,
         edges,
         setNodes,
@@ -136,7 +188,7 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
         alignableNodeTypes: ['relationNode', 'textNode'],
     });
 
-    const edgeHandlerCtx: EdgeHandlerContext = {
+    const edgeHandlerCtx: EdgeHandlerContext = useMemo(() => ({
         canvasId,
         getNodes,
         getEdges,
@@ -146,68 +198,38 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
         screenToFlowPosition,
         getIntersectingNodes,
         connectingFrom,
-    };
+    }), [canvasId, getNodes, getEdges, setNodes, setEdges, screenToFlowPosition, getIntersectingNodes]);
 
-    const isValidConnection = useCallback(
-        createIsValidConnection(getNodes, getEdges),
+    const isValidConnection = useMemo(
+        () => createIsValidConnection(getNodes, getEdges),
         [getNodes, getEdges],
     );
 
+    // The handlers are built when called: they hold the `connectingFrom` ref, which render must not touch.
     const onConnect = useCallback(
-        createOnConnect(edgeHandlerCtx),
-        [setEdges, setNodes, getNodes],
+        (connection: Connection) => createOnConnect(edgeHandlerCtx)(connection),
+        [edgeHandlerCtx],
     );
 
     const onConnectStart = useCallback(
-        createOnConnectStart(connectingFrom),
+        (event: unknown, params: OnConnectStartParams) => createOnConnectStart(connectingFrom)(event, params),
         [],
     );
 
     const onConnectEnd = useCallback(
-        createOnConnectEnd(edgeHandlerCtx),
-        [screenToFlowPosition, getIntersectingNodes, setEdges, getNodes, getEdges],
+        (event: MouseEvent | TouchEvent) => createOnConnectEnd(edgeHandlerCtx)(event),
+        [edgeHandlerCtx],
     );
 
     const onNodeMouseEnter = useCallback(
-        createOnNodeMouseEnter(connectingFrom, setCanvasState, getNodes, getEdges),
+        (event: React.MouseEvent, node: Node) => createOnNodeMouseEnter(connectingFrom, setCanvasState, getNodes, getEdges)(event, node),
         [getNodes, getEdges],
     );
 
     const onNodeMouseLeave = useCallback(
-        createOnNodeMouseLeave(connectingFrom, setCanvasState),
+        () => createOnNodeMouseLeave(connectingFrom, setCanvasState)(),
         [],
     );
-
-    const onNodesDelete = useCallback((deletedNodes: Node[]) => {
-        const deletedRelationNodes = deletedNodes
-            .filter(n => n.type === 'relationNode')
-            .map(n => ({nodeId: n.id, relationId: (n.data as {relationId?: string}).relationId}))
-            .filter((entry): entry is {nodeId: string; relationId: string} => !!entry.relationId);
-
-        if (deletedRelationNodes.length === 0) return;
-
-        const excludeNodeIds = new Set(deletedRelationNodes.map(n => n.nodeId));
-
-        // For each deleted relation node, check if it's still referenced elsewhere
-        for (const {relationId} of deletedRelationNodes) {
-            const deps = getRelationDependencies(relationId, {canvasNodeIds: excludeNodeIds});
-            if (deps.isOrphan) {
-                const relation = useRelationsState.getState().relations[relationId];
-                if (relation) {
-                    const editorPath = findPathById(useRelationsState.getState().editorElements, relationId);
-                    useRelationDeleteDialog.getState().openForOrphanDelete(
-                        relationId,
-                        relation.viewState.displayName,
-                        () => {
-                            if (editorPath) {
-                                useRelationsState.getState().deleteEntity('relations', relationId, editorPath);
-                            }
-                        },
-                    );
-                }
-            }
-        }
-    }, []);
 
     const nodesWithConnectionHover = useMemo(() => {
         return nodes.map(node => {
@@ -244,12 +266,14 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
     }, []);
 
     return (
-        <CanvasProvider canvasId={canvasId} setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges} openFullscreen={openFullscreen}>
+        <CanvasProvider canvasId={canvasId} setNodes={setNodes} setEdges={setEdges} getNodes={getNodes} getEdges={getEdges} openFullscreen={openFullscreen} embedded={embedded}>
+            <RenameRelationContext.Provider value={renameBlock}>
             <div
                 className={isPanning ? 'canvas-panning' : undefined}
                 style={{width: '100%', height: '100%'}}
                 onKeyDownCapture={(e) => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    // The plain SQL editor runs its own text.
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !(e.target as HTMLElement).closest('[data-plain-sql-editor]')) {
                         e.stopPropagation();
                         e.preventDefault();
                         runSelectedNode();
@@ -261,7 +285,7 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
             >
                 <ReactFlow
                 nodes={nodesWithConnectionHover}
-                edges={edges}
+                edges={animatedEdges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
@@ -269,7 +293,6 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
                 onConnectEnd={onConnectEnd}
                 onNodeMouseEnter={onNodeMouseEnter}
                 onNodeMouseLeave={onNodeMouseLeave}
-                onNodesDelete={onNodesDelete}
                 onNodeDragStart={onNodeDragStart}
                 onNodeDrag={onNodeDrag}
                 onNodeDragStop={onNodeDragStop}
@@ -279,15 +302,22 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
                 connectionMode={ConnectionMode.Loose}
                 colorMode={resolvedTheme === 'dark' ? 'dark' : 'light'}
                 defaultViewport={viewport}
+                fitView={!viewport && !embedded}
+                fitViewOptions={{padding: 0.1, maxZoom: 1}}
                 onViewportChange={onViewportChange}
                 onMoveStart={() => setIsPanning(true)}
                 onMoveEnd={() => setIsPanning(false)}
                 snapToGrid={canvasState.selectedTool !== 'free-draw'}
                 snapGrid={[GRID_SIZE, GRID_SIZE]}
-                panOnScroll={true}
+                panOnScroll={!embedded}
+                preventScrolling={!embedded}
+                minZoom={embedded ? 0.2 : 0.5}
+                zoomOnPinch={!embedded}
+                zoomOnDoubleClick={!embedded}
                 panOnScrollSpeed={1.5}
-                panOnDrag={canvasState.selectedTool === 'drag-canvas' ? true : [1]}
-                style={{cursor: cursorStyle}}
+                panOnDrag={embedded ? false : canvasState.selectedTool === 'drag-canvas' ? true : [1]}
+                style={{cursor: cursorStyle, ...(embedded && {'--xy-background-color': 'transparent'})}}
+                proOptions={{hideAttribution: embedded}}
                 zoomOnScroll={false}
                 selectionOnDrag={canvasState.selectedTool === 'pointer'}
                 elementsSelectable={canvasState.selectedTool === 'pointer'}
@@ -295,24 +325,26 @@ export function Flow({canvasId, openFullscreen}: FlowProps) {
                 connectionRadius={32}
                 edgesFocusable={true}
                 defaultEdgeOptions={{interactionWidth: 20}}
-                deleteKeyCode={['Delete', 'Backspace']}
+                deleteKeyCode={embedded ? null : ['Delete', 'Backspace']}
                 panActivationKeyCode={null}
             >
-                <Background
+                {!embedded && <Background
                     id={canvasId}
                     offset={GRID_SIZE}
                     gap={GRID_SIZE}
-                />
+                />}
 
-                <Controls/>
+                {!embedded && <Controls/>}
                 <HelperLines helperLines={helperLines}/>
                 <NodePreview canvasState={canvasState}/>
                 <FreeDrawPreview
                     currentStroke={canvasState.selectedTool === 'free-draw' ? (canvasState as CanvasStateFreeDraw).currentStroke : undefined}
                 />
-                <FlowPalette canvasState={canvasState} setCanvasState={setCanvasState}/>
+                {!embedded && <FlowPalette canvasState={canvasState} setCanvasState={setCanvasState}/>}
                 </ReactFlow>
             </div>
+            <RelationFullscreenDialog nodes={nodes}/>
+            </RenameRelationContext.Provider>
         </CanvasProvider>
     );
 }

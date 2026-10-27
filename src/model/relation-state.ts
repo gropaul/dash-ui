@@ -23,7 +23,6 @@ import {TextViewParameters} from "@/model/relation-state/relation-view-text";
 import {SliderQueryParameters} from "@/model/relation-state/relation-view-slider";
 import {Column} from "@/model/data-source-connection";
 import {RelationQueryState} from "@/model/relation-query-state";
-import {EntityBase} from "@/state/entities/entity-base";
 
 //! Is called when the user changes the code and reruns the query -> Reset some view parameters
 export function resetQueryParams(queryData: QueryData): RelationQueryParameters {
@@ -175,7 +174,7 @@ export function ShouldUpdateStats(relation: RelationState): boolean {
     //     relation.viewState.tableState.showStats === true;
 }
 
-export interface RelationState extends RelationWithQuery, EntityBase {
+export interface RelationState extends RelationWithQuery {
     viewState: RelationViewState;
     queryState?: RelationQueryState;
 }
@@ -287,7 +286,12 @@ export async function executeQueryOfRelation(input: RelationState, readOnly: boo
         }
     }
 
-    const buildResult = await buildQueryWithCheck(input);
+    let buildResult: QueryBuildResult;
+    try {
+        buildResult = await buildQueryWithCheck(input);
+    } catch (e) {
+        return returnEmptyErrorState(input, e);
+    }
 
     // start a timer to measure the query duration
     const start = performance.now();

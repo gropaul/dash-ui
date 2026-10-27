@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /** Chart-view helpers. Switch to it first with `selectResultView(page, 'Chart')`. */
 
@@ -27,4 +27,11 @@ export async function expectBarChartVisible(page: Page): Promise<void> {
   await expect(page.getByRole('combobox').filter({ hasText: 'Bar' })).toBeVisible();
   // ECharts tags its root node with this attribute once it has rendered.
   await expect(page.locator('[_echarts_instance_]')).toBeVisible();
+}
+
+/** Assert `scope` (e.g. a page block, which has no config panel) shows a rendered chart and no table. */
+export async function expectChartIn(scope: Locator): Promise<void> {
+  // ECharts tags its root node with this attribute once it has rendered.
+  await expect(scope.locator('[_echarts_instance_]')).toBeVisible();
+  await expect(scope.getByRole('table')).toHaveCount(0);
 }

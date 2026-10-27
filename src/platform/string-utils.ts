@@ -1,19 +1,4 @@
 /**
- * URL-safe slug from a display name: accent-folded, lowercased, any run of non-alphanumerics
- * collapsed to a single dash, leading/trailing dashes trimmed. Returns `fallback` when the
- * result is empty.
- */
-export function slugify(name: string, fallback: string = ""): string {
-    const slug = (name ?? "")
-        .normalize("NFKD")
-        .replace(/[̀-ͯ]/g, "") // strip combining marks
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")     // any run of non-alphanumerics → one dash
-        .replace(/^-+|-+$/g, "");        // trim leading/trailing dashes
-    return slug.length > 0 ? slug : fallback;
-}
-
-/**
  * Human-friendly relative time ("Just now", "5 mins ago", "2 days ago").
  * Returns `fallback` when the timestamp is missing (e.g. an element never viewed/edited).
  */
@@ -68,4 +53,10 @@ export function toSnakeCase(str: string): string {
 
     // Lowercase all words and join with underscore
     return words.map(word => word.toLowerCase()).join('_');
+}
+
+/** "busiest_stations" -> "Busiest stations" */
+export function humanizeName(name: string): string {
+    const words = name.replace(/_+/g, ' ').trim();
+    return words.charAt(0).toUpperCase() + words.slice(1);
 }

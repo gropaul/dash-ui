@@ -160,6 +160,7 @@ export function TableColumnHead(props: ColumnHeadProps) {
             onSelectedChange={onSelectedChange}
             thRef={setNodeRef}
             thStyle={dragStyle}
+            sorting={columnSorting}
         >
             <div
                 className="w-full group flex items-center justify-between pr-6"
@@ -209,6 +210,7 @@ interface ColumnHeadWrapperProps extends ColumnStatsProps {
     children?: React.ReactNode;
     thRef?: (node: HTMLElement | null) => void;
     thStyle?: React.CSSProperties;
+    sorting?: ColumnSorting;
 }
 
 function ColumnHeadWrapper(props: ColumnHeadWrapperProps) {
@@ -217,6 +219,7 @@ function ColumnHeadWrapper(props: ColumnHeadWrapperProps) {
         <th
             ref={props.thRef}
             scope="col"
+            aria-sort={props.sorting === 'ASC' ? 'ascending' : props.sorting === 'DESC' ? 'descending' : undefined}
             style={{width: props.columnWidth, overflow: 'hidden', ...props.thStyle}}
             className={`p-0 m-0 h-full`}
         >

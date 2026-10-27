@@ -1,17 +1,18 @@
 'use client';
 
 import {useEffect} from "react";
-import {useRelationsState} from "@/state/relations.state";
 import {useProjectsState} from "@/state/projects.state";
-import {FolderView} from "@/components/workbench/folder-view";
 import {ConnectionsView} from "@/components/connections/connections-view";
 import {CatalogView} from "@/components/catalog/catalog-view";
-import {RelationTab} from "@/components/relation/relation-tab";
-import {DashboardTab} from "@/components/dashboard/dashboard-tab";
+import {QueryTab} from "@/components/relation/query-tab";
+import {PageTab} from "@/components/dashboard/page-tab";
 import {CanvasTab} from "@/components/canvas/canvas-tab";
+import {GetStartedPage} from "@/components/onboarding/get-started-page";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {SubRouterProps} from "@/components/layout/app-router";
-import {TreeNode} from "@/components/basics/files/tree-utils";
+import {useWorkspace} from "@/state/workspace/workspace.state";
+import {useFileStats} from "@/state/workspace/file-stats.state";
+import {kindOf} from "@/state/workspace/workspace-tree";
 
 
 interface ProjectRouterProps extends SubRouterProps {
@@ -20,15 +21,9 @@ interface ProjectRouterProps extends SubRouterProps {
 
 /**
  * The view dispatcher for a specific project. `/projects/<id>/connections` is the connections tab;
- * `/projects/<id>/data[/<seg>…]` is the catalog; `/projects/<id>/workspace[/<seg>…]` is the
- * object tree (empty path is the project root, deeper paths resolve against the live editor tree).
+ * `/projects/<id>/data[/<seg>…]` is the catalog; `/projects/<id>/workspace/<path>` opens the file at that path.
  */
 export function RouterProject(props: ProjectRouterProps) {
-
-    // Resolution below reads the tree non-reactively (getState), so subscribe here to re-render
-    // and re-resolve when the tree changes (add / rename / delete / move) — without this a delete
-    // inside the current folder leaves the stale node on screen (URL is unchanged).
-    useRelationsState((s) => s.editorElements);
     // Reactive so a project rename/delete re-resolves below.
     const projects = useProjectsState((s) => s.projects);
 
@@ -43,7 +38,6 @@ export function RouterProject(props: ProjectRouterProps) {
         return <ProjectNotFound/>;
     }
 
-    // Connections tab.
     if (location.section === "connections") {
         return <ConnectionsView/>;
     }
@@ -53,38 +47,30 @@ export function RouterProject(props: ProjectRouterProps) {
         return <CatalogView/>;
     }
 
-    // Workspace root.
     if (location.path.length === 0) {
-        return <FolderView segments={[]}/>;
+        return <GetStartedPage/>;
     }
-
-    // Primary resolution on the raw tree; if that misses, the URL may address a relation shown
-    // in the context of a dashboard/canvas (a virtual child) — resolve on the augmented tree.
-    // getState() reads are fine here: resolution only matters on navigation / editorElements
-    // changes, both of which re-render this component.
-    const node = DashNavigator.instance().getObjectFromLocation(DashLocations.CurrentProjectElement(location.path));
-    if (!node) return <NotFound/>;
-    return <ResolvedView node={node} segments={location.path}/>;
+    return <FileView projectId={location.projectId} path={location.path.join('/')}/>;
 }
 
-function ResolvedView({node, segments}: { node: TreeNode; segments: string[] }) {
-    const markEntityViewed = useRelationsState((state) => state.markEntityViewed);
+function FileView({projectId, path}: { projectId: string, path: string }) {
+    const exists = useWorkspace(s => path in s.files);
+    const markViewed = useFileStats(s => s.markViewed);
 
     useEffect(() => {
-        if (node.type === "folder" || node.type === "relations" || node.type === "dashboards" || node.type === "canvas") {
-            markEntityViewed(node.type, node.id);
-        }
-    }, [node.id, node.type, markEntityViewed]);
+        if (exists) markViewed(projectId, path);
+    }, [exists, projectId, path, markViewed]);
 
-    switch (node.type) {
-        case "folder":
-            return <FolderView folderNode={node} segments={segments}/>;
-        case "relations":
-            return <RelationTab relationId={node.id}/>;
-        case "dashboards":
-            return <DashboardTab dashboardId={node.id}/>;
+    if (!exists) return <NotFound/>;
+    switch (kindOf(path)) {
+        case "page":
+            return <PageTab path={path}/>;
+        case "query":
+            return <QueryTab path={path}/>;
         case "canvas":
-            return <CanvasTab canvasId={node.id}/>;
+            return <CanvasTab path={path}/>;
+        case "sources":
+            return <ConnectionsView/>;
         default:
             return <NotFound/>;
     }
@@ -95,7 +81,7 @@ function NotFound() {
         <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-muted-foreground">
             <div className="text-lg">Nothing here</div>
             <a onClick={DashNavigator.instance().onClickNavigateToLocation(DashLocations.CurrentProjectRoot())}
-               className="text-sm underline hover:text-foreground">Back to Projects</a>
+               className="text-sm underline hover:text-foreground">Back to the workspace</a>
         </div>
     );
 }

@@ -3,12 +3,15 @@ import {Button} from "@/components/ui/button";
 import {MacroCopyButton} from "@/components/relation/macro-copy-button";
 import {RelationExecutionInfo} from "@/components/relation/common/relation-execution-info";
 import {RelationState} from "@/model/relation-state";
-import {useRenameDialogStore} from "@/state/rename-dialog.state";
-import {useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
+import {RenameRelationContext} from "@/components/relation/common/rename-relation-context";
+import {renameEntry} from "@/components/workspace/file-actions";
 import {H4, H5} from "@/components/ui/typography";
 
 export interface RelationTitleWithActionsProps {
     relationState: RelationState;
+    /** What the title shows, if not the relation's name as it stands, e.g. a canvas node's "Total trains". */
+    title?: string;
     className?: string;
     executionInfoClassName?: string;
 }
@@ -20,6 +23,7 @@ export interface RelationTitleWithActionsProps {
  */
 export function RelationTitleWithActions({
                                              relationState,
+                                             title,
                                              className,
                                              executionInfoClassName,
                                          }: RelationTitleWithActionsProps) {
@@ -43,9 +47,9 @@ export function RelationTitleWithActions({
         return () => observer.disconnect();
     }, []);
 
-    const handleOpenRename = () => {
-        useRenameDialogStore.getState().openRelationRenameDialog(relationState);
-    };
+    const rename = useContext(RenameRelationContext);
+    // A query's id is its file's path.
+    const handleOpenRename = () => rename ? rename(relationState) : renameEntry(relationState.id);
 
     return (
         <div ref={containerRef} className={`group/title flex items-center min-w-0 flex-1 ${className ?? ''}`}>
@@ -53,7 +57,7 @@ export function RelationTitleWithActions({
                     <H5
                         className="font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
                     >
-                        {displayName}
+                        {title ?? displayName}
                     </H5>
                 {showExecInfo && executionState && (
                     <span className="overflow-hidden text-ellipsis min-w-0 flex-shrink">
@@ -68,6 +72,7 @@ export function RelationTitleWithActions({
             <div className="flex items-center gap-1 flex-shrink-0 overflow-hidden max-w-0 opacity-0 group-hover/title:max-w-16 group-hover/title:opacity-100 transition-all duration-200 ease-out">
                 <Button
                     className="h-6 w-6 flex-shrink-0 ml-1.5"
+                    aria-label="Rename"
                     onClick={(e) => {
                         e.stopPropagation();
                         handleOpenRename();

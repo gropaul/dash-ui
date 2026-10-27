@@ -4,6 +4,7 @@ import {defaultColorFactory, defaultIconFactory} from "@/components/basics/files
 import {HEADER_HEIGHT} from "@/components/canvas/logic/models";
 import {RelationState} from "@/model/relation-state";
 import {RelationTitleWithActions} from "@/components/relation/common/relation-title-with-actions";
+import {humanizeName} from "@/platform/string-utils";
 
 export interface RelationNodeHeaderProps {
     relationState: RelationState;
@@ -41,6 +42,7 @@ export function RelationNodeHeader(props: RelationNodeHeaderProps) {
             <div className="flex flex-row min-w-0 gap-1.5 items-center flex-1">
                 <RelationTitleWithActions
                     relationState={relationState}
+                    title={humanizeName(relationState.viewState.displayName)}
                     executionInfoClassName="text-md"
                 />
             </div>

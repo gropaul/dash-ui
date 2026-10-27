@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {ReactNode, useMemo, useState} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm'
@@ -19,15 +19,13 @@ export interface MarkdownRendererProps {
     markdown: string;
     className?: string;
     codeStyle?: any
+    /** Renders a fenced block in place of its code; undefined keeps the code. `offset` is where it starts in `markdown`. */
+    renderCode?: (code: { language?: string, text: string, offset: number }) => ReactNode | undefined;
 }
 
-export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRendererProps) {
-    return (
-        <ReactMarkdown
-            children={markdown}
-            remarkPlugins={[remarkMath, remarkGfm]}
-            rehypePlugins={[rehypeKatex]}
-            components={{
+export function MarkdownRenderer({ markdown, className, codeStyle, renderCode }: MarkdownRendererProps) {
+    // Stable, so what a fence renders isn't remounted when the host re-renders.
+    const components = useMemo(() => ({
                 p({ node, ...props }: any) {
                     return <p className="my-0.5" {...props} />;
                 },
@@ -41,13 +39,13 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
                     return <h3 className="my-0.5" {...props} />;
                 },
                 ul({ node, ...props }: any) {
-                    return <ul className="my-1 pl-1" {...props} />;
+                    return <ul className="my-1 list-disc pl-5" {...props} />;
                 },
                 ol({ node, ...props }: any) {
-                    return <ol className="my-1 pl-1" {...props} />;
+                    return <ol className="my-1 list-decimal pl-5" {...props} />;
                 },
                 li({ node, ...props }: any) {
-                    return <li className="my-1" {...props} />;
+                    return <li className="my-0.5" {...props} />;
                 },
                 code({ node, className, children, ...props }: any) {
                     const CodeBlock = ({ codeString, language, isBlock }: { codeString: string, language?: string, isBlock: boolean }) => {
@@ -66,8 +64,8 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
 
                         if (isBlock) {
                             const canHighlight = language && REGISTERED_LANGUAGES.has(language);
-                            // Both paths live inside the same themed box (bg-muted, small mono, horizontal
-                            // scroll). The highlighter renders transparently so the box's background shows
+                            // Both paths live inside the same box (a tint of the text colour, so it stands out on any
+                            // surface; small mono, horizontal scroll). The highlighter renders transparently so the box's background shows
                             // through — react-syntax-highlighter otherwise hardcodes a white background.
                             const highlighterStyle = {
                                 margin: 0,
@@ -78,7 +76,7 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
                             };
                             return (
                                 <div className={cn(
-                                    "relative group my-2 p-3 rounded-md bg-muted overflow-x-auto text-xs",
+                                    "relative group my-2 p-3 rounded-md bg-foreground/5 overflow-x-auto text-xs",
                                     fontMono.className,
                                 )}>
                                     <button
@@ -107,7 +105,7 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
                         } else {
                             return (
                                 <span className="relative group inline-block">
-                                    <code className={'text-xs bg-background px-1 py-0.5 rounded'} {...props}>
+                                    <code className={'text-xs bg-foreground/[0.07] px-1 py-0.5 rounded'} {...props}>
                                         {codeString}
                                     </code>
                                 </span>
@@ -121,6 +119,8 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
                     // ourselves: it either has a language class or spans multiple lines. Fenced blocks with
                     // no language would otherwise be mis-rendered as inline code.
                     const isBlock = !!match || codeString.includes('\n');
+                    const custom = isBlock && renderCode?.({language: match?.[1], text: codeString, offset: node?.position?.start.offset ?? 0});
+                    if (custom) return custom;
 
                     return <CodeBlock
                         codeString={codeString}
@@ -154,7 +154,14 @@ export function MarkdownRenderer({ markdown, className, codeStyle }: MarkdownRen
                     return <td className="px-2 py-1 text-foreground" {...props} />;
                 },
 
-            }}
+            }), [codeStyle, renderCode]);
+
+    return (
+        <ReactMarkdown
+            children={markdown}
+            remarkPlugins={[remarkMath, remarkGfm]}
+            rehypePlugins={[rehypeKatex]}
+            components={components}
         />
     );
 }

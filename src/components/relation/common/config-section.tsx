@@ -5,6 +5,7 @@ import {useState} from "react";
 import {cn} from "@/lib/utils";
 import {Muted} from "@/components/ui/typography"
 import {Label} from "@/components/ui/label";
+import {Expandable} from "@/components/basics/expandable";
 
 interface ConfigSectionProps {
     title: string;
@@ -16,7 +17,7 @@ interface ConfigSectionProps {
 export function ConfigSection({title, collapsedSummary, children}: ConfigSectionProps) {
     const [open, setOpen] = useState(true);
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
             <div
                 className="flex cursor-pointer items-center gap-1.5"
                 onClick={() => setOpen(!open)}
@@ -30,7 +31,7 @@ export function ConfigSection({title, collapsedSummary, children}: ConfigSection
                     <span className="text-xs text-muted-foreground">{collapsedSummary}</span>
                 )}
             </div>
-            {open && children}
+            <Expandable open={open} className="flex flex-col gap-2 pt-2">{children}</Expandable>
         </div>
     );
 }

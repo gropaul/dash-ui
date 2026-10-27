@@ -1,7 +1,6 @@
-import {Edge, MarkerType, Node} from '@xyflow/react';
+import {Edge, MarkerType} from '@xyflow/react';
 import {minifySQL} from "@/platform/sql-utils";
-import {extractMacroRefs, sanitizeMacroName} from "@/state/relations/sql/table-macros";
-import {useRelationsState} from "@/state/relations.state";
+import {extractMacroRefs} from "@/state/relations/sql/table-macros";
 
 /**
  * Extract node references from SQL.
@@ -9,67 +8,6 @@ import {useRelationsState} from "@/state/relations.state";
  */
 export function extractNodeRefs(sql: string): string[] {
     return extractMacroRefs(sql);
-}
-
-/**
- * Find the node ID whose display name matches a given sanitized macro ref.
- * E.g. ref "employees" matches a node with displayName "Employees" because
- * sanitizeMacroName("Employees") === "employees".
- */
-function findNodeIdByMacroRef(ref: string, allNodes: Node[], excludeNodeId: string): string | null {
-    const relations = useRelationsState.getState().relations;
-    for (const node of allNodes) {
-        if (node.id === excludeNodeId) continue;
-        if (node.type !== 'relationNode') continue;
-        const relationId = (node.data as {relationId?: string}).relationId;
-        const displayName = relationId ? relations[relationId]?.viewState?.displayName : undefined;
-        if (displayName && sanitizeMacroName(displayName) === ref) {
-            return node.id;
-        }
-    }
-    return null;
-}
-
-/**
- * Compute which edges to add and which to remove based on SQL detection.
- * Only considers edges where the current node is the target (downstream).
- */
-export function diffEdges(
-    currentNodeId: string,
-    detectedRefs: string[],
-    currentEdges: Edge[],
-    allNodes: Node[]
-): { toAdd: { source: string; target: string }[]; toRemove: string[] } {
-    // Map detected refs to source node IDs
-    const detectedSourceIds = new Set<string>();
-    for (const ref of detectedRefs) {
-        const sourceId = findNodeIdByMacroRef(ref, allNodes, currentNodeId);
-        if (sourceId) {
-            detectedSourceIds.add(sourceId);
-        }
-    }
-
-    // Current edges where this node is the target
-    const existingIncoming = currentEdges.filter(e => e.target === currentNodeId);
-    const existingSourceIds = new Set(existingIncoming.map(e => e.source));
-
-    // Edges to add: detected but not yet existing
-    const toAdd: { source: string; target: string }[] = [];
-    for (const sourceId of detectedSourceIds) {
-        if (!existingSourceIds.has(sourceId)) {
-            toAdd.push({source: sourceId, target: currentNodeId});
-        }
-    }
-
-    // Edges to remove: existing but no longer detected
-    const toRemove: string[] = [];
-    for (const edge of existingIncoming) {
-        if (!detectedSourceIds.has(edge.source)) {
-            toRemove.push(edge.id);
-        }
-    }
-
-    return {toAdd, toRemove};
 }
 
 /**
