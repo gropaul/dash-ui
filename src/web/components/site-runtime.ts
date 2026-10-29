@@ -57,9 +57,16 @@ export function startDatabase(): Promise<DatabaseConnection> {
     return database;
 }
 
+// Safari has no requestIdleCallback; there DuckDB starts after this long.
+const START_WITHOUT_IDLE_MS = 1000;
+
 /** Starts DuckDB once the page is idle. */
 export function useStartDatabaseWhenIdle() {
     useEffect(() => {
+        if (!('requestIdleCallback' in window)) {
+            const timer = setTimeout(() => void startDatabase(), START_WITHOUT_IDLE_MS);
+            return () => clearTimeout(timer);
+        }
         const idle = requestIdleCallback(() => void startDatabase(), {timeout: 4000});
         return () => cancelIdleCallback(idle);
     }, []);
