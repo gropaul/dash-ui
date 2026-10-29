@@ -12,7 +12,7 @@ const itemsOf = (variant: MenuVariant) => variant === 'context'
 
 /** New page, query, canvas and folder in `folder` ('' for the top level). */
 export function NewFileItems({variant, folder}: { variant: MenuVariant, folder: string }) {
-    const {Item, Label, Separator} = itemsOf(variant);
+    const {Item, Label} = itemsOf(variant);
     return (
         <>
             <Label className="text-xs font-medium text-muted-foreground">New</Label>
@@ -28,7 +28,6 @@ export function NewFileItems({variant, folder}: { variant: MenuVariant, folder: 
                 <Workflow size={16} className="mr-2"/>
                 <span>Canvas</span>
             </Item>
-            <Separator/>
             <Item onClick={() => newFile('folder', folder)}>
                 <Folder size={16} className="mr-2"/>
                 <span>Folder</span>

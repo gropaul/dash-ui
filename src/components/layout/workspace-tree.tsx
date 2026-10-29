@@ -177,12 +177,11 @@ function TreeItem({item, context}: { item: ItemInstance<WorkspaceNode>, context:
 
     const {onClick, ...props} = item.getProps();
     // Pages and queries are named without their extension; the tree shows it, as they are real files.
-    const extension = baseName(node.path).slice(node.name.length);
     const label = (
         <>
             <ColoredIcon type={fileIconType(node)} size={16} background={false}/>
             <span className="min-w-0 flex-1 truncate">
-                {node.name}<span className="text-muted-foreground">{extension}</span>
+                {baseName(node.path)}
             </span>
         </>
     );
