@@ -15,7 +15,8 @@ const FILES = ['src/web/components/landing.canvas', 'src/web/components/landing-
 const TIMEOUT_MS = 120_000;
 
 const queries = FILES.reduce((count, file) => count + [...fs.readFileSync(file, 'utf8').matchAll(/^```sql (\w+)/gm)].length, 0);
-const browser = await chromium.launch();
+// The installed Google Chrome, so no Playwright browser has to be downloaded.
+const browser = await chromium.launch({channel: 'chrome'});
 try {
     const page = await browser.newPage({viewport: {width: 1600, height: 1000}});
     await page.goto(`${SITE}/?fresh`);

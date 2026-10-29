@@ -71,11 +71,12 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
     const markdownSize = useGUIState(s => Math.round(s.pageMarkdownRatio * 100));
 
     const editor = usePlateEditor({
-        plugins: PAGE_EDITOR_PLUGINS,
+        // The blocks key their state by the path from their first render on; set later, they would run once as `#name`.
+        plugins: PAGE_EDITOR_PLUGINS.map(plugin => plugin === PagePathPlugin ? PagePathPlugin.configure({options: {path}}) : plugin),
         value: (e) => e.getApi(MarkdownPlugin).markdown.deserialize(markdown),
     });
     useRelationLinks(path);
-    // Before the blocks render, which key their state by it.
+    // A page moved or renamed while open.
     useLayoutEffect(() => {
         editor.setOption(PagePathPlugin, 'path', path);
     }, [editor, path]);
