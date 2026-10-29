@@ -11,9 +11,12 @@ export const LANDING_CANVAS = 'Landing.canvas';
 /** The landing page's dashboard: its blocks are kept under `Dashboard.md#<name>`. */
 export const LANDING_DASHBOARD = 'Dashboard.md';
 
-/** What the landing page's queries read: a week of Dutch train stops, by a short name. */
-export const LANDING_SETUP = [
-    `CREATE TABLE IF NOT EXISTS memory.main.trains AS SELECT * FROM 'https://raw.githubusercontent.com/gropaul/dash-ui/main/test/data/services-2025-38.parquet';`,
+/**
+ * What the landing page's queries read: a week of Dutch train stops, by a short name, from the site itself
+ * (public/data). DuckDB WASM takes a path as one of its own files, so the URL is the page's, hence a function.
+ */
+export const landingSetup = () => [
+    `CREATE TABLE IF NOT EXISTS memory.main.trains AS SELECT * FROM '${window.location.origin}/data/services-2025-38.parquet';`,
 ];
 
 /** The box around the landing canvas's nodes, which the hero fills edge to edge. */

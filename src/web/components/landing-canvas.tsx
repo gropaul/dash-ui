@@ -6,7 +6,7 @@ import {Flow} from "@/components/canvas/flow";
 import {useBlockFullscreen} from "@/components/page-editor/block-fullscreen";
 import {Loader2} from "lucide-react";
 import {openSiteFile, SiteSnapshot, useStartDatabaseWhenIdle, useWaitingForDatabase} from "@web/components/site-runtime";
-import {LANDING_BOUNDS, LANDING_CANVAS, LANDING_SETUP} from "@web/components/landing";
+import {LANDING_BOUNDS, LANDING_CANVAS, landingSetup} from "@web/components/landing";
 import canvasText from "@web/components/landing.canvas?raw";
 import snapshot from "@web/components/landing-snapshot.json";
 
@@ -16,7 +16,7 @@ import snapshot from "@web/components/landing-snapshot.json";
  */
 export default function LandingCanvas({box, onShown}: { box: RefObject<HTMLElement | null>, onShown: () => void }) {
     // Before the canvas renders, which reads the stores.
-    useState(() => openSiteFile(LANDING_CANVAS, canvasText, LANDING_SETUP, snapshot as unknown as SiteSnapshot));
+    useState(() => openSiteFile(LANDING_CANVAS, canvasText, landingSetup(), snapshot as unknown as SiteSnapshot));
     const openFullscreen = useBlockFullscreen(s => s.open);
     const pane = useRef<HTMLDivElement>(null);
     const waiting = useWaitingForDatabase();
