@@ -8,6 +8,8 @@ import {cn} from "@/lib/utils";
 export const SITE_URL = 'https://www.dash.builders';
 export const APP_URL = 'https://app.dash.builders/';
 export const GITHUB_URL = 'https://github.com/gropaul/dash';
+export const SITE_DESCRIPTION = 'Dash is an open-source SQL workspace on DuckDB: queries on a canvas and dashboards written in '
+    + 'Markdown, running locally in your browser or inside DuckDB.';
 export const RELEASES_URL = 'https://github.com/gropaul/dash-ui/releases/latest';
 
 export function SiteHeader() {
@@ -18,22 +20,22 @@ export function SiteHeader() {
                     {/* The duck sits in a circle and reaches out of it at the top. */}
                     <span className="relative flex h-8 w-8 shrink-0 items-center justify-center">
                         <span className="absolute bottom-0 left-1/2 h-9 w-9 -translate-x-1/2 rounded-full bg-muted"/>
-                        <Image src="/logo.png" alt="" width={32} height={32} className="relative"/>
+                        <Image src="/logo-64.webp" alt="" width={32} height={32} className="relative"/>
                     </span>
                     Dash
                 </Link>
                 <nav className="flex items-center gap-1 text-sm">
                     <Link href="/docs" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2 rounded-2xl")}>
                         <BookOpen className="h-4 w-4"/>
-                        <span className="hidden sm:inline">Docs</span>
+                        <span className="sr-only sm:not-sr-only">Docs</span>
                     </Link>
                     <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2 rounded-2xl")}>
                         <Github className="h-4 w-4"/>
-                        <span className="hidden sm:inline">GitHub</span>
+                        <span className="sr-only sm:not-sr-only">GitHub</span>
                     </a>
                     <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({variant: 'ghost', size: 'sm'}), "gap-2 rounded-2xl")}>
                         <AppWindow className="h-4 w-4"/>
-                        <span className="hidden sm:inline">Open in browser</span>
+                        <span className="sr-only sm:not-sr-only">Open in browser</span>
                     </a>
                 </nav>
             </div>
@@ -46,7 +48,7 @@ export function SiteFooter() {
         <footer className="border-t">
             <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground md:flex-row">
                 <div className="flex items-center gap-2 text-foreground">
-                    <Image src="/logo.png" alt="" width={32} height={32}/>
+                    <Image src="/logo-64.webp" alt="" width={32} height={32}/>
                     <span className="font-semibold">Dash</span>
                 </div>
                 <nav className="flex items-center gap-5">

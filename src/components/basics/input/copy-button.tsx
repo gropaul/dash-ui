@@ -24,6 +24,7 @@ export function CopyButton({textToCopy, className, size = 14}: CopyButtonProps) 
     return (
         <button
             onClick={handleCopy}
+            aria-label="Copy"
             className={`cursor-pointer ${className}`}
         >
             {copied ? (

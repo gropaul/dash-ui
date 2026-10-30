@@ -70,17 +70,17 @@ export default function Landing() {
             </section>
 
             <section className="mx-auto max-w-6xl px-4 py-24">
-                <dl className="grid gap-x-14 md:grid-cols-2">
+                <ul className="grid gap-x-14 md:grid-cols-2">
                     {CAPABILITIES.map(c => (
-                        <div key={c.tag} className="flex gap-5 border-t py-5">
+                        <li key={c.tag} className="flex gap-5 border-t py-5">
                             <span className="w-16 shrink-0 pt-1 font-mono text-xs text-muted-foreground">{c.tag}</span>
                             <div>
-                                <dt className="font-semibold">{c.name}</dt>
-                                <dd className="mt-1 leading-relaxed text-muted-foreground">{c.body}</dd>
+                                <h3 className="font-semibold">{c.name}</h3>
+                                <p className="mt-1 leading-relaxed text-muted-foreground">{c.body}</p>
                             </div>
-                        </div>
+                        </li>
                     ))}
-                </dl>
+                </ul>
             </section>
         </>
     );
