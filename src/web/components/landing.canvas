@@ -1,7 +1,7 @@
 <node id="title" type="text" x="0" y="60" width="440" height="120" text-style="h1" text-align="left" background="hsl(var(--background))" background-blur="12">
 
-Wire up your data,
-keep it local.
+Connect your data,
+but keep it local.
 
 </node>
 
