@@ -3,7 +3,7 @@
 import {RelationData} from "@/model/relation";
 
 import React, {useEffect, useMemo, useRef} from 'react';
-import ReactECharts from 'echarts-for-react';
+import ReactECharts from "@/components/relation/chart/react-echarts";
 import {EChartsOption} from "echarts-for-react/src/types";
 import {toEChartOptions, plotIsCartesian} from "@/components/relation/chart/echart-utils";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";

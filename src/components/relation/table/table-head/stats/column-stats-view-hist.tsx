@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import {useEffect, useRef, useState} from "react";
 import {formatDateRange, formatNumber, formatNumberFixed} from "@/platform/number-utils";
 
-const ReactECharts = dynamic(() => import("echarts-for-react"), {
+const ReactECharts = dynamic(() => import("@/components/relation/chart/react-echarts"), {
     ssr: false,
 });
 

@@ -11,7 +11,7 @@ import {
     ToggleSelected
 } from "@/components/relation/table/table-head/stats/helper/top-n-helper";
 
-const ReactECharts = dynamic(() => import("echarts-for-react"), {ssr: false});
+const ReactECharts = dynamic(() => import("@/components/relation/chart/react-echarts"), {ssr: false});
 
 export type TopNItem = { value: any; count: number }
 export type TopNItemTransformed = { valueString: string } & TopNItem;
