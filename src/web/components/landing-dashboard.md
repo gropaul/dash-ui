@@ -5,9 +5,8 @@
 
 # Dashboards written in Markdown, executed with DuckDB
 
-A dashboard is a page: one Markdown file with text and sql blocks that show their result as a chart, a table, a number or a dropdown. It reads fine without Dash, and a coding agent writes it as easily as you do.
-
-
+With Dash, you can build interactive data apps in Markdown. A dashboard is a plain text file: it fits into version
+control, reads fine without Dash, and you can write and edit it with your favorite editor or coding agent.
 
 ```sql service_type
 -- view: select
