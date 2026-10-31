@@ -1,6 +1,6 @@
 'use client';
 
-import {RefObject, useEffect, useRef, useState} from "react";
+import {RefObject, useEffect, useRef} from "react";
 import {ReactFlowProvider, useReactFlow} from "@xyflow/react";
 import {Flow} from "@/components/canvas/flow";
 import {useBlockFullscreen} from "@/components/page-editor/block-fullscreen";
@@ -10,13 +10,14 @@ import {LANDING_BOUNDS, LANDING_CANVAS, landingSetup} from "@web/components/land
 import canvasText from "@web/components/landing.canvas?raw";
 import snapshot from "@web/components/landing-snapshot.json";
 
+// Once, before the canvas renders, which reads the stores; not while rendering (see live-dashboard.tsx).
+openSiteFile(LANDING_CANVAS, canvasText, landingSetup(), snapshot as unknown as SiteSnapshot);
+
 /**
  * The landing page's canvas, live: shown from its snapshot first, with DuckDB starting once the page is idle. It covers
  * its whole parent, and its nodes, as the file places them, fill `box`: dragged past it, they stay on the canvas.
  */
 export default function LandingCanvas({box, onShown}: { box: RefObject<HTMLElement | null>, onShown: () => void }) {
-    // Before the canvas renders, which reads the stores.
-    useState(() => openSiteFile(LANDING_CANVAS, canvasText, landingSetup(), snapshot as unknown as SiteSnapshot));
     const openFullscreen = useBlockFullscreen(s => s.open);
     const pane = useRef<HTMLDivElement>(null);
     const waiting = useWaitingForDatabase();

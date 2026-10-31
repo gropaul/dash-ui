@@ -31,12 +31,10 @@ export function Hero({phone}: { phone: React.ReactNode }) {
     const live = useSyncExternalStore(subscribeToWidth, () => window.matchMedia(CANVAS_MEDIA).matches, () => false);
     const [shown, setShown] = useState(false);
     const onShown = useCallback(() => {
-        console.log('[landing] canvas shown');
         setShown(true);
         useCanvasDone.setState(true, true);
     }, []);
     const box = useRef<HTMLDivElement>(null);
-    useEffect(() => console.log('[landing] wide', live, window.innerWidth, window.devicePixelRatio), [live]);
     const [LandingCanvas, setLandingCanvas] = useState<LandingCanvasComponent>();
     useEffect(() => {
         if (live) void loadCanvas().then(canvas => setLandingCanvas(() => canvas));
