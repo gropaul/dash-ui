@@ -1,9 +1,12 @@
 import {DEFAULT_COLORS} from "@/platform/global-data";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {SketchPicker, ColorResult} from "react-color";
-import {useState, useEffect, useMemo} from "react";
+import type {ColorResult} from "react-color";
+import {lazy, Suspense, useState, useEffect, useMemo} from "react";
 import {throttleLatest} from "@/lib/throttle-latest";
 import {cn} from "@/lib/utils";
+
+/** react-color's picker, loaded when first shown; render it inside Suspense. */
+export const SketchPicker = lazy(() => import("react-color").then(m => ({default: m.SketchPicker})));
 
 interface ColorSwatchProps {
     color: string;
@@ -106,13 +109,15 @@ export function ColorPalette({
                         </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                        <SketchPicker
-                            styles={{default: {picker: {boxShadow: "none", border: "none"}}}}
-                            disableAlpha
-                            color={localColor}
-                            onChange={handlePickerChange}
-                            presetColors={colors}
-                        />
+                        <Suspense>
+                            <SketchPicker
+                                styles={{default: {picker: {boxShadow: "none", border: "none"}}}}
+                                disableAlpha
+                                color={localColor}
+                                onChange={handlePickerChange}
+                                presetColors={colors}
+                            />
+                        </Suspense>
                     </PopoverContent>
                 </Popover>
             )}

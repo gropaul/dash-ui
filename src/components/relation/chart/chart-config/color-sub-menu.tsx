@@ -1,5 +1,6 @@
-import React, {useEffect, useMemo, useState} from "react";
-import {ColorResult, SketchPicker} from "react-color";
+import React, {Suspense, useEffect, useMemo, useState} from "react";
+import type {ColorResult} from "react-color";
+import {SketchPicker} from "@/components/ui/color-palette";
 import {DEFAULT_COLORS} from "@/platform/global-data";
 import {Label} from "@/components/ui/label";
 import {
@@ -48,16 +49,18 @@ export function ColorSubMenu(props: ColorSubMenuProps) {
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
                 <DropdownMenuSubContent>
-                    <SketchPicker
-                        styles={{ default: { picker: { boxShadow: "none", border: "none" } } }}
-                        disableAlpha
-                        color={localColor}
-                        onChange={(color) => {
-                            setLocalColor(color.hex);     // instant local update
-                            throttledSetColor(color);     // at most one global update per interval (latest wins)
-                        }}
-                        presetColors={DEFAULT_COLORS.slice(0, 4).concat(['black'])}
-                    />
+                    <Suspense>
+                        <SketchPicker
+                            styles={{ default: { picker: { boxShadow: "none", border: "none" } } }}
+                            disableAlpha
+                            color={localColor}
+                            onChange={(color) => {
+                                setLocalColor(color.hex);     // instant local update
+                                throttledSetColor(color);     // at most one global update per interval (latest wins)
+                            }}
+                            presetColors={DEFAULT_COLORS.slice(0, 4).concat(['black'])}
+                        />
+                    </Suspense>
                 </DropdownMenuSubContent>
             </DropdownMenuPortal>
         </DropdownMenuSub>

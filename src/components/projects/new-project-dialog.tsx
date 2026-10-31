@@ -7,6 +7,7 @@ import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useProjectsState} from "@/state/projects.state";
+import {createProject, openFolderAsProject} from "@/state/projects/project-actions";
 import {currentProjectHost} from "@/state/projects/project-hosts";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 
@@ -18,13 +19,12 @@ function openProject(id: string) {
 export async function openProjectFolder() {
     const folder = await window.dashNative?.workspace.chooseFolder();
     if (!folder) return;
-    const project = await useProjectsState.getState().openFolder(folder);
+    const project = await openFolderAsProject(folder);
     openProject(project.id);
 }
 
 /** Asks for a name and creates the project; in Electron as a folder of that name, by default in `~/Documents/Dash`. */
 export function NewProjectDialog({open, onOpenChange}: { open: boolean; onOpenChange: (open: boolean) => void }) {
-    const createProject = useProjectsState((s) => s.createProject);
     const checkProjectName = useProjectsState((s) => s.checkProjectName);
     const [name, setName] = useState("");
     const [parent, setParent] = useState<string | undefined>();

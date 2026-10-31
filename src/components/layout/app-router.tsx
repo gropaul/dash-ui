@@ -4,7 +4,7 @@ import {RouterProject} from "@/components/layout/sub-router/router-project";
 import {ProjectListView} from "@/components/projects/project-list-view";
 import {useDashLocation} from "@/state/routing/use-dash-location";
 import {DashLocation} from "@/state/routing/navigation";
-import {useProjectRouteSync} from "@/state/projects.state";
+import {useProjectRouteSync} from "@/state/projects/project-actions";
 
 export interface SubRouterProps {
     location: DashLocation;

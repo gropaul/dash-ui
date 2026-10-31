@@ -21,6 +21,7 @@ import {
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useProjectsState, useRoutedProject} from "@/state/projects.state";
+import {renameCurrentProject} from "@/state/projects/project-actions";
 import {DashLocations, DashNavigator} from "@/state/routing/navigation";
 import {currentProjectHost} from "@/state/projects/project-hosts";
 import {FolderEntries} from "@/components/layout/workspace-path-breadcrumb";
@@ -37,7 +38,6 @@ export function ProjectSwitcher() {
     // exist (or no project at all, e.g. the projects list), show a neutral "select a project" chip
     // instead (the dropdown still lists real ones). `current` is undefined in that case.
     const {project: current} = useRoutedProject();
-    const renameProject = useProjectsState((s) => s.renameProject);
     const removeProject = useProjectsState((s) => s.removeProject);
     const checkProjectName = useProjectsState((s) => s.checkProjectName);
     const host = currentProjectHost();
@@ -55,7 +55,7 @@ export function ProjectSwitcher() {
         if (nameError || editName === null) return;
         setEditName(null);
         // URLs are id-based, so a rename doesn't touch the URL.
-        await renameProject(editName);
+        await renameCurrentProject(editName);
     }
 
     async function removeCurrent() {

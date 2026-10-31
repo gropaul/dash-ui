@@ -115,7 +115,7 @@ resolve.
   - empty workspace `path` → the project root folder
   - otherwise → resolve the node and render `FolderView` / `RelationTab` / `DashboardTab` / `CanvasTab`, or not-found
 
-`AppRouter` also mounts `useProjectRouteSync()` (`state/projects.state.ts`): when the URL's
+`AppRouter` also mounts `useProjectRouteSync()` (`state/projects/project-actions.ts`): when the URL's
 `/projects/<id>` names a known project that isn't loaded, it switches to it — the **URL is the
 source of truth** for the current project.
 
@@ -153,4 +153,5 @@ const url = window.location.origin + nav.getUrlFromObjectId(node.id);
 | `state/routing/routable-tree.ts` | Augments the tree with dashboard/canvas relation aliases. |
 | `components/layout/app-router.tsx` | Top-level dispatch + project↔URL sync. |
 | `components/layout/sub-router/` | `router-project` (workspace / connections / catalog). |
-| `state/projects.state.ts` | Projects + `useProjectRouteSync` (URL is source of truth). |
+| `state/projects.state.ts` | The project list and the open project. |
+| `state/projects/project-actions.ts` | Loading, creating, opening projects + `useProjectRouteSync` (URL is source of truth). |

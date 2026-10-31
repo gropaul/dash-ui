@@ -4,17 +4,17 @@ import {DatabaseConnection} from "@/model/database-connection";
 import {RelationState} from "@/model/relation-state";
 import {RelationData} from "@/model/relation";
 import {ConnectionsService} from "@/state/connections/connections-service";
-import {getDefaultSpec, specToConnection} from "@/state/connections/configs";
 import {useRelationDataState} from "@/state/relations-data.state";
 import {useSurfaces} from "@/state/workspace/surfaces.state";
 import {useWorkspace} from "@/state/workspace/workspace.state";
-import {DASH_CATALOG_CACHE, DASH_CATALOG_STATE, DASH_INTERNAL_SCHEMAS} from "@/platform/global-data";
+import {DASH_CATALOG_CACHE, DASH_CATALOG_STATE, DASH_INTERNAL_SCHEMAS, DATABASE_CONNECTION_ID_DUCKDB_WASM} from "@/platform/global-data";
 
 /**
  * The website runs a canvas and a page without the app around them: no project, their files only in memory, and
  * DuckDB WASM started late. What they showed when the snapshot was taken (src/web/snapshot.mjs) shows at once;
  * a query waits until DuckDB is up, and DuckDB starts only when the page asks for it (startDatabase), so the
- * queries run on mount don't pull its download in before the page has loaded.
+ * queries run on mount don't pull its download in before the page has loaded. Its client code (Arrow among it) is
+ * only imported then too.
  */
 
 export interface SiteSnapshot {
@@ -22,9 +22,8 @@ export interface SiteSnapshot {
     data: Record<string, RelationData>;
 }
 
-const connection = specToConnection(getDefaultSpec('duckdb-wasm'));
 let database: Promise<DatabaseConnection> | undefined;
-let ready = false;
+let ready: DatabaseConnection | undefined;
 let connected = false;
 let allowStart: () => void;
 const allowed = new Promise<void>(resolve => allowStart = resolve);
@@ -41,6 +40,8 @@ const fresh = () => process.env.NEXT_PUBLIC_E2E === '1' && new URLSearchParams(w
 export function startDatabase(): Promise<DatabaseConnection> {
     allowStart();
     database ??= (async () => {
+        const {getDefaultSpec, specToConnection} = await import("@/state/connections/configs");
+        const connection = specToConnection(getDefaultSpec('duckdb-wasm'));
         await connection.initialise();
         const setup = [
             `ATTACH IF NOT EXISTS ':memory:' AS ${DASH_CATALOG_STATE};`,
@@ -50,7 +51,7 @@ export function startDatabase(): Promise<DatabaseConnection> {
             ...siteSetup,
         ];
         for (const sql of setup) await connection.executeQuery(sql, false, false);
-        ready = true;
+        ready = connection;
         useWaitingForDatabase.setState(false, true);
         return connection;
     })();
@@ -77,9 +78,11 @@ function connect(setup: string[]) {
     if (connected) return;
     connected = true;
     siteSetup = setup;
-    const waiting = new Proxy(connection, {
-        get(target, property, receiver) {
-            if (property !== 'executeQuery') return Reflect.get(target, property, receiver);
+    // Until DuckDB is up, it stands in with the id and type of the connection it will be.
+    const stub = {id: DATABASE_CONNECTION_ID_DUCKDB_WASM, type: 'duckdb-wasm'} as DatabaseConnection;
+    const waiting = new Proxy(stub, {
+        get(target, property) {
+            if (property !== 'executeQuery') return Reflect.get(ready ?? target, property);
             return async (...args: Parameters<DatabaseConnection['executeQuery']>) => {
                 if (!ready) useWaitingForDatabase.setState(true, true);
                 await allowed;

@@ -1,31 +1,7 @@
 import {Braces, Brackets, Calendar, CircleHelp, Hash, Text, ToggleLeft} from "lucide-react";
 import React from "react";
 
-// @ts-ignore
-import {DataType} from "apache-arrow";
 import {ValueType} from "@/model/value-type";
-
-// Adapt this type to match all the strings you expect (from your own system + arrow).
-
-export function normalizeArrowType(type: any): ValueType {
-
-    if (DataType.isDate(type)) {
-        return 'Timestamp';
-    }
-
-    // if normalized contains list, set it to 'list'
-    if (DataType.isList(type)) {
-        return 'List';
-    } else if (DataType.isDictionary(type) || DataType.isStruct(type) ) {
-        return 'Struct';
-    }
-    // if normalized contains map, set it to 'map'
-    else if (DataType.isMap(type)){
-        return 'Map';
-    } else {
-        return type.toString()
-    }
-}
 
 export function ValueIcon({ type, size }: { type: ValueType; size?: number }) {
     const iconSize = size || 16;

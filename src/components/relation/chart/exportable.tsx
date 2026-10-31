@@ -2,7 +2,6 @@
 
 import {saveAs} from 'file-saver';
 import {forwardRef, useImperativeHandle, useRef} from "react";
-import satori from "satori";
 import domtoimage from "dom-to-image";
 
 // Define props and methods interface
@@ -65,6 +64,7 @@ export const Exportable = forwardRef<ExportableRef, ExportableProps>(
                 const height = Math.ceil(rect.height);
 
                 // Generate SVG using Satori
+                const {default: satori} = await import("satori");
                 const svg = await satori(
                     children,
                     {

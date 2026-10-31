@@ -1,7 +1,7 @@
-import {memo} from "react";
+import {lazy, memo, Suspense} from "react";
 import {RelationViewContentProps} from "@/components/relation/relation-view-content";
 import {getInitialTextViewStateEmpty, TEXT_DISPLAY_STYLES} from "@/model/relation-view-state/text-display";
-import {MarkdownRenderer} from "@/components/basics/code-fence/md-renderer";
+const MarkdownRenderer = lazy(() => import("@/components/basics/code-fence/md-renderer").then(m => ({default: m.MarkdownRenderer})));
 
 // Vertical alignment via auto-margins rather than `justify-content`. On an overflowing flex column,
 // `justify-content: center`/`flex-end` clips the top of the content and makes it unreachable by scroll;
@@ -53,7 +53,7 @@ export const TextDisplay = memo(function TextDisplay({data, relationState}: Rela
                         style={{color, textAlign, alignItems: horizontalAlignToItems[textAlign]}}
                     >
                         {value
-                            ? <MarkdownRenderer markdown={value}/>
+                            ? <Suspense><MarkdownRenderer markdown={value}/></Suspense>
                             : <span className="text-muted-foreground/50">No data</span>}
                     </div>
                 </div>
