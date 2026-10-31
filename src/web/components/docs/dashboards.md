@@ -7,7 +7,7 @@ description: Write a dashboard with DuckDB as one Markdown file - text, charts, 
 
 A dashboard in Dash is a page: one Markdown file with text, and `sql` blocks that show their result as a chart, a table, a number or a dropdown. You edit it like a document, block by block, or as the Markdown itself next to it. The file reads fine without Dash, works in git, and is easy for a coding agent to write.
 
-## A block
+## Blocks
 
 A `sql` fence with a `view` line is a block that shows data:
 
@@ -33,7 +33,7 @@ The word after `sql` names the block (`busiest_stations`) and is its title, "Bus
 | `rows` | Height in rows of 48 px, 6 when left out |
 | `input` | A query file to show instead of SQL of its own: `-- input: ../orders.sql` |
 
-## Blocks reading blocks
+## Connecting blocks
 
 A block reads another block of its page with `refs.<name>()`. A dropdown passes on only what is picked, or everything while nothing is, so a dropdown filters every block reading it:
 
