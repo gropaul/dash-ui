@@ -7,19 +7,19 @@ import {APP_URL} from "@web/components/site-chrome";
 
 export const metadata: Metadata = {
     title: 'Dashboards with DuckDB in Your Browser',
-    description: 'Build dashboards with DuckDB from SQL: charts, tables and dropdown filters in one Markdown file, running on DuckDB in your browser. No server, open source.',
+    description: 'Dash builds dashboards from SQL queries in a Markdown file. The queries run on DuckDB in your browser, and Dash is open source.',
     alternates: {canonical: '/dashboard-with-duckdb'},
 };
 
 const STEPS = [
     {
-        title: 'Point it at your data',
-        body: 'Drop a CSV, Parquet, JSON or Excel file into Dash, open a DuckDB file, or query a file by its URL. DuckDB reads it where it is.',
+        title: 'Add your data',
+        body: 'Drop a CSV, Parquet, JSON or Excel file into Dash, or open a DuckDB file. You can also query a file by its URL.',
         code: `SELECT * FROM 'https://example.org/services.parquet'`,
     },
     {
         title: 'Write a block for each chart',
-        body: 'A sql block with a view line shows its result: bar, line, area, scatter, pie or radar charts, a table, a headline number.',
+        body: 'The view line of a sql block sets how its result is shown. Pages have bar, line, area, scatter, pie and radar charts, tables and single numbers.',
         code: `\`\`\`sql busiest_stations
 -- view: bar
 -- x: StationName
@@ -30,8 +30,8 @@ GROUP BY ALL ORDER BY stops DESC LIMIT 10
 \`\`\``,
     },
     {
-        title: 'Add a dropdown to filter',
-        body: 'A block shown as a dropdown passes on what is picked. Blocks reading it with refs.<name>() run again for every pick.',
+        title: 'Filter with a dropdown',
+        body: 'A block with the select view shows a dropdown. Other blocks read the picked values with refs.<name>() and run again when the pick changes.',
         code: `\`\`\`sql service_type
 -- view: select
 -- column: ServiceType
@@ -42,8 +42,8 @@ SELECT DISTINCT ServiceType FROM 'services.parquet'
       (SELECT ServiceType FROM refs.service_type())`,
     },
     {
-        title: 'Lay it out',
-        body: 'Text between the blocks explains what the numbers mean; columns put charts side by side. The whole dashboard is one Markdown file you can keep in git.',
+        title: 'Arrange the blocks',
+        body: 'Write text between the blocks to explain the numbers, and use columns to put charts side by side. The dashboard stays one Markdown file, so you can keep it in git.',
         code: `<columngroup>
 <column span="7">
   ...chart...
@@ -56,32 +56,25 @@ SELECT DISTINCT ServiceType FROM 'services.parquet'
 ];
 
 const FAQ = [
-    {q: 'Does a dashboard in Dash need a server?', a: 'No. In the browser, DuckDB WASM runs the queries in the page and your files stay on your machine. The desktop app and the extension for DuckDB run DuckDB natively.'},
-    {q: 'Can I build a dashboard from a Parquet or CSV file?', a: 'Yes. Drop the file into Dash, or query it by its path or URL; DuckDB reads CSV, Parquet, JSON and Excel files directly.'},
-    {q: 'Can I use my own DuckDB database?', a: 'Yes: open a .duckdb file in Dash, or run Dash inside your DuckDB with the community extension (INSTALL dash FROM community; LOAD dash; PRAGMA dash;).'},
-    {q: 'How is this different from a canvas?', a: 'A page reads top to bottom like a report; a canvas places the same kind of queries freely and draws how they feed each other. Both use the same sql blocks and refs.'},
-    {q: 'Is Dash free?', a: 'Yes. Dash is open source under the AGPL-3.0 license.'},
+    {q: 'Does a dashboard in Dash need a server?', a: 'No. In the browser, DuckDB WASM runs the queries inside the page and your files never leave your machine. The desktop app and the DuckDB extension use native DuckDB instead.'},
+    {q: 'Can I build a dashboard from a Parquet or CSV file?', a: 'Yes. Drop the file into Dash or query it by its path or URL. DuckDB reads CSV, Parquet, JSON and Excel files directly.'},
+    {q: 'Can I use my own DuckDB database?', a: 'Open the .duckdb file in Dash, or run Dash inside your own DuckDB with the community extension: INSTALL dash FROM community; LOAD dash; PRAGMA dash;'},
+    {q: 'Is Dash free?', a: 'Dash is open source under the AGPL-3.0 license and free to use.'},
 ];
-
-const FAQ_DATA = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: FAQ.map(({q, a}) => ({'@type': 'Question', name: q, acceptedAnswer: {'@type': 'Answer', text: a}})),
-};
 
 export default function DuckDBDashboard() {
     return (
         <div className="mx-auto max-w-4xl px-4 py-20">
-            <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(FAQ_DATA)}}/>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Dashboards with DuckDB, written in SQL and Markdown</h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-                Dash turns SQL into a dashboard that runs on DuckDB in your browser: charts, tables and dropdown
-                filters in one Markdown file. No server, no upload, no build step.
+                A Dash dashboard is a Markdown file with SQL blocks. Each block shows its result as a chart, a table or
+                a dropdown that filters other blocks. The queries run on DuckDB in your browser, so your data stays on
+                your machine.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
                 <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({size: 'lg'}), "rounded-2xl")}>Open in browser</a>
                 <Link href="/docs/dashboards" className={cn(buttonVariants({variant: 'outline', size: 'lg'}), "gap-2 rounded-2xl")}>
-                    The page format <ArrowRight className="h-4 w-4"/>
+                    Page format <ArrowRight className="h-4 w-4"/>
                 </Link>
             </div>
 
