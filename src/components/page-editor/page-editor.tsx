@@ -169,6 +169,7 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
                               "[&_[data-slate-placeholder]]:!opacity-100 [&_[data-slate-placeholder]]:text-muted-foreground/50",
                           )}
                           placeholder={readOnly ? undefined : EMPTY_LINE_PLACEHOLDER}
+                          spellCheck={false}
                           onFocus={sync.textToView.flush}
                           onKeyDown={onKeyDown}
                           onMouseOver={e => onEditorMouseOver(editor, e.target)}
