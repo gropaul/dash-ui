@@ -1,14 +1,19 @@
 'use client';
 
-import React, {CSSProperties, useCallback, useRef, useState, useSyncExternalStore} from "react";
-import dynamic from "next/dynamic";
+import React, {CSSProperties, useCallback, useEffect, useRef, useState, useSyncExternalStore} from "react";
 import {cn} from "@/lib/utils";
+import {MOBILE_BREAKPOINT_PX} from "@/platform/global-data";
 import {LANDING_BOUNDS, useCanvasDone} from "@web/components/landing";
 
-const LandingCanvas = dynamic(() => import("@web/components/landing-canvas"), {ssr: false});
-
 // Below this width the canvas is too small to use; the page shows `phone` instead.
-const CANVAS_MEDIA = '(min-width: 768px)';
+const CANVAS_MEDIA = `(min-width: ${MOBILE_BREAKPOINT_PX}px)`;
+
+type LandingCanvasComponent = typeof import("@web/components/landing-canvas").default;
+let canvasModule: Promise<LandingCanvasComponent> | undefined;
+const loadCanvas = () => canvasModule ??= import("@web/components/landing-canvas").then(m => m.default);
+// Not next/dynamic: React holds back content behind Suspense until 300ms after its fallback showed. Fetched while
+// the page hydrates.
+if (typeof window !== 'undefined' && window.matchMedia(CANVAS_MEDIA).matches) void loadCanvas();
 
 function subscribeToWidth(onChange: () => void) {
     const media = window.matchMedia(CANVAS_MEDIA);
@@ -26,10 +31,16 @@ export function Hero({phone}: { phone: React.ReactNode }) {
     const live = useSyncExternalStore(subscribeToWidth, () => window.matchMedia(CANVAS_MEDIA).matches, () => false);
     const [shown, setShown] = useState(false);
     const onShown = useCallback(() => {
+        console.log('[landing] canvas shown');
         setShown(true);
         useCanvasDone.setState(true, true);
     }, []);
     const box = useRef<HTMLDivElement>(null);
+    useEffect(() => console.log('[landing] wide', live, window.innerWidth, window.devicePixelRatio), [live]);
+    const [LandingCanvas, setLandingCanvas] = useState<LandingCanvasComponent>();
+    useEffect(() => {
+        if (live) void loadCanvas().then(canvas => setLandingCanvas(() => canvas));
+    }, [live]);
 
     return (
         <section className="landing-dots relative border-b bg-background">
@@ -40,8 +51,8 @@ export function Hero({phone}: { phone: React.ReactNode }) {
                     <div className="md:hidden">{phone}</div>
                 </div>
             </div>
-            <div className={cn("absolute inset-0 overflow-hidden transition-opacity duration-500", shown ? "opacity-100" : "pointer-events-none opacity-0")}>
-                {live && <LandingCanvas box={box} onShown={onShown}/>}
+            <div className={cn("absolute inset-0 overflow-hidden transition-opacity duration-150", shown ? "opacity-100" : "pointer-events-none opacity-0")}>
+                {live && LandingCanvas && <LandingCanvas box={box} onShown={onShown}/>}
             </div>
         </section>
     );

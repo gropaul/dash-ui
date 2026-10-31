@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {PageEditor, PageEditorMode} from "@/components/page-editor/page-editor";
 import {useWorkspace} from "@/state/workspace/workspace.state";
 import {openSiteFile, SiteSnapshot, useStartDatabaseWhenIdle} from "@web/components/site-runtime";
@@ -12,7 +12,10 @@ import snapshot from "@web/components/landing-snapshot.json";
  * The landing page's dashboard in the app's page editor: the page next to its markdown, each editable and each
  * updating the other.
  */
+console.log('[landing] editor code loaded');
+
 export default function LiveDashboard() {
+    useEffect(() => console.log('[landing] editor rendered'), []);
     // Before the blocks render, which read the stores.
     useState(() => openSiteFile(LANDING_DASHBOARD, dashboardText, landingSetup(), snapshot as unknown as SiteSnapshot));
     useStartDatabaseWhenIdle();

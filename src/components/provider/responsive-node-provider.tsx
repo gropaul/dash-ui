@@ -1,5 +1,6 @@
 // ResponsiveModeProvider.tsx
 import {createContext, PropsWithChildren, useContext, useEffect, useState} from "react";
+import {MOBILE_BREAKPOINT_PX} from "@/platform/global-data";
 
 
 const ResponsiveModeCtx = createContext(false);
@@ -17,7 +18,7 @@ export function useIsMobile() {
     return useContext(ResponsiveModeCtx);
 }
 
-export function useIsMobileSync(breakpoint = 768) {
+export function useIsMobileSync(breakpoint = MOBILE_BREAKPOINT_PX) {
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {

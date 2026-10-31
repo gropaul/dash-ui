@@ -117,6 +117,10 @@ export const TABLE_FOOTER_MIN_ROWS = 30;
 export const VIEW_PADDING_MEDIUM_BREAKPOINT_PX = 640;
 export const VIEW_PADDING_WIDE_BREAKPOINT_PX = 1024;
 
+// Below this window width the app is in mobile mode and the website shows no canvas. Tailwind's `md` screen
+// (tailwind.config.ts), so the `md:` classes switch at the same width.
+export const MOBILE_BREAKPOINT_PX = 768;
+
 // minimum distance from node center for relation handles to become active, in pixels
 export const WORKFLOW_NODE_RELATION_HANDLE_MIN_ACTIVE_DISTANCE = 64;
 

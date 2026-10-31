@@ -11,6 +11,7 @@ const LiveDashboard = dynamic(() => import("@web/components/live-dashboard"), {s
 
 // Shown as well when the import fails, which next/dynamic otherwise keeps quiet.
 function Loading({error}: { error?: Error | null }) {
+    useEffect(() => console.log('[landing] dashboard loading'), []);
     useEffect(() => {
         if (error) console.error('The live dashboard failed to load', error);
     }, [error]);
@@ -20,6 +21,7 @@ function Loading({error}: { error?: Error | null }) {
 /** The landing page's dashboard, live in the page editor, in a frame like the app's. */
 export function DashboardDemo() {
     const canvasDone = useCanvasDone();
+    useEffect(() => console.log('[landing] dashboard sees canvas done', canvasDone), [canvasDone]);
     return (
         <div className="h-[640px] overflow-hidden rounded-2xl border bg-background shadow-[var(--node-shadow)]">
             {canvasDone ? <LiveDashboard/> : <DashboardText/>}

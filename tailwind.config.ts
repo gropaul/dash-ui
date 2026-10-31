@@ -1,5 +1,5 @@
 import type {Config} from "tailwindcss";
-import {VIEW_PADDING_MEDIUM_BREAKPOINT_PX, VIEW_PADDING_WIDE_BREAKPOINT_PX} from "./src/platform/global-data";
+import {MOBILE_BREAKPOINT_PX, VIEW_PADDING_MEDIUM_BREAKPOINT_PX, VIEW_PADDING_WIDE_BREAKPOINT_PX} from "./src/platform/global-data";
 
 const config: Config = {
     darkMode: ["class"],
@@ -11,6 +11,7 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+  		screens: {md: `${MOBILE_BREAKPOINT_PX}px`},
   		// Named container sizes for ViewPadding's gutter tiers — see the VIEW_PADDING_*_BREAKPOINT_PX
   		// constants. Enable the `@view-medium/view:` and `@view-wide/view:` container-query utilities.
   		containers: {
