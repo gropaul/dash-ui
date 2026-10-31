@@ -184,8 +184,8 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
                  onFocusCapture={sync.viewToText.flush}
                  onPointerDownCapture={sync.viewToText.flush}>
                 <CooldownIndicator pending={sync.viewToText.pending}/>
-                {/* Room above the plain editor's text, clear of the mode toggle. */}
-                <div className={cn("min-h-0 flex-1", plainMarkdownEditor && "pt-20")}>
+                {/* Clear of the mode toggle, the first line level with a leading h1 of the page. */}
+                <div className={cn("min-h-0 flex-1", plainMarkdownEditor && "pt-[57px]")}>
                     {plainMarkdownEditor
                         ? <PlainSqlEditor language="markdown" code={sync.text} onCodeChange={sync.onTextChange}/>
                         : <SqlEditor

@@ -1,8 +1,3 @@
-
-
-
-
-
 # Dashboards written in Markdown, executed with DuckDB
 
 With Dash, you can build interactive data apps in Markdown. A dashboard is a plain text file: it fits into version
