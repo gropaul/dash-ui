@@ -49,6 +49,7 @@ test.describe('Canvas', () => {
     const pane = page.locator('.react-flow__pane');
     await page.getByRole('button', { name: 'Text', exact: true }).click();
     await pane.click({ position: { x: 120, y: 260 } });
+    await expect(page.locator('.react-flow__node-textNode [contenteditable="true"]')).toBeFocused();
     await page.keyboard.type('Hello canvas');
     await page.keyboard.press('Escape');
 

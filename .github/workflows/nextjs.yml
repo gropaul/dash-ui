@@ -80,6 +80,14 @@ jobs:
         # Run even if the web step failed, so one runtime's failure never hides the other's.
         if: ${{ !cancelled() }}
         run: xvfb-run -a ${{ steps.detect-package-manager.outputs.runner }} exec playwright test --project=electron
+      # The next run replaces test-results/ and the report, so keep the Electron traces now.
+      - name: Upload Electron test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-test-results
+          path: test-results/
+          retention-days: 30
       # duckdb-over-http e2e: the latest gropaul/dash release's extension, served by the DuckDB CLI
       # it was built for. The asset name carries that version: dash-v1.5.5-linux_amd64.duckdb_extension.
       - name: Fetch the dash extension and DuckDB CLI

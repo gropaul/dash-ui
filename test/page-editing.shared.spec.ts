@@ -33,6 +33,7 @@ test.describe('Page editing', () => {
     await expect(block.getByRole('table')).toBeVisible();
 
     await addBlock(page, 'Text', 'Text');
+    await page.locator('[data-slate-editor] > *').last().click();
     await page.keyboard.type('Squares of x');
     await expect(page.getByText('Squares of x')).toBeVisible();
 
