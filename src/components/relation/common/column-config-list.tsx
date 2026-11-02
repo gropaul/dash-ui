@@ -8,10 +8,10 @@ import {Column} from "@/model/data-source-connection";
 import {FilterTag, FilterTags} from "@/components/basics/filter-tags";
 
 /**
- * The shared column-list skeleton: search + filter tags + column rows with a
- * single-open accordion editor. Modes (table, chart, ...) plug in their own
- * row decorations and editor content via render props; the list itself only
- * knows how to search, filter, and expand.
+ * The shared column-list skeleton: search + filter tags + column rows that expand,
+ * one at a time (an accordion) or, with `defaultOpen`, each on its own. Modes
+ * (table, chart, ...) plug in their own row decorations and editor content via
+ * render props; the list itself only knows how to search, filter, and expand.
  */
 
 /** Column-typed filter chip (see the generic {@link FilterTag}). */
@@ -35,14 +35,28 @@ export interface ColumnConfigListProps {
     /** Click handler for a whole row. When set (and the row isn't expandable) the row is
      *  clickable — used to navigate rather than expand. */
     onRowClick?: (column: Column) => void;
+    /** Rows open and close independently instead of one at a time; these start open. */
+    defaultOpen?: string[];
+    /** Classes of the box around the rows, e.g. a height to scroll within; without, it grows with the rows. */
+    listClassName?: string;
+    /** Names the rows as a list, for assistive tech and tests. */
+    label?: string;
 }
 
 export function ColumnConfigList(props: ColumnConfigListProps) {
-    const {columns, filterTags, renderLeading, renderIcon, renderStatus, renderExpanded, isDimmed, renderFooter, onRowClick} = props;
+    const {columns, filterTags, renderLeading, renderIcon, renderStatus, renderExpanded, isDimmed, renderFooter, onRowClick,
+        defaultOpen, listClassName, label} = props;
 
     const [query, setQuery] = React.useState('');
     const [activeTag, setActiveTag] = React.useState('');
-    const [openColumn, setOpenColumn] = React.useState('');
+    const [openColumns, setOpenColumns] = React.useState<Set<string>>(() => new Set(defaultOpen));
+    const toggle = (name: string) => setOpenColumns(current => {
+        const opened = !current.has(name);
+        if (defaultOpen === undefined) return new Set(opened ? [name] : []);
+        const next = new Set(current);
+        if (opened) next.add(name); else next.delete(name);
+        return next;
+    });
 
     const tagCounts: Record<string, number> = {};
     filterTags?.forEach(t => {
@@ -92,14 +106,14 @@ export function ColumnConfigList(props: ColumnConfigListProps) {
                 </div>
             )}
 
-            <div className="max-h-80 overflow-y-auto">
+            <div className={listClassName} role={label ? "list" : undefined} aria-label={label}>
             {shownColumns.map(column => {
                 const expandedContent = renderExpanded?.(column);
                 const expandable = expandedContent !== undefined && expandedContent !== null;
-                const open = expandable && openColumn === column.name;
+                const open = expandable && openColumns.has(column.name);
                 const clickable = expandable || !!onRowClick;
                 return (
-                    <div key={column.name} className="border-b last:border-b-0">
+                    <div key={column.name} className="border-b last:border-b-0" role={label ? "listitem" : undefined}>
                         <div
                             className={cn(
                                 "group flex items-center gap-2 px-2.5 py-1.5",
@@ -108,7 +122,7 @@ export function ColumnConfigList(props: ColumnConfigListProps) {
                                 isDimmed?.(column) && "opacity-50",
                             )}
                             onClick={() => {
-                                if (expandable) setOpenColumn(open ? '' : column.name);
+                                if (expandable) toggle(column.name);
                                 else onRowClick?.(column);
                             }}
                         >

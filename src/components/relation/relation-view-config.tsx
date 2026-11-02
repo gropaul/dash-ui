@@ -3,6 +3,7 @@
 import React, {useState} from 'react';
 import {RelationViewProps} from "@/components/relation/relation-view";
 import {ScrollArea} from "@/components/ui/scroll-area";
+import {useWorkspace} from "@/state/workspace/workspace.state";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {
     DEFAULT_RELATION_CONFIG_TAB,
@@ -20,8 +21,11 @@ export function hasConfigPanel(props: RelationViewProps): boolean {
  * relation should land on the view settings again.
  */
 export function RelationViewConfig(props: RelationViewProps) {
+    // Tabs can depend on the workspace's files (References), so the panel renders again when they change.
+    useWorkspace(s => s.files);
     const tabs = getAvailableConfigTabs(props);
-    const fallbackTab = tabs.find(t => t.id === DEFAULT_RELATION_CONFIG_TAB)?.id ?? tabs[0]?.id;
+    const preferred = props.configTab ?? DEFAULT_RELATION_CONFIG_TAB;
+    const fallbackTab = tabs.find(t => t.id === preferred)?.id ?? tabs[0]?.id;
     const [selected, setSelected] = useState<string | undefined>(fallbackTab);
 
     if (tabs.length === 0) return null;
@@ -46,7 +50,9 @@ export function RelationViewConfig(props: RelationViewProps) {
                     </TabsList>
                 </div>
                 <div className="min-h-0 flex-1">
-                    <ScrollArea className="h-full w-full">
+                    {/* Radix lays the content out as a table, as wide as its widest chart, and narrowing the panel would not
+                        shrink it again. The panel scrolls only down, so the content is a block of the panel's width. */}
+                    <ScrollArea className="h-full w-full [&_[data-radix-scroll-area-viewport]>div]:!block">
                         {tabs.map(tab => (
                             <TabsContent key={tab.id} value={tab.id} className="mx-3 mt-0 py-3">
                                 <div className="flex flex-col gap-3">

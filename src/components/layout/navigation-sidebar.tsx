@@ -1,6 +1,7 @@
 'use client';
 
 import React from "react";
+import {SidebarResizeHandle} from "@/components/layout/sidebar-resize-handle";
 import {Database, LucideIcon, PanelLeftClose, PanelLeftOpen, Plug} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
@@ -25,8 +26,6 @@ import {Avatar, AvatarImage} from "@/components/ui/avatar";
 type NavKey = 'connections' | 'catalog';
 
 // Limits for dragging the expanded sidebar's width; collapsed it is a fixed icon rail.
-const MIN_WIDTH = 180;
-const MAX_WIDTH = 480;
 const COLLAPSED_WIDTH = 64;
 
 interface NavItem {
@@ -48,6 +47,7 @@ export function NavigationSidebar() {
     const expanded = useGUIState((s) => s.sidebarExpanded);
     const setExpanded = useGUIState((s) => s.setSidebarExpanded);
     const savedWidth = useGUIState((s) => s.sidebarWidth);
+    const setSidebarWidth = useGUIState((s) => s.setSidebarWidth);
     // The width while a drag is under way; saved once the drag ends.
     const [dragWidth, setDragWidth] = React.useState<number | undefined>();
     const location = useDashLocation();
@@ -117,44 +117,10 @@ export function NavigationSidebar() {
                     {expanded && location.basePath === 'project' && <WorkspaceTree projectId={location.projectId}/>}
                 </div>
 
-                {expanded && <ResizeHandle width={savedWidth} onDrag={setDragWidth}/>}
+                {expanded && <SidebarResizeHandle width={savedWidth} onDrag={setDragWidth} onEnd={setSidebarWidth}/>}
 
             </nav>
         </TooltipProvider>
-    );
-}
-
-/** The right edge of the expanded sidebar; dragging it sets the width, which is saved when the drag ends. */
-function ResizeHandle({width, onDrag}: {width: number; onDrag: (width: number | undefined) => void}) {
-    const setSidebarWidth = useGUIState((s) => s.setSidebarWidth);
-    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        const handle = e.currentTarget;
-        const startX = e.clientX;
-        let last = width;
-        const onMove = (ev: PointerEvent) => {
-            last = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width + ev.clientX - startX));
-            onDrag(last);
-        };
-        // Fires on release and on a cancelled drag alike.
-        const onEnd = () => {
-            handle.removeEventListener('pointermove', onMove);
-            handle.removeEventListener('lostpointercapture', onEnd);
-            setSidebarWidth(last);
-            onDrag(undefined);
-        };
-        handle.setPointerCapture(e.pointerId);
-        handle.addEventListener('pointermove', onMove);
-        handle.addEventListener('lostpointercapture', onEnd);
-    };
-    return (
-        <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Resize sidebar"
-            onPointerDown={onPointerDown}
-            className="absolute inset-y-0 right-0 w-1 cursor-col-resize transition-colors hover:bg-border active:bg-border"
-        />
     );
 }
 

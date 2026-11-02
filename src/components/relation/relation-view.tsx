@@ -13,6 +13,7 @@ import {DefaultErrorBoundary} from "@/components/basics/error-bundary";
 import {CopyButton} from "@/components/basics/input/copy-button";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {ViewPadding} from "@/components/ui/view-padding";
+import {RelationConfigTabId} from "@/components/relation/config/relation-config-tab";
 
 // If resizable, the relation view will have a draggable handle to adjust its height, if
 // fit, it will adjust to the parent height.
@@ -32,6 +33,7 @@ export interface StaticDisplayProps {
     sqlEditorShowRunButton?: boolean; // whether to show the run button in the sql editor, defaults to true
     sqlEditorPanelMode?: EditorPanelPosition; // whether the sql editor should be displayed in an overlay or a panel, defaults to overlay
     plainSqlEditor?: boolean; // a plain text area for the sql instead of the Monaco editor, e.g. on the website
+    configTab?: RelationConfigTabId; // the side panel's tab shown first, instead of the view settings
 }
 
 export interface RelationViewAPIProps extends RelationUpdate, StaticDisplayProps {

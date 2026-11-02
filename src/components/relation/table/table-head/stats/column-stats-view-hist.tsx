@@ -14,6 +14,8 @@ interface HistogramChartProps {
     histogramData: { [key: number]: number };
     onRangeChange?: (minValue: number, maxValue: number) => void;
     onRangeChangeEnd?: (minValue: number | null, maxValue: number | null) => void;
+    /** A range picked before, drawn in when the chart is drawn: the chart keeps its own pick only while it is shown. */
+    initialRange?: { min: number; max: number };
     totalCount?: number;
     dataType?: HistDataType
     className?: string;
@@ -80,6 +82,27 @@ export function getSumOfHistogram(
     return sum;
 }
 
+/**
+ * The histogram's bins in order with their counts. Read as entries: a key like "6.0" (a DECIMAL bin edge) is the number
+ * 6, under which the map has nothing.
+ */
+function sortedBins(histogramData: { [key: number]: number }): { bins: number[], counts: number[] } {
+    const entries = Object.entries(histogramData)
+        .map(([bin, count]) => [Number(bin), Number(count)] as const)
+        .sort((a, b) => a[0] - b[0]);
+    return {bins: entries.map(([bin]) => bin), counts: entries.map(([, count]) => count)};
+}
+
+/**
+ * The step line's points, [x, y], for bins as their upper edges (the first a copy of the first bin's left edge): it
+ * starts and ends at zero, so the outer bars get their outer edge too.
+ */
+function outline(bins: number[], counts: number[]): [number, number][] {
+    const points: [number, number][] = bins.map((bin, i) => [bin, i === 0 ? 0 : counts[i]]);
+    if (bins.length > 0) points.push([bins[bins.length - 1], 0]);
+    return points;
+}
+
 export function transformData(data: [number, number][], dataType: HistDataType): [any, number][] {
     return data;
 }
@@ -87,6 +110,7 @@ export function ColumnStatsViewHist({
                                    histogramData,
                                    onRangeChange,
                                    onRangeChangeEnd,
+                                   initialRange,
                                    totalCount,
                                    dataType = 'value',
                                    className,
@@ -103,11 +127,7 @@ export function ColumnStatsViewHist({
         chartInstanceRef.current = instance;
 
         // Convert the histogram map to sorted arrays
-        const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
-        const counts = bins.map(bin => {
-            const count = histogramData[bin];
-            return typeof count === 'bigint' ? Number(count) : count;
-        });
+        const {bins, counts} = sortedBins(histogramData);
 
         const binWidth = bins.length > 1 ? bins[1] - bins[0] : 1;
         const firstBin = bins[0] - binWidth
@@ -115,8 +135,7 @@ export function ColumnStatsViewHist({
         bins.unshift(firstBin);
         counts.unshift(firstCount);
 
-        // Prepare data for area chart - [x, y] coordinates
-        const areaData: [any, number][] = bins.map((bin, idx) => [bin, counts[idx]]);
+        const areaData = outline(bins, counts);
 
         // Helper function to update the blue series based on brush range
         const updateBlueSeriesForRange = (minValue: number, maxValue: number) => {
@@ -203,6 +222,14 @@ export function ColumnStatsViewHist({
                 }
             ]
         });
+
+        // Draws the brush; the brush event it fires sets the range and the blue series, not onRangeChangeEnd.
+        if (initialRange) {
+            instance.dispatchAction({
+                type: 'brush',
+                areas: [{brushType: 'lineX', xAxisIndex: 0, coordRange: [initialRange.min, initialRange.max]}],
+            });
+        }
     }
 
     // Update chart when histogram data changes
@@ -212,11 +239,7 @@ export function ColumnStatsViewHist({
         const instance = chartInstanceRef.current;
 
         // Convert the histogram map to sorted arrays
-        const bins = Object.keys(histogramData).map(Number).sort((a, b) => a - b);
-        const counts = bins.map(bin => {
-            const count = histogramData[bin];
-            return typeof count === 'bigint' ? Number(count) : count;
-        });
+        const {bins, counts} = sortedBins(histogramData);
 
         const binWidth = bins.length > 1 ? bins[1] - bins[0] : 1;
         const firstBin = bins[0] - binWidth
@@ -224,8 +247,7 @@ export function ColumnStatsViewHist({
         bins.unshift(firstBin);
         counts.unshift(firstCount);
 
-        // Prepare data for area chart - [x, y] coordinates
-        const areaData: [any, number][] = bins.map((bin, idx) => [bin, counts[idx]]);
+        const areaData = outline(bins, counts);
 
         // Update the gray background series with new data
         instance.setOption({
@@ -304,6 +326,8 @@ export function ColumnStatsViewHist({
     ]
 
     const option = {
+        // Drawn at once: ECharts would sweep the area in from the left.
+        animation: false,
         tooltip: {
             show: true,
             appendToBody: true,

@@ -4,6 +4,7 @@ import {setVariablesInQuery} from "@/model/relation-state/query-builder/variable
 import {getQuerySchema} from "@/model/relation-state/query-builder/schema";
 import {IRelationView} from "@/model/relation-state/relation-view-abstract";
 import {Column} from "@/model/data-source-connection";
+import {withStatsFilters} from "@/model/relation-state/stats-filters";
 
 const QUERY_ALIAS = 'dash_final_query'
 
@@ -76,11 +77,13 @@ export async function buildQuery<QueryParameters, QueryState>(
         schema = [];
         console.error('Fixing query parameters failed', e);
     }
-    const viewQuery = relationView.buildViewQuery(parameters, finalQueryAsSubQuery, QUERY_ALIAS);
+    // The views read the query narrowed to the stats filters; finalQuery, which the stats read, stays as it is.
+    const source = withStatsFilters(finalQueryAsSubQuery, QUERY_ALIAS, relationState.statsFilters, schema);
+    const viewQuery = relationView.buildViewQuery(parameters, source, QUERY_ALIAS);
 
     let countQuery = undefined;
     if (relationView.buildCountQuery) {
-        countQuery = relationView.buildCountQuery(parameters, finalQueryAsSubQuery, QUERY_ALIAS);
+        countQuery = relationView.buildCountQuery(parameters, source, QUERY_ALIAS);
     }
 
     return {

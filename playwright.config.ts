@@ -9,6 +9,9 @@ import { defineConfig, devices } from '@playwright/test';
 // with E2E_PORT if 3100 is taken too.
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 export const E2E_BASE_URL = `http://localhost:${PORT}`;
+// The website (src/web), for its own specs (`*.site.spec.ts`), on the next port.
+const SITE_PORT = Number(process.env.E2E_SITE_PORT ?? PORT + 1);
+const E2E_SITE_URL = `http://localhost:${SITE_PORT}`;
 
 // Throwaway state for the Electron runtime, wiped by test/fixtures.ts before every test
 // so both targets start from an empty app. Unlike the web target - whose OPFS dies with
@@ -56,6 +59,7 @@ export default defineConfig({
     {
       name: 'web',
       metadata: { target: 'web' },
+      testIgnore: '**/*.site.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
     // Electron: launches the desktop app (native DuckDB) pointed at the same dev
@@ -75,8 +79,14 @@ export default defineConfig({
       testMatch: '**/*.shared.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
+    // The website's pages, in Chromium against its own dev server.
+    {
+      name: 'site',
+      testMatch: '**/*.site.spec.ts',
+      use: { ...devices['Desktop Chrome'], baseURL: E2E_SITE_URL },
+    },
   ],
-  webServer: {
+  webServer: [{
     command: `pnpm dev --port ${PORT}`,
     url: E2E_BASE_URL,
     reuseExistingServer: !process.env.CI,
@@ -88,5 +98,11 @@ export default defineConfig({
       // per-dist-dir dev lock (see next.config.mjs).
       NEXT_DIST_DIR: '.next-e2e',
     },
-  },
+  }, {
+    command: `pnpm dev:web --port ${SITE_PORT}`,
+    url: E2E_SITE_URL,
+    reuseExistingServer: !process.env.CI,
+    // Own dist dir (src/web/.next-e2e), next to a plain `pnpm dev:web`.
+    env: { NEXT_DIST_DIR: '.next-e2e' },
+  }],
 });

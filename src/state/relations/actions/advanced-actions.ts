@@ -14,6 +14,7 @@ import {toast} from "sonner";
 import {processRelationUpdateEvent} from "@/state/relations/event/relation-events-update-dispatch";
 import {RelationEvents} from "@/state/relations/event/relation-events";
 import {RelationQueryState} from "@/model/relation-query-state";
+import {StatsFilters} from "@/model/relation-state/stats-filters";
 
 export type UpdateRelationFunction = (relation: RelationState) => void;
 
@@ -38,6 +39,8 @@ export interface AdvancedRelationActions extends RelationUpdate {
     updateRelationQueryState: (queryState: DeepPartial<RelationQueryState>) => void,
     // update relation with deep partial
     updateRelationWithPartial: (partialRelation: DeepPartial<RelationState>) => void,
+    // Sets the filters picked in the column stats and runs the view on them, from its first page
+    updateStatsFilters: (filters: StatsFilters) => Promise<void>,
 }
 
 export function createAdvancedRelationActions(props: RelationViewAPIProps, readOnlyParam?: boolean): AdvancedRelationActions {
@@ -58,6 +61,8 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps, readO
             }
             // Clear selection state when re-running query (selected values may be stale)
             relationState.queryState = {}
+            // Filters picked in the stats of other SQL would narrow this one's rows unseen
+            if (baseQuery !== relationState.query.activeBaseQuery) relationState.statsFilters = undefined;
             return updateAndExecuteRelation(relationState, query, updateRelation, readOnly, baseQuery);
         },
         cancelQuery: async () => {
@@ -79,6 +84,11 @@ export function createAdvancedRelationActions(props: RelationViewAPIProps, readO
         },
         updateRelationWithPartial: (partialRelation: DeepPartial<RelationState>) => {
             return updateRelationWithPartial(relationState, partialRelation);
+        },
+        updateStatsFilters: async (filters: StatsFilters) => {
+            const filtered: RelationState = {...relationState, query: {...relationState.query}, statsFilters: filters};
+            const params = relationState.query.viewParameters;
+            return updateAndExecuteRelation(filtered, {...params, table: {...params.table, offset: 0}}, updateRelation, readOnly);
         }
     }
 }

@@ -74,7 +74,7 @@ export function useStartDatabaseWhenIdle() {
 }
 
 /** Sets up the connection the site's queries wait on, which runs `setup` first; once. */
-function connect(setup: string[]) {
+export function connect(setup: string[]) {
     if (connected) return;
     connected = true;
     siteSetup = setup;

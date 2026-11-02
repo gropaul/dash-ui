@@ -72,6 +72,10 @@ jobs:
       # Web e2e: headless Chromium against the dev server. Exercises DuckDB WASM.
       - name: Run Playwright tests (web)
         run: ${{ steps.detect-package-manager.outputs.runner }} exec playwright test --project=web
+      # Website e2e: the site's pages (*.site.spec.ts) in Chromium against its own dev server.
+      - name: Run Playwright tests (site)
+        if: ${{ !cancelled() }}
+        run: ${{ steps.detect-package-manager.outputs.runner }} exec playwright test --project=site
       # Electron e2e: launches the real desktop app (native DuckDB) against the same
       # dev server; only the *.shared.spec.ts specs run here. Electron opens a real
       # BrowserWindow, so it needs a display - xvfb-run provides a virtual one on the

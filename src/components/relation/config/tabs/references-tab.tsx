@@ -2,7 +2,6 @@
 
 import React from "react";
 import {Separator} from "@/components/ui/separator";
-import {Muted} from "@/components/ui/typography";
 import {ConfigSection} from "@/components/relation/common/config-section";
 import {RelationConfigTabProps} from "@/components/relation/config/relation-config-tab";
 import {ReferenceEntry, useRelationReferences} from "@/components/relation/config/use-relation-references";
@@ -10,8 +9,8 @@ import {ReferenceList} from "@/components/relation/config/reference-list";
 
 /**
  * Everything that connects this query to the rest of the project: the two directions of the
- * `refs.<name>()` graph, plus the pages that use it. Only the groups that have entries are rendered,
- * so an unconnected query shows one empty state instead of three.
+ * `refs.<name>()` graph, plus the pages that use it. Only the groups that have entries are rendered;
+ * the tab shows only for a query with at least one (relation-config-tabs.ts).
  */
 export function ReferencesTab(props: RelationConfigTabProps) {
     const references = useRelationReferences(props.relationState);
@@ -22,16 +21,6 @@ export function ReferencesTab(props: RelationConfigTabProps) {
         {title: 'Uses', entries: references.usesRelations},
         {title: 'Pages', entries: references.pages},
     ].filter(group => group.entries.length > 0);
-
-    if (groups.length === 0) {
-        return (
-            <Muted className="text-sm">
-                Nothing references this query yet. Other queries can read it
-                with <span className="font-mono">refs.&lt;name&gt;()</span>, and a page can take it in
-                with <span className="font-mono">-- input:</span>.
-            </Muted>
-        );
-    }
 
     return (
         <div className="flex flex-col gap-3">

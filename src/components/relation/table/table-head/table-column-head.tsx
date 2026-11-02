@@ -12,7 +12,8 @@ import {ColumnStatsProps, ColumnStatsView} from "@/components/relation/table/tab
 import {RelationViewTableContentProps} from "@/components/relation/table/table-content";
 import {ValueIcon} from "@/components/relation/common/value-icon";
 import {ColumnHeadResizeHandle} from "@/components/relation/table/table-head/column-head-resize-handler";
-import {ColumnFilterIn, ColumnSorting} from "@/model/relation-state/relation-view-table";
+import {ColumnSorting} from "@/model/relation-state/relation-view-table";
+import {setColumnFilter} from "@/model/relation-state/stats-filters";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 
 
@@ -126,28 +127,8 @@ export function TableColumnHead(props: ColumnHeadProps) {
     }
 
     function onSelectedChange(selected: string[]) {
-
-        const newFilter: ColumnFilterIn =  {
-            type: "values",
-            values: selected,
-        }
-
-        const filterCopy = {...queryParameters.table.filters}
-
-        if (selected.length > 0) {
-            filterCopy[props.column.name] = newFilter;
-        } else {
-            delete filterCopy[props.column.name];
-        }
-
-        const queryParams: RelationQueryParameters = {
-            ...queryParameters,
-            table: {
-                ...queryParameters.table,
-                filters: filterCopy
-            }
-        }
-        props.updateRelationDataWithParams(queryParams);
+        const filter = selected.length > 0 ? {type: 'values' as const, values: selected} : undefined;
+        void props.updateStatsFilters(setColumnFilter(props.relationState.statsFilters, props.column.name, filter));
     }
 
     return (

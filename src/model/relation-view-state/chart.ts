@@ -1,4 +1,5 @@
 import {RelationData} from "@/model/relation";
+import {Column} from "@/model/data-source-connection";
 import {CHART_QUERY_LIMIT, DEFAULT_COLORS} from "@/platform/global-data";
 import {columnExists, isNumeric, isTextType} from "@/model/relation-view-state/column-utils";
 
@@ -504,10 +505,10 @@ export function cleanupInvalidColumns(
  * First removes columns that are no longer in the schema, then infers missing axes.
  *
  * For X-axis selection (left to right):
- * - line, area, scatter: prefer numeric column, fallback to text
- * - bar, radar: prefer text column, fallback to numeric
+ * - line, area, scatter: prefer a date/time column, then numeric, then text
+ * - bar, radar: prefer text column, then date/time, then numeric
  *
- * For Y-axis: always use first numeric column
+ * For Y-axes: the numeric columns other than the X-axis, up to 3
  *
  * Returns undefined if inference is not possible (e.g., no numeric columns)
  */
@@ -554,9 +555,13 @@ export function tryInferChartConfig(
                 };
             }
 
-            // Multiple columns: use 1st as X-axis, next columns as Y-axes (up to 3)
-            const xColumn = columns[0];
-            const yColumns = columns.slice(1, 4); // Take columns 2, 3, 4 (indices 1, 2, 3)
+            const isTime = (c: Column) => c.type === 'Timestamp';
+            const order = cleanedPlotConfig.type === 'bar' || cleanedPlotConfig.type === 'radar'
+                ? [isTextType, isTime, isNumeric]
+                : [isTime, isNumeric, isTextType];
+            const xColumn = order.map(matches => columns.find(matches)).find(c => c !== undefined) ?? columns[0];
+            const yColumns = columns.filter(c => c.id !== xColumn.id && isNumeric(c)).slice(0, 3);
+            if (yColumns.length === 0) return undefined;
 
             return {
                 plot: {

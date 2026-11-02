@@ -55,6 +55,12 @@ const nextConfig = {
 
         // `import text from './file.md?raw'` gives the file's text (Vitest does the same natively).
         config.module.rules.push({resourceQuery: /raw/, type: 'asset/source'})
+        // DuckDB WASM's worker scripts, as `new URL(…, import.meta.url)` names them: copied as they are, not bundled.
+        config.module.rules.push({
+            test: /@duckdb[\\/]duckdb-wasm[\\/]dist[\\/]duckdb-browser-.*\.worker\.js$/,
+            type: 'asset/resource',
+            generator: {filename: 'static/wasm/[name].[contenthash][ext]'},
+        })
 
         config.module.rules.push({
             test: /.*\.wasm$/,

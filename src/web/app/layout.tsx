@@ -36,7 +36,8 @@ export default function SiteLayout({children}: { children: React.ReactNode }) {
     // next-themes sets the theme class on <html> before it paints, hence the hydration warning off.
     return (
         <html lang="en" className={inter.variable} suppressHydrationWarning>
-        <body className="min-h-dvh bg-background text-foreground antialiased">
+        {/* Browser extensions (Grammarly) add attributes to <body> before React hydrates. */}
+        <body className="min-h-dvh bg-background text-foreground antialiased" suppressHydrationWarning>
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(STRUCTURED_DATA)}}/>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             <SiteHeader/>

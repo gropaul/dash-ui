@@ -213,6 +213,7 @@ export function withRuntime(built: RelationState, stored: RelationState | undefi
         executionState: stored.executionState,
         ...(stored.lastExecutionMetaData && {lastExecutionMetaData: stored.lastExecutionMetaData}),
         ...(stored.queryState && {queryState: stored.queryState}),
+        ...(stored.statsFilters && {statsFilters: stored.statsFilters}),
         query: {
             ...built.query,
             activeBaseQuery: stored.query.activeBaseQuery,

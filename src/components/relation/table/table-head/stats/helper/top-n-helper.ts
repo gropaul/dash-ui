@@ -3,7 +3,10 @@ import {TopNItem, TopNItemTransformed} from "@/components/relation/table/table-h
 
 const startColor = "#afc9ff";
 const endColor = "#e6eeff";
-const colorSelected = "#ff7d7d";
+// With a pick, as the histogram's range: the picked values in the strongest blue, the rest in gray, dark to light as
+// the blue runs without one.
+const unpickedStartColor = "#d1d5db";
+const unpickedEndColor = "#f3f4f6";
 
 export function ItemToString(value: any): string {
     return value === null
@@ -29,42 +32,27 @@ export function ToggleSelected(selected: any[], selectedStrings: string[], value
     return copy;
 }
 
-/// Adds others, Transforms all values to strings, set unselected items count to 0, sorts by count descending
+/// Adds others, transforms all values to strings, sorts by count ascending. The picked values keep their place among the
+/// rest (colored by GetColors): the stats show the whole query, a pick filters only the views on top of it.
 export function PreprocessRawData(topValues: TopNItem[], selectedStrings: string[], othersCount?: number): TopNItemTransformed[] {
 
-    const copy = [...topValues];
-
-
+    const filtered: TopNItemTransformed[] = topValues.map(item => ({...item, valueString: ItemToString(item.value)}));
     if (othersCount && othersCount > 0) {
-        copy.push({value: "Others", count: othersCount});
+        filtered.push({value: "Others", count: othersCount, valueString: "Others", isOthers: true});
     }
-
-    const filtered =  copy.map(item => {
-        const stringValue = ItemToString(item.value);
-        let count = item.count;
-        if (selectedStrings.length > 0 && !selectedStrings.includes(stringValue)) {
-            count = 0;
-        }
-
-        return {
-            ...item,
-            valueString: stringValue,
-            count: count
-        }
-    });
     filtered.sort((a, b) => a.count - b.count);
     return filtered;
 }
 
 export function GetColors(items: TopNItemTransformed[], selectedStrings: string[]) {
     return items.map((item, index) => {
-        if (selectedStrings.includes(item.valueString)) {
-            return colorSelected;
-        }
-
         const t = items.length === 1 ? 0 : index / (items.length - 1);
 
-        if (item.valueString === "Others") return "#efefef";
+        if (selectedStrings.length > 0) {
+            return selectedStrings.includes(item.valueString) ? startColor : LerpColorHex(unpickedStartColor, unpickedEndColor, 1 - t);
+        }
+
+        if (item.isOthers) return "#efefef";
         if (item.valueString === "null") return "#efefef";
         if (item.valueString === "undefined") return "#efefef";
 

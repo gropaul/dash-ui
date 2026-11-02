@@ -96,3 +96,11 @@ body {
     border: 1px solid hsl(var(--border));
     border-radius: calc(var(--radius) * 2);
 }
+
+/* The data viewer fills the window above the page's text: its lists and table scroll to their ends without the page
+   taking over the scroll there. */
+.data-viewer [data-radix-scroll-area-viewport],
+.data-viewer .overflow-y-auto,
+.data-viewer .overflow-auto {
+    overscroll-behavior: contain;
+}

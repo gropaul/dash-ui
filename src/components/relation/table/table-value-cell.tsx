@@ -37,7 +37,13 @@ export const TableValueCell = React.memo(function TableValueCell({column, elemen
 
         if (typeof element === "object") return JSON.stringify(element);
 
-        if (column.type === "Timestamp") return new Date(element).toLocaleString();
+        if (column.type === "Timestamp") {
+            // A DATE comes as "2025-09-15", which Date reads as midnight UTC; read it as that day here instead.
+            if (typeof element === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(element)) {
+                return new Date(`${element}T00:00:00`).toLocaleDateString();
+            }
+            return new Date(element).toLocaleString();
+        }
 
         return element.toString();
     }, [element, column.type]);

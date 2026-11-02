@@ -23,6 +23,7 @@ import {TextViewParameters} from "@/model/relation-state/relation-view-text";
 import {SliderQueryParameters} from "@/model/relation-state/relation-view-slider";
 import {Column} from "@/model/data-source-connection";
 import {RelationQueryState} from "@/model/relation-query-state";
+import {StatsFilters} from "@/model/relation-state/stats-filters";
 
 //! Is called when the user changes the code and reruns the query -> Reset some view parameters
 export function resetQueryParams(queryData: QueryData): RelationQueryParameters {
@@ -35,7 +36,6 @@ export function resetQueryParams(queryData: QueryData): RelationQueryParameters 
             table: {
                 ...oldParams.table,
                 sorting: {},
-                filters: {},
                 offset: 0,
             },
         };
@@ -177,6 +177,8 @@ export function ShouldUpdateStats(relation: RelationState): boolean {
 export interface RelationState extends RelationWithQuery {
     viewState: RelationViewState;
     queryState?: RelationQueryState;
+    /** Picked in the column stats, on top of the query for every view (stats-filters.ts); in memory only. */
+    statsFilters?: StatsFilters;
 }
 
 export function getBaseQueryFromSource(source: RelationSource): string {

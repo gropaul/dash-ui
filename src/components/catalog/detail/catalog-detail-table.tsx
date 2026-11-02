@@ -70,6 +70,7 @@ export function CatalogDetailTable({object, mode, onToggleExpand, onClose, onSel
                             renderIcon={(c) => <span className="shrink-0 text-muted-foreground"><ValueIcon type={c.type} size={14}/></span>}
                             renderStatus={(c) => <span className="shrink-0 text-xs text-muted-foreground">{c.type}</span>}
                             onRowClick={(c) => onSelect({objId: object.id, colName: c.name})}
+                            listClassName="max-h-80 overflow-y-auto"
                         />
                     </TabsContent>
                     <TabsContent value="sql" className="mt-0">

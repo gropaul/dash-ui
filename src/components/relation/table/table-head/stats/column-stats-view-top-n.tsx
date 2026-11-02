@@ -14,7 +14,7 @@ import {
 const ReactECharts = dynamic(() => import("@/components/relation/chart/react-echarts"), {ssr: false});
 
 export type TopNItem = { value: any; count: number }
-export type TopNItemTransformed = { valueString: string } & TopNItem;
+export type TopNItemTransformed = { valueString: string, isOthers?: boolean } & TopNItem;
 
 const barHeight = 20;
 const barGap = 2;
@@ -52,6 +52,8 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
         const maxCount = counts.length === 0 ? 0 : Math.max(...counts);
 
         return {
+            // Drawn at once: ECharts would grow the bars in from the left.
+            animation: false,
             tooltip: {
                 trigger: "axis",
                 axisPointer: {type: "shadow"},
@@ -97,9 +99,15 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
                 // Visible bars
                 {
                     type: "bar",
-                    data: counts,
+                    // Hovered, a bar keeps its color with a blue outline: ECharts would lighten it, and the lightest
+                    // bars would turn white. The outline is always there, in the fill color, so hovering doesn't move
+                    // the label. Set per bar, as a hover color can't be a function.
+                    data: counts.map((count, i) => ({
+                        value: count,
+                        itemStyle: {color: colors[i], borderColor: colors[i]},
+                        emphasis: {itemStyle: {color: colors[i], borderColor: "#3b82f6", borderWidth: 1}},
+                    })),
                     itemStyle: {
-                        color: (p: any) => colors[p.dataIndex],
                         borderWidth: 1,
                         borderRadius: [1, 1, 1, 1]
                     },
@@ -121,16 +129,10 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
         const handler = (params: any) => {
             const index = params.dataIndex;
             if (typeof index !== "number") return;
-            const value = filtered[index].value;
-            const newSelected = ToggleSelected(props.selected, selectedStrings, value);
-
-            console.log("ENABLE ME AGAIN");
-            // todo: current problems:
-            // 1. The filteres are added to the view query, not the raw query. The stats
-            // are using the raw query, so the filters don't apply to what the stats show.
-            // 2. If you define a filter on column A, then change the query to not contain
-            // column A, then the query will fail as it will try filter on a non-existing column.
-            // props.onSelectedChange(newSelected);
+            const item = filtered[index];
+            // "Others" is the rest of the values, not one to pick.
+            if (item.isOthers) return;
+            props.onSelectedChange(ToggleSelected(props.selected, selectedStrings, item.value));
         };
 
         instance.off("click");

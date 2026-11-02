@@ -37,6 +37,11 @@ export default function Landing() {
                             kept in the browser.
                         </p>
                         <a href={APP_URL} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants(), "mt-6 rounded-2xl")}>Open in browser</a>
+                        <p className="mt-4 text-sm text-muted-foreground">
+                            Only need to look at a file? Open it in
+                            the <Link href="/parquet-viewer" className="underline underline-offset-2">Parquet viewer</Link> or
+                            the <Link href="/csv-viewer" className="underline underline-offset-2">CSV viewer</Link>.
+                        </p>
                     </div>
                     <div className="border-t pt-6">
                         <h3 className="text-lg font-semibold">On your desktop</h3>

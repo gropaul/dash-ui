@@ -7,7 +7,7 @@ import type {RelationViewProps} from "@/components/relation/relation-view";
  */
 export type RelationConfigTabProps = RelationViewProps;
 
-export type RelationConfigTabId = 'view' | 'parameters' | 'references';
+export type RelationConfigTabId = 'view' | 'schema' | 'parameters' | 'references';
 
 /**
  * One tab in the relation settings side panel. The panel is generated from the registry in
@@ -19,9 +19,7 @@ export interface RelationConfigTab {
     label: string;
     component: ComponentType<RelationConfigTabProps>;
     /**
-     * Hides the tab when it can never apply to this relation. Omit for tabs that are always
-     * shown. A tab that applies but has nothing to display should render an empty state itself
-     * rather than disappear, so the panel does not reflow while the user edits the SQL.
+     * Hides the tab when it has nothing for this relation. Omit for tabs that are always shown.
      */
     isAvailable?: (props: RelationConfigTabProps) => boolean;
 }

@@ -66,17 +66,24 @@ export function useRelationReferences(relationState: RelationState): RelationRef
     const files = useWorkspace(s => s.files);
     const path = relationState.id;
     const baseQuery = relationState.query.baseQuery;
+    return useMemo(() => relationReferences(files, path, baseQuery ?? ''), [files, path, baseQuery]);
+}
 
-    return useMemo(() => {
-        const page = pageOfSurface(path);
-        if (page) return blockReferences(files, page, path.slice(page.length + 1), baseQuery ?? '');
-        const users = path in files ? usersOf(files, path) : {queries: [], pages: []};
-        return {
-            usedByRelations: users.queries.map(fileEntry),
-            usesRelations: queriesCalledBy(files, baseQuery ?? '').map(({name, path}) => path
-                ? fileEntry(path)
-                : {id: name, name: `refs.${name}()`, iconType: 'relation', detail: 'unresolved', navigable: false}),
-            pages: users.pages.map(fileEntry),
-        };
-    }, [files, path, baseQuery]);
+/** Whether the relation is connected to anything in the workspace's files. */
+export function hasReferences(files: Record<string, string>, relationState: RelationState): boolean {
+    const {usedByRelations, usesRelations, pages} = relationReferences(files, relationState.id, relationState.query.baseQuery ?? '');
+    return usedByRelations.length + usesRelations.length + pages.length > 0;
+}
+
+function relationReferences(files: Record<string, string>, path: string, baseQuery: string): RelationReferences {
+    const page = pageOfSurface(path);
+    if (page) return blockReferences(files, page, path.slice(page.length + 1), baseQuery);
+    const users = path in files ? usersOf(files, path) : {queries: [], pages: []};
+    return {
+        usedByRelations: users.queries.map(fileEntry),
+        usesRelations: queriesCalledBy(files, baseQuery).map(({name, path}) => path
+            ? fileEntry(path)
+            : {id: name, name: `refs.${name}()`, iconType: 'relation', detail: 'unresolved', navigable: false}),
+        pages: users.pages.map(fileEntry),
+    };
 }

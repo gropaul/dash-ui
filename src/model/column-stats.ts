@@ -49,7 +49,11 @@ function getTopKFunction(column: Column, column_index: number, k: number): strin
     return `(with ags AS (SELECT ${ref}, COUNT(*)::BIGINT as cnt FROM ${DATA_TRANSFORMED_TABLE_NAME} GROUP BY ${ref} ORDER BY cnt DESC LIMIT ${k}) SELECT list({val: #1, cnt: #2::UINTEGER} ORDER BY #2 DESC) FROM ags) AS ${agg_ref}`;
 }
 
-function getHistogramFunction(column: Column, column_index: number): string {
+/**
+ * `nice` rounds the bin edges (widths of 1, 2, 5, 10, ...): equal widths that don't fit whole numbers would catch 3
+ * integers in one bin and 4 in the next, and draw an even spread as a comb.
+ */
+function getHistogramFunction(column: Column, column_index: number, nice: boolean): string {
     const column_min = getColumnAggName(column, 'MIN', column_index);
     const column_max = getColumnAggName(column, 'MAX', column_index);
     const column_hist = getColumnAggName(column, 'HISTOGRAM', column_index);
@@ -57,7 +61,7 @@ function getHistogramFunction(column: Column, column_index: number): string {
     return `
         histogram(
             ${column_quote}, 
-            (SELECT equi_width_bins(${column_min}, ${column_max}, ${N_BINS}, false) FROM base)
+            (SELECT equi_width_bins(${column_min}, ${column_max}, ${N_BINS}, ${nice}) FROM base)
         ) AS ${column_hist}
     `;
 }
@@ -70,14 +74,15 @@ function GetQueryForColumn(column: Column, index: number): QueryColumnPart {
         case "Float":
             return {
                 baseStats: getSimpleAggFuns(column, DEFAULT_AGGS, index).join(', '),
-                hist: getHistogramFunction(column, index),
+                hist: getHistogramFunction(column, index, true),
                 select: `${column_quote} AS ${column_reference}`,
                 availableAggs: [...DEFAULT_AGGS, 'HISTOGRAM'],
             }
         case "Timestamp":
             return {
                 baseStats: getSimpleAggFuns(column, DEFAULT_AGGS, index).join(', '),
-                hist: getHistogramFunction(column, index),
+                // Round edges would be round milliseconds, not days or hours.
+                hist: getHistogramFunction(column, index, false),
                 select: `epoch_ms(${column_quote}) AS ${column_reference}`,
                 availableAggs: [...DEFAULT_AGGS, 'HISTOGRAM'],
             }

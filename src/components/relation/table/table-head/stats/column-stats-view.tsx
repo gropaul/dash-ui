@@ -46,6 +46,7 @@ export function ColumnStatsView({relationStats, className, relationState, column
                         <ColumnsStatsViewContent
                             relationStats={relationStats!}
                             columnIndex={columnIndex}
+                            selected={pickedValues(relationState, columnIndex)}
                             className={'h-full w-full'}
                             onSelectedChange={onSelectedChange}
                         />
@@ -58,14 +59,22 @@ export function ColumnStatsView({relationStats, className, relationState, column
 
 }
 
+/** The values of the column picked in its stats, which its top values chart toggles from. */
+function pickedValues(relationState: RelationState, columnIndex: number): unknown[] {
+    const name = relationState.viewState.schema[columnIndex]?.name;
+    const filter = name === undefined ? undefined : relationState.statsFilters?.[name];
+    return filter?.type === 'values' ? filter.values : [];
+}
+
 interface ColumnsStatsViewContentProps {
     relationStats: RelationStats,
     columnIndex: number,
+    selected: unknown[],
     className: string,
     onSelectedChange: (selected: string[]) => void,
 }
 
-function ColumnsStatsViewContent({relationStats, columnIndex, className, onSelectedChange}: ColumnsStatsViewContentProps) {
+function ColumnsStatsViewContent({relationStats, columnIndex, selected, className, onSelectedChange}: ColumnsStatsViewContentProps) {
 
     if (relationStats.state === 'loading') {
         return <div className={cn("w-full text-muted-foreground flex items-center justify-center", className)}>
@@ -115,7 +124,7 @@ function ColumnsStatsViewContent({relationStats, columnIndex, className, onSelec
                     othersCount={columnStats.othersCount}
                     nonNullCount={columnStats.nonNullCount}
                     onSelectedChange={onSelectedChange}
-                    selected={[]}
+                    selected={selected}
                 />
             );
         case 'minMax':

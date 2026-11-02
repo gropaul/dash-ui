@@ -7,6 +7,31 @@ import {isDebugMode} from "@/components/settings/about-content";
 import {useInitState} from "@/state/init.state";
 
 export type StorageMode = 'opfs' | 'memory';
+
+/**
+ * DuckDB WASM's builds, served by the site itself (webpack copies them into the build with a content hash, so they can
+ * be cached for good): from a CDN, a cold load waits on its 34 MB download. next.config.mjs copies the .wasm files and
+ * the worker scripts as they are.
+ */
+function duckdbBundles(): DuckDBBundles {
+    // Next makes these URLs relative to the page; the worker, started from a blob URL, needs them whole.
+    const whole = (url: URL) => new URL(url.href, window.location.href).href;
+    return {
+        mvp: {
+            mainModule: whole(new URL('@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm', import.meta.url)),
+            mainWorker: whole(new URL('@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js', import.meta.url)),
+        },
+        eh: {
+            mainModule: whole(new URL('@duckdb/duckdb-wasm/dist/duckdb-eh.wasm', import.meta.url)),
+            mainWorker: whole(new URL('@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js', import.meta.url)),
+        },
+        coi: {
+            mainModule: whole(new URL('@duckdb/duckdb-wasm/dist/duckdb-coi.wasm', import.meta.url)),
+            mainWorker: whole(new URL('@duckdb/duckdb-wasm/dist/duckdb-browser-coi.worker.js', import.meta.url)),
+            pthreadWorker: whole(new URL('@duckdb/duckdb-wasm/dist/duckdb-browser-coi.pthread.worker.js', import.meta.url)),
+        },
+    };
+}
 let _storageMode: StorageMode = 'opfs';
 export function getStorageMode(): StorageMode { return _storageMode; }
 
@@ -219,7 +244,7 @@ export class DuckdbWasmProvider {
         });
 
         // Grab available bundles
-        const bundles: DuckDBBundles = duckdb.getJsDelivrBundles();
+        const bundles = duckdbBundles();
 
         // Automatically pick a bundle compatible with the current browser
         const bundle = await duckdb.selectBundle(bundles);
@@ -343,7 +368,7 @@ export class DuckdbWasmProvider {
 
     /** A fresh, instantiated (but un-opened) AsyncDuckDB - used for one-off tasks like priming files. */
     private async createUninitialisedInstance(): Promise<AsyncDuckDB> {
-        const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+        const bundle = await duckdb.selectBundle(duckdbBundles());
         const worker = await this._createWorker(bundle);
         const db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(LogLevel.ERROR), worker);
         await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
