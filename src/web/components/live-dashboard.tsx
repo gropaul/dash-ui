@@ -26,6 +26,6 @@ export default function LiveDashboard() {
 
     return (
         <PageEditor path={LANDING_DASHBOARD} markdown={dashboardText} onMarkdownChange={onMarkdownChange}
-                    mode={mode} onModeChange={setMode} plainMarkdownEditor markdownRight scrollPastEnd={false}/>
+                    mode={mode} onModeChange={setMode} plainMarkdownEditor markdownRight scrollPastEnd={false} fitHeight/>
     );
 }

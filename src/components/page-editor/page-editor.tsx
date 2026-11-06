@@ -61,10 +61,12 @@ export interface PageEditorProps {
     markdownRight?: boolean;
     /** Room below the last block, so it can be scrolled up from the bottom edge; off where the page is embedded. */
     scrollPastEnd?: boolean;
+    /** As tall as the page instead of filling and scrolling its parent; split's markdown fills that height. */
+    fitHeight?: boolean;
 }
 
 /** A page as one markdown document: text and relation blocks, edited as blocks, read-only, or next to its markdown. */
-export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode: modeProp, onModeChange, plainMarkdownEditor = false, markdownRight = false, scrollPastEnd = true}: PageEditorProps) {
+export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode: modeProp, onModeChange, plainMarkdownEditor = false, markdownRight = false, scrollPastEnd = true, fitHeight = false}: PageEditorProps) {
     const [ownMode, setOwnMode] = useState<PageEditorMode>('edit');
     const mode = modeProp ?? ownMode;
     const readOnly = mode === 'view';
@@ -178,9 +180,9 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
     );
 
     const markdownPanel = (
-        <ResizablePanel defaultSize={markdownSize} minSize={20}
+        <ResizablePanel defaultSize={markdownSize} minSize={20} className={cn(fitHeight && "relative")}
                         onResize={size => useGUIState.getState().setPageMarkdownRatio(size / 100)}>
-            <div className="relative flex h-full flex-col"
+            <div className={cn("flex flex-col", fitHeight ? "absolute inset-0" : "relative h-full")}
                  onFocusCapture={sync.viewToText.flush}
                  onPointerDownCapture={sync.viewToText.flush}>
                 <CooldownIndicator pending={sync.viewToText.pending}/>
@@ -204,9 +206,9 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
     );
     const pagePanel = (
         <ResizablePanel defaultSize={100 - markdownSize}>
-            <div className="relative h-full" onPointerDownCapture={sync.textToView.flush}>
+            <div className={cn("relative", !fitHeight && "h-full")} onPointerDownCapture={sync.textToView.flush}>
                 <CooldownIndicator pending={sync.textToView.pending}/>
-                <div className="h-full overflow-auto">{content}</div>
+                <div className={cn(!fitHeight && "h-full overflow-auto")}>{content}</div>
             </div>
         </ResizablePanel>
     );
@@ -216,7 +218,7 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
             <RenameRelationContext.Provider value={renameBlockOf}>
             <AddMenuExtraContext.Provider value={addMenuExtra}>
                 <Plate editor={editor} readOnly={readOnly} onValueChange={sync.onValueChange}>
-                    <div className="relative flex h-full w-full flex-col bg-background">
+                    <div className={cn("relative flex w-full flex-col bg-background", !fitHeight && "h-full")}>
                         {/* Changing the mode first applies the text still on its way. */}
                         <div className="absolute right-4 top-4 z-40 rounded-lg border bg-background/90 p-0.5 shadow-sm backdrop-blur"
                              onPointerDownCapture={sync.textToView.flush}>
@@ -230,11 +232,11 @@ export function PageEditor({path, markdown, onMarkdownChange, addMenuExtra, mode
                             </ToggleGroup>
                         </div>
                         {mode === 'split' ? (
-                            <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
+                            <ResizablePanelGroup direction="horizontal" className={cn(!fitHeight && "min-h-0 flex-1")}>
                                 {markdownRight ? <>{pagePanel}<ResizableHandle/>{markdownPanel}</> : <>{markdownPanel}<ResizableHandle/>{pagePanel}</>}
                             </ResizablePanelGroup>
                         ) : (
-                            <div className="min-h-0 flex-1 overflow-auto">{content}</div>
+                            <div className={cn(!fitHeight && "min-h-0 flex-1 overflow-auto")}>{content}</div>
                         )}
                     </div>
                     <RelationFullscreenDialog/>

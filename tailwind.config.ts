@@ -3,12 +3,16 @@ import {MOBILE_BREAKPOINT_PX, VIEW_PADDING_MEDIUM_BREAKPOINT_PX, VIEW_PADDING_WI
 
 const config: Config = {
     darkMode: ["class"],
-    content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/web/**/*.{ts,tsx}",
-  ],
+    // relative: `next dev src/web` runs from src/web, so paths must not depend on the cwd
+    content: {
+        relative: true,
+        files: [
+            "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+            "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+            "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+            "./src/web/**/*.{ts,tsx}",
+        ],
+    },
   theme: {
   	extend: {
   		screens: {md: `${MOBILE_BREAKPOINT_PX}px`},

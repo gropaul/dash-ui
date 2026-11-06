@@ -50,15 +50,20 @@ export function SiteFooter() {
                     <Image src="/logo-64.webp" alt="" width={32} height={32}/>
                     <span className="font-semibold">Dash</span>
                 </div>
-                <nav className="flex flex-wrap items-center justify-center gap-4">
-                    <Link href="/docs/canvas" className="hover:text-foreground">Canvas</Link>
-                    <Link href="/dashboard-with-duckdb" className="hover:text-foreground">Dashboards</Link>
-                    <Link href="/parquet-viewer" className="hover:text-foreground">Parquet viewer</Link>
-                    <Link href="/csv-viewer" className="hover:text-foreground">CSV viewer</Link>
-                    <Link href="/docs" className="hover:text-foreground">Docs</Link>
-                    <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">GitHub</a>
-                    <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Open in browser</a>
-                </nav>
+                <div className="flex flex-col items-center gap-0.5 md:items-start">
+                    <nav className="flex flex-wrap items-center justify-center gap-4 md:justify-start">
+                        <Link href="/docs/canvas" className="hover:text-foreground">Canvas</Link>
+                        <Link href="/dashboard-with-duckdb" className="hover:text-foreground">Dashboards</Link>
+                        <Link href="/parquet-viewer" className="hover:text-foreground">Parquet viewer</Link>
+                        <Link href="/csv-viewer" className="hover:text-foreground">CSV viewer</Link>
+                        <Link href="/docs" className="hover:text-foreground">Docs</Link>
+                        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">GitHub</a>
+                        <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Open in browser</a>
+                    </nav>
+                    <p className="text-left text-[10px] text-muted-foreground/70">
+                        DuckDB is a trademark of the <a href="https://duckdb.org/foundation" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-foreground hover:underline">DuckDB Foundation</a>. Dash is not affiliated with or endorsed by the DuckDB Foundation.
+                    </p>
+                </div>
             </div>
         </footer>
     );

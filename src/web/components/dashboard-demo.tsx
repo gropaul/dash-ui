@@ -21,7 +21,7 @@ function Loading({error}: { error?: Error | null }) {
 export function DashboardDemo() {
     const canvasDone = useCanvasDone();
     return (
-        <div className="h-[640px] overflow-hidden rounded-2xl border bg-background shadow-[var(--node-shadow)]">
+        <div className="min-h-[640px] overflow-hidden rounded-2xl border bg-background shadow-[var(--node-shadow)]">
             {canvasDone ? <LiveDashboard/> : <DashboardText/>}
         </div>
     );
