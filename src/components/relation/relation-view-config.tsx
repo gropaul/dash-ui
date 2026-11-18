@@ -18,14 +18,13 @@ export function hasConfigPanel(props: RelationViewProps): boolean {
 /**
  * The relation settings side panel: a tab shell over the registry in
  * `config/relation-config-tabs.ts`. The selected tab is per-mount state on purpose - reopening a
- * relation should land on the view settings again.
+ * relation should land on the Columns tab again.
  */
 export function RelationViewConfig(props: RelationViewProps) {
     // Tabs can depend on the workspace's files (References), so the panel renders again when they change.
     useWorkspace(s => s.files);
     const tabs = getAvailableConfigTabs(props);
-    const preferred = props.configTab ?? DEFAULT_RELATION_CONFIG_TAB;
-    const fallbackTab = tabs.find(t => t.id === preferred)?.id ?? tabs[0]?.id;
+    const fallbackTab = tabs.find(t => t.id === DEFAULT_RELATION_CONFIG_TAB)?.id ?? tabs[0]?.id;
     const [selected, setSelected] = useState<string | undefined>(fallbackTab);
 
     if (tabs.length === 0) return null;

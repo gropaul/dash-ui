@@ -276,7 +276,7 @@ function OpenFile({name, sql}: { name: string, sql: string }) {
     return (
         <div className="relative h-full">
             <RelationView mode='fullscreen' height='fit' relationState={model.relation} updateRelation={model.updateRelation}
-                          plainSqlEditor configTab='schema'/>
+                          plainSqlEditor/>
             {waiting && (
                 <div role="status" className="absolute bottom-3 right-4 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Loader2 className="h-3 w-3 animate-spin"/>

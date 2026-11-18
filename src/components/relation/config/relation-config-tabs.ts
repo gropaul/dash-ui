@@ -17,15 +17,15 @@ import {useWorkspace} from "@/state/workspace/workspace.state";
  */
 export const RELATION_CONFIG_TABS: RelationConfigTab[] = [
     {
+        id: 'schema',
+        label: 'Columns',
+        component: SchemaTab,
+    },
+    {
         id: 'view',
         label: 'View',
         component: ViewSettingsTab,
         isAvailable: (props) => hasViewSettings(props.relationState.viewState.selectedView),
-    },
-    {
-        id: 'schema',
-        label: 'Columns',
-        component: SchemaTab,
     },
     {
         // hidden while {{param}} placeholders are not supported
@@ -43,7 +43,7 @@ export const RELATION_CONFIG_TABS: RelationConfigTab[] = [
     },
 ];
 
-export const DEFAULT_RELATION_CONFIG_TAB: RelationConfigTabId = 'view';
+export const DEFAULT_RELATION_CONFIG_TAB: RelationConfigTabId = 'schema';
 
 export function getAvailableConfigTabs(props: RelationConfigTabProps): RelationConfigTab[] {
     return RELATION_CONFIG_TABS.filter(tab => tab.isAvailable?.(props) ?? true);
