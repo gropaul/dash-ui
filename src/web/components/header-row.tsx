@@ -19,11 +19,12 @@ export function HeaderRow({logo, nav}: { logo: React.ReactNode, nav: React.React
                     {logo}
                     {!viewer && 'Dash'}
                 </Link>
+                {/* The link sits on the title's baseline. */}
                 {viewer && (
-                    <>
+                    <div className="flex min-w-0 items-baseline gap-2.5">
                         <h1 className="shrink-0 font-semibold">{viewer.title}</h1>
                         <LearnHowLink className="ml-2 hidden shrink-0 md:inline-flex"/>
-                    </>
+                    </div>
                 )}
             </div>
             {nav}
