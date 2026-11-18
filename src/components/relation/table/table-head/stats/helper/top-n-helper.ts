@@ -5,7 +5,7 @@ import {TopNItem, TopNItemTransformed} from "@/components/relation/table/table-h
 // the blue runs without one. In dark mode the bars run from bright to dim instead.
 const PALETTES = {
     light: {start: "#afc9ff", end: "#e6eeff", unpickedStart: "#d1d5db", unpickedEnd: "#f3f4f6", rest: "#efefef"},
-    dark: {start: "#2f5fb3", end: "#1c2b4a", unpickedStart: "#4b5563", unpickedEnd: "#272b33", rest: "#2a2e35"},
+    dark: {start: "#2f5fb3", end: "#1c2b4a", unpickedStart: "#3a404a", unpickedEnd: "#24282f", rest: "#2a2e35"},
 };
 
 export function ItemToString(value: any): string {

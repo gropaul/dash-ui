@@ -117,7 +117,9 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
                         show: true,
                         position: "insideLeft",
                         formatter: (p: any) => categories[p.dataIndex],
-                        fontSize: 11
+                        fontSize: 11,
+                        // Set, as ECharts' own contrast color outlines the text in the bar color.
+                        color: dark ? "#e5e7eb" : "#333"
                     },
                     barWidth: barHeight,
                     barCategoryGap: barGap,
