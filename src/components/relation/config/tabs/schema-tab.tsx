@@ -1,7 +1,7 @@
 "use client"
 
 import React, {useEffect, useMemo, useRef, useState} from "react";
-import {Braces, Calendar, Filter, Hash, Loader2, RefreshCw, Square, Text} from "lucide-react";
+import {Braces, Calendar, Filter, Hash, Loader2, RefreshCw, Square, Text, ToggleLeft} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Muted} from "@/components/ui/typography";
 import {ColumnConfigList, ColumnFilterTag} from "@/components/relation/common/column-config-list";
@@ -45,7 +45,9 @@ const TOP_VALUES = 5;
 const OPEN_COLUMNS = 5;
 
 const FILTER_TAGS: ColumnFilterTag[] = [
-    {key: 'numeric', label: 'Numeric', icon: <Hash size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'numeric'},
+    // Booleans get their own tag here; getValueTypeGroup counts them as numeric.
+    {key: 'numeric', label: 'Numeric', icon: <Hash size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'numeric' && c.type !== 'Boolean'},
+    {key: 'boolean', label: 'Boolean', icon: <ToggleLeft size={12}/>, predicate: c => c.type === 'Boolean'},
     {key: 'date', label: 'Date', icon: <Calendar size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'date'},
     {key: 'string', label: 'String', icon: <Text size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'string'},
     {key: 'nested', label: 'Nested', icon: <Braces size={12}/>, predicate: c => getValueTypeGroup(c.type) === 'nested'},
