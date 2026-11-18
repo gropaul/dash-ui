@@ -22,8 +22,9 @@ page and delegates to the others.
 
 Only `nextjs.yml` runs on every push and pull request, since it is the one that gates correctness.
 The build workflows run on `main` so there is always a fresh downloadable artifact of the latest
-commit. On a tag they do not trigger themselves; `release.yml` calls them, which is what keeps a tag
-from building everything twice.
+commit. A push that only changes the website (`src/web/**`) skips them (`paths-ignore`), as does the
+app's Vercel deploy (`ignoreCommand` in `vercel.json`). On a tag they do not trigger themselves;
+`release.yml` calls them, which is what keeps a tag from building everything twice.
 
 Every workflow cancels a superseded run on the same ref, except `release.yml` (see below).
 
