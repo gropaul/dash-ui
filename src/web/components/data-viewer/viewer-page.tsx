@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {DataViewer} from "@web/components/data-viewer/data-viewer";
 import {VIEWER_PAGES} from "@web/components/data-viewer/viewer-pages";
-import {BackToViewerLink} from "@web/components/data-viewer/scroll-links";
+import {BackToViewerLink, SnapViewerAndText} from "@web/components/data-viewer/scroll-links";
 
 const STEPS = [
     {title: 'Open a file', body: 'Drop a file or choose one. DuckDB WASM, the DuckDB database compiled to WebAssembly, reads it inside this page: nothing is uploaded, it works offline, and files of hundreds of MB work.'},
@@ -27,8 +27,9 @@ export function ViewerPage({path}: { path: string }) {
             <div className="h-[calc(100dvh-3.5rem-1px)]">
                 <DataViewer/>
             </div>
+            <SnapViewerAndText below="viewer-text"/>
 
-            <div className="border-t">
+            <div id="viewer-text" className="border-t">
             <div className="mx-auto max-w-4xl px-4 py-20">
                 <section id="how" className="scroll-mt-20">
                     <h2 className="text-2xl font-semibold tracking-tight">How it works</h2>

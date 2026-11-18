@@ -44,3 +44,38 @@ export function BackToViewerLink() {
         </a>
     );
 }
+
+/**
+ * Keeps the page off the half-way views between the viewer and the text below it (id `below`): a scroll that stops
+ * between the two goes on, smoothly, in its direction, to the text's start under the sticky header or to the top.
+ */
+export function SnapViewerAndText({below}: { below: string }) {
+    useEffect(() => {
+        let lastY = window.scrollY;
+        let direction = 0;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const settle = () => {
+            const text = document.getElementById(below);
+            if (!text) return;
+            const header = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+            const textTop = text.getBoundingClientRect().top + window.scrollY - header;
+            const y = window.scrollY;
+            if (y <= 0 || y >= textTop - 1) return;
+            window.scrollTo({top: direction > 0 ? textTop : 0, behavior: 'smooth'});
+        };
+        const onScroll = () => {
+            const y = window.scrollY;
+            if (y !== lastY) direction = Math.sign(y - lastY);
+            lastY = y;
+            clearTimeout(timer);
+            // After the scroll and its momentum end: a smooth scroll started during it would be cut off.
+            timer = setTimeout(settle, 120);
+        };
+        window.addEventListener('scroll', onScroll, {passive: true});
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            clearTimeout(timer);
+        };
+    }, [below]);
+    return null;
+}
