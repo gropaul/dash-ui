@@ -104,16 +104,3 @@ export async function deleteViewerFile(name: string): Promise<void> {
     const {files, open} = useViewerFiles.getState();
     useViewerFiles.setState(open === name ? {files: files.filter(f => f.name !== name), open: undefined, sql: undefined} : {files: files.filter(f => f.name !== name)});
 }
-
-export function formatSize(bytes: number): string {
-    if (bytes < 1000) return `${bytes} B`;
-    const units = ['KB', 'MB', 'GB', 'TB'];
-    let value = bytes / 1024;
-    let unit = 0;
-    // The next unit from what would show as 1000: 1001 KB is 1.0 MB.
-    while (value >= 999.5 && unit < units.length - 1) {
-        value /= 1024;
-        unit++;
-    }
-    return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
-}

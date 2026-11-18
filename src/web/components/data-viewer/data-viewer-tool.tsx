@@ -11,12 +11,12 @@ import {RelationConfig} from "@/state/workspace/relation-config";
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {cn} from "@/lib/utils";
 import {formatRelativeTime} from "@/platform/string-utils";
+import {formatSize} from "@/platform/number-utils";
 import {SidebarResizeHandle} from "@/components/layout/sidebar-resize-handle";
 import {connect, startDatabase, useWaitingForDatabase} from "@web/components/site-runtime";
 import {
     addViewerFile,
     deleteViewerFile,
-    formatSize,
     loadViewerFiles,
     readViewerFile,
     useViewerFiles,

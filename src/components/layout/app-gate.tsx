@@ -9,6 +9,7 @@ import {DeleteFileDialog} from "@/components/workspace/delete-file-dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {DownloadProgress, useInitState} from "@/state/init.state";
 import {Progress} from "@/components/ui/progress";
+import {formatSize} from "@/platform/number-utils";
 import {serveDashMcp} from "@/state/agent/dash-mcp";
 
 /**
@@ -64,13 +65,12 @@ export function AppGate({children}: { children: React.ReactNode }) {
 }
 
 function DownloadProgressView({progress}: { progress: DownloadProgress }) {
-    const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
     const {bytesLoaded, bytesTotal} = progress;
     const known = bytesTotal > 0 && bytesLoaded <= bytesTotal;
     return (
         <div className="flex w-48 flex-col items-center space-y-1 text-xs text-muted-foreground">
             {known && <Progress value={bytesLoaded / bytesTotal * 100}/>}
-            <div>{known ? `${mb(bytesLoaded)} / ${mb(bytesTotal)} MB` : `${mb(bytesLoaded)} MB`}</div>
+            <div>{known ? `${formatSize(bytesLoaded)} / ${formatSize(bytesTotal)}` : formatSize(bytesLoaded)}</div>
         </div>
     );
 }

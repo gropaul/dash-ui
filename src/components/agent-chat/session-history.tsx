@@ -9,6 +9,7 @@ import {Toggle} from "@/components/ui/toggle";
 import {TooltipWrapper} from "@/components/ui/tooltip-wrapper";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {useAgentChatState} from "@/state/agent/agent-chat.state";
+import {formatSize} from "@/platform/number-utils";
 
 /**
  * Lists the agent's stored sessions (for Claude Code: the CLI transcripts) and loads one into the panel.
@@ -181,10 +182,4 @@ function timeAgo(iso: string): string {
     const seconds = (Date.now() - new Date(iso).getTime()) / 1000;
     const [unit, size] = UNITS.find(([, size]) => seconds >= size) ?? [];
     return unit ? relativeTime.format(-Math.floor(seconds / size!), unit) : 'just now';
-}
-
-function formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }

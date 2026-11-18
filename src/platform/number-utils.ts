@@ -145,3 +145,17 @@ export function formatNumber(value: number, decimals: number = 1, lowercaseSuffi
         return value.toString();
     }
 }
+
+/** A size in bytes, as "773 B", "4.6 KB", "15 MB". */
+export function formatSize(bytes: number): string {
+    if (bytes < 1000) return `${bytes} B`;
+    const units = ['KB', 'MB', 'GB', 'TB'];
+    let value = bytes / 1024;
+    let unit = 0;
+    // The next unit from what would show as 1000: 1001 KB is 1.0 MB.
+    while (value >= 999.5 && unit < units.length - 1) {
+        value /= 1024;
+        unit++;
+    }
+    return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
+}
