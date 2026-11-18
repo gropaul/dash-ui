@@ -46,36 +46,65 @@ export function BackToViewerLink() {
 }
 
 /**
- * Keeps the page off the half-way views between the viewer and the text below it (id `below`): a scroll that stops
- * between the two goes on, smoothly, in its direction, to the text's start under the sticky header or to the top.
+ * Keeps the page off the half-way views between the viewer and the text below it (id `below`): a scroll into the space
+ * between them goes on at once, smoothly, in its direction, to the text's start under the sticky header or to the top.
+ * Wheel and touch input is swallowed during the glide and until it stops (trackpad momentum), as it would cut the glide
+ * off or start another back.
  */
 export function SnapViewerAndText({below}: { below: string }) {
     useEffect(() => {
         let lastY = window.scrollY;
-        let direction = 0;
-        let timer: ReturnType<typeof setTimeout> | undefined;
-        const settle = () => {
+        let target: number | undefined;
+        let lastInput = 0;
+        let started = 0;
+        let release: ReturnType<typeof setTimeout> | undefined;
+
+        const textTop = () => {
             const text = document.getElementById(below);
-            if (!text) return;
             const header = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
-            const textTop = text.getBoundingClientRect().top + window.scrollY - header;
-            const y = window.scrollY;
-            if (y <= 0 || y >= textTop - 1) return;
-            window.scrollTo({top: direction > 0 ? textTop : 0, behavior: 'smooth'});
+            return text ? text.getBoundingClientRect().top + window.scrollY - header : undefined;
+        };
+        // Ends the glide once it has arrived and the input has been quiet for a moment, or after a while in any case: a
+        // key press can stop it short of its target.
+        const releaseWhenQuiet = () => {
+            clearTimeout(release);
+            release = setTimeout(() => {
+                if (target === undefined) return;
+                const arrived = Math.abs(window.scrollY - target) < 1;
+                const quiet = Date.now() - lastInput >= INPUT_QUIET_MS;
+                if ((arrived && quiet) || Date.now() - started > GLIDE_LIMIT_MS) target = undefined;
+                else releaseWhenQuiet();
+            }, INPUT_QUIET_MS);
         };
         const onScroll = () => {
             const y = window.scrollY;
-            if (y !== lastY) direction = Math.sign(y - lastY);
+            const direction = Math.sign(y - lastY);
             lastY = y;
-            clearTimeout(timer);
-            // After the scroll and its momentum end: a smooth scroll started during it would be cut off.
-            timer = setTimeout(settle, 120);
+            if (target !== undefined) return;
+            const top = textTop();
+            if (top === undefined || y <= 0 || y >= top - 1 || direction === 0) return;
+            target = direction > 0 ? top : 0;
+            started = Date.now();
+            window.scrollTo({top: target, behavior: 'smooth'});
+            releaseWhenQuiet();
+        };
+        const onInput = (e: Event) => {
+            if (target === undefined) return;
+            lastInput = Date.now();
+            e.preventDefault();
         };
         window.addEventListener('scroll', onScroll, {passive: true});
+        window.addEventListener('wheel', onInput, {passive: false});
+        window.addEventListener('touchmove', onInput, {passive: false});
         return () => {
             window.removeEventListener('scroll', onScroll);
-            clearTimeout(timer);
+            window.removeEventListener('wheel', onInput);
+            window.removeEventListener('touchmove', onInput);
+            clearTimeout(release);
         };
     }, [below]);
     return null;
 }
+
+const INPUT_QUIET_MS = 150;
+const GLIDE_LIMIT_MS = 2000;
