@@ -106,11 +106,12 @@ export async function deleteViewerFile(name: string): Promise<void> {
 }
 
 export function formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1000) return `${bytes} B`;
     const units = ['KB', 'MB', 'GB', 'TB'];
     let value = bytes / 1024;
     let unit = 0;
-    while (value >= 1024 && unit < units.length - 1) {
+    // The next unit from what would show as 1000: 1001 KB is 1.0 MB.
+    while (value >= 999.5 && unit < units.length - 1) {
         value /= 1024;
         unit++;
     }
