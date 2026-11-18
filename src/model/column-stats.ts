@@ -87,6 +87,7 @@ function GetQueryForColumn(column: Column, index: number): QueryColumnPart {
                 availableAggs: [...DEFAULT_AGGS, 'HISTOGRAM'],
             }
         case "String":
+        case "Boolean":
             const aggs = getSimpleAggFuns(column, ['COUNT'], index);
             aggs.push(getTopKFunction(column, index, TOP_K_VALUE))
             return {
@@ -151,6 +152,7 @@ export function GetStatsTypeForValueType(value: ValueType): ColumnStatsType {
         case 'Timestamp':
             return 'histogram';
         case 'String':
+        case 'Boolean':
             return 'top-n';
         default:
             return 'non_null';
