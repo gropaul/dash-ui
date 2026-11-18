@@ -25,7 +25,7 @@ export function LearnHowLink({className}: { className?: string }) {
                if (down) window.scrollTo({top: 0, behavior: 'smooth'});
                else document.getElementById('how')?.scrollIntoView({behavior: 'smooth'});
            }}>
-            {down ? 'Back to the file' : 'How it works'}
+            {down ? 'Back to top' : 'How it works'}
             <ArrowDown className={cn("h-3.5 w-3.5 transition-transform duration-500 [transition-timing-function:cubic-bezier(0.34,1.8,0.64,1)]", down && "rotate-180")}/>
         </a>
     );
@@ -39,7 +39,7 @@ export function BackToViewerLink() {
                e.preventDefault();
                window.scrollTo({top: 0, behavior: 'smooth'});
            }}>
-            Back to the file
+            Back to top
             <ArrowUp className="h-3.5 w-3.5"/>
         </a>
     );
