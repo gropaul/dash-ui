@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import {formatNumber} from "@/platform/number-utils";
 import {useEffect, useMemo, useRef} from "react";
 import {EChartsInstance} from "echarts-for-react";
+import {useTheme} from "next-themes";
 import {
     GetColors,
     ItemToString,
@@ -32,6 +33,7 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
 
     // Keep the chart instance here so React can re-bind handlers correctly
     const chartRef = useRef<EChartsInstance | null>(null);
+    const dark = useTheme().resolvedTheme === "dark";
 
     // Apply filtering + convert values to strings
     const selectedStrings = props.selected.map(item => ItemToString(item));
@@ -45,7 +47,7 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
 
     // ECharts option
     const option = useMemo(() => {
-        const colors = GetColors(filtered, selectedStrings)
+        const colors = GetColors(filtered, selectedStrings, dark)
         // extract raw data
         const categories = filtered.map(item => item.valueString);
         const counts = filtered.map(item => item.count);
@@ -123,7 +125,7 @@ export function ColumnStatsViewTopN(props: TopNChartProps) {
                 }
             ]
         };
-    }, [filtered, props.nonNullCount]);
+    }, [filtered, props.nonNullCount, dark]);
 
     function registerHandler(instance: EChartsInstance) {
         const handler = (params: any) => {

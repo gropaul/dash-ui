@@ -2,11 +2,16 @@
 
 import dynamic from "next/dynamic";
 import {useEffect, useRef, useState} from "react";
+import {useTheme} from "next-themes";
 import {formatDateRange, formatNumber, formatNumberFixed} from "@/platform/number-utils";
 
 const ReactECharts = dynamic(() => import("@/components/relation/chart/react-echarts"), {
     ssr: false,
 });
+
+// The range picked, over the chart: text in the theme's foreground, outlined in its background.
+const RANGE_TEXT_HALO = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([x, y]) => `${x}px ${y}px 0 hsl(var(--background))`)
+    .concat('0 0 3px hsl(var(--background))').join(', ');
 
 export type HistDataType = 'value' | 'timestamp';
 
@@ -117,6 +122,7 @@ export function ColumnStatsViewHist({
                                }: HistogramChartProps) {
     const handlersSetupRef = useRef(false);
     const chartInstanceRef = useRef<any>(null);
+    const dark = useTheme().resolvedTheme === 'dark';
     const [currentRange, setCurrentRange] = useState<{ min: number; max: number } | null>(null);
     const [selectedCount, setSelectedCount] = useState<number | undefined>(undefined);
 
@@ -302,6 +308,7 @@ export function ColumnStatsViewHist({
 
     const [startDateStr, endDateStr] = formatDateRange(dateMin, dateMax);
 
+    const labelColor = dark ? '#9ca3af' : '#666';
     const date_min_max = [
         {
             type: 'text',
@@ -310,7 +317,7 @@ export function ColumnStatsViewHist({
             style: {
                 text: startDateStr,
                 fontSize: 12,
-                fill: '#666',
+                fill: labelColor,
             }
         },
         {
@@ -320,7 +327,7 @@ export function ColumnStatsViewHist({
             style: {
                 text: endDateStr,
                 fontSize: 12,
-                fill: '#666',
+                fill: labelColor,
             }
         }
     ]
@@ -357,6 +364,7 @@ export function ColumnStatsViewHist({
                 axisLabel: {
                     customValues: ['min', 'max'],
                     fontSize: 12,
+                    color: labelColor,
                 },
                 axisTick: {
                     customValues: [minValue, maxValue],
@@ -367,6 +375,7 @@ export function ColumnStatsViewHist({
                     alignMinLabel: 'left',
                     alignMaxLabel: 'right',
                     fontSize: 12,
+                    color: labelColor,
                 },
                 splitNumber: 2,
             }),
@@ -504,8 +513,8 @@ export function ColumnStatsViewHist({
                 >
                     <div style={{
                         fontWeight: 600,
-                        color: '#000',
-                        textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff'
+                        color: 'hsl(var(--foreground))',
+                        textShadow: RANGE_TEXT_HALO
                     }}>
                         {dataType === 'timestamp'
                             ? <>
@@ -519,9 +528,9 @@ export function ColumnStatsViewHist({
 
                     {selectedCount !== undefined && (
                         <div style={{
-                            color: '#000',
+                            color: 'hsl(var(--foreground))',
                             marginTop: 2,
-                            textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff'
+                            textShadow: RANGE_TEXT_HALO
                         }}>
                             ~{formatNumber(selectedCount)}
                             {percentage && ` (${percentage}%)`}

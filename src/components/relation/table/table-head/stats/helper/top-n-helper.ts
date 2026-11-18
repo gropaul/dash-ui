@@ -1,12 +1,12 @@
 import {LerpColorHex} from "@/platform/colors-utils";
 import {TopNItem, TopNItemTransformed} from "@/components/relation/table/table-head/stats/column-stats-view-top-n";
 
-const startColor = "#afc9ff";
-const endColor = "#e6eeff";
 // With a pick, as the histogram's range: the picked values in the strongest blue, the rest in gray, dark to light as
-// the blue runs without one.
-const unpickedStartColor = "#d1d5db";
-const unpickedEndColor = "#f3f4f6";
+// the blue runs without one. In dark mode the bars run from bright to dim instead.
+const PALETTES = {
+    light: {start: "#afc9ff", end: "#e6eeff", unpickedStart: "#d1d5db", unpickedEnd: "#f3f4f6", rest: "#efefef"},
+    dark: {start: "#2f5fb3", end: "#1c2b4a", unpickedStart: "#4b5563", unpickedEnd: "#272b33", rest: "#2a2e35"},
+};
 
 export function ItemToString(value: any): string {
     return value === null
@@ -44,18 +44,19 @@ export function PreprocessRawData(topValues: TopNItem[], selectedStrings: string
     return filtered;
 }
 
-export function GetColors(items: TopNItemTransformed[], selectedStrings: string[]) {
+export function GetColors(items: TopNItemTransformed[], selectedStrings: string[], dark = false) {
+    const palette = dark ? PALETTES.dark : PALETTES.light;
     return items.map((item, index) => {
         const t = items.length === 1 ? 0 : index / (items.length - 1);
 
         if (selectedStrings.length > 0) {
-            return selectedStrings.includes(item.valueString) ? startColor : LerpColorHex(unpickedStartColor, unpickedEndColor, 1 - t);
+            return selectedStrings.includes(item.valueString) ? palette.start : LerpColorHex(palette.unpickedStart, palette.unpickedEnd, 1 - t);
         }
 
-        if (item.isOthers) return "#efefef";
-        if (item.valueString === "null") return "#efefef";
-        if (item.valueString === "undefined") return "#efefef";
+        if (item.isOthers) return palette.rest;
+        if (item.valueString === "null") return palette.rest;
+        if (item.valueString === "undefined") return palette.rest;
 
-        return LerpColorHex(startColor, endColor, 1 - t);
+        return LerpColorHex(palette.start, palette.end, 1 - t);
     });
 }
