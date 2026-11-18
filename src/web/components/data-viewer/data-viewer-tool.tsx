@@ -10,6 +10,7 @@ import {getRelationActions} from "@/state/relations/actions/end-user-actions";
 import {RelationConfig} from "@/state/workspace/relation-config";
 import {DuckdbWasmProvider} from "@/state/connections/duckdb-wasm/duckdb-wasm-provider";
 import {cn} from "@/lib/utils";
+import {formatRelativeTime} from "@/platform/string-utils";
 import {SidebarResizeHandle} from "@/components/layout/sidebar-resize-handle";
 import {connect, startDatabase, useWaitingForDatabase} from "@web/components/site-runtime";
 import {
@@ -182,7 +183,8 @@ export default function DataViewerTool() {
                         <OpenFile key={`${open}#${opened}`} name={open} sql={sql}/>
                     </div>
                 ) : (
-                    <DropZone busy={busy} error={error} onChoose={() => input.current?.click()} onSample={() => void addSample()}/>
+                    <DropZone busy={busy} error={error} files={files} onChoose={() => input.current?.click()}
+                              onSample={() => void addSample()} onOpen={name => void openKept(name)}/>
                 )}
             </div>
 
@@ -228,20 +230,51 @@ function FileRow({file, current, onOpen}: { file: ViewerFile, current: boolean, 
     );
 }
 
-function DropZone({busy, error, onChoose, onSample}: { busy: boolean, error?: string, onChoose: () => void, onSample: () => void }) {
+const RECENT_FILES = 5;
+
+/** The start screen while no file is open: the drop zone, and under it the files opened last, as the agent chat's new tab. */
+function DropZone({busy, error, files, onChoose, onSample, onOpen}: {
+    busy: boolean,
+    error?: string,
+    files: ViewerFile[],
+    onChoose: () => void,
+    onSample: () => void,
+    onOpen: (name: string) => void,
+}) {
+    const recent = files.slice(0, RECENT_FILES);
     return (
-        <div className="flex h-full items-center justify-center p-6">
-            <div className="max-w-md rounded-2xl border-2 border-dashed px-8 py-10 text-center">
-                <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
-                    {busy ? <Loader2 className="h-5 w-5 animate-spin"/> : <Upload className="h-5 w-5"/>}
+        <div className="flex h-full flex-col items-center overflow-y-auto p-6">
+            <div className="my-auto w-full max-w-md">
+                <div className="rounded-2xl border-2 border-dashed px-8 py-10 text-center">
+                    <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
+                        {busy ? <Loader2 className="h-5 w-5 animate-spin"/> : <Upload className="h-5 w-5"/>}
+                    </div>
+                    <p className="mt-3 text-lg font-semibold">Drop a file here</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Parquet or CSV</p>
+                    <div className="mt-5 flex flex-wrap justify-center gap-2">
+                        <Button className="rounded-2xl" onClick={onChoose} disabled={busy}>Choose a file</Button>
+                        <Button variant="outline" className="rounded-2xl" onClick={onSample} disabled={busy}>Try a sample file</Button>
+                    </div>
+                    {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
                 </div>
-                <p className="mt-3 text-lg font-semibold">Drop a file here</p>
-                <p className="mt-1 text-sm text-muted-foreground">Parquet or CSV</p>
-                <div className="mt-5 flex flex-wrap justify-center gap-2">
-                    <Button className="rounded-2xl" onClick={onChoose} disabled={busy}>Choose a file</Button>
-                    <Button variant="outline" className="rounded-2xl" onClick={onSample} disabled={busy}>Try a sample file</Button>
-                </div>
-                {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
+
+                {/* On a phone the file list sits right above. */}
+                {recent.length > 0 && (
+                    <div className="mt-6 hidden md:block">
+                        <div className="px-2 pb-1 text-xs font-medium text-muted-foreground">Recent files</div>
+                        {recent.map(file => (
+                            <button key={file.name} type="button" onClick={() => onOpen(file.name)}
+                                    className="flex w-full flex-col items-start gap-0.5 rounded-md px-2 py-1.5 text-left hover:bg-muted">
+                                <span className="w-full truncate text-sm">{file.name}</span>
+                                <span className="flex w-full gap-2 text-xs text-muted-foreground">
+                                    <span>{formatRelativeTime(file.lastModified)}</span>
+                                    <span>{file.format === 'csv' ? 'CSV' : 'Parquet'}</span>
+                                    <span className="ml-auto">{formatSize(file.size)}</span>
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
