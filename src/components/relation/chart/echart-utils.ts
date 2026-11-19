@@ -183,7 +183,8 @@ export function toEChartOptions(
         const xAxis: any = {
             type: xAxisType,
             boundaryGap: plot.type === "bar",
-            data: xData,
+            // ECharts reads a number on a category axis as the category's index, so 2601 would be index 2601.
+            data: xAxisType === 'category' ? xData.map(String) : xData,
             axisLabel: {color: textColor},
             nameTextStyle: {color: textColor},
             axisLine: lines,
@@ -264,7 +265,7 @@ export function toEChartOptions(
             }
         }
 
-        let series = getSeries(plot, GetColumn, data);
+        let series = getSeries(plot, GetColumn, data, xAxisType === 'category');
 
         // Visual dimming for click mode when values are selected
         const selectedXValues = queryState.selectedXValues;
@@ -272,8 +273,7 @@ export function toEChartOptions(
             series = series.map((s: any) => ({
                 ...s,
                 data: s.data.map((point: any) => {
-                    const xVal = Array.isArray(point.value) ? point.value[0] : point.value;
-                    const isSelected = selectedXValues.includes(xVal);
+                    const isSelected = selectedXValues.includes(point.name);
                     return {
                         ...point,
                         itemStyle: {
@@ -315,7 +315,7 @@ export function toEChartOptions(
 
         const indicators = GetColumn(cartesian.xAxis.columnId)
             .map((v: any) => ({name: String(v), max: 20}));
-        const series = getSeries(plot, GetColumn, data)
+        const series = getSeries(plot, GetColumn, data, false)
 
         return {
             ...baseConfig,
@@ -331,7 +331,7 @@ export function toEChartOptions(
 }
 
 
-function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], data: RelationData) {
+function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], data: RelationData, xIsCategory: boolean) {
 
     const xAxisId = plot.cartesian.xAxis?.columnId;
     if (!xAxisId) {
@@ -352,7 +352,7 @@ function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], dat
                 columnId: c.id,
                 decoration: decoration,
             }
-            return getEChartSeriesFromAxis(config, GetColumn(c.id), plot, count, xAxisId, xValues);
+            return getEChartSeriesFromAxis(config, GetColumn(c.id), plot, count, xValues, xIsCategory);
         })
     }
 
@@ -362,7 +362,7 @@ function getSeries(plot: PlotConfig, GetColumn: (columnId: string) => any[], dat
     // series for y-axis
     return (cartesian.yAxes ?? []).map((axis, index) => {
         let vals = GetColumn(axis.columnId);
-        return getEChartSeriesFromAxis(axis, vals, plot, yAxisCount, xAxisId, xValues);
+        return getEChartSeriesFromAxis(axis, vals, plot, yAxisCount, xValues, xIsCategory);
     })
 }
 
@@ -381,7 +381,7 @@ function buildBrushOption(mode: ChartInteractionMode): object | null {
 }
 
 
-function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConfig, yAxisCount: number, xAxisId: string, xValues: any[]): any {
+function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConfig, yAxisCount: number, xValues: any[], xIsCategory: boolean): any {
     const dec = axis.decoration;
     // The stroke color is the series color for every plot type: line/area stroke, bar fill, dot border.
     const seriesColor = dec.line.stroke.color;
@@ -397,8 +397,8 @@ function getEChartSeriesFromAxis(axis: AxisConfig, values: any[], plot: PlotConf
     const valuesMapList = values.map((value, index) => {
         const xValue = xValues[index];
         return {
-            name: xValues[index],
-            value: [xValue, value],
+            name: xValue,
+            value: [xIsCategory ? String(xValue) : xValue, value],
         }
     })
 

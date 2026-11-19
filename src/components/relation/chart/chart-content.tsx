@@ -107,8 +107,8 @@ export function ChartContent(props: MyChartProps) {
             if (interactionModeRef.current !== 'click') return;
             let xVal: any;
             if (Array.isArray(p.data?.value)) {
-                // Cartesian: value is [x, y], preserves original type
-                xVal = p.data.value[0];
+                // Cartesian: name holds the x value with its original type
+                xVal = p.data.name;
             } else {
                 // Pie: p.name is always stringified by ECharts — look up the original typed value by index
                 const labelColId = configRef.current?.plot?.pie?.axis?.label?.columnId;
